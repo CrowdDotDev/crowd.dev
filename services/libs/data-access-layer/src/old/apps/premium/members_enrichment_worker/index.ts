@@ -546,5 +546,5 @@ export async function findMemberEnrichmentCacheForAllSourcesDb<T>(
     { memberId },
   )
 
-  return result ?? null
+  return result ?? []
 }

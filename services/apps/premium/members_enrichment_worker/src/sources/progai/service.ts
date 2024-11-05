@@ -309,47 +309,36 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   async getDataUsingGitHubHandle(githubUsername: string): Promise<IMemberEnrichmentDataProgAI> {
-    let response: IMemberEnrichmentDataProgAIResponse
-
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          github_handle: githubUsername,
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-        },
-        headers: {},
-      }
-
-      response = (await axios(config)).data
-    } catch (err) {
-      throw new Error(err)
+    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+    const config = {
+      method: 'get',
+      url,
+      params: {
+        github_handle: githubUsername,
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+      },
+      headers: {},
     }
 
-    return response.profile
+    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
+    return response?.profile || null
   }
 
   async getDataUsingEmailAddress(email: string): Promise<IMemberEnrichmentDataProgAI> {
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          email,
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-        },
-        headers: {},
-      }
-
-      const response = (await axios(config)).data
-      return response.profile
-    } catch (err) {
-      throw new Error(err)
+    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+    const config = {
+      method: 'get',
+      url,
+      params: {
+        email,
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+      },
+      headers: {},
     }
+
+    const response = (await axios(config)).data
+    return response?.profile || null
   }
 }

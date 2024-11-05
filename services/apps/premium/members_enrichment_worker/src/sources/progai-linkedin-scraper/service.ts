@@ -12,6 +12,8 @@ import {
 } from '../../types'
 import { IMemberEnrichmentDataProgAI, IMemberEnrichmentDataProgAIResponse } from '../progai/types'
 
+import { IMemberEnrichmentDataProgAILinkedinScraper } from './types'
+
 export default class EnrichmentServiceProgAILinkedinScraper
   extends LoggerBase
   implements IEnrichmentService
@@ -26,16 +28,13 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   public enrichableBySql = `(mi.verified AND mi.type = 'username' and mi.platform = 'linkedin')`
 
-  // bust cache after 120 days
-  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
+  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
   constructor(public readonly log: Logger) {
     super(log)
   }
 
-  // in addition to members with linkedin identity
-  // we'll also use existing cache rows from other sources (serp and clearbit)
-  // if there are linkedin urls there as well, we'll enrich using these also
+  // in addition to members with linkedin identity we'll also use existing cache rows from other sources (serp and clearbit)
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
     const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
 
@@ -68,10 +67,15 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   private async findConsumableLinkedinIdentities(
     input: IEnrichmentSourceInput,
-  ): Promise<IMemberIdentity[]> {
-    const consumableIdentities: IMemberIdentity[] = []
+  ): Promise<
+    (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
+  > {
+    const consumableIdentities: (IMemberIdentity & {
+      repeatedTimesInDifferentSources: number
+      isFromVerifiedSource: boolean
+    })[] = []
     const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
-    const linkedinUrlHashmap = new Map<string, boolean>()
+    const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {
       if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
@@ -83,34 +87,58 @@ export default class EnrichmentServiceProgAILinkedinScraper
         if (normalized.identities.some((i) => i.platform === PlatformType.LINKEDIN)) {
           const identity = normalized.identities.find((i) => i.platform === PlatformType.LINKEDIN)
           if (!linkedinUrlHashmap.get(identity.value)) {
-            consumableIdentities.push(identity)
-            linkedinUrlHashmap.set(identity.value, true)
+            consumableIdentities.push({
+              ...identity,
+              repeatedTimesInDifferentSources: 1,
+              isFromVerifiedSource: false,
+            })
+            linkedinUrlHashmap.set(identity.value, 1)
+          } else {
+            const repeatedTimesInDifferentSources = linkedinUrlHashmap.get(identity.value) + 1
+            linkedinUrlHashmap.set(identity.value, repeatedTimesInDifferentSources)
+            consumableIdentities.find(
+              (i) => i.value === identity.value,
+            ).repeatedTimesInDifferentSources = repeatedTimesInDifferentSources
           }
         }
       }
     }
 
     // also add the linkedin identity from the input
-    if (
-      input.linkedin &&
-      input.linkedin.value &&
-      input.linkedin.verified &&
-      !linkedinUrlHashmap.get(input.linkedin.value)
-    ) {
-      consumableIdentities.push(input.linkedin)
-    }
+    if (input.linkedin && input.linkedin.value && input.linkedin.verified) {
+      if (!linkedinUrlHashmap.get(input.linkedin.value)) {
+        consumableIdentities.push({
+          ...input.linkedin,
+          repeatedTimesInDifferentSources: 1,
+          isFromVerifiedSource: true,
+        })
+      } else {
+        const repeatedTimesInDifferentSources = linkedinUrlHashmap.get(input.linkedin.value) + 1
+        const identityFound = consumableIdentities.find((i) => i.value === input.linkedin.value)
 
+        identityFound.repeatedTimesInDifferentSources = repeatedTimesInDifferentSources
+        identityFound.isFromVerifiedSource = true
+      }
+    }
     return consumableIdentities
   }
 
-  async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataProgAI[] | null> {
-    const profiles: IMemberEnrichmentDataProgAI[] = []
+  async getData(
+    input: IEnrichmentSourceInput,
+  ): Promise<IMemberEnrichmentDataProgAILinkedinScraper[] | null> {
+    const profiles: IMemberEnrichmentDataProgAILinkedinScraper[] = []
     const consumableIdentities = await this.findConsumableLinkedinIdentities(input)
 
     for (const identity of consumableIdentities) {
       const data = await this.getDataUsingLinkedinHandle(identity.value)
       if (data) {
-        profiles.push(data)
+        profiles.push({
+          ...data,
+          metadata: {
+            repeatedTimesInDifferentSources: identity.repeatedTimesInDifferentSources,
+            isFromVerifiedSource: identity.isFromVerifiedSource,
+          },
+        })
       }
     }
 
@@ -118,30 +146,26 @@ export default class EnrichmentServiceProgAILinkedinScraper
   }
 
   private async getDataUsingLinkedinHandle(handle: string): Promise<IMemberEnrichmentDataProgAI> {
-    let response: IMemberEnrichmentDataProgAIResponse
-
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          linkedin_url: `https://linkedin.com/in/${handle}`,
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-        },
-        headers: {},
-      }
-
-      response = (await axios(config)).data
-    } catch (err) {
-      throw new Error(err)
+    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+    const config = {
+      method: 'get',
+      url,
+      params: {
+        linkedin_url: `https://linkedin.com/in/${handle}`,
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+      },
+      headers: {},
     }
 
-    return response.profile
+    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
+
+    return response?.profile || null
   }
 
-  normalize(profiles: IMemberEnrichmentDataProgAI[]): IMemberEnrichmentDataNormalized[] {
+  normalize(
+    profiles: IMemberEnrichmentDataProgAILinkedinScraper[],
+  ): IMemberEnrichmentDataNormalized[] {
     const normalizedProfiles: IMemberEnrichmentDataNormalized[] = []
     const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
       MemberEnrichmentSource.PROGAI,
@@ -150,7 +174,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
     for (const profile of profiles) {
       const normalized = progaiService.normalize(profile) as IMemberEnrichmentDataNormalized
-      normalizedProfiles.push(normalized)
+      normalizedProfiles.push({ ...normalized, metadata: profile.metadata })
     }
 
     return normalizedProfiles.length > 0 ? normalizedProfiles : null

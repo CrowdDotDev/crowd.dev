@@ -10,6 +10,7 @@ import {
 } from '@crowd/types'
 
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
+import { IMemberEnrichmentDataProgAILinkedinScraper } from './sources/progai-linkedin-scraper/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
@@ -26,9 +27,9 @@ export interface IEnrichmentSourceInput {
 
 export type IMemberEnrichmentData =
   | IMemberEnrichmentDataProgAI
-  | IMemberEnrichmentDataProgAI[]
   | IMemberEnrichmentDataClearbit
   | IMemberEnrichmentDataSerp
+  | IMemberEnrichmentDataProgAILinkedinScraper[]
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
@@ -62,6 +63,7 @@ export interface IMemberEnrichmentDataNormalized {
   attributes?: IAttributes
   memberOrganizations?: IMemberEnrichmentDataNormalizedOrganization[]
   displayName?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface IMemberEnrichmentDataNormalizedOrganization {
