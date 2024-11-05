@@ -1,5 +1,6 @@
 import {
   findMemberEnrichmentCache,
+  findMemberIdentityWithTheMostActivityInPlatform,
   getEnrichmentData,
   insertMemberEnrichmentCache,
   isCacheObsolete,
@@ -50,4 +51,5 @@ export {
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
   isEnrichableBySource,
+  findMemberIdentityWithTheMostActivityInPlatform,
 }

@@ -1,3 +1,4 @@
+import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
 import {
   findMemberEnrichmentCacheDb,
   insertMemberEnrichmentCacheDb,
@@ -5,7 +6,11 @@ import {
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { RedisCache } from '@crowd/redis'
-import { IMemberEnrichmentCache, MemberEnrichmentSource } from '@crowd/types'
+import {
+  IEnrichableMemberIdentityActivityAggregate,
+  IMemberEnrichmentCache,
+  MemberEnrichmentSource,
+} from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
@@ -116,4 +121,11 @@ export async function touchMemberEnrichmentCacheUpdatedAt(
   memberId: string,
 ): Promise<void> {
   await touchMemberEnrichmentCacheUpdatedAtDb(svc.postgres.writer.connection(), memberId, source)
+}
+
+export async function findMemberIdentityWithTheMostActivityInPlatform(
+  memberId: string,
+  platform: string,
+): Promise<IEnrichableMemberIdentityActivityAggregate> {
+  return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
 }

@@ -24,3 +24,9 @@ export interface IEnrichableMember {
   identities: IMemberIdentity[]
   activityCount: number
 }
+
+export interface IEnrichableMemberIdentityActivityAggregate {
+  activityCount: number
+  username: string
+  platform: string
+}

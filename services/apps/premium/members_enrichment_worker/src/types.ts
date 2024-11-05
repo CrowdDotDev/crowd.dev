@@ -70,7 +70,7 @@ export interface IMemberEnrichmentDataNormalizedOrganization {
 }
 
 export interface IGetMembersForEnrichmentArgs {
-  afterId?: string
+  afterCursor: { activityCount: number; memberId: string } | null
 }
 
 export interface IMemberEnrichmentSocialData {
