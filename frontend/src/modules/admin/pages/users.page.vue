@@ -65,7 +65,6 @@ import { onMounted, ref } from 'vue';
 import { UsersService } from '@/modules/admin/services/users.service';
 import { UserModel } from '@/modules/admin/models/User.model';
 import LfTable from '@/ui-kit/table/Table.vue';
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
