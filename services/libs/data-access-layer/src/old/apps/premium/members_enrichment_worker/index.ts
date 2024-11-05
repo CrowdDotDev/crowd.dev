@@ -16,9 +16,11 @@ export async function fetchMembersForEnrichment(
   db: DbStore,
   limit: number,
   sourceInputs: IMemberEnrichmentSourceQueryInput[],
-  afterId: string,
+  afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
-  const idFilter = afterId ? ' and members.id < $2 ' : ''
+  const cursorFilter = afterCursor
+    ? `AND ((coalesce("activitySummary".total_count, 0) < $2) OR (coalesce("activitySummary".total_count, 0) = $2 AND members.id < $3))`
+    : ''
 
   const sourceInnerQueryItems = []
   const enrichableBySqlConditions = []
@@ -48,42 +50,45 @@ export async function fetchMembersForEnrichment(
     WITH "activitySummary" AS (
         SELECT
             msa."memberId",
-            sum(msa."activityCount") AS total_count
+            SUM(msa."activityCount") AS total_count
         FROM "memberSegmentsAgg" msa
         WHERE msa."segmentId" IN (
             SELECT id
             FROM segments
             WHERE "grandparentId" IS NOT NULL AND "parentId" IS NOT NULL
         )
-        group by msa."memberId"
+        GROUP BY msa."memberId"
     )
     SELECT
          members."id",
          members."tenantId",
          members."displayName",
-         members.attributes->'location'->>'default' as location,
-         members.attributes->'websiteUrl'->>'default' as website,
-         json_agg(json_build_object(
-          'platform', mi.platform,
-          'value', mi.value,
-          'type', mi.type,
-          'verified', mi.verified
-        )) as identities,
-        MAX("activitySummary".total_count) as "activityCount"
-     FROM members
-              INNER JOIN tenants ON tenants.id = members."tenantId"
-              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
-              INNER JOIN "activitySummary" on "activitySummary"."memberId" = members.id
-     WHERE 
-       ${enrichableBySqlJoined}
-       AND tenants."deletedAt" IS NULL
-       AND members."deletedAt" IS NULL
-       AND (${sourceInnerQueryItems.join(' OR ')})
-       ${idFilter}
-     GROUP BY members.id
-     ORDER BY members.id desc
-         LIMIT $1;`,
-    [limit, afterId],
+         members.attributes->'location'->>'default' AS location,
+         members.attributes->'websiteUrl'->>'default' AS website,
+         JSON_AGG(
+           JSON_BUILD_OBJECT(
+             'platform', mi.platform,
+             'value', mi.value,
+             'type', mi.type,
+             'verified', mi.verified
+           )
+         ) AS identities,
+         MAX(coalesce("activitySummary".total_count, 0)) AS "activityCount"
+    FROM members
+         INNER JOIN tenants ON tenants.id = members."tenantId"
+         INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+         LEFT JOIN "activitySummary" ON "activitySummary"."memberId" = members.id
+    WHERE 
+      ${enrichableBySqlJoined}
+      AND tenants."deletedAt" IS NULL
+      AND members."deletedAt" IS NULL
+      AND (${sourceInnerQueryItems.join(' OR ')})
+      ${cursorFilter}
+    GROUP BY members.id
+    ORDER BY "activityCount" DESC, members.id DESC
+    LIMIT $1;
+    `,
+    afterCursor ? [limit, afterCursor.activityCount, afterCursor.memberId] : [limit],
   )
 }
 

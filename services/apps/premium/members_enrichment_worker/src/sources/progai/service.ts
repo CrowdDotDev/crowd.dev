@@ -124,6 +124,10 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     return enrichableUsingGithubHandle || enrichableUsingEmail
   }
 
+  async hasRemainingCredits(): Promise<boolean> {
+    return true
+  }
+
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataProgAI> {
     let enriched: IMemberEnrichmentDataProgAI = null
 

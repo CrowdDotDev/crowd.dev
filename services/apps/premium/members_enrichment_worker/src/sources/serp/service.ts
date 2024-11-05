@@ -9,12 +9,16 @@ import {
   IMemberEnrichmentDataNormalized,
 } from '../../types'
 
-import { IMemberEnrichmentDataSerp, IMemberEnrichmentSerpApiResponse } from './types'
+import {
+  IMemberEnrichmentDataSerp,
+  IMemberEnrichmentSerpApiResponse,
+  ISerpApiAccountUsageData,
+} from './types'
 
 export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.SERP
   public platform = `enrichment-${this.source}`
-  public enrichMembersWithActivityMoreThan = 10
+  public enrichMembersWithActivityMoreThan = 500
 
   public enrichableBySql = `
   ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
@@ -43,6 +47,25 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
         (!!input.github && input.github.verified) ||
         !!input.website)
     )
+  }
+
+  async hasRemainingCredits(): Promise<boolean> {
+    try {
+      const config = {
+        method: 'get',
+        url: `https://serpapi.com/account`,
+        params: {
+          api_key: process.env['CROWD_ENRICHMENT_SERP_API_KEY'],
+        },
+      }
+
+      const response: ISerpApiAccountUsageData = (await axios(config)).data
+
+      return response.total_searches_left > 0
+    } catch (error) {
+      this.log.error('Error while checking serpapi account usage', error)
+      return false
+    }
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataSerp | null> {

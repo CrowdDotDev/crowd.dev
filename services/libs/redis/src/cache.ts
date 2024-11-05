@@ -43,6 +43,12 @@ export class RedisCache extends LoggerBase implements ICache {
     }
   }
 
+  async exists(key: string): Promise<boolean> {
+    const actualKey = this.prefixer(key)
+    const value = await this.client.exists(actualKey)
+    return value === 1
+  }
+
   async increment(key: string, incrementBy = 1, ttlSeconds?: number): Promise<number> {
     const actualKey = this.prefixer(key)
 

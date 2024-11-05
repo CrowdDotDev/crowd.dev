@@ -19,14 +19,14 @@ const { getEnrichableMembers } = proxyActivities<typeof activities>({
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
   const MEMBER_ENRICHMENT_PER_RUN = 100
-  const afterId = args?.afterId || null
+  const afterCursor = args?.afterCursor || null
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.SERP,
   ]
 
-  const members = await getEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
+  const members = await getEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterCursor)
 
   if (members.length === 0) {
     return
@@ -54,6 +54,9 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
   )
 
   await continueAsNew<typeof getMembersToEnrich>({
-    afterId: members[members.length - 1].id,
+    afterCursor: {
+      memberId: members[members.length - 1].id,
+      activityCount: members[members.length - 1].activityCount,
+    },
   })
 }
