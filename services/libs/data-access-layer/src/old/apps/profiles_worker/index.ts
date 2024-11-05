@@ -58,8 +58,7 @@ export async function runMemberAffiliationsUpdate(
         "organizationId",
         "dateStart",
         "dateEnd",
-        "createdAt",
-        "deletedAt"
+        "createdAt"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
         AND "deletedAt" IS NULL
