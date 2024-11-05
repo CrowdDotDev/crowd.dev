@@ -40,7 +40,7 @@ export async function runMemberAffiliationsUpdate(
 
   type Condition = {
     when: string[]
-    orgId: string
+    orgId: string | null
     matches: (activity: IDbActivityCreateData) => boolean
   }
 
@@ -52,22 +52,41 @@ export async function runMemberAffiliationsUpdate(
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
-  const memberOrganizations = await qx.select(
+  const allMemberOrganizations = await qx.select(
     `
       SELECT
         "organizationId",
         "dateStart",
         "dateEnd",
-        "createdAt"
+        "createdAt",
+        "deletedAt"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
-        AND "deletedAt" IS NULL
       ORDER BY "dateStart" DESC
     `,
     { memberId },
   )
 
+  // Filter valid organizations (non-soft-deleted)
+  const validMemberOrganizations = allMemberOrganizations.filter(org => !org.deletedAt)
+
+  // Get all deleted organizationIds to explicitly unaffiliate their activities
+  const deletedOrganizationIds = _.uniq(
+    allMemberOrganizations
+      .filter(org => org.deletedAt)
+      .map(org => org.organizationId)
+  )
+
   const orgCases: Condition[] = [
+    // Explicitly unaffiliate deleted organizations
+    ..._.chain(deletedOrganizationIds)
+      .map((orgId) => ({
+        when: [`'organizationId'::text = '${orgId}'`],
+        matches: (activity) => activity.organizationId === orgId,
+        orgId: null,
+      }))
+      .value(),
+
     ..._.chain(manualAffiliations)
       .sortBy('dateStart')
       .reverse()
@@ -90,7 +109,7 @@ export async function runMemberAffiliationsUpdate(
       }))
       .value(),
 
-    ..._.chain(memberOrganizations)
+    ..._.chain(validMemberOrganizations)
       .filter((row) => !!row.dateStart)
       .sortBy('dateStart')
       .reverse()
@@ -109,7 +128,7 @@ export async function runMemberAffiliationsUpdate(
       }))
       .value(),
 
-    ..._.chain(memberOrganizations)
+    ..._.chain(validMemberOrganizations)
       .filter((row) => !row.dateStart && !row.dateEnd)
       .sortBy('createdAt')
       .reverse()
@@ -123,7 +142,7 @@ export async function runMemberAffiliationsUpdate(
       .value(),
   ]
 
-  const fallbackOrganizationId = _.chain(memberOrganizations)
+  const fallbackOrganizationId = _.chain(validMemberOrganizations)
     .filter((row) => !row.dateStart && !row.dateEnd)
     .sortBy('createdAt')
     .map((row) => row.organizationId)
