@@ -62,7 +62,7 @@ export async function runMemberAffiliationsUpdate(
         "deletedAt"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
-      AND "deletedAt" IS NULL
+        AND "deletedAt" IS NULL
       ORDER BY "dateStart" DESC
     `,
     { memberId },
