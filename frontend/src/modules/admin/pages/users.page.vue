@@ -87,6 +87,7 @@ const fetchUsers = () => {
     },
     offset: offset.value,
     limit: limit.value,
+    orderBy: 'fullName_ASC',
   })
     .then((res) => {
       if (offset.value > 0) {
