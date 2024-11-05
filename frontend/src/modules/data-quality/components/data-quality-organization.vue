@@ -1,19 +1,21 @@
 <template>
   <div>
-    <div class="flex mb-6 justify-between items-center">
-      <div class="flex items-center gap-4">
-        <lf-data-quality-project-dropdown v-model="projectGroup" />
-        <lf-data-quality-type-dropdown
-          v-model="tab"
-          :config="[]"
-        />
+    <div class="sticky top-18 bg-white z-10 -mt-1">
+      <div class="flex mb-6 justify-between items-center">
+        <div class="flex items-center gap-4">
+          <lf-data-quality-project-dropdown v-model="projectGroup" />
+          <lf-data-quality-type-dropdown
+            v-model="tab"
+            :config="[]"
+          />
+        </div>
+        <p class="text-small text-gray-500 italic">
+          <span v-if="tab === 'merge-suggestions'">Sorted by confidence level</span>
+          <span v-else>Sorted by number of activities</span>
+        </p>
       </div>
-      <p class="text-small text-gray-500 italic">
-        <span v-if="tab === 'merge-suggestions'">Sorted by confidence level</span>
-        <span v-else>Sorted by number of activities</span>
-      </p>
+      <div class="border-b border-gray-200 w-full mb-1" />
     </div>
-    <div class="border-b border-gray-200 w-full mb-1" />
     <div>
       <lf-data-quality-organization-merge-suggestions
         v-if="tab === 'merge-suggestions'"

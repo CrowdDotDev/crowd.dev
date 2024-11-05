@@ -1,8 +1,8 @@
 <template>
-  <app-page-wrapper class="!pb-0">
-    <div>
+  <app-page-wrapper class="!pt-0">
+    <div class="">
       <!-- Header -->
-      <div class="mb-6">
+      <div class="sticky -top-5 bg-white z-10 pt-5 -mt-5 pb-6">
         <div class="flex justify-between items-center">
           <div>
             <app-lf-page-header text-class="text-tiny text-secondary-400 mb-1" />
