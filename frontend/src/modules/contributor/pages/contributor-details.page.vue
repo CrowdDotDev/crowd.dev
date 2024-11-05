@@ -79,6 +79,7 @@
           />
           <lf-contributor-details-activities
             v-else-if="tabs === 'activities'"
+            ref="activities"
             :contributor="contributor"
           />
           <lf-contributor-details-notes
@@ -132,6 +133,7 @@ const route = useRoute();
 const tabs = ref('overview');
 
 const notes = ref<any>(null);
+const activities = ref<any>(null);
 
 const { id } = route.params;
 
@@ -153,6 +155,8 @@ const controlScroll = (e) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
     if (tabs.value === 'notes') {
       notes.value.loadMore();
+    } else if (tabs.value === 'activities') {
+      activities.value.loadMore();
     }
   }
 };
