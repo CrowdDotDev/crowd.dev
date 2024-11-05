@@ -14,7 +14,7 @@ import { IGetMembersForEnrichmentArgs } from '../types'
 import { enrichMember } from './enrichMember'
 
 const { getEnrichableMembers } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '2 minutes',
 })
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
