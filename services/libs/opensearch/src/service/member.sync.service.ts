@@ -17,7 +17,7 @@ import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/org
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   IMemberAttribute,
@@ -317,10 +317,11 @@ export class MemberSyncService {
     const now = new Date()
 
     const loadNextPage = async (lastId?: string): Promise<string[]> => {
-      const memberIdData = await this.memberRepo.getOrganizationMembersForSync(
-        organizationId,
-        batchSize,
-        lastId,
+      this.log.info('Loading next page of organization members!', { organizationId, lastId, reqId })
+      const memberIdData = await logExecutionTimeV2(
+        () => this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize, lastId),
+        this.log,
+        `getOrganizationMembersForSync`,
       )
 
       if (memberIdData.length === 0) {
@@ -340,8 +341,13 @@ export class MemberSyncService {
     let memberIds: string[] = await loadNextPage()
 
     while (memberIds.length > 0) {
-      for (const memberId of memberIds) {
-        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
+      for (let i = 0; i < memberIds.length; i++) {
+        const memberId = memberIds[i]
+        const { membersSynced, documentsIndexed } = await logExecutionTimeV2(
+          () => this.syncMembers(memberId),
+          this.log,
+          `syncMembers (${i}/${memberIds.length})`,
+        )
 
         docCount += documentsIndexed
         memberCount += membersSynced
@@ -374,7 +380,11 @@ export class MemberSyncService {
       let memberData: IMemberSegmentAggregates[]
 
       try {
-        memberData = await getMemberAggregates(this.qdbStore.connection(), memberId)
+        memberData = await logExecutionTimeV2(
+          () => getMemberAggregates(this.qdbStore.connection(), memberId),
+          this.log,
+          'getMemberAggregates',
+        )
 
         if (memberData.length === 0) {
           return
@@ -382,7 +392,11 @@ export class MemberSyncService {
 
         // get segment data to aggregate for projects and project groups
         const subprojectSegmentIds = memberData.map((m) => m.segmentId)
-        const segmentData = await fetchManySegments(qx, subprojectSegmentIds)
+        const segmentData = await logExecutionTimeV2(
+          () => fetchManySegments(qx, subprojectSegmentIds),
+          this.log,
+          'fetchManySegments',
+        )
 
         if (segmentData.find((s) => s.type !== 'subproject')) {
           throw new Error('Only subprojects should be set to activities.segmentId!')
@@ -423,8 +437,16 @@ export class MemberSyncService {
           await this.memberRepo.transactionally(
             async (txRepo) => {
               const qx = repoQx(txRepo)
-              await cleanupMemberAggregates(qx, memberId)
-              await insertMemberSegments(qx, memberData)
+              await logExecutionTimeV2(
+                () => cleanupMemberAggregates(qx, memberId),
+                this.log,
+                'cleanupMemberAggregates',
+              )
+              await logExecutionTimeV2(
+                () => insertMemberSegments(qx, memberData),
+                this.log,
+                'insertMemberSegments',
+              )
             },
             undefined,
             true,
