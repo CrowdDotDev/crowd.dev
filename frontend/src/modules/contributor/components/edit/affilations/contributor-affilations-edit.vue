@@ -54,14 +54,28 @@
                       v-model="form[ai]"
                       :contributor="props.contributor"
                     >
-                      <lf-button
-                        type="secondary-ghost"
-                        class="ml-2"
-                        :icon-only="true"
-                        @click="form.splice(ai, 1)"
-                      >
-                        <lf-icon-old name="delete-bin-6-line" />
-                      </lf-button>
+                      <lf-dropdown placement="bottom-end" width="14rem">
+                        <template #trigger>
+                          <lf-button
+                            type="secondary-ghost"
+                            class="ml-2 my-1"
+                            :icon-only="true"
+                          >
+                            <lf-icon-old name="more-fill" />
+                          </lf-button>
+                        </template>
+                        <lf-dropdown-item
+                          @click="copyToOtherProjects(ai)"
+                        >
+                          <lf-icon-old name="file-copy-line" /> Apply to all projects
+                        </lf-dropdown-item>
+                        <lf-dropdown-item
+                          type="danger"
+                          @click="form.splice(ai, 1)"
+                        >
+                          <lf-icon-old name="delete-bin-6-line" /> Delete affiliation
+                        </lf-dropdown-item>
+                      </lf-dropdown>
                     </lf-contributor-edit-affilations-item>
                   </template>
                 </template>
@@ -105,6 +119,8 @@ import LfContributorEditAffilationsItem
 import useVuelidate from '@vuelidate/core';
 import Message from '@/shared/message/message';
 import moment from 'moment';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -176,6 +192,21 @@ const isProjectInvalid = (projectId: string) => form.value.some((affiliation) =>
   && (!affiliation.organization || !affiliation.dateStart || (!affiliation.currentlyAffiliated && !affiliation.dateEnd)));
 
 const hasFormChanged = computed(() => JSON.stringify(form.value) !== JSON.stringify(initialForm.value));
+
+const copyToOtherProjects = (index: number) => {
+  const affiliation = form.value[index];
+  const otherProjects = props.contributor.segments.filter((seg) => seg.id !== affiliation.segmentId);
+
+  otherProjects.forEach((project) => {
+    form.value.push({
+      segmentId: project.id,
+      organization: affiliation.organization,
+      dateStart: affiliation.dateStart,
+      dateEnd: affiliation.dateEnd,
+      currentlyAffiliated: affiliation.currentlyAffiliated,
+    });
+  });
+};
 
 onMounted(() => {
   form.value = props.contributor.affiliations.map((affiliation) => ({
