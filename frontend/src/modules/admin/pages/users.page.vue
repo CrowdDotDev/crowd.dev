@@ -16,7 +16,7 @@
           <tr v-for="user of users" :key="user.id">
             <td>
               <div class="flex items-center gap-3">
-                <lf-avatar :name="nameDisplay(user)" :size="32" />
+                <!--<lf-avatar :name="nameDisplay(user)" :size="32" />-->
                 <p class="text-medium font-semibold">
                   {{ nameDisplay(user) }}
                 </p>
