@@ -3,7 +3,7 @@
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
-    <div v-else-if="members.length > 0">
+    <lf-scroll-body-controll v-else-if="members.length > 0" @bottom="loadMore()">
       <lf-data-quality-member-issues-item
         v-for="(member) of members"
         :key="member.id"
@@ -36,7 +36,7 @@
           Load more
         </lf-button>
       </div>
-    </div>
+    </lf-scroll-body-controll>
     <div v-else class="flex flex-col items-center pt-16">
       <div
         class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
@@ -64,6 +64,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import LfScrollBodyControll from '@/ui-kit/scrollcontroll/ScrollBodyControll.vue';
 
 const props = defineProps<{
   type: DataIssueType,

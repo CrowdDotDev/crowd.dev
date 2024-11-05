@@ -11,7 +11,7 @@ import { svc } from '../main'
 export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
-  afterId: string,
+  afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
   let rows: IEnrichableMember[] = []
   const sourceInputs: IMemberEnrichmentSourceQueryInput[] = sources.map((s) => {
@@ -23,7 +23,7 @@ export async function getEnrichableMembers(
     }
   })
   const db = svc.postgres.reader
-  rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterId)
+  rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterCursor)
 
   return rows
 }

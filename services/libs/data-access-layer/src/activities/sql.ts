@@ -8,6 +8,7 @@ import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
+  IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
   MemberIdentityType,
@@ -1390,4 +1391,25 @@ export async function getLastActivitiesForMembers(
     tenantId,
     segmentIds,
   )
+}
+
+export async function findMemberIdentityWithTheMostActivityInPlatform(
+  qdbConn: DbConnOrTx,
+  platform: string,
+  memberId: string,
+): Promise<IEnrichableMemberIdentityActivityAggregate> {
+  const query = `
+  SELECT count(a.id) AS "activityCount", a.platform, a.username
+      FROM activities a
+      WHERE a."memberId" = $(memberId)
+        AND a.platform = $(platform)
+      GROUP BY a.platform, a.username
+      ORDER BY activity_count DESC
+    LIMIT 1;
+  `
+
+  return qdbConn.oneOrNone(query, {
+    memberId,
+    platform,
+  })
 }

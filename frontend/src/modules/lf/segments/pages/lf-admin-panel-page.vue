@@ -32,6 +32,9 @@
           v-if="activeTab === 'audit-logs'"
         />
       </el-tab-pane>
+      <el-tab-pane v-if="isAdminUser" label="Users" name="users">
+        <lf-admin-users v-if="activeTab === 'users'" />
+      </el-tab-pane>
       <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
         <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
       </el-tab-pane>
@@ -53,6 +56,7 @@ import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.v
 import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
+import LfAdminUsers from '@/modules/admin/pages/users.page.vue';
 
 const route = useRoute();
 const router = useRouter();

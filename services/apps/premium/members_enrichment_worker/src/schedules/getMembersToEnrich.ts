@@ -27,7 +27,7 @@ export const scheduleMembersEnrichment = async () => {
         },
         args: [
           {
-            afterId: null,
+            afterCursor: null,
           },
         ],
       },

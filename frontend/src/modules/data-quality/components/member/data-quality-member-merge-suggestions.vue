@@ -3,7 +3,7 @@
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
-    <div v-else-if="mergeSuggestions.length > 0">
+    <lf-scroll-body-controll v-else-if="mergeSuggestions.length > 0" @bottom="loadMore()">
       <lf-data-quality-member-merge-suggestions-item
         v-for="(suggestion, si) of mergeSuggestions"
         :key="suggestion.id"
@@ -28,7 +28,7 @@
           Load more
         </lf-button>
       </div>
-    </div>
+    </lf-scroll-body-controll>
     <div v-else class="flex flex-col items-center pt-16">
       <div
         class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
@@ -68,6 +68,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfMemberMergeSuggestionDropdown
   from '@/modules/member/components/suggestions/member-merge-suggestion-dropdown.vue';
+import LfScrollBodyControll from '@/ui-kit/scrollcontroll/ScrollBodyControll.vue';
 
 const props = defineProps<{
   projectGroup: string,

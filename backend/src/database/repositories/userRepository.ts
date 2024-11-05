@@ -384,6 +384,7 @@ export default class UserRepository {
         as: 'tenants',
         where: {
           tenantId: currentTenant.id,
+          status: 'active',
         },
       })
     }
@@ -408,6 +409,15 @@ export default class UserRepository {
 
       if (filter.email) {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('user', 'email', filter.email))
+      }
+
+      if (filter.query) {
+        whereAnd.push({
+          [Op.or]: [
+            SequelizeFilterUtils.ilikeIncludes('user', 'fullName', filter.query),
+            SequelizeFilterUtils.ilikeIncludes('user', 'email', filter.query),
+          ],
+        })
       }
 
       if (filter.role) {

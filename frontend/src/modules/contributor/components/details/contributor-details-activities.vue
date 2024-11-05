@@ -27,6 +27,7 @@
   </div>
   <app-activity-timeline
     v-else
+    ref="timeline"
     :entity="props.contributor"
     entity-type="member"
     :show-affiliations="true"
@@ -42,7 +43,7 @@ import { useRoute } from 'vue-router';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
@@ -53,9 +54,19 @@ const route = useRoute();
 
 const { isMasked } = useContributorHelpers();
 
+const timeline = ref(null);
+
 const { subProjectId } = route.query;
 
 const masked = computed(() => isMasked(props.contributor));
+
+const loadMore = () => {
+  timeline.value.fetchActivities();
+};
+
+defineExpose({
+  loadMore,
+});
 </script>
 
 <script lang="ts">

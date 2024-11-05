@@ -22,6 +22,7 @@
   </div>
   <app-activity-timeline
     v-else
+    ref="timeline"
     :entity="{
       ...props.organization,
       organizations: [props.organization],
@@ -36,10 +37,21 @@ import { Organization } from '@/modules/organization/types/Organization';
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
+import { ref } from 'vue';
 
 const props = defineProps<{
   organization: Organization,
 }>();
+
+const timeline = ref<AppActivityTimeline | null>(null);
+
+const loadMore = () => {
+  timeline.value.fetchActivities();
+};
+
+defineExpose({
+  loadMore,
+});
 </script>
 
 <script lang="ts">
