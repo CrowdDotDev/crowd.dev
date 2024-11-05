@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full gap-3">
-    <div class="w-1/2">
+    <div class="w-5/12">
       <el-select
         v-model="form.organization"
         filterable
@@ -49,7 +49,7 @@
         </el-option>
       </el-select>
     </div>
-    <div class="w-1/2">
+    <div class="w-7/12">
       <div class="flex items-center">
         <el-date-picker
           :model-value="!form.organization ? '' : form.dateStart"
