@@ -10,6 +10,7 @@
             :src="organization.logo"
             :name="organization.displayName"
             :size="32"
+            img-class="!object-contain"
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
