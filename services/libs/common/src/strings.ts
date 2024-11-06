@@ -6,3 +6,7 @@ export const getCleanString = (value: string): string => {
     .toLowerCase()
     .trim()
 }
+
+export const isValidEmail = (email: string): boolean => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}

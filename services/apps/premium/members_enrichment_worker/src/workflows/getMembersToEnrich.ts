@@ -25,6 +25,7 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.SERP,
     MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER,
+    MemberEnrichmentSource.CRUSTDATA,
   ]
 
   const members = await getEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterCursor)
