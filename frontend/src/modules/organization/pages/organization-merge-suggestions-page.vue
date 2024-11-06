@@ -172,6 +172,10 @@
   <app-organization-merge-suggestions-dialog
     v-model="isModalOpen"
     :offset="detailsOffset"
+    :query="{
+      filter: filter.value,
+      orderBy: [sorting.value],
+    }"
     @reload="reload()"
   />
 </template>
