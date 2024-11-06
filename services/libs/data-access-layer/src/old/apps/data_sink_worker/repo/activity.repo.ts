@@ -1,4 +1,3 @@
-import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase, eqOrNull } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
@@ -166,28 +165,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     await Promise.all(promises)
   }
 
-  public async create(
-    tenantId: string,
-    segmentId: string,
-    data: IDbActivityCreateData,
-  ): Promise<string> {
-    this.log.debug('Creating an activity in PostgreSQL!')
-
-    const id = generateUUIDv1()
-    const ts = new Date()
-    const prepared = RepositoryBase.prepare(
-      { ...data, id, tenantId, segmentId, createdAt: ts, updatedAt: ts },
-      this.insertActivityColumnSet,
-    )
-    const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
-
-    await this.db().none(query)
-
-    await this.updateParentIds(tenantId, segmentId, id, data)
-
-    return id
-  }
-
   public async existsWithId(id: string): Promise<boolean> {
     const result = await this.db().oneOrNone('select 1 from activities where id = $(id)', { id })
     return result !== null
@@ -207,31 +184,5 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     const prepared = RepositoryBase.prepare(data, this.insertActivityColumnSet)
     const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
     await this.db().none(query)
-  }
-
-  public async update(
-    id: string,
-    tenantId: string,
-    segmentId: string,
-    data: IDbActivityUpdateData,
-  ): Promise<void> {
-    const prepared = RepositoryBase.prepare(
-      { ...data, updatedAt: new Date() },
-      this.updateActivityColumnSet,
-    )
-    const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
-    const condition = this.format(
-      'where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)',
-      {
-        id,
-        tenantId,
-        segmentId,
-      },
-    )
-    const result = await this.db().result(`${query} ${condition}`)
-
-    this.checkUpdateRowCount(result.rowCount, 1)
-
-    await this.updateParentIds(tenantId, segmentId, id, data)
   }
 }
