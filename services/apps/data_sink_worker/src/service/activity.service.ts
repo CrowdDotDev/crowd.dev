@@ -651,6 +651,7 @@ export default class ActivityService extends LoggerBase {
             segmentIds: [segmentId],
             filter: {
               and: [
+                { timestamp: { eq: activity.timestamp } },
                 { sourceId: { eq: activity.sourceId } },
                 { platform: { eq: platform } },
                 { type: { eq: activity.type } },
