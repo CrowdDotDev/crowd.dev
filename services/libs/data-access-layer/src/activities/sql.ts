@@ -1404,7 +1404,7 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
       WHERE a."memberId" = $(memberId)
         AND a.platform = $(platform)
       GROUP BY a.platform, a.username
-      ORDER BY activity_count DESC
+      ORDER BY "activityCount" DESC
     LIMIT 1;
   `
 
