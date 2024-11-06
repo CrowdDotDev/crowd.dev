@@ -123,48 +123,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     await this.db().none('delete from activities where id = $(id)', { id })
   }
 
-  private async updateParentIds(
-    tenantId: string,
-    segmentId: string,
-    id: string,
-    data: IDbActivityCreateData | IDbActivityUpdateData,
-  ): Promise<void> {
-    const promises: Promise<void>[] = [
-      this.db().none(
-        `
-        update activities set "parentId" = $(id)
-        where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceId)
-        and "segmentId" = $(segmentId)
-      `,
-        {
-          id,
-          tenantId,
-          segmentId,
-          sourceId: data.sourceId,
-        },
-      ),
-    ]
-
-    if (data.sourceParentId) {
-      promises.push(
-        this.db().none(
-          `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and  "segmentId" = $(segmentId) and "deletedAt" IS NULL limit 1)
-          where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)
-          `,
-          {
-            id,
-            tenantId,
-            segmentId,
-            sourceParentId: data.sourceParentId,
-          },
-        ),
-      )
-    }
-
-    await Promise.all(promises)
-  }
-
   public async existsWithId(id: string): Promise<boolean> {
     const result = await this.db().oneOrNone('select 1 from activities where id = $(id)', { id })
     return result !== null
