@@ -173,8 +173,8 @@
     v-model="isModalOpen"
     :offset="detailsOffset"
     :query="{
-      filter: filter.value,
-      orderBy: [sorting.value],
+      filter,
+      orderBy: [sorting],
     }"
     @reload="reload()"
   />
