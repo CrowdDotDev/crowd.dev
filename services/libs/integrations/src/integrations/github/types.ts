@@ -106,8 +106,6 @@ export enum GithubStreamType {
   PULL_COMMITS = 'pull-commits',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
-  DISCUSSIONS = 'discussions',
-  DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
 export enum GithubManualStreamType {
@@ -151,7 +149,7 @@ export interface GithubRootStream {
 
 export interface GithubBasicStream {
   repo: Repo
-  page: string
+  page: number
   prNumber?: string
   reviewThreadId?: string
   issueNumber?: string
