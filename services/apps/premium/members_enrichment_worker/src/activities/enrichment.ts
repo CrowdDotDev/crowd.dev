@@ -1,6 +1,7 @@
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
 import {
   findMemberEnrichmentCacheDb,
+  findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
@@ -42,7 +43,7 @@ export async function getEnrichmentData(
 export async function normalizeEnrichmentData(
   source: MemberEnrichmentSource,
   data: IMemberEnrichmentData,
-): Promise<IMemberEnrichmentDataNormalized> {
+): Promise<IMemberEnrichmentDataNormalized | IMemberEnrichmentDataNormalized[]> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return service.normalize(data)
 }
@@ -98,6 +99,12 @@ export async function findMemberEnrichmentCache(
   memberId: string,
 ): Promise<IMemberEnrichmentCache<IMemberEnrichmentData>> {
   return findMemberEnrichmentCacheDb(svc.postgres.reader.connection(), memberId, source)
+}
+
+export async function findMemberEnrichmentCacheForAllSources(
+  memberId: string,
+): Promise<IMemberEnrichmentCache<IMemberEnrichmentData>[]> {
+  return findMemberEnrichmentCacheForAllSourcesDb(svc.postgres.reader.connection(), memberId)
 }
 
 export async function insertMemberEnrichmentCache(
