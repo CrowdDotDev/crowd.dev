@@ -2,6 +2,8 @@ import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
 import { updateActivities } from '../../../activities/update'
+import { formatQuery } from '../../../queryExecutor'
+import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { ISegmentIds } from './types'
 
@@ -116,44 +118,35 @@ export async function getIdentitiesWithActivity(
 }
 
 export async function moveIdentityActivitiesToNewMember(
-  db: DbStore,
+  db: DbConnOrTx,
   tenantId: string,
   fromId: string,
   toId: string,
   username: string,
   platform: string,
-  batchSize = 1000,
 ) {
-  let rowsUpdated
-
-  do {
-    const result = await db.connection().query(
+  await updateActivities(
+    db,
+    async (activity: IDbActivityCreateData) => ({ ...activity, memberId: toId }),
+    formatQuery(
       `
-          UPDATE activities
-          SET "memberId" = $(toId)
-          WHERE id in (
-            select id from activities
-            where "memberId" = $(fromId)
-              and "tenantId" = $(tenantId)
-              and "username" = $(username)
-              and "platform" = $(platform)
-              and "deletedAt" is null
-              limit $(batchSize)
-          )
-          returning id
-        `,
+        "memberId" = $(fromId)
+        and "tenantId" = $(tenantId)
+        and "username" = $(username)
+        and "platform" = $(platform)
+        and "deletedAt" is null
+      `,
       {
-        toId,
         fromId,
         tenantId,
         username,
         platform,
-        batchSize,
       },
-    )
-
-    rowsUpdated = result.length
-  } while (rowsUpdated === batchSize)
+    ),
+    {
+      memberId: fromId,
+    },
+  )
 }
 
 export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {
