@@ -231,7 +231,6 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     let normalized: IMemberEnrichmentDataNormalized = {
       identities: [],
       attributes: {},
-      contributions: [],
       memberOrganizations: [],
       reach: {},
     }
