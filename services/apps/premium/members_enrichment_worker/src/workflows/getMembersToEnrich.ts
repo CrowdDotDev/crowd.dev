@@ -6,11 +6,11 @@ import {
   proxyActivities,
 } from '@temporalio/workflow'
 
-import { chunkArray } from '@crowd/common'
 import { IEnrichableMember, MemberEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities/getMembers'
 import { IGetMembersForEnrichmentArgs } from '../types'
+import { chunkArray } from '../utils/common'
 
 import { enrichMember } from './enrichMember'
 

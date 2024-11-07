@@ -129,11 +129,3 @@ export const areArraysEqual = <T>(a: T[], b: T[]): boolean => {
 export const firstArrayContainsSecondArray = <T>(array1: T[], array2: T[]): boolean => {
   return array2.every((val) => array1.includes(val))
 }
-
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks = []
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize))
-  }
-  return chunks
-}
