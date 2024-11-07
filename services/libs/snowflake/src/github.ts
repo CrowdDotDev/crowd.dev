@@ -59,7 +59,7 @@ export class GithubSnowflakeClient {
       WHERE startswith(repo_name, ?)
       LIMIT ?
       OFFSET ?`,
-      [`${org}/`, perPage, page * perPage],
+      [`${org}/`, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -97,7 +97,7 @@ export class GithubSnowflakeClient {
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, page * perPage],
+      [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -136,7 +136,7 @@ export class GithubSnowflakeClient {
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, page * perPage],
+      [repo, perPage, (page - 1) * perPage],
     )
 
     return {

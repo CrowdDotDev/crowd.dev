@@ -228,6 +228,7 @@
     "account": "CROWD_SNOWFLAKE_ACCOUNT",
     "username": "CROWD_SNOWFLAKE_USERNAME",
     "database": "CROWD_SNOWFLAKE_DATABASE",
-    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE"
+    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "role": "CROWD_SNOWFLAKE_ROLE"
   }
 }

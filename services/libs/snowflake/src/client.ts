@@ -11,6 +11,7 @@ export class SnowflakeClient {
     database,
     warehouse,
     privateKeyPassphrase,
+    role,
     maxConnections = 5,
     minConnections = 1,
   }: {
@@ -20,6 +21,7 @@ export class SnowflakeClient {
     database: string
     warehouse: string
     privateKeyPassphrase?: string
+    role?: string
     maxConnections?: number
     minConnections?: number
   }) {
@@ -41,6 +43,7 @@ export class SnowflakeClient {
         privateKey: privateKey.toString(),
         database,
         warehouse,
+        role,
         authenticator: 'SNOWFLAKE_JWT',
       },
       {

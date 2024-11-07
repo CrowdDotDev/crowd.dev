@@ -2494,6 +2494,7 @@ export default class IntegrationService {
       username: SNOWFLAKE_CONFIG.username,
       database: SNOWFLAKE_CONFIG.database,
       warehouse: SNOWFLAKE_CONFIG.warehouse,
+      role: SNOWFLAKE_CONFIG.role,
       maxConnections: 1,
     })
     this.options.log.info(`Getting GitHub repositories for org: ${org}`)

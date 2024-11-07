@@ -263,4 +263,5 @@ export interface SnowflakeConfiguration {
   username: string
   database: string
   warehouse: string
+  role: string
 }

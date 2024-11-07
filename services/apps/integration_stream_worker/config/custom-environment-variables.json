@@ -42,11 +42,12 @@
     "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS"
   },
   "github": {
-    "privateKey": "SNOWFLAKE_PRIVATE_KEY",
-    "account": "SNOWFLAKE_ACCOUNT",
-    "username": "SNOWFLAKE_USERNAME",
-    "database": "SNOWFLAKE_DATABASE",
-    "warehouse": "SNOWFLAKE_WAREHOUSE"
+    "privateKey": "CROWD_SNOWFLAKE_PRIVATE_KEY",
+    "account": "CROWD_SNOWFLAKE_ACCOUNT",
+    "username": "CROWD_SNOWFLAKE_USERNAME",
+    "database": "CROWD_SNOWFLAKE_DATABASE",
+    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "role": "CROWD_SNOWFLAKE_ROLE"
   },
   "gitlab": {
     "clientId": "CROWD_GITLAB_CLIENT_ID",
