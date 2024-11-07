@@ -151,7 +151,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       url,
       params: {
         linkedin_profile_url: `https://linkedin.com/in/${handle}`,
-        enrich_realtime: false,
+        enrich_realtime: true,
       },
       headers: {
         Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
