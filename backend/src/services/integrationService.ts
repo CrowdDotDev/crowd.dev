@@ -239,6 +239,14 @@ export default class IntegrationService {
                 )
               }
             }
+
+            if (integration.platform === PlatformType.GITHUB){
+              // we only soft delete the entries
+              await GithubReposRepository.delete(integration.id, {
+                ...this.options,
+                transaction,
+              })
+            }
           }
 
           if (integration.platform === PlatformType.GITLAB) {
