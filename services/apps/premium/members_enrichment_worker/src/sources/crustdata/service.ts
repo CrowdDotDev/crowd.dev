@@ -1,30 +1,22 @@
-import axios from 'axios'
+import axios from 'axios';
 
-import { isEmail } from '@crowd/common'
-import { Logger, LoggerBase } from '@crowd/logging'
-import {
-  IMemberEnrichmentCache,
-  IMemberIdentity,
-  MemberAttributeName,
-  MemberEnrichmentSource,
-  MemberIdentityType,
-  OrganizationIdentityType,
-  OrganizationSource,
-  PlatformType,
-} from '@crowd/types'
 
-import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
-import { EnrichmentSourceServiceFactory } from '../../factory'
-import {
-  IEnrichmentService,
-  IEnrichmentSourceInput,
-  IMemberEnrichmentAttributeSettings,
-  IMemberEnrichmentData,
-  IMemberEnrichmentDataNormalized,
-} from '../../types'
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
 
-import { IMemberEnrichmentCrustdataRemainingCredits, IMemberEnrichmentDataCrustdata } from './types'
+import { isEmail } from '@crowd/common';
+import { Logger, LoggerBase } from '@crowd/logging';
+import { IMemberEnrichmentCache, IMemberIdentity, MemberAttributeName, MemberEnrichmentSource, MemberIdentityType, OrganizationIdentityType, OrganizationSource, PlatformType } from '@crowd/types';
+
+
+
+import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment';
+import { EnrichmentSourceServiceFactory } from '../../factory';
+import { IEnrichmentService, IEnrichmentSourceInput, IMemberEnrichmentAttributeSettings, IMemberEnrichmentData, IMemberEnrichmentDataNormalized } from '../../types';
+import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common';
+
+
+
+import { IMemberEnrichmentCrustdataRemainingCredits, IMemberEnrichmentDataCrustdata } from './types';
+
 
 export default class EnrichmentServiceCrustdata extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CRUSTDATA
@@ -294,7 +286,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     normalized: IMemberEnrichmentDataNormalized,
   ): IMemberEnrichmentDataNormalized {
     const employmentInformation = (data.past_employers || []).concat(data.current_employers || [])
-    if (data.past_employers) {
+    if (employmentInformation.length > 0) {
       for (const workExperience of employmentInformation) {
         const identities = []
 
