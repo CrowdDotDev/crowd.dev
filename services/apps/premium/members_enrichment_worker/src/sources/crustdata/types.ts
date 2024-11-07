@@ -37,6 +37,17 @@ export interface IMemberEnrichmentDataCrustdata {
   metadata: IMemberEnrichmentLinkedinScraperMetadata
 }
 
+export type IMemberEnrichmentCrustdataAPIResponse =
+  | IMemberEnrichmentDataCrustdata
+  | IMemberEnrichmentCrustdataAPIErrorResponse
+
+export interface IMemberEnrichmentCrustdataAPIErrorResponse {
+  error: string
+  linkedin_profile_url: string
+  last_tried_linkedin_enrichment_date: string
+  did_last_linkedin_enrichment_succeed: boolean
+}
+
 export interface IMemberEnrichmentCrustdataRemainingCredits {
   credits: number
 }

@@ -24,7 +24,12 @@ import {
 } from '../../types'
 import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
 
-import { IMemberEnrichmentCrustdataRemainingCredits, IMemberEnrichmentDataCrustdata } from './types'
+import {
+  IMemberEnrichmentCrustdataAPIErrorResponse,
+  IMemberEnrichmentCrustdataAPIResponse,
+  IMemberEnrichmentCrustdataRemainingCredits,
+  IMemberEnrichmentDataCrustdata,
+} from './types'
 
 export default class EnrichmentServiceCrustdata extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CRUSTDATA
@@ -153,13 +158,19 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       },
     }
 
-    const response: IMemberEnrichmentDataCrustdata[] = (await axios(config)).data
+    const response: IMemberEnrichmentCrustdataAPIResponse[] = (await axios(config)).data
 
-    if (response.length === 0 || response[0].error) {
+    if (response.length === 0 || this.isErrorResponse(response[0])) {
       return null
     }
 
     return response[0]
+  }
+
+  private isErrorResponse(
+    response: IMemberEnrichmentCrustdataAPIResponse,
+  ): response is IMemberEnrichmentCrustdataAPIErrorResponse {
+    return (response as IMemberEnrichmentCrustdataAPIErrorResponse).error !== undefined
   }
 
   private async findDistinctScrapableLinkedinIdentities(
