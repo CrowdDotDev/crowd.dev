@@ -41,7 +41,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     MemberEnrichmentSource.SERP,
   ]
 
-  public enrichMembersWithActivityMoreThan = 1000
+  public enrichMembersWithActivityMoreThan = 50
 
   public enrichableBySql = `("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
@@ -279,7 +279,15 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     }
 
     if (data.email) {
-      for (const email of data.email.split(',').filter(isEmail)) {
+      let emails: string[]
+
+      if (Array.isArray(data.email)) {
+        emails = data.email
+      } else {
+        emails = data.email.split(',').filter(isEmail)
+      }
+
+      for (const email of emails) {
         normalized.identities.push({
           type: MemberIdentityType.EMAIL,
           platform: this.platform,
