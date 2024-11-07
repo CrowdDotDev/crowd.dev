@@ -46,10 +46,10 @@ export async function getConversationById(
              "createdById",
              "updatedById"
       from conversations
-      where 
-        id = $(id) and 
-        "tenantId" = $(tenantId) and 
-        "segmentId" in ($(segmentIds:csv)) and 
+      where
+        id = $(id) and
+        "tenantId" = $(tenantId) and
+        "segmentId" in ($(segmentIds:csv)) and
         "deletedAt" is null
     `,
     {
@@ -339,12 +339,12 @@ export async function doesConversationWithSlugExists(
 ): Promise<boolean> {
   const results = await conn.any(
     `
-    select id 
-    from conversations 
-    where 
-      "tenantId" = $(tenantId) and 
-      "segmentId" = $(segmentId) and 
-      slug = $(slug) and 
+    select id
+    from conversations
+    where
+      "tenantId" = $(tenantId) and
+      "segmentId" = $(segmentId) and
+      slug = $(slug) and
       "deletedAt" is null
   `,
     {
@@ -391,6 +391,10 @@ export async function queryConversations(
   const parsedOrderBys = []
 
   for (const orderByPart of arg.orderBy) {
+    if (orderByPart.trim().length === 0) {
+      continue
+    }
+
     const orderByParts = orderByPart.split('_')
     const direction = orderByParts[1].toLowerCase()
     switch (orderByParts[0]) {
@@ -470,9 +474,9 @@ export async function queryConversations(
       group by "conversationId"
     )
     select <columns_to_select>
-    from conversations c 
+    from conversations c
     inner join activity_data a on a."conversationId" = c.id
-    where c."deletedAt" is null and 
+    where c."deletedAt" is null and
           c."tenantId" = $(tenantId) and
           c."segmentId" in ($(segmentIds:csv)) and
           ${filterString}
@@ -496,9 +500,9 @@ export async function queryConversations(
       group by "conversationId"
     )
     select <columns_to_select>
-    from conversations c 
+    from conversations c
     inner join activity_data a on a."conversationId" = c.id
-    where c."deletedAt" is null and 
+    where c."deletedAt" is null and
           c."tenantId" = $(tenantId) and
           c."segmentId" in ($(segmentIds:csv)) and
           ${filterString}
@@ -520,7 +524,7 @@ export async function queryConversations(
     let query = `${baseQuery.replace(
       '<columns_to_select>',
       `
-      c.id, 
+      c.id,
       a.channel,
       c."createdAt",
       a."memberCount",

@@ -13,7 +13,6 @@ import {
   ITimeseriesDatapoint,
   MemberIdentityType,
   PageData,
-  PlatformType,
 } from '@crowd/types'
 
 import { IMemberSegmentAggregates } from '../members/types'
@@ -66,92 +65,6 @@ export async function getActivitiesById(
   })
 
   return data.rows
-}
-
-export async function insertActivity(
-  conn: DbConnOrTx,
-  id: string,
-  data: IDbActivityCreateData,
-): Promise<void> {
-  const now = new Date()
-
-  const toInsert: any = {
-    id,
-    type: data.type,
-    timestamp: data.timestamp,
-    platform: data.platform,
-    isContribution: data.isContribution,
-    score: data.score,
-    importHash: data.importHash,
-    sourceId: data.sourceId,
-    createdAt: now,
-    updatedAt: now,
-    memberId: data.memberId,
-    parentId: data.parentId,
-    tenantId: data.tenantId,
-    createdById: data.createdById,
-    updatedById: data.updatedById,
-    sourceParentId: data.sourceParentId,
-    conversationId: data.conversationId,
-    attributes: JSON.stringify(data.attributes || {}),
-    title: data.title,
-    body: data.body,
-    channel: data.channel,
-    url: data.url,
-    username: data.username,
-    objectMemberId: data.objectMemberId,
-    objectMemberUsername: data.objectMemberUsername,
-    segmentId: data.segmentId,
-    organizationId: data.organizationId,
-
-    member_isTeamMember: data.isTeamMemberActivity,
-    member_isBot: data.isBotActivity,
-  }
-
-  if (data.sentiment) {
-    toInsert.sentimentLabel = data.sentiment.label
-    toInsert.sentimentScore = data.sentiment.sentiment
-    toInsert.sentimentScoreMixed = data.sentiment.mixed
-    toInsert.sentimentScoreNeutral = data.sentiment.neutral
-    toInsert.sentimentScoreNegative = data.sentiment.negative
-    toInsert.sentimentScorePositive = data.sentiment.positive
-  }
-
-  if (
-    (data.attributes && data.platform === PlatformType.GIT) ||
-    data.platform === PlatformType.GITHUB
-  ) {
-    if (data.attributes.isMainBranch) {
-      toInsert.gitIsMainBranch = data.attributes.isMainBranch
-    }
-    if (data.attributes.isIndirectFork) {
-      toInsert.gitIsIndirectFork = data.attributes.isIndirectFork
-    }
-    if (data.attributes.additions) {
-      toInsert.gitInsertions = data.attributes.additions
-    }
-    if (data.attributes.deletions) {
-      toInsert.gitDeletions = data.attributes.deletions
-    }
-  }
-
-  const columns = Object.keys(toInsert)
-  const columnStrings: string[] = []
-  const valueStrings: string[] = []
-  for (const column of columns) {
-    columnStrings.push(`"${column}"`)
-    valueStrings.push(`$(${column})`)
-  }
-
-  const query = `
-    insert into activities (${columnStrings.join(', ')})
-    values (${valueStrings.join(', ')});
-  `
-
-  const result = await conn.result(query, toInsert)
-  console.log('activity insert result', result.rowCount)
-  checkUpdateRowCount(result.rowCount, 1)
-  await updateActivityParentIds(conn, id, data)
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
