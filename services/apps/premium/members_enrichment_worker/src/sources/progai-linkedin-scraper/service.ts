@@ -57,8 +57,6 @@ export default class EnrichmentServiceProgAILinkedinScraper
           hasEnrichableLinkedinInCache = true
           break
         }
-
-        break
       }
     }
 
@@ -86,11 +84,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
         const existingProgaiCache = caches.find((c) => c.source === MemberEnrichmentSource.PROGAI)
         // we don't want to reinforce the cache with the same data, only save to cache
         // if a new profile is returned from progai
-        if (
-          existingProgaiCache &&
-          existingProgaiCache.data &&
-          (existingProgaiCache.data as IMemberEnrichmentDataProgAI).id == data.id
-        ) {
+        if ((existingProgaiCache?.data as IMemberEnrichmentDataProgAI)?.id == data.id) {
           continue
         }
         profiles.push({
@@ -106,7 +100,9 @@ export default class EnrichmentServiceProgAILinkedinScraper
     return profiles.length > 0 ? profiles : null
   }
 
-  private async getDataUsingLinkedinHandle(handle: string): Promise<IMemberEnrichmentDataProgAI> {
+  private async getDataUsingLinkedinHandle(
+    handle: string,
+  ): Promise<IMemberEnrichmentDataProgAI | null> {
     const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
     const config = {
       method: 'get',

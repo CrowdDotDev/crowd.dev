@@ -156,6 +156,10 @@ export const MemberAttributes = {
     name: MemberAttributeName.EDUCATION,
     label: 'Education',
   },
+  [MemberAttributeName.SCHOOLS]: {
+    name: MemberAttributeName.SCHOOLS,
+    label: 'Schools',
+  },
   [MemberAttributeName.AWARDS]: {
     name: MemberAttributeName.AWARDS,
     label: 'Awards',

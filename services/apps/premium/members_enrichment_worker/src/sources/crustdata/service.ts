@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { isValidEmail } from '@crowd/common'
+import { isEmail } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   IMemberEnrichmentCache,
@@ -85,8 +85,6 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           hasEnrichableLinkedinInCache = true
           break
         }
-
-        break
       }
     }
 
@@ -111,7 +109,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
       return response.credits > 5
     } catch (error) {
-      this.log.error('Error while checking serpapi account usage', error)
+      this.log.error('Error while checking Crustdata account usage', error)
       return false
     }
   }
@@ -266,7 +264,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     }
 
     if (data.email) {
-      for (const email of data.email.split(',').filter(isValidEmail)) {
+      for (const email of data.email.split(',').filter(isEmail)) {
         normalized.identities.push({
           type: MemberIdentityType.EMAIL,
           platform: this.platform,
@@ -295,7 +293,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     data: IMemberEnrichmentDataCrustdata,
     normalized: IMemberEnrichmentDataNormalized,
   ): IMemberEnrichmentDataNormalized {
-    const employmentInformation = data.past_employers.concat(data.current_employers)
+    const employmentInformation = (data.past_employers || []).concat(data.current_employers || [])
     if (data.past_employers) {
       for (const workExperience of employmentInformation) {
         const identities = []
