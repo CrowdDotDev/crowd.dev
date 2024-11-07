@@ -293,6 +293,10 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     data: IMemberEnrichmentDataCrustdata,
     normalized: IMemberEnrichmentDataNormalized,
   ): IMemberEnrichmentDataNormalized {
+    if (!normalized.memberOrganizations) {
+      normalized.memberOrganizations = []
+    }
+
     const employmentInformation = (data.past_employers || []).concat(data.current_employers || [])
     if (employmentInformation.length > 0) {
       for (const workExperience of employmentInformation) {
