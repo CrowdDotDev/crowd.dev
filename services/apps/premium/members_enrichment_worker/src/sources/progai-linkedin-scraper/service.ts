@@ -57,8 +57,6 @@ export default class EnrichmentServiceProgAILinkedinScraper
           hasEnrichableLinkedinInCache = true
           break
         }
-
-        break
       }
     }
 
@@ -72,7 +70,57 @@ export default class EnrichmentServiceProgAILinkedinScraper
     return true
   }
 
-  private async findConsumableLinkedinIdentities(
+  async getData(
+    input: IEnrichmentSourceInput,
+  ): Promise<IMemberEnrichmentDataProgAILinkedinScraper[] | null> {
+    const profiles: IMemberEnrichmentDataProgAILinkedinScraper[] = []
+    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
+
+    const consumableIdentities = await this.findDistinctScrapableLinkedinIdentities(input, caches)
+
+    for (const identity of consumableIdentities) {
+      const data = await this.getDataUsingLinkedinHandle(identity.value)
+      if (data) {
+        const existingProgaiCache = caches.find((c) => c.source === MemberEnrichmentSource.PROGAI)
+        // we don't want to reinforce the cache with the same data, only save to cache
+        // if a new profile is returned from progai
+        if ((existingProgaiCache?.data as IMemberEnrichmentDataProgAI)?.id == data.id) {
+          continue
+        }
+        profiles.push({
+          ...data,
+          metadata: {
+            repeatedTimesInDifferentSources: identity.repeatedTimesInDifferentSources,
+            isFromVerifiedSource: identity.isFromVerifiedSource,
+          },
+        })
+      }
+    }
+
+    return profiles.length > 0 ? profiles : null
+  }
+
+  private async getDataUsingLinkedinHandle(
+    handle: string,
+  ): Promise<IMemberEnrichmentDataProgAI | null> {
+    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+    const config = {
+      method: 'get',
+      url,
+      params: {
+        linkedin_url: `https://linkedin.com/in/${handle}`,
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+      },
+      headers: {},
+    }
+
+    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
+
+    return response?.profile || null
+  }
+
+  private async findDistinctScrapableLinkedinIdentities(
     input: IEnrichmentSourceInput,
     caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
   ): Promise<
@@ -128,58 +176,6 @@ export default class EnrichmentServiceProgAILinkedinScraper
       }
     }
     return consumableIdentities
-  }
-
-  async getData(
-    input: IEnrichmentSourceInput,
-  ): Promise<IMemberEnrichmentDataProgAILinkedinScraper[] | null> {
-    const profiles: IMemberEnrichmentDataProgAILinkedinScraper[] = []
-    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
-
-    const consumableIdentities = await this.findConsumableLinkedinIdentities(input, caches)
-
-    for (const identity of consumableIdentities) {
-      const data = await this.getDataUsingLinkedinHandle(identity.value)
-      if (data) {
-        const existingProgaiCache = caches.find((c) => c.source === MemberEnrichmentSource.PROGAI)
-        // we don't want to reinforce the cache with the same data, only save to cache
-        // if a new profile is returned from progai
-        if (
-          existingProgaiCache &&
-          existingProgaiCache.data &&
-          (existingProgaiCache.data as IMemberEnrichmentDataProgAI).id == data.id
-        ) {
-          continue
-        }
-        profiles.push({
-          ...data,
-          metadata: {
-            repeatedTimesInDifferentSources: identity.repeatedTimesInDifferentSources,
-            isFromVerifiedSource: identity.isFromVerifiedSource,
-          },
-        })
-      }
-    }
-
-    return profiles.length > 0 ? profiles : null
-  }
-
-  private async getDataUsingLinkedinHandle(handle: string): Promise<IMemberEnrichmentDataProgAI> {
-    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        linkedin_url: `https://linkedin.com/in/${handle}`,
-        with_emails: true,
-        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-      },
-      headers: {},
-    }
-
-    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
-
-    return response?.profile || null
   }
 
   normalize(

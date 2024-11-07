@@ -2,6 +2,7 @@ import {
   IAttributes,
   IMemberContribution,
   IMemberIdentity,
+  IMemberReach,
   IOrganizationIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
@@ -10,6 +11,7 @@ import {
 } from '@crowd/types'
 
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
+import { IMemberEnrichmentDataCrustdata } from './sources/crustdata/types'
 import { IMemberEnrichmentDataProgAILinkedinScraper } from './sources/progai-linkedin-scraper/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
@@ -30,6 +32,8 @@ export type IMemberEnrichmentData =
   | IMemberEnrichmentDataClearbit
   | IMemberEnrichmentDataSerp
   | IMemberEnrichmentDataProgAILinkedinScraper[]
+  | IMemberEnrichmentDataCrustdata
+  | IMemberEnrichmentDataCrustdata[]
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
@@ -57,22 +61,31 @@ export interface IEnrichmentService {
   ): IMemberEnrichmentDataNormalized | IMemberEnrichmentDataNormalized[]
 }
 
+export type IMemberEnrichmentMetadataNormalized = IMemberEnrichmentLinkedinScraperMetadata
+
 export interface IMemberEnrichmentDataNormalized {
   identities?: IMemberIdentity[]
   contributions?: IMemberContribution[]
   attributes?: IAttributes
+  reach?: IMemberReach
   memberOrganizations?: IMemberEnrichmentDataNormalizedOrganization[]
   displayName?: string
-  metadata?: Record<string, unknown>
+  metadata?: IMemberEnrichmentMetadataNormalized
 }
 
 export interface IMemberEnrichmentDataNormalizedOrganization {
   name: string
   identities?: IOrganizationIdentity[]
   title?: string
+  organizationDescription?: string
   startDate?: string
   endDate?: string
   source: OrganizationSource
+}
+
+export interface IMemberEnrichmentLinkedinScraperMetadata {
+  repeatedTimesInDifferentSources: number
+  isFromVerifiedSource: boolean
 }
 
 export interface IGetMembersForEnrichmentArgs {

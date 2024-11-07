@@ -36,6 +36,7 @@ export enum MemberAttributeName {
   COUNTRY = 'country',
   YEARS_OF_EXPERIENCE = 'yearsOfExperience',
   EDUCATION = 'education',
+  SCHOOLS = 'schools',
   AWARDS = 'awards',
   CERTIFICATIONS = 'certifications',
   WORK_EXPERIENCES = 'workExperiences',
@@ -154,6 +155,10 @@ export const MemberAttributes = {
   [MemberAttributeName.EDUCATION]: {
     name: MemberAttributeName.EDUCATION,
     label: 'Education',
+  },
+  [MemberAttributeName.SCHOOLS]: {
+    name: MemberAttributeName.SCHOOLS,
+    label: 'Schools',
   },
   [MemberAttributeName.AWARDS]: {
     name: MemberAttributeName.AWARDS,
