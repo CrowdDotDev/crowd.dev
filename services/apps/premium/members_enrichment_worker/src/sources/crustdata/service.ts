@@ -107,6 +107,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
       const response: IMemberEnrichmentCrustdataRemainingCredits = (await axios(config)).data
 
+      // realtime linkedin enrichment costs 5 credits
       return response.credits > 5
     } catch (error) {
       this.log.error('Error while checking Crustdata account usage', error)
@@ -154,7 +155,11 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
     const response: IMemberEnrichmentDataCrustdata[] = (await axios(config)).data
 
-    return response.length > 0 ? response[0] : null
+    if (response.length === 0 || response[0].error) {
+      return null
+    }
+
+    return response[0]
   }
 
   private async findDistinctScrapableLinkedinIdentities(
