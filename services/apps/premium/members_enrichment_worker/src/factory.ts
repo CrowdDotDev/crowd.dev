@@ -3,6 +3,7 @@ import { Logger } from '@crowd/logging'
 import { MemberEnrichmentSource } from '@crowd/types'
 
 import EnrichmentServiceClearbit from './sources/clearbit/service'
+import EnrichmentServiceCrustdata from './sources/crustdata/service'
 import EnrichmentServiceProgAILinkedinScraper from './sources/progai-linkedin-scraper/service'
 import EnrichmentServiceProgAI from './sources/progai/service'
 import EnrichmentServiceSerpApi from './sources/serp/service'
@@ -27,6 +28,8 @@ export class EnrichmentSourceServiceFactory {
         return new EnrichmentServiceSerpApi(log)
       case MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER:
         return new EnrichmentServiceProgAILinkedinScraper(log)
+      case MemberEnrichmentSource.CRUSTDATA:
+        return new EnrichmentServiceCrustdata(log)
       default:
         throw new Error(`Enrichment service for ${source} is not found!`)
     }

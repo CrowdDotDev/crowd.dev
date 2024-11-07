@@ -1,6 +1,7 @@
 import { PlatformType } from '@crowd/types'
 
 export interface IActivityCreateData {
+  id: string
   type: string
   isContribution: boolean
   score: number

@@ -66,7 +66,7 @@ export async function moveActivitiesWithIdentityToAnotherMember(
       identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
   )) {
     await moveIdentityActivitiesToNewMember(
-      svc.postgres.writer,
+      svc.questdbSQL,
       tenantId,
       fromId,
       toId,
