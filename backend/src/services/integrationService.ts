@@ -241,7 +241,7 @@ export default class IntegrationService {
             }
 
             if (integration.platform === PlatformType.GITHUB){
-              // we only soft delete the entries
+              // soft delete github repos
               await GithubReposRepository.delete(integration.id, {
                 ...this.options,
                 transaction,
@@ -257,6 +257,12 @@ export default class IntegrationService {
                 integration.settings.webhooks.map((hook) => hook.hookId),
               )
             }
+
+            // soft delete gitlab repos
+            await GitlabReposRepository.delete(integration.id, {
+              ...this.options,
+              transaction,
+            })
           }
 
           await IntegrationRepository.destroy(id, {
