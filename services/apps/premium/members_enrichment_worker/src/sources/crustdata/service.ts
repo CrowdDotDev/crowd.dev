@@ -1,22 +1,30 @@
-import axios from 'axios';
+import axios from 'axios'
 
+import { isEmail } from '@crowd/common'
+import { Logger, LoggerBase } from '@crowd/logging'
+import {
+  IMemberEnrichmentCache,
+  IMemberIdentity,
+  MemberAttributeName,
+  MemberEnrichmentSource,
+  MemberIdentityType,
+  OrganizationIdentityType,
+  OrganizationSource,
+  PlatformType,
+} from '@crowd/types'
 
+import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
+import { EnrichmentSourceServiceFactory } from '../../factory'
+import {
+  IEnrichmentService,
+  IEnrichmentSourceInput,
+  IMemberEnrichmentAttributeSettings,
+  IMemberEnrichmentData,
+  IMemberEnrichmentDataNormalized,
+} from '../../types'
+import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
 
-import { isEmail } from '@crowd/common';
-import { Logger, LoggerBase } from '@crowd/logging';
-import { IMemberEnrichmentCache, IMemberIdentity, MemberAttributeName, MemberEnrichmentSource, MemberIdentityType, OrganizationIdentityType, OrganizationSource, PlatformType } from '@crowd/types';
-
-
-
-import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment';
-import { EnrichmentSourceServiceFactory } from '../../factory';
-import { IEnrichmentService, IEnrichmentSourceInput, IMemberEnrichmentAttributeSettings, IMemberEnrichmentData, IMemberEnrichmentDataNormalized } from '../../types';
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common';
-
-
-
-import { IMemberEnrichmentCrustdataRemainingCredits, IMemberEnrichmentDataCrustdata } from './types';
-
+import { IMemberEnrichmentCrustdataRemainingCredits, IMemberEnrichmentDataCrustdata } from './types'
 
 export default class EnrichmentServiceCrustdata extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CRUSTDATA
