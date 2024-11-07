@@ -43,7 +43,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public enrichMembersWithActivityMoreThan = 1000
 
-  public enrichableBySql = `("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
+  public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 

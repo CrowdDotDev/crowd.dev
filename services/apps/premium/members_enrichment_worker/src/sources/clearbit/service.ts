@@ -29,7 +29,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   public platform = `enrichment-${this.source}`
   public enrichMembersWithActivityMoreThan = 10
 
-  public enrichableBySql = `"activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
+  public enrichableBySql = `"membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
