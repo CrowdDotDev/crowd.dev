@@ -20,7 +20,7 @@ const { getEnrichableMembers } = proxyActivities<typeof activities>({
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
   const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
-  const PARALLEL_ENRICHMENT_WORKFLOWS = 10
+  const PARALLEL_ENRICHMENT_WORKFLOWS = 5
   const afterCursor = args?.afterCursor || null
   const sources = [
     MemberEnrichmentSource.PROGAI,
