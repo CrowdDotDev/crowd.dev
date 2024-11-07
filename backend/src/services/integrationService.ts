@@ -239,6 +239,14 @@ export default class IntegrationService {
                 )
               }
             }
+
+            if (integration.platform === PlatformType.GITHUB) {
+              // soft delete github repos
+              await GithubReposRepository.delete(integration.id, {
+                ...this.options,
+                transaction,
+              })
+            }
           }
 
           if (integration.platform === PlatformType.GITLAB) {
@@ -249,6 +257,12 @@ export default class IntegrationService {
                 integration.settings.webhooks.map((hook) => hook.hookId),
               )
             }
+
+            // soft delete gitlab repos
+            await GitlabReposRepository.delete(integration.id, {
+              ...this.options,
+              transaction,
+            })
           }
 
           await IntegrationRepository.destroy(id, {
