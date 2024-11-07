@@ -1,8 +1,11 @@
-import { Config } from '@crowd/archetype-standard'
-import { Options, ServiceWorker } from '@crowd/archetype-worker'
-import { Edition } from '@crowd/types'
+import { Config } from '@crowd/archetype-standard';
+import { Options, ServiceWorker } from '@crowd/archetype-worker';
+import { Edition } from '@crowd/types';
 
-import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules'
+
+
+import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules';
+
 
 const config: Config = {
   envvars: [
@@ -12,6 +15,8 @@ const config: Config = {
     'CROWD_ENRICHMENT_CLEARBIT_API_KEY',
     'CROWD_ENRICHMENT_SERP_API_URL',
     'CROWD_ENRICHMENT_SERP_API_KEY',
+    'CROWD_ENRICHMENT_CRUSTDATA_URL',
+    'CROWD_ENRICHMENT_CRUSTDATA_API_KEY',
   ],
   producer: {
     enabled: false,
