@@ -6,6 +6,7 @@ import {
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMemberIdentityActivityAggregate,
@@ -135,4 +136,8 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
   platform: string,
 ): Promise<IEnrichableMemberIdentityActivityAggregate> {
   return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
+}
+
+export async function refreshMemberEnrichmentMaterializedView(mvName: string): Promise<void> {
+  await refreshMaterializedView(svc.postgres.writer.connection(), mvName)
 }

@@ -2,7 +2,11 @@ import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 import { Edition } from '@crowd/types'
 
-import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules'
+import {
+  scheduleMembersEnrichment,
+  scheduleMembersLFIDEnrichment,
+  scheduleRefreshMembersEnrichmentMaterializedViews,
+} from './schedules'
 
 const config: Config = {
   envvars: [
@@ -43,6 +47,7 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
+  await scheduleRefreshMembersEnrichmentMaterializedViews()
   await scheduleMembersEnrichment()
 
   if (process.env['CROWD_EDITION'] === Edition.LFX) {

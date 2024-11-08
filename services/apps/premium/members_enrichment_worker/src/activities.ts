@@ -6,6 +6,7 @@ import {
   isCacheObsolete,
   isEnrichableBySource,
   normalizeEnrichmentData,
+  refreshMemberEnrichmentMaterializedView,
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
 } from './activities/enrichment'
@@ -52,4 +53,5 @@ export {
   updateMemberEnrichmentCache,
   isEnrichableBySource,
   findMemberIdentityWithTheMostActivityInPlatform,
+  refreshMemberEnrichmentMaterializedView,
 }
