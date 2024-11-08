@@ -32,10 +32,15 @@ function createWhereClause(updatedAt: string): string {
   return formatQuery('"updatedAt" > $(updatedAt)', { updatedAt })
 }
 
-async function syncActivitiesBatch(
-  activityRepo: ActivityRepository,
-  activities: IDbActivityCreateData[],
-) {
+async function syncActivitiesBatch({
+  logger,
+  activityRepo,
+  activities,
+}: {
+  logger: Logger
+  activityRepo: ActivityRepository
+  activities: IDbActivityCreateData[]
+}) {
   const result = {
     inserted: 0,
     updated: 0,
@@ -44,15 +49,19 @@ async function syncActivitiesBatch(
   for (const activity of activities) {
     const existingActivity = await activityRepo.existsWithId(activity.id)
 
-    if (existingActivity) {
-      await activityRepo.rawUpdate(activity.id, {
-        ...activity,
-        platform: activity.platform as PlatformType,
-      })
-      result.updated++
-    } else {
-      await activityRepo.rawInsert(activity)
-      result.inserted++
+    try {
+      if (existingActivity) {
+        await activityRepo.rawUpdate(activity.id, {
+          ...activity,
+          platform: activity.platform as PlatformType,
+        })
+        result.updated++
+      } else {
+        await activityRepo.rawInsert(activity)
+        result.inserted++
+      }
+    } catch (error) {
+      logger.error(`Error syncing activity ${activity.id}: ${error}`)
     }
   }
 
@@ -116,7 +125,11 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
     }
 
     const t = timer(logger)
-    const { inserted, updated } = await syncActivitiesBatch(activityRepo, result)
+    const { inserted, updated } = await syncActivitiesBatch({
+      logger,
+      activityRepo,
+      activities: result,
+    })
     t.end(`Inserting ${inserted} and updating ${updated} activities`)
 
     counter += inserted + updated
