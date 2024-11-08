@@ -19,7 +19,7 @@ export async function fetchMembersForEnrichment(
   afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
   const cursorFilter = afterCursor
-    ? `AND ((coalesce("activitySummary".total_count, 0) < $2) OR (coalesce("activitySummary".total_count, 0) = $2 AND members.id < $3))`
+    ? `AND ((coalesce("membersGlobalActivityCount".total_count, 0) < $2) OR (coalesce("membersGlobalActivityCount".total_count, 0) = $2 AND members.id < $3))`
     : ''
 
   const sourceInnerQueryItems = []
@@ -47,18 +47,6 @@ export async function fetchMembersForEnrichment(
 
   return db.connection().query(
     `
-    WITH "activitySummary" AS (
-        SELECT
-            msa."memberId",
-            SUM(msa."activityCount") AS total_count
-        FROM "memberSegmentsAgg" msa
-        WHERE msa."segmentId" IN (
-            SELECT id
-            FROM segments
-            WHERE "grandparentId" IS NOT NULL AND "parentId" IS NOT NULL
-        )
-        GROUP BY msa."memberId"
-    )
     SELECT
          members."id",
          members."tenantId",
@@ -73,11 +61,11 @@ export async function fetchMembersForEnrichment(
              'verified', mi.verified
            )
          ) AS identities,
-         MAX(coalesce("activitySummary".total_count, 0)) AS "activityCount"
+         MAX(coalesce("membersGlobalActivityCount".total_count, 0)) AS "activityCount"
     FROM members
          INNER JOIN tenants ON tenants.id = members."tenantId"
          INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
-         LEFT JOIN "activitySummary" ON "activitySummary"."memberId" = members.id
+         LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
     WHERE 
       ${enrichableBySqlJoined}
       AND tenants."deletedAt" IS NULL

@@ -21,7 +21,7 @@ const {
   normalizeEnrichmentData,
   findMemberIdentityWithTheMostActivityInPlatform,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '20 seconds',
+  startToCloseTimeout: '1 minute',
   retry: {
     initialInterval: '5s',
     backoffCoefficient: 2.0,

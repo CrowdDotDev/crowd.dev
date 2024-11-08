@@ -43,7 +43,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public enrichMembersWithActivityMoreThan = 1000
 
-  public enrichableBySql = `("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
+  public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
@@ -216,6 +216,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       if (!linkedinUrlHashmap.get(input.linkedin.value)) {
         consumableIdentities.push({
           ...input.linkedin,
+          value: input.linkedin.value.replace(/\//g, ''),
           repeatedTimesInDifferentSources: 1,
           isFromVerifiedSource: true,
         })
@@ -279,7 +280,15 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     }
 
     if (data.email) {
-      for (const email of data.email.split(',').filter(isEmail)) {
+      let emails: string[]
+
+      if (Array.isArray(data.email)) {
+        emails = data.email
+      } else {
+        emails = data.email.split(',').filter(isEmail)
+      }
+
+      for (const email of emails) {
         normalized.identities.push({
           type: MemberIdentityType.EMAIL,
           platform: this.platform,

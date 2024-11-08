@@ -164,6 +164,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
       if (!linkedinUrlHashmap.get(input.linkedin.value)) {
         consumableIdentities.push({
           ...input.linkedin,
+          value: input.linkedin.value.replace(/\//g, ''),
           repeatedTimesInDifferentSources: 1,
           isFromVerifiedSource: true,
         })

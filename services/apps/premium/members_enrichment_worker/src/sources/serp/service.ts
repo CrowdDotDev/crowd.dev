@@ -21,7 +21,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
   public enrichMembersWithActivityMoreThan = 500
 
   public enrichableBySql = `
-  ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
+  ("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
   (members."displayName" like '% %') AND 
   (members.attributes->'location'->>'default' is not null and members.attributes->'location'->>'default' <> '') AND
   ((members.attributes->'websiteUrl'->>'default' is not null and members.attributes->'websiteUrl'->>'default' <> '') OR 

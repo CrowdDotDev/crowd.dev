@@ -29,7 +29,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   public platform = `enrichment-${this.source}`
   public enrichMembersWithActivityMoreThan = 10
 
-  public enrichableBySql = `"activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
+  public enrichableBySql = `"membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
@@ -172,7 +172,9 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     if (data.linkedin?.handle) {
       normalized = normalizeSocialIdentity(
         {
-          handle: data.linkedin.handle.split('/').pop(),
+          handle: data.linkedin.handle.endsWith('/')
+            ? data.linkedin.handle.slice(0, -1).split('/').pop()
+            : data.linkedin.handle.split('/').pop(),
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,
