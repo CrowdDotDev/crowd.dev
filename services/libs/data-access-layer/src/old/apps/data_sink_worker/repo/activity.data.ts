@@ -128,6 +128,8 @@ export interface IDbActivityUpdateData {
   isTeamMemberActivity?: boolean
   isBotActivity?: boolean
   updatedById?: string
+  updatedAt?: string
+  createdAt?: string
 }
 
 let updateActivityColumnSet: DbColumnSet

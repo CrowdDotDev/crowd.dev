@@ -43,6 +43,7 @@ export async function enrichMember(
     // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
     if (await isCacheObsolete(source, cache)) {
       const enrichmentInput: IEnrichmentSourceInput = {
+        memberId: input.id,
         email: input.identities.find((i) => i.verified && i.type === MemberIdentityType.EMAIL),
         linkedin: input.identities.find(
           (i) =>

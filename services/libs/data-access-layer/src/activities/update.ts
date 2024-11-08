@@ -10,20 +10,14 @@ import { insertActivities } from './ilp'
 
 const logger = getServiceChildLogger('activities.update')
 
-export async function updateActivities(
+export async function streamActivities(
   qdb: DbConnOrTx,
-  mapActivity: (activity: IDbActivityCreateData) => Promise<Partial<IDbActivityCreateData>>,
+  onActivity: (activity: IDbActivityCreateData) => Promise<void>,
   where: string,
   params?: Record<string, string>,
 ): Promise<{ processed: number; duration: number }> {
   const whereClause = formatQuery(where, params)
-  const qs = new QueryStream(
-    `
-      SELECT *
-      FROM activities
-      WHERE ${whereClause}
-    `,
-  )
+  const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`)
 
   const t = timer(logger, `query activities with ${whereClause}`)
   const res = await qdb.stream(qs, async (stream) => {
@@ -32,13 +26,32 @@ export async function updateActivities(
 
       const activity = item as unknown as IDbActivityCreateData
 
-      await insertActivities([
-        {
-          ...activity,
-          ...(await mapActivity(activity)),
-        },
-      ])
+      await onActivity(activity)
     }
   })
   return res
+}
+
+export async function updateActivities(
+  qdb: DbConnOrTx,
+  mapActivity: (activity: IDbActivityCreateData) => Promise<Partial<IDbActivityCreateData>>,
+  where: string,
+  params?: Record<string, string>,
+): Promise<{ processed: number; duration: number }> {
+  return streamActivities(
+    qdb,
+    async (activity) => {
+      await insertActivities(
+        [
+          {
+            ...activity,
+            ...(await mapActivity(activity)),
+          },
+        ],
+        true,
+      )
+    },
+    where,
+    params,
+  )
 }

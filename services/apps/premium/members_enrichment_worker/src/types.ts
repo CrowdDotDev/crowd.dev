@@ -2,6 +2,7 @@ import {
   IAttributes,
   IMemberContribution,
   IMemberIdentity,
+  IMemberReach,
   IOrganizationIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
@@ -10,10 +11,13 @@ import {
 } from '@crowd/types'
 
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
+import { IMemberEnrichmentDataCrustdata } from './sources/crustdata/types'
+import { IMemberEnrichmentDataProgAILinkedinScraper } from './sources/progai-linkedin-scraper/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
 export interface IEnrichmentSourceInput {
+  memberId: string
   github?: IMemberIdentity
   linkedin?: IMemberIdentity
   email?: IMemberIdentity
@@ -27,6 +31,9 @@ export type IMemberEnrichmentData =
   | IMemberEnrichmentDataProgAI
   | IMemberEnrichmentDataClearbit
   | IMemberEnrichmentDataSerp
+  | IMemberEnrichmentDataProgAILinkedinScraper[]
+  | IMemberEnrichmentDataCrustdata
+  | IMemberEnrichmentDataCrustdata[]
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
@@ -35,7 +42,7 @@ export interface IEnrichmentService {
   cacheObsoleteAfterSeconds: number
 
   // can the source enrich using this input
-  isEnrichableBySource(input: IEnrichmentSourceInput): boolean
+  isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean>
 
   // does the source have credits to enrich members, if returned false the source will be skipped
   // response will be saved to redis for 60 seconds and will be used for subsequent calls
@@ -49,24 +56,36 @@ export interface IEnrichmentService {
 
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>
-  normalize(data: IMemberEnrichmentData): IMemberEnrichmentDataNormalized
+  normalize(
+    data: IMemberEnrichmentData,
+  ): IMemberEnrichmentDataNormalized | IMemberEnrichmentDataNormalized[]
 }
+
+export type IMemberEnrichmentMetadataNormalized = IMemberEnrichmentLinkedinScraperMetadata
 
 export interface IMemberEnrichmentDataNormalized {
   identities?: IMemberIdentity[]
   contributions?: IMemberContribution[]
   attributes?: IAttributes
+  reach?: IMemberReach
   memberOrganizations?: IMemberEnrichmentDataNormalizedOrganization[]
   displayName?: string
+  metadata?: IMemberEnrichmentMetadataNormalized
 }
 
 export interface IMemberEnrichmentDataNormalizedOrganization {
   name: string
   identities?: IOrganizationIdentity[]
   title?: string
+  organizationDescription?: string
   startDate?: string
   endDate?: string
   source: OrganizationSource
+}
+
+export interface IMemberEnrichmentLinkedinScraperMetadata {
+  repeatedTimesInDifferentSources: number
+  isFromVerifiedSource: boolean
 }
 
 export interface IGetMembersForEnrichmentArgs {

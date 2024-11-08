@@ -154,7 +154,7 @@ export async function runMemberAffiliationsUpdate(
       }
     }
 
-    await insertActivities([activity])
+    await insertActivities([activity], true)
   }
 
   const qs = new QueryStream(

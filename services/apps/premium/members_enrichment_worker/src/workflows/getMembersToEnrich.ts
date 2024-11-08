@@ -14,16 +14,18 @@ import { IGetMembersForEnrichmentArgs } from '../types'
 import { enrichMember } from './enrichMember'
 
 const { getEnrichableMembers } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '2 minutes',
 })
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
-  const MEMBER_ENRICHMENT_PER_RUN = 100
+  const MEMBER_ENRICHMENT_PER_RUN = 500
   const afterCursor = args?.afterCursor || null
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.SERP,
+    MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER,
+    MemberEnrichmentSource.CRUSTDATA,
   ]
 
   const members = await getEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterCursor)

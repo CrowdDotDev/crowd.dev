@@ -8,6 +8,7 @@ import refreshGithubRepoSettings from './refreshGithubRepoSettings'
 import refreshGitlabToken from './refreshGitlabToken'
 import refreshGroupsioToken from './refreshGroupsioToken'
 import refreshMaterializedViews from './refreshMaterializedViews'
+import syncActivitiesJob from './syncActivities'
 
 const jobs: CrowdJob[] = [
   integrationTicks,
@@ -18,6 +19,7 @@ const jobs: CrowdJob[] = [
   refreshGitlabToken,
   refreshGithubRepoSettings,
   autoImportGroups,
+  syncActivitiesJob,
 ]
 
 export default jobs

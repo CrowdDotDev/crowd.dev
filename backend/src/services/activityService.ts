@@ -181,7 +181,7 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
-        await insertActivities([{ ...data, id: record.id }])
+        await insertActivities([{ ...data, id: record.id }], true)
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
