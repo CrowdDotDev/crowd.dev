@@ -1,5 +1,5 @@
 -- global member activity counts
-drop materialized view if exists "membersGlobalActivityCount";
+drop materialized view if exists "membersGlobalActivityCount" cascade;
 create materialized view "membersGlobalActivityCount" as
 select msa."memberId",
     sum(msa."activityCount") AS total_count
@@ -415,9 +415,11 @@ progai_hit_count_among_attempted as (
 select
     (select count from progai_enrichable_members) as "enrichableMembers",
     (select count from attempted_to_enrich_among_progai_enrichable_members) as "attemptedToEnrich",
-    round((select count from attempted_to_enrich_among_progai_enrichable_members)::numeric / (select count from progai_enrichable_members)::numeric * 100, 2) as progress,
+    case when (select count from progai_enrichable_members)::numeric = 0 then 0 else 
+    round((select count from attempted_to_enrich_among_progai_enrichable_members)::numeric / (select count from progai_enrichable_members)::numeric * 100, 2) end as progress,
     (select count from progai_hit_count_among_attempted) as "hitCount",
-    round((select count from progai_hit_count_among_attempted)::numeric / (select count from attempted_to_enrich_among_progai_enrichable_members)::numeric * 100, 2) as "hitRate";
+    case when (select count from attempted_to_enrich_among_progai_enrichable_members)::numeric = 0 then 0 else 
+    round((select count from progai_hit_count_among_attempted)::numeric / (select count from attempted_to_enrich_among_progai_enrichable_members)::numeric * 100, 2) end as "hitRate";
 
 -- member enrichment monitoring (progai-linkedin)
 drop materialized view if exists "memberEnrichmentMonitoringProgaiLinkedin";
