@@ -2,6 +2,7 @@ import { IntegrationConfig } from '@/config/integrations';
 import GithubConnect from './components/connect/github-connect.vue';
 import GithubStatus from './components/github-status.vue';
 import GithubAction from './components/github-action.vue';
+import GithubParams from './components/github-params.vue';
 
 const github: IntegrationConfig = {
   key: 'github',
@@ -11,6 +12,7 @@ const github: IntegrationConfig = {
   connectComponent: GithubConnect,
   statusComponent: GithubStatus,
   actionComponent: GithubAction,
+  connectedParamsComponent: GithubParams,
 };
 
 export default github;

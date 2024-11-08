@@ -46,12 +46,18 @@
             {{ props.config.name }} integration failed to connect due to an API error.
           </div>
           <component
+            :is="props.config.connectedParamsComponent"
+            v-else-if="isComplete && props.config.connectedParamsComponent"
+            :integration="integration"
+          />
+          <component
             :is="props.config.statusComponent"
-            v-else-if="props.config.statusComponent"
+            v-else-if="!isComplete && props.config.statusComponent"
             :integration="integration"
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
-            &nbsp;&nbsp;•&nbsp;&nbsp;Last data check completed {{ moment(integration.lastProcessedAt).fromNow() }}
+            <span v-if="props.config.connectedParamsComponent">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+            Last data check completed {{ moment(integration.lastProcessedAt).fromNow() }}
           </p>
         </div>
 

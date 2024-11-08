@@ -1,10 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
+import GitConnect from './components/git-connect.vue';
+import GitDropdown from './components/git-dropdown.vue';
+import GitParams from './components/git-params.vue';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const git: IntegrationConfig = {
+  key: 'git',
+  name: 'Git',
+  image: '/images/integrations/git.png',
+  description: 'Connect Git to sync commit activities from your repos.',
+  connectComponent: GitConnect,
+  dropdownComponent: GitDropdown,
+  connectedParamsComponent: GitParams,
 };
 
-export default github;
+export default git;

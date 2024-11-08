@@ -57,7 +57,7 @@
           :loading="loading"
           @click="connect"
         >
-          {{ integration.settings?.remotes?.length ? 'Update' : 'Connect' }}
+          {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
         </el-button>
       </div>
     </template>
@@ -153,6 +153,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppGitConnectDrawer',
+  name: 'LfGitSettingsDrawer',
 };
 </script>

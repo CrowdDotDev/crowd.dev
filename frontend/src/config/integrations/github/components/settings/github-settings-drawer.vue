@@ -175,10 +175,11 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
-import AppGithubSettingsBulkSelect from '@/integrations/github/components/github-settings-bulk-select.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import AppGithubSettingsBulkSelect
+  from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
 
 const props = defineProps<{
   modelValue: boolean,

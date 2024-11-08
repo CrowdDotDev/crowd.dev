@@ -1,5 +1,3 @@
-import GithubConnect from '@/config/integrations/github/components/connect/github-connect.vue';
-
 export default {
   enabled: true,
   name: 'GitHub',
@@ -17,7 +15,6 @@ export default {
   image:
     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
   icon: 'github-fill',
-  connectComponent: GithubConnect,
   url: ({ username }) => (username ? `https://github.com/${username}` : null),
   chartColor: '#111827',
   showProfileLink: true,

@@ -11,8 +11,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import AppGithubSettingsDrawer from '@/integrations/github/components/github-settings-drawer.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 
 const props = defineProps<{
   integration: any;

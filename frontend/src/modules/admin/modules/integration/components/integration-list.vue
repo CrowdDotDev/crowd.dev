@@ -19,10 +19,10 @@
       </lf-tab>
     </lf-tabs>
   </section>
-  <section class="flex flex-col gap-6">
+  <section>
     <app-integration-progress-wrapper :segments="[route.params.id]">
       <template #default="{ progress, progressError }">
-        <div v-if="platformsByStatus.length > 0">
+        <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
           <lf-integration-list-item
             v-for="key in platformsByStatus"
             :key="key"
