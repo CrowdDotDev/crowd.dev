@@ -143,15 +143,18 @@ export async function runMemberAffiliationsUpdate(
   }
 
   async function insertIfMatches(activity: IDbActivityCreateData) {
-    for (const condition of orgCases) {
-      if (!condition.matches(activity)) {
-        continue
-      }
+    activity.organizationId = null
 
-      activity.organizationId = condition.orgId
-      await insertActivities([activity], true)
-      return
+    if (orgCases.length > 0) {
+      for (const condition of orgCases) {
+        if (condition.matches(activity)) {
+          activity.organizationId = condition.orgId
+          break
+        }
+      }
     }
+
+    await insertActivities([activity], true)
   }
 
   const qs = new QueryStream(
