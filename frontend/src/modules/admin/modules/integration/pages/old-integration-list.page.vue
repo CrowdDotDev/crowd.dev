@@ -92,7 +92,7 @@ import { mapGetters } from 'vuex';
 import AppLfIntegrationsPageHeader from '@/modules/lf/layout/components/lf-integrations-page-header.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import AppIntegrationList from '../components/integration-list.vue';
+import AppIntegrationList from '@/modules/integration/components/integration-list.vue';
 
 export default {
   name: 'AppIntegrationListPage',

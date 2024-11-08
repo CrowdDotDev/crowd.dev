@@ -12,9 +12,7 @@
             class="w-6 mb-3"
           />
         </div>
-        <div>
-          <app-integration-status :integration="integration" />
-        </div>
+        <div />
       </div>
       <h6 class="text-base font-semibold text-black pb-2">
         {{ integration.name }}
@@ -108,7 +106,6 @@ import { isCurrentDateAfterGivenWorkingDays, formatDateToTimeAgoForIntegrations 
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
 import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
-import AppIntegrationStatus from '@/modules/integration/components/integration-status.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import {

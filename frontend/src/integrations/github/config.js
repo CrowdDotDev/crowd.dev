@@ -1,4 +1,4 @@
-import GithubConnect from './components/github-connect.vue';
+import GithubConnect from '@/config/integrations/github/components/connect/github-connect.vue';
 
 export default {
   enabled: true,

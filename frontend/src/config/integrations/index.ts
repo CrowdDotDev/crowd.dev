@@ -1,0 +1,16 @@
+import github from './github/config';
+
+export interface IntegrationConfig {
+  key: string; // Unique key for the integration
+  name: string; // Display name of the integration
+  image: string; // Image URL for the integration
+  description: string; // Description of the integration
+  connectComponent?: Vue.Component; // Component rendered for user to connect integration
+  actionComponent?: Vue.Component; // Component rendered when integration needs user action
+  statusComponent?: Vue.Component; // Component rendered to show integration status
+  dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
+}
+
+export const lfIntegrations: Record<string, IntegrationConfig> = {
+  github,
+};

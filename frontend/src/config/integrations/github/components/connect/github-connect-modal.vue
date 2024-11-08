@@ -155,7 +155,6 @@ interface GithubInstallation {
 
 const props = defineProps<{
   modelValue: boolean,
-  integration: any,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();

@@ -62,8 +62,8 @@
 <script setup lang="ts">
 import LfSearch from '@/ui-kit/search/Search.vue';
 import { onMounted, ref } from 'vue';
-import { UsersService } from '@/modules/admin/services/users.service';
-import { UserModel } from '@/modules/admin/models/User.model';
+import { UsersService } from '@/modules/admin/modules/users/services/users.service';
+import { UserModel } from '@/modules/admin/modules/users/models/User.model';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
