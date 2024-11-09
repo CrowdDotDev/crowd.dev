@@ -36,7 +36,7 @@ export async function getMaxConcurrentRequests(
   possibleSources: MemberEnrichmentSource[],
 ): Promise<number> {
   const serviceMap: Partial<Record<MemberEnrichmentSource, IEnrichmentService>> = {}
-  const set = new Set<MemberEnrichmentSource>()
+  const distinctEnrichableSources = new Set<MemberEnrichmentSource>()
 
   for (const source of possibleSources) {
     serviceMap[source] = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
@@ -45,14 +45,14 @@ export async function getMaxConcurrentRequests(
     const enrichmentInput = await getEnrichmentInput(member)
     Object.keys(serviceMap).forEach(async (source) => {
       if (await serviceMap[source].isEnrichableBySource(enrichmentInput)) {
-        set.add(source as MemberEnrichmentSource)
+        distinctEnrichableSources.add(source as MemberEnrichmentSource)
       }
     })
   }
 
   let smallestMaxConcurrentRequests = Infinity
 
-  Array.from(set).forEach(async (source) => {
+  Array.from(distinctEnrichableSources).forEach(async (source) => {
     smallestMaxConcurrentRequests = Math.min(
       smallestMaxConcurrentRequests,
       serviceMap[source].maxConcurrentRequests,
