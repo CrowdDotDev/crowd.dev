@@ -47,6 +47,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
+  public maxConcurrentRequests = 5
+
   public attributeSettings: IMemberEnrichmentAttributeSettings = {
     [MemberAttributeName.AVATAR_URL]: {
       fields: ['profile_picture_url'],

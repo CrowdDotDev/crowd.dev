@@ -9,9 +9,12 @@ import {
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { RedisCache } from '@crowd/redis'
 import {
+  IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberEnrichmentCache,
   MemberEnrichmentSource,
+  MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -39,6 +42,51 @@ export async function getEnrichmentData(
     return service.getData(input)
   }
   return null
+}
+
+export async function getEnrichmentInput(
+  input: IEnrichableMember,
+): Promise<IEnrichmentSourceInput> {
+  const enrichmentInput: IEnrichmentSourceInput = {
+    memberId: input.id,
+    email: input.identities.find((i) => i.verified && i.type === MemberIdentityType.EMAIL),
+    linkedin: input.identities.find(
+      (i) =>
+        i.verified &&
+        i.platform === PlatformType.LINKEDIN &&
+        i.type === MemberIdentityType.USERNAME,
+    ),
+    displayName: input.displayName || undefined,
+    website: input.website || undefined,
+    location: input.location || undefined,
+    activityCount: input.activityCount || 0,
+  }
+
+  // there can be multiple verified identities in github, we select the one with the most activities
+  const verifiedGithubIdentities = input.identities.filter(
+    (i) =>
+      i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
+  )
+
+  if (verifiedGithubIdentities.length > 1) {
+    const ghIdentityWithTheMostActivities = await findMemberIdentityWithTheMostActivityInPlatform(
+      input.id,
+      PlatformType.GITHUB,
+    )
+    if (ghIdentityWithTheMostActivities) {
+      enrichmentInput.github = input.identities.find(
+        (i) =>
+          i.verified &&
+          i.platform === PlatformType.GITHUB &&
+          i.type === MemberIdentityType.USERNAME &&
+          i.value === ghIdentityWithTheMostActivities.username,
+      )
+    }
+  } else {
+    enrichmentInput.github = verifiedGithubIdentities?.[0] || undefined
+  }
+
+  return enrichmentInput
 }
 
 export async function normalizeEnrichmentData(

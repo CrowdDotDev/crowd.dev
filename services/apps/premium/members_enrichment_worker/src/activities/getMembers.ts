@@ -7,6 +7,9 @@ import {
 
 import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
+import { IEnrichmentService } from '../types'
+
+import { getEnrichmentInput } from './enrichment'
 
 export async function getEnrichableMembers(
   limit: number,
@@ -26,4 +29,37 @@ export async function getEnrichableMembers(
   rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterCursor)
 
   return rows
+}
+
+export async function getMaxConcurrentRequests(
+  members: IEnrichableMember[],
+  possibleSources: MemberEnrichmentSource[],
+): Promise<number> {
+  const serviceMap: Partial<Record<MemberEnrichmentSource, IEnrichmentService>> = {}
+  const set = new Set<MemberEnrichmentSource>()
+
+  for (const source of possibleSources) {
+    serviceMap[source] = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+  }
+  for (const member of members) {
+    const enrichmentInput = await getEnrichmentInput(member)
+    Object.keys(serviceMap).forEach(async (source) => {
+      if (await serviceMap[source].isEnrichableBySource(enrichmentInput)) {
+        set.add(source as MemberEnrichmentSource)
+      }
+    })
+  }
+
+  let smallestMaxConcurrentRequests = Infinity
+
+  Array.from(set).forEach(async (source) => {
+    smallestMaxConcurrentRequests = Math.min(
+      smallestMaxConcurrentRequests,
+      serviceMap[source].maxConcurrentRequests,
+    )
+  })
+
+  svc.log.info('Setting max concurrent requests', { smallestMaxConcurrentRequests })
+
+  return smallestMaxConcurrentRequests
 }

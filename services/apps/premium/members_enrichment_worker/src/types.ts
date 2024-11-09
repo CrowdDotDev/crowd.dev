@@ -41,6 +41,9 @@ export interface IEnrichmentService {
   // cache rows with older updatedAt than this will be considered obsolete and will be re-enriched
   cacheObsoleteAfterSeconds: number
 
+  // max concurrent requests that can be made to the source
+  maxConcurrentRequests: number
+
   // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean>
 

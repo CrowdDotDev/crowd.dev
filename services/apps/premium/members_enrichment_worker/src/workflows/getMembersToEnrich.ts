@@ -14,13 +14,12 @@ import { chunkArray } from '../utils/common'
 
 import { enrichMember } from './enrichMember'
 
-const { getEnrichableMembers } = proxyActivities<typeof activities>({
+const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 minutes',
 })
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
   const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
-  const PARALLEL_ENRICHMENT_WORKFLOWS = 5
   const afterCursor = args?.afterCursor || null
   const sources = [
     MemberEnrichmentSource.PROGAI,
@@ -40,7 +39,9 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     return
   }
 
-  const chunks = chunkArray<IEnrichableMember>(members, PARALLEL_ENRICHMENT_WORKFLOWS)
+  const parallelEnrichmentWorkflows = await getMaxConcurrentRequests(members, sources)
+
+  const chunks = chunkArray<IEnrichableMember>(members, parallelEnrichmentWorkflows)
 
   for (const chunk of chunks) {
     await Promise.all(
