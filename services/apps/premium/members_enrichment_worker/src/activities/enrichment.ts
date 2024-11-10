@@ -206,7 +206,7 @@ export async function getObsoleteSourcesOfMember(
   const obsoleteSources = possibleSources.filter((source) =>
     isCacheObsoleteSync(
       source,
-      caches.find((s) => s.source === source),
+      caches.find((c) => c.source === source),
     ),
   )
   return obsoleteSources
