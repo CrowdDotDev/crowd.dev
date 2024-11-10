@@ -61,8 +61,9 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
     return (
       input.activityCount > this.enrichMembersWithActivityMoreThan &&
-      !!input.email?.value &&
-      input.email?.verified
+      input.email &&
+      input.email.value &&
+      input.email.verified
     )
   }
 
