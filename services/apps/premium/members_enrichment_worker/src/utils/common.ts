@@ -1,7 +1,14 @@
 import lodash from 'lodash'
 
-import { IMemberEnrichmentCache, MemberIdentityType, PlatformType } from '@crowd/types'
+import { Logger } from '@crowd/logging'
+import {
+  IMemberEnrichmentCache,
+  MemberEnrichmentSource,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
 
+import { EnrichmentSourceServiceFactory } from '../factory'
 import {
   IMemberEnrichmentAttributeSettings,
   IMemberEnrichmentData,
@@ -107,4 +114,16 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     chunks.push(array.slice(i, i + chunkSize))
   }
   return chunks
+}
+
+export function isCacheObsolete(
+  source: MemberEnrichmentSource,
+  cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
+  logger: Logger,
+): boolean {
+  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, logger)
+  return (
+    !cache ||
+    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
+  )
 }

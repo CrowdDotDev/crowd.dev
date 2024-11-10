@@ -24,6 +24,7 @@ import {
   IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
 } from '../types'
+import { isCacheObsolete as isCacheObsoleteSync } from '../utils/common'
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
@@ -101,11 +102,7 @@ export async function isCacheObsolete(
   source: MemberEnrichmentSource,
   cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
 ): Promise<boolean> {
-  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  return (
-    !cache ||
-    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
-  )
+  return isCacheObsoleteSync(source, cache, svc.log)
 }
 
 export async function setHasRemainingCredits(
@@ -196,17 +193,14 @@ export async function getObsoleteSourcesOfMember(
   possibleSources: MemberEnrichmentSource[],
 ): Promise<MemberEnrichmentSource[]> {
   const caches = await findMemberEnrichmentCacheForAllSources(memberId, true)
-
-  const obsoleteSourcesPromises = possibleSources.map(async (source) => {
-    const cache = caches.find((s) => s.source === source)
-    return (await isCacheObsolete(source, cache)) ? source : null
-  })
-
-  const obsoleteSources = (await Promise.all(obsoleteSourcesPromises)).filter(
-    (source) => source !== null,
+  const obsoleteSources = possibleSources.filter((source) =>
+    isCacheObsoleteSync(
+      source,
+      caches.find((s) => s.source === source),
+      svc.log,
+    ),
   )
-
-  return obsoleteSources as MemberEnrichmentSource[]
+  return obsoleteSources
 }
 
 export async function refreshMemberEnrichmentMaterializedView(mvName: string): Promise<void> {
