@@ -9,7 +9,7 @@ import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
 import { IEnrichmentService } from '../types'
 
-import { getEnrichmentInput } from './enrichment'
+import { getEnrichmentInput, getObsoleteSourcesOfMember } from './enrichment'
 
 export async function getEnrichableMembers(
   limit: number,
@@ -44,7 +44,11 @@ export async function getMaxConcurrentRequests(
   for (const member of members) {
     const enrichmentInput = await getEnrichmentInput(member)
     Object.keys(serviceMap).forEach(async (source) => {
-      if (await serviceMap[source].isEnrichableBySource(enrichmentInput)) {
+      const obsoleteSources = await getObsoleteSourcesOfMember(member.id, possibleSources)
+      if (
+        (await serviceMap[source].isEnrichableBySource(enrichmentInput)) &&
+        (obsoleteSources as string[]).includes(source)
+      ) {
         distinctEnrichableSources.add(source as MemberEnrichmentSource)
       }
     })

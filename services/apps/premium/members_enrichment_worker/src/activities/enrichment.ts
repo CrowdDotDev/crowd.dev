@@ -152,8 +152,13 @@ export async function findMemberEnrichmentCache(
 
 export async function findMemberEnrichmentCacheForAllSources(
   memberId: string,
+  returnRowsWithoutData = false,
 ): Promise<IMemberEnrichmentCache<IMemberEnrichmentData>[]> {
-  return findMemberEnrichmentCacheForAllSourcesDb(svc.postgres.reader.connection(), memberId)
+  return findMemberEnrichmentCacheForAllSourcesDb(
+    svc.postgres.reader.connection(),
+    memberId,
+    returnRowsWithoutData,
+  )
 }
 
 export async function insertMemberEnrichmentCache(
@@ -184,6 +189,20 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
   platform: string,
 ): Promise<IEnrichableMemberIdentityActivityAggregate> {
   return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
+}
+
+export async function getObsoleteSourcesOfMember(
+  memberId: string,
+  possibleSources: MemberEnrichmentSource[],
+): Promise<MemberEnrichmentSource[]> {
+  const caches = await findMemberEnrichmentCacheForAllSources(memberId, true)
+  const obsoleteSources = possibleSources.filter((source) =>
+    isCacheObsolete(
+      source,
+      caches.find((s) => s.source === source),
+    ),
+  )
+  return obsoleteSources
 }
 
 export async function refreshMemberEnrichmentMaterializedView(mvName: string): Promise<void> {

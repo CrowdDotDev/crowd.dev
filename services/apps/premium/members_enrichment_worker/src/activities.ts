@@ -3,6 +3,7 @@ import {
   findMemberIdentityWithTheMostActivityInPlatform,
   getEnrichmentData,
   getEnrichmentInput,
+  getObsoleteSourcesOfMember,
   insertMemberEnrichmentCache,
   isCacheObsolete,
   isEnrichableBySource,
@@ -57,4 +58,5 @@ export {
   refreshMemberEnrichmentMaterializedView,
   getEnrichmentInput,
   getMaxConcurrentRequests,
+  getObsoleteSourcesOfMember,
 }

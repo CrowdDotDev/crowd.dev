@@ -523,13 +523,15 @@ export async function findMemberEnrichmentCacheDb<T>(
 export async function findMemberEnrichmentCacheForAllSourcesDb<T>(
   tx: DbConnOrTx,
   memberId: string,
+  returnRowsWithoutData = false,
 ): Promise<IMemberEnrichmentCache<T>[]> {
+  const dataFilter = returnRowsWithoutData ? '' : 'and data is not null'
   const result = await tx.manyOrNone(
     `
     select *
     from "memberEnrichmentCache"
     where 
-      "memberId" = $(memberId) and data is not null;
+      "memberId" = $(memberId) ${dataFilter};
     `,
     { memberId },
   )
