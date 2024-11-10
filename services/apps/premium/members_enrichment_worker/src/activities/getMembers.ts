@@ -43,8 +43,9 @@ export async function getMaxConcurrentRequests(
   }
   for (const member of members) {
     const enrichmentInput = await getEnrichmentInput(member)
+    const obsoleteSources = await getObsoleteSourcesOfMember(member.id, possibleSources)
+
     Object.keys(serviceMap).forEach(async (source) => {
-      const obsoleteSources = await getObsoleteSourcesOfMember(member.id, possibleSources)
       if (
         (await serviceMap[source].isEnrichableBySource(enrichmentInput)) &&
         (obsoleteSources as string[]).includes(source)
@@ -55,6 +56,8 @@ export async function getMaxConcurrentRequests(
   }
 
   let smallestMaxConcurrentRequests = Infinity
+
+  svc.log.info('Distinct enrichable sources', { distinctEnrichableSources })
 
   Array.from(distinctEnrichableSources).forEach(async (source) => {
     smallestMaxConcurrentRequests = Math.min(
