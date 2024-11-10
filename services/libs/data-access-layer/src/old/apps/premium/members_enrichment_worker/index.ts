@@ -12,21 +12,24 @@ import {
   OrganizationSource,
 } from '@crowd/types'
 
+/**
+ * Gets enrichable members using the provided sources
+ * If a member is enrichable in one source, and not enrichable in another, the member will be returned
+ * Members with at least one missing or old source cache rows will be returned
+ * The reason we're not checking enrichable members and cache age in the same subquery is because of linkedin scraper sources.
+ * These sources also use data from other sources and it's costly to check cache data jsons.
+ * This check is instead done in the application layer.
+ */
 export async function fetchMembersForEnrichment(
   db: DbStore,
   limit: number,
   sourceInputs: IMemberEnrichmentSourceQueryInput[],
-  afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
-  const cursorFilter = afterCursor
-    ? `AND ((coalesce("membersGlobalActivityCount".total_count, 0) < $2) OR (coalesce("membersGlobalActivityCount".total_count, 0) = $2 AND members.id < $3))`
-    : ''
-
-  const sourceInnerQueryItems = []
+  const cacheAgeInnerQueryItems = []
   const enrichableBySqlConditions = []
 
   sourceInputs.forEach((input) => {
-    sourceInnerQueryItems.push(
+    cacheAgeInnerQueryItems.push(
       `
       ( NOT EXISTS (
           SELECT 1 FROM "memberEnrichmentCache" mec
@@ -70,13 +73,12 @@ export async function fetchMembersForEnrichment(
       ${enrichableBySqlJoined}
       AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
-      AND (${sourceInnerQueryItems.join(' OR ')})
-      ${cursorFilter}
+      AND (${cacheAgeInnerQueryItems.join(' OR ')})
     GROUP BY members.id
-    ORDER BY "activityCount" DESC, members.id DESC
+    ORDER BY "activityCount" DESC
     LIMIT $1;
     `,
-    afterCursor ? [limit, afterCursor.activityCount, afterCursor.memberId] : [limit],
+    [limit],
   )
 }
 

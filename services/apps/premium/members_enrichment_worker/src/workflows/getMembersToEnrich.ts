@@ -9,7 +9,6 @@ import {
 import { IEnrichableMember, MemberEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities/getMembers'
-import { IGetMembersForEnrichmentArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
 import { enrichMember } from './enrichMember'
@@ -18,9 +17,8 @@ const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeo
   startToCloseTimeout: '2 minutes',
 })
 
-export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
+export async function getMembersToEnrich(): Promise<void> {
   const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
-  const afterCursor = args?.afterCursor || null
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
@@ -29,11 +27,7 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     MemberEnrichmentSource.CRUSTDATA,
   ]
 
-  const members = await getEnrichableMembers(
-    QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN,
-    sources,
-    afterCursor,
-  )
+  const members = await getEnrichableMembers(QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN, sources)
 
   if (members.length === 0) {
     return
@@ -66,10 +60,5 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     )
   }
 
-  await continueAsNew<typeof getMembersToEnrich>({
-    afterCursor: {
-      memberId: chunks[chunks.length - 1][chunks[chunks.length - 1].length - 1].id,
-      activityCount: chunks[chunks.length - 1][chunks[chunks.length - 1].length - 1].activityCount,
-    },
-  })
+  await continueAsNew<typeof getMembersToEnrich>()
 }

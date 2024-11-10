@@ -91,10 +91,6 @@ export interface IMemberEnrichmentLinkedinScraperMetadata {
   isFromVerifiedSource: boolean
 }
 
-export interface IGetMembersForEnrichmentArgs {
-  afterCursor: { activityCount: number; memberId: string } | null
-}
-
 export interface IMemberEnrichmentSocialData {
   platform: PlatformType
   handle: string

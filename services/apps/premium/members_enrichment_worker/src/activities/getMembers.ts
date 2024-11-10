@@ -14,7 +14,6 @@ import { getEnrichmentInput, getObsoleteSourcesOfMember } from './enrichment'
 export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
-  afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
   let rows: IEnrichableMember[] = []
   const sourceInputs: IMemberEnrichmentSourceQueryInput[] = sources.map((s) => {
@@ -26,7 +25,7 @@ export async function getEnrichableMembers(
     }
   })
   const db = svc.postgres.reader
-  rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterCursor)
+  rows = await fetchMembersForEnrichment(db, limit, sourceInputs)
 
   return rows
 }
