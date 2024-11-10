@@ -31,6 +31,9 @@ export async function getEnrichableMembers(
   return rows
 }
 
+// Get the most strict parallelism among existing and enrichable sources
+// If current members are only enrichable by one source, we will use the maxConcurrentRequests of that source
+// If current members are enrichable by multiple sources, we will use the min(maxConcurrentRequests) among sources
 export async function getMaxConcurrentRequests(
   members: IEnrichableMember[],
   possibleSources: MemberEnrichmentSource[],
@@ -56,8 +59,6 @@ export async function getMaxConcurrentRequests(
   }
 
   let smallestMaxConcurrentRequests = Infinity
-
-  svc.log.info('Distinct enrichable sources', { distinctEnrichableSources })
 
   Array.from(distinctEnrichableSources).forEach(async (source) => {
     smallestMaxConcurrentRequests = Math.min(
