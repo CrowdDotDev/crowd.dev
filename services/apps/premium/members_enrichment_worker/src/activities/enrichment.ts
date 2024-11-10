@@ -196,13 +196,17 @@ export async function getObsoleteSourcesOfMember(
   possibleSources: MemberEnrichmentSource[],
 ): Promise<MemberEnrichmentSource[]> {
   const caches = await findMemberEnrichmentCacheForAllSources(memberId, true)
-  const obsoleteSources = possibleSources.filter((source) =>
-    isCacheObsolete(
-      source,
-      caches.find((s) => s.source === source),
-    ),
+
+  const obsoleteSourcesPromises = possibleSources.map(async (source) => {
+    const cache = caches.find((s) => s.source === source)
+    return (await isCacheObsolete(source, cache)) ? source : null
+  })
+
+  const obsoleteSources = (await Promise.all(obsoleteSourcesPromises)).filter(
+    (source) => source !== null,
   )
-  return obsoleteSources
+
+  return obsoleteSources as MemberEnrichmentSource[]
 }
 
 export async function refreshMemberEnrichmentMaterializedView(mvName: string): Promise<void> {
