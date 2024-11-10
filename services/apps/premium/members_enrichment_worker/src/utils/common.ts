@@ -115,15 +115,3 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   }
   return chunks
 }
-
-export function isCacheObsolete(
-  source: MemberEnrichmentSource,
-  cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
-  logger: Logger,
-): boolean {
-  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, logger)
-  return (
-    !cache ||
-    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
-  )
-}

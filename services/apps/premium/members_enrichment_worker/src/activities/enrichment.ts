@@ -24,7 +24,6 @@ import {
   IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
 } from '../types'
-import { isCacheObsolete as isCacheObsoleteSync } from '../utils/common'
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
@@ -102,7 +101,18 @@ export async function isCacheObsolete(
   source: MemberEnrichmentSource,
   cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
 ): Promise<boolean> {
-  return isCacheObsoleteSync(source, cache, svc.log)
+  return isCacheObsoleteSync(source, cache)
+}
+
+export function isCacheObsoleteSync(
+  source: MemberEnrichmentSource,
+  cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
+): boolean {
+  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+  return (
+    !cache ||
+    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
+  )
 }
 
 export async function setHasRemainingCredits(
@@ -197,7 +207,6 @@ export async function getObsoleteSourcesOfMember(
     isCacheObsoleteSync(
       source,
       caches.find((s) => s.source === source),
-      svc.log,
     ),
   )
   return obsoleteSources
