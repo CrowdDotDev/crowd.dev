@@ -70,11 +70,9 @@ const mappings = ref([]);
 const repoNameFromUrl = (url) => url.split('/').at(-1);
 
 onMounted(() => {
-  if (props.integration.status !== 'mapping') {
-    IntegrationService.fetchGitLabMappings(props.integration).then((res) => {
-      mappings.value = res;
-    });
-  }
+  IntegrationService.fetchGitLabMappings(props.integration).then((res) => {
+    mappings.value = res;
+  });
 });
 </script>
 
