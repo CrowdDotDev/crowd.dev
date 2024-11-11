@@ -154,7 +154,7 @@
             "
           >
             {{
-              integration.settings?.tags.length > 0
+              integration?.settings?.tags.length > 0
                 ? 'Update'
                 : 'Connect'
             }}
@@ -203,8 +203,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 const tags = computed(() => {
-  if (props.integration.settings?.tags?.length > 0) {
-    return props.integration.settings?.tags.map((i) => ({
+  if (props.integration?.settings?.tags?.length > 0) {
+    return props.integration?.settings?.tags.map((i) => ({
       value: i,
       valid: true,
       validating: false,
@@ -221,7 +221,7 @@ const tags = computed(() => {
 });
 
 const keywords = computed(
-  () => props.integration.settings?.keywords || [],
+  () => props.integration?.settings?.keywords || [],
 );
 
 const model = ref(JSON.parse(JSON.stringify(tags.value)));
@@ -381,7 +381,7 @@ const callOnboard = useThrottleFn(async () => {
       },
     );
 
-    const isUpdate = !!props.integration.settings;
+    const isUpdate = !!props.integration?.settings;
 
     trackEvent({
       key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
@@ -426,6 +426,6 @@ watch(isVisible, (newValue, oldValue) => {
 
 <script>
 export default {
-  name: 'AppStackOverflowConnectDrawer',
+  name: 'LfStackoverflowSettingsDrawer',
 };
 </script>
