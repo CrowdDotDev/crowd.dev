@@ -37,6 +37,8 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
+  public maxConcurrentRequests = 1000
+
   constructor(public readonly log: Logger) {
     super(log)
   }
@@ -164,6 +166,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
       if (!linkedinUrlHashmap.get(input.linkedin.value)) {
         consumableIdentities.push({
           ...input.linkedin,
+          value: input.linkedin.value.replace(/\//g, ''),
           repeatedTimesInDifferentSources: 1,
           isFromVerifiedSource: true,
         })

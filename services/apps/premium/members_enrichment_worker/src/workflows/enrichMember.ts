@@ -1,11 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import {
-  IEnrichableMember,
-  MemberEnrichmentSource,
-  MemberIdentityType,
-  PlatformType,
-} from '@crowd/types'
+import { IEnrichableMember, MemberEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities'
 import { IEnrichmentSourceInput } from '../types'
@@ -19,9 +14,9 @@ const {
   updateMemberEnrichmentCache,
   isCacheObsolete,
   normalizeEnrichmentData,
-  findMemberIdentityWithTheMostActivityInPlatform,
+  getEnrichmentInput,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '20 seconds',
+  startToCloseTimeout: '1 minute',
   retry: {
     initialInterval: '5s',
     backoffCoefficient: 2.0,
@@ -42,44 +37,7 @@ export async function enrichMember(
 
     // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
     if (await isCacheObsolete(source, cache)) {
-      const enrichmentInput: IEnrichmentSourceInput = {
-        memberId: input.id,
-        email: input.identities.find((i) => i.verified && i.type === MemberIdentityType.EMAIL),
-        linkedin: input.identities.find(
-          (i) =>
-            i.verified &&
-            i.platform === PlatformType.LINKEDIN &&
-            i.type === MemberIdentityType.USERNAME,
-        ),
-        displayName: input.displayName || undefined,
-        website: input.website || undefined,
-        location: input.location || undefined,
-        activityCount: input.activityCount || 0,
-      }
-
-      // there can be multiple verified identities in github, we select the one with the most activities
-      const verifiedGithubIdentities = input.identities.filter(
-        (i) =>
-          i.verified &&
-          i.platform === PlatformType.GITHUB &&
-          i.type === MemberIdentityType.USERNAME,
-      )
-
-      if (verifiedGithubIdentities.length > 1) {
-        const ghIdentityWithTheMostActivities =
-          await findMemberIdentityWithTheMostActivityInPlatform(input.id, PlatformType.GITHUB)
-        if (ghIdentityWithTheMostActivities) {
-          enrichmentInput.github = input.identities.find(
-            (i) =>
-              i.verified &&
-              i.platform === PlatformType.GITHUB &&
-              i.type === MemberIdentityType.USERNAME &&
-              i.value === ghIdentityWithTheMostActivities.username,
-          )
-        }
-      } else {
-        enrichmentInput.github = verifiedGithubIdentities?.[0] || undefined
-      }
+      const enrichmentInput: IEnrichmentSourceInput = await getEnrichmentInput(input)
 
       const data = await getEnrichmentData(source, enrichmentInput)
 

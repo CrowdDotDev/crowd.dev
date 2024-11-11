@@ -124,7 +124,7 @@ export default class ActivityService extends LoggerBase {
           throw error
         }
 
-        return id
+        return activity.id
       })
 
       if (EDITION !== Edition.LFX) {
