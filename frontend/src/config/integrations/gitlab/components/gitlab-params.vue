@@ -1,15 +1,6 @@
 <template>
   <div>
-    <div
-      v-if="props.integration?.status === 'mapping'"
-      class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
-    >
-      <i
-        class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-      />
-      Mapping repositories... {{ mappings.length }}
-    </div>
-    <div v-else class="flex items-center gap-1">
+    <div class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-auto">
         <template #reference>
           <div
@@ -59,11 +50,6 @@
         <i class="ri-information-line text-xs text-gray-600" />
       </el-tooltip>
     </div>
-    <app-gitlab-settings-drawer
-      v-if="settingsDrawerOpen"
-      v-model="settingsDrawerOpen"
-      :integration="props.integration"
-    />
   </div>
 </template>
 
@@ -71,7 +57,6 @@
 import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
-import AppGitlabSettingsDrawer from './gitlab-settings-drawer.vue';
 
 const props = defineProps({
   integration: {
@@ -79,8 +64,6 @@ const props = defineProps({
     default: () => {},
   },
 });
-
-const settingsDrawerOpen = ref(props.integration.status === 'mapping');
 
 const mappings = ref([]);
 

@@ -1,26 +1,31 @@
 <template>
-  <slot
-    :connect="connect"
-    :has-settings="false"
-    :settings-component="GitlabSettings"
-  />
+  <div class="flex items-center gap-4">
+    <!--      <lf-button type="secondary-ghost" @click="isDetailsModalOpen = true">-->
+    <!--        <lf-icon name="circle-info" type="regular" />-->
+    <!--        Details-->
+    <!--      </lf-button>-->
+    <lf-button type="secondary" @click="connect()">
+      <lf-icon name="link-simple" />
+      Connect
+    </lf-button>
+  </div>
 </template>
 
 <script setup>
 import {
-  defineProps, computed, onMounted,
+  defineProps, computed, onMounted, ref,
 } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import GitlabSettings from '@/integrations/gitlab/components/gitlab-settings.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const route = useRoute();
-const router = useRouter();
 
 defineProps({
   integration: {
@@ -29,14 +34,9 @@ defineProps({
   },
 });
 
-onMounted(() => {
-  const isConnectionSuccessful = route.query.success;
+const { doGitlabConnect } = mapActions('integration');
 
-  if (isConnectionSuccessful) {
-    router.replace({ query: null });
-    Message.success('Integration updated successfully');
-  }
-});
+const isFinishingModalOpen = ref(false);
 
 const connectUrl = computed(() => {
   const authStore = useAuthStore();
@@ -74,10 +74,31 @@ const connect = async () => {
     // Handle error (e.g., show an error message to the user)
   }
 };
+
+const finallizeGitlabConnect = () => {
+  const {
+    code, source, state,
+  } = route.query;
+
+  if (code && source === 'gitlab') {
+    isFinishingModalOpen.value = true;
+    doGitlabConnect({
+      code,
+      state,
+    })
+      .then(() => {
+        isFinishingModalOpen.value = false;
+      });
+  }
+};
+
+onMounted(() => {
+  finallizeGitlabConnect();
+});
 </script>
 
 <script>
 export default {
-  name: 'AppGitlabConnect',
+  name: 'LfGitlabConnect',
 };
 </script>

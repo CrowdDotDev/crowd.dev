@@ -204,7 +204,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
-import AppGitlabSettingsBulkSelect from '@/integrations/gitlab/components/gitlab-settings-bulk-select.vue';
+import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
   modelValue: boolean;

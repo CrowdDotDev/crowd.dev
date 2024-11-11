@@ -1,4 +1,3 @@
-
 export default {
   enabled: true,
   name: 'Zapier',
