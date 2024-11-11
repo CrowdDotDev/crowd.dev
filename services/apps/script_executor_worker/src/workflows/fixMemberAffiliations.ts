@@ -44,9 +44,7 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         retry: {
-          backoffCoefficient: 2,
-          initialInterval: 2 * 1000,
-          maximumInterval: 30 * 1000,
+          maximumAttempts: 10,
         },
         args: [
           {
