@@ -138,7 +138,7 @@
           :loading="loading"
           @click="connect"
         >
-          {{ integration.settings?.url ? "Update" : "Connect" }}
+          {{ integration?.settings?.url ? "Update" : "Connect" }}
         </el-button>
       </div>
     </template>
@@ -207,10 +207,10 @@ const logoUrl = computed(() => CrowdIntegrations.getConfig('jira').image);
 
 onMounted(() => {
   if (props.integration?.settings?.url) {
-    form.jiraURL = props.integration.settings.url;
-    form.personalAccessToken = props.integration.settings.auth.personalAccessToken;
-    form.username = props.integration.settings.auth.username;
-    form.apiToken = props.integration.settings.auth.apiToken;
+    form.jiraURL = props.integration?.settings.url;
+    form.personalAccessToken = props.integration?.settings.auth.personalAccessToken;
+    form.username = props.integration?.settings.auth.username;
+    form.apiToken = props.integration?.settings.auth.apiToken;
     form.projects = props.integration?.settings?.projects;
     isAPIConnectionValid.value = true;
   }
@@ -265,6 +265,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppJiraConnectDrawer',
+  name: 'LfJiraSettingsDrawer',
 };
 </script>

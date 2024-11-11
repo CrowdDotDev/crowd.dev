@@ -1,7 +1,8 @@
 // import github from './github/config';
 // import git from './git/config';
 // import groupsio from './groupsio/config';
-import confluence from './confluence/config';
+// import confluence from './confluence/config';
+import jira from './jira/config';
 
 export interface IntegrationConfig {
   key: string; // Unique key for the integration
@@ -19,5 +20,6 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   // github,
   // git,
   // groupsio,
-  confluence,
+  // confluence,
+  jira,
 };

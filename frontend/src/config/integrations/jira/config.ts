@@ -1,10 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
+import JiraConnect from './components/jira-connect.vue';
+import JiraParams from './components/jira-params.vue';
+import JiraDropdown from './components/jira-dropdown.vue';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const jira: IntegrationConfig = {
+  key: 'jira',
+  name: 'Jira',
+  image: '/images/integrations/jira.png',
+  description: 'Connect Jira to sync issues activities from your projects.',
+  connectComponent: JiraConnect,
+  connectedParamsComponent: JiraParams,
+  dropdownComponent: JiraDropdown,
 };
 
-export default github;
+export default jira;
