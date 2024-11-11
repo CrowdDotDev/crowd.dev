@@ -65,6 +65,6 @@ const channels = computed<{ name: string; id: string }[]>(
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettings',
+  name: 'LfSlackParams',
 };
 </script>

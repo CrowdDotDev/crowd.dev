@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const gerrit: IntegrationConfig = {
+  key: 'gerrit',
+  name: 'Gerrit',
+  image: '/images/integrations/gerrit.png',
+  description: 'Connect Gerrit to sync documentation activities from your repos.',
 };
 
-export default github;
+export default gerrit;

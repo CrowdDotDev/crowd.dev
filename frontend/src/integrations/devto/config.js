@@ -1,5 +1,3 @@
-import DevtoConnect from './components/devto-connect.vue';
-
 export default {
   enabled: true,
   name: 'DEV',
@@ -12,7 +10,6 @@ export default {
   },
   image:
     'https://cdn-icons-png.flaticon.com/512/5969/5969051.png',
-  connectComponent: DevtoConnect,
   url: ({ username }) => (username ? `https://dev.to/${username}` : null),
   chartColor: '#9CA3AF',
   showProfileLink: true,

@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const discourse: IntegrationConfig = {
+  key: 'discourse',
+  name: 'Discourse',
+  image: '/images/integrations/discourse.png',
+  description: 'Connect Discourse to sync topics, posts, and replies from your account forums.',
 };
 
-export default github;
+export default discourse;

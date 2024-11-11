@@ -1,10 +1,14 @@
 import { IntegrationConfig } from '@/config/integrations';
+import DiscordConnect from './components/discord-connect.vue';
+import DiscordParams from './components/discord-params.vue';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const discord: IntegrationConfig = {
+  key: 'discord',
+  name: 'Discord',
+  image: '/images/integrations/discord.png',
+  description: 'Connect Discord to sync messages, threads, forum channels, and new joiners.',
+  connectComponent: DiscordConnect,
+  connectedParamsComponent: DiscordParams,
 };
 
-export default github;
+export default discord;

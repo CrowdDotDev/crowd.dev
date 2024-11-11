@@ -2,7 +2,18 @@
 // import git from './git/config';
 // import groupsio from './groupsio/config';
 // import confluence from './confluence/config';
-import jira from './jira/config';
+// import jira from './jira/config';
+// import slack from './slack/config';
+// import discord from './discord/config';
+import linkedin from './linkedin/config';
+import twitter from './twitter/config';
+import reddit from './reddit/config';
+import hackernews from './hackernews/config';
+import stackoverflow from './stackoverflow/config';
+import gitlab from './gitlab/config';
+import gerrit from './gerrit/config';
+import discourse from './discourse/config';
+import devto from './devto/config';
 
 export interface IntegrationConfig {
   key: string; // Unique key for the integration
@@ -21,5 +32,16 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   // git,
   // groupsio,
   // confluence,
-  jira,
+  // jira,
+  // slack,
+  // discord,
+  linkedin,
+  twitter,
+  reddit,
+  hackernews,
+  stackoverflow,
+  gitlab,
+  gerrit,
+  discourse,
+  devto,
 };

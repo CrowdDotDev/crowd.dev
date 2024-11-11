@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const gitlab: IntegrationConfig = {
+  key: 'gitlab',
+  name: 'GitLab',
+  image: '/images/integrations/gitlab.png',
+  description: 'Connect GitLab to sync profile information, merge requests, issues, and more.',
 };
 
-export default github;
+export default gitlab;

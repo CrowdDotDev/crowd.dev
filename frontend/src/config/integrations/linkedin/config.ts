@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const linkedin: IntegrationConfig = {
+  key: 'linkedin',
+  name: 'LinkedIn',
+  image: '/images/integrations/linkedin.png',
+  description: 'Connect LinkedIn to sync comments and reactions from your organization\'s posts.',
 };
 
-export default github;
+export default linkedin;

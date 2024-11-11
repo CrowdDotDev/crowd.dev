@@ -22,11 +22,11 @@ import { useRouter, useRoute } from 'vue-router';
 import config from '@/config';
 
 import Message from '@/shared/message/message';
-import AppTwitterConnectDrawer from '@/integrations/twitter/components/twitter-connect-drawer.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import AppTwitterConnectDrawer from '@/integrations/twitter/components/twitter-connect-drawer.vue';
 import TwitterSettings from './twitter-settings.vue';
 
 const route = useRoute();

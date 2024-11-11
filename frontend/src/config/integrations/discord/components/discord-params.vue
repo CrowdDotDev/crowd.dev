@@ -54,6 +54,6 @@ const channels = computed<{ id: string; name: string }[]>(
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettings',
+  name: 'LfDiscordParams',
 };
 </script>

@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const devto: IntegrationConfig = {
+  key: 'devto',
+  name: 'DEV',
+  image: '/images/integrations/devto.png',
+  description: 'Connect DEV to sync profile information and comments on articles.',
 };
 
-export default github;
+export default devto;

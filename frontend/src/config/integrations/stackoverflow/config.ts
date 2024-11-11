@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const stackoverflow: IntegrationConfig = {
+  key: 'stackoverflow',
+  name: 'Stack Overflow',
+  image: '/images/integrations/stackoverflow.png',
+  description: 'Connect Stack Overflow to sync questions and answers based on selected tags.',
 };
 
-export default github;
+export default stackoverflow;

@@ -1,10 +1,10 @@
 import { IntegrationConfig } from '@/config/integrations';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const hackernews: IntegrationConfig = {
+  key: 'hackernews',
+  name: 'Hacker News',
+  image: '/images/integrations/hackernews.svg',
+  description: 'Connect Hacker News to get posts as well as their comments mentioning your community.',
 };
 
-export default github;
+export default hackernews;
