@@ -33,7 +33,11 @@ export async function getMembersToEnrich(): Promise<void> {
     return
   }
 
-  const parallelEnrichmentWorkflows = await getMaxConcurrentRequests(members, sources)
+  const parallelEnrichmentWorkflows = await getMaxConcurrentRequests(
+    members,
+    sources,
+    QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN,
+  )
 
   const chunks = chunkArray<IEnrichableMember>(members, parallelEnrichmentWorkflows)
 

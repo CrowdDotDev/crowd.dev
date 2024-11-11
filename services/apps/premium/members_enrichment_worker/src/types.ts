@@ -57,6 +57,9 @@ export interface IEnrichmentService {
   // activity count is available in "membersGlobalActivityCount" alias, "membersGlobalActivityCount".total_count field
   enrichableBySql: string
 
+  // only enrich members with activity more than this number
+  enrichMembersWithActivityMoreThan?: number
+
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>
   normalize(

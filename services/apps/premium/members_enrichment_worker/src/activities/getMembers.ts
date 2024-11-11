@@ -31,48 +31,28 @@ export async function getEnrichableMembers(
 }
 
 // Get the most strict parallelism among existing and enrichable sources
-// If current members are enrichable by multiple sources, we will use the min(maxConcurrentRequests) among sources
+// We only check sources that has activity count cutoff in current range
 export async function getMaxConcurrentRequests(
   members: IEnrichableMember[],
   possibleSources: MemberEnrichmentSource[],
+  concurrencyLimit: number,
 ): Promise<number> {
   const serviceMap: Partial<Record<MemberEnrichmentSource, IEnrichmentService>> = {}
-  const distinctEnrichableSources = new Set<MemberEnrichmentSource>()
-  let maxConcurrentRequestsInAllSources = 0
+  const currentProcessingActivityCount = members[0].activityCount
+
+  let maxConcurrentRequestsInAllSources = concurrencyLimit
 
   for (const source of possibleSources) {
     serviceMap[source] = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-    if (serviceMap[source].maxConcurrentRequests > maxConcurrentRequestsInAllSources) {
-      maxConcurrentRequestsInAllSources = Math.max(
+    const activityCountCutoff = serviceMap[source].enrichMembersWithActivityMoreThan
+    if (!activityCountCutoff || activityCountCutoff <= currentProcessingActivityCount) {
+      maxConcurrentRequestsInAllSources = Math.min(
         maxConcurrentRequestsInAllSources,
         serviceMap[source].maxConcurrentRequests,
       )
     }
   }
-  for (const member of members) {
-    const enrichmentInput = await getEnrichmentInput(member)
-    const obsoleteSources = await getObsoleteSourcesOfMember(member.id, possibleSources)
+  svc.log.info('Setting max concurrent requests', { maxConcurrentRequestsInAllSources })
 
-    Object.keys(serviceMap).forEach(async (source) => {
-      if (
-        (await serviceMap[source].isEnrichableBySource(enrichmentInput)) &&
-        (obsoleteSources as string[]).includes(source)
-      ) {
-        distinctEnrichableSources.add(source as MemberEnrichmentSource)
-      }
-    })
-  }
-
-  let smallestMaxConcurrentRequests = maxConcurrentRequestsInAllSources
-
-  Array.from(distinctEnrichableSources).forEach(async (source) => {
-    smallestMaxConcurrentRequests = Math.min(
-      smallestMaxConcurrentRequests,
-      serviceMap[source].maxConcurrentRequests,
-    )
-  })
-
-  svc.log.info('Setting max concurrent requests', { smallestMaxConcurrentRequests })
-
-  return smallestMaxConcurrentRequests
+  return maxConcurrentRequestsInAllSources
 }
