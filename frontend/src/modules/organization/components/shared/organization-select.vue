@@ -14,7 +14,7 @@
     <template v-if="isCreatingOrganization" #prefix>
       <lf-spinner size="1rem" class="mr-2 text-black" />
     </template>
-    <template v-if="form && (form.displayName || form.name)" #prefix>
+    <template v-else-if="form && (form.displayName || form.name)" #prefix>
       <div class="flex items-center">
         <lf-avatar
           :name="form.displayName || form.name"
