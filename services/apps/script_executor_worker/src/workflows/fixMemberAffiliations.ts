@@ -17,8 +17,14 @@ const { getMemberIdsWithDeletedWorkexperiences } = proxyActivities<typeof activi
 })
 
 export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
-  const MEMBER_PAGE_SIZE = 100
+  const MEMBER_PAGE_SIZE = args.testRun ? 10 : 100
   const offset = args.offset || 0
+
+  if (args.testRun) {
+    console.log(`Running in test mode with limit 10!`)
+  }
+
+  console.log(`Fixing affiliations for tenant ${args.tenantId} with offset ${offset || 0}`)
 
   const memberIds = await getMemberIdsWithDeletedWorkexperiences(
     args.tenantId,
