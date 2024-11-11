@@ -4,6 +4,7 @@ import merge from 'lodash.merge'
 import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
@@ -383,6 +384,8 @@ export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT
   'gitIsMerge',
 ])
 
+const logger = getServiceChildLogger('activities')
+
 export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
@@ -549,7 +552,7 @@ export async function queryActivities(
 
     query += ';'
 
-    console.log('QuestDB activity query', query)
+    logger.info('QuestDB activity query', query)
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
