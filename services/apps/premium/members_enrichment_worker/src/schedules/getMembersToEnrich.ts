@@ -29,11 +29,7 @@ export const scheduleMembersEnrichment = async () => {
           backoffCoefficient: 2,
           maximumAttempts: 3,
         },
-        args: [
-          {
-            afterCursor: null,
-          },
-        ],
+        args: [],
       },
     })
   } catch (err) {

@@ -41,6 +41,9 @@ export interface IEnrichmentService {
   // cache rows with older updatedAt than this will be considered obsolete and will be re-enriched
   cacheObsoleteAfterSeconds: number
 
+  // max concurrent requests that can be made to the source
+  maxConcurrentRequests: number
+
   // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean>
 
@@ -53,6 +56,9 @@ export interface IEnrichmentService {
   // memberIdentities table is available as "mi" alias
   // activity count is available in "membersGlobalActivityCount" alias, "membersGlobalActivityCount".total_count field
   enrichableBySql: string
+
+  // only enrich members with activity more than this number
+  enrichMembersWithActivityMoreThan?: number
 
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>
@@ -86,10 +92,6 @@ export interface IMemberEnrichmentDataNormalizedOrganization {
 export interface IMemberEnrichmentLinkedinScraperMetadata {
   repeatedTimesInDifferentSources: number
   isFromVerifiedSource: boolean
-}
-
-export interface IGetMembersForEnrichmentArgs {
-  afterCursor: { activityCount: number; memberId: string } | null
 }
 
 export interface IMemberEnrichmentSocialData {

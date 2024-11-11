@@ -314,7 +314,8 @@ from unique_members),
             select distinct mi."memberId"
             from "memberIdentities" mi
             left join "membersGlobalActivityCount" on "membersGlobalActivityCount"."memberId" = mi."memberId"
-            where mi.verified 
+            where "membersGlobalActivityCount".total_count > 1000 
+              and mi.verified 
               and mi.platform = 'linkedin'
             group by mi."memberId"),
         unique_members as (
@@ -359,7 +360,8 @@ from unique_members),
             select distinct mi."memberId"
             from "memberIdentities" mi
             left join "membersGlobalActivityCount" on "membersGlobalActivityCount"."memberId" = mi."memberId"
-            where mi.verified
+            where "membersGlobalActivityCount".total_count > 1000 
+            and mi.verified
             and mi.platform = 'linkedin'
             group by mi."memberId"),
       unique_members as (

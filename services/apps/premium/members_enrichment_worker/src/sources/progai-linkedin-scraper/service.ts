@@ -37,6 +37,8 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
+  public maxConcurrentRequests = 1000
+
   constructor(public readonly log: Logger) {
     super(log)
   }

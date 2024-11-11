@@ -32,6 +32,8 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
 
+  public maxConcurrentRequests = 300
+
   constructor(public readonly log: Logger) {
     super(log)
   }
