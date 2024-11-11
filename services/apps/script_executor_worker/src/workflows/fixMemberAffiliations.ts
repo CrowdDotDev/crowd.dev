@@ -32,6 +32,8 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
     offset,
   )
 
+  console.log('memberIds', memberIds)
+
   if (memberIds.length === 0) {
     console.log(`No members found with deleted worked experiences!`)
     return
