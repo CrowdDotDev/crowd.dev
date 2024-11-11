@@ -101,7 +101,7 @@
             @click="hasFormChanged ? connect() : undefined"
           >
             {{
-              integration.settings?.subreddits.length > 0
+              integration?.settings?.subreddits.length > 0
                 ? 'Update'
                 : 'Connect'
             }}
@@ -148,7 +148,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-const subreddits = props.integration.settings?.subreddits.map((i) => ({
+const subreddits = props.integration?.settings?.subreddits.map((i) => ({
   value: i,
   validating: false,
   touched: true,
@@ -223,7 +223,7 @@ const callOnboard = useThrottleFn(async () => {
     subreddits: model.value.map((i) => i.value),
   });
 
-  const isUpdate = !!props.integration.settings?.subreddits;
+  const isUpdate = !!props.integration?.settings?.subreddits;
 
   trackEvent({
     key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
@@ -258,7 +258,7 @@ watch(isVisible, (newValue, oldValue) => {
 
 <script>
 export default {
-  name: 'AppRedditConnectDrawer',
+  name: 'LfRedditSettingsDrawer',
 };
 </script>
 

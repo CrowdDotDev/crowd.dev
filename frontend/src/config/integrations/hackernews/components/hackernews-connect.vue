@@ -4,21 +4,21 @@
     <!--        <lf-icon name="circle-info" type="regular" />-->
     <!--        Details-->
     <!--      </lf-button>-->
-    <lf-button type="secondary" @click="isRedditSettingsDrawerOpen = true">
+    <lf-button type="secondary" @click="isHackernewsSettingsDrawerOpen = true">
       <lf-icon name="link-simple" />
       Connect
     </lf-button>
   </div>
-  <lf-reddit-settings-drawer
-    v-if="isRedditSettingsDrawerOpen"
-    v-model="isRedditSettingsDrawerOpen"
+  <lf-hackernews-settings-drawer
+    v-if="isHackernewsSettingsDrawerOpen"
+    v-model="isHackernewsSettingsDrawerOpen"
     :integration="props.integration"
   />
 </template>
 
 <script setup>
 import { defineProps, ref } from 'vue';
-import LfRedditSettingsDrawer from '@/config/integrations/reddit/components/reddit-settings-drawer.vue';
+import LfHackernewsSettingsDrawer from '@/config/integrations/hackernews/components/hackernews-settings-drawer.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
@@ -28,11 +28,13 @@ const props = defineProps({
     default: () => {},
   },
 });
-const isRedditSettingsDrawerOpen = ref(false);
+
+const isHackernewsSettingsDrawerOpen = ref(false);
+
 </script>
 
 <script>
 export default {
-  name: 'AppRedditConnect',
+  name: 'AppHackerNewsConnect',
 };
 </script>

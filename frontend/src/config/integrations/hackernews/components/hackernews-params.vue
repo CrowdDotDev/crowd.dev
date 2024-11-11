@@ -85,6 +85,6 @@ const keywords = computed<string[]>(() => props.integration.settings.keywords);
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettings',
+  name: 'LfHackernewsParams',
 };
 </script>

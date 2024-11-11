@@ -6,9 +6,9 @@
 // import slack from './slack/config';
 // import discord from './discord/config';
 // import linkedin from './linkedin/config';
-import twitter from './twitter/config';
-import reddit from './reddit/config';
-import hackernews from './hackernews/config';
+// import twitter from './twitter/config';
+// import reddit from './reddit/config';
+// import hackernews from './hackernews/config';
 import stackoverflow from './stackoverflow/config';
 import gitlab from './gitlab/config';
 import gerrit from './gerrit/config';
@@ -36,9 +36,9 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   // slack,
   // discord,
   // linkedin,
-  twitter,
-  reddit,
-  hackernews,
+  // twitter,
+  // reddit,
+  // hackernews,
   stackoverflow,
   gitlab,
   gerrit,

@@ -128,7 +128,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default {
-  name: 'AppHackerNewsConnectDrawer',
+  name: 'LfHackernewsSettingsDrawer',
 
   props: {
     integration: {
@@ -189,13 +189,13 @@ export default {
       const validKeywords = this.keywords.filter((k) => !!k);
 
       const empty = validUrls.length === 0 && validKeywords.length === 0;
-      if (this.integration.settings && !empty) {
+      if (this.integration?.settings && !empty) {
         return (
           validUrls.length
-            === this.integration.settings.urls.length
-          && validUrls.every((o) => this.integration.settings.urls.includes(o.url))
+            === this.integration?.settings.urls.length
+          && validUrls.every((o) => this.integration?.settings.urls.includes(o.url))
           && validKeywords.length
-            === this.integration.settings.keywords.length
+            === this.integration?.settings.keywords.length
         );
       }
       return empty;
@@ -230,8 +230,8 @@ export default {
     syncData() {
       this.urls = [];
 
-      if (this.integration && this.integration.settings) {
-        this.integration.settings.urls.forEach((k) => this.addNewUrl(k));
+      if (this.integration && this.integration?.settings) {
+        this.integration?.settings.urls.forEach((k) => this.addNewUrl(k));
       }
 
       if (this.urls.length === 0) {
@@ -290,7 +290,7 @@ export default {
 
       const { trackEvent } = useProductTracking();
 
-      const isUpdate = !!this.integration.settings;
+      const isUpdate = !!this.integration?.settings;
 
       trackEvent({
         key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,

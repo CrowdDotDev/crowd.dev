@@ -54,6 +54,6 @@ const subreddits = computed<string[]>(
 
 <script lang="ts">
 export default {
-  name: 'AppRedditSettings',
+  name: 'LfRedditParams',
 };
 </script>
