@@ -187,7 +187,7 @@
           :loading="loading"
           @click="connect()"
         >
-          {{ integration.settings?.forumHostname ? "Update" : "Connect" }}
+          {{ integration?.settings?.forumHostname ? "Update" : "Connect" }}
         </el-button>
       </div>
     </template>
@@ -361,8 +361,8 @@ const handleCancel = () => {
     $v.value.$reset();
   } else {
     form.discourseURL = props.integration?.settings?.forumHostname;
-    form.apiKey = props.integration.settings.apiKey;
-    webhookSecret.value = props.integration.settings.webhookSecret;
+    form.apiKey = props.integration?.settings.apiKey;
+    webhookSecret.value = props.integration?.settings.webhookSecret;
     payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
     isAPIConnectionValid.value = true;
     isWebhookVerifying.value = null;
@@ -375,9 +375,9 @@ const handleCancel = () => {
 
 onMounted(() => {
   if (props.integration?.settings?.forumHostname) {
-    form.discourseURL = props.integration.settings.forumHostname;
-    form.apiKey = props.integration.settings.apiKey;
-    webhookSecret.value = props.integration.settings.webhookSecret;
+    form.discourseURL = props.integration?.settings.forumHostname;
+    form.apiKey = props.integration?.settings.apiKey;
+    webhookSecret.value = props.integration?.settings.webhookSecret;
     payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
     isAPIConnectionValid.value = true;
   }
@@ -403,7 +403,7 @@ const verifyWebhook = async () => {
 const connect = async () => {
   loading.value = true;
 
-  const isUpdate = props.integration.settings?.forumHostname;
+  const isUpdate = props.integration?.settings?.forumHostname;
 
   doDiscourseConnect({
     forumHostname: form.discourseURL,
@@ -432,6 +432,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppDiscourseConnectDrawer',
+  name: 'LfDiscourseSettingsDrawer',
 };
 </script>

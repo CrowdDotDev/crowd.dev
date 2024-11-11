@@ -145,12 +145,12 @@ const logoUrl = computed(() => CrowdIntegrations.getConfig('gerrit').image);
 
 onMounted(() => {
   if (props.integration?.settings?.remote) {
-    form.orgURL = props.integration.settings.remote.orgURL;
-    form.user = props.integration.settings.remote.user;
-    form.key = props.integration.settings.remote.key;
-    form.repoNames = props.integration.settings.remote.repoNames;
-    form.enableAllRepos = props.integration.settings.remote.enableAllRepos;
-    form.enableGit = props.integration.settings.remote.enableGit;
+    form.orgURL = props.integration?.settings.remote.orgURL;
+    form.user = props.integration?.settings.remote.user;
+    form.key = props.integration?.settings.remote.key;
+    form.repoNames = props.integration?.settings.remote.repoNames;
+    form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
+    form.enableGit = props.integration?.settings.remote.enableGit;
   }
   formSnapshot();
 });
@@ -199,6 +199,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppGerritConnectDrawer',
+  name: 'LfGerritSettingsDrawer',
 };
 </script>

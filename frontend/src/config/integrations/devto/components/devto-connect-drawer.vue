@@ -239,12 +239,12 @@ const connectDisabled = computed(() => {
 
   const empty = validUsers.length + validOrgs.length === 0;
 
-  if (props.integration.settings && !empty) {
+  if (props.integration?.settings && !empty) {
     return (
-      validUsers.length === props.integration.settings.users.length
-      && validUsers.every((u) => props.integration.settings.users.includes(u.username))
-      && validOrgs.length === props.integration.settings.organizations.length
-      && validOrgs.every((o) => props.integration.settings.organizations.includes(o.username))
+      validUsers.length === props.integration?.settings.users.length
+      && validUsers.every((u) => props.integration?.settings.users.includes(u.username))
+      && validOrgs.length === props.integration?.settings.organizations.length
+      && validOrgs.every((o) => props.integration?.settings.organizations.includes(o.username))
     );
   }
 
@@ -298,9 +298,9 @@ const syncData = () => {
   $v.value.$reset();
   $v.value.$clearExternalResults();
 
-  if (props.integration && props.integration.settings) {
-    props.integration.settings.users.forEach((u) => addNewUser(u));
-    props.integration.settings.organizations.forEach((o) => addNewOrganization(o));
+  if (props.integration && props.integration?.settings) {
+    props.integration?.settings.users.forEach((u) => addNewUser(u));
+    props.integration?.settings.organizations.forEach((o) => addNewOrganization(o));
   }
 
   if (users.value.length === 0) {
@@ -426,7 +426,7 @@ const save = async () => {
     apiKey: form.apiKey,
   });
 
-  const isUpdate = !!props.integration.settings;
+  const isUpdate = !!props.integration?.settings;
 
   trackEvent({
     key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
@@ -497,7 +497,7 @@ onMounted(syncData);
 
 <script>
 export default {
-  name: 'AppDevtoConnectDrawer',
+  name: 'LfDevtoConnectDrawer',
 };
 </script>
 

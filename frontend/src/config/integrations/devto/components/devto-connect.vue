@@ -1,28 +1,35 @@
 <template>
-  <slot :connect="connect" :settings-component="DevtoSettings" />
-  <app-devto-connect-drawer
-    v-model="drawerVisible"
-    :integration="integration"
+  <div class="flex items-center gap-4">
+    <!--      <lf-button type="secondary-ghost" @click="isDetailsModalOpen = true">-->
+    <!--        <lf-icon name="circle-info" type="regular" />-->
+    <!--        Details-->
+    <!--      </lf-button>-->
+    <lf-button type="secondary" @click="isDevtoConnectDrawerVisible = true">
+      <lf-icon name="link-simple" />
+      Connect
+    </lf-button>
+  </div>
+  <lf-devto-connect-drawer
+    v-if="isDevtoConnectDrawerVisible"
+    v-model="isDevtoConnectDrawerVisible"
+    :integration="props.integration"
   />
 </template>
 
 <script setup>
 import { defineProps, ref } from 'vue';
-import AppDevtoConnectDrawer from '@/integrations/devto/components/devto-connect-drawer.vue';
-import DevtoSettings from './devto-settings.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDevtoConnectDrawer from '@/config/integrations/devto/components/devto-connect-drawer.vue';
 
-defineProps({
+const props = defineProps({
   integration: {
     type: Object,
     default: () => {},
   },
 });
 
-const drawerVisible = ref(false);
-
-const connect = () => {
-  drawerVisible.value = true;
-};
+const isDevtoConnectDrawerVisible = ref(false);
 </script>
 
 <script>

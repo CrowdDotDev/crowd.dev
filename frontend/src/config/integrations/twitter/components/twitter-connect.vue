@@ -63,13 +63,22 @@ const connect = () => {
   window.open(`${connectUrl.value}${encodedHashtags}`, '_self');
 };
 
-onMounted(() => {
+const finallizeTwitterConnection = () => {
   const isConnectionSuccessful = route.query.success;
+  const twitterError = route.query['twitter-error'];
 
   if (isConnectionSuccessful) {
     router.replace({ query: null });
     Message.success('Integration updated successfully');
   }
+
+  if (twitterError) {
+    Message.error('Something went wrong during X/Twitter OAuth. Please try again later.');
+  }
+};
+
+onMounted(() => {
+  finallizeTwitterConnection();
 });
 </script>
 

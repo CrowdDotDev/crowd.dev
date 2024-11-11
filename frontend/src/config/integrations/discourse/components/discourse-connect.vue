@@ -1,20 +1,26 @@
 <template>
-  <slot
-    :connect="connect"
-    :settings="settings"
-    :has-settings="hasSettings"
-    :settings-component="DiscourseSettings"
-  />
-  <app-discourse-connect-drawer
-    v-model="drawerVisible"
-    :integration="integration"
+  <div class="flex items-center gap-4">
+    <!--      <lf-button type="secondary-ghost" @click="isDetailsModalOpen = true">-->
+    <!--        <lf-icon name="circle-info" type="regular" />-->
+    <!--        Details-->
+    <!--      </lf-button>-->
+    <lf-button type="secondary" @click="isDiscourseConnectDrawerOpen = true">
+      <lf-icon name="link-simple" />
+      Connect
+    </lf-button>
+  </div>
+  <lf-discourse-settings-drawer
+    v-if="isDiscourseConnectDrawerOpen"
+    v-model="isDiscourseConnectDrawerOpen"
+    :integration="props.integration"
   />
 </template>
 
 <script setup>
-import { computed, defineProps, ref } from 'vue';
-import AppDiscourseConnectDrawer from '@/integrations/discourse/components/discourse-connect-drawer.vue';
-import DiscourseSettings from './discourse-settings.vue';
+import { defineProps, ref } from 'vue';
+import LfDiscourseSettingsDrawer from '@/config/integrations/discourse/components/discourse-settings-drawer.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   integration: {
@@ -23,17 +29,7 @@ const props = defineProps({
   },
 });
 
-const drawerVisible = ref(false);
-
-const connect = () => {
-  drawerVisible.value = true;
-};
-
-// eslint-disable-next-line no-undef
-const hasSettings = computed(() => props.integration.settings?.forumHostname);
-const settings = () => {
-  drawerVisible.value = true;
-};
+const isDiscourseConnectDrawerOpen = ref(false);
 </script>
 
 <script>

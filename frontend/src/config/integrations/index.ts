@@ -9,11 +9,11 @@
 // import twitter from './twitter/config';
 // import reddit from './reddit/config';
 // import hackernews from './hackernews/config';
-import stackoverflow from './stackoverflow/config';
+// import stackoverflow from './stackoverflow/config';
 import gitlab from './gitlab/config';
-import gerrit from './gerrit/config';
+// import gerrit from './gerrit/config';
 import discourse from './discourse/config';
-import devto from './devto/config';
+// import devto from './devto/config';
 
 export interface IntegrationConfig {
   key: string; // Unique key for the integration
@@ -39,9 +39,9 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   // twitter,
   // reddit,
   // hackernews,
-  stackoverflow,
+  // stackoverflow,
   gitlab,
-  gerrit,
+  // gerrit,
   discourse,
-  devto,
+  // devto,
 };

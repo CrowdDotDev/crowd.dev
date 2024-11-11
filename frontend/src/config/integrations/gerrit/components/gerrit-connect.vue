@@ -1,15 +1,26 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" :settings-component="GerritSettings" />
-  <app-gerrit-connect-drawer
-    v-model="drawerVisible"
-    :integration="integration"
+  <div class="flex items-center gap-4">
+    <!--      <lf-button type="secondary-ghost" @click="isDetailsModalOpen = true">-->
+    <!--        <lf-icon name="circle-info" type="regular" />-->
+    <!--        Details-->
+    <!--      </lf-button>-->
+    <lf-button type="secondary" @click="isGerritConnectDrawerOpen = true">
+      <lf-icon name="link-simple" />
+      Connect
+    </lf-button>
+  </div>
+  <lf-gerrit-settings-drawer
+    v-if="isGerritConnectDrawerOpen"
+    v-model="isGerritConnectDrawerOpen"
+    :integration="props.integration"
   />
 </template>
 
 <script setup>
-import { computed, defineProps, ref } from 'vue';
-import AppGerritConnectDrawer from '@/integrations/gerrit/components/gerrit-connect-drawer.vue';
-import GerritSettings from './gerrit-settings.vue';
+import { defineProps, ref } from 'vue';
+import LfGerritSettingsDrawer from '@/config/integrations/gerrit/components/gerrit-settings-drawer.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   integration: {
@@ -18,23 +29,11 @@ const props = defineProps({
   },
 });
 
-const drawerVisible = ref(false);
-
-const connect = () => {
-  drawerVisible.value = true;
-};
-
-// eslint-disable-next-line no-undef
-const hasSettings = computed(
-  () => props.integration.settings?.remote.orgURL,
-);
-const settings = () => {
-  drawerVisible.value = true;
-};
+const isGerritConnectDrawerOpen = ref(false);
 </script>
 
 <script>
 export default {
-  name: 'AppGerritConnect',
+  name: 'LfGerritConnect',
 };
 </script>

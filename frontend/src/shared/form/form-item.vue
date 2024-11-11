@@ -6,7 +6,7 @@
     }"
     v-bind="$attrs"
   >
-    <div class="el-form-item__content flex-col items-start">
+    <div class="el-form-item__content flex flex-col !items-start">
       <label
         v-if="label"
         :for="formId"
