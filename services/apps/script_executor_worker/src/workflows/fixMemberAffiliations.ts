@@ -13,7 +13,8 @@ import * as activities from '../activities'
 import { IFixMemberAffiliationsArgs } from '../types'
 
 const { getMemberIdsWithDeletedWorkexperiences } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '60 seconds',
+  startToCloseTimeout: '3 minute',
+  retry: { maximumAttempts: 3 },
 })
 
 export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
