@@ -62,8 +62,11 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
     }),
   )
 
-  await continueAsNew<typeof fixMemberAffiliations>({
-    tenantId: args.tenantId,
-    offset: offset + MEMBER_PAGE_SIZE,
-  })
+  if (!args.testRun) {
+    await continueAsNew<typeof fixMemberAffiliations>({
+      tenantId: args.tenantId,
+      offset: offset + MEMBER_PAGE_SIZE,
+      testRun: args.testRun,
+    })
+  }
 }
