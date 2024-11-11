@@ -204,6 +204,6 @@ watch(isVisible, (newValue, oldValue) => {
 
 <script>
 export default {
-  name: 'AppLinkedInConnectDrawer',
+  name: 'LfLinkedinSettingsDrawer',
 };
 </script>

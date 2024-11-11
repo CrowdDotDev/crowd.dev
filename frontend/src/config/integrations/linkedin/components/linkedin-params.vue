@@ -33,6 +33,6 @@ const organization = computed<{ id: string; name: string; inUse: boolean }>(
 
 <script lang="ts">
 export default {
-  name: 'AppRedditSettings',
+  name: 'LfLinkedinParams',
 };
 </script>

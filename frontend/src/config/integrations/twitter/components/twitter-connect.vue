@@ -1,37 +1,32 @@
 <template>
-  <app-twitter-connect-drawer
-    v-if="hasSettings && drawerVisible"
-    v-model="drawerVisible"
-    :hashtags="hashtags"
-    :connect-url="connectUrl"
-  />
-  <slot
-    :connect="isTwitterEnabled ? connect : upgradePlan"
-    :settings="settings"
-    :has-settings="true"
-    :has-integration="isTwitterEnabled"
-    :settings-component="TwitterSettings"
-  />
+  <div class="flex items-center gap-4">
+    <!--    <lf-button type="secondary-ghost" @click="isDetailsModalOpen = true">-->
+    <!--      <lf-icon name="circle-info" type="regular" />-->
+    <!--      Details-->
+    <!--    </lf-button>-->
+    <lf-button type="secondary" @click="connect()">
+      <lf-icon name="link-simple" />
+      Connect
+    </lf-button>
+  </div>
 </template>
 
 <script setup>
 import {
-  defineProps, computed, ref, onMounted,
+  defineProps, computed, onMounted,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import config from '@/config';
 
 import Message from '@/shared/message/message';
-import { FeatureFlag } from '@/utils/featureFlag';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import AppTwitterConnectDrawer from '@/integrations/twitter/components/twitter-connect-drawer.vue';
-import TwitterSettings from './twitter-settings.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const route = useRoute();
 const router = useRouter();
-const isTwitterEnabled = ref(false);
 
 const props = defineProps({
   integration: {
@@ -39,24 +34,9 @@ const props = defineProps({
     default: () => {},
   },
 });
-const drawerVisible = ref(false);
-
-onMounted(() => {
-  const isConnectionSuccessful = route.query.success;
-
-  if (isConnectionSuccessful) {
-    router.replace({ query: null });
-    Message.success('Integration updated successfully');
-  }
-});
-
-onMounted(async () => {
-  isTwitterEnabled.value = FeatureFlag.isFlagEnabled(FeatureFlag.flags.twitter);
-});
 
 // Only render twitter drawer and settings button, if integration has settings
-const hasSettings = computed(() => !!props.integration.settings);
-const hashtags = computed(() => props.integration.settings?.hashtags || []);
+const hashtags = computed(() => props.integration?.settings?.hashtags || []);
 
 // Create an url for the connection without the hashtags
 // This will allow to be reused by the twitter drawer component
@@ -83,17 +63,18 @@ const connect = () => {
   window.open(`${connectUrl.value}${encodedHashtags}`, '_self');
 };
 
-const upgradePlan = () => {
-  router.push('/settings?activeTab=plans');
-};
+onMounted(() => {
+  const isConnectionSuccessful = route.query.success;
 
-const settings = () => {
-  drawerVisible.value = true;
-};
+  if (isConnectionSuccessful) {
+    router.replace({ query: null });
+    Message.success('Integration updated successfully');
+  }
+});
 </script>
 
 <script>
 export default {
-  name: 'AppTwitterConnect',
+  name: 'LfTwitterConnect',
 };
 </script>

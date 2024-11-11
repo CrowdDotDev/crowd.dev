@@ -5,7 +5,7 @@
 // import jira from './jira/config';
 // import slack from './slack/config';
 // import discord from './discord/config';
-import linkedin from './linkedin/config';
+// import linkedin from './linkedin/config';
 import twitter from './twitter/config';
 import reddit from './reddit/config';
 import hackernews from './hackernews/config';
@@ -35,7 +35,7 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   // jira,
   // slack,
   // discord,
-  linkedin,
+  // linkedin,
   twitter,
   reddit,
   hackernews,

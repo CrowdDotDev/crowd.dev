@@ -138,7 +138,7 @@ const doReset = () => {
 
 <script>
 export default {
-  name: 'AppTwitterConnectDrawer',
+  name: 'LfTwitterSettingsDrawer',
 };
 </script>
 
