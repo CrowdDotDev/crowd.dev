@@ -8,7 +8,6 @@ import {
 
 import { TemporalWorkflowId } from '@crowd/types'
 
-import { memberUpdate } from '../../../profiles_worker/src/workflows/member/memberUpdate'
 import * as activities from '../activities'
 import { IFixMemberAffiliationsArgs } from '../types'
 
@@ -42,7 +41,8 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
 
   await Promise.all(
     memberIds.map((id) => {
-      return executeChild(memberUpdate, {
+      return executeChild('memberUpdate', {
+        taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${args.tenantId}/${id}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
