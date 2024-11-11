@@ -1,33 +1,35 @@
 <template>
-  <div class="mx-auto max-w-254 -mt-5">
-    <!-- Back button -->
-    <div class="border-b border-gray-100 py-3.5">
-      <router-link
-        :to="{
-          name: 'adminProjects',
-          params: {
-            id: grandparentId,
-          },
-        }"
-      >
-        <lf-button type="secondary-ghost">
-          <lf-icon name="angle-left" type="regular" />
-          {{ getSegmentName(grandparentId) }}
-        </lf-button>
-      </router-link>
-    </div>
+  <div class="mx-auto max-w-254">
+    <div class="sticky -top-5 -mt-5 z-10 bg-white border-b border-b-white">
+      <!-- Back button -->
+      <div class="border-b border-gray-100 py-3.5">
+        <router-link
+          :to="{
+            name: 'adminProjects',
+            params: {
+              id: grandparentId,
+            },
+          }"
+        >
+          <lf-button type="secondary-ghost">
+            <lf-icon name="angle-left" type="regular" />
+            {{ getSegmentName(grandparentId) }}
+          </lf-button>
+        </router-link>
+      </div>
 
-    <!-- Header -->
-    <div class="py-6">
-      <p v-if="subproject" class="text-small text-gray-500 pb-2">
-        {{ subproject?.name }}
-      </p>
-      <h4 class="pb-2">
-        Integrations
-      </h4>
-      <p class="text-small text-gray-500">
-        Connect with the data sources where interactions happen within your community.
-      </p>
+      <!-- Header -->
+      <div class="py-6">
+        <p v-if="subproject" class="text-small text-gray-500 pb-2">
+          {{ subproject?.name }}
+        </p>
+        <h4 class="pb-2">
+          Integrations
+        </h4>
+        <p class="text-small text-gray-500">
+          Connect with the data sources where interactions happen within your community.
+        </p>
+      </div>
     </div>
     <lf-integration-list />
   </div>

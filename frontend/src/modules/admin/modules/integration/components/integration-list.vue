@@ -1,23 +1,26 @@
 <template>
-  <section class="pb-8">
-    <lf-tabs v-model="tab">
-      <lf-tab v-model="tab" name="all">
-        All integrations
-      </lf-tab>
-      <lf-tab
-        v-for="(status, key) in lfIntegrationStatusesTabs"
-        :key="key"
-        v-model="tab"
-        :name="key"
-      >
-        <div class="flex items-center gap-1.5">
-          <span>{{ status.tabs.text }}</span>
-          <div v-if="getIntegrationCountPerStatus[key] > 0" class="rounded py-0.5 px-1 text-tiny" :class="status.tabs.badge">
-            {{ getIntegrationCountPerStatus[key] }}
+  <section class="sticky top-43 z-10">
+    <div class="w-full bg-white">
+      <lf-tabs v-model="tab">
+        <lf-tab v-model="tab" name="all">
+          All integrations
+        </lf-tab>
+        <lf-tab
+          v-for="(status, key) in lfIntegrationStatusesTabs"
+          :key="key"
+          v-model="tab"
+          :name="key"
+        >
+          <div class="flex items-center gap-1.5">
+            <span>{{ status.tabs.text }}</span>
+            <div v-if="getIntegrationCountPerStatus[key] > 0" class="rounded py-0.5 px-1 text-tiny" :class="status.tabs.badge">
+              {{ getIntegrationCountPerStatus[key] }}
+            </div>
           </div>
-        </div>
-      </lf-tab>
-    </lf-tabs>
+        </lf-tab>
+      </lf-tabs>
+    </div>
+    <div class="w-full h-8 bg-gradient-to-b from-white to-transparent pl-10" />
   </section>
   <section>
     <app-integration-progress-wrapper :segments="[route.params.id]">
