@@ -199,7 +199,7 @@
           :loading="loading"
           @click="connect()"
         >
-          {{ integration.settings?.email ? "Update" : "Connect" }}
+          {{ integration?.settings?.email ? "Update" : "Connect" }}
         </el-button>
       </div>
     </template>
@@ -432,7 +432,7 @@ const handleCancel = () => {
     form.password = '';
     form.twoFactorCode = '';
     form.groups = props?.integration?.settings?.groups
-      ? [...props.integration.settings.groups]
+      ? [...(props.integration?.settings.groups || [])]
       : [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props?.integration?.settings?.token;
@@ -459,7 +459,7 @@ onMounted(() => {
 const connect = async () => {
   loading.value = true;
 
-  const isUpdate = !!props.integration.settings?.email;
+  const isUpdate = !!props.integration?.settings?.email;
   const selectedGroups = Object.values(userSubscriptions.value).flatMap(
     (group) => {
       const selected = [];
@@ -545,7 +545,7 @@ const updateSelectedGroups = (group) => {
 
 <script>
 export default {
-  name: 'AppDiscourseConnectDrawer',
+  name: 'LfGroupsioSettingsDrawer',
 };
 </script>
 

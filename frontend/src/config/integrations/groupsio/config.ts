@@ -1,10 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
+import GroupsioConnect from './components/groupsio-connect.vue';
+import GroupsioParams from './components/groupsio-params.vue';
+import GroupsioDropdown from './components/groupsio-dropdown.vue';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const groupsio: IntegrationConfig = {
+  key: 'groupsio',
+  name: 'Groups.io',
+  image: '/images/integrations/groupsio.svg',
+  description: 'Connect Groups.io to sync groups and topics activity.',
+  connectComponent: GroupsioConnect,
+  connectedParamsComponent: GroupsioParams,
+  dropdownComponent: GroupsioDropdown,
 };
 
-export default github;
+export default groupsio;

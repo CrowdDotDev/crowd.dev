@@ -1,5 +1,3 @@
-import ConfluenceConnect from './components/confluence-connect.vue';
-
 export default {
   enabled: true,
   name: 'Confluence',
@@ -12,7 +10,6 @@ export default {
   },
   image:
     '/images/integrations/confluence.svg',
-  connectComponent: ConfluenceConnect,
   url: () => null,
   showProfileLink: false,
   placeholder: 'Confluence username or email address',

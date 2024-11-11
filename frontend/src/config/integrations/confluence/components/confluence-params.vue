@@ -3,7 +3,7 @@
     <div class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-72">
         <template #reference>
-          <div class="flex flex-row gap-1">
+          <div class="flex items-center gap-1">
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >

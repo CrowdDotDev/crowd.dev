@@ -1,5 +1,4 @@
 import config from '@/config';
-import GroupsioConnect from './components/groupsio-connect.vue';
 
 export default {
   enabled: config.isGroupsioIntegrationEnabled,
@@ -11,7 +10,6 @@ export default {
     'Connect Groups.io to sync groups and topics activity.',
   image:
     '/images/integrations/groupsio.svg',
-  connectComponent: GroupsioConnect,
   url: ({ username }) => null,
   chartColor: '#111827',
   showProfileLink: true,

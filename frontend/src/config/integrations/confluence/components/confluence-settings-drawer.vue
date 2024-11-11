@@ -27,6 +27,7 @@
           placeholder="Enter Organization URL"
         />
         <el-input
+          v-if="form.space"
           id="spaceId"
           v-model="form.space.id"
           class="text-green-500 mt-2"
@@ -34,6 +35,7 @@
           placeholder="Enter Space ID"
         />
         <el-input
+          v-if="form.space"
           id="spaceKey"
           v-model="form.space.key"
           class="text-green-500 mt-2"
@@ -41,6 +43,7 @@
           placeholder="Enter Space Key"
         />
         <el-input
+          v-if="form.space"
           id="spaceName"
           v-model="form.space.name"
           class="text-green-500 mt-2"
@@ -66,7 +69,7 @@
           :loading="loading"
           @click="connect"
         >
-          {{ integration.settings ? 'Update' : 'Connect' }}
+          {{ integration?.settings ? 'Update' : 'Connect' }}
         </el-button>
       </div>
     </template>
@@ -124,9 +127,9 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('confluence').image);
 
 onMounted(() => {
-  if (props.integration.settings) {
-    form.url = props.integration.settings.url;
-    form.space = props.integration.settings.space;
+  if (props.integration?.settings) {
+    form.url = props.integration?.settings.url;
+    form.space = props.integration?.settings.space;
   }
   formSnapshot();
 });
@@ -166,6 +169,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: 'AppConfluenceConnectDrawer',
+  name: 'LfConfluenceSettingsDrawer',
 };
 </script>

@@ -50,6 +50,6 @@ const groups = computed<any[]>(() => props.integration.settings.groups);
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettings',
+  name: 'LfGroupsioParams',
 };
 </script>

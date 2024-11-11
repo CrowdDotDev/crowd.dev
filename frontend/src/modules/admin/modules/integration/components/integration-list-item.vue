@@ -8,7 +8,7 @@
       <div class="flex items-center gap-4">
         <div class=" h-12 w-12 border border-gray-200 rounded-md flex items-center justify-center">
           <div class="h-8 w-8">
-            <img :src="props.config.image" :alt="props.config.name" class="object-contain" />
+            <img :src="props.config.image" :alt="props.config.name" class="object-contain w-full h-full" />
           </div>
         </div>
         <div>
@@ -56,7 +56,7 @@
             :integration="integration"
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
-            <span v-if="props.config.connectedParamsComponent">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+            <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
             Last data check completed {{ moment(integration.lastProcessedAt).fromNow() }}
           </p>
         </div>

@@ -1,19 +1,20 @@
 <template>
-  <lf-dropdown-item @click="isGitConnectDrawerOpen = true">
+  <lf-dropdown-item @click="isSettingsDrawerOpen = true">
     <lf-icon name="sliders-simple" type="regular" />
     Settings
   </lf-dropdown-item>
-  <lf-git-settings-drawer
-    v-model="isGitConnectDrawerOpen"
+  <lf-groupsio-settings-drawer
+    v-if="isSettingsDrawerOpen"
+    v-model="isSettingsDrawerOpen"
     :integration="props.integration"
   />
 </template>
 
 <script setup>
 import { defineProps, ref } from 'vue';
-import LfGitSettingsDrawer from '@/config/integrations/git/components/git-settings-drawer.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfGroupsioSettingsDrawer from '@/config/integrations/groupsio/components/groupsio-settings-drawer.vue';
 
 const props = defineProps({
   integration: {
@@ -22,12 +23,12 @@ const props = defineProps({
   },
 });
 
-const isGitConnectDrawerOpen = ref(false);
+const isSettingsDrawerOpen = ref(false);
 // const isDetailsModalOpen = ref(false);
 </script>
 
 <script>
 export default {
-  name: 'LfGitDropdown',
+  name: 'LfGroupsioDropdown',
 };
 </script>

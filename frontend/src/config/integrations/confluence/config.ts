@@ -1,10 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
+import ConfluenceConnect from './components/confluence-connect.vue';
+import ConfluenceParams from './components/confluence-params.vue';
+import ConfluenceDropdown from './components/confluence-dropdown.vue';
 
-const github: IntegrationConfig = {
-  key: 'github',
-  name: 'GitHub',
-  image: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+const confluence: IntegrationConfig = {
+  key: 'confluence',
+  name: 'Confluence',
+  image: '/images/integrations/confluence.svg',
+  description: 'Connect Confluence to sync documentation activities from your repos.',
+  connectComponent: ConfluenceConnect,
+  connectedParamsComponent: ConfluenceParams,
+  dropdownComponent: ConfluenceDropdown,
 };
 
-export default github;
+export default confluence;
