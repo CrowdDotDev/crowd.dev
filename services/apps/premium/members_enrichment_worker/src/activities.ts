@@ -2,14 +2,17 @@ import {
   findMemberEnrichmentCache,
   findMemberIdentityWithTheMostActivityInPlatform,
   getEnrichmentData,
+  getEnrichmentInput,
+  getObsoleteSourcesOfMember,
   insertMemberEnrichmentCache,
   isCacheObsolete,
   isEnrichableBySource,
   normalizeEnrichmentData,
+  refreshMemberEnrichmentMaterializedView,
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
 } from './activities/enrichment'
-import { getEnrichableMembers } from './activities/getMembers'
+import { getEnrichableMembers, getMaxConcurrentRequests } from './activities/getMembers'
 import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
 import {
   getIdentitiesExistInOtherMembers,
@@ -52,4 +55,8 @@ export {
   updateMemberEnrichmentCache,
   isEnrichableBySource,
   findMemberIdentityWithTheMostActivityInPlatform,
+  refreshMemberEnrichmentMaterializedView,
+  getEnrichmentInput,
+  getMaxConcurrentRequests,
+  getObsoleteSourcesOfMember,
 }
