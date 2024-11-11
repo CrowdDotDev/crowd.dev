@@ -9,8 +9,6 @@ import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
 import { IEnrichmentService } from '../types'
 
-import { getEnrichmentInput, getObsoleteSourcesOfMember } from './enrichment'
-
 export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],

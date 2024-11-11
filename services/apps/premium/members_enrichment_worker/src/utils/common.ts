@@ -1,14 +1,7 @@
 import lodash from 'lodash'
 
-import { Logger } from '@crowd/logging'
-import {
-  IMemberEnrichmentCache,
-  MemberEnrichmentSource,
-  MemberIdentityType,
-  PlatformType,
-} from '@crowd/types'
+import { IMemberEnrichmentCache, MemberIdentityType, PlatformType } from '@crowd/types'
 
-import { EnrichmentSourceServiceFactory } from '../factory'
 import {
   IMemberEnrichmentAttributeSettings,
   IMemberEnrichmentData,
