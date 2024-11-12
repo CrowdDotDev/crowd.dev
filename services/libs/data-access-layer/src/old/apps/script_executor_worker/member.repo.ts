@@ -169,7 +169,7 @@ class MemberRepository {
         `
         select distinct "memberId" as id 
         from "memberOrganizations" 
-        where tenantId = $(tenantId) and "deletedAt" is not null
+        where "tenantId" = $(tenantId) and "deletedAt" is not null
         order by id asc
         limit $(limit)
         offset $(offset);
