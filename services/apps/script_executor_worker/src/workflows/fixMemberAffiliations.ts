@@ -24,13 +24,9 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
     console.log(`Running in test mode with limit 10!`)
   }
 
-  console.log(`Fixing affiliations for tenant ${args.tenantId} with offset ${offset || 0}`)
+  console.log(`Fixing affiliations with offset ${offset || 0}`)
 
-  const memberIds = await getMemberIdsWithDeletedWorkexperiences(
-    args.tenantId,
-    MEMBER_PAGE_SIZE,
-    offset,
-  )
+  const memberIds = await getMemberIdsWithDeletedWorkexperiences(MEMBER_PAGE_SIZE, offset)
 
   console.log('memberIds', memberIds)
 

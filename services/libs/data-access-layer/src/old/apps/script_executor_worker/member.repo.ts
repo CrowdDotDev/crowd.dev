@@ -162,20 +162,19 @@ class MemberRepository {
     return member
   }
 
-  async getMemberIdsWithDeletedWorkexperience(tenantId: string, limit: number, offset: number) {
+  async getMemberIdsWithDeletedWorkexperience(limit: number, offset: number) {
     let results: IMemberId[] = []
     try {
       results = await this.connection.query(
         `
         select distinct "memberId" as id 
         from "memberOrganizations" 
-        where "tenantId" = $(tenantId) and "deletedAt" is not null
+        where "deletedAt" is not null
         order by id asc
         limit $(limit)
         offset $(offset);
       `,
         {
-          tenantId,
           limit,
           offset,
         },
