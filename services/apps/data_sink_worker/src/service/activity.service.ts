@@ -42,6 +42,13 @@ import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } fro
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
 
+export class SuppressedActivityError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SuppressedActivityError'
+  }
+}
+
 export default class ActivityService extends LoggerBase {
   constructor(
     private readonly pgStore: DbStore,
@@ -441,10 +448,18 @@ export default class ActivityService extends LoggerBase {
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
         if (!identity) {
-          this.log.error("Activity's member does not have an identity for the platform.")
-          throw new Error(
-            `Activity's member does not have an identity for the platform: ${platform}!`,
-          )
+          if (platform === PlatformType.JIRA) {
+            throw new SuppressedActivityError(
+              `Activity's member does not have an identity for the platform: ${platform}!`,
+            )
+          } else {
+            this.log.error(
+              "Activity's member does not have an identity for the platform. Suppressing it!",
+            )
+            throw new Error(
+              `Activity's member does not have an identity for the platform: ${platform}!`,
+            )
+          }
         }
 
         username = identity.value
@@ -1133,7 +1148,9 @@ export default class ActivityService extends LoggerBase {
         await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
-      this.log.error(err, 'Error while processing an activity!')
+      if (!(err instanceof SuppressedActivityError)) {
+        this.log.error(err, 'Error while processing an activity!')
+      }
       throw err
     }
   }
