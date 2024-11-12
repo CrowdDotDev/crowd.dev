@@ -298,6 +298,16 @@ export default class IntegrationService {
     return IntegrationRepository.findAndCountAll(args, this.options)
   }
 
+  /**
+   * Finds global integrations based on the provided arguments.
+   *
+   * @param {any} args - The arguments used to find global integrations.
+   * @return {Promise<any>} A promise that resolves to the global integrations.
+   */
+  async findGlobalIntegrations(args: any) {
+    return IntegrationRepository.findGlobalIntegrations(args, this.options)
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy
