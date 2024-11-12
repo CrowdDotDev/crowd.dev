@@ -11,6 +11,7 @@ import { PlatformType } from '@crowd/types'
 import { DB_CONFIG } from '@/conf'
 
 import { CrowdJob } from '../../types/jobTypes'
+import { retryBackoff } from '../../utils/backoff'
 
 async function decideUpdatedAt(pgQx: QueryExecutor, maxUpdatedAt?: string): Promise<string> {
   if (!maxUpdatedAt) {
@@ -32,10 +33,15 @@ function createWhereClause(updatedAt: string): string {
   return formatQuery('"updatedAt" > $(updatedAt)', { updatedAt })
 }
 
-async function syncActivitiesBatch(
-  activityRepo: ActivityRepository,
-  activities: IDbActivityCreateData[],
-) {
+async function syncActivitiesBatch({
+  logger,
+  activityRepo,
+  activities,
+}: {
+  logger: Logger
+  activityRepo: ActivityRepository
+  activities: IDbActivityCreateData[]
+}) {
   const result = {
     inserted: 0,
     updated: 0,
@@ -44,15 +50,19 @@ async function syncActivitiesBatch(
   for (const activity of activities) {
     const existingActivity = await activityRepo.existsWithId(activity.id)
 
-    if (existingActivity) {
-      await activityRepo.rawUpdate(activity.id, {
-        ...activity,
-        platform: activity.platform as PlatformType,
-      })
-      result.updated++
-    } else {
-      await activityRepo.rawInsert(activity)
-      result.inserted++
+    try {
+      if (existingActivity) {
+        await activityRepo.rawUpdate(activity.id, {
+          ...activity,
+          platform: activity.platform as PlatformType,
+        })
+        result.updated++
+      } else {
+        await activityRepo.rawInsert(activity)
+        result.inserted++
+      }
+    } catch (error) {
+      logger.error(`Error syncing activity ${activity.id}: ${error}`)
     }
   }
 
@@ -97,15 +107,17 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
     const result = await logExecutionTimeV2(
       // eslint-disable-next-line @typescript-eslint/no-loop-func
       () =>
-        qdbQx.select(
-          `
+        retryBackoff(() =>
+          qdbQx.select(
+            `
             SELECT *
             FROM activities
             WHERE "updatedAt" > $(updatedAt)
             ORDER BY "updatedAt"
             LIMIT 1000;
           `,
-          { updatedAt },
+            { updatedAt },
+          ),
         ),
       logger,
       `getting activities with updatedAt > ${updatedAt}`,
@@ -116,7 +128,11 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
     }
 
     const t = timer(logger)
-    const { inserted, updated } = await syncActivitiesBatch(activityRepo, result)
+    const { inserted, updated } = await syncActivitiesBatch({
+      logger,
+      activityRepo,
+      activities: result,
+    })
     t.end(`Inserting ${inserted} and updating ${updated} activities`)
 
     counter += inserted + updated

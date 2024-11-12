@@ -1,5 +1,3 @@
-import { performance } from 'perf_hooks'
-
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
@@ -17,8 +15,6 @@ import {
 import DataSinkService from '../service/dataSink.service'
 
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {
-  private readonly timingMap = new Map<string, { count: number; time: number }>()
-
   constructor(
     level: QueuePriorityLevel,
     client: IQueue,
@@ -43,8 +39,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    const startTime = performance.now()
-
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
@@ -83,25 +77,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     } catch (err) {
       this.log.error(err, 'Error while processing message!')
       throw err
-    } finally {
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
-
-      if (this.timingMap.has(message.type)) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const data = this.timingMap.get(message.type)!
-        this.timingMap.set(message.type, { count: data.count + 1, time: data.time + duration })
-      } else {
-        this.timingMap.set(message.type, { count: 1, time: duration })
-      }
-
-      const data = this.timingMap.get(message.type)
-
-      this.log.info(
-        { msgType: message.type },
-        `Average processing time: ${data.time / data.count}ms!`,
-      )
     }
   }
 }

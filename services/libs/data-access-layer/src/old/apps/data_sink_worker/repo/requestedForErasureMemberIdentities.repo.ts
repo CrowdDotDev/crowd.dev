@@ -29,6 +29,10 @@ export default class RequestedForErasureMemberIdentitiesRepository extends Repos
   private async wasIdentityRequestedForErasure(
     identity: IMemberIdentity,
   ): Promise<{ id: string } | null> {
+    if (!identity.value) {
+      return null
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: any = {
       type: identity.type,
