@@ -11,6 +11,7 @@ import { PlatformType } from '@crowd/types'
 import { DB_CONFIG } from '@/conf'
 
 import { CrowdJob } from '../../types/jobTypes'
+import { retryBackoff } from '../../utils/backoff'
 
 async function decideUpdatedAt(pgQx: QueryExecutor, maxUpdatedAt?: string): Promise<string> {
   if (!maxUpdatedAt) {
@@ -106,15 +107,17 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
     const result = await logExecutionTimeV2(
       // eslint-disable-next-line @typescript-eslint/no-loop-func
       () =>
-        qdbQx.select(
-          `
+        retryBackoff(() =>
+          qdbQx.select(
+            `
             SELECT *
             FROM activities
             WHERE "updatedAt" > $(updatedAt)
             ORDER BY "updatedAt"
             LIMIT 1000;
           `,
-          { updatedAt },
+            { updatedAt },
+          ),
         ),
       logger,
       `getting activities with updatedAt > ${updatedAt}`,
