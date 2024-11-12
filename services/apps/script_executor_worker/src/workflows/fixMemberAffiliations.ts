@@ -28,8 +28,6 @@ export async function fixMemberAffiliations(args: IFixMemberAffiliationsArgs) {
 
   const memberIds = await getMemberIdsWithDeletedWorkexperiences(MEMBER_PAGE_SIZE, offset)
 
-  console.log('memberIds', memberIds)
-
   if (memberIds.length === 0) {
     console.log(`No members found with deleted worked experiences!`)
     return
