@@ -21,4 +21,9 @@ export function initRUM() {
 
 export function setRumUser(id) {
   datadogRum.setUser({ id });
+  // datadogRum.setUser({
+  //   id: user['https://sso.linuxfoundation.org/claims/username'], // Users LFID
+  //   email: user.email, // Users Email
+  //   name: user.name // Users full name
+  // });
 }
