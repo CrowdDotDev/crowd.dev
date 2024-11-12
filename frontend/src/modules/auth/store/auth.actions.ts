@@ -34,8 +34,7 @@ export default {
 
     Auth0Service.getUser().then((user) => {
       if (user) {
-        console.log(user);
-        setRumUser(user.nickname);
+        setRumUser(user);
         lfxHeader.authuser = user;
       }
     });
