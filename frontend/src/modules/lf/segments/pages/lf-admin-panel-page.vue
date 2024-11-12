@@ -12,6 +12,11 @@
           v-if="activeTab === 'project-groups'"
         />
       </el-tab-pane>
+      <el-tab-pane v-if="isAdminUser" label="Integrations" name="integrations">
+        <lf-admin-integration-status
+          v-if="activeTab === 'integrations'"
+        />
+      </el-tab-pane>
       <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">
         <app-organization-common-page
           v-if="activeTab === 'organizations'"
@@ -57,6 +62,7 @@ import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 import LfAdminUsers from '@/modules/admin/pages/users.page.vue';
+import LfAdminIntegrationStatus from '@/modules/admin/integration-status.vue';
 
 const route = useRoute();
 const router = useRouter();

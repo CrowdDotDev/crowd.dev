@@ -14,4 +14,17 @@ export class UsersService {
 
     return response.data;
   }
+
+  static async fetchGlobalIntegrations(query: any) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/integration/global`,
+      {
+        params: query,
+      },
+    );
+
+    return response.data;
+  }
 }

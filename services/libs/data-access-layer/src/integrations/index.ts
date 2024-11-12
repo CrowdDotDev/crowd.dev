@@ -25,6 +25,7 @@ export async function fetchGlobalIntegrations(
         FROM "integrations" i
                  JOIN segments s ON i."segmentId" = s.id
         WHERE i."status" = $(status)
+          AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
           AND s.name ILIKE $(query)
         LIMIT $(limit) OFFSET $(offset)
