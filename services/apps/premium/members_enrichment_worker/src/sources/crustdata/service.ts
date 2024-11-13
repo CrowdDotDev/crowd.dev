@@ -279,7 +279,14 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     }
 
     if (data.email) {
-      for (const email of data.email.split(',').filter(isEmail)) {
+      let emails: string[]
+      if (Array.isArray(data.email)) {
+        emails = data.email
+      } else {
+        emails = data.email.split(',').filter(isEmail)
+      }
+
+      for (const email of emails) {
         normalized.identities.push({
           type: MemberIdentityType.EMAIL,
           platform: this.platform,

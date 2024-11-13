@@ -307,6 +307,7 @@ export async function getMembersForLLMConsumption(
 
   if (primaryMember) {
     result.push({
+      id: primaryMember.id,
       displayName: primaryMember.displayName,
       joinedAt: primaryMember.joinedAt,
       attributes: primaryMember.attributes,
@@ -323,6 +324,7 @@ export async function getMembersForLLMConsumption(
 
   if (secondaryMember) {
     result.push({
+      id: secondaryMember.id,
       joinedAt: secondaryMember.joinedAt,
       displayName: secondaryMember.displayName,
       attributes: secondaryMember.attributes,

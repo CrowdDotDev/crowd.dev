@@ -2,7 +2,7 @@ import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   IOrganizationMergeSuggestion,
-  LLMSuggestionVerdictType,
+  LlmQueryType,
   OrganizationMergeSuggestionTable,
   SuggestionType,
 } from '@crowd/types'
@@ -205,7 +205,7 @@ class OrganizationMergeSuggestionsRepository {
   /**
    * We get raw (unfiltered) suggestions from the database.
    * When onlyLFXMembers is true it only returns suggestions for lfx member organizations.
-   * All returned suggestions are checked against the "llmSuggestionVerdicts" table to see if they have already been processed.
+   * All returned suggestions are checked against the "llmPromptHistory" table to see if they have already been processed.
    * Already processed suggestions will not be returned.
    * @param similarityFilter
    * @param limit
@@ -254,17 +254,17 @@ class OrganizationMergeSuggestionsRepository {
                      select distinct s."organizationId", s."toMergeId"
                      from suggestions s
                      where not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv
+                          select 1 from "llmPromptHistory" lsv
                           where (
-                              lsv."primaryId" = s."organizationId" and
-                              lsv."secondaryId" = s."toMergeId" and
-                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                              lsv."entityId" = s."organizationId" and
+                              (lsv.metadata ->> 'secondaryId')::uuid = s."toMergeId" and
+                              lsv.type = '${LlmQueryType.ORGANIZATION_MERGE}'
                             )
                               or
                             (
-                              lsv."primaryId" = s."toMergeId" and
-                              lsv."secondaryId" = s."organizationId" and
-                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                              lsv."entityId" = s."toMergeId" and
+                              (lsv.metadata ->> 'secondaryId')::uuid = s."organizationId" and
+                              lsv.type = '${LlmQueryType.ORGANIZATION_MERGE}'
 
                             )
                      )
@@ -274,17 +274,17 @@ class OrganizationMergeSuggestionsRepository {
       query = `select * from "organizationToMergeRaw" otmr
                      where
                      not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv
+                          select 1 from "llmPromptHistory" lsv
                           where (
-                              lsv."primaryId" = otmr."organizationId" and
-                              lsv."secondaryId" = otmr."toMergeId" and
-                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                              lsv."entityId" = otmr."organizationId" and
+                              (lsv.metadata ->> 'secondaryId')::uuid = otmr."toMergeId" and
+                              lsv.type = '${LlmQueryType.ORGANIZATION_MERGE}'
                             )
                               or
                             (
-                              lsv."primaryId" = otmr."toMergeId" and
-                              lsv."secondaryId" = otmr."organizationId" and
-                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                              lsv."entityId" = otmr."toMergeId" and
+                              (lsv.metadata ->> 'secondaryId')::uuid = otmr."organizationId" and
+                              lsv.type = '${LlmQueryType.ORGANIZATION_MERGE}'
                             )
                      )
                      ${similarityLTEFilter}

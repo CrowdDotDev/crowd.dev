@@ -1,9 +1,11 @@
 import { proxyActivities } from '@temporalio/workflow'
 
+import { LlmQueryType } from '@crowd/types'
+
 import * as commonActivities from '../activities/common'
 import * as memberActivities from '../activities/memberMergeSuggestions'
 import * as organizationActivities from '../activities/organizationMergeSuggestions'
-import { ILLMResult, IProcessCheckSimilarityWithLLM } from '../types'
+import { IProcessCheckSimilarityWithLLM } from '../types'
 import { removeEmailLikeIdentitiesFromMember } from '../utils'
 
 const memberActivitiesProxy = proxyActivities<typeof memberActivities>({
@@ -39,16 +41,13 @@ export async function testMergingEntitiesWithLLM(
         continue
       }
 
-      const res: ILLMResult = await commonActivitiesProxy.getLLMResult(
+      const res = await commonActivitiesProxy.getLLMResult(
+        LlmQueryType.MEMBER_MERGE,
         members.map((member) => removeEmailLikeIdentitiesFromMember(member)),
-        args.modelId,
-        args.prompt,
-        args.region,
-        args.modelSpecificArgs,
       )
       console.log(`Raw res: `)
-      console.log(res.body)
-      totalInputTokenCount += res.body.usage.input_tokens
+      console.log(res.answer)
+      totalInputTokenCount += res.inputTokenCount
       promptCount += 1
     }
   }
@@ -69,15 +68,12 @@ export async function testMergingEntitiesWithLLM(
       }
 
       const res = await commonActivitiesProxy.getLLMResult(
+        LlmQueryType.ORGANIZATION_MERGE,
         organizations,
-        args.modelId,
-        args.prompt,
-        args.region,
-        args.modelSpecificArgs,
       )
       console.log(`Raw res: `)
-      console.log(res.body)
-      totalInputTokenCount += res.body.usage.input_tokens
+      console.log(res.answer)
+      totalInputTokenCount += res.inputTokenCount
       promptCount += 1
     }
   }

@@ -358,6 +358,7 @@ async function prepareOrg(
   ])
 
   return {
+    id: base.id,
     displayName: base.displayName,
     description: base.description,
     phoneNumbers: attributes.filter((a) => a.name === 'phoneNumber').map((a) => a.value),

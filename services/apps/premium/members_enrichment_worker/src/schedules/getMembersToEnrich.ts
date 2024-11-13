@@ -2,7 +2,7 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
-import { svc } from '../main'
+import { svc } from '../service'
 import { getMembersForLFIDEnrichment, getMembersToEnrich } from '../workflows'
 
 export const scheduleMembersEnrichment = async () => {

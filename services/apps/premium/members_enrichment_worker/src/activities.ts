@@ -6,6 +6,7 @@ import {
   isCacheObsolete,
   isEnrichableBySource,
   normalizeEnrichmentData,
+  processMemberSources,
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
 } from './activities/enrichment'
@@ -30,6 +31,7 @@ import {
 } from './activities/syncEnrichedData'
 
 export {
+  processMemberSources,
   getEnrichableMembers,
   getEnrichmentData,
   normalizeEnrichmentData,

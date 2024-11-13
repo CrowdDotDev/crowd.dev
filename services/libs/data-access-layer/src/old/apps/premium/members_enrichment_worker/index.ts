@@ -6,11 +6,66 @@ import {
   IMemberEnrichmentCache,
   IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
+  IMemberOriginalData,
   IOrganizationIdentity,
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationSource,
 } from '@crowd/types'
+
+export async function fetchMemberDataForLLMSquashing(
+  db: DbStore,
+  memberId: string,
+): Promise<IMemberOriginalData | null> {
+  const result = await db.connection().oneOrNone(
+    `
+    with member_orgs as (select distinct mo."memberId",
+                                          mo."organizationId" as "orgId",
+                                          o."displayName"     as "orgName",
+                                          mo.title            as "jobTitle",
+                                          mo."dateStart",
+                                          mo."dateEnd",
+                                          mo.source
+                          from "memberOrganizations" mo
+                                    inner join organizations o on mo."organizationId" = o.id
+                          where mo."memberId" = $(memberId)
+                            and mo."deletedAt" is null
+                            and o."deletedAt" is null)
+      select m."displayName",
+            m.attributes,
+            m."manuallyChangedFields",
+            (select json_agg(
+                            (select row_to_json(r)
+                              from (select mi.type,
+                                          mi.platform,
+                                          mi.value) r)
+                    )
+              from "memberIdentities" mi
+              where mi."memberId" = m.id
+                and verified = true) as identities,
+            json_agg(
+                    (select row_to_json(r)
+                      from (select mo."orgId",
+                                  mo."orgName",
+                                  mo."jobTitle",
+                                  mo."dateStart",
+                                  mo."dateEnd",
+                                  mo.source) r)
+            )                       as organizations
+
+      from members m
+              left join member_orgs mo on mo."memberId" = m.id
+      where m.id = $(memberId)
+        and m."deletedAt" is null
+      group by m.id, m."displayName", m.attributes, m."manuallyChangedFields";
+    `,
+    {
+      memberId,
+    },
+  )
+
+  return result
+}
 
 export async function fetchMembersForEnrichment(
   db: DbStore,
@@ -469,6 +524,10 @@ export async function updateMemberAttributes(
   )
 }
 
+export async function resetMemberEnrichedAt(tx: DbConnOrTx, memberId: string): Promise<void> {
+  await tx.none(`update members set "lastEnriched" = null where id = $(memberId);`, { memberId })
+}
+
 export async function insertMemberEnrichmentCacheDb<T>(
   tx: DbConnOrTx,
   data: T,
@@ -476,11 +535,13 @@ export async function insertMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  return tx.query(
+  const res = await tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
       VALUES ($1, $2, NOW(), NOW(), $3);`,
     [memberId, dataSanitized, source],
   )
+  await resetMemberEnrichedAt(tx, memberId)
+  return res
 }
 
 export async function updateMemberEnrichmentCacheDb<T>(
@@ -490,7 +551,7 @@ export async function updateMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  return tx.query(
+  const res = await tx.query(
     `UPDATE "memberEnrichmentCache"
       SET
         "updatedAt" = NOW(),
@@ -498,6 +559,8 @@ export async function updateMemberEnrichmentCacheDb<T>(
       WHERE "memberId" = $1 and source = $3;`,
     [memberId, dataSanitized, source],
   )
+  await resetMemberEnrichedAt(tx, memberId)
+  return res
 }
 
 export async function touchMemberEnrichmentCacheUpdatedAtDb(
@@ -516,20 +579,20 @@ export async function touchMemberEnrichmentCacheUpdatedAtDb(
 export async function findMemberEnrichmentCacheDb<T>(
   tx: DbConnOrTx,
   memberId: string,
-  source: MemberEnrichmentSource,
-): Promise<IMemberEnrichmentCache<T>> {
-  const result = await tx.oneOrNone(
+  sources: MemberEnrichmentSource[],
+): Promise<IMemberEnrichmentCache<T>[]> {
+  const results = await tx.any(
     `
     select *
     from "memberEnrichmentCache"
     where 
-      source = $(source)
+      source in ($(sources:csv))
       and "memberId" = $(memberId);
     `,
-    { source, memberId },
+    { sources, memberId },
   )
 
-  return result ?? null
+  return results
 }
 
 export async function findMemberEnrichmentCacheForAllSourcesDb<T>(

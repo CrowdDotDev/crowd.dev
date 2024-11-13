@@ -12,7 +12,6 @@ import {
   IOrganization,
   ITag,
   ITask,
-  LLMSuggestionVerdictType,
   MergeActionState,
   MergeActionStep,
   MergeActionType,
@@ -92,18 +91,4 @@ export interface IOrganizationUnmergeBackup extends IOrganization {
 export interface IOrganizationUnmergePreviewResult extends IOrganization {
   memberCount: number
   activityCount: number
-}
-
-export interface ILLMSuggestionVerdict {
-  id?: string
-  type: LLMSuggestionVerdictType
-  model: string
-  primaryId: string
-  secondaryId: string
-  prompt: string
-  verdict: string
-  inputTokenCount: number
-  outputTokenCount: number
-  responseTimeSeconds: number
-  createdAt?: string
 }

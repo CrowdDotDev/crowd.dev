@@ -100,7 +100,7 @@ export class ServiceWorker extends Service {
 
   // We first need to ensure a standard service can be initialized given the config
   // and environment variables.
-  override async init() {
+  override async init(initWorker = true) {
     try {
       await super.init()
     } catch (err) {
@@ -203,51 +203,53 @@ export class ServiceWorker extends Service {
       }
     }
 
-    try {
-      const certificate = process.env['CROWD_TEMPORAL_CERTIFICATE']
-      const privateKey = process.env['CROWD_TEMPORAL_PRIVATE_KEY']
+    if (initWorker) {
+      try {
+        const certificate = process.env['CROWD_TEMPORAL_CERTIFICATE']
+        const privateKey = process.env['CROWD_TEMPORAL_PRIVATE_KEY']
 
-      this.log.info(
-        {
+        this.log.info(
+          {
+            address: process.env['CROWD_TEMPORAL_SERVER_URL'],
+            certificate: certificate ? 'yes' : 'no',
+            privateKey: privateKey ? 'yes' : 'no',
+          },
+          'Connecting to Temporal server as a worker!',
+        )
+
+        const connection = await NativeConnection.connect({
           address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-          certificate: certificate ? 'yes' : 'no',
-          privateKey: privateKey ? 'yes' : 'no',
-        },
-        'Connecting to Temporal server as a worker!',
-      )
+          tls:
+            certificate && privateKey
+              ? {
+                  clientCertPair: {
+                    crt: Buffer.from(certificate, 'base64'),
+                    key: Buffer.from(privateKey, 'base64'),
+                  },
+                }
+              : undefined,
+        })
 
-      const connection = await NativeConnection.connect({
-        address: process.env['CROWD_TEMPORAL_SERVER_URL'],
-        tls:
-          certificate && privateKey
-            ? {
-                clientCertPair: {
-                  crt: Buffer.from(certificate, 'base64'),
-                  key: Buffer.from(privateKey, 'base64'),
-                },
-              }
-            : undefined,
-      })
+        const workflowBundle = await bundleWorkflowCode({
+          workflowsPath: path.resolve('./src/workflows'),
+        })
 
-      const workflowBundle = await bundleWorkflowCode({
-        workflowsPath: path.resolve('./src/workflows'),
-      })
-
-      this._worker = await TemporalWorker.create({
-        connection: connection,
-        identity: this.name,
-        namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
-        taskQueue: process.env['CROWD_TEMPORAL_TASKQUEUE'],
-        enableSDKTracing: true,
-        showStackTraceSources: true,
-        workflowBundle: workflowBundle,
-        activities: require(path.resolve('./src/activities')),
-        dataConverter: await getDataConverter(),
-        maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
-        maxConcurrentActivityTaskExecutions: this.options.maxConcurrentActivityTaskExecutions,
-      })
-    } catch (err) {
-      throw new Error(err)
+        this._worker = await TemporalWorker.create({
+          connection: connection,
+          identity: this.name,
+          namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
+          taskQueue: process.env['CROWD_TEMPORAL_TASKQUEUE'],
+          enableSDKTracing: true,
+          showStackTraceSources: true,
+          workflowBundle: workflowBundle,
+          activities: require(path.resolve('./src/activities')),
+          dataConverter: await getDataConverter(),
+          maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
+          maxConcurrentActivityTaskExecutions: this.options.maxConcurrentActivityTaskExecutions,
+        })
+      } catch (err) {
+        throw new Error(err)
+      }
     }
   }
 

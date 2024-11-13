@@ -30,3 +30,25 @@ export interface IEnrichableMemberIdentityActivityAggregate {
   username: string
   platform: string
 }
+
+export interface IMemberOrganizationData {
+  orgId: string
+  orgName: string
+  jobTitle: string
+  dateStart: string
+  dateEnd: string
+  source: string
+}
+
+export interface IMemberOriginalData {
+  // members table data
+  displayName: string
+  attributes: Record<string, Record<string, unknown>>
+  manuallyChangedFields: string[]
+
+  // memberIdentities table data
+  identities: IMemberIdentity[]
+
+  // memberOrganizations table data
+  organizations: IMemberOrganizationData[]
+}

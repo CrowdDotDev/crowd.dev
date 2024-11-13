@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
 import axios from 'axios'
-import { performance } from 'perf_hooks'
 
+import { LlmService } from '@crowd/common_services'
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
-import LLMSuggestionVerdictsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/llmSuggestionVerdicts.repo'
 import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import {
   FeatureFlag,
   ILLMConsumableMember,
   ILLMConsumableOrganization,
-  ILLMSuggestionVerdict,
+  ILlmResult,
+  LlmQueryType,
 } from '@crowd/types'
 
 import { svc } from '../main'
-import { ILLMResult } from '../types'
 
 export async function getAllTenants(): Promise<ITenant[]> {
   const tenantRepository = new TenantRepository(svc.postgres.writer.connection(), svc.log)
@@ -43,74 +41,22 @@ export async function getAllTenants(): Promise<ITenant[]> {
 }
 
 export async function getLLMResult(
+  type: LlmQueryType.MEMBER_MERGE | LlmQueryType.ORGANIZATION_MERGE,
   suggestion: ILLMConsumableMember[] | ILLMConsumableOrganization[],
-  modelId: string,
-  prompt: string,
-  region: string,
-  modelSpecificArgs: any,
-): Promise<ILLMResult> {
-  if (suggestion.length !== 2) {
-    console.log(suggestion)
-    throw new Error('Exactly 2 entities are required for LLM comparison')
-  }
-  const client = new BedrockRuntimeClient({
-    credentials: {
+): Promise<ILlmResult<boolean>> {
+  const llmService = new LlmService(
+    svc.postgres.writer,
+    {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
     },
-    region,
-  })
-
-  const start = performance.now()
-
-  const end = () => {
-    const end = performance.now()
-    const duration = end - start
-    return Math.ceil(duration / 1000)
-  }
-
-  const fullPrompt = `Your task is to analyze the following two json documents. <json> ${JSON.stringify(
-    suggestion,
-  )} </json>. ${prompt}`
-
-  const command = new InvokeModelCommand({
-    body: JSON.stringify({
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: fullPrompt,
-            },
-          ],
-        },
-      ],
-      ...modelSpecificArgs,
-    }),
-    modelId,
-    accept: 'application/json',
-    contentType: 'application/json',
-  })
-
-  const res = await client.send(command)
-
-  return {
-    body: JSON.parse(res.body.transformToString()),
-    prompt: fullPrompt,
-    modelSpecificArgs,
-    responseTimeSeconds: end(),
-  }
-}
-
-export async function saveLLMVerdict(verdict: ILLMSuggestionVerdict): Promise<string> {
-  const llmVerdictRepository = new LLMSuggestionVerdictsRepository(
-    svc.postgres.writer.connection(),
     svc.log,
   )
-  return llmVerdictRepository.saveLLMVerdict(verdict)
-}
 
+  const result = await llmService.mergeSuggestion(type, suggestion)
+
+  return result
+}
 export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,

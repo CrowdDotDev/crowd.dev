@@ -3,7 +3,7 @@ import { Logger } from '@crowd/logging'
 import {
   ILLMConsumableMemberDbResult,
   IMemberMergeSuggestion,
-  LLMSuggestionVerdictType,
+  LlmQueryType,
   MemberMergeSuggestionTable,
   SuggestionType,
 } from '@crowd/types'
@@ -212,6 +212,7 @@ class MemberMergeSuggestionsRepository {
       const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
         `
         select 
+          mem.id,
           mem.attributes,
           mem."displayName",
           mem."joinedAt",
@@ -258,17 +259,17 @@ class MemberMergeSuggestionsRepository {
     const query = `select * from "memberToMergeRaw" mtmr
                      where 
                      not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv 
+                          select 1 from "llmPromptHistory" lsv 
                           where (
-                              lsv."primaryId" = mtmr."memberId" and 
-                              lsv."secondaryId" = mtmr."toMergeId" and 
-                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                              lsv."entityId" = mtmr."memberId" and 
+                              (lsv.metadata ->> 'secondaryId')::uuid = mtmr."toMergeId" and 
+                              lsv.type = '${LlmQueryType.MEMBER_MERGE}'
                             ) 
                               or 
                             (
-                              lsv."primaryId" = mtmr."toMergeId" and
-                              lsv."secondaryId" = mtmr."memberId" and
-                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                              lsv."entityId" = mtmr."toMergeId" and
+                              (lsv.metadata ->> 'secondaryId')::uuid = mtmr."memberId" and
+                              lsv.type = '${LlmQueryType.MEMBER_MERGE}'
                             )
                      )
                      ${similarityLTEFilter}

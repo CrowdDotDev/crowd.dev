@@ -18,8 +18,8 @@ const {
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
   isCacheObsolete,
-  normalizeEnrichmentData,
   findMemberIdentityWithTheMostActivityInPlatform,
+  processMemberSources,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '20 seconds',
   retry: {
@@ -38,7 +38,8 @@ export async function enrichMember(
 
   for (const source of sources) {
     // find if there's already saved enrichment data in source
-    const cache = await findMemberEnrichmentCache(source, input.id)
+    const caches = await findMemberEnrichmentCache([source], input.id)
+    const cache = caches.find((c) => c.source === source)
 
     // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
     if (await isCacheObsolete(source, cache)) {
@@ -100,16 +101,6 @@ export async function enrichMember(
 
   if (changeInEnrichmentSourceData) {
     // Member enrichment data has been updated, use squasher again!
-    const toBeSquashed = {}
-    for (const source of sources) {
-      // find if there's already saved enrichment data in source
-      const cache = await findMemberEnrichmentCache(source, input.id)
-      if (cache && cache.data) {
-        const normalized = await normalizeEnrichmentData(source, cache.data)
-        toBeSquashed[source] = normalized
-      }
-    }
-
-    // TODO:: Implement data squasher using LLM & actual member entity enrichment logic
+    await processMemberSources(input.id, sources)
   }
 }

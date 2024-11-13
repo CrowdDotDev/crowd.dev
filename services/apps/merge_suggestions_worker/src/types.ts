@@ -43,31 +43,6 @@ export type IOrganizationFilter =
   | IRangeFilterCreatedAt
   | IExistsFilter
 
-export interface ILLMResult {
-  body: ILLMBody
-  prompt: string
-  responseTimeSeconds: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  modelSpecificArgs: any
-}
-
-export interface ILLMBody {
-  id: string
-  type: string
-  role: string
-  model: string
-  content: {
-    type: string
-    text: string
-  }[]
-  stop_reason: string
-  stop_sequence: string
-  usage: {
-    input_tokens: number
-    output_tokens: number
-  }
-}
-
 export interface IProcessGenerateMemberMergeSuggestionsArgs {
   tenantId: string
   lastUuid?: string
