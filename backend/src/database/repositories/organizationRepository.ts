@@ -1685,7 +1685,9 @@ class OrganizationRepository {
           ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
               segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
             }`
-          : ''
+          : ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
+            }`
       }
       WHERE 1=1
         AND o."tenantId" = $(tenantId)
