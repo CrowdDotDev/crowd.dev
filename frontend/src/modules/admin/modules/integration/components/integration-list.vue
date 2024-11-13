@@ -13,7 +13,7 @@
         >
           <div class="flex items-center gap-1.5">
             <span>{{ status.tabs.text }}</span>
-            <div v-if="getIntegrationCountPerStatus[key] > 0" class="rounded py-0.5 px-1 text-tiny" :class="status.tabs.badge">
+            <div v-if="getIntegrationCountPerStatus[key] > 0" class="rounded py-0.5 px-1 text-tiny text-black" :class="status.tabs.badge">
               {{ getIntegrationCountPerStatus[key] }}
             </div>
           </div>
@@ -82,6 +82,7 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
     statusCount[key] = array.value.filter((integration) => statusConfig.show(integration)).length;
   });
+  statusCount.notConnected = Object.keys(lfIntegrations).length - array.value.length;
   return statusCount;
 });
 

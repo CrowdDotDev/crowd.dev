@@ -5,7 +5,7 @@
         <lf-tab v-for="(config, key) in lfIntegrationStatusesTabs" :key="key" :name="key">
           <div class="flex items-center gap-1.5">
             <span>{{ config.tabs.text }}</span>
-            <div v-if="integrationStatusCount[key] > 0" class="rounded py-0.5 px-1 text-tiny" :class="config.tabs.badge">
+            <div v-if="integrationStatusCount[key] > 0" class="rounded py-0.5 px-1 text-tiny text-black" :class="config.tabs.badge">
               {{ integrationStatusCount[key] }}
             </div>
           </div>
