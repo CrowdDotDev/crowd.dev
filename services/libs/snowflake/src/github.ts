@@ -34,6 +34,52 @@ interface IGetRepoForksResult extends IBasicResponse {
   payload: Record<string, unknown>
 }
 
+interface IGetRepoPullRequestsResult extends IBasicResponse {
+  id: number
+  action: string
+  pullRequestNumber: number
+  timestamp: string
+  payload: Record<string, unknown>
+}
+
+interface IGetRepoPullRequestReviewsResult extends IBasicResponse {
+  id: number
+  state: string
+  pullRequestNumber: number
+  timestamp: string
+  payload: Record<string, unknown>
+}
+
+interface IGetRepoPullRequestReviewCommentsResult extends IBasicResponse {
+  id: number
+  action: string
+  pullRequestNumber: number
+  timestamp: string
+  payload: Record<string, unknown>
+}
+
+interface IGetRepoPushesResult extends IBasicResponse {
+  timestamp: string
+  commitCount: number
+  payload: Record<string, unknown>
+}
+
+interface IGetRepoIssuesResult extends IBasicResponse {
+  id: number
+  action: string
+  issueNumber: number
+  timestamp: string
+  payload: Record<string, unknown>
+}
+
+interface IGetRepoIssueCommentsResult extends IBasicResponse {
+  id: number
+  action: string
+  issueNumber: number
+  timestamp: string
+  payload: Record<string, unknown>
+}
+
 export interface IGetResponse<T extends IBasicResponse = IBasicResponse> {
   data: T[]
   hasNextPage: boolean
@@ -56,10 +102,10 @@ export class GithubSnowflakeClient {
     const result = await this.client.run<{ id: number; name: string }>(
       `SELECT repo_id as id, repo_name as name 
       FROM github_events_ingest.cybersyn.github_repos 
-      WHERE startswith(repo_name, ?)
+      WHERE REGEXP_LIKE(repo_name, ?)
       LIMIT ?
       OFFSET ?`,
-      [`${org}/`, perPage, (page - 1) * perPage],
+      [`^${org}/[^/]+$`, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -133,6 +179,238 @@ export class GithubSnowflakeClient {
       FROM GITHUB_EVENTS
       WHERE repo_name = ?
       AND type = 'ForkEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoPullRequests({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoPullRequestsResult>> {
+    const result = await this.client.run<IGetRepoPullRequestsResult>(
+      `SELECT 
+        ID as id,
+        PAYLOAD:action as action,
+        PAYLOAD:number as pullRequestNumber,
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'PullRequestEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoPullRequestReviews({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoPullRequestReviewsResult>> {
+    const result = await this.client.run<IGetRepoPullRequestReviewsResult>(
+      `SELECT 
+        ID as id,
+        PAYLOAD:review.state as state,
+        PAYLOAD:pull_request.number as pullRequestNumber,
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'PullRequestReviewEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoPullRequestReviewComments({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoPullRequestReviewCommentsResult>> {
+    const result = await this.client.run<IGetRepoPullRequestReviewCommentsResult>(
+      `SELECT 
+        ID as id,
+        PAYLOAD:action as action,
+        PAYLOAD:pull_request.number as pullRequestNumber,
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'PullRequestReviewCommentEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoPushes({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoPushesResult>> {
+    const result = await this.client.run<IGetRepoPushesResult>(
+      `SELECT 
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        ARRAY_SIZE(PAYLOAD:commits) as commitCount,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'PushEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoIssues({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoIssuesResult>> {
+    const result = await this.client.run<IGetRepoIssuesResult>(
+      `SELECT 
+        ID as id,
+        PAYLOAD:action as action,
+        PAYLOAD:issue.number as issueNumber,
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'IssuesEvent'
+      ORDER BY CREATED_AT_TIMESTAMP DESC
+      LIMIT ?
+      OFFSET ?`,
+      [repo, perPage, (page - 1) * perPage],
+    )
+
+    return {
+      data: result,
+      hasNextPage: result.length === perPage,
+      nextPage: page + 1,
+      perPage,
+    }
+  }
+
+  public async getRepoIssueComments({
+    repo,
+    page = 1,
+    perPage = 100,
+  }: {
+    repo: string
+    page?: number
+    perPage?: number
+  }): Promise<IGetResponse<IGetRepoIssueCommentsResult>> {
+    const result = await this.client.run<IGetRepoIssueCommentsResult>(
+      `SELECT 
+        ID as id,
+        PAYLOAD:action as action,
+        PAYLOAD:issue.number as issueNumber,
+        CREATED_AT_TIMESTAMP as timestamp,
+        ACTOR_LOGIN as actorLogin,
+        ACTOR_ID as actorId,
+        ACTOR_AVATAR_URL as actorAvatarUrl,
+        ORG_LOGIN as orgLogin,
+        ORG_ID as orgId,
+        ORG_AVATAR_URL as orgAvatarUrl,
+        PAYLOAD as payload
+      FROM GITHUB_EVENTS
+      WHERE repo_name = ?
+      AND type = 'IssueCommentEvent'
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,

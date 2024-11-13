@@ -112,6 +112,15 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   }
 }
 
+const processPullsStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const result = await gh.getRepoPulls({ repo: data.repo.url, page: data.page })
+
+  await publishNextPageStream(ctx, result)
+}
+
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubRootStream
   const repos = data.reposToCheck
