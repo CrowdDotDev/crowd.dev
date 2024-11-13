@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-6 h-screen">
+  <div class="pt-6 min-h-120">
     <div class="pb-6 flex justify-between items-center flex-wrap gap-2">
       <lf-tabs v-model="status" :fragment="false">
         <lf-tab v-for="(config, key) in lfIntegrationStatusesTabs" :key="key" :name="key">
