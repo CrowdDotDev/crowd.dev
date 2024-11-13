@@ -12,7 +12,7 @@
           v-if="activeTab === 'project-groups'"
         />
       </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser && isDevMode" label="Integrations" name="integrations">
+      <el-tab-pane v-if="isDevMode" label="Integrations" name="integrations">
         <lf-admin-integration-status
           v-if="activeTab === 'integrations'"
         />

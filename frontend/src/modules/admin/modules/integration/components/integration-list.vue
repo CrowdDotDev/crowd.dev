@@ -70,6 +70,9 @@ const platformsByStatus = computed(() => {
   if (!statusConfig) {
     return all;
   }
+  if (statusConfig.key === 'notConnected') {
+    return all.filter((platform) => !array.value.map((integration) => integration.platform).includes(platform));
+  }
   const matching = array.value.filter((integration) => statusConfig.show(integration)).map((integration) => integration.platform);
   return all.filter((platform) => matching.includes(platform));
 });
