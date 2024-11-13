@@ -61,7 +61,6 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch } from 'vue';
-import { UsersService } from '@/modules/admin/services/users.service';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
@@ -69,6 +68,7 @@ import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAdminIntegrationPlatformSelect from '@/modules/admin/integration-platform-select.vue';
+import { UsersService } from '@/modules/admin/modules/users/services/users.service';
 
 const loading = ref(true);
 
