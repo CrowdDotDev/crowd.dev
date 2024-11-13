@@ -39,3 +39,18 @@ export async function fetchGlobalIntegrations(
     },
   )
 }
+
+export async function fetchGlobalIntegrationsStatusCount(
+  qx: QueryExecutor,
+): Promise<{ status: string; count: number }[]> {
+  return qx.select(
+    `
+        SELECT i.status,
+               COUNT(*) AS count
+        FROM "integrations" i
+        WHERE i."deletedAt" IS NULL
+        GROUP BY i.status
+    `,
+    {},
+  )
+}

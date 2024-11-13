@@ -67,8 +67,6 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfTabs from '@/ui-kit/tabs/Tabs.vue';
-import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAdminIntegrationPlatformSelect from '@/modules/admin/integration-platform-select.vue';
 
@@ -98,6 +96,14 @@ const fetchGlobalIntegrations = () => {
     });
 };
 
+const fetchGlobalIntegrationStatusCount = () => {
+  UsersService.fetchGlobalIntegrationStatusCount()
+    .then((res) => {
+      console.log(res);
+      // integrations.value = res;
+    })
+};
+
 const getConfig = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 watch(() => status.value, () => {
@@ -120,6 +126,7 @@ watch(() => query.value, () => {
 
 onMounted(() => {
   fetchGlobalIntegrations();
+  fetchGlobalIntegrationStatusCount();
 });
 </script>
 

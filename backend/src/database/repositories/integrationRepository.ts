@@ -3,7 +3,10 @@ import Sequelize, { QueryTypes } from 'sequelize'
 
 import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
-import { fetchGlobalIntegrations } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchGlobalIntegrations,
+  fetchGlobalIntegrationsStatusCount,
+} from '@crowd/data-access-layer/src/integrations'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -412,6 +415,17 @@ class IntegrationRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
     return fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
+  }
+
+  /**
+   * Retrieves the count of global integrations status based on the provided repository options.
+   *
+   * @param {IRepositoryOptions} options - The repository options to configure the query executor.
+   * @return {Promise<number>} - A promise that resolves to the count of global integrations status.
+   */
+  static async findGlobalIntegrationsStatusCount(options: IRepositoryOptions) {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return fetchGlobalIntegrationsStatusCount(qx)
   }
 
   static async findAndCountAll(

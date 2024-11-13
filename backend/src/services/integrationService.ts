@@ -308,6 +308,15 @@ export default class IntegrationService {
     return IntegrationRepository.findGlobalIntegrations(args, this.options)
   }
 
+  /**
+   * Retrieves a count of global integration statuses.
+   *
+   * @return {Promise<number>} A promise that resolves to the count of global integration statuses.
+   */
+  async findGlobalIntegrationsStatusCount() {
+    return IntegrationRepository.findGlobalIntegrationsStatusCount(this.options)
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy

@@ -27,4 +27,14 @@ export class UsersService {
 
     return response.data;
   }
+
+  static async fetchGlobalIntegrationStatusCount() {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/integration/global/status`,
+    );
+
+    return response.data;
+  }
 }
