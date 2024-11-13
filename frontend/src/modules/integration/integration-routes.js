@@ -4,7 +4,7 @@ import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionG
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const IntegrationListPage = () => import(
-  '@/modules/integration/pages/integration-list-page.vue'
+  '@/modules/admin/modules/integration/pages/integration-list.page.vue'
 );
 const IntegrationSuccessPage = () => import(
   '@/modules/integration/pages/integration-success-page.vue'

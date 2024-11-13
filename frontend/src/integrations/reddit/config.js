@@ -1,5 +1,3 @@
-import RedditConnect from './components/reddit-connect.vue';
-
 export default {
   enabled: true,
   name: 'Reddit',
@@ -11,7 +9,6 @@ export default {
     description: 'Sync posts and comments from selected subreddits.',
   },
   image: '/images/integrations/reddit.svg',
-  connectComponent: RedditConnect,
   url: ({ username }) => (username ? `https://reddit.com/user/${username}` : null),
   chartColor: '#FF4500',
   showProfileLink: true,
