@@ -19,6 +19,9 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const { doDiscordConnect } = mapActions('integration');
 
