@@ -4,8 +4,11 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
-  fetchGlobalIntegrations, fetchGlobalIntegrationsCount,
-  fetchGlobalIntegrationsStatusCount, fetchGlobalNotConnectedIntegrations, fetchGlobalNotConnectedIntegrationsCount,
+  fetchGlobalIntegrations,
+  fetchGlobalIntegrationsCount,
+  fetchGlobalIntegrationsStatusCount,
+  fetchGlobalNotConnectedIntegrations,
+  fetchGlobalNotConnectedIntegrationsCount,
 } from '@crowd/data-access-layer/src/integrations'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
@@ -397,13 +400,12 @@ class IntegrationRepository {
     })
   }
 
-
   static async findGlobalIntegrations(
     { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
     options: IRepositoryOptions,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    if(status.includes('not-connected')){
+    if (status.includes('not-connected')) {
       const rows = await fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset)
       const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query)
       return { rows, count: +result.count, limit: +limit, offset: +offset }
@@ -424,10 +426,7 @@ class IntegrationRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
     const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, null, '')
     const rows = await fetchGlobalIntegrationsStatusCount(qx)
-    return [
-        ...rows,
-        { status: 'not-connected', count: +result.count },
-    ]
+    return [...rows, { status: 'not-connected', count: +result.count }]
   }
 
   static async findAndCountAll(
