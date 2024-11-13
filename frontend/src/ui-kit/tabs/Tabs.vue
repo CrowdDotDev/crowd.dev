@@ -45,6 +45,9 @@ watch(() => props.modelValue, () => {
 });
 
 const readHash = () => {
+  if (!props.fragment) {
+    return;
+  }
   const hash = route?.hash.replace('#', '');
   if (hash && hash !== model.value) {
     emit('update:modelValue', hash);

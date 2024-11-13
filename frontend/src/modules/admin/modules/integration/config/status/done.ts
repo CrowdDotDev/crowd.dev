@@ -3,6 +3,7 @@ import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/con
 const done: IntegrationStatusConfig = {
   key: 'done',
   show: (integration: any) => integration.status === 'done',
+  statuses: ['done'],
   status: {
     text: 'Connected',
     icon: 'checkbox-circle-fill',

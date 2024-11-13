@@ -7,8 +7,8 @@
           All integrations
         </template>
         <template v-else>
-          <img :src="integrations[model]?.image" :alt="integrations[model]?.name" class="w-4 h-4 object-contain">
-          {{ integrations[model]?.name }}
+          <img :src="lfIntegrations[model]?.image" :alt="lfIntegrations[model]?.name" class="w-4 h-4 object-contain">
+          {{ lfIntegrations[model]?.name }}
         </template>
         <lf-icon-old name="arrow-down-s-line" :size="16" />
       </lf-button>
@@ -23,7 +23,7 @@
       <lf-dropdown-separator />
 
       <lf-dropdown-item
-        v-for="(integration, key) in integrations"
+        v-for="(integration, key) in lfIntegrations"
         :key="key"
         :selected="model === key"
         @click="model = key"
@@ -44,7 +44,7 @@ import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIntegrations } from '@/config/integrations';
 
 const props = defineProps<{
   modelValue?: string,
@@ -60,8 +60,6 @@ const model = computed({
     emit('update:modelValue', value);
   },
 });
-
-const integrations = CrowdIntegrations.integrations;
 </script>
 
 <script lang="ts">

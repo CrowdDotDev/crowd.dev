@@ -4,8 +4,8 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
-  fetchGlobalIntegrations,
-  fetchGlobalIntegrationsStatusCount,
+  fetchGlobalIntegrations, fetchGlobalIntegrationsCount,
+  fetchGlobalIntegrationsStatusCount, fetchGlobalNotConnectedIntegrations, fetchGlobalNotConnectedIntegrationsCount,
 } from '@crowd/data-access-layer/src/integrations'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
@@ -397,24 +397,21 @@ class IntegrationRepository {
     })
   }
 
-  /**
-   * Fetches global integrations based on the specified filters.
-   *
-   * @param {Object} params - The parameters for filtering the integrations.
-   * @param {string} [params.platform=null] - The platform to filter integrations by.
-   * @param {string} [params.status='done'] - The status to filter integrations by. Default is 'done'.
-   * @param {string} [params.query=''] - The search query for integrations.
-   * @param {number} [params.limit=20] - The maximum number of integrations to fetch. Default is 20.
-   * @param {number} [params.offset=0] - The number of integrations to skip from the beginning. Default is 0.
-   * @param {IRepositoryOptions} options - The options for the repository.
-   * @return {Promise<Array>} A promise that resolves to an array of global integrations.
-   */
+
   static async findGlobalIntegrations(
-    { platform = null, status = 'done', query = '', limit = 20, offset = 0 },
+    { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
     options: IRepositoryOptions,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
+    if(status.includes('not-connected')){
+      const rows = await fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset)
+      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query)
+      return { rows, count: +result.count, limit: +limit, offset: +offset }
+    }
+
+    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
+    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query)
+    return { rows, count: +result.count, limit: +limit, offset: +offset }
   }
 
   /**
@@ -425,7 +422,12 @@ class IntegrationRepository {
    */
   static async findGlobalIntegrationsStatusCount(options: IRepositoryOptions) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchGlobalIntegrationsStatusCount(qx)
+    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, null, '')
+    const rows = await fetchGlobalIntegrationsStatusCount(qx)
+    return [
+        ...rows,
+        { status: 'not-connected', count: +result.count },
+    ]
   }
 
   static async findAndCountAll(

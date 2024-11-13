@@ -1,12 +1,13 @@
 import done from './done';
 import error from './error';
 import waitingForAction from './waiting-for-action';
-import waitingApproval from './waiting-approval';
 import connecting from './connecting';
+import notConnected from './not-connected';
 
 export interface IntegrationStatusConfig {
   key: string;
   show: (integration: any) => boolean;
+  statuses: string[],
   status: {
     text: string;
     icon: string;
@@ -27,7 +28,6 @@ export const lfIntegrationStatuses: Record<string, IntegrationStatusConfig> = {
   done,
   error,
   waitingForAction,
-  waitingApproval,
   connecting,
 };
 
@@ -36,6 +36,7 @@ export const lfIntegrationStatusesTabs: Record<string, IntegrationStatusConfig> 
   connecting,
   waitingForAction,
   error,
+  notConnected,
 };
 
 export const getIntegrationStatus = (integration: any): IntegrationStatusConfig => {
