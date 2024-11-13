@@ -1,5 +1,6 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 export enum GithubActivityType {
+  DISCUSSION_STARTED = 'discussion-started',
   PULL_REQUEST_OPENED = 'pull_request-opened',
   PULL_REQUEST_CLOSED = 'pull_request-closed',
   PULL_REQUEST_REVIEW_REQUESTED = 'pull_request-review-requested',
@@ -10,9 +11,11 @@ export enum GithubActivityType {
   ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',
   STAR = 'star',
+  UNSTAR = 'unstar',
   PULL_REQUEST_COMMENT = 'pull_request-comment',
   PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
   ISSUE_COMMENT = 'issue-comment',
+  DISCUSSION_COMMENT = 'discussion-comment',
   AUTHORED_COMMIT = 'authored-commit',
 }
 
@@ -79,6 +82,19 @@ export enum GithubWebhookSubType {
   DISCUSSION_COMMENT_REPLY = 'discussion-comment-reply',
 }
 
+export enum GithubWehookEvent {
+  ISSUES = 'issues',
+  DISCUSSION = 'discussion',
+  PULL_REQUEST = 'pull_request',
+  PULL_REQUEST_REVIEW = 'pull_request_review',
+  STAR = 'star',
+  FORK = 'fork',
+  DISCUSSION_COMMENT = 'discussion_comment',
+  PULL_REQUEST_REVIEW_COMMENT = 'pull_request_review_comment',
+  ISSUE_COMMENT = 'issue_comment',
+  PULL_REQUEST_COMMENT = 'pull_request_comment',
+}
+
 export enum GithubStreamType {
   ROOT = 'root',
   STARGAZERS = 'stargazers',
@@ -90,6 +106,8 @@ export enum GithubStreamType {
   PULL_COMMITS = 'pull-commits',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
+  DISCUSSIONS = 'discussions',
+  DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
 export enum GithubManualStreamType {
@@ -98,6 +116,7 @@ export enum GithubManualStreamType {
   FORKS = 'forks',
   PULLS = 'pulls',
   ISSUES = 'issues',
+  DISCUSSIONS = 'discussions',
 }
 
 export const INDIRECT_FORK = 'indirect-fork'
@@ -114,13 +133,25 @@ export interface GithubApiData {
   repo: Repo
 }
 
+export interface GithubWebhookData {
+  webhookType: GithubWehookEvent
+  subType?: string
+  data: any[] | any
+  relatedData?: any | any[]
+  member?: GithubPrepareMemberOutput
+  orgMember?: GithubPrepareOrgMemberOutput
+  objectMember?: GithubPrepareMemberOutput
+  sourceParentId?: string
+  date?: string
+}
+
 export interface GithubRootStream {
   reposToCheck: Repos
 }
 
 export interface GithubBasicStream {
   repo: Repo
-  page: number
+  page: string
   prNumber?: string
   reviewThreadId?: string
   issueNumber?: string
@@ -128,11 +159,15 @@ export interface GithubBasicStream {
 }
 
 export interface GithubPlatformSettings {
+  appId: string
+  clientId: string
+  clientSecret: string
   privateKey: string
-  account: string
-  username: string
-  database: string
-  warehouse: string
+  webhookSecret: string
+  isCommitDataEnabled: string
+  globalLimit?: number
+  callbackUrl: string
+  personalAccessTokens: string
 }
 
 export interface GithubIntegrationSettings {

@@ -6,7 +6,7 @@ import {
   MemberAttributes,
 } from '@crowd/types'
 
-import { GITHUB_MEMBER_ATTRIBUTES } from '../github/memberAttributes'
+import { GITHUB_MEMBER_ATTRIBUTES } from '../github-old/memberAttributes'
 import { TWITTER_MEMBER_ATTRIBUTES } from '../twitter/memberAttributes'
 import { pickAttributes } from '../utils'
 

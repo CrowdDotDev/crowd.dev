@@ -14,6 +14,7 @@ const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = n
   [GithubStreamType.FORKS, GithubManualStreamType.FORKS],
   [GithubStreamType.PULLS, GithubManualStreamType.PULLS],
   [GithubStreamType.ISSUES, GithubManualStreamType.ISSUES],
+  [GithubStreamType.DISCUSSIONS, GithubManualStreamType.DISCUSSIONS],
 ])
 
 const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = new Map([
@@ -21,6 +22,7 @@ const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = n
   [GithubManualStreamType.FORKS, GithubStreamType.FORKS],
   [GithubManualStreamType.PULLS, GithubStreamType.PULLS],
   [GithubManualStreamType.ISSUES, GithubStreamType.ISSUES],
+  [GithubManualStreamType.DISCUSSIONS, GithubStreamType.DISCUSSIONS],
 ])
 
 const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> => {
@@ -50,6 +52,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           GithubStreamType.FORKS,
           GithubStreamType.PULLS,
           GithubStreamType.ISSUES,
+          GithubStreamType.DISCUSSIONS,
         ]) {
           if (
             manualSettings.streamType === GithubManualStreamType.ALL ||
@@ -57,7 +60,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           ) {
             await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
               repo,
-              page: 1,
+              page: '',
             })
           }
         }
@@ -73,7 +76,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           const repo = manualSettings.repos.find((r) => r.url === repoUrl)
           await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
             repo,
-            page: 1,
+            page: '',
           })
         }
       }
