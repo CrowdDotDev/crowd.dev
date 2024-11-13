@@ -27,7 +27,6 @@ import {
   GithubPrepareOrgMemberOutput,
   GithubPullRequest,
   GithubPullRequestTimelineItem,
-  GithubWebhookData,
   INDIRECT_FORK,
 } from './types'
 
@@ -782,54 +781,6 @@ const parseIssueComment: ProcessDataHandler = async (ctx) => {
   await ctx.publishActivity(activity)
 }
 
-const parseDiscussionComment: ProcessDataHandler = async (ctx) => {
-  const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const memberData = apiData.member
-  const sourceParentId = apiData.sourceParentId
-
-  const member = parseMember(memberData)
-
-  const subType = apiData.subType
-
-  let activity: IActivityData
-
-  if (subType === GithubActivitySubType.DISCUSSION_COMMENT_START) {
-    activity = {
-      type: GithubActivityType.DISCUSSION_COMMENT,
-      sourceId: data.id,
-      sourceParentId: data.discussion.id,
-      timestamp: new Date(data.createdAt).toISOString(),
-      url: data.url,
-      body: data.bodyText,
-      channel: apiData.repo.url,
-      attributes: {
-        isAnswer: data.isAnswer ?? undefined,
-      },
-      member,
-      score: data.isAnswer
-        ? GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2
-        : GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
-      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
-    }
-  } else if (subType === GithubActivitySubType.DISCUSSION_COMMENT_REPLY) {
-    activity = {
-      type: GithubActivityType.DISCUSSION_COMMENT,
-      sourceId: data.id,
-      sourceParentId,
-      timestamp: new Date(data.createdAt).toISOString(),
-      url: data.url,
-      body: data.bodyText,
-      channel: apiData.repo.url,
-      member,
-      score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
-      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
-    }
-  }
-
-  await ctx.publishActivity(activity)
-}
-
 const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
@@ -858,40 +809,6 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
     member,
     score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
     isContribution: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].isContribution,
-  }
-
-  await ctx.publishActivity(activity)
-}
-
-const parseDiscussionStarted: ProcessDataHandler = async (ctx) => {
-  const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const memberData = apiData.member
-
-  const member = parseMember(memberData)
-
-  const activity: IActivityData = {
-    type: GithubActivityType.DISCUSSION_STARTED,
-    sourceId: data.id,
-    sourceParentId: '',
-    timestamp: new Date(data.createdAt).toISOString(),
-    body: data.bodyText,
-    url: data.url ? data.url : '',
-    channel: apiData.repo.url,
-    title: data.title,
-    attributes: {
-      category: {
-        id: data.category.id,
-        isAnswerable: data.category.isAnswerable,
-        name: data.category.name,
-        slug: data.category.slug,
-        emoji: data.category.emoji,
-        description: data.category.description,
-      },
-    },
-    member,
-    score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -943,12 +860,6 @@ const handler: ProcessDataHandler = async (ctx) => {
         break
       case GithubActivityType.ISSUE_COMMENT:
         await parseIssueComment(ctx)
-        break
-      case GithubActivityType.DISCUSSION_STARTED:
-        await parseDiscussionStarted(ctx)
-        break
-      case GithubActivityType.DISCUSSION_COMMENT:
-        await parseDiscussionComment(ctx)
         break
       case GithubActivityType.AUTHORED_COMMIT:
         await parseAuthoredCommit(ctx)
