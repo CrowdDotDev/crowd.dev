@@ -1,5 +1,3 @@
-import TwitterConnect from './components/twitter-connect.vue';
-
 export default {
   enabled: true,
   name: 'X/Twitter',
@@ -9,7 +7,6 @@ export default {
     'Connect X/Twitter to sync profile information, followers, and relevant tweets.',
   image:
     '/images/integrations/twitter-x-black.png',
-  connectComponent: TwitterConnect,
   url: ({ username }) => (username ? `https://twitter.com/${username}` : null),
   scale: true,
   chartColor: '#1D9BF0',

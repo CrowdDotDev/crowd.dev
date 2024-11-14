@@ -1,5 +1,4 @@
 import config from '@/config';
-import GitConnect from './components/git-connect.vue';
 
 export default {
   enabled: config.isGitIntegrationEnabled,
@@ -14,7 +13,6 @@ export default {
   },
   image:
     '/images/integrations/git.png',
-  connectComponent: GitConnect,
   url: () => null,
   showProfileLink: false,
   placeholder: 'Git email address',

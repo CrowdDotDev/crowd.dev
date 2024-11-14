@@ -1,6 +1,3 @@
-import config from '@/config';
-import GerritConnect from './components/gerrit-connect.vue';
-
 export default {
   enabled: true,
   name: 'Gerrit',
@@ -13,7 +10,6 @@ export default {
   },
   image:
     '/images/integrations/gerrit.png',
-  connectComponent: GerritConnect,
   url: () => null,
   showProfileLink: false,
   placeholder: 'Gerrit username or email address',

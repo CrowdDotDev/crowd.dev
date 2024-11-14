@@ -1,5 +1,3 @@
-import LinkedInConnect from './components/linkedin-connect.vue';
-
 export default {
   enabled: true,
   name: 'LinkedIn',
@@ -10,7 +8,6 @@ export default {
     "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   image: '/images/integrations/linkedin.png',
   icon: 'linkedin-box-fill',
-  connectComponent: LinkedInConnect,
   reactions: {
     like: 'Like',
     praise: 'Celebrate',
