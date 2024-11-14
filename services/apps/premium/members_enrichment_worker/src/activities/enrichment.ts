@@ -228,29 +228,42 @@ ${JSON.stringify(toBeSquashed)}
 
 Your task is to return ONLY THE CHANGES needed to update the existing member data.
 
-1. IDENTITY VERIFICATION RULES
-- Mark LinkedIn identities as verified if:
-  * They match an existing verified LinkedIn identity, OR
-  * The same LinkedIn profile appears in 2+ independent sources
-- Mark LinkedIn identities as unverified if:
-  * They appear in only one source, OR
-  * Different LinkedIn profiles are found for the same person
+1. LINKEDIN IDENTITY VERIFICATION RULES
+  - Mark LinkedIn identities as verified if:
+    * They match an existing verified LinkedIn identity, OR
+    * The same LinkedIn identity appears in 2+ independent sources
+  - Mark LinkedIn identities as unverified if:
+    * They appear in only one source, OR
+    * Different LinkedIn identities are found for the same person
 
-2. DATA CONSOLIDATION RULES
-- For member identities:
+2. MEMBER IDENTITIES RULES
   * Only include identities with type "username" or "email"
   * Only include highest confidence identities (verified or multi-source)
   * Prioritize professional identities (LinkedIn, GitHub) over social ones
-- For organization identities:
-  * Only include identities with types: "email", "affiliated-profile", "primary-domain", "username", "alternative-domain"
-  * Exclude any organizations without valid identity types
-- For attributes:
+
+3. ATTRIBUTES RULES
   * Only include attributes with clear evidence from multiple sources
   * Prioritize professional attributes (title, location, skills) over others
-- For organizations:
-  * Sort by dateStart descending and include most recent first
-  * Only include organizations with strong evidence of connection
-  * Stop adding organizations if response size getting too large
+
+4. ORGANIZATION IDENTITIES RULES
+  * For newly discovered organizations only:
+    - Only include identities with types: "email", "affiliated-profile", "primary-domain", "username", "alternative-domain"
+    - Exclude any organizations without valid identity types
+
+5. ORGANIZATIONS RULES
+  - Always skip if organization was manually created
+  - Sort organizations by dateStart descending and include most recent first
+  - For existing organizations:
+    * Update only if new data provides:
+      - More accurate employment dates
+      - New or updated job titles
+      - Additional verified company information
+  - For new organizations:
+    * Only add organizations with verified company identities
+    * Must have at least one of:
+      - Clear employment dates
+      - Specific job title
+      - Verified company affiliation
 
 Format your response as a JSON object matching this structure:
 {
@@ -290,9 +303,9 @@ Format your response as a JSON object matching this structure:
       }
     },
     "organizations": {
-      "newConns": [  // new connections to existing organizations
+      "newWorkExperiences": [  // new work experiences from existing organizations
         {
-          "orgId": string, // for organizationId - MUST match an existing organizationId from organizations array in EXISTING_VERIFIED_MEMBER_DATA. If organizations array is empty, newConns must be empty
+          "orgId": string, // for organizationId - MUST match an existing organizationId from organizations array in EXISTING_VERIFIED_MEMBER_DATA. If organizations array is empty, newWorkExperiences must be empty
           "t": string, // for title
           "ds": string, // for dateStart
           "de": string, // for dateEnd
@@ -324,12 +337,14 @@ Format your response as a JSON object matching this structure:
 
 CRITICAL VALIDATION RULES:
 1. Member identities MUST ONLY have type ${Object.values(MemberIdentityType).join(', ')}
-2. Organization identities MUST ONLY have types: ${Object.values(OrganizationIdentityType).join(', ')}
-3. Organization sources MUST ONLY have sources: ${Object.values(OrganizationSource).join(', ')}
-4. Exclude any identities or organizations that don't meet these type restrictions
-5. newConns array must ONLY contain connections to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
-6. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty, newConns must be empty array
-7. Any organization not found in EXISTING_VERIFIED_MEMBER_DATA organizations array must go into newOrgs
+2. No new organization without valid identities 
+3. Organization identities MUST ONLY have types: ${Object.values(OrganizationIdentityType).join(', ')}
+4. Organization sources MUST ONLY have sources: ${Object.values(OrganizationSource).join(', ')}
+5. Exclude any identities or organizations that don't meet these type restrictions
+6. Should never update attributes, identities or organizations that were manually created/changed.
+7. newWorkExperiences array must ONLY contain connections to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
+8. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty, newWorkExperiences must be empty array
+9. Any organization not found in EXISTING_VERIFIED_MEMBER_DATA organizations array must go into newOrgs
 
 If you find you cannot fit all high-confidence data in the response:
 1. First omit lower confidence attributes
@@ -344,6 +359,19 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
 
     if (data.result.confidence >= 0.85) {
       svc.log.info({ memberId }, 'LLM returned data with high confidence!')
+
+      const result = {
+        attributes: {},
+        identities: {
+          updated: [],
+          new: [],
+        },
+        organizations: {
+          newConnections: [],
+          newOrganizations: [],
+        },
+      }
+
       await svc.postgres.writer.transactionally(async (tx) => {
         const qx = dbStoreQx(tx)
         const promises = []
@@ -366,7 +394,12 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
 
         if (update) {
           svc.log.info({ memberId }, 'Updating member attributes!')
-          promises.push(updateMemberAttributes(qx, memberId, attributes))
+          // promises.push(updateMemberAttributes(qx, memberId, attributes))
+          result.attributes = {
+            ...result.attributes,
+            ...data.result.changes.attributes.update,
+            ...data.result.changes.attributes.new,
+          }
         }
 
         // process identities
@@ -377,16 +410,17 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
             for (const toUpdate of data.result.changes.identities.update) {
               if (identityTypes.includes(toUpdate.t as MemberIdentityType)) {
                 svc.log.info({ memberId, toUpdate }, 'Updating verified flag for identity!')
-                promises.push(
-                  updateVerifiedFlag(qx, {
-                    memberId,
-                    tenantId: existingMemberData.tenantId,
-                    platform: toUpdate.p,
-                    type: toUpdate.t as MemberIdentityType,
-                    value: toUpdate.v,
-                    verified: toUpdate.ve,
-                  }),
-                )
+                // promises.push(
+                //   updateVerifiedFlag(qx, {
+                //     memberId,
+                //     tenantId: existingMemberData.tenantId,
+                //     platform: toUpdate.p,
+                //     type: toUpdate.t as MemberIdentityType,
+                //     value: toUpdate.v,
+                //     verified: toUpdate.ve,
+                //   }),
+                // )
+                result.identities.updated.push(toUpdate)
               } else {
                 svc.log.warn({ memberId, toUpdate }, 'Unknown identity type!')
               }
@@ -397,16 +431,17 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
             for (const toAdd of data.result.changes.identities.new) {
               if (identityTypes.includes(toAdd.t as MemberIdentityType)) {
                 svc.log.info({ memberId, toAdd }, 'Adding new identity!')
-                promises.push(
-                  upsertMemberIdentity(qx, {
-                    memberId,
-                    tenantId: existingMemberData.tenantId,
-                    platform: toAdd.p,
-                    type: toAdd.t as MemberIdentityType,
-                    value: toAdd.v,
-                    verified: toAdd.ve,
-                  }),
-                )
+                // promises.push(
+                //   upsertMemberIdentity(qx, {
+                //     memberId,
+                //     tenantId: existingMemberData.tenantId,
+                //     platform: toAdd.p,
+                //     type: toAdd.t as MemberIdentityType,
+                //     value: toAdd.v,
+                //     verified: toAdd.ve,
+                //   }),
+                // )
+                result.identities.new.push(toAdd)
               } else {
                 svc.log.warn({ memberId, toAdd }, 'Unknown identity type!')
               }
@@ -418,21 +453,22 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
         if (data.result.changes.organizations) {
           const sources = Object.values(OrganizationSource)
 
-          if (data.result.changes.organizations.newConns) {
-            for (const conn of data.result.changes.organizations.newConns) {
+          if (data.result.changes.organizations.newWorkExperiences) {
+            for (const conn of data.result.changes.organizations.newWorkExperiences) {
               if (sources.includes(conn.s as OrganizationSource)) {
                 svc.log.info({ memberId, conn }, 'Adding new connection to existing organization!')
-                promises.push(
-                  insertWorkExperience(
-                    tx.transaction(),
-                    memberId,
-                    conn.orgId,
-                    conn.t,
-                    conn.ds,
-                    conn.de,
-                    conn.s as OrganizationSource,
-                  ),
-                )
+                // promises.push(
+                //   insertWorkExperience(
+                //     tx.transaction(),
+                //     memberId,
+                //     conn.orgId,
+                //     conn.t,
+                //     conn.ds,
+                //     conn.de,
+                //     conn.s as OrganizationSource,
+                //   ),
+                // )
+                result.organizations.newConnections.push(conn)
               } else {
                 svc.log.warn({ memberId, conn }, 'Unknown organization source!')
               }
@@ -442,47 +478,49 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
           if (data.result.changes.organizations.newOrgs) {
             for (const org of data.result.changes.organizations.newOrgs) {
               svc.log.info({ memberId, org }, 'Adding new organization!')
-              promises.push(
-                findOrCreateOrganization(
-                  qx,
-                  existingMemberData.tenantId,
-                  OrganizationAttributeSource.ENRICHMENT,
-                  {
-                    displayName: org.n,
-                    identities: org.i.map((i) => {
-                      return {
-                        type: i.t as OrganizationIdentityType,
-                        platform: i.p,
-                        value: i.v,
-                        verified: i.ve,
-                      }
-                    }),
-                  },
-                ).then((orgId) =>
-                  insertWorkExperience(
-                    tx.transaction(),
-                    memberId,
-                    orgId,
-                    org.conn.t,
-                    org.conn.ds,
-                    org.conn.de,
-                    org.conn.s as OrganizationSource,
-                  ),
-                ),
-              )
+              // promises.push(
+              //   findOrCreateOrganization(
+              //     qx,
+              //     existingMemberData.tenantId,
+              //     OrganizationAttributeSource.ENRICHMENT,
+              //     {
+              //       displayName: org.n,
+              //       identities: org.i.map((i) => {
+              //         return {
+              //           type: i.t as OrganizationIdentityType,
+              //           platform: i.p,
+              //           value: i.v,
+              //           verified: i.ve,
+              //         }
+              //       }),
+              //     },
+              //   ).then((orgId) =>
+              //     insertWorkExperience(
+              //       tx.transaction(),
+              //       memberId,
+              //       orgId,
+              //       org.conn.t,
+              //       org.conn.ds,
+              //       org.conn.de,
+              //       org.conn.s as OrganizationSource,
+              //     ),
+              //   ),
+              // )
+              result.organizations.newOrganizations.push(org)
             }
           }
         }
 
         // also touch members.lastEnriched date
-        promises.push(
-          updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId),
-        )
+        // promises.push(
+        //   updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId),
+        // )
 
         await Promise.all(promises)
       })
 
       svc.log.debug({ memberId }, 'Member sources processed successfully!')
+      console.log('Final result:', JSON.stringify(result, null, 2))
       return true
     } else {
       svc.log.warn({ memberId }, 'LLM returned data with low confidence!')
