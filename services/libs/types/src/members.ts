@@ -144,7 +144,6 @@ export interface IMemberRenderFriendlyRole {
 }
 
 export interface ILLMConsumableMemberDbResult {
-  id: string
   displayName: string
   attributes: IAttributes
   joinedAt: string
@@ -160,7 +159,6 @@ export interface ILLMConsumableMemberDbResult {
 }
 
 export interface ILLMConsumableMember {
-  id: string
   displayName: string
   attributes: IAttributes
   joinedAt: string

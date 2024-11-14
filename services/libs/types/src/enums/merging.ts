@@ -28,3 +28,8 @@ export enum MemberRoleUnmergeStrategy {
   SAME_MEMBER = 'same-member',
   SAME_ORGANIZATION = 'same-organization',
 }
+
+export enum LLMSuggestionVerdictType {
+  MEMBER = 'member',
+  ORGANIZATION = 'organization',
+}

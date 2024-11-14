@@ -34,7 +34,8 @@ export async function fetchMemberDataForLLMSquashing(
       select m."displayName",
             m.attributes,
             m."manuallyChangedFields",
-            (select json_agg(
+            coalesce(
+              (select json_agg(
                             (select row_to_json(r)
                               from (select mi.type,
                                           mi.platform,
@@ -42,8 +43,10 @@ export async function fetchMemberDataForLLMSquashing(
                     )
               from "memberIdentities" mi
               where mi."memberId" = m.id
-                and verified = true) as identities,
-            json_agg(
+                and verified = true), '[]'::json) as identities,
+            coalesce(
+              nullif(
+                json_agg(
                     (select row_to_json(r)
                       from (select mo."orgId",
                                   mo."orgName",
@@ -51,8 +54,11 @@ export async function fetchMemberDataForLLMSquashing(
                                   mo."dateStart",
                                   mo."dateEnd",
                                   mo.source) r)
-            )                       as organizations
-
+                )::jsonb, 
+                jsonb_build_array(null)
+              )::json, 
+              '[]'::json
+            ) as organizations
       from members m
               left join member_orgs mo on mo."memberId" = m.id
       where m.id = $(memberId)

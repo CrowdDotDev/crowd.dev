@@ -166,7 +166,6 @@ export interface ILLMConsumableOrganizationDbResult {
 }
 
 export interface ILLMConsumableOrganization {
-  id: string
   displayName: string
   description: string
   phoneNumbers: string[]

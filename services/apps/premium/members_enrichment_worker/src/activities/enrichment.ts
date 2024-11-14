@@ -146,7 +146,8 @@ export async function processMemberSources(
   svc.log.debug({ memberId }, 'Processing member sources!')
 
   const toBeSquashed = {}
-  // const toBeSquashedContributions = {}
+  const toBeSquashedContributions = {}
+
   // find if there's already saved enrichment data in source
   const caches = await findMemberEnrichmentCache(sources, memberId)
   for (const source of sources) {
@@ -158,20 +159,30 @@ export async function processMemberSources(
       )) as IMemberEnrichmentDataNormalized
 
       // TODO uros temp remove contributions from sources to mitigate context size
-      // if (Array.isArray(normalized)) {
-      //   const normalizedContributions = []
-      //   for (const n of normalized) {
-      //     if (n.contributions) {
-      //       normalizedContributions.push(n.contributions)
-      //       delete n.contributions
-      //     }
-      //   }
+      if (Array.isArray(normalized)) {
+        const normalizedContributions = []
+        for (const n of normalized) {
+          if (n.contributions) {
+            normalizedContributions.push(n.contributions)
+            delete n.contributions
+          }
 
-      //   toBeSquashedContributions[source] = normalizedContributions
-      // } else if (normalized.contributions) {
-      //   toBeSquashedContributions[source] = normalized.contributions
-      //   delete normalized.contributions
-      // }
+          if (n.reach) {
+            delete n.reach
+          }
+        }
+
+        toBeSquashedContributions[source] = normalizedContributions
+      }
+
+      if (normalized.contributions) {
+        toBeSquashedContributions[source] = normalized.contributions
+        delete normalized.contributions
+      }
+
+      if (normalized.reach) {
+        delete normalized.reach
+      }
 
       toBeSquashed[source] = normalized
     }
@@ -196,10 +207,10 @@ export async function processMemberSources(
 You are a data consolidation expert specializing in professional profile data.
 Your task is to analyze and merge member data from an existing database with enriched data from multiple sources.
 
-EXISTING VERIFIED MEMBER DATA:
+EXISTING_VERIFIED_MEMBER_DATA:
 ${JSON.stringify(existingMemberData)}
 
-ENRICHED DATA FROM MULTIPLE SOURCES:
+ENRICHED_DATA:
 ${JSON.stringify(toBeSquashed)}
 
 Your task is to return ONLY THE CHANGES needed to update the existing member data.
@@ -214,42 +225,41 @@ Your task is to return ONLY THE CHANGES needed to update the existing member dat
 
 2. DATA CONSOLIDATION RULES
 - For identities:
-  * Update verification status of existing identities when appropriate
-  * Add new identities not present in existing data
+  * Only include highest confidence identities (verified or multi-source)
+  * Prioritize professional identities (LinkedIn, GitHub) over social ones
 - For attributes:
-  * Add new sources/values to existing attributes
-  * Create new attributes when not present in existing data
-  * Update 'default' value only when high confidence (e.g., verified LinkedIn data)
+  * Only include attributes with clear evidence from multiple sources
+  * Prioritize professional attributes (title, location, skills) over others
 - For organizations:
-  * Match with existing organizations where possible using organization identities
-  * Create new organizations only when no match found
-  * Include source attribution
+  * Sort by dateStart descending and include most recent first
+  * Only include organizations with strong evidence of connection
+  * Stop adding organizations if response size getting too large
 
 Format your response as a JSON object matching this structure:
 {
-  "confidenceScore": number (0-1),
+  "confidence": number (0-1),
   "changes": {
-    "displayName": string | null,  // null if no change needed
-    "identityChanges": {
+    "displayName": string,
+    "identities": {
       "updateExisting": [  // updates to existing identities
         {
-          "type": string,
-          "value": string,
-          "platform": string,
-          "verified": boolean  // new verification status
+          "t": string, // for type
+          "v": string, // for value
+          "p": string, // for platform
+          "ve": boolean // new verification status
         }
       ],
       "new": [  // completely new identities
         {
-          "type": string,
-          "value": string,
-          "platform": string,
-          "verified": boolean
+          "t": string, // for type
+          "v": string, // for value
+          "p": string, // for platform
+          "ve": boolean // new verification status
         }
       ]
     },
-    "attributeChanges": {
-      "updateExisting": {  // updates to existing attributes
+    "attributes": {
+      "update": {  // updates to existing attributes
         [attributeName: string]: {
           "default"?: any,  // include only if default value should change
           [source: string]: any  // only new sources to add
@@ -262,50 +272,67 @@ Format your response as a JSON object matching this structure:
         }
       }
     },
-    "organizationChanges": {
-      "newConnections": [  // new connections to existing organizations
+    "organizations": {
+      "newConns": [  // new connections to existing organizations
         {
-          "organizationId": string,
-          "title": string,
-          "dateStart": string,
-          "dateEnd": string,
-          "source": string
+          "orgId": string, // for organizationId - should match one of the UUIDs of orgs from EXISTING_VERIFIED_MEMBER_DATA
+          "t": string, // for title
+          "ds": string, // for dateStart
+          "de": string, // for dateEnd
+          "s": string // for source
         }
       ],
-      "newOrganizations": [  // completely new organizations to create
+      "newOrgs": [  // completely new organizations to create
         {
-          "name": string,
-          "identities": [
+          "n": string, // for org name
+          "i": [ // identities
             {
-              "type": string,
-              "value": string,
-              "platform": string,
-              "verified": boolean
+              "t": string, // for type
+              "v": string, // for value
+              "p": string, // for platform
+              "ve": boolean // new verification status
             }
           ],
-          "connection": {
-            "title": string,
-            "dateStart": string,
-            "dateEnd": string,
-            "source": string
+          "conn": {
+            "title": string, // for title
+            "ds": string, // for dateStart
+            "de": string, // for dateEnd
+            "s": string // for source
           }
         }
       ]
     }
-  },
-  "reasoning": {
-    "identityVerification": string[],
-    "confidenceFactors": string[],
-    "conflicts": string[],
-    "recommendations": string[]
   }
 }
 
-Answer with JSON only and nothing else.
+CRITICAL: If you find you cannot fit all high-confidence data in the response:
+1. First omit lower confidence attributes
+2. Then omit unverified identities
+3. Then omit older organizations
+4. Finally, only return the most essential and recent data points
+
+Answer with JSON only and nothing else. Ensure the response is complete and valid JSON.
     `
 
-    const result = await llmService.consolidateMemberEnrichmentData(memberId, prompt)
-    svc.log.info({ memberId }, 'LLM result')
+    const data = await llmService.consolidateMemberEnrichmentData(memberId, prompt)
+
+    if (data.result.confidence >= 0.85) {
+      svc.log.info({ memberId }, 'LLM returned data with high confidence!')
+      if (data.result.changes.displayName) {
+        svc.log.info(
+          {
+            memberId,
+            displayName: data.result.changes.displayName,
+            oldDisplayName: existingMemberData.displayName,
+          },
+          'Updating display name!',
+        )
+
+        // TODO uros update member data
+      }
+    } else {
+      svc.log.warn({ memberId }, 'LLM returned data with low confidence!')
+    }
   } else {
     svc.log.debug({ memberId }, 'No data to squash for member!')
   }

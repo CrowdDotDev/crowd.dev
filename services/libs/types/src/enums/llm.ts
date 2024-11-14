@@ -4,7 +4,5 @@ export enum LlmModelType {
 }
 
 export enum LlmQueryType {
-  MEMBER_MERGE = 'member_merge_suggestion',
-  ORGANIZATION_MERGE = 'organization_merge_suggestion',
   MEMBER_ENRICHMENT = 'member_enrichment',
 }

@@ -16,6 +16,8 @@ import { IMemberEnrichmentDataProgAILinkedinScraper } from './sources/progai-lin
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface IEnrichmentSourceInput {
   memberId: string
   github?: IMemberIdentity

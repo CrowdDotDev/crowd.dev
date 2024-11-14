@@ -45,29 +45,68 @@ export const LLM_MODEL_PRICING_MAP: Record<LlmModelType, ILlmPricing> = {
 }
 
 export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
-  [LlmQueryType.MEMBER_MERGE]: {
-    modelId: LlmModelType.CLAUDE_3_OPUS,
-    arguments: {
-      max_tokens: 2000,
-      anthropic_version: 'bedrock-2023-05-31',
-      temperature: 0,
-    },
-  },
-  [LlmQueryType.ORGANIZATION_MERGE]: {
-    modelId: LlmModelType.CLAUDE_3_OPUS,
-    arguments: {
-      max_tokens: 2000,
-      anthropic_version: 'bedrock-2023-05-31',
-      temperature: 0,
-    },
-  },
   [LlmQueryType.MEMBER_ENRICHMENT]: {
     modelId: LlmModelType.CLAUDE_3_5_SONNET,
     arguments: {
-      // TODO uros check if this is ok
       max_tokens: 200000,
       anthropic_version: 'bedrock-2023-05-31',
       temperature: 0,
     },
   },
+}
+
+export interface LlmIdentity {
+  t: string // type
+  v: string // value
+  p: string // platform
+  ve: boolean // verification status
+}
+
+export interface LlmOrganizationConnection {
+  orgId: string
+  t: string // title
+  ds: string // dateStart
+  de: string // dateEnd
+  s: string // source
+}
+
+export interface LlmNewOrganization {
+  n: string // name
+  i: LlmIdentity[] // identities
+  conn: {
+    title: string
+    ds: string // dateStart
+    de: string // dateEnd
+    s: string // source
+  }
+}
+
+export interface LlmAttributeValue {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default?: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [source: string]: any
+}
+
+export interface LlmMemberEnrichmentResult {
+  confidence: number
+  changes: {
+    displayName: string
+    identities: {
+      updateExisting: LlmIdentity[]
+      new: LlmIdentity[]
+    }
+    attributes: {
+      update: {
+        [attributeName: string]: LlmAttributeValue
+      }
+      new: {
+        [attributeName: string]: LlmAttributeValue
+      }
+    }
+    organizations: {
+      newConns: LlmOrganizationConnection[]
+      newOrgs: LlmNewOrganization[]
+    }
+  }
 }

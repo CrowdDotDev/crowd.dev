@@ -8,14 +8,13 @@ import { performance } from 'perf_hooks'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
-  ILLMConsumableMember,
-  ILLMConsumableOrganization,
   ILlmResponse,
   ILlmResult,
   ILlmSettings,
   LLM_MODEL_PRICING_MAP,
   LLM_MODEL_REGION_MAP,
   LLM_SETTINGS,
+  LlmMemberEnrichmentResult,
   LlmQueryType,
 } from '@crowd/types'
 
@@ -150,37 +149,11 @@ export class LlmService extends LoggerBase {
   public async consolidateMemberEnrichmentData(
     memberId: string,
     prompt: string,
-  ): Promise<ILlmResult<string>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<ILlmResult<LlmMemberEnrichmentResult>> {
     const response = await this.queryLlm(LlmQueryType.MEMBER_ENRICHMENT, prompt, memberId)
 
-    const result = response.answer
-
-    return {
-      result,
-      ...response,
-    }
-  }
-
-  public async mergeSuggestion(
-    type: LlmQueryType.MEMBER_MERGE | LlmQueryType.ORGANIZATION_MERGE,
-    suggestion: ILLMConsumableMember[] | ILLMConsumableOrganization[],
-  ): Promise<ILlmResult<boolean>> {
-    if (suggestion.length !== 2) {
-      console.log(suggestion)
-      throw new Error('Exactly 2 entities are required for LLM comparison')
-    }
-
-    const prompt = type === LlmQueryType.MEMBER_MERGE ? MEMBER_PROMPT : ORGANIZATION_PROMPT
-
-    const fullPrompt = `Your task is to analyze the following two json documents. <json> ${JSON.stringify(
-      suggestion,
-    )} </json>. ${prompt}`
-
-    const response = await this.queryLlm(type, fullPrompt, suggestion[0].id, {
-      secondaryId: suggestion[1].id,
-    })
-
-    const result = response.answer === 'true'
+    const result = JSON.parse(response.answer)
 
     return {
       result,
@@ -188,24 +161,3 @@ export class LlmService extends LoggerBase {
     }
   }
 }
-
-const MEMBER_PROMPT = `Please compare and come up with a boolean answer if these two members are the same person or not. 
-                  Only compare data from first member and second member. Never compare data from only one member with itself. 
-                  Never tokenize 'platform' field using character tokenization. Use word tokenization for platform field in identities.
-                  You should check all the sent fields between members to find similarities both literally and semantically. 
-                  Here are the fields written with respect to their importance and how to check. Identities >> Organizations > Attributes and other fields >> Display name - 
-                  1. Identities: Tokenize value field (identity.value) using character tokenization. Exact match or identities with edit distance <= 2 suggests that members are similar. 
-                  Don't compare identities in a single member. Only compare identities between members. 
-                  2. Organizations: Members are more likely to be the same when they have/had roles in similar organizations. 
-                  If there are no intersecting organizations it doesn't necessarily mean that they're different members.
-                  3. Attributes and other fields: If one member have a specific field and other member doesn't, skip that field when deciding similarity. 
-                  Checking semantically instead of literally is important for such fields. Important fields here are: location, timezone, languages, programming languages. 
-                  For example one member might have Berlin in location, while other can have Germany - consider such members have same location.  
-                  4. Display Name: Tokenize using both character and word tokenization. When the display name is more than one word, and the difference is a few edit distances consider it a strong indication of similarity. 
-                  When one display name is contained by the other, check other fields for the final decision. The same members on different platforms might have different display names. 
-                  Display names can be multiple words and might be sorted in different order in different platforms for the same member.
-                  Pro tip: If members have identities in the same platform (member1.identities[x].platform === member2.identities[y].platform) and if these identities have different usernames(member1.identities[x].value !== member2.identities[y].value) you can label them as different. 
-                  Only do such labeling if both members have identities in the same platform. If they don't have identities in the same platform ignore the pro tip. 
-                  Print 'true' if they are the same member, 'false' otherwise. No explanation required. Don't print anything else.`
-
-const ORGANIZATION_PROMPT = `Please compare and come up with a boolean answer if these two organizations are the same organization or not. Print 'true' if they are the same organization, 'false' otherwise. No explanation required. Don't print anything else.`
