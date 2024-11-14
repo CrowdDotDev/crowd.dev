@@ -1,185 +1,91 @@
 <template>
-  <app-drawer
-    v-model="isDrawerVisible"
-    title="GitHub"
-    size="600px"
-    pre-title="Integration"
-    :show-footer="true"
-    has-border
-    @close="isDrawerVisible = false"
-  >
-    <template #beforeTitle>
-      <img
-        :src="githubDetails.image"
-        class="w-6 h-6 mr-2"
-        alt="GitHub logo"
-      />
-    </template>
-    <template #content>
-      <div>
-        <!-- Connected organization info -->
-        <section v-if="owner" class="border border-gray-200 rounded-md py-4 px-5 mb-6">
-          <p class="text-2xs font-medium text-gray-400 mb-1">
-            Connected organization
-          </p>
-          <div class="flex items-center">
-            <div v-if="owner.logo" class="h-5 w-5 rounded border border-gray-200 mr-2">
-              <img :src="owner.logo" class="object-cover" :alt="owner.logo">
-            </div>
-            <p class="text-xs font-medium leading-5">
-              {{ owner.name }}
+  <lf-drawer v-model="isDrawerVisible">
+    <div class="flex flex-col justify-between h-full">
+      <section class="pt-4 px-6 pb-6 border-b border-gray-100">
+        <div class="flex justify-between pb-3">
+          <div>
+            <p class="text-tiny text-gray-500 mb-1.5">
+              Integration
             </p>
-          </div>
-        </section>
-
-        <!-- Disclaimer -->
-        <section class="pb-4">
-          <div class="pb-4">
-            <div class="flex justify-between items-center">
-              <h6 class="text-sm font-medium leading-5 mb-2">
-                Repository mapping
-              </h6>
-              <div class="flex items-center text-primary-500 cursor-pointer select-none" @click="isBulkSelectOpened = true">
-                <i class="ri-checkbox-multiple-line text-base mr-1" />
-                <span class="text-xs font-normal">
-                  Bulk selection
-                </span>
-              </div>
-            </div>
-            <p class="text-2xs leading-4.5 text-gray-500">
-              Select the subproject you want to map with each connected repository.
-            </p>
-          </div>
-          <div class="border border-yellow-100 rounded-md bg-yellow-50 p-2 flex">
-            <div class="w-4 h-4 flex items-center ri-alert-fill text-yellow-500" />
-            <div class="flex-grow text-yellow-900 text-2xs leading-4.5 pl-2">
-              Repository mapping is not reversible. Once GitHub is connected,
-              you won’t be able to update these settings and reconnecting a different organization or repositories won’t override past activities.
+            <div class="flex items-center gap-2">
+              <img src="/images/integrations/github.png" alt="GitHub" class="h-6 w-6" />
+              <h5 class="text-black">
+                GitHub
+              </h5>
             </div>
           </div>
-        </section>
-
-        <section class="pb-4">
-          <el-input
-            v-model="search"
-            clearable
-            placeholder="Search repositories..."
-          >
-            <template #prefix>
-              <i class="ri-search-line text-gray-400" />
-            </template>
-          </el-input>
-        </section>
-
-        <!-- Repository mapping -->
-        <section v-if="filteredRepos.length > 0">
-          <div class="flex border-b border-gray-200 items-center h-8">
-            <div class="w-1/2 pr-4">
-              <p class="text-3xs uppercase text-gray-400 font-semibold tracking-1">
-                REPOSITORY
-              </p>
-            </div>
-            <div class="w-1/2 pr-4">
-              <p class="text-3xs uppercase text-gray-400 font-semibold tracking-1">
-                SUB-PROJECT
-              </p>
-            </div>
-          </div>
-          <div class="py-1.5">
-            <article v-for="repo of filteredRepos" :key="repo.url" class="py-1.5 flex items-center">
-              <div class="w-1/2 flex items-center pr-4">
-                <i class="ri-git-repository-line text-base mr-2" />
-                <p class="text-2xs leading-5 flex-grow truncate">
-                  /{{ repo.name }}
-                </p>
-              </div>
-              <div class="w-1/2">
-                <app-form-item
-                  :validation="$v[repo.url]"
-                  :error-messages="{
-                    required: 'This field is required',
-                  }"
-                  class="mb-0"
-                  error-class="relative top-0"
-                >
-                  <el-select
-                    v-model="form[repo.url]"
-                    placeholder="Select sub-project"
-                    class="w-full"
-                    placement="bottom-end"
-                    filterable
-                    @blur="$v[repo.url].$touch"
-                    @change="$v[repo.url].$touch"
-                  >
-                    <el-option
-                      v-for="subproject of subprojects"
-                      :key="subproject.id"
-                      :value="subproject.id"
-                      :label="subproject.name"
-                    />
-                  </el-select>
-                </app-form-item>
-              </div>
-            </article>
-          </div>
-        </section>
-        <section v-else>
-          <p class="text-center text-sm text-gray-500 mb-4">
-            No repositories found
-          </p>
-        </section>
+          <lf-button type="secondary-ghost" icon-only @click="isDrawerVisible = false">
+            <lf-icon name="xmark" />
+          </lf-button>
+        </div>
+        <p class="text-small text-gray-500">
+          Sync GitHub repositories to track profile information and all relevant activities like commits, pull requests, discussions, and more.
+        </p>
+      </section>
+      <div class="flex-grow">
+        <lf-github-settings-empty
+          v-if="repositories.length === 0"
+          @add="isAddRepositoryModalOpen = true"
+        />
+        <div v-else class="px-6 pt-5">
+          <lf-tabs v-model="tab" class="!w-full mb-6" :fragment="false">
+            <lf-tab name="repositories" class="flex-grow">
+              Synced repositories
+            </lf-tab>
+            <lf-tab name="organizations" class="flex-grow">
+              Synced organizations
+            </lf-tab>
+          </lf-tabs>
+          <lf-github-settings-repositories
+            v-if="tab === 'repositories'"
+            v-model:repositories="repositories"
+            v-model:mappings="repoMappings"
+            :subprojects="subprojects"
+            @add="isAddRepositoryModalOpen = true"
+          />
+          <lf-github-settings-organizations
+            v-else
+            v-model:organizations="organizations"
+          />
+        </div>
       </div>
-    </template>
-
-    <template #footer>
-      <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
-          @click="isDrawerVisible = false"
-        >
+      <div class="border-t border-gray-100 py-5 px-6 flex justify-end gap-4" style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)">
+        <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
           Cancel
-        </el-button>
-        <el-button
-          type="primary"
-          class="btn btn--md btn--primary"
-          :disabled="sending || $v.$invalid"
-          :loading="sending"
-          @click="connect()"
-        >
+        </lf-button>
+        <lf-button type="primary" @click="connect()">
           Connect
-        </el-button>
+        </lf-button>
       </div>
-    </template>
-  </app-drawer>
-  <app-github-settings-bulk-select
-    v-model="isBulkSelectOpened"
-    :repositories="repos"
-    :subprojects="subprojects"
-    @apply="bulkApply"
+    </div>
+  </lf-drawer>
+  <lf-github-settings-add-repository-modal
+    v-if="isAddRepositoryModalOpen"
+    v-model="isAddRepositoryModalOpen"
+    v-model:organizations="organizations"
+    v-model:repositories="repositories"
+    :integration="props.integration"
   />
 </template>
 
 <script lang="ts" setup>
 import {
-  computed, onMounted,
-  ref,
+  computed, onMounted, ref,
 } from 'vue';
-import Message from '@/shared/message/message';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfDrawer from '@/ui-kit/drawer/Drawer.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfGithubSettingsEmpty from '@/config/integrations/github/components/settings/github-settings-empty.vue';
+import LfGithubSettingsAddRepositoryModal
+  from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
+import LfTabs from '@/ui-kit/tabs/Tabs.vue';
+import LfTab from '@/ui-kit/tabs/Tab.vue';
+import LfGithubSettingsRepositories
+  from '@/config/integrations/github/components/settings/github-settings-repositories.vue';
+import LfGithubSettingsOrganizations
+  from '@/config/integrations/github/components/settings/github-settings-organizations.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import { useRoute, useRouter } from 'vue-router';
-import { required } from '@vuelidate/validators';
-import useVuelidate from '@vuelidate/core';
-import AppFormItem from '@/shared/form/form-item.vue';
-import { IntegrationService } from '@/modules/integration/integration-service';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { Platform } from '@/shared/modules/platform/types/Platform';
-import AppGithubSettingsBulkSelect
-  from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
+import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -188,13 +94,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
-const { trackEvent } = useProductTracking();
-
 const route = useRoute();
-const router = useRouter();
 
-// Store
-const { doFetch } = mapActions('integration');
+const isAddRepositoryModalOpen = ref(false);
+
+const tab = ref('repositories');
+const subprojects = ref([]);
+const organizations = ref([]);
+const repositories = ref([]);
+const repoMappings = ref<Record<string, string>>({});
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -206,98 +114,6 @@ const isDrawerVisible = computed({
   },
 });
 
-// Search
-const search = ref('');
-
-const filteredRepos = computed(() => repos.value.filter((r: any) => r.name.toLowerCase().includes(search.value.toLowerCase())));
-
-// Bulk select
-const isBulkSelectOpened = ref<boolean>(false);
-
-const bulkApply = (data: Record<string, string>) => {
-  form.value = {
-    ...form.value,
-    ...data,
-  };
-};
-
-// Display data
-const repos = computed(() => props.integration?.settings?.repos || []);
-
-const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.length > 0 ? {
-  name: repos.value[0].owner,
-  logo: props.integration?.settings?.orgAvatar,
-} : null));
-
-// Static github details
-const githubDetails = computed(() => CrowdIntegrations.getConfig('github'));
-
-// Form
-const form = ref<Record<string, string>>(repos.value.reduce((a: Record<string, any>, b: any) => ({
-  ...a,
-  [b.url]: props.integration.segmentId,
-}), {}));
-
-const rules = computed(() => repos.value.reduce((a: Record<string, any>, b: any) => ({
-  ...a,
-  [b.url]: {
-    required,
-  },
-}), {}));
-
-const $v = useVuelidate(rules, form);
-
-// Connecting
-const sending = ref(false);
-
-const connect = () => {
-  const data = { ...form.value };
-  ConfirmDialog({
-    type: 'warning',
-    title: 'Are you sure you want to proceed?',
-    message:
-        'Repository mapping is not reversible. Once GitHub is connected, you wont be able to update these settings.\n\n'
-        + 'Reconnecting a different organization and/or repositories won’t remove past activities. '
-        + 'In order to clean up existing data please reach out to our support team.',
-    confirmButtonText: 'Connect GitHub',
-    cancelButtonText: 'Cancel',
-    icon: 'ri-alert-fill',
-  } as any)
-    .then(() => {
-      IntegrationService.githubMapRepos(props.integration.id, data, [props.integration.segmentId])
-        .then(() => {
-          isDrawerVisible.value = false;
-
-          doFetch([props.integration.segmentId]);
-
-          trackEvent({
-            key: FeatureEventKey.CONNECT_INTEGRATION,
-            type: EventType.FEATURE,
-            properties: {
-              integration: Platform.GITHUB,
-            },
-          });
-
-          showIntegrationProgressNotification('github', props.integration.segmentId);
-
-          router.push({
-            name: 'integration',
-            params: {
-              id: props.integration.segmentId,
-            },
-          });
-        })
-        .catch(() => {
-          Message.error(
-            'There was an error mapping github repos',
-          );
-        });
-    });
-};
-
-// Fetching subprojects
-const subprojects = ref([]);
-
 const fetchSubProjects = () => {
   LfService.findSegment(route.params.grandparentId)
     .then((segment) => {
@@ -305,14 +121,17 @@ const fetchSubProjects = () => {
     });
 };
 
+const connect = () => {
+  // TODO: Update settings
+};
+
 onMounted(() => {
   fetchSubProjects();
 });
-
 </script>
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettingsDrawer',
+  name: 'LfGithubSettingsDrawer',
 };
 </script>

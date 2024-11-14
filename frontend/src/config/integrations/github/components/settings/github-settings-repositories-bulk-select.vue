@@ -142,6 +142,6 @@ const mapRepos = () => {
 
 <script lang="ts">
 export default {
-  name: 'AppGithubSettingsBulkSelect',
+  name: 'LfGithubSettingsRepositoriesBulkSelect',
 };
 </script>

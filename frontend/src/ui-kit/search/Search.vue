@@ -5,7 +5,7 @@
     </template>
     <template v-if="valueProxy.length" #suffix>
       <div @click="valueProxy = ''">
-        <lf-icon name="xmark" />
+        <lf-icon name="xmark-circle" type="regular" class="text-gray-300" />
       </div>
     </template>
   </lf-input>
