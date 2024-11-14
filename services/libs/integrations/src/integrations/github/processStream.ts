@@ -41,19 +41,19 @@ const getClient = (ctx: IProcessStreamContext) => {
 }
 
 const prepareMember = (data: IBasicResponse): GithubPrepareMemberOutput => {
+  const isBot = data.actorLogin.endsWith('[bot]')
   return {
     memberFromApi: {
-      id: data.actorId,
+      id: data.actorId.toString(),
       login: data.actorLogin,
       avatarUrl: data.actorAvatarUrl,
+      ...(isBot ? { isBot: true } : {}),
     },
-    orgs: [
-      {
-        id: data.orgId,
-        login: data.orgLogin,
-        avatarUrl: data.orgAvatarUrl,
-      },
-    ],
+    org: {
+      id: data.orgId.toString(),
+      login: data.orgLogin,
+      avatarUrl: data.orgAvatarUrl,
+    },
     email: '',
   }
 }
@@ -74,9 +74,13 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const result = await gh.getRepoStargazers({ repo: data.repo.url, page: data.page })
+  const since_days_ago = ctx.onboarding ? undefined : '3'
 
-  await publishNextPageStream(ctx, result)
+  const result = await gh.getRepoStargazers({
+    repo: data.repo.url,
+    page: data.page,
+    since_days_ago,
+  })
 
   for (const record of result.data) {
     const member = prepareMember(record)
@@ -89,13 +93,17 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
       repo: data.repo,
     })
   }
+
+  await publishNextPageStream(ctx, result)
 }
 
 const processForksStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const result = await gh.getRepoForks({ repo: data.repo.url, page: data.page })
+  const since_days_ago = ctx.onboarding ? undefined : '3'
+
+  const result = await gh.getRepoForks({ repo: data.repo.url, page: data.page, since_days_ago })
 
   await publishNextPageStream(ctx, result)
 
@@ -116,7 +124,13 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const result = await gh.getRepoPullRequests({ repo: data.repo.url, page: data.page })
+  const since_days_ago = ctx.onboarding ? undefined : '3'
+
+  const result = await gh.getRepoPullRequests({
+    repo: data.repo.url,
+    page: data.page,
+    since_days_ago,
+  })
 
   for (const record of result.data) {
     const member = prepareMember(record)
@@ -139,6 +153,54 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     } else {
       throw new Error(`Unsupported pull request action: ${action}`)
     }
+  }
+
+  await publishNextPageStream(ctx, result)
+}
+
+const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const since_days_ago = ctx.onboarding ? undefined : '3'
+
+  const result = await gh.getRepoPullRequestReviewComments({
+    repo: data.repo.url,
+    page: data.page,
+    since_days_ago,
+  })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+
+    await ctx.processData<GithubApiData>({
+      type: GithubActivityType.PULL_REQUEST_COMMENT,
+      data: record,
+      member,
+      repo: data.repo,
+    })
+  }
+
+  await publishNextPageStream(ctx, result)
+}
+
+const processIssuesStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const since_days_ago = ctx.onboarding ? undefined : '3'
+
+  const result = await gh.getRepoIssues({ repo: data.repo.url, page: data.page, since_days_ago })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+
+    await ctx.processData<GithubApiData>({
+      type: GithubActivityType.ISSUE_OPENED,
+      data: record,
+      member,
+      repo: data.repo,
+    })
   }
 
   await publishNextPageStream(ctx, result)

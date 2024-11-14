@@ -26,7 +26,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetOrgRepositoriesResult> {
     const result = await this.client.run<{ id: number; name: string }>(
       `SELECT repo_id as id, repo_name as name 
-      FROM github_events_ingest.cybersyn.github_repos 
+      FROM github_events_ingest.cybersyn.github_repos _ingest.cybersyn.github_repos 
       WHERE REGEXP_LIKE(repo_name, ?)
       LIMIT ?
       OFFSET ?`,
@@ -45,10 +45,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoStargazersResult>> {
     const result = await this.client.run<IGetRepoStargazersResult>(
       `SELECT 
@@ -62,13 +64,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId, 
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'WatchEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -83,10 +88,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoForksResult>> {
     const result = await this.client.run<IGetRepoForksResult>(
       `SELECT 
@@ -101,13 +108,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'ForkEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -122,10 +132,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestsResult>> {
     const result = await this.client.run<IGetRepoPullRequestsResult>(
       `SELECT 
@@ -140,13 +152,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'PullRequestEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -161,10 +176,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = undefined,
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestReviewsResult>> {
     const result = await this.client.run<IGetRepoPullRequestReviewsResult>(
       `SELECT 
@@ -179,13 +196,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'PullRequestReviewEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -200,10 +220,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestReviewCommentsResult>> {
     const result = await this.client.run<IGetRepoPullRequestReviewCommentsResult>(
       `SELECT 
@@ -218,13 +240,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'PullRequestReviewCommentEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -240,10 +265,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPushesResult>> {
     const result = await this.client.run<IGetRepoPushesResult>(
       `SELECT 
@@ -256,13 +283,16 @@ export class GithubSnowflakeClient {
         ORG_AVATAR_URL as orgAvatarUrl,
         ARRAY_SIZE(PAYLOAD:commits) as commitCount,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'PushEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -277,10 +307,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoIssuesResult>> {
     const result = await this.client.run<IGetRepoIssuesResult>(
       `SELECT 
@@ -295,13 +327,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'IssuesEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -316,10 +351,12 @@ export class GithubSnowflakeClient {
     repo,
     page = 1,
     perPage = 100,
+    since_days_ago = '',
   }: {
     repo: string
     page?: number
     perPage?: number
+    since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoIssueCommentsResult>> {
     const result = await this.client.run<IGetRepoIssueCommentsResult>(
       `SELECT 
@@ -334,13 +371,16 @@ export class GithubSnowflakeClient {
         ORG_ID as orgId,
         ORG_AVATAR_URL as orgAvatarUrl,
         PAYLOAD as payload
-      FROM GITHUB_EVENTS
+      FROM github_events_ingest.cybersyn.github_repos 
       WHERE repo_name = ?
       AND type = 'IssueCommentEvent'
+      ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
       ORDER BY CREATED_AT_TIMESTAMP DESC
       LIMIT ?
       OFFSET ?`,
-      [repo, perPage, (page - 1) * perPage],
+      since_days_ago
+        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
+        : [repo, perPage, (page - 1) * perPage],
     )
 
     return {
