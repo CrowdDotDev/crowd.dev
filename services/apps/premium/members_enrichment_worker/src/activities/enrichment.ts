@@ -323,7 +323,7 @@ Format your response as a JSON object matching this structure:
               "ve": boolean // new verification status
             }
           ],
-          "conn": {
+          "workExperience": {
             "t": string, // for title
             "ds": string, // for dateStart
             "de": string, // for dateEnd
@@ -342,7 +342,7 @@ CRITICAL VALIDATION RULES:
 4. Organization sources MUST ONLY have sources: ${Object.values(OrganizationSource).join(', ')}
 5. Exclude any identities or organizations that don't meet these type restrictions
 6. Should never update attributes, identities or organizations that were manually created/changed.
-7. newWorkExperiences array must ONLY contain connections to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
+7. newWorkExperiences array must ONLY contain work experiences to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
 8. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty, newWorkExperiences must be empty array
 9. Any organization not found in EXISTING_VERIFIED_MEMBER_DATA organizations array must go into newOrgs
 
@@ -367,7 +367,7 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
           new: [],
         },
         organizations: {
-          newConnections: [],
+          newWorkExperiences: [],
           newOrganizations: [],
         },
       }
@@ -468,7 +468,7 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
                 //     conn.s as OrganizationSource,
                 //   ),
                 // )
-                result.organizations.newConnections.push(conn)
+                result.organizations.newWorkExperiences.push(conn)
               } else {
                 svc.log.warn({ memberId, conn }, 'Unknown organization source!')
               }
