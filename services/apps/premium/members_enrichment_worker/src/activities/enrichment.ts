@@ -1,18 +1,31 @@
 import { LlmService } from '@crowd/common_services'
+import { updateMemberAttributes } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
+import {
+  updateVerifiedFlag,
+  upsertMemberIdentity,
+} from '@crowd/data-access-layer/src/member_identities'
 import {
   fetchMemberDataForLLMSquashing,
   findMemberEnrichmentCacheDb,
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
+  insertWorkExperience,
   touchMemberEnrichmentCacheUpdatedAtDb,
+  updateLastEnrichedDate,
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMemberIdentityActivityAggregate,
   IMemberEnrichmentCache,
   MemberEnrichmentSource,
+  MemberIdentityType,
+  OrganizationAttributeSource,
+  OrganizationIdentityType,
+  OrganizationSource,
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -145,7 +158,10 @@ export async function processMemberSources(
 ): Promise<boolean> {
   svc.log.debug({ memberId }, 'Processing member sources!')
 
+  // without contributions since they take a lot of space
   const toBeSquashed = {}
+
+  // just the contributions if we need them later on
   const toBeSquashedContributions = {}
 
   // find if there's already saved enrichment data in source
@@ -158,7 +174,6 @@ export async function processMemberSources(
         cache.data,
       )) as IMemberEnrichmentDataNormalized
 
-      // TODO uros temp remove contributions from sources to mitigate context size
       if (Array.isArray(normalized)) {
         const normalizedContributions = []
         for (const n of normalized) {
@@ -192,8 +207,6 @@ export async function processMemberSources(
     const existingMemberData = await fetchMemberDataForLLMSquashing(svc.postgres.reader, memberId)
     svc.log.info({ memberId }, 'Squashing data for member using LLM!')
 
-    // TODO uros Implement data squasher using LLM & actual member entity enrichment logic
-
     const llmService = new LlmService(
       svc.postgres.writer,
       {
@@ -224,9 +237,13 @@ Your task is to return ONLY THE CHANGES needed to update the existing member dat
   * Different LinkedIn profiles are found for the same person
 
 2. DATA CONSOLIDATION RULES
-- For identities:
+- For member identities:
+  * Only include identities with type "username" or "email"
   * Only include highest confidence identities (verified or multi-source)
   * Prioritize professional identities (LinkedIn, GitHub) over social ones
+- For organization identities:
+  * Only include identities with types: "email", "affiliated-profile", "primary-domain", "username", "alternative-domain"
+  * Exclude any organizations without valid identity types
 - For attributes:
   * Only include attributes with clear evidence from multiple sources
   * Prioritize professional attributes (title, location, skills) over others
@@ -241,9 +258,9 @@ Format your response as a JSON object matching this structure:
   "changes": {
     "displayName": string,
     "identities": {
-      "updateExisting": [  // updates to existing identities
+      "update": [  // updates to existing identities
         {
-          "t": string, // for type
+          "t": string, // type: must be one of ${Object.values(MemberIdentityType).join(', ')}
           "v": string, // for value
           "p": string, // for platform
           "ve": boolean // new verification status
@@ -251,7 +268,7 @@ Format your response as a JSON object matching this structure:
       ],
       "new": [  // completely new identities
         {
-          "t": string, // for type
+          "t": string, // type: must be one of ${Object.values(MemberIdentityType).join(', ')}
           "v": string, // for value
           "p": string, // for platform
           "ve": boolean // new verification status
@@ -275,29 +292,29 @@ Format your response as a JSON object matching this structure:
     "organizations": {
       "newConns": [  // new connections to existing organizations
         {
-          "orgId": string, // for organizationId - should match one of the UUIDs of orgs from EXISTING_VERIFIED_MEMBER_DATA
+          "orgId": string, // for organizationId - MUST match an existing organizationId from organizations array in EXISTING_VERIFIED_MEMBER_DATA. If organizations array is empty, newConns must be empty
           "t": string, // for title
           "ds": string, // for dateStart
           "de": string, // for dateEnd
           "s": string // for source
         }
       ],
-      "newOrgs": [  // completely new organizations to create
+      "newOrgs": [  // completely new organizations to create when no match found in EXISTING_VERIFIED_MEMBER_DATA organizations array
         {
           "n": string, // for org name
-          "i": [ // identities
+          "i": [ // identities - must only include supported types and also must include at least one verified identity
             {
-              "t": string, // for type
+              "t": string, // type: must be one of ${Object.values(OrganizationIdentityType).join(', ')}
               "v": string, // for value
               "p": string, // for platform
               "ve": boolean // new verification status
             }
           ],
           "conn": {
-            "title": string, // for title
+            "t": string, // for title
             "ds": string, // for dateStart
             "de": string, // for dateEnd
-            "s": string // for source
+            "s": string // for source: must be one of ${Object.values(OrganizationSource).join(', ')}
           }
         }
       ]
@@ -305,36 +322,173 @@ Format your response as a JSON object matching this structure:
   }
 }
 
-CRITICAL: If you find you cannot fit all high-confidence data in the response:
+CRITICAL VALIDATION RULES:
+1. Member identities MUST ONLY have type ${Object.values(MemberIdentityType).join(', ')}
+2. Organization identities MUST ONLY have types: ${Object.values(OrganizationIdentityType).join(', ')}
+3. Organization sources MUST ONLY have sources: ${Object.values(OrganizationSource).join(', ')}
+4. Exclude any identities or organizations that don't meet these type restrictions
+5. newConns array must ONLY contain connections to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
+6. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty, newConns must be empty array
+7. Any organization not found in EXISTING_VERIFIED_MEMBER_DATA organizations array must go into newOrgs
+
+If you find you cannot fit all high-confidence data in the response:
 1. First omit lower confidence attributes
 2. Then omit unverified identities
 3. Then omit older organizations
 4. Finally, only return the most essential and recent data points
 
 Answer with JSON only and nothing else. Ensure the response is complete and valid JSON.
-    `
+`
 
     const data = await llmService.consolidateMemberEnrichmentData(memberId, prompt)
 
     if (data.result.confidence >= 0.85) {
       svc.log.info({ memberId }, 'LLM returned data with high confidence!')
-      if (data.result.changes.displayName) {
-        svc.log.info(
-          {
-            memberId,
-            displayName: data.result.changes.displayName,
-            oldDisplayName: existingMemberData.displayName,
-          },
-          'Updating display name!',
+      await svc.postgres.writer.transactionally(async (tx) => {
+        const qx = dbStoreQx(tx)
+        const promises = []
+
+        // process attributes
+        let update = false
+        let attributes = existingMemberData.attributes
+
+        if (data.result.changes.attributes) {
+          if (data.result.changes.attributes.update) {
+            attributes = { ...attributes, ...data.result.changes.attributes.update }
+            update = true
+          }
+
+          if (data.result.changes.attributes.new) {
+            attributes = { ...attributes, ...data.result.changes.attributes.new }
+            update = true
+          }
+        }
+
+        if (update) {
+          svc.log.info({ memberId }, 'Updating member attributes!')
+          promises.push(updateMemberAttributes(qx, memberId, attributes))
+        }
+
+        // process identities
+        if (data.result.changes.identities) {
+          const identityTypes = Object.values(MemberIdentityType)
+
+          if (data.result.changes.identities.update) {
+            for (const toUpdate of data.result.changes.identities.update) {
+              if (identityTypes.includes(toUpdate.t as MemberIdentityType)) {
+                svc.log.info({ memberId, toUpdate }, 'Updating verified flag for identity!')
+                promises.push(
+                  updateVerifiedFlag(qx, {
+                    memberId,
+                    tenantId: existingMemberData.tenantId,
+                    platform: toUpdate.p,
+                    type: toUpdate.t as MemberIdentityType,
+                    value: toUpdate.v,
+                    verified: toUpdate.ve,
+                  }),
+                )
+              } else {
+                svc.log.warn({ memberId, toUpdate }, 'Unknown identity type!')
+              }
+            }
+          }
+
+          if (data.result.changes.identities.new) {
+            for (const toAdd of data.result.changes.identities.new) {
+              if (identityTypes.includes(toAdd.t as MemberIdentityType)) {
+                svc.log.info({ memberId, toAdd }, 'Adding new identity!')
+                promises.push(
+                  upsertMemberIdentity(qx, {
+                    memberId,
+                    tenantId: existingMemberData.tenantId,
+                    platform: toAdd.p,
+                    type: toAdd.t as MemberIdentityType,
+                    value: toAdd.v,
+                    verified: toAdd.ve,
+                  }),
+                )
+              } else {
+                svc.log.warn({ memberId, toAdd }, 'Unknown identity type!')
+              }
+            }
+          }
+        }
+
+        // process organizations
+        if (data.result.changes.organizations) {
+          const sources = Object.values(OrganizationSource)
+
+          if (data.result.changes.organizations.newConns) {
+            for (const conn of data.result.changes.organizations.newConns) {
+              if (sources.includes(conn.s as OrganizationSource)) {
+                svc.log.info({ memberId, conn }, 'Adding new connection to existing organization!')
+                promises.push(
+                  insertWorkExperience(
+                    tx.transaction(),
+                    memberId,
+                    conn.orgId,
+                    conn.t,
+                    conn.ds,
+                    conn.de,
+                    conn.s as OrganizationSource,
+                  ),
+                )
+              } else {
+                svc.log.warn({ memberId, conn }, 'Unknown organization source!')
+              }
+            }
+          }
+
+          if (data.result.changes.organizations.newOrgs) {
+            for (const org of data.result.changes.organizations.newOrgs) {
+              svc.log.info({ memberId, org }, 'Adding new organization!')
+              promises.push(
+                findOrCreateOrganization(
+                  qx,
+                  existingMemberData.tenantId,
+                  OrganizationAttributeSource.ENRICHMENT,
+                  {
+                    displayName: org.n,
+                    identities: org.i.map((i) => {
+                      return {
+                        type: i.t as OrganizationIdentityType,
+                        platform: i.p,
+                        value: i.v,
+                        verified: i.ve,
+                      }
+                    }),
+                  },
+                ).then((orgId) =>
+                  insertWorkExperience(
+                    tx.transaction(),
+                    memberId,
+                    orgId,
+                    org.conn.t,
+                    org.conn.ds,
+                    org.conn.de,
+                    org.conn.s as OrganizationSource,
+                  ),
+                ),
+              )
+            }
+          }
+        }
+
+        // also touch members.lastEnriched date
+        promises.push(
+          updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId),
         )
 
-        // TODO uros update member data
-      }
+        await Promise.all(promises)
+      })
+
+      svc.log.debug({ memberId }, 'Member sources processed successfully!')
+      return true
     } else {
       svc.log.warn({ memberId }, 'LLM returned data with low confidence!')
     }
   } else {
-    svc.log.debug({ memberId }, 'No data to squash for member!')
+    svc.log.warn({ memberId }, 'No data to squash for member!')
   }
 
   return false

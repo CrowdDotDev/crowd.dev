@@ -20,50 +20,52 @@ export async function fetchMemberDataForLLMSquashing(
   const result = await db.connection().oneOrNone(
     `
     with member_orgs as (select distinct mo."memberId",
-                                          mo."organizationId" as "orgId",
-                                          o."displayName"     as "orgName",
-                                          mo.title            as "jobTitle",
-                                          mo."dateStart",
-                                          mo."dateEnd",
-                                          mo.source
-                          from "memberOrganizations" mo
-                                    inner join organizations o on mo."organizationId" = o.id
-                          where mo."memberId" = $(memberId)
-                            and mo."deletedAt" is null
-                            and o."deletedAt" is null)
-      select m."displayName",
-            m.attributes,
-            m."manuallyChangedFields",
-            coalesce(
-              (select json_agg(
-                            (select row_to_json(r)
-                              from (select mi.type,
-                                          mi.platform,
-                                          mi.value) r)
-                    )
-              from "memberIdentities" mi
-              where mi."memberId" = m.id
-                and verified = true), '[]'::json) as identities,
-            coalesce(
-              nullif(
-                json_agg(
-                    (select row_to_json(r)
-                      from (select mo."orgId",
-                                  mo."orgName",
-                                  mo."jobTitle",
-                                  mo."dateStart",
-                                  mo."dateEnd",
-                                  mo.source) r)
-                )::jsonb, 
-                jsonb_build_array(null)
-              )::json, 
-              '[]'::json
-            ) as organizations
-      from members m
-              left join member_orgs mo on mo."memberId" = m.id
-      where m.id = $(memberId)
-        and m."deletedAt" is null
-      group by m.id, m."displayName", m.attributes, m."manuallyChangedFields";
+                                        mo."organizationId" as "orgId",
+                                        o."displayName"     as "orgName",
+                                        mo.title            as "jobTitle",
+                                        mo."dateStart",
+                                        mo."dateEnd",
+                                        mo.source
+                        from "memberOrganizations" mo
+                                  inner join organizations o on mo."organizationId" = o.id
+                        where mo."memberId" = $(memberId)
+                          and mo."deletedAt" is null
+                          and o."deletedAt" is null)
+    select m."displayName",
+          m.attributes,
+          m."manuallyChangedFields",
+          m."tenantId",
+          coalesce(
+                  (select json_agg(
+                                  (select row_to_json(r)
+                                    from (select mi.type,
+                                                mi.platform,
+                                                mi.value) r)
+                          )
+                    from "memberIdentities" mi
+                    where mi."memberId" = m.id
+                      and verified = true), '[]'::json) as identities,
+          case
+              when exists (select 1 from member_orgs where "memberId" = m.id)
+                  then (
+                  select json_agg(
+                                  (select row_to_json(r)
+                                  from (select mo."orgId",
+                                                mo."orgName",
+                                                mo."jobTitle",
+                                                mo."dateStart",
+                                                mo."dateEnd",
+                                                mo.source) r)
+                          )
+                  from member_orgs mo
+                  where mo."memberId" = m.id
+              )
+              else '[]'::json
+              end as organizations
+    from members m
+    where m.id = $(memberId)
+      and m."deletedAt" is null
+    group by m.id, m."displayName", m.attributes, m."manuallyChangedFields";
     `,
     {
       memberId,

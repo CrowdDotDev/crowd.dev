@@ -45,6 +45,7 @@ export interface IMemberOriginalData {
   displayName: string
   attributes: Record<string, Record<string, unknown>>
   manuallyChangedFields: string[]
+  tenantId: string
 
   // memberIdentities table data
   identities: IMemberIdentity[]

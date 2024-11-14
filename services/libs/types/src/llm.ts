@@ -74,7 +74,7 @@ export interface LlmNewOrganization {
   n: string // name
   i: LlmIdentity[] // identities
   conn: {
-    title: string
+    t: string // title
     ds: string // dateStart
     de: string // dateEnd
     s: string // source
@@ -93,7 +93,7 @@ export interface LlmMemberEnrichmentResult {
   changes: {
     displayName: string
     identities: {
-      updateExisting: LlmIdentity[]
+      update: LlmIdentity[]
       new: LlmIdentity[]
     }
     attributes: {
