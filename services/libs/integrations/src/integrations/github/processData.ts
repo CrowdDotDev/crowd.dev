@@ -1,6 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
 // processData.ts content
+import { type IGetRepoPullRequestsResult } from '@crowd/snowflake'
 import {
   IActivityData,
   IActivityScoringGrid,
@@ -422,27 +423,27 @@ const parseForkByOrg: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubPullRequest
+  const data = apiData.data as IGetRepoPullRequestsResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_OPENED,
-    sourceId: data.id,
+    sourceId: data.id.toString(),
     sourceParentId: '',
-    timestamp: new Date(data.createdAt).toISOString(),
-    body: data.bodyText,
-    url: data.url ? data.url : '',
+    timestamp: new Date(data.timestamp).toISOString(),
+    body: data.payload.pull_request.body,
+    url: data.payload.pull_request._links.html.href,
     channel: apiData.repo.url,
-    title: data.title,
+    title: data.payload.pull_request.title,
     attributes: {
-      state: data.state.toLowerCase(),
-      additions: data.additions,
-      deletions: data.deletions,
-      changedFiles: data.changedFiles,
-      authorAssociation: data.authorAssociation,
-      labels: data.labels?.nodes.map((l) => l.name),
+      state: data.payload.pull_request.state.toLowerCase(),
+      additions: data.payload.pull_request.additions,
+      deletions: data.payload.pull_request.deletions,
+      changedFiles: data.payload.pull_request.changed_files,
+      authorAssociation: data.payload.pull_request.author_association,
+      labels: data.payload.pull_request.labels?.map((l) => (l as any)?.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
@@ -454,8 +455,7 @@ const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubPullRequestTimelineItem
-  const relatedData = apiData.relatedData as GithubPullRequest
+  const data = apiData.data as IGetRepoPullRequestsResult
   const memberData = apiData.member
   const repo = apiData.repo
 
@@ -463,22 +463,22 @@ const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_CLOSED,
-    sourceId: `gen-CE_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
-      data.createdAt,
+    sourceId: `gen-CE_${data.id}_${memberData.memberFromApi.login}_${new Date(
+      data.timestamp,
     ).toISOString()}`,
-    sourceParentId: relatedData.id,
-    timestamp: new Date(data.createdAt).toISOString(),
+    sourceParentId: data.id.toString(),
+    timestamp: new Date(data.timestamp).toISOString(),
     body: '',
-    url: relatedData.url ? relatedData.url : '',
+    url: data.payload.pull_request._links.html.href,
     channel: repo.url,
     title: '',
     attributes: {
-      state: relatedData.state.toLowerCase(),
-      additions: relatedData.additions,
-      deletions: relatedData.deletions,
-      changedFiles: relatedData.changedFiles,
-      authorAssociation: relatedData.authorAssociation,
-      labels: relatedData.labels?.nodes.map((l) => l.name),
+      state: data.payload.pull_request.state.toLowerCase(),
+      additions: data.payload.pull_request.additions,
+      deletions: data.payload.pull_request.deletions,
+      changedFiles: data.payload.pull_request.changed_files,
+      authorAssociation: data.payload.pull_request.author_association,
+      labels: data.payload.pull_request.labels?.map((l) => (l as any)?.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,

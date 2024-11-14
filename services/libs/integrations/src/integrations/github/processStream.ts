@@ -116,7 +116,30 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const result = await gh.getRepoPulls({ repo: data.repo.url, page: data.page })
+  const result = await gh.getRepoPullRequests({ repo: data.repo.url, page: data.page })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+    const action = record.action
+
+    if (action === 'opened') {
+      await ctx.processData<GithubApiData>({
+        type: GithubActivityType.PULL_REQUEST_OPENED,
+        data: record,
+        member,
+        repo: data.repo,
+      })
+    } else if (action === 'closed') {
+      await ctx.processData<GithubApiData>({
+        type: GithubActivityType.PULL_REQUEST_CLOSED,
+        data: record,
+        member,
+        repo: data.repo,
+      })
+    } else {
+      throw new Error(`Unsupported pull request action: ${action}`)
+    }
+  }
 
   await publishNextPageStream(ctx, result)
 }

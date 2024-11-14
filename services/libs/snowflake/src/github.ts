@@ -1,91 +1,16 @@
 import { type SnowflakeClient } from './client'
-
-interface IGetOrgRepositoriesResult {
-  data: {
-    id: number
-    name: string
-  }[]
-  hasNextPage: boolean
-  nextPage: number
-  perPage: number
-}
-
-export interface IBasicResponse {
-  actorLogin: string
-  actorId: number
-  actorAvatarUrl: string
-  orgLogin: string | null
-  orgId: number | null
-  orgAvatarUrl: string | null
-}
-
-interface IGetRepoStargazersResult extends IBasicResponse {
-  id: number
-  action: string
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoForksResult extends IBasicResponse {
-  id: number
-  fork: string
-  forkId: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoPullRequestsResult extends IBasicResponse {
-  id: number
-  action: string
-  pullRequestNumber: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoPullRequestReviewsResult extends IBasicResponse {
-  id: number
-  state: string
-  pullRequestNumber: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoPullRequestReviewCommentsResult extends IBasicResponse {
-  id: number
-  action: string
-  pullRequestNumber: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoPushesResult extends IBasicResponse {
-  timestamp: string
-  commitCount: number
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoIssuesResult extends IBasicResponse {
-  id: number
-  action: string
-  issueNumber: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-interface IGetRepoIssueCommentsResult extends IBasicResponse {
-  id: number
-  action: string
-  issueNumber: number
-  timestamp: string
-  payload: Record<string, unknown>
-}
-
-export interface IGetResponse<T extends IBasicResponse = IBasicResponse> {
-  data: T[]
-  hasNextPage: boolean
-  nextPage: number
-  perPage: number
-}
+import {
+  type IGetOrgRepositoriesResult,
+  type IGetRepoForksResult,
+  type IGetRepoIssueCommentsResult,
+  type IGetRepoIssuesResult,
+  type IGetRepoPullRequestReviewCommentsResult,
+  type IGetRepoPullRequestReviewsResult,
+  type IGetRepoPullRequestsResult,
+  type IGetRepoPushesResult,
+  type IGetRepoStargazersResult,
+  type IGetResponse,
+} from './types'
 
 export class GithubSnowflakeClient {
   constructor(private client: SnowflakeClient) {}
@@ -310,6 +235,7 @@ export class GithubSnowflakeClient {
     }
   }
 
+  // this is commits
   public async getRepoPushes({
     repo,
     page = 1,
