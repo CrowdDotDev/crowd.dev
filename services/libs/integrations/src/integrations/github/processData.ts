@@ -1,7 +1,10 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
 // processData.ts content
-import { type IGetRepoPullRequestsResult } from '@crowd/snowflake'
+import {
+  type IGetRepoPullRequestReviewCommentsResult,
+  type IGetRepoPullRequestsResult,
+} from '@crowd/snowflake'
 import {
   IActivityData,
   IActivityScoringGrid,
@@ -92,7 +95,7 @@ const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData 
 }
 
 const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
-  const { email, orgs, memberFromApi } = memberData
+  const { email, org, memberFromApi } = memberData
 
   if (memberFromApi.isBot && memberFromApi.isDeleted) {
     throw new Error('Member cannot be both bot and deleted')
@@ -186,50 +189,25 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     } else {
       const company = memberFromApi.company.replace('@', '').trim()
 
-      if (orgs && company.length > 0) {
-        const organizationPayload = {
-          displayName: orgs.name,
-          names: [orgs.name],
+      if (org && company.length > 0) {
+        const organizationPayload: IOrganization = {
+          displayName: org.login,
           identities: [
             {
               platform: PlatformType.GITHUB,
               type: OrganizationIdentityType.USERNAME,
-              value: orgs.url.replace('https://github.com/', ''),
+              value: org.login,
               verified: true,
             },
           ],
-          description: orgs.description ?? null,
-          location: orgs.location ?? null,
-          logo: orgs.avatarUrl ?? null,
+          logo: org.avatarUrl ?? null,
           source: OrganizationSource.GITHUB,
-        } as IOrganization
-
-        if (orgs.websiteUrl) {
-          organizationPayload.identities.push({
-            platform: PlatformType.GITHUB,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            value: orgs.websiteUrl,
-            verified: false,
-          })
-        }
-
-        if (orgs.twitterUsername) {
-          organizationPayload.identities.push({
-            platform: PlatformType.TWITTER,
-            type: OrganizationIdentityType.USERNAME,
-            value: orgs.twitterUsername,
-            verified: false,
-          })
         }
 
         member.organizations = [organizationPayload]
       }
     }
   }
-
-  // if (memberFromApi.followers && memberFromApi.followers.totalCount > 0) {
-  //   member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }
-  // }
 
   return member
 }
@@ -704,18 +682,18 @@ const parseIssueClosed: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestComment: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
+  const data = apiData.data as IGetRepoPullRequestReviewCommentsResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_COMMENT,
-    sourceId: data.id,
-    sourceParentId: data.pullRequest.id,
-    timestamp: new Date(data.createdAt).toISOString(),
-    url: data.url,
-    body: data.bodyText,
+    sourceId: data.id.toString(),
+    sourceParentId: data.payload.pull_request.id.toString(),
+    timestamp: new Date(data.timestamp).toISOString(),
+    url: data.payload.pull_request._links.html.href,
+    body: data.payload.pull_request.body,
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].score,

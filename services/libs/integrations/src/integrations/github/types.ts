@@ -192,8 +192,26 @@ export interface AppTokenResponse {
 
 export interface GithubPrepareMemberOutput {
   email: string
-  orgs: any
-  memberFromApi: any
+  org: {
+    id: string
+    login: string
+    avatarUrl: string
+  }
+  memberFromApi: {
+    id: string
+    login: string
+    avatarUrl: string
+    isBot?: boolean
+    isDeleted?: boolean
+    name?: string
+    bio?: string
+    location?: string
+    company?: string
+    url?: string
+    isHireable?: boolean
+    twitterUsername?: string
+    websiteUrl?: string
+  }
 }
 
 export interface GithubBotMember {
