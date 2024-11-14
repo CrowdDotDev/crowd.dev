@@ -20,6 +20,7 @@ if (processArguments.length !== 1) {
   process.exit(1)
 }
 
+// TODO maybe add segmentId as parameter here as well
 const tenantId = processArguments[0]
 
 const minMemberActivities = 100
@@ -30,9 +31,10 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   -- only use members that have more than one enrichment source
   with members_with_sources as (select distinct "memberId", count(*)
                                 from "memberEnrichmentCache"
+                                where data is not null
                                 group by "memberId"
                                 having count(*) > 1),
-      -- also only use members that have more than 10 activities
+      -- also only use members that have more than 100 activities
       members_with_activities as (select distinct msa."memberId", sum("activityCount") as total_activities
                                   from members_with_sources ms
                                             inner join "memberSegmentsAgg" msa on msa."memberId" = ms."memberId"

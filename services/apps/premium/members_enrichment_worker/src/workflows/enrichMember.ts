@@ -19,7 +19,6 @@ const {
   updateMemberEnrichmentCache,
   isCacheObsolete,
   findMemberIdentityWithTheMostActivityInPlatform,
-  processMemberSources,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '20 seconds',
   retry: {
@@ -101,6 +100,7 @@ export async function enrichMember(
 
   if (changeInEnrichmentSourceData) {
     // Member enrichment data has been updated, use squasher again!
-    await processMemberSources(input.id, sources)
+    // TODO member enrichment: enable once we are sure it's working
+    // await processMemberSources(input.id, sources)
   }
 }
