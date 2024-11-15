@@ -342,8 +342,8 @@ CRITICAL VALIDATION RULES:
 4. Organization sources MUST ONLY have sources: ${Object.values(OrganizationSource).join(', ')}
 5. Exclude any identities or organizations that don't meet these type restrictions
 6. Should never update attributes, identities or organizations that were manually created/changed.
-7. newWorkExperiences array must ONLY contain work experiences to organizations that exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
-8. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty, newWorkExperiences must be empty array
+7. newWorkExperiences array must ONLY contain connections to organizations that do not exist in EXISTING_VERIFIED_MEMBER_DATA organizations array
+8. If EXISTING_VERIFIED_MEMBER_DATA organizations array is empty and ENRICHMENT_DATA has organization, newWorkExperiences must not be empty
 9. Any organization not found in EXISTING_VERIFIED_MEMBER_DATA organizations array must go into newOrgs
 
 If you find you cannot fit all high-confidence data in the response:
