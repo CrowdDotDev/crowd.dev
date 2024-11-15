@@ -417,15 +417,17 @@ class IntegrationRepository {
   }
 
   /**
-   * Retrieves the count of global integrations status based on the provided repository options.
+   * Retrieves the count of global integration statuses, including a 'not-connected' status.
    *
-   * @param {IRepositoryOptions} options - The repository options to configure the query executor.
-   * @return {Promise<number>} - A promise that resolves to the count of global integrations status.
+   * @param {Object} param0 - An object containing the parameters.
+   * @param {string|null} param0.platform - The platform for which to fetch the integration statuses. Default is null.
+   * @param {IRepositoryOptions} options - Options for the repository including the query executor.
+   * @return {Promise<Array<Object>>} A promise that resolves to an array of objects, each representing an integration status with a count. Each object contains a 'status' and a 'count' property.
    */
-  static async findGlobalIntegrationsStatusCount(options: IRepositoryOptions) {
+  static async findGlobalIntegrationsStatusCount({ platform = null}, options: IRepositoryOptions) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, null, '')
-    const rows = await fetchGlobalIntegrationsStatusCount(qx)
+    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '')
+    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform)
     return [...rows, { status: 'not-connected', count: +result.count }]
   }
 

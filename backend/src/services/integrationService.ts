@@ -309,12 +309,13 @@ export default class IntegrationService {
   }
 
   /**
-   * Retrieves a count of global integration statuses.
+   * Finds the global integrations status count.
    *
-   * @return {Promise<number>} A promise that resolves to the count of global integration statuses.
+   * @param {Object} args - The arguments used to find the global integrations status count.
+   * @return {Promise<Object>} A promise that resolves with the global integrations status count.
    */
-  async findGlobalIntegrationsStatusCount() {
-    return IntegrationRepository.findGlobalIntegrationsStatusCount(this.options)
+  async findGlobalIntegrationsStatusCount(args: any) {
+    return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
   }
 
   async query(data) {
