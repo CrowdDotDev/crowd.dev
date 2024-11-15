@@ -195,8 +195,45 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   for (const record of result.data) {
     const member = prepareMember(record)
 
+    const action = record.action
+
+    if (action === 'opened') {
+      await ctx.processData<GithubApiData>({
+        type: GithubActivityType.ISSUE_OPENED,
+        data: record,
+        member,
+        repo: data.repo,
+      })
+    } else if (action === 'closed') {
+      await ctx.processData<GithubApiData>({
+        type: GithubActivityType.ISSUE_CLOSED,
+        data: record,
+        member,
+        repo: data.repo,
+      })
+    }
+  }
+
+  await publishNextPageStream(ctx, result)
+}
+
+const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const since_days_ago = ctx.onboarding ? undefined : '3'
+
+  const result = await gh.getRepoIssueComments({
+    repo: data.repo.url,
+    page: data.page,
+    since_days_ago,
+  })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+
     await ctx.processData<GithubApiData>({
-      type: GithubActivityType.ISSUE_OPENED,
+      type: GithubActivityType.ISSUE_COMMENT,
       data: record,
       member,
       repo: data.repo,

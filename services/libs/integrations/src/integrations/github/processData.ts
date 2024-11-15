@@ -2,6 +2,7 @@
 // processStream.ts content
 // processData.ts content
 import {
+  type IGetRepoIssuesResult,
   type IGetRepoPullRequestReviewCommentsResult,
   type IGetRepoPullRequestsResult,
 } from '@crowd/snowflake'
@@ -624,22 +625,22 @@ const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
 
 const parseIssueOpened: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubIssue
+  const data = apiData.data as IGetRepoIssuesResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_OPENED,
-    sourceId: data.id,
+    sourceId: data.id.toString(),
     sourceParentId: '',
-    timestamp: new Date(data.createdAt).toISOString(),
-    body: data.bodyText,
-    url: data.url ? data.url : '',
+    timestamp: new Date(data.timestamp).toISOString(),
+    body: data.payload.issue.body,
+    url: data.payload.issue.html_url,
     channel: apiData.repo.url,
-    title: data.title.replace(/\0/g, ''),
+    title: data.payload.issue.title,
     attributes: {
-      state: data.state.toLowerCase(),
+      state: data.payload.issue.state.toLowerCase(),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
@@ -651,7 +652,7 @@ const parseIssueOpened: ProcessDataHandler = async (ctx) => {
 
 const parseIssueClosed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubIssueTimelineItem
+  const data = apiData.data as IGetRepoIssuesResult
   const relatedData = apiData.relatedData as GithubIssue
   const memberData = apiData.member
   const repo = apiData.repo
@@ -661,16 +662,16 @@ const parseIssueClosed: ProcessDataHandler = async (ctx) => {
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_CLOSED,
     sourceId: `gen-CE_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
-      data.createdAt,
+      data.timestamp,
     ).toISOString()}`,
     sourceParentId: relatedData.id,
-    timestamp: new Date(data.createdAt).toISOString(),
+    timestamp: new Date(data.timestamp).toISOString(),
     body: '',
-    url: relatedData.url ? relatedData.url : '',
+    url: data.payload.issue.html_url,
     channel: repo.url,
     title: '',
     attributes: {
-      state: relatedData.state.toLowerCase(),
+      state: data.payload.issue.state.toLowerCase(),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
