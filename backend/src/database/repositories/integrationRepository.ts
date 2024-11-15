@@ -424,7 +424,7 @@ class IntegrationRepository {
    * @param {IRepositoryOptions} options - Options for the repository including the query executor.
    * @return {Promise<Array<Object>>} A promise that resolves to an array of objects, each representing an integration status with a count. Each object contains a 'status' and a 'count' property.
    */
-  static async findGlobalIntegrationsStatusCount({ platform = null}, options: IRepositoryOptions) {
+  static async findGlobalIntegrationsStatusCount({ platform = null }, options: IRepositoryOptions) {
     const qx = SequelizeRepository.getQueryExecutor(options)
     const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '')
     const rows = await fetchGlobalIntegrationsStatusCount(qx, platform)

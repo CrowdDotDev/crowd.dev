@@ -35,8 +35,10 @@
                 <p class="text-medium font-semibold mb-1">
                   {{ integration.name }}
                 </p>
-                <p class="text-tiny text-gray-500">
-                  {{ integration.grandparentName }} > {{ integration.parentName }}
+                <p v-if="integration.grandparentName.length > 0 || integration.parentName.length > 0" class="text-tiny text-gray-500">
+                  {{ integration.grandparentName }}
+                  <span v-if="integration.grandparentName.length > 0 && integration.parentName.length > 0">></span>
+                  {{ integration.parentName }}
                 </p>
               </td>
               <td>
@@ -181,13 +183,15 @@ const fetchGlobalIntegrations = () => {
 };
 
 const fetchGlobalIntegrationStatusCount = () => {
-  UsersService.fetchGlobalIntegrationStatusCount()
+  UsersService.fetchGlobalIntegrationStatusCount({
+    platform: platform.value || undefined,
+  })
     .then((res) => {
-      const statusCount = Object.keys(lfIntegrationStatusesTabs).reduce((acc, key) => {
+      const statusCount: any = Object.keys(lfIntegrationStatusesTabs).reduce((acc: any, key) => {
         acc[key] = 0;
         return acc;
       }, {});
-      res.forEach((status) => {
+      res.forEach((status: any) => {
         const matchedStatus = Object.values(lfIntegrationStatusesTabs).find((config) => config.show({ status: status.status }));
         if (!matchedStatus) {
           return;
@@ -211,6 +215,7 @@ watch(() => status.value, () => {
 watch(() => platform.value, () => {
   offset.value = 0;
   fetchGlobalIntegrations();
+  fetchGlobalIntegrationStatusCount();
 });
 
 watch(() => query.value, () => {

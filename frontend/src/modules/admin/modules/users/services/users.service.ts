@@ -28,11 +28,14 @@ export class UsersService {
     return response.data;
   }
 
-  static async fetchGlobalIntegrationStatusCount() {
+  static async fetchGlobalIntegrationStatusCount(query: any) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/global/status`,
+      {
+        params: query,
+      },
     );
 
     return response.data;
