@@ -299,23 +299,25 @@ export default class IntegrationService {
   }
 
   /**
-   * Finds global integrations based on the provided arguments.
+   * Retrieves global integrations for the specified tenant.
    *
-   * @param {any} args - The arguments used to find global integrations.
-   * @return {Promise<any>} A promise that resolves to the global integrations.
+   * @param {string} tenantId - The unique identifier of the tenant.
+   * @param {any} args - Additional arguments that define search criteria or constraints.
+   * @return {Promise<any>} A promise that resolves to the list of global integrations matching the criteria.
    */
-  async findGlobalIntegrations(args: any) {
-    return IntegrationRepository.findGlobalIntegrations(args, this.options)
+  async findGlobalIntegrations(tenantId: string, args: any) {
+    return IntegrationRepository.findGlobalIntegrations(tenantId, args, this.options)
   }
 
   /**
-   * Finds the global integrations status count.
+   * Fetches the global count of integration statuses for a given tenant.
    *
-   * @param {Object} args - The arguments used to find the global integrations status count.
-   * @return {Promise<Object>} A promise that resolves with the global integrations status count.
+   * @param {string} tenantId - The ID of the tenant for which to fetch the count.
+   * @param {Object} args - Additional arguments to refine the query.
+   * @return {Promise<number>} A promise that resolves to the count of global integration statuses.
    */
-  async findGlobalIntegrationsStatusCount(args: any) {
-    return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
+  async findGlobalIntegrationsStatusCount(tenantId: string, args: any) {
+    return IntegrationRepository.findGlobalIntegrationsStatusCount(tenantId, args, this.options)
   }
 
   async query(data) {
