@@ -35,9 +35,9 @@
                 <p class="text-medium font-semibold mb-1">
                   {{ integration.name }}
                 </p>
-                <p v-if="integration.grandparentName.length > 0 || integration.parentName.length > 0" class="text-tiny text-gray-500">
+                <p v-if="integration.grandparentName?.length > 0 || integration.parentName?.length > 0" class="text-tiny text-gray-500">
                   {{ integration.grandparentName }}
-                  <span v-if="integration.grandparentName.length > 0 && integration.parentName.length > 0">></span>
+                  <span v-if="integration.grandparentName?.length > 0 && integration.parentName?.length > 0">></span>
                   {{ integration.parentName }}
                 </p>
               </td>
