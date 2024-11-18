@@ -44,6 +44,18 @@ export default (app) => {
     `/tenant/:tenantId/integration/:id/github/repos`,
     safeWrap(require('./helpers/githubMapReposGet').default),
   )
+  app.get(
+    `/tenant/:tenantId/integration/github/search/orgs`,
+    safeWrap(require('./helpers/githubSearchOrgs').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/github/search/repos`,
+    safeWrap(require('./helpers/githubSearchRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/github/orgs/:org/repos`,
+    safeWrap(require('./helpers/githubOrgRepos').default),
+  )
   app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
     safeWrap(require('./helpers/discordAuthenticate').default),
