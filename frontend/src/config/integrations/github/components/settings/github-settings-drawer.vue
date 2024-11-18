@@ -159,7 +159,7 @@ const connect = () => {
     : IntegrationService.create({ settings, platform: 'github', status: 'in-progress' }))
     .then((res) => {
       integration = res;
-      IntegrationService.githubMapRepos(res.id, repoMappings.value, [res.segmentId]);
+      return IntegrationService.githubMapRepos(res.id, repoMappings.value, [res.segmentId]);
     })
     .then(() => {
       doFetch([integration.segmentId]);
@@ -189,8 +189,20 @@ const connect = () => {
     });
 };
 
+const fetchGithubMappings = () => {
+  if (!props.integration) return;
+  IntegrationService.fetchGitHubMappings(props.integration)
+    .then((res: any[]) => {
+      repoMappings.value = res.reduce((rm, mapping) => ({
+        ...rm,
+        [mapping.url]: mapping.segment.id,
+      }), {});
+    });
+};
+
 watch(() => props.integration, (value?: Integration<GitHubSettings>) => {
   if (value) {
+    fetchGithubMappings();
     const { orgs } = value.settings;
     organizations.value = orgs
       .filter((o) => o.fullSync)
