@@ -3,6 +3,7 @@ import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/con
 const waitingForAction: IntegrationStatusConfig = {
   key: 'waitingForAction',
   show: (integration: any) => ['pending-action', 'mapping'].includes(integration.status),
+  statuses: ['pending-action', 'mapping'],
   status: {
     text: 'Action required',
     icon: 'alert-fill',
