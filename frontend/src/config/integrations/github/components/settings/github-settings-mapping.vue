@@ -35,8 +35,12 @@
         <lf-table>
           <thead>
             <tr>
-              <th>Repository</th>
-              <th>Mapped with</th>
+              <th class="w-5/12">
+                Repository
+              </th>
+              <th class="w-7/12">
+                Mapped with
+              </th>
             </tr>
           </thead>
           <tbody v-if="subprojects.length > 0">
@@ -47,6 +51,7 @@
               v-model="repoMappings[repo.url]"
               :subprojects="subprojects"
               :repository="repo"
+              :org-syncing="isOrgSyncing(o)"
             />
           </tbody>
         </lf-table>
@@ -101,6 +106,8 @@ const orgs = computed<GitHubOrganization[]>({
   get: () => props.organizations,
   set: (value) => emit('update:organizations', value),
 });
+
+const isOrgSyncing = (org: GitHubOrganization) => orgs.value.some((o) => o.url === org.url);
 
 const repoMappings = computed<Record<string, string>>({
   get: () => props.mappings,

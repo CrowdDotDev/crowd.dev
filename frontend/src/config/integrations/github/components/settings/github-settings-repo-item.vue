@@ -38,7 +38,7 @@
           </el-select>
         </app-form-item>
 
-        <lf-tooltip placement="top-end" content="Remove repository">
+        <lf-tooltip v-if="!props.orgSyncing" placement="top-end" content="Remove repository">
           <lf-button type="secondary-ghost" icon-only @click="removeRepo()">
             <lf-icon name="circle-minus" type="regular" class="text-gray-500" />
           </lf-button>
@@ -64,6 +64,7 @@ const props = defineProps<{
   repository: GitHubRepository;
   subprojects: any[];
   modelValue: string;
+  orgSyncing: boolean;
 }>();
 
 const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]): void,
