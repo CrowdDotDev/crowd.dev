@@ -2,6 +2,7 @@
 // processStream.ts content
 // processData.ts content
 import {
+  type IGetRepoIssueCommentsResult,
   type IGetRepoIssuesResult,
   type IGetRepoPullRequestReviewCommentsResult,
   type IGetRepoPullRequestsResult,
@@ -409,7 +410,7 @@ const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_OPENED,
-    sourceId: data.id.toString(),
+    sourceId: data.payload.pull_request.node_id,
     sourceParentId: '',
     timestamp: new Date(data.timestamp).toISOString(),
     body: data.payload.pull_request.body,
@@ -442,10 +443,10 @@ const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_CLOSED,
-    sourceId: `gen-CE_${data.id}_${memberData.memberFromApi.login}_${new Date(
+    sourceId: `gen-CE_${data.payload.pull_request.node_id}_${memberData.memberFromApi.login}_${new Date(
       data.timestamp,
     ).toISOString()}`,
-    sourceParentId: data.id.toString(),
+    sourceParentId: data.payload.pull_request.node_id,
     timestamp: new Date(data.timestamp).toISOString(),
     body: '',
     url: data.payload.pull_request._links.html.href,
@@ -590,30 +591,29 @@ const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubPullRequestTimelineItem
-  const relatedData = apiData.relatedData as GithubPullRequest
+  const data = apiData.data as IGetRepoPullRequestsResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_MERGED,
-    sourceId: `gen-ME_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
-      data.createdAt,
+    sourceId: `gen-ME_${data.payload.pull_request.node_id}_${memberData.memberFromApi.login}_${new Date(
+      data.timestamp,
     ).toISOString()}`,
-    sourceParentId: relatedData.id,
-    timestamp: new Date(data.createdAt).toISOString(),
+    sourceParentId: data.payload.pull_request.node_id,
+    timestamp: new Date(data.timestamp).toISOString(),
     body: '',
-    url: relatedData.url,
+    url: data.payload.pull_request.html_url,
     channel: apiData.repo.url,
     title: '',
     attributes: {
-      state: relatedData.state.toLowerCase(),
-      additions: relatedData.additions,
-      deletions: relatedData.deletions,
-      changedFiles: relatedData.changedFiles,
-      authorAssociation: relatedData.authorAssociation,
-      labels: relatedData.labels?.nodes.map((l) => l.name),
+      state: data.payload.pull_request.state.toLowerCase(),
+      additions: data.payload.pull_request.additions,
+      deletions: data.payload.pull_request.deletions,
+      changedFiles: data.payload.pull_request.changed_files,
+      authorAssociation: data.payload.pull_request.author_association,
+      labels: data.payload.pull_request.labels?.map((l) => l.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
@@ -632,7 +632,7 @@ const parseIssueOpened: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_OPENED,
-    sourceId: data.id.toString(),
+    sourceId: data.payload.issue.node_id,
     sourceParentId: '',
     timestamp: new Date(data.timestamp).toISOString(),
     body: data.payload.issue.body,
@@ -653,7 +653,6 @@ const parseIssueOpened: ProcessDataHandler = async (ctx) => {
 const parseIssueClosed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data as IGetRepoIssuesResult
-  const relatedData = apiData.relatedData as GithubIssue
   const memberData = apiData.member
   const repo = apiData.repo
 
@@ -661,10 +660,10 @@ const parseIssueClosed: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_CLOSED,
-    sourceId: `gen-CE_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
+    sourceId: `gen-CE_${data.payload.issue.node_id}_${memberData.memberFromApi.login}_${new Date(
       data.timestamp,
     ).toISOString()}`,
-    sourceParentId: relatedData.id,
+    sourceParentId: data.payload.issue.node_id,
     timestamp: new Date(data.timestamp).toISOString(),
     body: '',
     url: data.payload.issue.html_url,
@@ -690,11 +689,11 @@ const parsePullRequestComment: ProcessDataHandler = async (ctx) => {
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_COMMENT,
-    sourceId: data.id.toString(),
-    sourceParentId: data.payload.pull_request.id.toString(),
+    sourceId: data.payload.comment.node_id,
+    sourceParentId: data.payload.pull_request.node_id,
     timestamp: new Date(data.timestamp).toISOString(),
-    url: data.payload.pull_request._links.html.href,
-    body: data.payload.pull_request.body,
+    url: data.payload.comment._links.html.href,
+    body: data.payload.comment.body,
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].score,
@@ -739,18 +738,18 @@ const parsePullRequestReviewThreadComment: ProcessDataHandler = async (ctx) => {
 
 const parseIssueComment: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data
+  const data = apiData.data as IGetRepoIssueCommentsResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.ISSUE_COMMENT,
-    sourceId: data.id,
-    sourceParentId: data.issue.id,
-    timestamp: new Date(data.createdAt).toISOString(),
-    url: data.url,
-    body: data.bodyText,
+    sourceId: data.payload.comment.node_id,
+    sourceParentId: data.payload.issue.node_id,
+    timestamp: new Date(data.timestamp).toISOString(),
+    url: data.payload.comment.html_url,
+    body: data.payload.comment.body,
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
@@ -813,6 +812,9 @@ const handler: ProcessDataHandler = async (ctx) => {
       case GithubActivityType.PULL_REQUEST_CLOSED:
         await parsePullRequestClosed(ctx)
         break
+      case GithubActivityType.PULL_REQUEST_COMMENT:
+        await parsePullRequestComment(ctx)
+        break
       case GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED:
         await parsePullRequestReviewRequested(ctx)
         break
@@ -825,17 +827,14 @@ const handler: ProcessDataHandler = async (ctx) => {
       case GithubActivityType.PULL_REQUEST_MERGED:
         await parsePullRequestMerged(ctx)
         break
+      case GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT:
+        await parsePullRequestReviewThreadComment(ctx)
+        break
       case GithubActivityType.ISSUE_OPENED:
         await parseIssueOpened(ctx)
         break
       case GithubActivityType.ISSUE_CLOSED:
         await parseIssueClosed(ctx)
-        break
-      case GithubActivityType.PULL_REQUEST_COMMENT:
-        await parsePullRequestComment(ctx)
-        break
-      case GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT:
-        await parsePullRequestReviewThreadComment(ctx)
         break
       case GithubActivityType.ISSUE_COMMENT:
         await parseIssueComment(ctx)
