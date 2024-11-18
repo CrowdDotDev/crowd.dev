@@ -10,7 +10,7 @@
         Connect
       </lf-button>
     </div>
-    <lf-github-settings-drawer v-model="isSettingsDrawerOpen" :integration="null" />
+    <lf-github-settings-drawer v-if="isSettingsDrawerOpen" v-model="isSettingsDrawerOpen" :integration="null" />
   </div>
 </template>
 

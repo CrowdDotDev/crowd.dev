@@ -13,6 +13,7 @@
     <div class="mb-3">
       <lf-search v-model="search" placeholder="Search repositories..." class="!h-9" />
     </div>
+    {{orgs}}
     <lf-table>
       <thead>
         <tr>
@@ -21,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(repo, ri) of repos" :key="repo.url" class="!border-0">
+        <tr v-for="(repo, ri) of filteredRepos" :key="repo.url" class="!border-0">
           <td class="!pb-2.5" :class="ri > 0 ? '!pt-2.5' : '!pt-5'">
             <div>
               <div class="flex items-center gap-1.5 mb-0.5">
@@ -65,7 +66,7 @@
 
               <lf-tooltip placement="top-end" content="Remove repository">
                 <lf-button type="secondary-ghost" icon-only @click="removeRepo(repo)">
-                  <lf-icon name="trash-can" />
+                  <lf-icon name="circle-minus" type="regular" class="text-gray-500" />
                 </lf-button>
               </lf-tooltip>
             </div>
@@ -118,6 +119,25 @@ const repoMappings = computed<Record<string, string>>({
   set: (value) => emit('update:mappings', value),
 });
 
+const filteredRepos = computed(() => repos.value.filter((r) => r.name.toLowerCase().includes(search.value.toLowerCase())
+    || r.owner.toLowerCase().includes(search.value.toLowerCase())));
+
+const orgs = computed(() => {
+  const owners = new Set();
+  return props.repositories.reduce((acc, r) => {
+    if (!owners.has(r.owner)) {
+      owners.add(r.owner);
+      const lastSlashIndex = r.url.lastIndexOf('/');
+      const repoUrl = lastSlashIndex !== -1 ? r.url.substring(0, lastSlashIndex) : r.url;
+      acc.push({
+        owner: r.owner,
+        url: repoUrl
+      });
+    }
+    return acc;
+  }, []);
+});
+
 const rules = computed(() => repos.value.reduce((a: Record<string, any>, b: any) => ({
   ...a,
   [b.url]: {
@@ -137,7 +157,7 @@ watch(() => repos.value, (repoList) => {
       repoMappings.value[r.url] = props.subprojects[0].id;
     }
   });
-}, { deep: true });
+}, { deep: true, immediate: true });
 </script>
 
 <script lang="ts">

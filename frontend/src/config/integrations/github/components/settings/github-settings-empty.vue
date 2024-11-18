@@ -3,14 +3,14 @@
     <div class="pt-16 flex flex-col items-center w-full max-w-100">
       <lf-icon-old name="git-repository-line" :size="64" class="text-gray-300 mb-6" />
       <h6 class="text-center pb-3">
-        Add and map GitHub repositories
+        Sync and map GitHub repositories
       </h6>
       <p class="text-center text-small text-gray-500 pb-6">
         Choose which repositories you want to track, and map them with the corresponding project.
       </p>
       <lf-button type="primary-ghost" @click="emit('add')">
-        <lf-icon name="plus" type="regular" />
-        Add repositories
+        <lf-icon name="arrows-rotate" type="regular" />
+        Sync repositories/organizations
       </lf-button>
     </div>
   </div>

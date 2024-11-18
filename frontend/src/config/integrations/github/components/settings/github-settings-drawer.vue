@@ -53,7 +53,11 @@
         <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
           Cancel
         </lf-button>
-        <lf-button type="primary" @click="connect()">
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid || !repositories.length"
+          @click="connect()"
+        >
           Connect
         </lf-button>
       </div>
@@ -86,6 +90,7 @@ import LfGithubSettingsOrganizations
   from '@/config/integrations/github/components/settings/github-settings-organizations.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute } from 'vue-router';
+import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -120,6 +125,8 @@ const fetchSubProjects = () => {
       subprojects.value = segment.projects.map((p) => p.subprojects).flat();
     });
 };
+
+const $v = useVuelidate();
 
 const connect = () => {
   // TODO: Update settings
