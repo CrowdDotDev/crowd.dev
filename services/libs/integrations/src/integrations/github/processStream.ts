@@ -177,6 +177,15 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         page: 1,
       },
     )
+
+    // launch commits stream
+    await ctx.publishStream<GithubBasicStream>(
+      `${GithubStreamType.PULL_COMMITS}:${data.repo.name}:firstPage`,
+      {
+        repo: data.repo,
+        page: 1,
+      },
+    )
   }
 }
 
@@ -266,6 +275,29 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
 
     await ctx.processData<GithubApiData>({
       type: GithubActivityType.ISSUE_COMMENT,
+      data: record,
+      member,
+      repo: data.repo,
+    })
+  }
+
+  await publishNextPageStream(ctx, result)
+}
+
+const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const result = await gh.getRepoPushes({
+    repo: data.repo.url,
+    page: data.page,
+  })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+
+    await ctx.processData<GithubApiData>({
+      type: GithubActivityType.AUTHORED_COMMIT,
       data: record,
       member,
       repo: data.repo,
