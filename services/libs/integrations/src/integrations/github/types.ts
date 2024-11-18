@@ -136,8 +136,14 @@ export interface GithubPlatformSettings {
 }
 
 export interface GithubIntegrationSettings {
-  repos: Repos
-  unavailableRepos: Repos
+  orgs: Array<{
+    name: string
+    logo: string
+    url: string
+    fullSync: boolean
+    updatedAt: string
+    repos: Array<Repo>
+  }>
 }
 
 export interface GitHubManualIntegrationSettingsDefault extends GithubIntegrationSettings {
@@ -163,14 +169,9 @@ export enum GithubPullRequestEvents {
 }
 
 export type Repo = {
-  url: string
   name: string
-  createdAt: string
-  owner: string
-  available?: boolean
-  fork?: boolean
-  private?: boolean
-  cloneUrl?: string
+  url: string
+  updatedAt: string
 }
 
 export type Repos = Array<Repo>
