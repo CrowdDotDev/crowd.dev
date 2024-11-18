@@ -18,14 +18,14 @@ export interface IBasicResponse {
 }
 
 export interface IGetRepoStargazersResult extends IBasicResponse {
-  id: number
+  sfId: number
   action: string
   timestamp: string
   payload: Record<string, unknown>
 }
 
 export interface IGetRepoForksResult extends IBasicResponse {
-  id: number
+  sfId: number
   fork: string
   forkId: number
   timestamp: string
@@ -33,7 +33,7 @@ export interface IGetRepoForksResult extends IBasicResponse {
 }
 
 export interface IGetRepoPullRequestsResult extends IBasicResponse {
-  id: number
+  sfId: number
   action: 'opened' | 'closed'
   pullRequestNumber: number
   timestamp: string
@@ -85,7 +85,7 @@ export interface IGetRepoPullRequestsResult extends IBasicResponse {
       html_url: string
       id: number
       issue_url: string
-      labels: unknown[]
+      labels: any[]
       locked: boolean
       maintainer_can_modify: boolean
       merge_commit_sha: string | null
@@ -119,7 +119,7 @@ export interface IGetRepoPullRequestsResult extends IBasicResponse {
 }
 
 export interface IGetRepoPullRequestReviewsResult extends IBasicResponse {
-  id: number
+  sfId: number
   state: string
   pullRequestNumber: number
   timestamp: string
@@ -127,7 +127,7 @@ export interface IGetRepoPullRequestReviewsResult extends IBasicResponse {
 }
 
 export interface IGetRepoPullRequestReviewCommentsResult extends IBasicResponse {
-  id: number
+  sfId: number
   action: string
   pullRequestNumber: number
   timestamp: string
@@ -627,7 +627,7 @@ export interface IGetRepoPushesResult extends IBasicResponse {
 }
 
 export interface IGetRepoIssuesResult extends IBasicResponse {
-  id: number
+  sfId: number
   action: 'opened' | 'closed' | 'reopened'
   issueNumber: number
   timestamp: string
@@ -697,11 +697,216 @@ export interface IGetRepoIssuesResult extends IBasicResponse {
 }
 
 export interface IGetRepoIssueCommentsResult extends IBasicResponse {
-  id: number
+  sfId: number
   action: string
   issueNumber: number
   timestamp: string
-  payload: Record<string, unknown>
+  payload: {
+    action: string
+    comment: {
+      author_association: string
+      body: string
+      created_at: string
+      html_url: string
+      id: number
+      issue_url: string
+      node_id: string
+      performed_via_github_app: {
+        client_id: string
+        created_at: string
+        description: string
+        events: string[]
+        external_url: string
+        html_url: string
+        id: number
+        name: string
+        node_id: string
+        owner: {
+          avatar_url: string
+          events_url: string
+          followers_url: string
+          following_url: string
+          gists_url: string
+          gravatar_id: string
+          html_url: string
+          id: number
+          login: string
+          node_id: string
+          organizations_url: string
+          received_events_url: string
+          repos_url: string
+          site_admin: boolean
+          starred_url: string
+          subscriptions_url: string
+          type: string
+          url: string
+          user_view_type: string
+        }
+        permissions: {
+          checks: string
+          contents: string
+          discussions: string
+          issues: string
+          members: string
+          metadata: string
+          pull_requests: string
+          statuses: string
+        }
+        slug: string
+        updated_at: string
+      }
+      reactions: {
+        '+1': number
+        '-1': number
+        confused: number
+        eyes: number
+        heart: number
+        hooray: number
+        laugh: number
+        rocket: number
+        total_count: number
+        url: string
+      }
+      updated_at: string
+      url: string
+      user: {
+        avatar_url: string
+        events_url: string
+        followers_url: string
+        following_url: string
+        gists_url: string
+        gravatar_id: string
+        html_url: string
+        id: number
+        login: string
+        node_id: string
+        organizations_url: string
+        received_events_url: string
+        repos_url: string
+        site_admin: boolean
+        starred_url: string
+        subscriptions_url: string
+        type: string
+        url: string
+      }
+    }
+    issue: {
+      active_lock_reason: string | null
+      assignee: {
+        avatar_url: string
+        events_url: string
+        followers_url: string
+        following_url: string
+        gists_url: string
+        gravatar_id: string
+        html_url: string
+        id: number
+        login: string
+        node_id: string
+        organizations_url: string
+        received_events_url: string
+        repos_url: string
+        site_admin: boolean
+        starred_url: string
+        subscriptions_url: string
+        type: string
+        url: string
+        user_view_type: string
+      }
+      assignees: Array<{
+        avatar_url: string
+        events_url: string
+        followers_url: string
+        following_url: string
+        gists_url: string
+        gravatar_id: string
+        html_url: string
+        id: number
+        login: string
+        node_id: string
+        organizations_url: string
+        received_events_url: string
+        repos_url: string
+        site_admin: boolean
+        starred_url: string
+        subscriptions_url: string
+        type: string
+        url: string
+        user_view_type: string
+      }>
+      author_association: string
+      body: string
+      closed_at: string | null
+      comments: number
+      comments_url: string
+      created_at: string
+      draft: boolean
+      events_url: string
+      html_url: string
+      id: number
+      labels: Array<{
+        color: string
+        default: boolean
+        description: string
+        id: number
+        name: string
+        node_id: string
+        url: string
+      }>
+      labels_url: string
+      locked: boolean
+      milestone: unknown | null
+      node_id: string
+      number: number
+      performed_via_github_app: unknown | null
+      pull_request: {
+        diff_url: string
+        html_url: string
+        merged_at: string | null
+        patch_url: string
+        url: string
+      }
+      reactions: {
+        '+1': number
+        '-1': number
+        confused: number
+        eyes: number
+        heart: number
+        hooray: number
+        laugh: number
+        rocket: number
+        total_count: number
+        url: string
+      }
+      repository_url: string
+      state: string
+      state_reason: string | null
+      timeline_url: string
+      title: string
+      updated_at: string
+      url: string
+      user: {
+        avatar_url: string
+        events_url: string
+        followers_url: string
+        following_url: string
+        gists_url: string
+        gravatar_id: string
+        html_url: string
+        id: number
+        login: string
+        node_id: string
+        organizations_url: string
+        received_events_url: string
+        repos_url: string
+        site_admin: boolean
+        starred_url: string
+        subscriptions_url: string
+        type: string
+        url: string
+      }
+    }
+  }
 }
 
 export interface IGetResponse<T extends IBasicResponse = IBasicResponse> {

@@ -54,7 +54,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoStargazersResult>> {
     const result = await this.client.run<IGetRepoStargazersResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:action as action,
         CREATED_AT_TIMESTAMP as timestamp,
         ACTOR_LOGIN as actorLogin,
@@ -97,7 +97,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoForksResult>> {
     const result = await this.client.run<IGetRepoForksResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:forkee.full_name as fork,
         PAYLOAD:forkee.id as forkId,
         CREATED_AT_TIMESTAMP as timestamp,
@@ -128,6 +128,7 @@ export class GithubSnowflakeClient {
     }
   }
 
+  // this is for pull requests open / closed
   public async getRepoPullRequests({
     repo,
     page = 1,
@@ -141,7 +142,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoPullRequestsResult>> {
     const result = await this.client.run<IGetRepoPullRequestsResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:action as action,
         PAYLOAD:number as pullRequestNumber,
         CREATED_AT_TIMESTAMP as timestamp,
@@ -172,6 +173,7 @@ export class GithubSnowflakeClient {
     }
   }
 
+  // this is for reviews on pull requests - should be here stuff like assigned, unassigned, review requested, review dismissed, etc.
   public async getRepoPullRequestReviews({
     repo,
     page = 1,
@@ -185,7 +187,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoPullRequestReviewsResult>> {
     const result = await this.client.run<IGetRepoPullRequestReviewsResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:review.state as state,
         PAYLOAD:pull_request.number as pullRequestNumber,
         CREATED_AT_TIMESTAMP as timestamp,
@@ -216,6 +218,7 @@ export class GithubSnowflakeClient {
     }
   }
 
+  // this is basically only for comments on pull requests
   public async getRepoPullRequestReviewComments({
     repo,
     page = 1,
@@ -229,7 +232,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoPullRequestReviewCommentsResult>> {
     const result = await this.client.run<IGetRepoPullRequestReviewCommentsResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:action as action,
         PAYLOAD:pull_request.number as pullRequestNumber,
         CREATED_AT_TIMESTAMP as timestamp,
@@ -316,7 +319,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoIssuesResult>> {
     const result = await this.client.run<IGetRepoIssuesResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:action as action,
         PAYLOAD:issue.number as issueNumber,
         CREATED_AT_TIMESTAMP as timestamp,
@@ -360,7 +363,7 @@ export class GithubSnowflakeClient {
   }): Promise<IGetResponse<IGetRepoIssueCommentsResult>> {
     const result = await this.client.run<IGetRepoIssueCommentsResult>(
       `SELECT 
-        ID as id,
+        ID as sfId,
         PAYLOAD:action as action,
         PAYLOAD:issue.number as issueNumber,
         CREATED_AT_TIMESTAMP as timestamp,

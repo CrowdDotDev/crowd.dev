@@ -67,7 +67,9 @@ const publishNextPageStream = async (ctx: IProcessStreamContext, response: IGetR
       repo: data.repo,
       page: response.nextPage,
     })
+    return true
   }
+  return false
 }
 
 const processStargazersStream: ProcessStreamHandler = async (ctx) => {
@@ -105,8 +107,6 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
   const result = await gh.getRepoForks({ repo: data.repo.url, page: data.page, since_days_ago })
 
-  await publishNextPageStream(ctx, result)
-
   for (const record of result.data) {
     const member = prepareMember(record)
 
@@ -118,6 +118,8 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
       repo: data.repo,
     })
   }
+
+  await publishNextPageStream(ctx, result)
 }
 
 const processPullsStream: ProcessStreamHandler = async (ctx) => {
@@ -150,12 +152,32 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         member,
         repo: data.repo,
       })
+
+      // additionall check if this PR is merged
+      if (record.payload.pull_request.merged) {
+        await ctx.processData<GithubApiData>({
+          type: GithubActivityType.PULL_REQUEST_MERGED,
+          data: record,
+          member,
+          repo: data.repo,
+        })
+      }
     } else {
       throw new Error(`Unsupported pull request action: ${action}`)
     }
   }
 
-  await publishNextPageStream(ctx, result)
+  const hasNextPage = await publishNextPageStream(ctx, result)
+  if (!hasNextPage) {
+    // launch comments stream
+    await ctx.publishStream<GithubBasicStream>(
+      `${GithubStreamType.PULL_COMMENTS}:${data.repo.name}:firstPage`,
+      {
+        repo: data.repo,
+        page: 1,
+      },
+    )
+  }
 }
 
 const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
@@ -214,7 +236,17 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
     }
   }
 
-  await publishNextPageStream(ctx, result)
+  const hasNextPage = await publishNextPageStream(ctx, result)
+  if (!hasNextPage) {
+    // launch comments stream
+    await ctx.publishStream<GithubBasicStream>(
+      `${GithubStreamType.ISSUE_COMMENTS}:${data.repo.name}:firstPage`,
+      {
+        repo: data.repo,
+        page: 1,
+      },
+    )
+  }
 }
 
 const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
@@ -248,6 +280,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const repos = data.reposToCheck
 
   // now it's time to start streams
+  // derivative streams should be started later, otherwise conversations can't be created correctly
   for (const repo of repos) {
     for (const endpoint of [
       GithubStreamType.STARGAZERS,
@@ -284,12 +317,6 @@ const handler: ProcessStreamHandler = async (ctx) => {
         break
       case GithubStreamType.PULL_COMMENTS:
         await processPullCommentsStream(ctx)
-        break
-      case GithubStreamType.PULL_REVIEW_THREADS:
-        await processPullReviewThreadsStream(ctx)
-        break
-      case GithubStreamType.PULL_REVIEW_THREAD_COMMENTS:
-        await processPullReviewThreadCommentsStream(ctx)
         break
       case GithubStreamType.PULL_COMMITS:
         await processPullCommitsStream(ctx)
