@@ -20,7 +20,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 
-const isSettingsDrawerOpen = ref(true);
+const isSettingsDrawerOpen = ref(false);
 </script>
 
 <script lang="ts">

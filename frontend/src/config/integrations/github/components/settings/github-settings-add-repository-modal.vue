@@ -1,20 +1,37 @@
 <template>
   <lf-modal v-model="isModalOpen">
-    <div class="pt-5 pb-6 px-6">
-      <div class="flex justify-between items-center pb-5">
-        <h5>
-          Sync repositories/organizations
-        </h5>
-        <lf-button type="secondary-ghost" icon-only @click="isModalOpen = false">
-          <lf-icon name="xmark" />
-        </lf-button>
+    <div class="pb-6 px-6">
+      <div class="sticky pt-5 bg-white z-10 top-0">
+        <div class="flex justify-between items-center pb-5">
+          <h5>
+            Add repositories
+          </h5>
+          <lf-button type="secondary-ghost" icon-only @click="isModalOpen = false">
+            <lf-icon name="xmark" />
+          </lf-button>
+        </div>
+        <div class="pb-4">
+          <lf-tabs v-model="tab" class="!w-full" :fragment="false">
+            <lf-tab name="repositories" class="flex-grow">
+              Repositories
+            </lf-tab>
+            <lf-tab name="organizations" class="flex-grow">
+              Organizations
+            </lf-tab>
+          </lf-tabs>
+        </div>
+
+        <lf-search
+          v-model="search"
+          :lazy="true"
+          class="!h-9"
+          :placeholder="
+            tab === 'repositories'
+              ? 'Search GitHub repositories...'
+              : 'Search GitHub organizations...'
+          "
+        />
       </div>
-      <lf-search
-        v-model="search"
-        :lazy="true"
-        class="!h-9"
-        placeholder="Search GitHub repositories, or organizations..."
-      />
 
       <div class="pt-4">
         <!-- Loading and empty search state -->
@@ -28,22 +45,14 @@
             />
           </div>
           <p v-if="loading" class="text-medium text-gray-500">
-            Searching for repositories and organizations...
+            <span v-if="tab === 'repositories'">Searching for repositories...</span>
+            <span v-else>Searching for organizations...</span>
           </p>
           <p v-else class="font-semibold text-medium">
             Explore the entire GitHub database and sync any repository
           </p>
         </div>
         <div v-else class="min-h-104">
-          <lf-tabs v-model="tab" class="!w-full" :fragment="false">
-            <lf-tab name="repositories" class="flex-grow">
-              Repositories
-            </lf-tab>
-            <lf-tab name="organizations" class="flex-grow">
-              Organizations
-            </lf-tab>
-          </lf-tabs>
-
           <!-- Repositories -->
           <div v-if="tab === 'repositories'" class="flex flex-col gap-5 mt-6">
             <!-- Repository list item -->
@@ -56,7 +65,7 @@
                   </p>
                 </div>
                 <p class="text-tiny text-gray-500">
-                  {{ repo.owner }}
+                  {{ repo.org?.name }}
                 </p>
               </div>
               <div>
@@ -64,34 +73,34 @@
                   v-if="isRepositoryAdded(repo)"
                   type="primary-ghost"
                   size="small"
-                  class="!bg-primary-50 group"
+                  class="!bg-primary-50 hover:!bg-primary-100"
                   @click="removeRepository(repo)"
                 >
-                  <lf-icon name="check" type="regular" class="group-hover:hidden" />
-                  <lf-icon name="circle-minus" type="regular" class="!hidden group-hover:!block" />
-                  <span class="group-hover:hidden">Synced</span>
-                  <span class="hidden group-hover:block">Stop syncing</span>
+                  <lf-icon name="check" type="regular" />
+                  <span>Added</span>
                 </lf-button>
                 <lf-button v-else type="primary-ghost" size="small" @click="addRepository(repo)">
-                  Sync repository
+                  Add repository
                 </lf-button>
               </div>
             </article>
+            <div v-if="resultRepositories.length === 0" class="flex justify-center">
+              <div class="pt-12 flex flex-col items-center w-full max-w-100">
+                <lf-icon-old name="git-repository-line" :size="64" class="text-gray-300 mb-6" />
+                <h6 class="text-center pb-3">
+                  No repositories found
+                </h6>
+              </div>
+            </div>
           </div>
 
           <!-- Organizations -->
-          <div v-else-if="tab === 'organizations'" class="pt-4">
-            <div class="flex items-center gap-1.5 pb-8">
-              <lf-icon name="info-circle" :size="20" class="text-gray-500" />
-              <p class="text-gray-500 text-tiny">
-                Sync all existing and future repositories within GitHub organization.
-              </p>
-            </div>
+          <div v-else-if="tab === 'organizations'" class="pt-6">
             <div class="flex flex-col gap-5">
               <!-- Organization list item -->
               <article v-for="org of resultOrganizations" :key="org.url" class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                  <lf-avatar :name="org.name" :src="org.image" :size="32" class="!rounded border border-gray-200">
+                  <lf-avatar :name="org.name" :src="org.logo" :size="32" class="!rounded border border-gray-200">
                     <template #placeholder>
                       <div class="w-full h-full bg-gray-50 flex items-center justify-center">
                         <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
@@ -102,12 +111,6 @@
                     <p class="text-small font-semibold mb-0.5">
                       {{ org.name }}
                     </p>
-                    <div class="flex items-center gap-1">
-                      <lf-icon-old name="git-repository-line" class="text-gray-500" :size="16" />
-                      <p class="text-tiny text-gray-500">
-                        {{ org.repositories.length }} repositories
-                      </p>
-                    </div>
                   </div>
                 </div>
                 <div>
@@ -115,19 +118,25 @@
                     v-if="isOrganizationSynced(org)"
                     type="primary-ghost"
                     size="small"
-                    class="!bg-primary-50 group"
+                    class="!bg-primary-50 hover:!bg-primary-100"
                     @click="removeOrganizations(org)"
                   >
-                    <lf-icon name="check" type="regular" class="group-hover:hidden" />
-                    <lf-icon name="circle-minus" type="regular" class="!hidden group-hover:!block" />
-                    <span class="group-hover:hidden">Synced</span>
-                    <span class="hidden group-hover:block">Stop syncing</span>
+                    <lf-icon name="check" type="regular" />
+                    <span>Synced</span>
                   </lf-button>
                   <lf-button v-else type="primary-ghost" size="small" @click="addOrganizations(org)">
                     Sync organization
                   </lf-button>
                 </div>
               </article>
+              <div v-if="resultOrganizations.length === 0" class="flex justify-center">
+                <div class="pt-12 flex flex-col items-center w-full max-w-100">
+                  <lf-icon name="building" type="regular" :size="64" class="text-gray-300 mb-6" />
+                  <h6 class="text-center pb-3">
+                    No Github organizations found
+                  </h6>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -146,18 +155,24 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import {
+  GitHubOrganization,
+  GitHubRepository,
+  GitHubSettingsRepository,
+} from '@/config/integrations/github/types/GithubSettings';
 import { GithubApiService } from '@/config/integrations/github/services/github.api.service';
 import Message from '@/shared/message/message';
+import dayjs from 'dayjs';
 
 const props = defineProps<{
   modelValue: boolean,
-  organizations: any[],
-  repositories: any[],
+  organizations: GitHubOrganization[],
+  repositories: GitHubSettingsRepository[],
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void,
-  (e: 'update:organizations', value: any[]): void,
-  (e: 'update:repositories', value: any[]): void }>();
+  (e: 'update:organizations', value: GitHubOrganization[]): void,
+  (e: 'update:repositories', value: GitHubSettingsRepository[]): void }>();
 
 const search = ref('');
 const loading = ref(false);
@@ -168,28 +183,34 @@ const isModalOpen = computed({
   set(val) { emit('update:modelValue', val); },
 });
 
-const repositories = computed({
+const repositories = computed<GitHubSettingsRepository[]>({
   get() { return props.repositories; },
   set(value) { emit('update:repositories', value); },
 });
 
-const organizations = computed({
+const organizations = computed<GitHubOrganization[]>({
   get() { return props.organizations; },
   set(value) { emit('update:organizations', value); },
 });
 
-const isRepositoryAdded = (repo: any) => repositories.value.some((r: any) => r.url === repo.url);
-const isOrganizationSynced = (org: any) => organizations.value.some((o: any) => o.url === org.url);
+const isRepositoryAdded = (repo: GitHubSettingsRepository) => repositories.value.some((r: GitHubSettingsRepository) => r.url === repo.url);
+const isOrganizationSynced = (org: GitHubOrganization) => organizations.value.some((o: GitHubOrganization) => o.url === org.url);
 
-const addRepository = (repo: any) => {
-  if (!repositories.value.some((r: any) => repo.url === r.url)) {
-    repositories.value.push(repo);
+const addRepository = (repo: GitHubSettingsRepository) => {
+  if (!repositories.value.some((r: GitHubSettingsRepository) => repo.url === r.url)) {
+    repositories.value.push({ ...repo, updatedAt: dayjs().toISOString() });
   }
 };
-const addOrganizations = (org: any) => {
-  organizations.value.push(org);
-  const newRepositories = org.repositories.filter((r: any) => !repositories.value.some((repo: any) => repo.url === r.url));
-  repositories.value = [...repositories.value, ...newRepositories];
+
+const addOrganizations = (org: GitHubOrganization) => {
+  organizations.value.push({ ...org, updatedAt: dayjs().toISOString() });
+  GithubApiService.getOrganizationRepositories(org.name)
+    .then((res) => {
+      const newRepositories = (res as GitHubSettingsRepository[])
+        .filter((r: GitHubSettingsRepository) => !repositories.value.some((repo: GitHubSettingsRepository) => repo.url === r.url))
+        .map((r: GitHubSettingsRepository) => ({ ...r, org, updatedAt: dayjs().toISOString() }));
+      repositories.value = [...repositories.value, ...newRepositories];
+    });
 };
 
 const removeRepository = (repo: any) => {
@@ -199,138 +220,22 @@ const removeOrganizations = (org: any) => {
   organizations.value = organizations.value.filter((o: any) => o.url !== org.url);
 };
 
-const resultRepositories = ref<any[]>([
-  {
-    url: 'https://github.com/FabEdge/fabedge',
-    fork: false,
-    name: 'fabedge',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fabedge.git',
-    createdAt: '2021-07-16T08:45:38Z',
-  }, {
-    url: 'https://github.com/FabEdge/fab-dns',
-    fork: false,
-    name: 'fab-dns',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fab-dns.git',
-    createdAt: '2021-12-14T02:44:36Z',
-  }, {
-    url: 'https://github.com/FabEdge/helm-chart',
-    fork: false,
-    name: 'helm-chart',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/helm-chart.git',
-    createdAt: '2022-02-17T03:44:45Z',
-  }, {
-    url: 'https://github.com/FabEdge/fabctl',
-    fork: false,
-    name: 'fabctl',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fabctl.git',
-    createdAt: '2022-03-14T03:10:13Z',
-  }, {
-    url: 'https://github.com/FabEdge/net-tool',
-    fork: false,
-    name: 'net-tool',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/net-tool.git',
-    createdAt: '2022-06-24T02:33:58Z',
-  }, {
-    url: 'https://github.com/FabEdge/strongswan',
-    fork: false,
-    name: 'strongswan',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/strongswan.git',
-    createdAt: '2023-03-22T08:00:31Z',
-  },
-]);
+const resultRepositories = ref<GitHubRepository[]>([]);
 
-const resultOrganizations = ref<any[]>([{
-  url: 'https://github.com/FabEdge',
-  name: 'FabEdge',
-  image: 'https://avatars.githubusercontent.com/u/85610065?s=200&v=4',
-  repositories: [{
-    url: 'https://github.com/FabEdge/fabedge',
-    fork: false,
-    name: 'fabedge',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fabedge.git',
-    createdAt: '2021-07-16T08:45:38Z',
-  }, {
-    url: 'https://github.com/FabEdge/fab-dns',
-    fork: false,
-    name: 'fab-dns',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fab-dns.git',
-    createdAt: '2021-12-14T02:44:36Z',
-  }, {
-    url: 'https://github.com/FabEdge/helm-chart',
-    fork: false,
-    name: 'helm-chart',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/helm-chart.git',
-    createdAt: '2022-02-17T03:44:45Z',
-  }, {
-    url: 'https://github.com/FabEdge/fabctl',
-    fork: false,
-    name: 'fabctl',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/fabctl.git',
-    createdAt: '2022-03-14T03:10:13Z',
-  }, {
-    url: 'https://github.com/FabEdge/net-tool',
-    fork: false,
-    name: 'net-tool',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/net-tool.git',
-    createdAt: '2022-06-24T02:33:58Z',
-  }, {
-    url: 'https://github.com/FabEdge/strongswan',
-    fork: false,
-    name: 'strongswan',
-    owner: 'FabEdge',
-    private: false,
-    cloneUrl: 'https://github.com/FabEdge/strongswan.git',
-    createdAt: '2023-03-22T08:00:31Z',
-  }],
-},
-{
-  url: 'https://github.com/CrowdDotDev',
-  name: 'crowd.dev',
-  image: 'https://avatars.githubusercontent.com/u/85551972?s=200&v=4',
-  repositories: [
-    {
-      url: 'https://github.com/CrowdDotDev/crowd.dev',
-      fork: false,
-      name: 'crowd.dev',
-      owner: 'CrowdDotDev',
-      private: false,
-      cloneUrl: 'https://github.com/CrowdDotDev/crowd.dev.git',
-      createdAt: '2023-03-22T08:00:31Z',
-    },
-  ],
-}]);
+const resultOrganizations = ref<GitHubOrganization[]>([]);
 
 const searchForResults = () => {
   loading.value = true;
-  GithubApiService.searchReposAndOrgs(search.value)
+  (tab.value === 'repositories' ? GithubApiService.searchRepositories : GithubApiService.searchOrganizations)(search.value)
     .then((res) => {
-      resultRepositories.value = res.repositories;
-      resultOrganizations.value = res.organizations;
+      if (tab.value === 'repositories') {
+        resultRepositories.value = res as GitHubRepository[];
+      } else {
+        resultOrganizations.value = res as GitHubOrganization[];
+      }
     })
     .catch(() => {
-      Message.error('There has been error fetching repositories and organizations');
+      Message.error(`There has been error fetching ${tab.value}`);
     })
     .finally(() => {
       loading.value = false;
@@ -341,6 +246,10 @@ watch(() => search.value, (value: string) => {
   if (value.length > 0) {
     searchForResults();
   }
+});
+
+watch(() => tab.value, () => {
+  search.value = '';
 });
 </script>
 

@@ -10,7 +10,7 @@
       </p>
       <lf-button type="primary-ghost" @click="emit('add')">
         <lf-icon name="arrows-rotate" type="regular" />
-        Sync repositories/organizations
+        Add repositories
       </lf-button>
     </div>
   </div>

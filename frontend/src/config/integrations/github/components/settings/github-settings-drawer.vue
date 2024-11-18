@@ -22,30 +22,18 @@
           Sync GitHub repositories to track profile information and all relevant activities like commits, pull requests, discussions, and more.
         </p>
       </section>
-      <div class="flex-grow">
+      <div class="flex-grow overflow-auto">
         <lf-github-settings-empty
           v-if="repositories.length === 0"
           @add="isAddRepositoryModalOpen = true"
         />
         <div v-else class="px-6 pt-5">
-          <lf-tabs v-model="tab" class="!w-full mb-6" :fragment="false">
-            <lf-tab name="repositories" class="flex-grow">
-              Synced repositories
-            </lf-tab>
-            <lf-tab name="organizations" class="flex-grow">
-              Synced organizations
-            </lf-tab>
-          </lf-tabs>
-          <lf-github-settings-repositories
-            v-if="tab === 'repositories'"
+          <lf-github-settings-mapping
             v-model:repositories="repositories"
+            v-model:organizations="organizations"
             v-model:mappings="repoMappings"
             :subprojects="subprojects"
             @add="isAddRepositoryModalOpen = true"
-          />
-          <lf-github-settings-organizations
-            v-else
-            v-model:organizations="organizations"
           />
         </div>
       </div>
@@ -58,7 +46,7 @@
           :disabled="$v.$invalid || !repositories.length"
           @click="connect()"
         >
-          Connect
+          {{ props.integration ? 'Update settings' : 'Connect' }}
         </lf-button>
       </div>
     </div>
@@ -74,7 +62,7 @@
 
 <script lang="ts" setup>
 import {
-  computed, onMounted, ref,
+  computed, onMounted, ref, watch,
 } from 'vue';
 import LfDrawer from '@/ui-kit/drawer/Drawer.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -82,31 +70,41 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal
   from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
-import LfTabs from '@/ui-kit/tabs/Tabs.vue';
-import LfTab from '@/ui-kit/tabs/Tab.vue';
-import LfGithubSettingsRepositories
-  from '@/config/integrations/github/components/settings/github-settings-repositories.vue';
-import LfGithubSettingsOrganizations
-  from '@/config/integrations/github/components/settings/github-settings-organizations.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute } from 'vue-router';
 import useVuelidate from '@vuelidate/core';
+import { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import {
+  GitHubOrganization,
+  GitHubSettings, GitHubSettingsOrganization, GitHubSettingsRepository,
+} from '@/config/integrations/github/types/GithubSettings';
+import LfGithubSettingsMapping from '@/config/integrations/github/components/settings/github-settings-mapping.vue';
+import dayjs from 'dayjs';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import Message from '@/shared/message/message';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 
 const props = defineProps<{
   modelValue: boolean,
-  integration: any
+  integration?: Integration<GitHubSettings>,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
+
+const { doFetch } = mapActions('integration');
+const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 
 const isAddRepositoryModalOpen = ref(false);
 
-const tab = ref('repositories');
 const subprojects = ref([]);
-const organizations = ref([]);
-const repositories = ref([]);
+const organizations = ref<GitHubOrganization[]>([]);
+const repositories = ref<GitHubSettingsRepository[]>([]);
 const repoMappings = ref<Record<string, string>>({});
 
 // Drawer visibility
@@ -128,9 +126,91 @@ const fetchSubProjects = () => {
 
 const $v = useVuelidate();
 
-const connect = () => {
-  // TODO: Update settings
+const allOrganizations = computed<any[]>(() => {
+  const owners = new Set();
+  return repositories.value.reduce((acc: any[], r) => {
+    if (!owners.has(r.org!.name)) {
+      owners.add(r.org!.name);
+      acc.push(r.org!);
+    }
+    return acc;
+  }, []);
+});
+
+const buildSettings = (): GitHubSettings => {
+  const orgs = allOrganizations.value.map((o: GitHubOrganization): GitHubSettingsOrganization => ({
+    ...o,
+    fullSync: organizations.value.some((org) => org.url === o.url),
+    updatedAt: o.updatedAt || dayjs().toISOString(),
+    repos: repositories.value.filter((r) => r.org!.url === o.url).map((r) => ({
+      name: r.name,
+      url: r.url,
+      updatedAt: r.updatedAt || dayjs().toISOString(),
+    })),
+  }));
+  return { orgs };
 };
+
+const connect = () => {
+  let integration: any = null;
+  const settings: GitHubSettings = buildSettings();
+  (props.integration?.id
+    ? IntegrationService.update(props.integration.id, { settings })
+    : IntegrationService.create({ settings, platform: 'github', status: 'in-progress' }))
+    .then((res) => {
+      integration = res;
+      IntegrationService.githubMapRepos(res.id, repoMappings.value, [res.segmentId]);
+    })
+    .then(() => {
+      doFetch([integration.segmentId]);
+
+      trackEvent({
+        key: FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          integration: Platform.GITHUB,
+        },
+      });
+
+      if (integration.status === 'in-progress') {
+        showIntegrationProgressNotification('github', integration.segmentId);
+      } else {
+        Message.success(props.integration?.id
+          ? 'Settings have been updated'
+          : 'GitHub has been connected successfully');
+      }
+
+      isDrawerVisible.value = false;
+    })
+    .catch(() => {
+      Message.error(props.integration?.id
+        ? 'There was error updating settings'
+        : 'There was error connecting GitHub');
+    });
+};
+
+watch(() => props.integration, (value?: Integration<GitHubSettings>) => {
+  if (value) {
+    const { orgs } = value.settings;
+    organizations.value = orgs
+      .filter((o) => o.fullSync)
+      .map((o) => ({
+        name: o.name,
+        logo: o.logo,
+        url: o.url,
+        updatedAt: o.updatedAt,
+      }));
+    repositories.value = orgs.reduce((acc: GitHubSettingsRepository[], o) => [...acc, ...o.repos.map((r) => ({
+      ...r,
+      org: {
+        name: o.name,
+        logo: o.logo,
+        url: o.url,
+        updatedAt: o.updatedAt,
+      },
+    }))], []);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   fetchSubProjects();

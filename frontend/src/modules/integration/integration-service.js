@@ -7,7 +7,7 @@ const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 export class IntegrationService {
   static async update(id, data) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
 
@@ -38,7 +38,7 @@ export class IntegrationService {
 
   static async create(data) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
 
