@@ -12,6 +12,10 @@ import {
   type IGetResponse,
 } from './types'
 
+const fixGitHubUrl = (url: string) => {
+  return url.replace('https://github.com/', '')
+}
+
 export class GithubSnowflakeClient {
   constructor(private client: SnowflakeClient) {}
 
@@ -25,8 +29,8 @@ export class GithubSnowflakeClient {
     page?: number
   }): Promise<IGetOrgRepositoriesResult> {
     const result = await this.client.run<{ id: number; name: string }>(
-      `SELECT repo_id as id, repo_name as name
-      FROM github_events_ingest.cybersyn.github_repos _ingest.cybersyn.github_repos
+      `SELECT repo_id as "sfId", repo_name as "name"
+      FROM github_events_ingest.cybersyn.github_repos
       WHERE REGEXP_LIKE(repo_name, ?)
       LIMIT ?
       OFFSET ?`,
@@ -52,19 +56,20 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoStargazersResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoStargazersResult>(
       `SELECT
-        ID as sfId,
-        PAYLOAD:action as action,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:action as "action",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'WatchEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -72,8 +77,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -95,20 +100,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoForksResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoForksResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:forkee.full_name as fork,
-        PAYLOAD:forkee.id as forkId,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:forkee.full_name as "fork",
+        PAYLOAD:forkee.id as "forkId",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'ForkEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -116,8 +122,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -140,20 +146,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestsResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoPullRequestsResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:action as action,
-        PAYLOAD:number as pullRequestNumber,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:action as "action",
+        PAYLOAD:number as "pullRequestNumber",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'PullRequestEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -161,8 +168,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -185,20 +192,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestReviewsResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoPullRequestReviewsResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:review.state as state,
-        PAYLOAD:pull_request.number as pullRequestNumber,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:review.state as "state",
+        PAYLOAD:pull_request.number as "pullRequestNumber",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'PullRequestReviewEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -206,8 +214,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -230,20 +238,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPullRequestReviewCommentsResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoPullRequestReviewCommentsResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:action as action,
-        PAYLOAD:pull_request.number as pullRequestNumber,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:action as "action",
+        PAYLOAD:pull_request.number as "pullRequestNumber",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'PullRequestReviewCommentEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -251,8 +260,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -275,18 +284,19 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPushesResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoPushesResult>(
       `SELECT
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        ARRAY_SIZE(PAYLOAD:commits) as commitCount,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        ARRAY_SIZE(PAYLOAD:commits) as "commitCount",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'PushEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -294,8 +304,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -317,20 +327,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoIssuesResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoIssuesResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:action as action,
-        PAYLOAD:issue.number as issueNumber,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:action as "action",
+        PAYLOAD:issue.number as "issueNumber",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'IssuesEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -338,8 +349,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {
@@ -361,20 +372,21 @@ export class GithubSnowflakeClient {
     perPage?: number
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoIssueCommentsResult>> {
+    const fixedRepo = fixGitHubUrl(repo)
     const result = await this.client.run<IGetRepoIssueCommentsResult>(
       `SELECT
-        ID as id,
-        PAYLOAD:action as action,
-        PAYLOAD:issue.number as issueNumber,
-        CREATED_AT_TIMESTAMP as timestamp,
-        ACTOR_LOGIN as actorLogin,
-        ACTOR_ID as actorId,
-        ACTOR_AVATAR_URL as actorAvatarUrl,
-        ORG_LOGIN as orgLogin,
-        ORG_ID as orgId,
-        ORG_AVATAR_URL as orgAvatarUrl,
-        PAYLOAD as payload
-      FROM github_events_ingest.cybersyn.github_repos
+        ID as "sfId",
+        PAYLOAD:action as "action",
+        PAYLOAD:issue.number as "issueNumber",
+        CREATED_AT_TIMESTAMP as "timestamp",
+        ACTOR_LOGIN as "actorLogin",
+        ACTOR_ID as "actorId",
+        ACTOR_AVATAR_URL as "actorAvatarUrl",
+        ORG_LOGIN as "orgLogin",
+        ORG_ID as "orgId",
+        ORG_AVATAR_URL as "orgAvatarUrl",
+        PAYLOAD as "payload"
+      FROM github_events_ingest.cybersyn.github_events
       WHERE repo_name = ?
       AND type = 'IssueCommentEvent'
       ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
@@ -382,8 +394,8 @@ export class GithubSnowflakeClient {
       LIMIT ?
       OFFSET ?`,
       since_days_ago
-        ? [repo, since_days_ago, perPage, (page - 1) * perPage]
-        : [repo, perPage, (page - 1) * perPage],
+        ? [fixedRepo, since_days_ago, perPage, (page - 1) * perPage]
+        : [fixedRepo, perPage, (page - 1) * perPage],
     )
 
     return {

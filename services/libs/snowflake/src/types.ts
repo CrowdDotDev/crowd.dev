@@ -12,9 +12,9 @@ export interface IBasicResponse {
   actorLogin: string
   actorId: number
   actorAvatarUrl: string
-  orgLogin: string | null
-  orgId: number | null
-  orgAvatarUrl: string | null
+  orgLogin: string | null | undefined
+  orgId: number | null | undefined
+  orgAvatarUrl: string | null | undefined
 }
 
 export interface IGetRepoStargazersResult extends IBasicResponse {

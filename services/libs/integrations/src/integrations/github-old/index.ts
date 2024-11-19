@@ -10,7 +10,7 @@ import processStream from './processStream'
 import processWebhookStream from './processWebhookStream'
 
 const descriptor: IIntegrationDescriptor = {
-  type: PlatformType.GITHUB,
+  type: PlatformType.GITHUB_OLD,
   memberAttributes: GITHUB_MEMBER_ATTRIBUTES,
   generateStreams,
   processStream,

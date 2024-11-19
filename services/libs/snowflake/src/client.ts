@@ -25,16 +25,25 @@ export class SnowflakeClient {
     maxConnections?: number
     minConnections?: number
   }) {
-    const privateKeyObject = crypto.createPrivateKey({
-      key: privateKeyString,
-      format: 'pem',
-      ...(privateKeyPassphrase && { passphrase: privateKeyPassphrase }),
-    })
+    let privateKey: string | Buffer
+    try {
+      const formattedKey = privateKeyString.includes('BEGIN PRIVATE KEY')
+        ? privateKeyString
+        : `-----BEGIN PRIVATE KEY-----\n${privateKeyString}\n-----END PRIVATE KEY-----`
 
-    const privateKey = privateKeyObject.export({
-      format: 'pem',
-      type: 'pkcs8',
-    })
+      const privateKeyObject = crypto.createPrivateKey({
+        key: formattedKey,
+        format: 'pem',
+        ...(privateKeyPassphrase && { passphrase: privateKeyPassphrase }),
+      })
+
+      privateKey = privateKeyObject.export({
+        format: 'pem',
+        type: 'pkcs8',
+      })
+    } catch (err) {
+      throw new Error('Invalid private key format')
+    }
 
     this.pool = Snowflake.createPool(
       {

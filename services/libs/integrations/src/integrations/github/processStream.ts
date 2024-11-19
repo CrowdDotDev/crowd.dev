@@ -29,6 +29,7 @@ const initClient = (ctx: IProcessStreamContext) => {
     username: settings.username,
     database: settings.database,
     warehouse: settings.warehouse,
+    role: settings.role,
   })
   gh = new GithubSnowflakeClient(sf)
 }
@@ -50,7 +51,7 @@ const prepareMember = (data: IBasicResponse): GithubPrepareMemberOutput => {
       ...(isBot ? { isBot: true } : {}),
     },
     org: {
-      id: data.orgId.toString(),
+      id: data.orgId?.toString(),
       login: data.orgLogin,
       avatarUrl: data.orgAvatarUrl,
     },
@@ -360,7 +361,7 @@ const handler: ProcessStreamHandler = async (ctx) => {
         await processIssueCommentsStream(ctx)
         break
       default:
-        console.error(`No matching process function for streamType: ${streamType}`)
+        ctx.log.error(`No matching process function for streamType: ${streamType}`)
     }
   }
 }

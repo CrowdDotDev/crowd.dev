@@ -21,4 +21,5 @@ export interface GitHubSettingsOrganization extends GitHubOrganization {
 }
 export interface GitHubSettings {
   orgs: GitHubSettingsOrganization[];
+  updateMemberAttributes: boolean;
 }

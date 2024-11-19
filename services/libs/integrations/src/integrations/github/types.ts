@@ -133,6 +133,7 @@ export interface GithubPlatformSettings {
   username: string
   database: string
   warehouse: string
+  role: string
 }
 
 export interface GithubIntegrationSettings {

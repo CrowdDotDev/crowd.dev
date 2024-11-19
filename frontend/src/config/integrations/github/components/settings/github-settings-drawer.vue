@@ -148,7 +148,7 @@ const buildSettings = (): GitHubSettings => {
       updatedAt: r.updatedAt || dayjs().toISOString(),
     })),
   }));
-  return { orgs };
+  return { orgs, updateMemberAttributes: true };
 };
 
 const connect = () => {
@@ -156,7 +156,9 @@ const connect = () => {
   const settings: GitHubSettings = buildSettings();
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, { settings })
-    : IntegrationService.create({ settings, platform: 'github', status: 'in-progress' }))
+    : IntegrationService.create({
+      settings, platform: 'github', status: 'in-progress',
+    }))
     .then((res) => {
       integration = res;
       return IntegrationService.githubMapRepos(res.id, repoMappings.value, [res.segmentId]);
