@@ -147,6 +147,7 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
+import { debouncedRef } from '@vueuse/core';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -242,7 +243,9 @@ const searchForResults = () => {
     });
 };
 
-watch(() => search.value, (value: string) => {
+const debouncedSearch = debouncedRef(search, 500);
+
+watch(() => debouncedSearch.value, (value: string) => {
   if (value.length > 0) {
     searchForResults();
   }

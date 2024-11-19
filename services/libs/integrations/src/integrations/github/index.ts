@@ -11,7 +11,7 @@ import processStream from './processStream'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GITHUB,
   memberAttributes: GITHUB_MEMBER_ATTRIBUTES,
-  checkEvery: 24 * 60,
+  checkEvery: 0.5 * 60,
   generateStreams,
   processStream,
   processData,

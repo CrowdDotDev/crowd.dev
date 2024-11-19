@@ -1,6 +1,7 @@
 import { request } from '@octokit/request'
-
 import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
+import { GITHUB_TOKEN_CONFIG } from '@/conf'
+
 
 import { IServiceOptions } from './IServiceOptions'
 
@@ -14,16 +15,27 @@ export default class GithubIntegrationService {
     return githubClient.getOrgRepositories({ org, perPage: 10000 })
   }
 
-  public static async findGithubRepos(query: string) {
+  public async findGithubRepos(query: string) {
+    const auth = GITHUB_TOKEN_CONFIG.token
+
     const [orgRepos, repos] = await Promise.all([
       request('GET /search/repositories', {
         q: `owner:${query}`,
+        headers: {
+          authorization: `bearer ${auth}`,
+        }
       }).catch((err) => {
         this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
         return { data: { items: [] } }
       }),
       request('GET /search/repositories', {
         q: query,
+        headers: {
+          authorization: `bearer ${auth}`,
+        }
+      }).catch((err) => {
+        this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
+        return { data: { items: [] } }
       }),
     ])
 
@@ -41,8 +53,12 @@ export default class GithubIntegrationService {
   }
 
   public static async findOrgs(query: string) {
+    const auth = process.env.GITHUB_PAT
     const response = await request('GET /search/users', {
       q: query,
+      headers: {
+        authorization: `bearer ${auth}`,
+      }
     })
     return response.data.items.map((item) => ({
       name: item.login,
@@ -52,8 +68,12 @@ export default class GithubIntegrationService {
   }
 
   public static async getOrgRepos(org: string) {
+    const auth = process.env.GITHUB_PAT
     const response = await request('GET /orgs/{org}/repos', {
       org,
+      headers: {
+        authorization: `bearer ${auth}`,
+      }
     })
     return response.data.map((repo) => ({
       name: repo.name,

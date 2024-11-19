@@ -8,7 +8,10 @@ import {
   GithubManualStreamType,
   GithubRootStream,
   GithubStreamType,
+  Repo,
 } from './types'
+
+const REPO_UPDATE_THRESHOLD_MS = 30 * 60 * 1000 // 30 minutes in milliseconds
 
 const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = new Map([
   [GithubStreamType.STARGAZERS, GithubManualStreamType.STARGAZERS],
@@ -32,10 +35,16 @@ const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> =>
   return map
 }
 
+const isRepoRecentlyUpdated = (repo: Repo): boolean => {
+  if (!repo.updatedAt) return true // If no updatedAt, process it to be safe
+  const now = Date.now()
+  const lastUpdate = new Date(repo.updatedAt).getTime()
+  return now - lastUpdate < REPO_UPDATE_THRESHOLD_MS
+}
+
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GithubIntegrationSettings
-  const reposToCheck = settings.orgs.flatMap((org) => org.repos)
-
+  const reposToCheck = settings.orgs.flatMap((org) => org.repos).filter(isRepoRecentlyUpdated)
   const isManualRun = ctx.isManualRun
 
   if (isManualRun) {
@@ -46,7 +55,8 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
     if (manualSettings.orgs && manualSettings.manualSettingsType === 'default') {
       for (const org of manualSettings.orgs) {
-        for (const repo of org.repos) {
+        const recentRepos = org.repos.filter(isRepoRecentlyUpdated)
+        for (const repo of recentRepos) {
           for (const endpoint of [
             GithubStreamType.STARGAZERS,
             GithubStreamType.FORKS,
@@ -80,10 +90,12 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           if (!repo) {
             ctx.abortRunWithError(`Could not find repo with URL: ${repoUrl}`)
           }
-          await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
-            repo,
-            page: 1,
-          })
+          if (isRepoRecentlyUpdated(repo)) {
+            await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+              repo,
+              page: 1,
+            })
+          }
         }
       }
     }

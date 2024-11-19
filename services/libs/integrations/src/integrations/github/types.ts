@@ -85,9 +85,8 @@ export enum GithubStreamType {
   FORKS = 'forks',
   PULLS = 'pulls',
   PULL_COMMENTS = 'pull-comments',
-  PULL_REVIEW_THREADS = 'pull-review-threads',
-  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
   PULL_COMMITS = 'pull-commits',
+  PULL_REVIEWS = 'pull-reviews',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
 }

@@ -187,6 +187,15 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         page: 1,
       },
     )
+
+    // launch reviews stream
+    await ctx.publishStream<GithubBasicStream>(
+      `${GithubStreamType.PULL_REVIEWS}:${data.repo.name}:firstPage`,
+      {
+        repo: data.repo,
+        page: 1,
+      },
+    )
   }
 }
 
@@ -308,6 +317,29 @@ const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
   await publishNextPageStream(ctx, result)
 }
 
+const processPullReviewsStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GithubBasicStream
+  const { gh } = getClient(ctx)
+
+  const result = await gh.getRepoPullRequestReviews({
+    repo: data.repo.url,
+    page: data.page,
+  })
+
+  for (const record of result.data) {
+    const member = prepareMember(record)
+
+    await ctx.processData<GithubApiData>({
+      type: GithubActivityType.PULL_REQUEST_REVIEWED,
+      data: record,
+      member,
+      repo: data.repo,
+    })
+  }
+
+  await publishNextPageStream(ctx, result)
+}
+
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubRootStream
   const repos = data.reposToCheck
@@ -353,6 +385,9 @@ const handler: ProcessStreamHandler = async (ctx) => {
         break
       case GithubStreamType.PULL_COMMITS:
         await processPullCommitsStream(ctx)
+        break
+      case GithubStreamType.PULL_REVIEWS:
+        await processPullReviewsStream(ctx)
         break
       case GithubStreamType.ISSUES:
         await processIssuesStream(ctx)
