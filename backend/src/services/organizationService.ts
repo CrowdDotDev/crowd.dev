@@ -1022,7 +1022,7 @@ export default class OrganizationService extends LoggerBase {
         offset,
         segmentId: segments.length > 0 ? segments[0] : undefined,
         fields: ['id', 'segmentId', 'displayName', 'memberCount', 'activityCount', 'logo'],
-        include: { aggregates: true, identities: false, lfxMemberships: true },
+        include: { aggregates: false, identities: false, lfxMemberships: true },
       },
       this.options,
     )

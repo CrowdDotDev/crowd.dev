@@ -29,7 +29,9 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   public platform = `enrichment-${this.source}`
   public enrichMembersWithActivityMoreThan = 10
 
-  public enrichableBySql = `"activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
+  public enrichableBySql = `"membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
+
+  public maxConcurrentRequests = 15
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
@@ -57,7 +59,11 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   }
 
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
-    return !!input.email?.value && input.email?.verified
+    return (
+      input.activityCount > this.enrichMembersWithActivityMoreThan &&
+      !!input.email?.value &&
+      input.email?.verified
+    )
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit | null> {
@@ -172,7 +178,9 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     if (data.linkedin?.handle) {
       normalized = normalizeSocialIdentity(
         {
-          handle: data.linkedin.handle.split('/').pop(),
+          handle: data.linkedin.handle.endsWith('/')
+            ? data.linkedin.handle.slice(0, -1).split('/').pop()
+            : data.linkedin.handle.split('/').pop(),
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,

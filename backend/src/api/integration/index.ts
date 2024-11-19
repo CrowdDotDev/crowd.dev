@@ -29,6 +29,11 @@ export default (app) => {
     `/tenant/:tenantId/integration/autocomplete`,
     safeWrap(require('./integrationAutocomplete').default),
   )
+  app.get(`/tenant/:tenantId/integration/global`, safeWrap(require('./integrationGlobal').default))
+  app.get(
+    `/tenant/:tenantId/integration/global/status`,
+    safeWrap(require('./integrationGlobalStatus').default),
+  )
   app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 

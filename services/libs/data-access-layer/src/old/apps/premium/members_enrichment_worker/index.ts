@@ -75,21 +75,24 @@ export async function fetchMemberDataForLLMSquashing(
   return result
 }
 
+/**
+ * Gets enrichable members using the provided sources
+ * If a member is enrichable in one source, and not enrichable in another, the member will be returned
+ * Members with at least one missing or old source cache rows will be returned
+ * The reason we're not checking enrichable members and cache age in the same subquery is because of linkedin scraper sources.
+ * These sources also use data from other sources and it's costly to check cache data jsons.
+ * This check is instead done in the application layer.
+ */
 export async function fetchMembersForEnrichment(
   db: DbStore,
   limit: number,
   sourceInputs: IMemberEnrichmentSourceQueryInput[],
-  afterCursor: { activityCount: number; memberId: string } | null,
 ): Promise<IEnrichableMember[]> {
-  const cursorFilter = afterCursor
-    ? `AND ((coalesce("activitySummary".total_count, 0) < $2) OR (coalesce("activitySummary".total_count, 0) = $2 AND members.id < $3))`
-    : ''
-
-  const sourceInnerQueryItems = []
+  const cacheAgeInnerQueryItems = []
   const enrichableBySqlConditions = []
 
   sourceInputs.forEach((input) => {
-    sourceInnerQueryItems.push(
+    cacheAgeInnerQueryItems.push(
       `
       ( NOT EXISTS (
           SELECT 1 FROM "memberEnrichmentCache" mec
@@ -110,18 +113,6 @@ export async function fetchMembersForEnrichment(
 
   return db.connection().query(
     `
-    WITH "activitySummary" AS (
-        SELECT
-            msa."memberId",
-            SUM(msa."activityCount") AS total_count
-        FROM "memberSegmentsAgg" msa
-        WHERE msa."segmentId" IN (
-            SELECT id
-            FROM segments
-            WHERE "grandparentId" IS NOT NULL AND "parentId" IS NOT NULL
-        )
-        GROUP BY msa."memberId"
-    )
     SELECT
          members."id",
          members."tenantId",
@@ -136,22 +127,21 @@ export async function fetchMembersForEnrichment(
              'verified', mi.verified
            )
          ) AS identities,
-         MAX(coalesce("activitySummary".total_count, 0)) AS "activityCount"
+         MAX(coalesce("membersGlobalActivityCount".total_count, 0)) AS "activityCount"
     FROM members
          INNER JOIN tenants ON tenants.id = members."tenantId"
          INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
-         LEFT JOIN "activitySummary" ON "activitySummary"."memberId" = members.id
+         LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
     WHERE 
       ${enrichableBySqlJoined}
       AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
-      AND (${sourceInnerQueryItems.join(' OR ')})
-      ${cursorFilter}
+      AND (${cacheAgeInnerQueryItems.join(' OR ')})
     GROUP BY members.id
-    ORDER BY "activityCount" DESC, members.id DESC
+    ORDER BY "activityCount" DESC
     LIMIT $1;
     `,
-    afterCursor ? [limit, afterCursor.activityCount, afterCursor.memberId] : [limit],
+    [limit],
   )
 }
 
@@ -606,13 +596,15 @@ export async function findMemberEnrichmentCacheDb<T>(
 export async function findMemberEnrichmentCacheForAllSourcesDb<T>(
   tx: DbConnOrTx,
   memberId: string,
+  returnRowsWithoutData = false,
 ): Promise<IMemberEnrichmentCache<T>[]> {
+  const dataFilter = returnRowsWithoutData ? '' : 'and data is not null'
   const result = await tx.manyOrNone(
     `
     select *
     from "memberEnrichmentCache"
     where 
-      "memberId" = $(memberId) and data is not null;
+      "memberId" = $(memberId) ${dataFilter};
     `,
     { memberId },
   )

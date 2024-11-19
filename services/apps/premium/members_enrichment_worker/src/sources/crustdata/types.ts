@@ -17,7 +17,7 @@ export interface IMemberEnrichmentDataCrustdata {
   linkedin_profile_url: string
   linkedin_flagship_url: string
   name: string
-  email: string
+  email: string | string[]
   title: string
   last_updated: string
   headline: string

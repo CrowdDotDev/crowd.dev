@@ -129,10 +129,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   }
 
   public async rawUpdate(id: string, data: IDbActivityUpdateData): Promise<void> {
-    const prepared = RepositoryBase.prepare(
-      { ...data, updatedAt: new Date() },
-      this.updateActivityColumnSet,
-    )
+    const prepared = RepositoryBase.prepare(data, this.updateActivityColumnSet)
     const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
     const condition = this.format('where id = $(id)', { id })
     await this.db().none(`${query} ${condition}`)
@@ -141,6 +138,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   public async rawInsert(data: IDbActivityCreateData): Promise<void> {
     const prepared = RepositoryBase.prepare(data, this.insertActivityColumnSet)
     const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
-    await this.db().none(query)
+    await this.db().none(`${query} on conflict do nothing`)
   }
 }

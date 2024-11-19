@@ -43,9 +43,11 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public enrichMembersWithActivityMoreThan = 1000
 
-  public enrichableBySql = `("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
+  public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
+
+  public maxConcurrentRequests = 5
 
   public attributeSettings: IMemberEnrichmentAttributeSettings = {
     [MemberAttributeName.AVATAR_URL]: {
@@ -216,6 +218,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       if (!linkedinUrlHashmap.get(input.linkedin.value)) {
         consumableIdentities.push({
           ...input.linkedin,
+          value: input.linkedin.value.replace(/\//g, ''),
           repeatedTimesInDifferentSources: 1,
           isFromVerifiedSource: true,
         })

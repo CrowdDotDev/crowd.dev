@@ -17,8 +17,10 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { RedisCache } from '@crowd/redis'
 import {
+  IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberEnrichmentCache,
   MemberEnrichmentSource,
@@ -26,6 +28,7 @@ import {
   OrganizationAttributeSource,
   OrganizationIdentityType,
   OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -55,6 +58,51 @@ export async function getEnrichmentData(
   return null
 }
 
+export async function getEnrichmentInput(
+  input: IEnrichableMember,
+): Promise<IEnrichmentSourceInput> {
+  const enrichmentInput: IEnrichmentSourceInput = {
+    memberId: input.id,
+    email: input.identities.find((i) => i.verified && i.type === MemberIdentityType.EMAIL),
+    linkedin: input.identities.find(
+      (i) =>
+        i.verified &&
+        i.platform === PlatformType.LINKEDIN &&
+        i.type === MemberIdentityType.USERNAME,
+    ),
+    displayName: input.displayName || undefined,
+    website: input.website || undefined,
+    location: input.location || undefined,
+    activityCount: input.activityCount || 0,
+  }
+
+  // there can be multiple verified identities in github, we select the one with the most activities
+  const verifiedGithubIdentities = input.identities.filter(
+    (i) =>
+      i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
+  )
+
+  if (verifiedGithubIdentities.length > 1) {
+    const ghIdentityWithTheMostActivities = await findMemberIdentityWithTheMostActivityInPlatform(
+      input.id,
+      PlatformType.GITHUB,
+    )
+    if (ghIdentityWithTheMostActivities) {
+      enrichmentInput.github = input.identities.find(
+        (i) =>
+          i.verified &&
+          i.platform === PlatformType.GITHUB &&
+          i.type === MemberIdentityType.USERNAME &&
+          i.value === ghIdentityWithTheMostActivities.username,
+      )
+    }
+  } else {
+    enrichmentInput.github = verifiedGithubIdentities?.[0] || undefined
+  }
+
+  return enrichmentInput
+}
+
 export async function normalizeEnrichmentData(
   source: MemberEnrichmentSource,
   data: IMemberEnrichmentData,
@@ -67,6 +115,13 @@ export async function isCacheObsolete(
   source: MemberEnrichmentSource,
   cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
 ): Promise<boolean> {
+  return isCacheObsoleteSync(source, cache)
+}
+
+export function isCacheObsoleteSync(
+  source: MemberEnrichmentSource,
+  cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
+): boolean {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return (
     !cache ||
@@ -118,8 +173,13 @@ export async function findMemberEnrichmentCache(
 
 export async function findMemberEnrichmentCacheForAllSources(
   memberId: string,
+  returnRowsWithoutData = false,
 ): Promise<IMemberEnrichmentCache<IMemberEnrichmentData>[]> {
-  return findMemberEnrichmentCacheForAllSourcesDb(svc.postgres.reader.connection(), memberId)
+  return findMemberEnrichmentCacheForAllSourcesDb(
+    svc.postgres.reader.connection(),
+    memberId,
+    returnRowsWithoutData,
+  )
 }
 
 export async function insertMemberEnrichmentCache(
@@ -492,4 +552,22 @@ Answer with JSON only and nothing else. Ensure the response is complete and vali
   }
 
   return false
+}
+
+export async function getObsoleteSourcesOfMember(
+  memberId: string,
+  possibleSources: MemberEnrichmentSource[],
+): Promise<MemberEnrichmentSource[]> {
+  const caches = await findMemberEnrichmentCacheForAllSources(memberId, true)
+  const obsoleteSources = possibleSources.filter((source) =>
+    isCacheObsoleteSync(
+      source,
+      caches.find((c) => c.source === source),
+    ),
+  )
+  return obsoleteSources
+}
+
+export async function refreshMemberEnrichmentMaterializedView(mvName: string): Promise<void> {
+  await refreshMaterializedView(svc.postgres.writer.connection(), mvName)
 }
