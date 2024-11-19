@@ -131,6 +131,9 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
 });
 
 onMounted(() => {
+  localStorage.setItem('segmentId', id);
+  localStorage.setItem('segmentGrandparentId', grandparentId);
+
   doFetch();
   findSubProject(id)
     .then((res) => {
