@@ -660,15 +660,15 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
       sourceId: commit.sha,
       sourceParentId: '',
       timestamp: new Date(data.timestamp).toISOString(),
-      attributes: {
-        insertions: 'additions' in data.commit ? data.commit.additions : 0,
-        deletions: 'deletions' in data.commit ? data.commit.deletions : 0,
-        lines:
-          'additions' in data.commit && 'deletions' in data.commit
-            ? data.commit.additions - data.commit.deletions
-            : 0,
-        isMerge: data.commit.parents.totalCount > 1,
-      },
+      // attributes: {
+      //   insertions: 'additions' in data.commit ? data.commit.additions : 0,
+      //   deletions: 'deletions' in data.commit ? data.commit.deletions : 0,
+      //   lines:
+      //     'additions' in data.commit && 'deletions' in data.commit
+      //       ? data.commit.additions - data.commit.deletions
+      //       : 0,
+      //   isMerge: data.commit.parents.totalCount > 1,
+      // },
       member,
       score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
       isContribution: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].isContribution,
