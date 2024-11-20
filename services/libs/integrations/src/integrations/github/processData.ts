@@ -6,13 +6,13 @@ import {
   type IGetRepoIssueCommentsResult,
   type IGetRepoIssuesResult,
   type IGetRepoPullRequestReviewCommentsResult,
+  type IGetRepoPullRequestReviewsResult,
   type IGetRepoPullRequestsResult,
   type IGetRepoPushesResult,
   type IGetRepoStargazersResult,
 } from '@crowd/snowflake'
 import {
   IActivityData,
-  IActivityScoringGrid,
   IMemberData,
   IOrganization,
   MemberAttributeName,
@@ -23,19 +23,14 @@ import {
 } from '@crowd/types'
 
 import { generateSourceIdHash } from '../../helpers'
-import { IProcessDataContext, ProcessDataHandler } from '../../types'
+import { ProcessDataHandler } from '../../types'
 
 import { GITHUB_GRID } from './grid'
 import {
-  GithubActivitySubType,
   GithubActivityType,
   GithubApiData,
-  GithubIssue,
-  GithubIssueTimelineItem,
   GithubPrepareMemberOutput,
   GithubPrepareOrgMemberOutput,
-  GithubPullRequest,
-  GithubPullRequestTimelineItem,
   INDIRECT_FORK,
 } from './types'
 
@@ -473,31 +468,27 @@ const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
 
 const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
-  const data = apiData.data as GithubPullRequestTimelineItem
-  const relatedData = apiData.relatedData as GithubPullRequest
+  const data = apiData.data as IGetRepoPullRequestReviewsResult
   const memberData = apiData.member
 
   const member = parseMember(memberData)
 
   const activity: IActivityData = {
     type: GithubActivityType.PULL_REQUEST_REVIEWED,
-    sourceId: `gen-PRR_${relatedData.id}_${memberData.memberFromApi.login}_${new Date(
-      data.submittedAt,
+    sourceId: `gen-PRR_${data.payload.pull_request.node_id}_${memberData.memberFromApi.login}_${new Date(
+      data.timestamp,
     ).toISOString()}`,
-    sourceParentId: relatedData.id,
-    timestamp: new Date(data.submittedAt).toISOString(),
-    url: relatedData.url,
+    sourceParentId: data.payload.pull_request.node_id,
+    timestamp: new Date(data.timestamp).toISOString(),
+    url: data.payload.pull_request._links.html.href,
     channel: apiData.repo.url,
-    body: data.body,
+    body: '',
     title: '',
     attributes: {
       reviewState: data.state,
-      state: relatedData.state.toLowerCase(),
-      additions: relatedData.additions,
-      deletions: relatedData.deletions,
-      changedFiles: relatedData.changedFiles,
-      authorAssociation: relatedData.authorAssociation,
-      labels: relatedData.labels,
+      state: data.payload.pull_request.state.toLowerCase(),
+      authorAssociation: data.payload.pull_request.author_association,
+      labels: data.payload.pull_request.labels?.map((l) => (l as any)?.name),
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,

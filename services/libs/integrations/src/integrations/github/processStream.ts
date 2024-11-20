@@ -329,6 +329,11 @@ const processPullReviewsStream: ProcessStreamHandler = async (ctx) => {
   for (const record of result.data) {
     const member = prepareMember(record)
 
+    // ignore commented reviews with no body
+    if (record.payload.review.state === 'commented' && record.payload.review.body === null) {
+      continue
+    }
+
     await ctx.processData<GithubApiData>({
       type: GithubActivityType.PULL_REQUEST_REVIEWED,
       data: record,

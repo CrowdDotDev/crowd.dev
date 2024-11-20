@@ -228,7 +228,140 @@ export interface IGetRepoPullRequestReviewsResult extends IBasicResponse {
   state: string
   pullRequestNumber: number
   timestamp: string
-  payload: Record<string, unknown>
+  payload: {
+    action: string
+    pull_request: {
+      _links: {
+        comments: {
+          href: string
+        }
+        commits: {
+          href: string
+        }
+        html: {
+          href: string
+        }
+        issue: {
+          href: string
+        }
+        review_comment: {
+          href: string
+        }
+        review_comments: {
+          href: string
+        }
+        self: {
+          href: string
+        }
+        statuses: {
+          href: string
+        }
+      }
+      active_lock_reason: string | null
+      assignee: {
+        [key: string]: unknown
+      } | null
+      assignees: {
+        [key: string]: unknown
+      }[]
+      author_association: string
+      auto_merge: unknown | null
+      base: {
+        label: string
+        ref: string
+        repo: {
+          [key: string]: unknown
+        }
+        sha: string
+        user: {
+          [key: string]: unknown
+        }
+      }
+      body: string | null
+      closed_at: string | null
+      comments_url: string
+      commits_url: string
+      created_at: string
+      diff_url: string
+      draft: boolean
+      head: {
+        label: string
+        ref: string
+        repo: {
+          [key: string]: unknown
+        }
+        sha: string
+        user: {
+          [key: string]: unknown
+        }
+      }
+      html_url: string
+      id: number
+      issue_url: string
+      labels: unknown[]
+      locked: boolean
+      merge_commit_sha: string | null
+      merged_at: string | null
+      milestone: unknown | null
+      node_id: string
+      number: number
+      patch_url: string
+      requested_reviewers: {
+        [key: string]: unknown
+      }[]
+      requested_teams: unknown[]
+      review_comment_url: string
+      review_comments_url: string
+      state: string
+      statuses_url: string
+      title: string
+      updated_at: string
+      url: string
+      user: {
+        [key: string]: unknown
+      }
+    }
+    review: {
+      _links: {
+        html: {
+          href: string
+        }
+        pull_request: {
+          href: string
+        }
+      }
+      author_association: string
+      body: string
+      commit_id: string
+      html_url: string
+      id: number
+      node_id: string
+      pull_request_url: string
+      state: 'commented' | 'approved' | 'changes_requested' | 'dismissed'
+      submitted_at: string
+      user: {
+        avatar_url: string
+        events_url: string
+        followers_url: string
+        following_url: string
+        gists_url: string
+        gravatar_id: string
+        html_url: string
+        id: number
+        login: string
+        node_id: string
+        organizations_url: string
+        received_events_url: string
+        repos_url: string
+        site_admin: boolean
+        starred_url: string
+        subscriptions_url: string
+        type: string
+        url: string
+        user_view_type: string
+      }
+    }
+  }
 }
 
 export interface IGetRepoPullRequestReviewCommentsResult extends IBasicResponse {
