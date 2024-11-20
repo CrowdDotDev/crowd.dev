@@ -40,6 +40,8 @@ export class SearchSyncApiClient {
   public async triggerOrganizationMembersSync(
     tenantId: string,
     organizationId: string,
+    onboarding?: boolean,
+    syncFrom: Date | null = null,
   ): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
@@ -47,6 +49,7 @@ export class SearchSyncApiClient {
 
     await this.searchSyncApi.post('/sync/organization/members', {
       organizationId,
+      syncFrom,
     })
   }
 

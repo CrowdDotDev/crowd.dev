@@ -10,6 +10,7 @@ import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   cleanupMemberAggregates,
   fetchAbsoluteMemberAggregates,
+  findLastSyncDate,
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
@@ -309,8 +310,12 @@ export class MemberSyncService {
     )
   }
 
-  public async syncOrganizationMembers(organizationId: string, batchSize = 200): Promise<void> {
+  public async syncOrganizationMembers(
+    organizationId: string,
+    opts: { syncFrom: Date | null } = { syncFrom: null },
+  ): Promise<void> {
     this.log.debug({ organizationId }, 'Syncing all organization members!')
+    const batchSize = 200
     let docCount = 0
     let memberCount = 0
 
@@ -344,7 +349,7 @@ export class MemberSyncService {
       for (let i = 0; i < memberIds.length; i++) {
         const memberId = memberIds[i]
         const { membersSynced, documentsIndexed } = await logExecutionTimeV2(
-          () => this.syncMembers(memberId),
+          () => this.syncMembers(memberId, { withAggs: true, syncFrom: opts.syncFrom }),
           this.log,
           `syncMembers (${i}/${memberIds.length})`,
         )
@@ -371,11 +376,22 @@ export class MemberSyncService {
 
   public async syncMembers(
     memberId: string,
-    opts: { withAggs?: boolean } = { withAggs: true },
+    opts: { withAggs?: boolean; syncFrom?: Date } = { withAggs: true },
   ): Promise<IMemberSyncResult> {
     const qx = repoQx(this.memberRepo)
 
     const syncMemberAggregates = async (memberId) => {
+      if (opts.syncFrom) {
+        const lastSyncDate = await findLastSyncDate(qx, memberId)
+        if (lastSyncDate && lastSyncDate.getTime() > opts.syncFrom.getTime()) {
+          this.log.info(
+            `Skipping sync of member aggregates as last sync date is greater than syncFrom!`,
+            { memberId, lastSyncDate, syncFrom: opts.syncFrom },
+          )
+          return
+        }
+      }
+
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[]
 
