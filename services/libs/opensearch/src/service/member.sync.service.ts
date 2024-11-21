@@ -333,14 +333,7 @@ export class MemberSyncService {
         return []
       }
 
-      const membersWithActivities = await filterMembersWithActivities(
-        this.qdbStore.connection(),
-        memberIdData.map((m) => m.memberId),
-      )
-
-      return memberIdData
-        .filter((m) => m.manuallyCreated || membersWithActivities.includes(m.memberId))
-        .map((m) => m.memberId)
+      return memberIdData.map((m) => m.memberId)
     }
 
     let memberIds: string[] = await loadNextPage()
