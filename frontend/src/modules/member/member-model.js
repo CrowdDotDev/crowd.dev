@@ -8,6 +8,7 @@ import { OrganizationField } from '@/modules/organization/organization-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import GenericField from '@/shared/fields/generic-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
+import moment from 'moment';
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`);
@@ -48,7 +49,15 @@ const fields = {
     'organizations',
     'Organizations',
   ),
-  joinedAt: new DateTimeField('joinedAt', 'Joined date'),
+  joinedAt: new DateTimeField('joinedAt', 'Joined date', {
+    filterable: true,
+    formatter: (value) => {
+      if (!value || new Date(value).getFullYear() <= 1970) {
+        return '-';
+      }
+      return moment(value).format('YYYY-MM-DD');
+    },
+  }),
   bio: new StringField('bio', label('bio')),
   location: new StringField(
     'location',
