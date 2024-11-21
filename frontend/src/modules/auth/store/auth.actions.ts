@@ -3,7 +3,11 @@ import { AuthApiService } from '@/modules/auth/services/auth.api.service';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
 import Errors from '@/shared/error/errors';
-import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
+import {
+  disconnectSocket,
+  connectSocket,
+  isSocketConnected,
+} from '@/modules/auth/auth.socket';
 import identify from '@/shared/modules/monitoring/identify';
 import { watch } from 'vue';
 import config from '@/config';
@@ -12,15 +16,13 @@ import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 
 export default {
   init() {
-    Auth0Service.isAuthenticated()
-      .then((isAuthenticated: boolean) => {
-        if (!isAuthenticated) {
-          this.handleLocalAuth()
-            .catch(() => this.silentLogin());
-        } else {
-          this.silentLogin();
-        }
-      });
+    Auth0Service.isAuthenticated().then((isAuthenticated: boolean) => {
+      if (!isAuthenticated) {
+        this.handleLocalAuth().catch(() => this.silentLogin());
+      } else {
+        this.silentLogin();
+      }
+    });
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
@@ -29,8 +31,10 @@ export default {
       return;
     }
 
-    lfxHeader.docslink = 'https://docs.linuxfoundation.org/lfx/community-management';
-    lfxHeader.supportlink = 'https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54';
+    lfxHeader.docslink =
+      'https://docs.linuxfoundation.org/lfx/community-management';
+    lfxHeader.supportlink =
+      'https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54';
 
     Auth0Service.getUser().then((user) => {
       if (user) {
@@ -44,10 +48,19 @@ export default {
       .then(() => Auth0Service.authData())
       .then((token) => this.authCallback(token))
       .catch((error) => {
-        if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
+        if (
+          [
+            'login_required',
+            'consent_required',
+            'missing_refresh_token',
+          ].includes(error.error)
+        ) {
           const appState: any = {};
           if (window.location.href) {
-            appState.returnTo = window.location.href.replace(window.location.origin, '');
+            appState.returnTo = window.location.href.replace(
+              window.location.origin,
+              ''
+            );
           }
           return this.signin({ appState });
         }
@@ -55,7 +68,9 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (['production', 'staging'].includes(config.env)) {
+    // const envs = ['production', 'staging'];
+    const envs = ['production'];
+    if (envs.includes(config.env)) {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
@@ -89,7 +104,7 @@ export default {
           },
           {
             immediate: true,
-          },
+          }
         );
       });
     }
@@ -111,7 +126,7 @@ export default {
           },
           {
             immediate: true,
-          },
+          }
         );
       });
     }
@@ -120,7 +135,9 @@ export default {
   },
   setTenant() {
     const tenants = this.user.tenants.map((t) => t.tenant);
-    const currentTenantId = AuthService.isDevmode() ? AuthService.getTenantId() : config.lf.tenantId;
+    const currentTenantId = AuthService.isDevmode()
+      ? AuthService.getTenantId()
+      : config.lf.tenantId;
     let selectedTenant = tenants.find((t) => t.id === currentTenantId);
     if (!currentTenantId || !selectedTenant) {
       [selectedTenant] = tenants;
