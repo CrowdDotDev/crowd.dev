@@ -306,7 +306,17 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
+        normalized,
+      )
+    }
+
+    if (data.linkedin_flagship_url) {
+      normalized = normalizeSocialIdentity(
+        {
+          handle: data.linkedin_flagship_url.split('/').pop(),
+          platform: PlatformType.LINKEDIN,
+        },
+        MemberIdentityType.USERNAME,
         normalized,
       )
     }

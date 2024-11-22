@@ -237,7 +237,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.GITHUB,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -250,7 +249,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -262,7 +260,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -301,8 +298,10 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           source: OrganizationSource.ENRICHMENT_PROGAI,
           identities,
           title: workExperience.title,
-          startDate: workExperience.startDate,
-          endDate: workExperience.endDate,
+          startDate: workExperience.startDate
+            ? workExperience.startDate.replace('Z', '+00:00')
+            : null,
+          endDate: workExperience.endDate ? workExperience.endDate.replace('Z', '+00:00') : null,
         })
       }
     }

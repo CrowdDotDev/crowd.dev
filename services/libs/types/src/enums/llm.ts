@@ -5,4 +5,7 @@ export enum LlmModelType {
 
 export enum LlmQueryType {
   MEMBER_ENRICHMENT = 'member_enrichment',
+  MEMBER_ENRICHMENT_FIND_RELATED_LINKEDIN_PROFILES = 'member_enrichment_find_related_linkedin_profiles',
+  MEMBER_ENRICHMENT_SQUASH_MULTIPLE_VALUE_ATTRIBUTES = 'member_enrichment_squash_multiple_value_attributes',
+  MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES = 'member_enrichment_squash_work_experiences_from_multiple_sources',
 }

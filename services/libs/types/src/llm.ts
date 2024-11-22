@@ -53,6 +53,30 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
       temperature: 0,
     },
   },
+  [LlmQueryType.MEMBER_ENRICHMENT_FIND_RELATED_LINKEDIN_PROFILES]: {
+    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    arguments: {
+      max_tokens: 200000,
+      anthropic_version: 'bedrock-2023-05-31',
+      temperature: 0,
+    },
+  },
+  [LlmQueryType.MEMBER_ENRICHMENT_SQUASH_MULTIPLE_VALUE_ATTRIBUTES]: {
+    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    arguments: {
+      max_tokens: 200000,
+      anthropic_version: 'bedrock-2023-05-31',
+      temperature: 0,
+    },
+  },
+  [LlmQueryType.MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES]: {
+    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    arguments: {
+      max_tokens: 200000,
+      anthropic_version: 'bedrock-2023-05-31',
+      temperature: 0,
+    },
+  },
 }
 
 export interface LlmIdentity {

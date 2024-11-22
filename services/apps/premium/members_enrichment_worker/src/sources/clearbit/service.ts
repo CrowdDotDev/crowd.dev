@@ -158,7 +158,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.FACEBOOK,
         },
         MemberIdentityType.USERNAME,
-        false,
         normalized,
       )
     }
@@ -170,7 +169,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.GITHUB,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -184,7 +182,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -196,7 +193,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }

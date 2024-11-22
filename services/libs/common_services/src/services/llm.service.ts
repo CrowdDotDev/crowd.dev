@@ -160,4 +160,57 @@ export class LlmService extends LoggerBase {
       ...response,
     }
   }
+  public async findRelatedLinkedinProfiles<T>(
+    memberId: string,
+    prompt: string,
+  ): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(
+      LlmQueryType.MEMBER_ENRICHMENT_FIND_RELATED_LINKEDIN_PROFILES,
+      prompt,
+      memberId,
+    )
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async squashMultipleValueAttributes<T>(
+    memberId: string,
+    prompt: string,
+  ): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(
+      LlmQueryType.MEMBER_ENRICHMENT_SQUASH_MULTIPLE_VALUE_ATTRIBUTES,
+      prompt,
+      memberId,
+    )
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async squashWorkExperiencesFromMultipleSources<T>(
+    memberId: string,
+    prompt: string,
+  ): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(
+      LlmQueryType.MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES,
+      prompt,
+      memberId,
+    )
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
 }
