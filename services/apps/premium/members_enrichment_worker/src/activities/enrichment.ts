@@ -321,8 +321,10 @@ export async function processMemberSources(
             // prevent adding linkedin identities to squashed payload that was discarded by the LLM
             if (
               identity.platform === PlatformType.LINKEDIN &&
-              !crustDataProfileSelected.identities.some((i) => i.value === identity.value) &&
-              !progaiLinkedinScraperProfileSelected.identities.some(
+              !(crustDataProfileSelected || { identities: [] }).identities.some(
+                (i) => i.value === identity.value,
+              ) &&
+              !(progaiLinkedinScraperProfileSelected || { identities: [] }).identities.some(
                 (i) => i.value === identity.value,
               )
             ) {
@@ -808,11 +810,12 @@ async function squashWorkExperiencesWithLLM(
           If multiple roles from the same organization overlap in time, squash them into one entry with a unified startDate, endDate, and picked information (e.g., job titles, descriptions).
           Preserve all unique identities and consolidate other fields appropriately.
         Handle Missing Dates:
-          Use logical assumptions to fill gaps where possible, prioritizing existing date information.
+          Use logical assumptions to fill gaps where possible, always using existing date information but nothing else.
         Prioritize Current Roles:
           Ongoing roles (endDate = null) should be placed last in the timeline.
         Ensure Accuracy:
           Maintain all relevant data fields in the final timeline and ensure no essential information is lost.
+        
       Output Format:
       Return a single array of IMemberEnrichmentDataNormalizedOrganization objects:
 
