@@ -36,8 +36,7 @@
           <div
             v-if="fi > 0"
             :click="!props.lockRelation ? 'cursor-pointer hover:bg-gray-100' : ''"
-            class="border text-xs border-gray-100 rounded-md shadow justify-center
-          h-8 flex font-medium items-center py-1 px-2 bg-white  transition mr-3 mb-4"
+            class="border text-xs border-gray-100 rounded-md shadow justify-center h-8 flex font-medium items-center py-1 px-2 bg-white transition mr-3 mb-4"
             @click="switchOperator"
           >
             {{ filters.relation }}
@@ -58,10 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  defineProps, onMounted, ref, watch,
-} from 'vue';
+import { computed, defineProps, onMounted, ref, watch } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import LfFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
 import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
@@ -80,16 +76,17 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
-  modelValue: Filter,
-  config: Record<string, FilterConfig>,
-  customConfig?: Record<string, FilterConfig>,
-  searchConfig?: SearchFilterConfig,
-  savedViewsConfig?: SavedViewsConfig,
-  hash?: string,
-  lockRelation?: boolean,
+  modelValue: Filter;
+  config: Record<string, FilterConfig>;
+  customConfig?: Record<string, FilterConfig>;
+  searchConfig?: SearchFilterConfig;
+  savedViewsConfig?: SavedViewsConfig;
+  hash?: string;
+  lockRelation?: boolean;
+  excludeFilters?: string[]; // Temporary fix, need a better understanding of the usage of the parsed filter
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: Filter); (e: 'fetch', value: FilterQuery) }>();
 
 const { trackEvent } = useProductTracking();
 const router = useRouter();
@@ -125,9 +122,7 @@ const switchOperator = () => {
 };
 
 const alignFilterList = (value: Filter) => {
-  const {
-    settings, search, relation, order, ...filterValues
-  } = value;
+  const { settings, search, relation, order, ...filterValues } = value;
   filterList.value = Object.keys(filterValues);
 };
 
@@ -145,53 +140,67 @@ const fetch = (value: Filter) => {
   if (JSON.stringify(value) === JSON.stringify(savedFilter.value)) {
     return;
   }
+
   savedFilter.value = { ...value };
-  const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
+  const data = buildApiFilter(
+    value,
+    { ...props.config, ...props.customConfig },
+    props.searchConfig,
+    props.savedViewsConfig
+  );
   emit('fetch', data);
 };
 
-watch(() => filters.value, (value: Filter) => {
-  fetch(value);
+watch(
+  () => filters.value,
+  (value: Filter) => {
+    fetch(value);
 
-  const query = setQuery(value);
+    const query = setQuery(value);
 
-  let key;
-  const { name: routeName, hash: routeHash } = router.currentRoute.value;
+    let key;
+    const { name: routeName, hash: routeHash } = router.currentRoute.value;
 
-  if (routeName === 'member') {
-    key = FeatureEventKey.FILTER_MEMBERS;
-  } else if (routeName === 'organization') {
-    key = FeatureEventKey.FILTER_ORGANIZATIONS;
-  } else if (routeName === 'activity' && routeHash === '#activity') {
-    key = FeatureEventKey.FILTER_ACTIVITIES;
-  } else if (routeName === 'activity' && routeHash === '#conversation') {
-    key = FeatureEventKey.FILTER_CONVERSATIONS;
-  } else {
-    key = null;
-  }
+    if (routeName === 'member') {
+      key = FeatureEventKey.FILTER_MEMBERS;
+    } else if (routeName === 'organization') {
+      key = FeatureEventKey.FILTER_ORGANIZATIONS;
+    } else if (routeName === 'activity' && routeHash === '#activity') {
+      key = FeatureEventKey.FILTER_ACTIVITIES;
+    } else if (routeName === 'activity' && routeHash === '#conversation') {
+      key = FeatureEventKey.FILTER_CONVERSATIONS;
+    } else {
+      key = null;
+    }
 
-  if (key) {
-    trackEvent({
-      key,
-      type: EventType.FEATURE,
-      properties: {
-        path: router.currentRoute.value.path,
-        filter: value,
-      },
-    });
-  }
+    if (key) {
+      trackEvent({
+        key,
+        type: EventType.FEATURE,
+        properties: {
+          path: router.currentRoute.value.path,
+          filter: value,
+        },
+      });
+    }
 
-  router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
-}, { deep: true });
+    router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
+  },
+  { deep: true }
+);
 
 // Watch for query change
 const alignQueryUrl = () => {
   const { query } = route;
   const { projectGroup, menu, ...parsedQuery } = query;
-  const parsed = parseQuery(parsedQuery, {
-    ...props.config,
-    ...props.customConfig,
-  }, props.savedViewsConfig);
+  const parsed = parseQuery(
+    parsedQuery,
+    {
+      ...props.config,
+      ...props.customConfig,
+    },
+    props.savedViewsConfig
+  );
 
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
@@ -201,7 +210,8 @@ const alignQueryUrl = () => {
     return;
   }
 
-  filters.value = parsed as Filter;
+  // TODO: need to verify the usage of the parsed filter.
+  filters.value = removeExcludedFilters(parsed as Filter);
   if (!!parsed && Object.keys(parsed).length > 0) {
     alignFilterList(parsed as Filter);
     fetch(parsed as Filter);
@@ -217,21 +227,35 @@ defineExpose({
 });
 
 const copyToClipboard = async () => {
-  const parsedPayload = buildApiFilter(filters.value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
-
-  await navigator.clipboard.writeText(JSON.stringify({
-    filter: parsedPayload.filter,
-    orderBy: parsedPayload.orderBy,
-  }));
-
-  Message.success(
-    'Filters payload successfully copied to your clipboard',
+  const parsedPayload = buildApiFilter(
+    filters.value,
+    { ...props.config, ...props.customConfig },
+    props.searchConfig,
+    props.savedViewsConfig
   );
+
+  await navigator.clipboard.writeText(
+    JSON.stringify({
+      filter: parsedPayload.filter,
+      orderBy: parsedPayload.orderBy,
+    })
+  );
+
+  Message.success('Filters payload successfully copied to your clipboard');
 };
 
-const developerModeEnabled = () => FeatureFlag.isFlagEnabled(
-  FeatureFlag.flags.developerMode,
-);
+const developerModeEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.developerMode);
+
+const removeExcludedFilters = (filter: Filter) => {
+  const tmpFilter = { ...filter };
+  if (props.excludeFilters) {
+    props.excludeFilters.forEach((filterKey: string) => {
+      delete tmpFilter[filterKey];
+    });
+  }
+
+  return tmpFilter;
+};
 </script>
 
 <script lang="ts">
