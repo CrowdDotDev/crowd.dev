@@ -54,7 +54,6 @@
                 </div>
               </el-popover>
             </lf-table-head>
-            <lf-table-head> Activities </lf-table-head>
             <lf-table-head />
           </tr>
         </thead>
@@ -64,6 +63,9 @@
             <lf-table-cell class="pl-5">
               <p class="text-medium font-semibold py-1.5">
                 {{ project.name }}
+              </p>
+              <p class="text-small text-gray-500 whitespace-nowrap flex items-center gap-1">
+                <lf-icon name="monitor-waveform" />{{ project.activityCount }} {{ parseInt(project.activityCount) > 1 ? 'activities' : 'activity' }}
               </p>
             </lf-table-cell>
             <lf-table-cell>
@@ -83,11 +85,6 @@
             </lf-table-cell>
             <lf-table-cell>
               <lf-contributor-details-projects-maintainer :maintainer-roles="getMaintainerRoles(project)" />
-            </lf-table-cell>
-            <lf-table-cell>
-              <p class="text-small text-gray-500 whitespace-nowrap">
-                {{ project.activityCount }}
-              </p>
             </lf-table-cell>
             <lf-table-cell>
               <lf-dropdown placement="bottom-end" width="160px">
@@ -136,6 +133,7 @@
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Contributor, ContributorAffiliation } from '@/modules/contributor/types/Contributor';
