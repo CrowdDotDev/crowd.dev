@@ -178,6 +178,7 @@ const totalContacts = ref<number>(0);
 const loading = ref<boolean>(false);
 
 const savedBody = ref<any>({});
+const searchStr = ref<string>('');
 
 const { avatar, isNew, identities, isMasked } = useContributorHelpers();
 
@@ -233,6 +234,7 @@ const fetch = () => {
     filter: {
       and: [orgFilter, savedBody.value],
     },
+    search: searchStr.value,
     offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     orderBy: sort.value,
@@ -265,6 +267,7 @@ const loadMore = () => {
 
 const onFilterChange = (filterQuery: FilterQuery) => {
   savedBody.value = filterQuery.body;
+  searchStr.value = filterQuery.search;
   pagination.value.page = 1;
   pagination.value.total = 0;
   fetch();
