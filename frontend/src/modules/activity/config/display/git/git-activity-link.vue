@@ -19,8 +19,8 @@ const props = defineProps<{
 }>();
 
 const url = computed(() => {
-  const sourceId = props.activity.parent
-    ? props.activity.parent.sourceId
+  const sourceId = props.activity.sourceParentId
+    ? props.activity.sourceParentId
     : props.activity.sourceId;
 
   const { channel } = props.activity;

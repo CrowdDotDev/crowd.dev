@@ -306,6 +306,7 @@ const onSortChange = (sortingValue: string) => {
 
 onMounted(() => {
   doGetMembersCount();
+  fetch();
 });
 
 defineExpose({

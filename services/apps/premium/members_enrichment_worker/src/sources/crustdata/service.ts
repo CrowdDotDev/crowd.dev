@@ -283,6 +283,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
     if (data.email) {
       let emails: string[]
+
       if (Array.isArray(data.email)) {
         emails = data.email
       } else {
