@@ -315,7 +315,7 @@ export class MemberSyncService {
     opts: { syncFrom: Date | null } = { syncFrom: null },
   ): Promise<void> {
     this.log.debug({ organizationId }, 'Syncing all organization members!')
-    const batchSize = 200
+    const batchSize = 500
     let docCount = 0
     let memberCount = 0
 
@@ -323,17 +323,23 @@ export class MemberSyncService {
 
     const loadNextPage = async (lastId?: string): Promise<string[]> => {
       this.log.info('Loading next page of organization members!', { organizationId, lastId })
-      const memberIdData = await logExecutionTimeV2(
-        () => this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize, lastId),
+      const memberIds = await logExecutionTimeV2(
+        () =>
+          this.memberRepo.getOrganizationMembersForSync(
+            organizationId,
+            batchSize,
+            lastId,
+            opts.syncFrom,
+          ),
         this.log,
         `getOrganizationMembersForSync`,
       )
 
-      if (memberIdData.length === 0) {
+      if (memberIds.length === 0) {
         return []
       }
 
-      return memberIdData.map((m) => m.memberId)
+      return memberIds
     }
 
     let memberIds: string[] = await loadNextPage()
