@@ -136,7 +136,8 @@ const { setQuery, parseQuery } = filterQueryService();
 const { buildApiFilter } = filterApiService();
 
 const savedFilter = ref({});
-const fetch = (value: Filter) => {
+const fetch = (val: Filter) => {
+  const value = removeExcludedFilters(val);
   if (JSON.stringify(value) === JSON.stringify(savedFilter.value)) {
     return;
   }
