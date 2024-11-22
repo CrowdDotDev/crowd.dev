@@ -1,12 +1,7 @@
 <template>
   <div :class="Object.keys(props.config).length > 0 ? 'mb-4' : ''">
     <div class="flex justify-end pb-4 gap-4">
-      <lf-filter-search
-        v-if="props.searchConfig"
-        v-model="filters.search"
-        :placeholder="props.searchConfig.placeholder"
-        class="!h-9"
-      />
+      <lf-filter-search v-if="props.searchConfig" v-model="filters.search" :placeholder="props.searchConfig.placeholder" class="!h-9" />
       <lf-filter-dropdown
         v-if="Object.keys(props.config).length > 0"
         v-model="filterList"
@@ -36,7 +31,8 @@
           <div
             v-if="fi > 0"
             :click="!props.lockRelation ? 'cursor-pointer hover:bg-gray-100' : ''"
-            class="border text-xs border-gray-100 rounded-md shadow justify-center h-8 flex font-medium items-center py-1 px-2 bg-white transition mr-3 mb-4"
+            class="border text-xs border-gray-100 rounded-md shadow justify-center
+            h-8 flex font-medium items-center py-1 px-2 bg-white transition mr-3 mb-4"
             @click="switchOperator"
           >
             {{ filters.relation }}
@@ -57,7 +53,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, onMounted, ref, watch } from 'vue';
+import {
+  computed, defineProps, onMounted, ref, watch,
+} from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import LfFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
 import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
@@ -76,17 +74,17 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
-  modelValue: Filter;
-  config: Record<string, FilterConfig>;
-  customConfig?: Record<string, FilterConfig>;
-  searchConfig?: SearchFilterConfig;
-  savedViewsConfig?: SavedViewsConfig;
-  hash?: string;
-  lockRelation?: boolean;
-  excludeFilters?: string[]; // Temporary fix, need a better understanding of the usage of the parsed filter
+  modelValue: Filter,
+  config: Record<string, FilterConfig>,
+  customConfig?: Record<string, FilterConfig>,
+  searchConfig?: SearchFilterConfig,
+  savedViewsConfig?: SavedViewsConfig,
+  hash?: string,
+  lockRelation?: boolean,
+  excludeFilters?: string[] // Temporary fix, need a better understanding of the usage of the parsed filter
 }>();
 
-const emit = defineEmits<{ (e: 'update:modelValue', value: Filter); (e: 'fetch', value: FilterQuery) }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery), }>();
 
 const { trackEvent } = useProductTracking();
 const router = useRouter();
@@ -122,7 +120,9 @@ const switchOperator = () => {
 };
 
 const alignFilterList = (value: Filter) => {
-  const { settings, search, relation, order, ...filterValues } = value;
+  const {
+    settings, search, relation, order, ...filterValues
+  } = value;
   filterList.value = Object.keys(filterValues);
 };
 
@@ -145,12 +145,7 @@ const fetch = (val: Filter) => {
   const fixedValue = fixSavedFilterValue(value, props.modelValue);
   savedFilter.value = { ...fixedValue };
 
-  const data = buildApiFilter(
-    fixedValue,
-    { ...props.config, ...props.customConfig },
-    props.searchConfig,
-    props.savedViewsConfig
-  );
+  const data = buildApiFilter(fixedValue, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
   emit('fetch', data);
 };
 
@@ -189,7 +184,7 @@ watch(
 
     router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Watch for query change
@@ -202,7 +197,7 @@ const alignQueryUrl = () => {
       ...props.config,
       ...props.customConfig,
     },
-    props.savedViewsConfig
+    props.savedViewsConfig,
   );
 
   if (!parsed || Object.keys(parsed).length === 0) {
@@ -231,18 +226,13 @@ defineExpose({
 });
 
 const copyToClipboard = async () => {
-  const parsedPayload = buildApiFilter(
-    filters.value,
-    { ...props.config, ...props.customConfig },
-    props.searchConfig,
-    props.savedViewsConfig
-  );
+  const parsedPayload = buildApiFilter(filters.value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
 
   await navigator.clipboard.writeText(
     JSON.stringify({
       filter: parsedPayload.filter,
       orderBy: parsedPayload.orderBy,
-    })
+    }),
   );
 
   Message.success('Filters payload successfully copied to your clipboard');

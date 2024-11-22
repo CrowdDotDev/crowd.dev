@@ -7,7 +7,9 @@
       <lf-table class="!overflow-visible">
         <thead>
           <tr>
-            <lf-table-head class="pl-5"> Project </lf-table-head>
+            <lf-table-head class="pl-5">
+              Project
+            </lf-table-head>
             <lf-table-head>
               Affiliation
               <el-popover placement="top" width="20rem">
@@ -15,11 +17,14 @@
                   <lf-icon-old name="question-line" :size="14" class="text-secondary-200 font-normal" />
                 </template>
                 <div class="p-1">
-                  <p class="text-small font-semibold mb-2 text-black">Affiliation</p>
+                  <p class="text-small font-semibold mb-2 text-black">
+                    Affiliation
+                  </p>
                   <p class="text-small text-gray-500 break-normal text-left">
-                    Organization(s) that an individual represents while contributing to a project. This association
-                    indicates that the person's activities were made in the context of their role within the
-                    organization, rather than as an independent contributor.
+                    Organization(s) that an individual represents while contributing to a project.
+                    This association indicates that the person's activities were made in the context
+                    of their role within the organization, rather than as an independent
+                    contributor.
                   </p>
                 </div>
               </el-popover>
@@ -31,15 +36,20 @@
                   <lf-icon-old name="question-line" :size="14" class="text-secondary-200 font-normal" />
                 </template>
                 <div class="p-1">
-                  <p class="text-small font-semibold mb-2 text-black">Maintainer</p>
-                  <p class="text-small text-gray-500 break-normal mb-5 text-left">
-                    Individual responsible for overseeing and managing code repositories by reviewing and merging pull
-                    requests, addressing issues, ensuring code quality, and guiding contributors.
+                  <p class="text-small font-semibold mb-2 text-black">
+                    Maintainer
                   </p>
-                  <p class="text-small font-semibold mb-2 text-black">Contributor</p>
+                  <p class="text-small text-gray-500 break-normal mb-5 text-left">
+                    Individual responsible for overseeing and managing code repositories by
+                    reviewing and merging pull requests, addressing issues, ensuring code quality,
+                    and guiding contributors.
+                  </p>
+                  <p class="text-small font-semibold mb-2 text-black">
+                    Contributor
+                  </p>
                   <p class="text-small text-gray-500 break-normal text-left">
-                    Someone who has contributed to a project by making changes or additions to its code. Contributions
-                    require that code was successfully merged into a repository.
+                    Someone who has contributed to a project by making changes or additions to its
+                    code. Contributions require that code was successfully merged into a repository.
                   </p>
                 </div>
               </el-popover>
@@ -75,7 +85,9 @@
               <lf-contributor-details-projects-maintainer :maintainer-roles="getMaintainerRoles(project)" />
             </lf-table-cell>
             <lf-table-cell>
-              <p class="text-small text-gray-500 whitespace-nowrap">{{ project.activityCount }}</p>
+              <p class="text-small text-gray-500 whitespace-nowrap">
+                {{ project.activityCount }}
+              </p>
             </lf-table-cell>
             <lf-table-cell>
               <lf-dropdown placement="bottom-end" width="160px">
@@ -133,15 +145,17 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import LfContributorDetailsProjectsAffiliation from '@/modules/contributor/components/details/overview/project/contributor-details-projects-affiliation.vue';
-import LfContributorDetailsProjectsMaintainer from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
+import LfContributorDetailsProjectsAffiliation
+  from '@/modules/contributor/components/details/overview/project/contributor-details-projects-affiliation.vue';
+import LfContributorDetailsProjectsMaintainer
+  from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
-  contributor: Contributor;
+  contributor: Contributor,
 }>();
 
 const router = useRouter();
@@ -153,31 +167,27 @@ const { setReportDataModal } = useSharedStore();
 const showMore = ref<boolean>(false);
 const isAffilationEditOpen = ref<boolean>(false);
 
-const getAffiliations = (projectId: string) =>
-  (props.contributor.affiliations || [])
-    .filter((affiliation) => affiliation.segmentId === projectId)
-    .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
-      if (!obj[aff.organizationId]) {
-        return {
-          ...obj,
-          [aff.organizationId]: [aff],
-        };
-      }
+const getAffiliations = (projectId: string) => (props.contributor.affiliations || [])
+  .filter((affiliation) => affiliation.segmentId === projectId)
+  .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
+    if (!obj[aff.organizationId]) {
       return {
         ...obj,
-        [aff.organizationId]: [...obj[aff.organizationId], aff],
+        [aff.organizationId]: [aff],
       };
-    }, {});
+    }
+    return {
+      ...obj,
+      [aff.organizationId]: [...obj[aff.organizationId], aff],
+    };
+  }, {});
 
-const projects = computed(() =>
-  props.contributor.segments.map((p) => ({
-    ...p,
-    affiliations: getAffiliations(p.id),
-  }))
-);
+const projects = computed(() => props.contributor.segments.map((p) => ({
+  ...p,
+  affiliations: getAffiliations(p.id),
+})));
 
-const getMaintainerRoles = (project: any) =>
-  props.contributor.maintainerRoles.filter((role) => role.segmentId === project.id);
+const getMaintainerRoles = (project: any) => props.contributor.maintainerRoles.filter((role) => role.segmentId === project.id);
 
 const viewActivity = (projectId: string) => {
   router.replace({

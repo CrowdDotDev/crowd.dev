@@ -20,8 +20,8 @@
             class="text-xs text-gray-600 filter-item-text leading-6"
             v-html="
               $sanitize(
-                (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options, data)) ||
-                  `<span class='!text-gray-500'>${config.label}...</span>`
+                (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options, data))
+                  || `<span class='!text-gray-500'>${config.label}...</span>`,
               )
             "
           />
@@ -67,15 +67,14 @@ import { filterComponentByType } from '@/shared/modules/filters/config/filterCom
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: string;
-  open: string;
-  config: FilterConfig;
-  hideRemove?: boolean;
-  chipClasses?: string;
+  modelValue: string,
+  open: string,
+  config: FilterConfig,
+  hideRemove?: boolean,
+  chipClasses?: string,
 }>();
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: any): void;
+const emit = defineEmits<{(e: 'update:modelValue', value: any): void;
   (e: 'remove'): void;
   (e: 'update:open', value: string): void;
 }>();
@@ -120,7 +119,7 @@ watch(
   (value) => {
     form.value = { ...value };
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 </script>
 

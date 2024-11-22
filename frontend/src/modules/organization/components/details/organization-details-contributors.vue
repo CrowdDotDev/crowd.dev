@@ -117,7 +117,9 @@
       <div class="flex justify-center pb-8">
         <lf-icon-old name="group-2-line" :size="80" class="text-gray-200" />
       </div>
-      <h5 class="text-center text-h5">No people found</h5>
+      <h5 class="text-center text-h5">
+        No people found
+      </h5>
       <p class="text-gray-600 text-small text-center mt-4">
         We couldn't find any results that match your search criteria, please try a different query
       </p>
@@ -126,7 +128,9 @@
       v-if="pagination.total > pagination.page * pagination.perPage"
       class="pt-10 pb-6 gap-4 flex justify-center items-center"
     >
-      <p class="text-small text-gray-400">{{ contributors.length }} of {{ totalContacts }} people</p>
+      <p class="text-small text-gray-400">
+        {{ contributors.length }} of {{ totalContacts }} people
+      </p>
       <lf-button type="primary-ghost" loading-text="Loading people..." :loading="loading" @click="loadMore">
         Load more
       </lf-button>
@@ -161,7 +165,7 @@ import LfContributorEngagementLevel from '@/modules/contributor/components/share
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
-  organization: Organization;
+  organization: Organization,
 }>();
 
 const filterConfig = { ...memberFilters };
@@ -180,7 +184,9 @@ const loading = ref<boolean>(false);
 const savedBody = ref<any>({});
 const searchStr = ref<string>('');
 
-const { avatar, isNew, identities, isMasked } = useContributorHelpers();
+const {
+  avatar, isNew, identities, isMasked,
+} = useContributorHelpers();
 
 // TODO: need to revisit this. Understand why the filter.vue is parsing the segmentId for this component as a filter in that component
 const excludeFilters = ['segmentId'];
@@ -222,7 +228,7 @@ const doGetMembersCount = () => {
       filter: orgFilter,
       segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
     },
-    true
+    true,
   ).then(({ count }) => {
     totalContacts.value = count;
   });
