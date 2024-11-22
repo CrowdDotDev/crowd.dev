@@ -142,9 +142,11 @@ const fetch = (val: Filter) => {
     return;
   }
 
-  savedFilter.value = { ...value };
+  const fixedValue = fixSavedFilterValue(value, props.modelValue);
+  savedFilter.value = { ...fixedValue };
+
   const data = buildApiFilter(
-    value,
+    fixedValue,
     { ...props.config, ...props.customConfig },
     props.searchConfig,
     props.savedViewsConfig
@@ -212,10 +214,11 @@ const alignQueryUrl = () => {
   }
 
   // TODO: need to verify the usage of the parsed filter.
-  filters.value = removeExcludedFilters(parsed as Filter);
+  const cleanedValue = removeExcludedFilters(parsed as Filter);
+  filters.value = fixSavedFilterValue(cleanedValue, props.modelValue);
   if (!!parsed && Object.keys(parsed).length > 0) {
-    alignFilterList(parsed as Filter);
-    fetch(parsed as Filter);
+    alignFilterList(cleanedValue);
+    fetch(cleanedValue);
   }
 };
 
@@ -256,6 +259,13 @@ const removeExcludedFilters = (filter: Filter) => {
   }
 
   return tmpFilter;
+};
+
+const fixSavedFilterValue = (saved: Filter, model: Filter) => {
+  if (!saved.order) {
+    return { ...model, ...saved };
+  }
+  return saved;
 };
 </script>
 
