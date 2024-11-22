@@ -12,7 +12,7 @@ export async function databaseMiddleware(req, res, next) {
     const database = await databaseInit(undefined, undefined, undefined, profileQueries)
     req.database = database
     if (!qdb) {
-      qdb = await getClientSQL()
+      qdb = await getClientSQL(profileQueries)
     }
     req.qdb = qdb
   } catch (error) {
