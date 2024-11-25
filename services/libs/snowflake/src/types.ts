@@ -860,7 +860,8 @@ export interface IGetRepoPullRequestReviewCommentsResult extends IBasicResponse 
 
 export interface IGetRepoPushesResult extends IBasicResponse {
   timestamp: string
-  commitCount: number
+  pullRequestNodeId: string
+  pullRequestNumber: number
   payload: {
     before: string
     commits: Array<{

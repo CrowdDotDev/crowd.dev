@@ -94,7 +94,10 @@ const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData 
   return member
 }
 
-const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+const parseMember = (
+  memberData: GithubPrepareMemberOutput,
+  additionalEmails?: string[],
+): IMemberData => {
   const { email, org, memberFromApi } = memberData
 
   if (memberFromApi.isBot && memberFromApi.isDeleted) {
@@ -149,6 +152,19 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
       type: MemberIdentityType.EMAIL,
       verified: true,
     })
+  }
+
+  if (additionalEmails) {
+    additionalEmails
+      .filter((email) => email.trim() && email.includes('@'))
+      .forEach((email) => {
+        member.identities.push({
+          platform: PlatformType.GITHUB,
+          value: email,
+          type: MemberIdentityType.EMAIL,
+          verified: true,
+        })
+      })
   }
 
   if (memberFromApi?.twitterUsername) {
@@ -640,16 +656,18 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
   const data = apiData.data as IGetRepoPushesResult
   const memberData = apiData.member
 
-  const member = parseMember(memberData)
+  if (!data.pullRequestNodeId) {
+    throw new Error('Pull request node id is required!')
+  }
 
-  for (const commit of data.payload.commits) {
+  for (const commit of data.payload.commits.filter((c) => c.distinct)) {
     const activity: IActivityData = {
       channel: apiData.repo.url,
       url: `${apiData.repo.url}/commit/${commit.sha}`,
       body: commit.message,
       type: 'authored-commit',
       sourceId: commit.sha,
-      sourceParentId: '',
+      sourceParentId: data.pullRequestNodeId,
       timestamp: new Date(data.timestamp).toISOString(),
       // attributes: {
       //   insertions: 'additions' in data.commit ? data.commit.additions : 0,
@@ -660,7 +678,7 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
       //       : 0,
       //   isMerge: data.commit.parents.totalCount > 1,
       // },
-      member,
+      member: parseMember(memberData, [commit.author.email]),
       score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
       isContribution: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].isContribution,
     }
