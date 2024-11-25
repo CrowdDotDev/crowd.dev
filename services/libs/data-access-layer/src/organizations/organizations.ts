@@ -134,6 +134,28 @@ export async function findOrgById(
   return result
 }
 
+export async function findOrgByName(
+  qx: QueryExecutor,
+  tenantId: string,
+  name: string,
+): Promise<IDbOrganization | null> {
+  const result = await qx.selectOneOrNone(
+    `
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId)
+          and trim(lower(o."displayName")) = trim(lower($(name)))
+          limit 1;
+    `,
+    {
+      tenantId,
+      name,
+    },
+  )
+
+  return result
+}
+
 export async function findOrgByVerifiedIdentity(
   qx: QueryExecutor,
   tenantId: string,
@@ -455,12 +477,22 @@ export async function findOrCreateOrganization(
   source: string,
   data: IOrganization,
   integrationId?: string,
+  forceByName?: boolean,
 ): Promise<string> {
   const verifiedIdentities = data.identities ? data.identities.filter((i) => i.verified) : []
-  if (verifiedIdentities.length === 0) {
-    const message = `Missing organization identity while creating/updating organization!`
-    log.error(data, message)
-    throw new Error(message)
+
+  if (forceByName) {
+    if (!data.displayName) {
+      const message = `Missing organization name while creating/updating organization!`
+      log.error(data, message)
+      throw new Error(message)
+    }
+  } else {
+    if (verifiedIdentities.length === 0) {
+      const message = `Missing organization identity while creating/updating organization!`
+      log.error(data, message)
+      throw new Error(message)
+    }
   }
 
   try {
@@ -476,11 +508,16 @@ export async function findOrCreateOrganization(
 
     let existing
 
-    // find existing org by sent verified identities
-    for (const identity of verifiedIdentities) {
-      existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
-      if (existing) {
-        break
+    if (forceByName) {
+      // find existing org by name
+      existing = await findOrgByName(qe, tenantId, data.displayName)
+    } else {
+      // find existing org by sent verified identities
+      for (const identity of verifiedIdentities) {
+        existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+        if (existing) {
+          break
+        }
       }
     }
 

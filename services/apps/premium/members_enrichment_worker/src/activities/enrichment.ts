@@ -1,3 +1,4 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import { updateMemberAttributes } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
@@ -23,6 +24,7 @@ import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberEnrichmentCache,
+  IMemberOrganizationData,
   IMemberOriginalData,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -428,6 +430,56 @@ export async function processMemberSources(
     console.log('squashedPayload.attributes', squashedPayload.attributes)
     console.log('squashedPayload.memberOrganizations', squashedPayload.memberOrganizations)
 
+    await svc.postgres.writer.transactionally(async (tx) => {
+      const qx = dbStoreQx(tx)
+      let promises = []
+
+      if (squashedPayload.memberOrganizations.length > 0) {
+        for (const org of squashedPayload.memberOrganizations) {
+          promises.push(
+            findOrCreateOrganization(
+              qx,
+              existingMemberData.tenantId,
+              OrganizationAttributeSource.ENRICHMENT,
+              {
+                displayName: org.name,
+                description: org.organizationDescription,
+                identities: org.identities ? org.identities : [],
+              },
+              undefined,
+              !org.identities && org.identities.length === 0,
+            ).then((orgId) => {
+              // set the organization id for later use
+              org.organizationId = orgId
+              if (org.identities) {
+                for (const i of org.identities) {
+                  i.organizationId = orgId
+                }
+              }
+            }),
+          )
+        }
+
+        await Promise.all(promises)
+        promises = []
+
+        const results = prepareWorkExperiences(
+          existingMemberData.organizations,
+          squashedPayload.memberOrganizations,
+        )
+
+        if (results.toDelete.length > 0) {
+          // TODO uros delete member organization links
+        }
+        if (results.toCreate.length > 0) {
+          // TODO uros create member organization links
+        }
+        if (results.toUpdate.size > 0) {
+          // TODO uros update existing member organization links
+        }
+      }
+    })
+
     /* 
       // TODO:: Here should be adjusted to work with the squashedPayload
       
@@ -574,9 +626,9 @@ export async function processMemberSources(
 
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
     return true
-
-    return false
   }
+
+  return false
 }
 
 export async function getObsoleteSourcesOfMember(
@@ -891,4 +943,135 @@ async function squashWorkExperiencesWithLLM(
     IMemberEnrichmentDataNormalizedOrganization[]
   >(memberId, prompt)
   return result.result
+}
+
+interface IWorkExperienceChanges {
+  // just ids to delete
+  toDelete: string[]
+
+  // new work experiences to create
+  toCreate: IMemberEnrichmentDataNormalizedOrganization[]
+
+  // map of ids to update with the properties to update
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  toUpdate: Map<string, Record<string, any>>
+}
+
+function prepareWorkExperiences(
+  oldVersion: IMemberOrganizationData[],
+  newVersion: IMemberEnrichmentDataNormalizedOrganization[],
+): IWorkExperienceChanges {
+  // we delete all the work experiences that were not manually created
+  const toDelete: string[] = oldVersion
+    .filter((c) => c.source !== OrganizationSource.UI)
+    .map((c) => c.id as string)
+
+  const toCreate: IMemberEnrichmentDataNormalizedOrganization[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toUpdate: Map<string, Record<string, any>> = new Map()
+
+  // sort both versions by start date and only use manual changes from the current version
+  const orderedCurrentVersion = oldVersion
+    .filter((c) => c.source === OrganizationSource.UI)
+    .sort((a, b) => {
+      // If either value is null/undefined, move it to the beginning
+      if (!a.dateStart && !b.dateStart) return 0
+      if (!a.dateStart) return -1
+      if (!b.dateStart) return 1
+
+      // Compare dates if both values exist
+      return new Date(a.dateStart as string).getTime() - new Date(b.dateStart as string).getTime()
+    })
+  let orderedNewVersion = newVersion.sort((a, b) => {
+    // If either value is null/undefined, move it to the beginning
+    if (!a.startDate && !b.startDate) return 0
+    if (!a.startDate) return -1
+    if (!b.startDate) return 1
+
+    // Compare dates if both values exist
+    return new Date(a.startDate as string).getTime() - new Date(b.startDate as string).getTime()
+  })
+
+  // set ids and new flag to new versions just so we can easily manipulate the array later
+  for (const exp of orderedNewVersion) {
+    exp.id = generateUUIDv1()
+  }
+
+  // we iterate through the existing version experiences to see if update is needed
+  for (const current of orderedCurrentVersion) {
+    // try and find a matching experience in the new versions by title
+    let match = orderedNewVersion.find(
+      (e) =>
+        e.title === current.jobTitle &&
+        e.identities &&
+        e.identities.some((e) => e.organizationId === current.orgId),
+    )
+    if (!match) {
+      // if we didn't find a match by title we should check dates
+      match = orderedNewVersion.find(
+        (e) =>
+          dateIntersects(current.dateStart, current.dateEnd, e.startDate, e.endDate) &&
+          e.identities &&
+          e.identities.some((e) => e.organizationId === current.orgId),
+      )
+    }
+
+    // if we found a match we can check if we need something to update
+    if (match) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const toUpdate: Record<string, any> = {}
+
+      // lets check if the dates and title are the same otherwise we need to update them
+      if (current.dateStart !== match.startDate) {
+        toUpdate.dateStart = match.startDate
+      }
+
+      if (current.dateEnd !== match.endDate) {
+        toUpdate.dateEnd = match.endDate
+      }
+
+      if (current.jobTitle !== match.title) {
+        toUpdate.title = match.title
+      }
+
+      if (Object.keys(toUpdate).length > 0) {
+        toUpdate.set(current.id, toUpdate)
+      }
+
+      // remove the match from the new version array so we later don't process it again
+      orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
+    }
+    // if we didn't find a match we should just leave it as it is in the database since it was manual input
+  }
+
+  // the remaining experiences in the new version array are just new experiences to create
+  toCreate.push(...orderedNewVersion)
+
+  return {
+    toDelete,
+    toCreate,
+    toUpdate,
+  }
+}
+
+function dateIntersects(
+  d1Start?: string | null,
+  d1End?: string | null,
+  d2Start?: string | null,
+  d2End?: string | null,
+): boolean {
+  // If both periods have no dates at all, we can't determine intersection
+  if ((!d1Start && !d1End) || (!d2Start && !d2End)) {
+    return false
+  }
+
+  // Convert strings to timestamps, using fallbacks for missing dates
+  const start1 = d1Start ? new Date(d1Start).getTime() : -Infinity
+  const end1 = d1End ? new Date(d1End).getTime() : Infinity
+  const start2 = d2Start ? new Date(d2Start).getTime() : -Infinity
+  const end2 = d2End ? new Date(d2End).getTime() : Infinity
+
+  // Periods intersect if one period's start is before other period's end
+  // and that same period's end is after the other period's start
+  return start1 <= end2 && end1 >= start2
 }

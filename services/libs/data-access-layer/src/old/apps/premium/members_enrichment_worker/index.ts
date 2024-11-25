@@ -23,6 +23,7 @@ export async function fetchMemberDataForLLMSquashing(
                                         mo."organizationId" as "orgId",
                                         o."displayName"     as "orgName",
                                         mo.title            as "jobTitle",
+                                        mo.id,
                                         mo."dateStart",
                                         mo."dateEnd",
                                         mo.source
@@ -51,6 +52,7 @@ export async function fetchMemberDataForLLMSquashing(
                   select json_agg(
                                   (select row_to_json(r)
                                   from (select mo."orgId",
+                                                mo.id,
                                                 mo."orgName",
                                                 mo."jobTitle",
                                                 mo."dateStart",
