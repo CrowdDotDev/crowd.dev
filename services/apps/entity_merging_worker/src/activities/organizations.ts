@@ -66,13 +66,13 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   )
 }
 
-export async function syncOrganization(organizationId: string): Promise<void> {
+export async function syncOrganization(organizationId: string, syncStart: Date): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
   await syncApi.triggerOrganizationSync(organizationId)
-  await syncApi.triggerOrganizationMembersSync(null, organizationId)
+  await syncApi.triggerOrganizationMembersSync(null, organizationId, null, syncStart)
 }
 
 export async function notifyFrontendOrganizationUnmergeSuccessful(

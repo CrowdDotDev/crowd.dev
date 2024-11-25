@@ -48,7 +48,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         select m.id
         from members m
         left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
-        where m."tenantId" = $(tenantId) and 
+        where m."tenantId" = $(tenantId) and
               ie.entity_id is null
         limit ${perPage};`,
       {
@@ -64,29 +64,37 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     organizationId: string,
     perPage: number,
     lastId?: string,
-  ): Promise<IMemberIdData[]> {
-    return await this.db().any(
+    syncFrom?: Date,
+  ): Promise<string[]> {
+    const rows = await this.db().any(
       `
-      select distinct mo."memberId", m."manuallyCreated"
-      from "memberOrganizations" mo
-      inner join members m on mo."memberId" = m.id
-      where mo."organizationId" = $(organizationId) and
-            mo."deletedAt" is null and
-            ${lastId !== undefined ? 'mo."memberId" > $(lastId) and' : ''}
-            m."deletedAt" is null and
+        SELECT
+            DISTINCT mo."memberId"
+        FROM "memberOrganizations" mo
+        INNER JOIN members m ON mo."memberId" = m.id
+        ${syncFrom !== undefined ? 'LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId"' : ''}
+        WHERE mo."organizationId" = $(organizationId) AND
+            mo."deletedAt" is null AND
+            ${syncFrom !== undefined ? '(msa."createdAt" < $(syncFrom) OR msa."createdAt" IS NULL) AND' : ''}
+            ${lastId !== undefined ? 'mo."memberId" > $(lastId) AND' : ''}
+            m."deletedAt" is null AND
             exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
-      order by mo."memberId"
-      limit ${perPage};`,
+        ORDER BY mo."memberId"
+        LIMIT ${perPage};
+      `,
       {
         organizationId,
         lastId,
+        syncFrom,
       },
     )
+
+    return rows.map((r) => r.memberId)
   }
 
   public async getMemberData(memberId: string): Promise<IDbMemberSyncData[]> {
     const results = await this.db().oneOrNone(
-      ` 
+      `
   with to_merge_data as (
         select mtm."memberId",
         array_agg(distinct mtm."toMergeId"::text) as to_merge_ids
@@ -208,7 +216,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
           where mtk."memberId" = $(memberId)
           and tk."deletedAt" is null
           group by mtk."memberId")
-  select 
+  select
     m.id,
     m."tenantId",
     m."displayName",
@@ -254,7 +262,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       `
       select m.id as "memberId", m."manuallyCreated"
       from members m
-      where m."tenantId" = $(tenantId ) and 
+      where m."tenantId" = $(tenantId) and
             m.id in ($(memberIds:csv)) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
