@@ -14,10 +14,10 @@ import {
 } from '@crowd/types'
 
 export async function fetchMemberDataForLLMSquashing(
-  db: DbStore,
+  db: DbConnOrTx,
   memberId: string,
 ): Promise<IMemberOriginalData | null> {
-  const result = await db.connection().oneOrNone(
+  const result = await db.oneOrNone(
     `
     with member_orgs as (select distinct mo."memberId",
                                         mo."organizationId" as "orgId",

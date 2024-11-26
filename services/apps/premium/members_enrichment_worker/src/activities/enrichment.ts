@@ -2,16 +2,12 @@ import { generateUUIDv1 } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import { updateMemberAttributes } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
+import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import {
-  updateVerifiedFlag,
-  upsertMemberIdentity,
-} from '@crowd/data-access-layer/src/member_identities'
-import {
-  fetchMemberDataForLLMSquashing,
+  fetchMemberDataForLLMSquashing as fetchMemberDataForLLMSquashingQuestDb,
   findMemberEnrichmentCacheDb,
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
-  insertWorkExperience,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateLastEnrichedDate,
   updateMemberEnrichmentCacheDb,
@@ -29,7 +25,6 @@ import {
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationAttributeSource,
-  OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
@@ -175,6 +170,12 @@ export async function findMemberEnrichmentCache(
   return findMemberEnrichmentCacheDb(svc.postgres.reader.connection(), memberId, sources)
 }
 
+export async function fetchMemberDataForLLMSquashing(
+  memberId: string,
+): Promise<IMemberOriginalData> {
+  return fetchMemberDataForLLMSquashingQuestDb(svc.postgres.reader.connection(), memberId)
+}
+
 export async function findMemberEnrichmentCacheForAllSources(
   memberId: string,
   returnRowsWithoutData = false,
@@ -216,340 +217,94 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
   return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
 }
 
-export async function processMemberSources(
+export async function updateMemberUsingSquashedPayload(
   memberId: string,
-  sources: MemberEnrichmentSource[],
-): Promise<boolean> {
-  svc.log.debug({ memberId }, 'Processing member sources!')
+  existingMemberData: IMemberOriginalData,
+  squashedPayload: IMemberEnrichmentDataNormalized,
+): Promise<void> {
+  await svc.postgres.writer.transactionally(async (tx) => {
+    const qx = dbStoreQx(tx)
+    let promises = []
 
-  // without contributions since they take a lot of space
-  const toBeSquashed = {}
-
-  // just the contributions if we need them later on
-  const toBeSquashedContributions = {}
-
-  // find if there's already saved enrichment data in source
-  const caches = await findMemberEnrichmentCache(sources, memberId)
-  for (const source of sources) {
-    const cache = caches.find((c) => c.source === source)
-    if (cache && cache.data) {
-      const normalized = (await normalizeEnrichmentData(
-        source,
-        cache.data,
-      )) as IMemberEnrichmentDataNormalized
-
-      if (Array.isArray(normalized)) {
-        const normalizedContributions = []
-        for (const n of normalized) {
-          if (n.contributions) {
-            normalizedContributions.push(n.contributions)
-            delete n.contributions
-          }
-
-          if (n.reach) {
-            delete n.reach
-          }
-        }
-
-        toBeSquashedContributions[source] = normalizedContributions
-      }
-
-      if (normalized.contributions) {
-        toBeSquashedContributions[source] = normalized.contributions
-        delete normalized.contributions
-      }
-
-      if (normalized.reach) {
-        delete normalized.reach
-      }
-
-      toBeSquashed[source] = normalized
-    }
-  }
-
-  if (Object.keys(toBeSquashed).length > 1) {
-    const existingMemberData = await fetchMemberDataForLLMSquashing(svc.postgres.reader, memberId)
-    svc.log.info({ memberId }, 'Squashing data for member using LLM!')
-
-    let progaiLinkedinScraperProfileSelected: IMemberEnrichmentDataNormalized = null
-    let crustDataProfileSelected: IMemberEnrichmentDataNormalized = null
-
-    if (toBeSquashed[MemberEnrichmentSource.CRUSTDATA]) {
-      const categorizationResult = await findWhichLinkedinProfileToUseAmongScraperResult(
-        memberId,
-        existingMemberData,
-        toBeSquashed[MemberEnrichmentSource.CRUSTDATA],
-      )
-
-      crustDataProfileSelected = categorizationResult.selected
-
-      if (crustDataProfileSelected) {
-        toBeSquashed[MemberEnrichmentSource.CRUSTDATA] = crustDataProfileSelected
-      }
-
-      // check if there are any discarded profiles
-      if (categorizationResult.discarded.length > 0) {
-        for (const discardedProfile of categorizationResult.discarded) {
-          const discardedLinkedinIdentity = discardedProfile.identities.find(
-            (i) => i.platform === PlatformType.LINKEDIN,
-          )
-
-          // remove the root source where the discarded linkedin profile is coming from
-          for (const source of sources) {
-            if (
-              toBeSquashed[source].identities.some(
-                (i) =>
-                  i.value === discardedLinkedinIdentity.value &&
-                  i.platform === PlatformType.LINKEDIN,
-              )
-            ) {
-              delete toBeSquashed[source]
-            }
-          }
-        }
-      }
-    }
-
-    if (toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER]) {
-      const categorizationResult = await findWhichLinkedinProfileToUseAmongScraperResult(
-        memberId,
-        existingMemberData,
-        toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER],
-      )
-
-      progaiLinkedinScraperProfileSelected = categorizationResult.selected
-
-      if (progaiLinkedinScraperProfileSelected) {
-        toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER] =
-          progaiLinkedinScraperProfileSelected
-      }
-
-      if (categorizationResult.discarded.length > 0) {
-        for (const discardedProfile of categorizationResult.discarded) {
-          const discardedLinkedinIdentity = discardedProfile.identities.find(
-            (i) => i.platform === PlatformType.LINKEDIN,
-          )
-
-          // remove the root source where the discarded linkedin profile is coming from
-          for (const source of sources) {
-            if (
-              toBeSquashed[source].identities.some(
-                (i) =>
-                  i.value === discardedLinkedinIdentity.value &&
-                  i.platform === PlatformType.LINKEDIN,
-              )
-            ) {
-              delete toBeSquashed[source]
-            }
-          }
-        }
-      }
-    }
-
-    // start squashing the data
-    const squashedPayload: IMemberEnrichmentDataNormalized = {
-      identities: [],
-      attributes: {},
-      memberOrganizations: [],
-    }
-
-    // 1) squash identities
-    for (const source of Object.keys(toBeSquashed)) {
-      if (toBeSquashed[source].identities) {
-        for (const identity of toBeSquashed[source].identities) {
-          // check if identity already exists, if not add it to squashedPayload
-          if (
-            !squashedPayload.identities.find(
-              (i) =>
-                i.platform === identity.platform &&
-                i.type === identity.type &&
-                i.value === identity.value,
-            ) &&
-            // check in member data as well
-            !existingMemberData.identities.find(
-              (i) =>
-                i.platform === identity.platform &&
-                i.type === identity.type &&
-                i.value === identity.value,
-            )
-          ) {
-            squashedPayload.identities.push(identity)
-          }
-        }
-      }
-    }
-
-    const attributesSquashed = {}
-    const attributeCountMap = {}
-    const attributeValues = {}
-
-    // 2) squash attributes
-    for (const source of Object.keys(toBeSquashed)) {
-      if (toBeSquashed[source].attributes) {
-        for (const attribute of Object.keys(toBeSquashed[source].attributes)) {
-          if (toBeSquashed[source].attributes[attribute][`enrichment-${source}`]) {
-            if (attributeCountMap[attribute]) {
-              attributeCountMap[attribute] = attributeCountMap[attribute] + 1
-              delete attributesSquashed[attribute]
-              attributeValues[attribute].push(
-                toBeSquashed[source].attributes[attribute][`enrichment-${source}`],
-              )
-            } else {
-              attributeCountMap[attribute] = 1
-              attributesSquashed[attribute] = {
-                enrichment: toBeSquashed[source].attributes[attribute][`enrichment-${source}`],
-              }
-              attributeValues[attribute] = [
-                toBeSquashed[source].attributes[attribute][`enrichment-${source}`],
-              ]
-            }
-          }
-        }
-      }
-    }
-
-    const llmInputAttributes = {}
-
-    for (const attribute of Object.keys(attributeCountMap)) {
-      if (attributeCountMap[attribute] == 1) {
-        attributesSquashed[attribute] = {
-          enrichment: attributeValues[attribute],
-        }
-      } else {
-        llmInputAttributes[attribute] = attributeValues[attribute]
-      }
-    }
-
-    if (Object.keys(llmInputAttributes).length > 0) {
-      // ask LLM to select from multiple values in different sources for the same attribute
-      const multipleValueAttributesSquashed = await squashMultipleValueAttributesWithLLM(
-        memberId,
-        llmInputAttributes,
-      )
-
-      for (const attribute of Object.keys(multipleValueAttributesSquashed)) {
-        if (multipleValueAttributesSquashed[attribute]) {
-          attributesSquashed[attribute] = {
-            enrichment: multipleValueAttributesSquashed[attribute],
-          }
-        }
-      }
-    }
-
-    squashedPayload.attributes = attributesSquashed
-
-    // 3) squash work experiences
-    if (crustDataProfileSelected) {
-      squashedPayload.memberOrganizations = crustDataProfileSelected.memberOrganizations
-    } else {
-      // check if there are multiple work experiences from different sources
-      const workExperienceDataInDifferentSources = []
-      for (const source of Object.keys(toBeSquashed)) {
-        if (
-          toBeSquashed[source].memberOrganizations &&
-          toBeSquashed[source].memberOrganizations.length > 0
-        ) {
-          workExperienceDataInDifferentSources.push(toBeSquashed[source].memberOrganizations)
-        }
-      }
-
-      if (workExperienceDataInDifferentSources.length == 0) {
-        squashedPayload.memberOrganizations = []
-      } else if (workExperienceDataInDifferentSources.length == 1) {
-        squashedPayload.memberOrganizations = workExperienceDataInDifferentSources[0]
-      } else {
-        const workExperiencesSquashedByLLM = await squashWorkExperiencesWithLLM(
-          memberId,
-          workExperienceDataInDifferentSources,
+    // process identities
+    if (squashedPayload.identities.length > 0) {
+      svc.log.info({ memberId }, 'Adding to member identities!')
+      for (const i of squashedPayload.identities) {
+        promises.push(
+          upsertMemberIdentity(qx, {
+            memberId,
+            tenantId: existingMemberData.tenantId,
+            platform: i.platform,
+            type: i.type,
+            value: i.value,
+            verified: i.verified,
+          }),
         )
-        squashedPayload.memberOrganizations = workExperiencesSquashedByLLM
       }
     }
 
-    await svc.postgres.writer.transactionally(async (tx) => {
-      const qx = dbStoreQx(tx)
-      let promises = []
+    // process attributes
+    let attributes = existingMemberData.attributes
 
-      // process identities
-      if (squashedPayload.identities.length > 0) {
-        svc.log.info({ memberId }, 'Adding to member identities!')
-        for (const i of squashedPayload.identities) {
-          promises.push(
-            upsertMemberIdentity(qx, {
-              memberId,
-              tenantId: existingMemberData.tenantId,
-              platform: i.platform,
-              type: i.type,
-              value: i.value,
-              verified: i.verified,
-            }),
-          )
-        }
-      }
+    if (squashedPayload.attributes) {
+      svc.log.info({ memberId }, 'Updating member attributes!')
+      attributes = { ...attributes, ...squashedPayload.attributes }
 
-      // process attributes
-      let attributes = existingMemberData.attributes
+      promises.push(updateMemberAttributes(qx, memberId, attributes))
+    }
 
-      if (squashedPayload.attributes) {
-        svc.log.info({ memberId }, 'Updating member attributes!')
-        attributes = { ...attributes, ...squashedPayload.attributes }
-
-        promises.push(updateMemberAttributes(qx, memberId, attributes))
-      }
-
-      if (squashedPayload.memberOrganizations.length > 0) {
-        for (const org of squashedPayload.memberOrganizations) {
-          promises.push(
-            findOrCreateOrganization(
-              qx,
-              existingMemberData.tenantId,
-              OrganizationAttributeSource.ENRICHMENT,
-              {
-                displayName: org.name,
-                description: org.organizationDescription,
-                identities: org.identities ? org.identities : [],
-              },
-              undefined,
-              !org.identities && org.identities.length === 0,
-            ).then((orgId) => {
-              // set the organization id for later use
-              org.organizationId = orgId
-              if (org.identities) {
-                for (const i of org.identities) {
-                  i.organizationId = orgId
-                }
+    if (squashedPayload.memberOrganizations.length > 0) {
+      for (const org of squashedPayload.memberOrganizations) {
+        promises.push(
+          findOrCreateOrganization(
+            qx,
+            existingMemberData.tenantId,
+            OrganizationAttributeSource.ENRICHMENT,
+            {
+              displayName: org.name,
+              description: org.organizationDescription,
+              identities: org.identities ? org.identities : [],
+            },
+            undefined,
+            !org.identities ||
+              org.identities.length === 0 ||
+              org.identities.filter((i) => i.verified).length === 0,
+          ).then((orgId) => {
+            // set the organization id for later use
+            org.organizationId = orgId
+            if (org.identities) {
+              for (const i of org.identities) {
+                i.organizationId = orgId
               }
-            }),
-          )
-        }
-
-        await Promise.all(promises)
-        promises = []
-
-        const results = prepareWorkExperiences(
-          existingMemberData.organizations,
-          squashedPayload.memberOrganizations,
+            }
+          }),
         )
-
-        if (results.toDelete.length > 0) {
-          // TODO uros delete member organization links
-        }
-        if (results.toCreate.length > 0) {
-          // TODO uros create member organization links
-        }
-        if (results.toUpdate.size > 0) {
-          // TODO uros update existing member organization links
-        }
       }
 
-      await updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId)
-      svc.log.debug({ memberId }, 'Member sources processed successfully!')
+      await Promise.all(promises)
+      promises = []
 
-      return true
-    })
-  }
+      const results = prepareWorkExperiences(
+        existingMemberData.organizations,
+        squashedPayload.memberOrganizations,
+      )
 
-  return false
+      if (results.toDelete.length > 0) {
+        // TODO uros delete member organization links
+      }
+      if (results.toCreate.length > 0) {
+        // TODO uros create member organization links
+      }
+      if (results.toUpdate.size > 0) {
+        // TODO uros update existing member organization links
+      }
+    }
+
+    await updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId)
+    svc.log.debug({ memberId }, 'Member sources processed successfully!')
+
+    return true
+  })
 }
 
 export async function getObsoleteSourcesOfMember(
@@ -704,7 +459,7 @@ export async function squashMultipleValueAttributesWithLLM(
   return result.result
 }
 
-async function findWhichLinkedinProfileToUseAmongScraperResult(
+export async function findWhichLinkedinProfileToUseAmongScraperResult(
   memberId: string,
   memberData: IMemberOriginalData,
   profiles: IMemberEnrichmentDataNormalized[],
@@ -774,7 +529,7 @@ async function findWhichLinkedinProfileToUseAmongScraperResult(
   return categorized
 }
 
-async function squashWorkExperiencesWithLLM(
+export async function squashWorkExperiencesWithLLM(
   memberId: string,
   workExperiencesFromMultipleSources: IMemberEnrichmentDataNormalizedOrganization[][],
 ): Promise<IMemberEnrichmentDataNormalizedOrganization[]> {

@@ -1,6 +1,8 @@
 import {
+  fetchMemberDataForLLMSquashing,
   findMemberEnrichmentCache,
   findMemberIdentityWithTheMostActivityInPlatform,
+  findWhichLinkedinProfileToUseAmongScraperResult,
   getEnrichmentData,
   getEnrichmentInput,
   getObsoleteSourcesOfMember,
@@ -8,10 +10,12 @@ import {
   isCacheObsolete,
   isEnrichableBySource,
   normalizeEnrichmentData,
-  processMemberSources,
   refreshMemberEnrichmentMaterializedView,
+  squashMultipleValueAttributesWithLLM,
+  squashWorkExperiencesWithLLM,
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
+  updateMemberUsingSquashedPayload,
 } from './activities/enrichment'
 import { getEnrichableMembers, getMaxConcurrentRequests } from './activities/getMembers'
 import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
@@ -34,7 +38,6 @@ import {
 } from './activities/syncEnrichedData'
 
 export {
-  processMemberSources,
   getEnrichableMembers,
   getEnrichmentData,
   normalizeEnrichmentData,
@@ -61,4 +64,9 @@ export {
   getEnrichmentInput,
   getMaxConcurrentRequests,
   getObsoleteSourcesOfMember,
+  fetchMemberDataForLLMSquashing,
+  findWhichLinkedinProfileToUseAmongScraperResult,
+  squashMultipleValueAttributesWithLLM,
+  squashWorkExperiencesWithLLM,
+  updateMemberUsingSquashedPayload,
 }
