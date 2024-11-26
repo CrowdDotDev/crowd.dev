@@ -466,13 +466,36 @@ export async function processMemberSources(
       }
     }
 
-    // console.log('squashedPayload.identities', squashedPayload.identities)
-    // console.log('squashedPayload.attributes', squashedPayload.attributes)
-    // console.log('squashedPayload.memberOrganizations', squashedPayload.memberOrganizations)
-
     await svc.postgres.writer.transactionally(async (tx) => {
       const qx = dbStoreQx(tx)
       let promises = []
+
+      // process identities
+      if (squashedPayload.identities.length > 0) {
+        svc.log.info({ memberId }, 'Adding to member identities!')
+        for (const i of squashedPayload.identities) {
+          promises.push(
+            upsertMemberIdentity(qx, {
+              memberId,
+              tenantId: existingMemberData.tenantId,
+              platform: i.platform,
+              type: i.type,
+              value: i.value,
+              verified: i.verified,
+            }),
+          )
+        }
+      }
+
+      // process attributes
+      let attributes = existingMemberData.attributes
+
+      if (squashedPayload.attributes) {
+        svc.log.info({ memberId }, 'Updating member attributes!')
+        attributes = { ...attributes, ...squashedPayload.attributes }
+
+        promises.push(updateMemberAttributes(qx, memberId, attributes))
+      }
 
       if (squashedPayload.memberOrganizations.length > 0) {
         for (const org of squashedPayload.memberOrganizations) {
@@ -518,156 +541,12 @@ export async function processMemberSources(
           // TODO uros update existing member organization links
         }
       }
-    })
 
-    /* 
-      // TODO:: Here should be adjusted to work with the squashedPayload
-      
-        svc.log.info({ memberId }, 'LLM returned data with high confidence!')
-        await svc.postgres.writer.transactionally(async (tx) => {
-          const qx = dbStoreQx(tx)
-          const promises = []
-  
-          // process attributes
-          let update = false
-          let attributes = existingMemberData.attributes
-  
-          if (data.result.changes.attributes) {
-            if (data.result.changes.attributes.update) {
-              attributes = { ...attributes, ...data.result.changes.attributes.update }
-              update = true
-            }
-  
-            if (data.result.changes.attributes.new) {
-              attributes = { ...attributes, ...data.result.changes.attributes.new }
-              update = true
-            }
-          }
-  
-          if (update) {
-            svc.log.info({ memberId }, 'Updating member attributes!')
-            promises.push(updateMemberAttributes(qx, memberId, attributes))
-          }
-  
-          // process identities
-          if (data.result.changes.identities) {
-            const identityTypes = Object.values(MemberIdentityType)
-  
-            if (data.result.changes.identities.update) {
-              for (const toUpdate of data.result.changes.identities.update) {
-                if (identityTypes.includes(toUpdate.t as MemberIdentityType)) {
-                  svc.log.info({ memberId, toUpdate }, 'Updating verified flag for identity!')
-                  promises.push(
-                    updateVerifiedFlag(qx, {
-                      memberId,
-                      tenantId: existingMemberData.tenantId,
-                      platform: toUpdate.p,
-                      type: toUpdate.t as MemberIdentityType,
-                      value: toUpdate.v,
-                      verified: toUpdate.ve,
-                    }),
-                  )
-                } else {
-                  svc.log.warn({ memberId, toUpdate }, 'Unknown identity type!')
-                }
-              }
-            }
-  
-            if (data.result.changes.identities.new) {
-              for (const toAdd of data.result.changes.identities.new) {
-                if (identityTypes.includes(toAdd.t as MemberIdentityType)) {
-                  svc.log.info({ memberId, toAdd }, 'Adding new identity!')
-                  promises.push(
-                    upsertMemberIdentity(qx, {
-                      memberId,
-                      tenantId: existingMemberData.tenantId,
-                      platform: toAdd.p,
-                      type: toAdd.t as MemberIdentityType,
-                      value: toAdd.v,
-                      verified: toAdd.ve,
-                    }),
-                  )
-                } else {
-                  svc.log.warn({ memberId, toAdd }, 'Unknown identity type!')
-                }
-              }
-            }
-          }
-  
-          // process organizations
-          if (data.result.changes.organizations) {
-            const sources = Object.values(OrganizationSource)
-  
-            if (data.result.changes.organizations.newConns) {
-              for (const conn of data.result.changes.organizations.newConns) {
-                if (sources.includes(conn.s as OrganizationSource)) {
-                  svc.log.info({ memberId, conn }, 'Adding new connection to existing organization!')
-                  promises.push(
-                    insertWorkExperience(
-                      tx.transaction(),
-                      memberId,
-                      conn.orgId,
-                      conn.t,
-                      conn.ds,
-                      conn.de,
-                      conn.s as OrganizationSource,
-                    ),
-                  )
-                } else {
-                  svc.log.warn({ memberId, conn }, 'Unknown organization source!')
-                }
-              }
-            }
-  
-            if (data.result.changes.organizations.newOrgs) {
-              for (const org of data.result.changes.organizations.newOrgs) {
-                svc.log.info({ memberId, org }, 'Adding new organization!')
-                promises.push(
-                  findOrCreateOrganization(
-                    qx,
-                    existingMemberData.tenantId,
-                    OrganizationAttributeSource.ENRICHMENT,
-                    {
-                      displayName: org.n,
-                      identities: org.i.map((i) => {
-                        return {
-                          type: i.t as OrganizationIdentityType,
-                          platform: i.p,
-                          value: i.v,
-                          verified: i.ve,
-                        }
-                      }),
-                    },
-                  ).then((orgId) =>
-                    insertWorkExperience(
-                      tx.transaction(),
-                      memberId,
-                      orgId,
-                      org.conn.t,
-                      org.conn.ds,
-                      org.conn.de,
-                      org.conn.s as OrganizationSource,
-                    ),
-                  ),
-                )
-              }
-            }
-          }
-  
-          // also touch members.lastEnriched date
-          promises.push(
-            updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId),
-          )
-  
-          await Promise.all(promises)
-        })
-  
-        */
-    await svc.postgres.writer.transactionally(async (tx) => {
       await updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId)
+      svc.log.debug({ memberId }, 'Member sources processed successfully!')
+
+      return true
     })
-    svc.log.debug({ memberId }, 'Member sources processed successfully!')
-    return true
   }
 
   return false
