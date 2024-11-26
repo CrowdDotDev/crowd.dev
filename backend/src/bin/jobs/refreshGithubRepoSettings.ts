@@ -38,7 +38,8 @@ const job: CrowdJob = {
 
         const integrationService = new IntegrationService(options)
         // newly discovered repos will be mapped to default segment of the integration
-        await integrationService.updateGithubIntegrationSettings(integration.integrationIdentifier)
+        // here we will need to pull new repos from SF
+       // await integrationService.updateGithubIntegrationSettings(integration.integrationIdentifier)
 
         log.info(`Successfully updated repo settings for Github integration: ${integration.id}`)
       } catch (err) {
