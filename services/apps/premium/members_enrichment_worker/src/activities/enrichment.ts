@@ -1,6 +1,10 @@
 import { generateUUIDv1 } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
-import { updateMemberAttributes } from '@crowd/data-access-layer'
+import {
+  updateMemberAttributes,
+  updateMemberContributions,
+  updateMemberReach,
+} from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import {
@@ -22,6 +26,7 @@ import {
   IMemberEnrichmentCache,
   IMemberOrganizationData,
   IMemberOriginalData,
+  IMemberReach,
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationAttributeSource,
@@ -221,6 +226,7 @@ export async function updateMemberUsingSquashedPayload(
   memberId: string,
   existingMemberData: IMemberOriginalData,
   squashedPayload: IMemberEnrichmentDataNormalized,
+  hasContributions: boolean,
 ): Promise<void> {
   await svc.postgres.writer.transactionally(async (tx) => {
     const qx = dbStoreQx(tx)
@@ -243,6 +249,31 @@ export async function updateMemberUsingSquashedPayload(
       }
     }
 
+    await Promise.all(promises)
+    promises = []
+
+    // process contributions
+    // if squashed payload has data from progai, we should fetch contributions here
+    // it's ommited from the payload because it takes a lot of space
+    svc.log.info('Processing contributions! ', { memberId, hasContributions })
+    if (hasContributions) {
+      const caches = await findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
+      const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
+        MemberEnrichmentSource.PROGAI,
+        svc.log,
+      )
+      if (caches.length > 0 && caches[0].data) {
+        const normalized = (await progaiService.normalize(
+          caches[0].data,
+        )) as IMemberEnrichmentDataNormalized
+        svc.log.info('Normalized contributions: ', { contributions: normalized.contributions })
+
+        if (normalized.contributions) {
+          await updateMemberContributions(qx, memberId, normalized.contributions)
+        }
+      }
+    }
+
     // process attributes
     let attributes = existingMemberData.attributes
 
@@ -250,7 +281,27 @@ export async function updateMemberUsingSquashedPayload(
       svc.log.info({ memberId }, 'Updating member attributes!')
       attributes = { ...attributes, ...squashedPayload.attributes }
 
-      promises.push(updateMemberAttributes(qx, memberId, attributes))
+      await updateMemberAttributes(qx, memberId, attributes)
+    }
+
+    // process reach
+    if (squashedPayload.reach && Object.keys(squashedPayload.reach).length > 0) {
+      svc.log.info({ memberId }, 'Updating member reach!')
+      let reach: IMemberReach
+
+      if (existingMemberData.reach && existingMemberData.reach.total) {
+        let total = existingMemberData.reach.total === -1 ? 0 : existingMemberData.reach.total
+        for (const reachSource of Object.keys(squashedPayload.reach)) {
+          total += squashedPayload.reach[reachSource]
+        }
+        reach = {
+          ...existingMemberData.reach,
+          ...squashedPayload.reach,
+          total,
+        }
+
+        await updateMemberReach(qx, memberId, reach)
+      }
     }
 
     if (squashedPayload.memberOrganizations.length > 0) {

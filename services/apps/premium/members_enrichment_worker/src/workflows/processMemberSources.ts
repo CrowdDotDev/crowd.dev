@@ -27,8 +27,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
   // without contributions since they take a lot of space
   const toBeSquashed = {}
 
-  // just the contributions if we need them later on
-  const toBeSquashedContributions = {}
+  let hasContributions = false
 
   // find if there's already saved enrichment data in source
   const caches = await findMemberEnrichmentCache(args.sources, args.memberId)
@@ -41,10 +40,11 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       )) as IMemberEnrichmentDataNormalized
 
       if (Array.isArray(normalized)) {
-        const normalizedContributions = []
         for (const n of normalized) {
           if (n.contributions) {
-            normalizedContributions.push(n.contributions)
+            if (n.contributions.length > 0) { 
+              hasContributions = true
+            }
             delete n.contributions
           }
 
@@ -52,12 +52,9 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
             delete n.reach
           }
         }
-
-        toBeSquashedContributions[source] = normalizedContributions
       }
 
       if (normalized.contributions) {
-        toBeSquashedContributions[source] = normalized.contributions
         delete normalized.contributions
       }
 
@@ -152,6 +149,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       identities: [],
       attributes: {},
       memberOrganizations: [],
+      reach: {},
     }
 
     // 1) squash identities
@@ -272,7 +270,17 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       return o.identities.some((i) => i.verified)
     })
 
-    await updateMemberUsingSquashedPayload(args.memberId, existingMemberData, squashedPayload)
+    // 5) handle reach - it can only come from crustdata
+    if (crustDataProfileSelected && crustDataProfileSelected.reach) {
+      squashedPayload.reach = crustDataProfileSelected.reach
+    }
+
+    await updateMemberUsingSquashedPayload(
+      args.memberId,
+      existingMemberData,
+      squashedPayload,
+      progaiLinkedinScraperProfileSelected && hasContributions,
+    )
     return true
   }
   return false

@@ -28,7 +28,7 @@ const tenantId = processArguments[0]
 const minMemberActivities = 100
 const maxConcurrentProcessing = 5
 
-async function getEnrichableMembers(limit: number, lastMemberId?: string): Promise<string[]> {
+async function getEnrichableMembers(limit: number): Promise<string[]> {
   const query = `
   -- only use members that have more than one enrichment source
   with members_with_sources as (select distinct "memberId", count(*)
@@ -48,7 +48,6 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   from members m
           inner join members_with_activities ma on m.id = ma."memberId"
   where m."deletedAt" is null and m."tenantId" = $(tenantId)
-  ${lastMemberId ? `and m.id > $(lastMemberId)` : ''}
     and (m."lastEnriched" is null
       or m."lastEnriched" < now() - interval '3 months')
   order by ma.total_activities desc, m.id
@@ -56,9 +55,7 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   `
 
   return (
-    await svc.postgres.writer
-      .connection()
-      .any(query, { lastMemberId, limit, tenantId, minMemberActivities })
+    await svc.postgres.writer.connection().any(query, { limit, tenantId, minMemberActivities })
   ).map((row) => row.id)
 }
 
@@ -76,7 +73,7 @@ setImmediate(async () => {
   let processedMembersCount = 0
   const REPORT_INTERVAL = 10
 
-  const pageSize = 100
+  const pageSize = 20
   let members = await getEnrichableMembers(pageSize)
   let pagePromises: Promise<void>[] = []
   while (members.length > 0) {

@@ -36,6 +36,7 @@ export async function fetchMemberDataForLLMSquashing(
           m.attributes,
           m."manuallyChangedFields",
           m."tenantId",
+          m.reach,
           coalesce(
                   (select json_agg(
                                   (select row_to_json(r)

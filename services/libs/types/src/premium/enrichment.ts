@@ -1,5 +1,5 @@
 import { MemberEnrichmentSource } from '../enums'
-import { IMemberIdentity } from '../members'
+import { IMemberIdentity, IMemberReach } from '../members'
 
 export interface IMemberEnrichmentCache<T> {
   createdAt: string
@@ -47,6 +47,7 @@ export interface IMemberOriginalData {
   attributes: Record<string, Record<string, unknown>>
   manuallyChangedFields: string[]
   tenantId: string
+  reach: IMemberReach
 
   // memberIdentities table data
   identities: IMemberIdentity[]
