@@ -561,6 +561,8 @@ export async function findOrCreateOrganization(
         founded: data.founded,
       }
 
+      log.trace({ data, payload }, `Preparing payload to create a new organization!`)
+
       const processed = prepareOrganizationData(payload, source)
 
       log.trace({ payload: processed }, `Creating new organization!`)

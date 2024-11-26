@@ -795,23 +795,23 @@ function prepareWorkExperiences(
     // if we found a match we can check if we need something to update
     if (match) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const toUpdate: Record<string, any> = {}
+      const toUpdateInner: Record<string, any> = {}
 
       // lets check if the dates and title are the same otherwise we need to update them
       if (current.dateStart !== match.startDate) {
-        toUpdate.dateStart = match.startDate
+        toUpdateInner.dateStart = match.startDate
       }
 
       if (current.dateEnd !== match.endDate) {
-        toUpdate.dateEnd = match.endDate
+        toUpdateInner.dateEnd = match.endDate
       }
 
       if (current.jobTitle !== match.title) {
-        toUpdate.title = match.title
+        toUpdateInner.title = match.title
       }
 
-      if (Object.keys(toUpdate).length > 0) {
-        toUpdate.set(current.id, toUpdate)
+      if (Object.keys(toUpdateInner).length > 0) {
+        toUpdate.set(current.id, toUpdateInner)
       }
 
       // remove the match from the new version array so we later don't process it again
