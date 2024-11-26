@@ -434,6 +434,17 @@ export async function deleteMemberOrg(tx: DbTransaction, memberId: string, orgId
   )
 }
 
+export async function deleteMemberOrgById(tx: DbConnOrTx, memberId: string, id: string) {
+  await tx.none(
+    `
+    update "memberOrganizations"
+    set "deletedAt" = now()
+    where "memberId" = $(memberId) and id = $(id);
+    `,
+    { memberId, id },
+  )
+}
+
 export async function findMemberOrgs(db: DbStore, memberId: string, orgId: string) {
   return await db.connection().query(
     `SELECT COUNT(*) AS count FROM "memberOrganizations"
@@ -443,6 +454,33 @@ export async function findMemberOrgs(db: DbStore, memberId: string, orgId: strin
                 AND "deletedAt" IS NULL
               `,
     [memberId, orgId],
+  )
+}
+
+export async function updateMemberOrg(
+  tx: DbConnOrTx,
+  memberId: string,
+  id: string,
+  toUpdate: Record<string, unknown>,
+) {
+  const keys = Object.keys(toUpdate)
+  if (keys.length === 0) {
+    return
+  }
+
+  const sets = keys.map((k) => `"${k}" = $(${k})`).join(',\n')
+
+  await tx.none(
+    `
+    update "memberOrganizations"
+    set ${sets}
+    where "memberId" = $(memberId) and id = $(id)
+    `,
+    {
+      memberId,
+      id,
+      ...toUpdate,
+    },
   )
 }
 

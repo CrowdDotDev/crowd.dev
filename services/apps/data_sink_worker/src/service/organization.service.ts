@@ -39,6 +39,10 @@ export class OrganizationService extends LoggerBase {
       return id
     })
 
+    if (!id) {
+      throw new Error('Organization not found or created!')
+    }
+
     return id
   }
 
