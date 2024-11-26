@@ -164,7 +164,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
         })
       }
     } else {
-      throw new Error(`Unsupported pull request action: ${action}`)
+      ctx.log.debug(`Unsupported pull request action: ${action}`)
     }
   }
 
