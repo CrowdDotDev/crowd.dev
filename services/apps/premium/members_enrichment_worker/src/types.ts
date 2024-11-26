@@ -82,6 +82,8 @@ export interface IMemberEnrichmentDataNormalized {
 }
 
 export interface IMemberEnrichmentDataNormalizedOrganization {
+  id?: string
+  organizationId?: string
   name: string
   identities?: IOrganizationIdentity[]
   title?: string

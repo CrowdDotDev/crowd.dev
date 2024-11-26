@@ -32,6 +32,7 @@ export interface IEnrichableMemberIdentityActivityAggregate {
 }
 
 export interface IMemberOrganizationData {
+  id: string
   orgId: string
   orgName: string
   jobTitle: string
