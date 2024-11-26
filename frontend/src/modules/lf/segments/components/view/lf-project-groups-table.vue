@@ -3,7 +3,7 @@
     <el-table
       id="project-groups-table"
       ref="table"
-      :data="list"
+      :data="fullList"
       row-key="id"
       :resizable="false"
       @row-click="handleRowClick"
@@ -12,7 +12,7 @@
       <el-table-column
         label="Status"
         prop="status"
-        width="100"
+        width="110"
         class-name="table-columns"
       >
         <template #default="{ row }">
@@ -65,14 +65,13 @@
       </el-table-column>
     </el-table>
 
-    <div v-if="!!pagination.count" class="mt-8 px-6">
-      <app-pagination
+    <div v-if="!!pagination.count && !projectGroups.loading" class="mt-8 px-6">
+      <app-infinite-pagination 
         :total="pagination.count"
         :page-size="Number(pagination.pageSize)"
         :current-page="pagination.currentPage || 1"
-        module="project group"
-        @change-current-page="doChangeProjectGroupCurrentPage"
-        @change-page-size="onPageSizeChange"
+        :is-loading="projectGroups.paginating"
+        @load-more="onLoadMore"
       />
     </div>
   </div>
@@ -83,7 +82,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLfPill from '@/shared/pill/pill.vue';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
@@ -96,12 +95,29 @@ const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { updateProjectGroupsPageSize, doChangeProjectGroupCurrentPage } = lsSegmentsStore;
 
 const pagination = computed(() => projectGroups.value.pagination);
-const list = computed(() => projectGroups.value.list);
+const fullList = ref(projectGroups.value.list);
+const currentPage = ref(1);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
+watch(projectGroups.value, (newList) => {
+  // TODO: need to requirements on how to handle editing project groups.
+  // The current implementation just re-fetches the current page, but if we edit a project group that is not in the current page
+  // The table will appear outdated
+  if (!newList.paginating && currentPage.value !== newList.pagination.currentPage) {
+    currentPage.value = newList.pagination.currentPage;
+    fullList.value = [...fullList.value, ...newList.list];
+  }
+});
+
 const onPageSizeChange = (pageSize) => {
   updateProjectGroupsPageSize(pageSize);
+};
+
+const onLoadMore = (currentPage) => {
+  if (!projectGroups.value.paginating) {
+    doChangeProjectGroupCurrentPage(currentPage);
+  }
 };
 
 const handleRowClick = (row) => {
