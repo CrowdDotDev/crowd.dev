@@ -621,3 +621,341 @@ select
     case when (select count from attempted_to_enrich_among_serp_enrichable_members)::numeric = 0 then 0 else 
     round((select count from serp_hit_count_among_attempted)::numeric / (select count from attempted_to_enrich_among_serp_enrichable_members)::numeric * 100, 2) end as "hitRate";
 
+
+-- member enrichment monitoring (entity updates)
+drop materialized view if exists "memberEnrichmentMonitoringEntityUpdates";
+create materialized view "memberEnrichmentMonitoringEntityUpdates" as
+with enriched_total as (
+    WITH total_members as (
+        select count(*) as count
+        from members
+        WHERE "lastEnriched" is not null
+    ),
+    members_with_more_than_1000_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 1000
+          AND m."lastEnriched" is not null
+    ),
+    members_with_more_than_100_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 100 and act_count.total_count < 1000
+          AND m."lastEnriched" is not null
+    ),
+    members_with_more_than_10_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 10 and act_count.total_count < 100
+          AND m."lastEnriched" is not null
+    )
+    select
+        (select count from total_members) as "enriched_today_total",
+        (select count from members_with_more_than_1000_activity) as "enriched_today_members_more_than_1000_activity",
+        (select count from members_with_more_than_100_activity) as "enriched_today_members_more_than_100_activity",
+        (select count from members_with_more_than_10_activity) as "enriched_today_members_more_than_10_activity"
+),
+enriched_today as (
+    WITH total_members as (
+        select count(*) as count
+        from members
+        WHERE "lastEnriched" >= date_trunc('day', now())
+    ),
+    members_with_more_than_1000_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 1000
+          AND m."lastEnriched" >= date_trunc('day', now())
+    ),
+    members_with_more_than_100_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 100 and act_count.total_count < 1000
+          AND m."lastEnriched" >= date_trunc('day', now())
+    ),
+    members_with_more_than_10_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 10  and act_count.total_count < 100
+          AND m."lastEnriched" >= date_trunc('day', now())
+    )
+    select
+        (select count from total_members) as "enriched_today_total",
+        (select count from members_with_more_than_1000_activity) as "enriched_today_members_more_than_1000_activity",
+        (select count from members_with_more_than_100_activity) as "enriched_today_members_more_than_100_activity",
+        (select count from members_with_more_than_10_activity) as "enriched_today_members_more_than_10_activity"
+),
+enriched_since_yesterday as (
+        WITH total_members as (
+        select count(*) as count
+        from members
+        WHERE "lastEnriched" >= date_trunc('day', now() - interval '1 day')
+    ),
+    members_with_more_than_1000_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 1000
+          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+    ),
+    members_with_more_than_100_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 100 and act_count.total_count < 1000
+          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+    ),
+    members_with_more_than_10_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 10  and act_count.total_count < 100
+          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+    )
+    select
+        (select count from total_members) as "enriched_since_yesterday_total",
+        (select count from members_with_more_than_1000_activity) as "enriched_since_yesterday_members_more_than_1000_activity",
+        (select count from members_with_more_than_100_activity) as "enriched_since_yesterday_members_more_than_100_activity",
+        (select count from members_with_more_than_10_activity) as "enriched_since_yesterday_members_more_than_10_activity"
+),
+enriched_in_last_30days as (
+       WITH total_members as (
+        select count(*) as count
+        from members
+        WHERE "lastEnriched" >= now() - interval '30 days'
+    ),
+    members_with_more_than_1000_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 1000
+          AND m."lastEnriched" >= now() - interval '30 days'
+    ),
+    members_with_more_than_100_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 100 and act_count.total_count < 1000
+          AND m."lastEnriched" >= now() - interval '30 days'
+    ),
+    members_with_more_than_10_activity as (
+        select count(*) as count
+        from members m
+        LEFT JOIN "membersGlobalActivityCount" act_count
+        ON act_count."memberId" = m.id
+        WHERE act_count.total_count > 10  and act_count.total_count < 100
+          AND m."lastEnriched" >= now() - interval '30 days'
+    )
+    select
+        (select count from total_members) as "enriched_in30d_total",
+        (select count from members_with_more_than_1000_activity) as "enriched_in30d_members_more_than_1000_activity",
+        (select count from members_with_more_than_100_activity) as "enriched_in30d_members_more_than_100_activity",
+        (select count from members_with_more_than_10_activity) as "enriched_in30d_members_more_than_10_activity"
+),
+last_enriched_3_profiles as (
+    select 'https://cm.lfx.dev/people/' || m.id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from members m
+    where exists (
+        select 1 from "memberEnrichmentCache" mec
+                 where mec."memberId" = m.id
+                 and data is not null
+    )
+    order by m."lastEnriched" desc
+    limit 3
+),
+last_enriched_3_profiles_with_more_than_1000_activities as (
+    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from members m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    where act_count.total_count > 1000
+    and exists (
+        select 1 from "memberEnrichmentCache" mec
+                 where mec."memberId" = m.id
+                 and data is not null
+    )
+    order by m."lastEnriched" desc
+    limit 3
+),
+last_enriched_3_profiles_with_more_than_100_activities as (
+    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from members m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    where act_count.total_count > 100 and act_count.total_count < 1000
+    and exists (
+        select 1 from "memberEnrichmentCache" mec
+                 where mec."memberId" = m.id
+                 and data is not null
+    )
+    order by m."lastEnriched" desc
+    limit 3
+),
+last_enriched_3_profiles_with_more_than_10_activities as (
+    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from members m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    where act_count.total_count > 10 and act_count.total_count < 100
+    and exists (
+        select 1 from "memberEnrichmentCache" mec
+                 where mec."memberId" = m.id
+                 and data is not null
+    )
+    order by m."lastEnriched" desc
+    limit 3
+),
+oldest_created_at_of_enrichable_member as (
+    with enrichable_in_at_least_one_source as (
+        select mem.id, mem."createdAt", max("membersGlobalActivityCount".total_count) as total_count
+        from members mem
+        inner join "memberIdentities" mi on mem.id = mi."memberId" and mi.verified
+        left join "membersGlobalActivityCount" on "membersGlobalActivityCount"."memberId" = mem.id
+        left join "memberEnrichmentCache" mec on mec."memberId" = mem.id
+        where (
+                (mi.verified and
+                ((mi.type = 'username' AND mi.platform = 'github') OR (mi.type = 'email')))
+                    OR
+                ("membersGlobalActivityCount".total_count > 10 AND mi.type = 'email' and mi.verified)
+                    OR
+                (
+                  ("membersGlobalActivityCount".total_count > 500) AND
+                  (mem."displayName" like '% %') AND
+                  (mem.attributes -> 'location' ->> 'default' is not null and
+                   mem.attributes -> 'location' ->> 'default' <> '') AND
+                  (
+                    (mem.attributes -> 'websiteUrl' ->> 'default' is not null and
+                    mem.attributes -> 'websiteUrl' ->> 'default' <> '') OR
+                    (mi.verified AND mi.type = 'username' and mi.platform = 'github') OR
+                    (mi.verified AND mi.type = 'email')
+                  )
+                )
+                    OR
+                ((mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'))
+              )
+       group by mem.id
+       order by mem.id desc)
+        select
+            (select min("createdAt") as "date" from enrichable_in_at_least_one_source) as total,
+            (select min("createdAt") as "date" from enrichable_in_at_least_one_source where total_count > 1000) as members_with_more_than_1000_activities,
+            (select min("createdAt") as "date" from enrichable_in_at_least_one_source where total_count > 100 and total_count < 1000) as members_with_more_than_100_activities,
+            (select min("createdAt") as "date" from enrichable_in_at_least_one_source where total_count > 10 and total_count < 100) as members_with_more_than_10_activities
+)
+    select
+        (select enriched_today_total from enriched_total) as "enrichedTotalAll",
+        (select enriched_today_members_more_than_1000_activity from enriched_total) as "enrichedTotal1000",
+        (select enriched_today_members_more_than_100_activity from enriched_total) as "enrichedTotal100",
+        (select enriched_today_members_more_than_10_activity from enriched_total) as "enrichedTotal10",
+
+        (select enriched_today_total from enriched_today) as "enrichedTodayAll",
+        (select enriched_today_members_more_than_1000_activity from enriched_today) as "enrichedToday1000",
+        (select enriched_today_members_more_than_100_activity from enriched_today) as "enrichedToday100",
+        (select enriched_today_members_more_than_10_activity from enriched_today) as "enrichedToday10",
+
+        (select enriched_since_yesterday_total from enriched_since_yesterday) as "enrichedSinceYesterdayAll",
+        (select enriched_since_yesterday_members_more_than_1000_activity from enriched_since_yesterday) as "enrichedSinceYesterday1000",
+        (select enriched_since_yesterday_members_more_than_100_activity from enriched_since_yesterday) as "enrichedSinceYesterday100",
+        (select enriched_since_yesterday_members_more_than_10_activity from enriched_since_yesterday) as "enrichedSinceYesterday10",
+
+        (select enriched_in30d_total from enriched_in_last_30days) as "enrichedInLast30DaysAll",
+        (select enriched_in30d_members_more_than_1000_activity from enriched_in_last_30days) as "enrichedInLast30Days1000",
+        (select enriched_in30d_members_more_than_100_activity from enriched_in_last_30days) as "enrichedInLast30Days100",
+        (select enriched_in30d_members_more_than_10_activity from enriched_in_last_30days) as "enrichedInLast30Days10",
+
+        (select array_agg(profiles) from last_enriched_3_profiles ) as "lastEnriched3ProfilesAll",
+        (select array_agg(profiles) from last_enriched_3_profiles_with_more_than_1000_activities ) as "lastEnriched3Profiles1000",
+        (select array_agg(profiles) from last_enriched_3_profiles_with_more_than_100_activities ) as "lastEnriched3Profiles100",
+        (select array_agg(profiles) from last_enriched_3_profiles_with_more_than_10_activities ) as "lastEnriched3Profiles10",
+
+        (select total from oldest_created_at_of_enrichable_member) as "oldestCreatedAtInEnrichableMembersAll",
+        (select members_with_more_than_1000_activities from oldest_created_at_of_enrichable_member) as "oldestCreatedAtInEnrichableMembers1000",
+        (select members_with_more_than_100_activities from oldest_created_at_of_enrichable_member) as "oldestCreatedAtInEnrichableMembers100",
+        (select members_with_more_than_10_activities from oldest_created_at_of_enrichable_member) as "oldestCreatedAtInEnrichableMembers10";
+
+
+-- member enrichment monitoring (LLM queries)
+drop materialized view if exists "memberEnrichmentMonitoringLLMQueries";
+create materialized view "memberEnrichmentMonitoringLLMQueries" as
+
+with check_profile_belongs_to_member_with_llm as (
+    with total_times_called as (
+        select count(*) as count
+        from "llmPromptHistory"
+        where type = 'member_enrichment_find_related_linkedin_profiles'
+    ),
+    averages as (
+        select avg("inputTokenCount") as "inputToken", 
+               avg("outputTokenCount") as "outputToken", 
+               avg("responseTimeSeconds") as "responseTimeSeconds"  
+        from "llmPromptHistory"
+        where type = 'member_enrichment_find_related_linkedin_profiles'
+    )
+    select
+        (select count from total_times_called) as "total_times_called",
+        (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
+        (select "responseTimeSeconds" from averages) as "average_response_time"
+),
+squash_multiple_value_attributes_with_llm as (
+    with total_times_called as (
+        select count(*) as count
+        from "llmPromptHistory"
+        where type = 'member_enrichment_squash_multiple_value_attributes'
+    ),
+    averages as (
+        select avg("inputTokenCount") as "inputToken", 
+               avg("outputTokenCount") as "outputToken", 
+               avg("responseTimeSeconds") as "responseTimeSeconds"  
+        from "llmPromptHistory"
+        where type = 'member_enrichment_squash_multiple_value_attributes'
+    )
+    select
+        (select count from total_times_called) as "total_times_called",
+        (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
+        (select "responseTimeSeconds" from averages) as "average_response_time"
+),
+squash_work_experiences_with_llm as (
+    with total_times_called as (
+        select count(*) as count
+        from "llmPromptHistory"
+        where type = 'member_enrichment_squash_work_experiences_from_multiple_sources'
+        ),
+        averages as (
+            select avg("inputTokenCount") as "inputToken", 
+                   avg("outputTokenCount") as "outputToken", 
+                   avg("responseTimeSeconds") as "responseTimeSeconds"  
+            from "llmPromptHistory"
+            where type = 'member_enrichment_squash_work_experiences_from_multiple_sources'
+        )
+        select
+            (select count from total_times_called) as "total_times_called",
+            (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
+            (select "responseTimeSeconds" from averages) as "average_response_time"
+)
+    select
+        (select total_times_called from check_profile_belongs_to_member_with_llm) as "checkProfileBelongsToMemberTotalTimesCalled",
+        (select round(average_cost, 5) from check_profile_belongs_to_member_with_llm) as "checkProfileExistsToMemberAvgCostPerRequest",
+        (select round(average_response_time, 2) from check_profile_belongs_to_member_with_llm) as "checkProfileExistsToMemberAvgResponseTime",
+
+        (select total_times_called from squash_multiple_value_attributes_with_llm) as "squashAttributesTotalTimesCalled",
+        (select round(average_cost, 5) from squash_multiple_value_attributes_with_llm) as "squashAttributesAvgCostPerRequest",
+        (select round(average_response_time, 2) from squash_multiple_value_attributes_with_llm) as "squashAttributesAvgResponseTime",
+
+        (select total_times_called from squash_work_experiences_with_llm) as "squashWorkExperiencesTotalTimesCalled",
+        (select round(average_cost, 5) from squash_work_experiences_with_llm) as "squashWorkExperiencesAvgCostPerRequest",
+        (select round(average_response_time, 2) from squash_work_experiences_with_llm) as "squashWorkExperiencesAvgResponseTime"
+
+
