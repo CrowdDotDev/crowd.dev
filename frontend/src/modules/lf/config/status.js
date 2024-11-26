@@ -1,22 +1,22 @@
 export default [
   {
-    color: 'bg-green-500',
+    color: 'bg-green-100 text-green-900',
     label: 'Active',
     value: 'active',
   },
   {
-    color: 'bg-primary-500',
+    color: 'bg-primary-100 text-primary-900',
     label: 'Formation',
     value: 'formation',
   },
   {
-    color: 'bg-yellow-500',
+    color: 'bg-yellow-100 text-yellow-900',
     label: 'Prospect',
     value: 'prospect',
   },
   {
-    color: 'bg-gray-400',
+    color: 'bg-gray-200 text-gray-900',
     label: 'Archived',
     value: 'archived',
   },
-];
+]

@@ -1,30 +1,32 @@
 <template>
-  <div class="mb-6 h-10 flex items-center">
-    <app-pagination-sorter
-      :page-size="pagination.pageSize"
-      :total="pagination.total"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      position="top"
-      module="project group"
-      @change-sorter="onPageSizeChange"
-    />
-  </div>
-
-  <div class="app-list-table not-clickable panel !px-0 !pt-0 !pb-6">
+  <div class="app-list-table not-clickable !px-0 !pt-0 !pb-6">
     <el-table
       id="project-groups-table"
       ref="table"
       :data="list"
       row-key="id"
       :resizable="false"
+      @row-click="handleRowClick"
     >
+      <!-- Status -->
+      <el-table-column
+        label="Status"
+        prop="status"
+        width="100"
+        class-name="table-columns"
+      >
+        <template #default="{ row }">
+          <app-pill :color="statusDisplay(row.status).color" type="solid">
+            {{ statusDisplay(row.status).label }}
+          </app-pill>
+        </template>
+      </el-table-column>
+
       <!-- Name -->
       <el-table-column
         label="Project Group"
         prop="name"
-        width="300"
-        fixed
+        width="450"
         class-name="table-columns"
       >
         <template #default="{ row }">
@@ -36,39 +38,23 @@
       <el-table-column
         label="Projects"
         prop="projects"
-        width="300"
+        width="150"
         class-name="table-columns"
       >
         <template #default="{ row }">
           <div v-if="row.projects.length" class="flex flex-wrap gap-2">
-            <app-tags
-              :tags="row.projects.map((p) => p.name)"
-              :collapse-tags="true"
-              :collapse-tags-tooltip="true"
-              tag-class="badge--gray-light h-6 text-xs"
-            />
+            <app-pill color="bg-white text-gray-900" type="bordered">
+              <div class="flex items-center gap-1">
+              <lf-icon-old name="stack-line" />
+              {{ row.projects.length }} project{{ row.projects.length > 1 ? 's' : '' }}
+            </div>
+            </app-pill>
           </div>
           <span v-else class="text-gray-500 text-sm">No projects</span>
         </template>
       </el-table-column>
 
-      <!-- Status -->
-      <el-table-column
-        label="Status"
-        prop="status"
-        width="150"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <div class="flex items-center gap-3">
-            <span
-              class="w-1.5 h-1.5 rounded-full"
-              :class="statusDisplay(row.status).color"
-            />
-            {{ statusDisplay(row.status).label }}
-          </div>
-        </template>
-      </el-table-column>
+      
 
       <el-table-column>
         <template #default>
@@ -76,21 +62,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column fixed="right" width="288">
+      <el-table-column width="100">
         <template #default="{ row }">
           <div class="w-full flex justify-end gap-3">
-            <router-link
-              class="h-10 flex items-center"
-              :to="{
-                name: 'adminProjects',
-                params: { id: row.id },
-              }"
-            >
-              <el-button class="btn btn--secondary">
-                <lf-icon name="layer-group" :size="16" />
-                <span>Manage projects</span>
-              </el-button>
-            </router-link>
             <app-lf-project-groups-dropdown
               :id="row.id"
               @on-edit-project-group="emit('onEditProjectGroup', row.id)"
@@ -119,11 +93,13 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
-import AppTags from '@/shared/tags/tags.vue';
 import { computed } from 'vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useRouter } from 'vue-router';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import AppPill from '@/shared/pill/pill.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
+const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -137,6 +113,13 @@ const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 const onPageSizeChange = (pageSize) => {
   updateProjectGroupsPageSize(pageSize);
 };
+
+const handleRowClick = (row) => {
+  router.push({
+    name: 'adminProjects',
+    params: { id: row.id },
+  });
+};
 </script>
 
 <script>
@@ -148,30 +131,32 @@ export default {
 <style lang="scss">
 #project-groups-table {
   thead .table-columns {
-    @apply align-middle h-14 px-6;
+    @apply align-middle h-14 px-2;
 
     .cell {
-      @apply px-0;
+      @apply px-0 #{!important};
     }
   }
 
   tbody {
+    tr {
+      @apply cursor-pointer;
+    }
     tr td:last-child{
       @apply px-6;
     }
 
     .table-columns {
-      @apply align-middle h-20 px-6;
+      @apply align-middle h-20 px-2;
 
       &.el-table-fixed-column--right .cell {
           @apply justify-end;
+          
         }
     }
 
     .cell {
-      @apply px-0;
-      display: flex !important;
-      align-items: center !important;
+      @apply px-0 #{!important};
     }
   }
 

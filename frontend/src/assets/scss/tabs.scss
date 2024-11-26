@@ -25,7 +25,10 @@
       @apply pl-3 #{!important};
     }
   }
+  &__nav-scroll {
+    @apply pb-5;
+  }
   &__nav-wrap::after {
-    @apply invisible;
+    @apply bg-gray-100 h-[1px];
   }
 }
