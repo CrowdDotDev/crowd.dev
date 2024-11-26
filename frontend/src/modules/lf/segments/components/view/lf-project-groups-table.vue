@@ -16,9 +16,9 @@
         class-name="table-columns"
       >
         <template #default="{ row }">
-          <app-pill :color="statusDisplay(row.status).color" type="solid">
+          <app-lf-pill :color="statusDisplay(row.status).color" type="solid">
             {{ statusDisplay(row.status).label }}
-          </app-pill>
+          </app-lf-pill>
         </template>
       </el-table-column>
 
@@ -42,19 +42,9 @@
         class-name="table-columns"
       >
         <template #default="{ row }">
-          <div v-if="row.projects.length" class="flex flex-wrap gap-2">
-            <app-pill color="bg-white text-gray-900" type="bordered">
-              <div class="flex items-center gap-1">
-              <lf-icon-old name="stack-line" />
-              {{ row.projects.length }} project{{ row.projects.length > 1 ? 's' : '' }}
-            </div>
-            </app-pill>
-          </div>
-          <span v-else class="text-gray-500 text-sm">No projects</span>
+          <app-lf-project-column :projects="row.projects" />
         </template>
       </el-table-column>
-
-      
 
       <el-table-column>
         <template #default>
@@ -95,8 +85,8 @@ import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
-import AppPill from '@/shared/pill/pill.vue';
+import AppLfPill from '@/shared/pill/pill.vue';
+import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
@@ -151,7 +141,7 @@ export default {
 
       &.el-table-fixed-column--right .cell {
           @apply justify-end;
-          
+
         }
     }
 
