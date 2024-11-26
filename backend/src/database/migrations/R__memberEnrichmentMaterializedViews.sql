@@ -899,14 +899,14 @@ with check_profile_belongs_to_member_with_llm as (
     ),
     averages as (
         select avg("inputTokenCount") as "inputToken", 
-               avg("outputTokenCount") as "outoutToken", 
+               avg("outputTokenCount") as "outputToken", 
                avg("responseTimeSeconds") as "responseTimeSeconds"  
         from "llmPromptHistory"
         where type = 'member_enrichment_find_related_linkedin_profiles'
     )
     select
         (select count from total_times_called) as "total_times_called",
-        (select ("inputToken" * 0.003 + "outoutToken" * 0.015) / 1000 from averages) as "average_cost",
+        (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
         (select "responseTimeSeconds" from averages) as "average_response_time"
 ),
 squash_multiple_value_attributes_with_llm as (
@@ -917,14 +917,14 @@ squash_multiple_value_attributes_with_llm as (
     ),
     averages as (
         select avg("inputTokenCount") as "inputToken", 
-               avg("outputTokenCount") as "outoutToken", 
+               avg("outputTokenCount") as "outputToken", 
                avg("responseTimeSeconds") as "responseTimeSeconds"  
         from "llmPromptHistory"
         where type = 'member_enrichment_squash_multiple_value_attributes'
     )
     select
         (select count from total_times_called) as "total_times_called",
-        (select ("inputToken" * 0.003 + "outoutToken" * 0.015) / 1000 from averages) as "average_cost",
+        (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
         (select "responseTimeSeconds" from averages) as "average_response_time"
 ),
 squash_work_experiences_with_llm as (
@@ -935,14 +935,14 @@ squash_work_experiences_with_llm as (
         ),
         averages as (
             select avg("inputTokenCount") as "inputToken", 
-                   avg("outputTokenCount") as "outoutToken", 
+                   avg("outputTokenCount") as "outputToken", 
                    avg("responseTimeSeconds") as "responseTimeSeconds"  
             from "llmPromptHistory"
             where type = 'member_enrichment_squash_work_experiences_from_multiple_sources'
         )
         select
             (select count from total_times_called) as "total_times_called",
-            (select ("inputToken" * 0.003 + "outoutToken" * 0.015) / 1000 from averages) as "average_cost",
+            (select ("inputToken" * 0.003 + "outputToken" * 0.015) / 1000 from averages) as "average_cost",
             (select "responseTimeSeconds" from averages) as "average_response_time"
 )
     select
