@@ -3,16 +3,17 @@
     @apply m-0 border-none #{!important};
   }
   &__active-bar {
-    @apply bg-primary-500 #{!important};
+    @apply bg-transparent #{!important};
   }
   &__content {
     @apply overflow-visible;
   }
   &__item {
-    @apply font-normal text-gray-900 px-4;
+    @apply font-normal text-gray-500 px-3 mr-2;
     transition: all 0.2s ease;
+    @apply text-center rounded-md text-gray-500 #{!important};
     &.is-active {
-      @apply font-medium text-primary-900 #{!important};
+      @apply font-medium bg-primary-50 text-gray-900 #{!important};
     }
     &:hover {
       @apply text-primary-500 #{!important};
@@ -20,5 +21,11 @@
     &:focus.is-active.is-focus:not(:active) {
       box-shadow: none;
     }
+    &:nth-child(2) {
+      @apply pl-3 #{!important};
+    }
+  }
+  &__nav-wrap::after {
+    @apply invisible;
   }
 }
