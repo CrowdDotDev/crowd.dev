@@ -28,20 +28,20 @@
 
   // Default buttons' variations
   &--primary {
-    background: linear-gradient(180deg, #1E9FFD 0%, #0094FF 100%);
+    background: linear-gradient(180deg, #1e9ffd 0%, #0094ff 100%);
     @apply text-white border-none shadow;
 
     &:hover,
     &:hover:is(a):not(.disabled) {
-      background: linear-gradient(180deg, #45b1ff 0%, #1E9FFD 100%);
+      background: linear-gradient(180deg, #45b1ff 0%, #1e9ffd 100%);
       @apply cursor-pointer text-white;
     }
     &:focus {
-      background: linear-gradient(180deg, #1E9FFD 0%, #0094FF 100%);
+      background: linear-gradient(180deg, #1e9ffd 0%, #0094ff 100%);
       @apply outline outline-1 outline-primary-500 outline-offset-2 text-white;
     }
     &:active {
-      background: linear-gradient(180deg, #45b1ff 0%, #1E9FFD 100%);
+      background: linear-gradient(180deg, #45b1ff 0%, #1e9ffd 100%);
       @apply text-white;
     }
     &[disabled],
@@ -51,30 +51,30 @@
   }
 
   &--secondary {
-    background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
-    border: 1px solid #E6E6E6;
+    background: linear-gradient(180deg, #fff 0%, #e6e6e6 100%);
+    border: 1px solid #e6e6e6;
     @apply text-primary-500;
 
     &:hover {
-      border: 1px solid #E6E6E6;
+      border: 1px solid #e6e6e6;
       @apply cursor-pointer bg-gray-100 text-primary-500 border-solid;
     }
     &:focus {
-      border: 1px solid #E6E6E6;
-      background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
+      border: 1px solid #e6e6e6;
+      background: linear-gradient(180deg, #fff 0%, #e6e6e6 100%);
       @apply text-primary-500  border-solid outline outline-offset-2 outline-1 outline-gray-300;
     }
     &:active {
-      border: 1px solid #E6E6E6;
+      border: 1px solid #e6e6e6;
       @apply bg-gray-200 text-primary-500 border-solid;
     }
     &[disabled],
     &:disabled {
-      background: linear-gradient(180deg, #FFF 0%, #F3F4F6 100%);
+      background: linear-gradient(180deg, #fff 0%, #f3f4f6 100%);
       @apply cursor-not-allowed text-gray-400 border border-gray-100 border-solid;
     }
 
-    &.btn{
+    &.btn {
       &--lg {
         @apply py-2.5;
       }
@@ -147,11 +147,10 @@
   }
 
   &--text {
-    @apply bg-transparent border-0 shadow-none text-primary-500;
+    @apply bg-transparent border-0 shadow-none text-gray-900;
     &:hover,
     &:focus {
-      @apply text-primary-500;
-      background: #fdedea;
+      @apply text-primary-500 bg-transparent;
     }
   }
 

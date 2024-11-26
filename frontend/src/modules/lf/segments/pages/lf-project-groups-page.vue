@@ -9,9 +9,10 @@
       />
       <el-button
         v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
-        class="btn btn--md btn--primary"
+        class="btn btn--md btn--text"
         @click="onAddProjectGroup"
       >
+        <lf-icon name="folder-plus" type="regular" class="mr-1.5" />
         Add project group
       </el-button>
     </div>
@@ -42,7 +43,7 @@
       />
 
       <!-- Table -->
-      <div v-else class="mt-6">
+      <div v-else class="mt-8">
         <app-lf-project-groups-table
           @on-edit-project-group="onEditProjectGroup"
           @on-add-project="onAddProject"
@@ -80,6 +81,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
