@@ -42,7 +42,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       if (Array.isArray(normalized)) {
         for (const n of normalized) {
           if (n.contributions) {
-            if (n.contributions.length > 0) { 
+            if (n.contributions.length > 0) {
               hasContributions = true
             }
             delete n.contributions
@@ -265,12 +265,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       }
     }
 
-    // 4) clean work experiences without a verified identity
-    squashedPayload.memberOrganizations = squashedPayload.memberOrganizations.filter((o) => {
-      return o.identities.some((i) => i.verified)
-    })
-
-    // 5) handle reach - it can only come from crustdata
+    // 4) handle reach - it can only come from crustdata
     if (crustDataProfileSelected && crustDataProfileSelected.reach) {
       squashedPayload.reach = crustDataProfileSelected.reach
     }
