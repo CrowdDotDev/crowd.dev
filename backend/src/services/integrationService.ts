@@ -45,6 +45,7 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import {
+  GITHUB_TOKEN_CONFIG,
   DISCORD_CONFIG,
   GITHUB_CONFIG,
   GITLAB_CONFIG,
@@ -639,6 +640,10 @@ export default class IntegrationService {
           integration.platform,
           integration.id,
           true,
+          null,
+          {
+            messageSentAt: new Date().toISOString(),
+          },
         )
       }
 
@@ -2018,11 +2023,13 @@ export default class IntegrationService {
         }
       }
 
-      const githubToken = await IntegrationService.getInstallToken(
-        integration.integrationIdentifier,
-      )
+      const githubToken = GITHUB_TOKEN_CONFIG.token
 
-      const repos = await getInstalledRepositories(githubToken)
+      const repos = integration.settings.orgs.flatMap((org) => org.repos) as {
+        url: string
+        name: string
+        updatedAt: string
+      }[]
       const cacheRemote = new RedisCache(
         'github-progress-remote',
         this.options.redis,

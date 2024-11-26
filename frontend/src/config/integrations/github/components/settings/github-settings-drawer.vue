@@ -8,18 +8,27 @@
               Integration
             </p>
             <div class="flex items-center gap-2">
-              <img src="/images/integrations/github.png" alt="GitHub" class="h-6 w-6" />
+              <img
+                src="/images/integrations/github.png"
+                alt="GitHub"
+                class="h-6 w-6"
+              />
               <h5 class="text-black">
                 GitHub
               </h5>
             </div>
           </div>
-          <lf-button type="secondary-ghost" icon-only @click="isDrawerVisible = false">
+          <lf-button
+            type="secondary-ghost"
+            icon-only
+            @click="isDrawerVisible = false"
+          >
             <lf-icon name="xmark" />
           </lf-button>
         </div>
         <p class="text-small text-gray-500">
-          Sync GitHub repositories to track profile information and all relevant activities like commits, pull requests, discussions, and more.
+          Sync GitHub repositories to track profile information and all relevant
+          activities like commits, pull requests, discussions, and more.
         </p>
       </section>
       <div class="flex-grow overflow-auto">
@@ -37,8 +46,14 @@
           />
         </div>
       </div>
-      <div class="border-t border-gray-100 py-5 px-6 flex justify-end gap-4" style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)">
-        <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
+      <div
+        class="border-t border-gray-100 py-5 px-6 flex justify-end gap-4"
+        style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)"
+      >
+        <lf-button
+          type="secondary-ghost-light"
+          @click="isDrawerVisible = false"
+        >
           Cancel
         </lf-button>
         <lf-button
@@ -46,7 +61,7 @@
           :disabled="$v.$invalid || !repositories.length"
           @click="connect()"
         >
-          {{ props.integration ? 'Update settings' : 'Connect' }}
+          {{ props.integration ? "Update settings" : "Connect" }}
         </lf-button>
       </div>
     </div>
@@ -68,15 +83,16 @@ import LfDrawer from '@/ui-kit/drawer/Drawer.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github/components/settings/github-settings-empty.vue';
-import LfGithubSettingsAddRepositoryModal
-  from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
+import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute } from 'vue-router';
 import useVuelidate from '@vuelidate/core';
 import { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import {
   GitHubOrganization,
-  GitHubSettings, GitHubSettingsOrganization, GitHubSettingsRepository,
+  GitHubSettings,
+  GitHubSettingsOrganization,
+  GitHubSettingsRepository,
 } from '@/config/integrations/github/types/GithubSettings';
 import LfGithubSettingsMapping from '@/config/integrations/github/components/settings/github-settings-mapping.vue';
 import dayjs from 'dayjs';
@@ -84,13 +100,16 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 
 const props = defineProps<{
-  modelValue: boolean,
-  integration?: Integration<GitHubSettings>,
+  modelValue: boolean;
+  integration?: Integration<GitHubSettings>;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
@@ -118,10 +137,9 @@ const isDrawerVisible = computed({
 });
 
 const fetchSubProjects = () => {
-  LfService.findSegment(route.params.grandparentId)
-    .then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat();
-    });
+  LfService.findSegment(route.params.grandparentId).then((segment) => {
+    subprojects.value = segment.projects.map((p) => p.subprojects).flat();
+  });
 };
 
 const $v = useVuelidate();
@@ -138,16 +156,20 @@ const allOrganizations = computed<any[]>(() => {
 });
 
 const buildSettings = (): GitHubSettings => {
-  const orgs = allOrganizations.value.map((o: GitHubOrganization): GitHubSettingsOrganization => ({
-    ...o,
-    fullSync: organizations.value.some((org) => org.url === o.url),
-    updatedAt: o.updatedAt || dayjs().toISOString(),
-    repos: repositories.value.filter((r) => r.org!.url === o.url).map((r) => ({
-      name: r.name,
-      url: r.url,
-      updatedAt: r.updatedAt || dayjs().toISOString(),
-    })),
-  }));
+  const orgs = allOrganizations.value.map(
+    (o: GitHubOrganization): GitHubSettingsOrganization => ({
+      ...o,
+      fullSync: organizations.value.some((org) => org.url === o.url),
+      updatedAt: o.updatedAt || dayjs().toISOString(),
+      repos: repositories.value
+        .filter((r) => r.org!.url === o.url)
+        .map((r) => ({
+          name: r.name,
+          url: r.url,
+          updatedAt: r.updatedAt || dayjs().toISOString(),
+        })),
+    }),
+  );
   return { orgs, updateMemberAttributes: true };
 };
 
@@ -155,13 +177,21 @@ const connect = () => {
   let integration: any = null;
   const settings: GitHubSettings = buildSettings();
   (props.integration?.id
-    ? IntegrationService.update(props.integration.id, { settings })
+    ? IntegrationService.update(props.integration.id, {
+      settings,
+      status: 'in-progress',
+    })
     : IntegrationService.create({
-      settings, platform: 'github', status: 'in-progress',
-    }))
+      settings,
+      platform: 'github',
+      status: 'in-progress',
+    })
+  )
     .then((res) => {
       integration = res;
-      return IntegrationService.githubMapRepos(res.id, repoMappings.value, [res.segmentId]);
+      return IntegrationService.githubMapRepos(res.id, repoMappings.value, [
+        res.segmentId,
+      ]);
     })
     .then(() => {
       doFetch([integration.segmentId]);
@@ -177,54 +207,72 @@ const connect = () => {
       if (integration.status === 'in-progress') {
         showIntegrationProgressNotification('github', integration.segmentId);
       } else {
-        Message.success(props.integration?.id
-          ? 'Settings have been updated'
-          : 'GitHub has been connected successfully');
+        Message.success(
+          props.integration?.id
+            ? 'Settings have been updated'
+            : 'GitHub has been connected successfully',
+        );
       }
 
       isDrawerVisible.value = false;
     })
     .catch(() => {
-      Message.error(props.integration?.id
-        ? 'There was error updating settings'
-        : 'There was error connecting GitHub');
+      Message.error(
+        props.integration?.id
+          ? 'There was error updating settings'
+          : 'There was error connecting GitHub',
+      );
     });
 };
 
 const fetchGithubMappings = () => {
   if (!props.integration) return;
-  IntegrationService.fetchGitHubMappings(props.integration)
-    .then((res: any[]) => {
-      repoMappings.value = res.reduce((rm, mapping) => ({
-        ...rm,
-        [mapping.url]: mapping.segment.id,
-      }), {});
-    });
+  IntegrationService.fetchGitHubMappings(props.integration).then(
+    (res: any[]) => {
+      repoMappings.value = res.reduce(
+        (rm, mapping) => ({
+          ...rm,
+          [mapping.url]: mapping.segment.id,
+        }),
+        {},
+      );
+    },
+  );
 };
 
-watch(() => props.integration, (value?: Integration<GitHubSettings>) => {
-  if (value) {
-    fetchGithubMappings();
-    const { orgs } = value.settings;
-    organizations.value = orgs
-      .filter((o) => o.fullSync)
-      .map((o) => ({
-        name: o.name,
-        logo: o.logo,
-        url: o.url,
-        updatedAt: o.updatedAt,
-      }));
-    repositories.value = orgs.reduce((acc: GitHubSettingsRepository[], o) => [...acc, ...o.repos.map((r) => ({
-      ...r,
-      org: {
-        name: o.name,
-        logo: o.logo,
-        url: o.url,
-        updatedAt: o.updatedAt,
-      },
-    }))], []);
-  }
-}, { immediate: true });
+watch(
+  () => props.integration,
+  (value?: Integration<GitHubSettings>) => {
+    if (value) {
+      fetchGithubMappings();
+      const { orgs } = value.settings;
+      organizations.value = orgs
+        .filter((o) => o.fullSync)
+        .map((o) => ({
+          name: o.name,
+          logo: o.logo,
+          url: o.url,
+          updatedAt: o.updatedAt,
+        }));
+      repositories.value = orgs.reduce(
+        (acc: GitHubSettingsRepository[], o) => [
+          ...acc,
+          ...o.repos.map((r) => ({
+            ...r,
+            org: {
+              name: o.name,
+              logo: o.logo,
+              url: o.url,
+              updatedAt: o.updatedAt,
+            },
+          })),
+        ],
+        [],
+      );
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   fetchSubProjects();
