@@ -477,22 +477,13 @@ export async function findOrCreateOrganization(
   source: string,
   data: IOrganization,
   integrationId?: string,
-  forceByName?: boolean,
-): Promise<string> {
+): Promise<string | undefined> {
   const verifiedIdentities = data.identities ? data.identities.filter((i) => i.verified) : []
 
-  if (forceByName) {
-    if (!data.displayName) {
-      const message = `Missing organization name while creating/updating organization!`
-      log.error(data, message)
-      throw new Error(message)
-    }
-  } else {
-    if (verifiedIdentities.length === 0) {
-      const message = `Missing organization identity while creating/updating organization!`
-      log.error(data, message)
-      throw new Error(message)
-    }
+  if (verifiedIdentities.length === 0 && !data.displayName) {
+    const message = `Missing organization identity or displayName while creating/updating organization!`
+    log.error(data, message)
+    throw new Error(message)
   }
 
   try {
@@ -507,21 +498,27 @@ export async function findOrCreateOrganization(
     }
 
     let existing
-
-    if (forceByName) {
-      // find existing org by name
-      existing = await findOrgByName(qe, tenantId, data.displayName)
-    } else {
-      // find existing org by sent verified identities
-      for (const identity of verifiedIdentities) {
-        existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
-        if (existing) {
-          break
-        }
+    // find existing org by sent verified identities
+    for (const identity of verifiedIdentities) {
+      existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+      if (existing) {
+        break
       }
     }
 
+    if (!existing) {
+      existing = await findOrgByName(qe, tenantId, data.displayName)
+    }
+
     let id
+
+    if (!existing && verifiedIdentities.length === 0) {
+      log.warn(
+        { tenantId },
+        'Organization does not have any verified identities and was not found by name so we will not create it.',
+      )
+      return undefined
+    }
 
     if (existing) {
       log.trace(`Found existing organization, organization will be updated!`)
@@ -547,10 +544,11 @@ export async function findOrCreateOrganization(
       id = existing.id
     } else {
       log.trace(`Organization wasn't found via website or identities.`)
-      const firstVerified = verifiedIdentities[0]
+      const displayName =
+        verifiedIdentities.length > 0 ? verifiedIdentities[0].value : data.displayName
 
       const payload = {
-        displayName: firstVerified.value,
+        displayName,
         description: data.description,
         logo: data.logo,
         tags: data.tags,

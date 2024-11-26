@@ -8,13 +8,16 @@ import {
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import {
-  fetchMemberDataForLLMSquashing as fetchMemberDataForLLMSquashingQuestDb,
+  deleteMemberOrgById,
+  fetchMemberDataForLLMSquashing as fetchMemberDataForLLMSquashingDb,
   findMemberEnrichmentCacheDb,
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
+  insertWorkExperience,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateLastEnrichedDate,
   updateMemberEnrichmentCacheDb,
+  updateMemberOrg,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -178,7 +181,7 @@ export async function findMemberEnrichmentCache(
 export async function fetchMemberDataForLLMSquashing(
   memberId: string,
 ): Promise<IMemberOriginalData> {
-  return fetchMemberDataForLLMSquashingQuestDb(svc.postgres.reader.connection(), memberId)
+  return fetchMemberDataForLLMSquashingDb(svc.postgres.reader.connection(), memberId)
 }
 
 export async function findMemberEnrichmentCacheForAllSources(
@@ -316,10 +319,6 @@ export async function updateMemberUsingSquashedPayload(
               description: org.organizationDescription,
               identities: org.identities ? org.identities : [],
             },
-            undefined,
-            !org.identities ||
-              org.identities.length === 0 ||
-              org.identities.filter((i) => i.verified).length === 0,
           ).then((orgId) => {
             // set the organization id for later use
             org.organizationId = orgId
@@ -333,6 +332,10 @@ export async function updateMemberUsingSquashedPayload(
       }
 
       await Promise.all(promises)
+      // ignore all organizations that were not created
+      squashedPayload.memberOrganizations = squashedPayload.memberOrganizations.filter(
+        (o) => o.organizationId,
+      )
       promises = []
 
       const results = prepareWorkExperiences(
@@ -341,13 +344,35 @@ export async function updateMemberUsingSquashedPayload(
       )
 
       if (results.toDelete.length > 0) {
-        // TODO uros delete member organization links
+        for (const id of results.toDelete) {
+          promises.push(deleteMemberOrgById(tx.transaction(), memberId, id))
+        }
       }
+
       if (results.toCreate.length > 0) {
-        // TODO uros create member organization links
+        for (const org of results.toCreate) {
+          if (!org.organizationId) {
+            throw new Error('Organization ID is missing!')
+          }
+
+          promises.push(
+            insertWorkExperience(
+              tx.transaction(),
+              memberId,
+              org.organizationId,
+              org.title,
+              org.startDate,
+              org.endDate,
+              org.source,
+            ),
+          )
+        }
       }
+
       if (results.toUpdate.size > 0) {
-        // TODO uros update existing member organization links
+        for (const [id, toUpdate] of results.toUpdate) {
+          promises.push(updateMemberOrg(tx.transaction(), memberId, id, toUpdate))
+        }
       }
     }
 
