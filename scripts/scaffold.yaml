@@ -140,7 +140,7 @@ services:
       - crowd-bridge
 
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.8.0-debian-12-r6
     restart: unless-stopped
     environment:
       - KAFKA_CFG_NODE_ID=0
