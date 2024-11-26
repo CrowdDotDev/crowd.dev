@@ -213,7 +213,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
             platform: this.platform,
             value: data.employment?.domain,
             type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: false,
+            verified: true,
           },
         ],
         title: data.employment.title,

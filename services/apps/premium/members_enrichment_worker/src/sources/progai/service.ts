@@ -276,12 +276,18 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
         const identities = []
 
         if (workExperience.companyUrl) {
-          identities.push({
-            platform: PlatformType.LINKEDIN,
-            value: workExperience.companyUrl,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: true,
-          })
+          // sometimes companyUrl is a github link, we don't want to add it as a primary domain
+          if (
+            !workExperience.companyUrl.toLowerCase().includes('github') &&
+            !workExperience.company.toLowerCase().includes('github')
+          ) {
+            identities.push({
+              platform: PlatformType.LINKEDIN,
+              value: workExperience.companyUrl,
+              type: OrganizationIdentityType.PRIMARY_DOMAIN,
+              verified: true,
+            })
+          }
         }
 
         if (workExperience.companyLinkedInUrl) {

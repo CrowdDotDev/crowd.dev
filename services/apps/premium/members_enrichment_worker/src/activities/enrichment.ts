@@ -273,22 +273,75 @@ export async function processMemberSources(
     let crustDataProfileSelected: IMemberEnrichmentDataNormalized = null
 
     if (toBeSquashed[MemberEnrichmentSource.CRUSTDATA]) {
-      crustDataProfileSelected = await findWhichLinkedinProfileToUseAmongScraperResult(
+      const categorizationResult = await findWhichLinkedinProfileToUseAmongScraperResult(
         memberId,
         existingMemberData,
         toBeSquashed[MemberEnrichmentSource.CRUSTDATA],
       )
-      toBeSquashed[MemberEnrichmentSource.CRUSTDATA] = crustDataProfileSelected
+
+      crustDataProfileSelected = categorizationResult.selected
+
+      if (crustDataProfileSelected) {
+        toBeSquashed[MemberEnrichmentSource.CRUSTDATA] = crustDataProfileSelected
+      }
+
+      // check if there are any discarded profiles
+      if (categorizationResult.discarded.length > 0) {
+        for (const discardedProfile of categorizationResult.discarded) {
+          const discardedLinkedinIdentity = discardedProfile.identities.find(
+            (i) => i.platform === PlatformType.LINKEDIN,
+          )
+
+          // remove the root source where the discarded linkedin profile is coming from
+          for (const source of sources) {
+            if (
+              toBeSquashed[source].identities.some(
+                (i) =>
+                  i.value === discardedLinkedinIdentity.value &&
+                  i.platform === PlatformType.LINKEDIN,
+              )
+            ) {
+              delete toBeSquashed[source]
+            }
+          }
+        }
+      }
     }
 
     if (toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER]) {
-      progaiLinkedinScraperProfileSelected = await findWhichLinkedinProfileToUseAmongScraperResult(
+      const categorizationResult = await findWhichLinkedinProfileToUseAmongScraperResult(
         memberId,
         existingMemberData,
         toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER],
       )
-      toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER] =
-        progaiLinkedinScraperProfileSelected
+
+      progaiLinkedinScraperProfileSelected = categorizationResult.selected
+
+      if (progaiLinkedinScraperProfileSelected) {
+        toBeSquashed[MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER] =
+          progaiLinkedinScraperProfileSelected
+      }
+
+      if (categorizationResult.discarded.length > 0) {
+        for (const discardedProfile of categorizationResult.discarded) {
+          const discardedLinkedinIdentity = discardedProfile.identities.find(
+            (i) => i.platform === PlatformType.LINKEDIN,
+          )
+
+          // remove the root source where the discarded linkedin profile is coming from
+          for (const source of sources) {
+            if (
+              toBeSquashed[source].identities.some(
+                (i) =>
+                  i.value === discardedLinkedinIdentity.value &&
+                  i.platform === PlatformType.LINKEDIN,
+              )
+            ) {
+              delete toBeSquashed[source]
+            }
+          }
+        }
+      }
     }
 
     // start squashing the data
@@ -318,19 +371,6 @@ export async function processMemberSources(
                 i.value === identity.value,
             )
           ) {
-            // prevent adding linkedin identities to squashed payload that was discarded by the LLM
-            if (
-              identity.platform === PlatformType.LINKEDIN &&
-              !(crustDataProfileSelected || { identities: [] }).identities.some(
-                (i) => i.value === identity.value,
-              ) &&
-              !(progaiLinkedinScraperProfileSelected || { identities: [] }).identities.some(
-                (i) => i.value === identity.value,
-              )
-            ) {
-              continue
-            }
-
             squashedPayload.identities.push(identity)
           }
         }
@@ -424,9 +464,9 @@ export async function processMemberSources(
       }
     }
 
-    console.log('squashedPayload.identities', squashedPayload.identities)
-    console.log('squashedPayload.attributes', squashedPayload.attributes)
-    console.log('squashedPayload.memberOrganizations', squashedPayload.memberOrganizations)
+    // console.log('squashedPayload.identities', squashedPayload.identities)
+    // console.log('squashedPayload.attributes', squashedPayload.attributes)
+    // console.log('squashedPayload.memberOrganizations', squashedPayload.memberOrganizations)
 
     /* 
       // TODO:: Here should be adjusted to work with the squashedPayload
@@ -571,7 +611,9 @@ export async function processMemberSources(
         })
   
         */
-
+    await svc.postgres.writer.transactionally(async (tx) => {
+      await updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId)
+    })
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
     return true
 
@@ -606,15 +648,14 @@ export async function findRelatedLinkedinProfilesWithLLM(
   memberId: string,
   memberProfile: IMemberOriginalData,
   linkedinProfiles: IMemberEnrichmentDataNormalized[],
-): Promise<IMemberEnrichmentDataNormalized> {
+): Promise<{ profileIndex: number }> {
   const prompt = `
-You are an expert at analyzing and matching personal profiles. I will provide you with the details of a member profile and an array of LinkedIn profiles in JSON format. Your task is to analyze the data and return the single LinkedIn profile that most likely belongs to the member, along with an explanation of why it was selected.
+"You are an expert at analyzing and matching personal profiles. I will provide you with the details of a member profile and an array of LinkedIn profiles in JSON format. Your task is to analyze the data and return only the index of the profile that most likely belongs to the member.
 
 Instructions:
     Match the profiles based on flexible criteria, allowing partial matches or similarities.
-    Output valid JSON only. The JSON should include the matched profile and an explanation field explaining why it was selected.
-    Return the matched profile exactly as it appears in the input JSON array.
-    If no match is found, return an object with an empty profile and an explanation describing why no match was made.
+    Output valid JSON only. The JSON should include the matched profile.
+    The JSON should include the matched profile's index from the input array, 0-indexed. If no match is found, return "profileIndex": null.
 Considerations for Matching:
   Name Similarity: Consider at most 2 edit distances, use character tokenization.
   Job Titles and Companies: Look for overlaps in current or past job titles and companies.
@@ -630,19 +671,19 @@ Considerations for Matching:
     ${JSON.stringify(linkedinProfiles)}
 
   
-    Expected Output:
-    If a match is found:
-    {
-      "profile": { /* The matched LinkedIn profile as it appears in the input */ },
-    }
-    
-    If no match is found:
-    {
-      "profile": {},
-    }
+  Expected Output: 
+  If a match is found: 
+  { 
+    "profileIndex": 0, /* 0-indexed index of the matched profile */ 
+  }
+
+  If no match is found: 
+  { 
+    "profileIndex": null
+  }
 
   Return exactly one profile in valid JSON format.
-    If no match is found, return empty object {} in profile.
+    If no match is found, return null in profileIndex.
     Ensure the response is a **valid and complete JSON**.
     DO NOT output anything else.
     Output ONLY valid JSON
@@ -685,19 +726,23 @@ export async function squashMultipleValueAttributesWithLLM(
       # location (string): Represents user locations.
       
       Each attribute has an array of possible values, and the task is to determine the best value for each attribute based on the following criteria:
+      General rules:
+        Select the most relevant and accurate value for each attribute.
+        Repeated information across values can be considered a strong indicator.
 
-      For avatarUrl:
-        Prefer the URL pointing to the highest-quality, professional, or clear image.
-        Exclude any broken or invalid URLs.
-      For jobTitle:
-        Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
-        If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
-      For bio:
-        Select the most detailed, relevant, and grammatically accurate description.
-        Avoid overly generic or vague descriptions.
-      For location:
-        Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
-        Ensure the location format is complete and includes necessary details (e.g., city and country).
+      Specific rules:
+        For avatarUrl:
+          Prefer the URL pointing to the highest-quality, professional, or clear image.
+          Exclude any broken or invalid URLs.
+        For jobTitle:
+          Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
+          If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
+        For bio:
+          Select the most detailed, relevant, and grammatically accurate description.
+          Avoid overly generic or vague descriptions.
+        For location:
+          Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
+          Ensure the location format is complete and includes necessary details (e.g., city and country).
       
       Return the selected values in a structured format like this:
       {
@@ -732,8 +777,14 @@ async function findWhichLinkedinProfileToUseAmongScraperResult(
   memberId: string,
   memberData: IMemberOriginalData,
   profiles: IMemberEnrichmentDataNormalized[],
-): Promise<IMemberEnrichmentDataNormalized> {
-  let profileSelected: IMemberEnrichmentDataNormalized = null
+): Promise<{
+  selected: IMemberEnrichmentDataNormalized
+  discarded: IMemberEnrichmentDataNormalized[]
+}> {
+  const categorized = {
+    selected: null,
+    discarded: [],
+  }
   const profilesFromVerifiedIdentities: IMemberEnrichmentDataNormalized[] = []
   const profilesFromUnverfiedIdentities: IMemberEnrichmentDataNormalized[] = []
 
@@ -756,15 +807,21 @@ async function findWhichLinkedinProfileToUseAmongScraperResult(
       )
 
       // check if empty object
-      if (Object.keys(result).length !== 0) {
-        profileSelected = result
+      if (result.profileIndex !== null) {
+        categorized.selected = profilesFromVerifiedIdentities[result.profileIndex]
+        // add profiles not selected to discarded
+        for (let i = 0; i < profilesFromVerifiedIdentities.length; i++) {
+          if (i !== result.profileIndex) {
+            categorized.discarded.push(profilesFromVerifiedIdentities[i])
+          }
+        }
       }
     } else {
-      profileSelected = profilesFromVerifiedIdentities[0]
+      categorized.selected = profilesFromVerifiedIdentities[0]
     }
   }
 
-  if (!profileSelected && profilesFromUnverfiedIdentities.length > 0) {
+  if (!categorized.selected && profilesFromUnverfiedIdentities.length > 0) {
     const result = await findRelatedLinkedinProfilesWithLLM(
       memberId,
       memberData,
@@ -772,12 +829,18 @@ async function findWhichLinkedinProfileToUseAmongScraperResult(
     )
 
     // check if empty object
-    if (Object.keys(result).length !== 0) {
-      profileSelected = result
+    if (result.profileIndex !== null) {
+      categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
+      // add profiles not selected to discarded
+      for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
+        if (i !== result.profileIndex) {
+          categorized.discarded.push(profilesFromUnverfiedIdentities[i])
+        }
+      }
     }
   }
 
-  return profileSelected
+  return categorized
 }
 
 async function squashWorkExperiencesWithLLM(
@@ -806,11 +869,14 @@ async function squashWorkExperiencesWithLLM(
       Guidelines:
         Order Chronologically:
           Sort the roles by startDate. If startDate is missing, infer the order based on available endDate or other contextual data.
-        Merge Overlapping Roles:
-          If multiple roles from the same organization overlap in time, squash them into one entry with a unified startDate, endDate, and picked information (e.g., job titles, descriptions).
+        Merge Overlapping Roles IN DIFFERENT SOURCES:
+          Never try merging roles from the same source.
+          If multiple roles from the same organization overlap in time IN DIFFERENT SOURCES, squash them into one entry with a unified startDate, endDate, and picked information (e.g., job titles, descriptions).
           Preserve all unique identities and consolidate other fields appropriately.
+          If necessary, ONLY merge dateRanges and NEVER merge titles together, but pick the one that best represents the role.
         Handle Missing Dates:
           Use logical assumptions to fill gaps where possible, always using existing date information but nothing else.
+          If there is a role with a missing startDate and a missing endDate, and there's also another role from same or similar organization with dates, you can remove the role with missing dates.
         Prioritize Current Roles:
           Ongoing roles (endDate = null) should be placed last in the timeline.
         Ensure Accuracy:
