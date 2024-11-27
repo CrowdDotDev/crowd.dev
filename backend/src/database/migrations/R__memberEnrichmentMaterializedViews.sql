@@ -628,32 +628,32 @@ create materialized view "memberEnrichmentMonitoringEntityUpdates" as
 with enriched_total as (
     WITH total_members as (
         select count(*) as count
-        from members
-        WHERE "lastEnriched" is not null
+        from "memberEnrichments"
+        WHERE "lastUpdatedAt" is not null
     ),
     members_with_more_than_1000_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 1000
-          AND m."lastEnriched" is not null
+          AND m."lastUpdatedAt" is not null
     ),
     members_with_more_than_100_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 100 and act_count.total_count < 1000
-          AND m."lastEnriched" is not null
+          AND m."lastUpdatedAt" is not null
     ),
     members_with_more_than_10_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 10 and act_count.total_count < 100
-          AND m."lastEnriched" is not null
+          AND m."lastUpdatedAt" is not null
     )
     select
         (select count from total_members) as "enriched_today_total",
@@ -664,32 +664,32 @@ with enriched_total as (
 enriched_today as (
     WITH total_members as (
         select count(*) as count
-        from members
-        WHERE "lastEnriched" >= date_trunc('day', now())
+        from "memberEnrichments"
+        WHERE "lastUpdatedAt" >= date_trunc('day', now())
     ),
     members_with_more_than_1000_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 1000
-          AND m."lastEnriched" >= date_trunc('day', now())
+          AND m."lastUpdatedAt" >= date_trunc('day', now())
     ),
     members_with_more_than_100_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 100 and act_count.total_count < 1000
-          AND m."lastEnriched" >= date_trunc('day', now())
+          AND m."lastUpdatedAt" >= date_trunc('day', now())
     ),
     members_with_more_than_10_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 10  and act_count.total_count < 100
-          AND m."lastEnriched" >= date_trunc('day', now())
+          AND m."lastUpdatedAt" >= date_trunc('day', now())
     )
     select
         (select count from total_members) as "enriched_today_total",
@@ -700,32 +700,32 @@ enriched_today as (
 enriched_since_yesterday as (
         WITH total_members as (
         select count(*) as count
-        from members
-        WHERE "lastEnriched" >= date_trunc('day', now() - interval '1 day')
+        from "memberEnrichments"
+        WHERE "lastUpdatedAt" >= date_trunc('day', now() - interval '1 day')
     ),
     members_with_more_than_1000_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 1000
-          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+          AND m."lastUpdatedAt" >= date_trunc('day', now() - interval '1 day')
     ),
     members_with_more_than_100_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 100 and act_count.total_count < 1000
-          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+          AND m."lastUpdatedAt" >= date_trunc('day', now() - interval '1 day')
     ),
     members_with_more_than_10_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 10  and act_count.total_count < 100
-          AND m."lastEnriched" >= date_trunc('day', now() - interval '1 day')
+          AND m."lastUpdatedAt" >= date_trunc('day', now() - interval '1 day')
     )
     select
         (select count from total_members) as "enriched_since_yesterday_total",
@@ -736,32 +736,32 @@ enriched_since_yesterday as (
 enriched_in_last_30days as (
        WITH total_members as (
         select count(*) as count
-        from members
-        WHERE "lastEnriched" >= now() - interval '30 days'
+        from "memberEnrichments"
+        WHERE "lastUpdatedAt" >= now() - interval '30 days'
     ),
     members_with_more_than_1000_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 1000
-          AND m."lastEnriched" >= now() - interval '30 days'
+          AND m."lastUpdatedAt" >= now() - interval '30 days'
     ),
     members_with_more_than_100_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 100 and act_count.total_count < 1000
-          AND m."lastEnriched" >= now() - interval '30 days'
+          AND m."lastUpdatedAt" >= now() - interval '30 days'
     ),
     members_with_more_than_10_activity as (
         select count(*) as count
-        from members m
+        from "memberEnrichments" m
         LEFT JOIN "membersGlobalActivityCount" act_count
-        ON act_count."memberId" = m.id
+        ON act_count."memberId" = m."memberId"
         WHERE act_count.total_count > 10  and act_count.total_count < 100
-          AND m."lastEnriched" >= now() - interval '30 days'
+          AND m."lastUpdatedAt" >= now() - interval '30 days'
     )
     select
         (select count from total_members) as "enriched_in30d_total",
@@ -770,53 +770,53 @@ enriched_in_last_30days as (
         (select count from members_with_more_than_10_activity) as "enriched_in30d_members_more_than_10_activity"
 ),
 last_enriched_3_profiles as (
-    select 'https://cm.lfx.dev/people/' || m.id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
-    from members m
+    select 'https://cm.lfx.dev/people/' || m."memberId" || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from "memberEnrichments" m
     where exists (
         select 1 from "memberEnrichmentCache" mec
-                 where mec."memberId" = m.id
+                 where mec."memberId" = m."memberId"
                  and data is not null
     )
-    order by m."lastEnriched" desc
+    order by m."lastUpdatedAt" desc
     limit 3
 ),
 last_enriched_3_profiles_with_more_than_1000_activities as (
-    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
-    from members m
-    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    select 'https://cm.lfx.dev/people/' || m."memberId" || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from "memberEnrichments" m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m."memberId"
     where act_count.total_count > 1000
     and exists (
         select 1 from "memberEnrichmentCache" mec
-                 where mec."memberId" = m.id
+                 where mec."memberId" = m."memberId"
                  and data is not null
     )
-    order by m."lastEnriched" desc
+    order by m."lastUpdatedAt" desc
     limit 3
 ),
 last_enriched_3_profiles_with_more_than_100_activities as (
-    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
-    from members m
-    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    select 'https://cm.lfx.dev/people/' || m."memberId" || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from "memberEnrichments" m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m."memberId"
     where act_count.total_count > 100 and act_count.total_count < 1000
     and exists (
         select 1 from "memberEnrichmentCache" mec
-                 where mec."memberId" = m.id
+                 where mec."memberId" = m."memberId"
                  and data is not null
     )
-    order by m."lastEnriched" desc
+    order by m."lastUpdatedAt" desc
     limit 3
 ),
 last_enriched_3_profiles_with_more_than_10_activities as (
-    select 'https://cm.lfx.dev/people/' || id || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
-    from members m
-    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m.id
+    select 'https://cm.lfx.dev/people/' || m."memberId" || '?projectGroup=dc48fac5-b31a-4659-ac99-60eb52a1082a' as profiles
+    from "memberEnrichments" m
+    left join "membersGlobalActivityCount" act_count on act_count."memberId" = m."memberId"
     where act_count.total_count > 10 and act_count.total_count < 100
     and exists (
         select 1 from "memberEnrichmentCache" mec
-                 where mec."memberId" = m.id
+                 where mec."memberId" = m."memberId"
                  and data is not null
     )
-    order by m."lastEnriched" desc
+    order by m."lastUpdatedAt" desc
     limit 3
 ),
 oldest_created_at_of_enrichable_member as (
