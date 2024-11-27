@@ -13,6 +13,7 @@ const {
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
+  setMemberEnrichmentTryDate,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 minutes',
   retry: {
@@ -270,14 +271,17 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       squashedPayload.reach = crustDataProfileSelected.reach
     }
 
-    await updateMemberUsingSquashedPayload(
+    const memberUpdated = await updateMemberUsingSquashedPayload(
       args.memberId,
       existingMemberData,
       squashedPayload,
       progaiLinkedinScraperProfileSelected && hasContributions,
     )
-    return true
+
+    return memberUpdated
   }
+
+  await setMemberEnrichmentTryDate(args.memberId)
 
   return false
 }

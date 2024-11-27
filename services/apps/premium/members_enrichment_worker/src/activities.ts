@@ -11,6 +11,7 @@ import {
   isEnrichableBySource,
   normalizeEnrichmentData,
   refreshMemberEnrichmentMaterializedView,
+  setMemberEnrichmentTryDate,
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   touchMemberEnrichmentCacheUpdatedAt,
@@ -38,6 +39,7 @@ import {
 } from './activities/syncEnrichedData'
 
 export {
+  setMemberEnrichmentTryDate,
   getEnrichableMembers,
   getEnrichmentData,
   normalizeEnrichmentData,

@@ -14,8 +14,8 @@ import {
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
   insertWorkExperience,
-  setMemberEnrichmentTryDate,
-  setMemberEnrichmentUpdateDate,
+  setMemberEnrichmentTryDate as setMemberEnrichmentTryDateDb,
+  setMemberEnrichmentUpdateDate as setMemberEnrichmentUpdateDateDb,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
   updateMemberOrg,
@@ -24,7 +24,6 @@ import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizat
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { RedisCache } from '@crowd/redis'
-import { Tracer } from '@crowd/tracing'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -373,9 +372,9 @@ export async function updateMemberUsingSquashedPayload(
     }
 
     if (updated) {
-      await setMemberEnrichmentUpdateDate(tx.transaction(), memberId)
+      await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
     } else {
-      await setMemberEnrichmentTryDate(tx.transaction(), memberId)
+      await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
     }
 
     await Promise.all(promises)
@@ -383,6 +382,10 @@ export async function updateMemberUsingSquashedPayload(
 
     return updated
   })
+}
+
+export async function setMemberEnrichmentTryDate(memberId: string): Promise<void> {
+  await setMemberEnrichmentTryDateDb(svc.postgres.writer.connection(), memberId)
 }
 
 export async function getObsoleteSourcesOfMember(

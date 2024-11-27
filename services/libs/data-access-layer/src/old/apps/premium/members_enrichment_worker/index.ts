@@ -297,6 +297,13 @@ export async function setMemberEnrichmentUpdateDate(
   )
 }
 
+export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string): Promise<void> {
+  await tx.none(
+    `update "memberEnrichments" set "lastTriedAt" = null where "memberId" = $(memberId)`,
+    { memberId },
+  )
+}
+
 export async function findExistingMember(
   db: DbStore,
   memberId: string,
@@ -590,7 +597,7 @@ export async function insertMemberEnrichmentCacheDb<T>(
       VALUES ($1, $2, NOW(), NOW(), $3);`,
     [memberId, dataSanitized, source],
   )
-  await resetMemberEnrichedAt(tx, memberId)
+  await resetMemberEnrichmentTry(tx, memberId)
   return res
 }
 
@@ -609,7 +616,7 @@ export async function updateMemberEnrichmentCacheDb<T>(
       WHERE "memberId" = $1 and source = $3;`,
     [memberId, dataSanitized, source],
   )
-  await resetMemberEnrichedAt(tx, memberId)
+  await resetMemberEnrichmentTry(tx, memberId)
   return res
 }
 

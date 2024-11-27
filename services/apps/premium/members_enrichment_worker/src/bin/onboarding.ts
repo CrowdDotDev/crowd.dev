@@ -168,7 +168,7 @@ async function startProcessMemberSource(
   memberId: string,
   sources: MemberEnrichmentSource[],
 ): Promise<boolean> {
-  await svc.temporal.workflow.execute(processMemberSources, {
+  const updated = await svc.temporal.workflow.execute(processMemberSources, {
     taskQueue: 'members-enrichment',
     workflowId:
       'member-enrichment/875c38bd-2b1b-4e91-ad07-0cfbabb4c49f/' +
@@ -192,5 +192,5 @@ async function startProcessMemberSource(
     },
   })
 
-  return true
+  return updated
 }
