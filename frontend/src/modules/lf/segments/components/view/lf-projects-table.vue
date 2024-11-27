@@ -6,75 +6,49 @@
     row-key="id"
     :resizable="false"
   >
+
+    <!-- Status -->
+    <el-table-column width="130" class-name="table-columns !bg-white">
+      <template #header>
+        <app-lf-status-pill :status="project.status" />
+      </template>
+      <template #default="{ row }">
+        <app-lf-status-pill :status="row.status" />
+      </template>
+    </el-table-column>
+
     <!-- Name -->
     <el-table-column
       prop="name"
-      width="300"
-      fixed
+      width="500"
       class-name="table-columns !bg-white"
     >
       <template #header>
         <div>
           <div
-            class="text-base font-semibold text-gray-900 normal-case flex items-center h-8 mb-4"
+            class="text-medium font-semibold text-gray-900 normal-case flex items-center"
           >
             {{ project.name }}
           </div>
         </div>
       </template>
       <template #default="{ row }">
-        <span class="text-gray-900 text-sm">{{ row.name }}</span>
-      </template>
-    </el-table-column>
-
-    <!-- Connected Integrations -->
-    <el-table-column width="250" class-name="table-columns !py-0 !bg-white">
-      <template #header>
-        <div>
-          <div class="flex items-center h-8 mb-4">
-            <span class="text-gray-400 text-sm normal-case font-normal">-</span>
-          </div>
-        </div>
-      </template>
-      <template #default="{ row }">
-        <app-lf-project-integration-column
-          :segment-id="row.id"
-          :integrations="row.integrations"
-          :progress="props.progress"
-          :progress-error="progressError"
+        <div class="flex items-center gap-5">
+          <span class="text-gray-900 text-sm">{{ row.name }}</span>
+          <app-lf-project-integration-column
+            :segment-id="row.id"
+            :integrations="row.integrations"
+            :progress="props.progress"
+            :progress-error="progressError"
         />
+      </div>
       </template>
     </el-table-column>
 
-    <!-- Status -->
-    <el-table-column width="150" class-name="table-columns !bg-white">
+    <el-table-column class-name="table-columns !bg-white">
       <template #header>
-        <div>
-          <div class="flex items-center gap-3 h-8 mb-4">
-            <span
-              class="w-1.5 h-1.5 rounded-full"
-              :class="statusDisplay(project.status)?.color"
-            />
-            <span class="normal-case text-gray-900 font-normal text-sm">
-              {{ statusDisplay(project.status)?.label }}
-            </span>
-          </div>
-        </div>
+        <div class="flex grow" />
       </template>
-      <template #default="{ row }">
-        <div class="flex items-center gap-3">
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :class="statusDisplay(row.status)?.color"
-          />
-          <span class="text-gray-900">
-            {{ statusDisplay(row.status)?.label }}
-          </span>
-        </div>
-      </template>
-    </el-table-column>
-
-    <el-table-column class-name="!bg-white">
       <template #default>
         <div class="flex grow" />
       </template>
@@ -86,8 +60,17 @@
       class-name="table-columns !bg-white"
     >
       <template #header>
-        <span class="h-10 block" />
-        <div class="flex justify-end mb-4">
+        <div class="flex justify-end">
+          <el-button
+            v-if="
+              hasPermission(LfPermission.subProjectCreate)
+              && hasAccessToSegmentId(project.id)
+            "
+            class="btn btn--link"
+            @click="emit('onAddSubProject', project)"
+          >
+            <lf-icon name="layer-plus" :size="16" class="mr-2" />
+          </el-button>
           <app-lf-projects-dropdown
             :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
@@ -109,7 +92,8 @@
               },
             }"
           >
-            <el-button class="btn btn--secondary">
+            <el-button class="btn btn--link btn--interactive">
+              <lf-icon name="grid-round-2" :size="16" class="mr-2" />
               Manage integrations
             </el-button>
           </router-link>
@@ -120,24 +104,6 @@
         </div>
       </template>
     </el-table-column>
-
-    <template
-      v-if="
-        project.subprojects?.length
-          && hasPermission(LfPermission.subProjectCreate)
-          && hasAccessToSegmentId(project.id)
-      "
-      #append
-    >
-      <div class="w-full flex justify-start p-6">
-        <el-button
-          class="btn btn-link btn-link--primary"
-          @click="emit('onAddSubProject', project)"
-        >
-          + Add sub-project
-        </el-button>
-      </div>
-    </template>
 
     <template
       v-if="
@@ -166,6 +132,8 @@ import { useRoute } from 'vue-router';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
+import AppLfStatusPill from '../fragments/lf-status-pill.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const route = useRoute();
 
@@ -204,24 +172,20 @@ export default {
 
 <style lang="scss">
 #projects-table {
-  @apply rounded-md shadow;
-  border: 1px solid #e5e7eb;
+  @apply rounded-md shadow border border-gray-200;
 
   thead .table-columns {
-    @apply align-top h-auto px-6;
+    @apply align-middle h-auto px-4 py-4;
+    @apply bg-gray-50 #{!important};
 
     .cell {
-      @apply px-0;
+      @apply px-0 #{!important};
     }
   }
 
   tbody {
-    tr td:last-child {
-      @apply px-6;
-    }
-
     .table-columns {
-      @apply align-middle h-14 px-6;
+      @apply align-middle px-4 py-4;
 
       &.el-table-fixed-column--right .cell {
         @apply justify-end;
@@ -229,9 +193,7 @@ export default {
     }
 
     .cell {
-      @apply px-0;
-      display: flex !important;
-      align-items: center !important;
+      @apply px-0 #{!important};
     }
   }
 

@@ -20,3 +20,8 @@ export default {
   name: 'LfStatusPill',
 };
 </script>
+<style lang="scss">
+.lf-pill {
+  @apply font-secondary font-normal capitalize;
+}
+</style>

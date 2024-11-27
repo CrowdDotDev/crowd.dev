@@ -144,6 +144,14 @@
     &:focus {
       @apply bg-transparent text-primary-500 opacity-80;
     }
+    &.btn--interactive {
+      @apply p-4 rounded-lg;
+      &:hover,
+      &:active,
+      &:focus {
+        @apply bg-primary-50;
+      }
+    }
   }
 
   &--text {
