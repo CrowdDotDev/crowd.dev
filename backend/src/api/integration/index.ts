@@ -38,16 +38,24 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
   app.put(
-    `/authenticate/:tenantId/:code`,
-    safeWrap(require('./helpers/githubAuthenticate').default),
-  )
-  app.put(
     `/tenant/:tenantId/integration/:id/github/repos`,
     safeWrap(require('./helpers/githubMapRepos').default),
   )
   app.get(
     `/tenant/:tenantId/integration/:id/github/repos`,
     safeWrap(require('./helpers/githubMapReposGet').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/github/search/orgs`,
+    safeWrap(require('./helpers/githubSearchOrgs').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/github/search/repos`,
+    safeWrap(require('./helpers/githubSearchRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/github/orgs/:org/repos`,
+    safeWrap(require('./helpers/githubOrgRepos').default),
   )
   app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
@@ -200,16 +208,6 @@ export default (app) => {
   app.post(
     '/tenant/:tenantId/jira-connect',
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
-  )
-
-  app.get(
-    '/tenant/:tenantId/github-installations',
-    safeWrap(require('./helpers/getGithubInstallations').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/github-connect-installation',
-    safeWrap(require('./helpers/githubConnectInstallation').default),
   )
 
   app.get('/gitlab/:tenantId/connect', safeWrap(require('./helpers/gitlabAuthenticate').default))

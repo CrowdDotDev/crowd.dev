@@ -54,6 +54,7 @@ export interface IGenerateStreamsContext extends IIntegrationContext {
   platformSettings?: unknown
   isManualRun?: boolean
   manualSettings?: unknown
+  additionalInfo?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {

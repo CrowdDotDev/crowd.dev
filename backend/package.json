@@ -66,6 +66,7 @@
     "@crowd/temporal": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
+    "@crowd/snowflake": "workspace:*",
     "@google-cloud/storage": "5.3.0",
     "@octokit/auth-app": "^3.6.1",
     "@octokit/core": "^6.1.2",
