@@ -25,6 +25,7 @@ const tenantId = processArguments[0]
 
 const minMemberActivities = 100
 const maxConcurrentProcessing = 5
+const maxMembersToProcess = 1000
 
 async function getEnrichableMembers(limit: number, lastMemberId?: string): Promise<string[]> {
   const query = `
@@ -45,10 +46,10 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   select m.id
   from members m
           inner join members_with_activities ma on m.id = ma."memberId"
+          left join "memberEnrichments" me on m.id = me."memberId"
   where m."deletedAt" is null and m."tenantId" = $(tenantId)
   ${lastMemberId ? `and m.id > $(lastMemberId)` : ''}
-    and (m."lastEnriched" is null
-      or m."lastEnriched" < now() - interval '3 months')
+    and (me."memberId" is null or me."lastTriedAt" < now() - interval '3 months')
   order by ma.total_activities desc, m.id
   limit $(limit)
   `
@@ -71,7 +72,6 @@ setImmediate(async () => {
   let failedMembersCount = 0
 
   let totalProcessingTime = 0
-  let processedMembersCount = 0
   const REPORT_INTERVAL = 10
 
   const pageSize = 100
@@ -81,6 +81,14 @@ setImmediate(async () => {
     svc.log.info({ memberCount: members.length }, 'Processing members!')
     // process members just like in enrichMember workflow
     for (const memberId of members) {
+      if (updatedMembersCount >= maxMembersToProcess) {
+        svc.log.info(
+          { updatedMembersCount, maxMembersToProcess },
+          'We reached a limit of how many members to process!',
+        )
+        break
+      }
+
       while (processingCount >= maxConcurrentProcessing) {
         await timeout(100)
       }
@@ -94,7 +102,6 @@ setImmediate(async () => {
           if (res) {
             const processingTime = Date.now() - startTime
             totalProcessingTime += processingTime
-            processedMembersCount++
 
             updatedMembersCount++
           } else {
@@ -102,12 +109,11 @@ setImmediate(async () => {
           }
 
           // Report average processing time every REPORT_INTERVAL members
-          if (processedMembersCount > 0 && processedMembersCount % REPORT_INTERVAL === 0) {
-            const averageProcessingTime = totalProcessingTime / processedMembersCount
+          if (updatedMembersCount > 0 && updatedMembersCount % REPORT_INTERVAL === 0) {
+            const averageProcessingTime = totalProcessingTime / updatedMembersCount
             svc.log.info(
               {
                 averageProcessingTime: `${(averageProcessingTime / 1000).toFixed(2)}s`,
-                processedMembers: processedMembersCount,
                 updatedMembers: updatedMembersCount,
                 skippedMembers: skippedMembersCount,
                 failedMembers: failedMembersCount,
@@ -126,15 +132,20 @@ setImmediate(async () => {
 
     await Promise.all(pagePromises)
     pagePromises = []
-    // load next page
-    members = await getEnrichableMembers(pageSize, members[members.length - 1])
+
+    if (updatedMembersCount >= maxMembersToProcess) {
+      members = []
+    } else {
+      // load next page
+      members = await getEnrichableMembers(pageSize, members[members.length - 1])
+    }
 
     svc.log.info(
       {
         updatedMembersCount,
         skippedMembersCount,
         failedMembersCount,
-        averageProcessingTime: `${(totalProcessingTime / processedMembersCount / 1000).toFixed(2)}s`,
+        averageProcessingTime: `${(totalProcessingTime / updatedMembersCount / 1000).toFixed(2)}s`,
       },
       'Current statistics!',
     )
@@ -145,8 +156,7 @@ setImmediate(async () => {
       updatedMembersCount,
       skippedMembersCount,
       failedMembersCount,
-      averageProcessingTime: `${(totalProcessingTime / processedMembersCount / 1000).toFixed(2)}s`,
-      totalProcessedMembers: processedMembersCount,
+      averageProcessingTime: `${(totalProcessingTime / updatedMembersCount / 1000).toFixed(2)}s`,
       totalProcessingTime: `${(totalProcessingTime / 1000).toFixed(2)}s`,
     },
     'Final statistics!',

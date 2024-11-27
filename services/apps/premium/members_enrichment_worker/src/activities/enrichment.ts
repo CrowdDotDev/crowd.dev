@@ -1,6 +1,7 @@
 import { generateUUIDv1 } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
+import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import {
   deleteMemberOrgById,
   fetchMemberDataForLLMSquashing,
@@ -8,7 +9,10 @@ import {
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
   insertWorkExperience,
+  setMemberEnrichmentTryDate,
+  setMemberEnrichmentUpdateDate,
   touchMemberEnrichmentCacheUpdatedAtDb,
+  updateMemberAttributes,
   updateMemberEnrichmentCacheDb,
   updateMemberOrg,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
@@ -16,6 +20,7 @@ import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizat
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { RedisCache } from '@crowd/redis'
+import { Tracer } from '@crowd/tracing'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -37,6 +42,8 @@ import {
   IMemberEnrichmentDataNormalized,
   IMemberEnrichmentDataNormalizedOrganization,
 } from '../types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
@@ -263,6 +270,7 @@ export async function processMemberSources(
   }
 
   if (Object.keys(toBeSquashed).length > 1) {
+    let memberUpdated = false
     const existingMemberData = await fetchMemberDataForLLMSquashing(svc.postgres.reader, memberId)
     svc.log.info({ memberId }, 'Squashing data for member using LLM!')
 
@@ -461,14 +469,17 @@ export async function processMemberSources(
       }
     }
 
-    await svc.postgres.writer.transactionally(async (tx) => {
+    memberUpdated = await svc.postgres.writer.transactionally(async (tx) => {
       const qx = dbStoreQx(tx)
-      let promises = []
+      const promises = []
+
+      let updated = false
 
       // process identities
       if (squashedPayload.identities.length > 0) {
         svc.log.info({ memberId }, 'Adding to member identities!')
         for (const i of squashedPayload.identities) {
+          updated = true
           promises.push(
             upsertMemberIdentity(qx, {
               memberId,
@@ -488,13 +499,22 @@ export async function processMemberSources(
       if (squashedPayload.attributes) {
         svc.log.info({ memberId }, 'Updating member attributes!')
         attributes = { ...attributes, ...squashedPayload.attributes }
-
-        promises.push(updateMemberAttributes(qx, memberId, attributes))
+        updated = true
+        promises.push(
+          updateMemberAttributes(
+            tx.transaction(),
+            existingMemberData.tenantId,
+            memberId,
+            attributes,
+          ),
+        )
       }
 
+      // process work experiences
       if (squashedPayload.memberOrganizations.length > 0) {
+        const orgPromises = []
         for (const org of squashedPayload.memberOrganizations) {
-          promises.push(
+          orgPromises.push(
             findOrCreateOrganization(
               qx,
               existingMemberData.tenantId,
@@ -516,12 +536,11 @@ export async function processMemberSources(
           )
         }
 
-        await Promise.all(promises)
+        await Promise.all(orgPromises)
         // ignore all organizations that were not created
         squashedPayload.memberOrganizations = squashedPayload.memberOrganizations.filter(
           (o) => o.organizationId,
         )
-        promises = []
 
         const results = prepareWorkExperiences(
           existingMemberData.organizations,
@@ -530,6 +549,7 @@ export async function processMemberSources(
 
         if (results.toDelete.length > 0) {
           for (const id of results.toDelete) {
+            updated = true
             promises.push(deleteMemberOrgById(tx.transaction(), memberId, id))
           }
         }
@@ -539,7 +559,7 @@ export async function processMemberSources(
             if (!org.organizationId) {
               throw new Error('Organization ID is missing!')
             }
-
+            updated = true
             promises.push(
               insertWorkExperience(
                 tx.transaction(),
@@ -556,18 +576,29 @@ export async function processMemberSources(
 
         if (results.toUpdate.size > 0) {
           for (const [id, toUpdate] of results.toUpdate) {
+            updated = true
             promises.push(updateMemberOrg(tx.transaction(), memberId, id, toUpdate))
           }
         }
       }
 
-      await updateLastEnrichedDate(tx.transaction(), memberId, existingMemberData.tenantId)
+      if (updated) {
+        await setMemberEnrichmentUpdateDate(tx.transaction(), memberId)
+      }
+
       svc.log.debug({ memberId }, 'Member sources processed successfully!')
 
-      return true
+      return updated
     })
+
+    if (!memberUpdated) {
+      await setMemberEnrichmentTryDate(svc.postgres.writer.connection(), memberId)
+    }
+
+    return memberUpdated
   }
 
+  await setMemberEnrichmentTryDate(svc.postgres.writer.connection(), memberId)
   return false
 }
 

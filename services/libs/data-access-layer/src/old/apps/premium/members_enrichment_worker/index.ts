@@ -271,14 +271,28 @@ export async function updateIdentitySourceId(
     )
 }
 
-export async function updateLastEnrichedDate(
-  tx: DbTransaction,
+export async function setMemberEnrichmentTryDate(tx: DbConnOrTx, memberId: string): Promise<void> {
+  await tx.none(
+    `
+    insert into "memberEnrichments"("memberId", "lastTriedAt")
+    values ($(memberId), now())
+    on conflict ("memberId") do update set "lastTriedAt" = now()
+    `,
+    { memberId },
+  )
+}
+
+export async function setMemberEnrichmentUpdateDate(
+  tx: DbConnOrTx,
   memberId: string,
-  tenantId: string,
-) {
-  await tx.query(
-    `UPDATE members SET "lastEnriched" = NOW(), "updatedAt" = NOW() WHERE id = $1 AND "tenantId" = $2;`,
-    [memberId, tenantId],
+): Promise<void> {
+  await tx.none(
+    `
+    insert into "memberEnrichments"("memberId", "lastTriedAt", "lastUpdatedAt")
+    values ($(memberId), now(), now())
+    on conflict ("memberId") do update set "lastUpdatedAt" = now()
+    `,
+    { memberId },
   )
 }
 
@@ -475,6 +489,8 @@ export async function updateMemberOrg(
     update "memberOrganizations"
     set ${sets}
     where "memberId" = $(memberId) and id = $(id)
+    -- if such a column already exists we can just delete this one
+    on conflict do update set "deletedAt" = now()
     `,
     {
       memberId,
@@ -534,7 +550,6 @@ export async function updateMember(
     `UPDATE members SET ${stmtDisplayName}
       attributes = $(attributes),
       contributions = $(contributions),
-      "lastEnriched" = NOW(),
       "updatedAt" = NOW()
     WHERE id = $(memberId) AND "tenantId" = $(tenantId);`,
     {
@@ -560,10 +575,6 @@ export async function updateMemberAttributes(
     WHERE id = $2 AND "tenantId" = $3;`,
     [attributes, memberId, tenantId],
   )
-}
-
-export async function resetMemberEnrichedAt(tx: DbConnOrTx, memberId: string): Promise<void> {
-  await tx.none(`update members set "lastEnriched" = null where id = $(memberId);`, { memberId })
 }
 
 export async function insertMemberEnrichmentCacheDb<T>(

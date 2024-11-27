@@ -160,10 +160,10 @@ export class LlmService extends LoggerBase {
       ...response,
     }
   }
-  public async findRelatedLinkedinProfiles<T>(
+  public async findRelatedLinkedinProfiles(
     memberId: string,
     prompt: string,
-  ): Promise<ILlmResult<T>> {
+  ): Promise<ILlmResult<{ profileIndex: number }>> {
     const response = await this.queryLlm(
       LlmQueryType.MEMBER_ENRICHMENT_FIND_RELATED_LINKEDIN_PROFILES,
       prompt,
