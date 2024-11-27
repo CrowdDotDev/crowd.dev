@@ -5,8 +5,7 @@
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
-    "tsc-check": "tsc --noEmit",
-    "sf": "tsx src/test.ts"
+    "tsc-check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
