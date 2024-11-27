@@ -81,7 +81,6 @@ const props = defineProps<{
   savedViewsConfig?: SavedViewsConfig,
   hash?: string,
   lockRelation?: boolean,
-  excludeFilters?: string[] // Temporary fix, need a better understanding of the usage of the parsed filter
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery), }>();
@@ -136,16 +135,14 @@ const { setQuery, parseQuery } = filterQueryService();
 const { buildApiFilter } = filterApiService();
 
 const savedFilter = ref({});
-const fetch = (val: Filter) => {
-  const value = removeExcludedFilters(val);
+const fetch = (value: Filter) => {
   if (JSON.stringify(value) === JSON.stringify(savedFilter.value)) {
     return;
   }
 
-  const fixedValue = fixSavedFilterValue(value, props.modelValue);
-  savedFilter.value = { ...fixedValue };
+  savedFilter.value = { ...value };
 
-  const data = buildApiFilter(fixedValue, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
+  const data = buildApiFilter(value, { ...props.config, ...props.customConfig }, props.searchConfig, props.savedViewsConfig);
   emit('fetch', data);
 };
 
@@ -190,7 +187,7 @@ watch(
 // Watch for query change
 const alignQueryUrl = () => {
   const { query } = route;
-  const { projectGroup, menu, ...parsedQuery } = query;
+  const { projectGroup, segmentId, menu, ...parsedQuery } = query;
   const parsed = parseQuery(
     parsedQuery,
     {
@@ -208,12 +205,10 @@ const alignQueryUrl = () => {
     return;
   }
 
-  // TODO: need to verify the usage of the parsed filter.
-  const cleanedValue = removeExcludedFilters(parsed as Filter);
-  filters.value = fixSavedFilterValue(cleanedValue, props.modelValue);
+  filters.value = parsed as Filter;
   if (!!parsed && Object.keys(parsed).length > 0) {
-    alignFilterList(cleanedValue);
-    fetch(cleanedValue);
+    alignFilterList(parsed as Filter);
+    fetch(parsed as Filter);
   }
 };
 
@@ -239,24 +234,6 @@ const copyToClipboard = async () => {
 };
 
 const developerModeEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.developerMode);
-
-const removeExcludedFilters = (filter: Filter) => {
-  const tmpFilter = { ...filter };
-  if (props.excludeFilters) {
-    props.excludeFilters.forEach((filterKey: string) => {
-      delete tmpFilter[filterKey];
-    });
-  }
-
-  return tmpFilter;
-};
-
-const fixSavedFilterValue = (saved: Filter, model: Filter) => {
-  if (!saved.order) {
-    return { ...model, ...saved };
-  }
-  return saved;
-};
 </script>
 
 <script lang="ts">

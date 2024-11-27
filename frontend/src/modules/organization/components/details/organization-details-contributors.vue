@@ -6,7 +6,6 @@
     :search-config="memberSearchFilter"
     :saved-views-config="memberSavedViews"
     :custom-config="customAttributesFilter"
-    :exclude-filters="excludeFilters"
     hash="people"
     @fetch="onFilterChange($event)"
   />
@@ -188,8 +187,6 @@ const {
   avatar, isNew, identities, isMasked,
 } = useContributorHelpers();
 
-// TODO: need to revisit this. Understand why the filter.vue is parsing the segmentId for this component as a filter in that component
-const excludeFilters = ['segmentId'];
 const sorters = {
   score_DESC: 'Most engaged',
   activityCount_DESC: 'Most activities',

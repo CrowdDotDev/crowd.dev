@@ -7,7 +7,7 @@
       placement="bottom-start"
       width="420"
       trigger="click"
-      :popper-class="`!p-0 filter-list-item-popper filter-${props.config?.type} filter-${props.config?.id}`"
+      :popper-class="`!p-0 filter-list-item-popper filter-${props.config.type} filter-${props.config.id}`"
     >
       <template #reference>
         <div
@@ -15,7 +15,7 @@
           :class="[{ '!bg-gray-100': isOpen }, props.chipClasses]"
           data-qa="filter-list-chip"
         >
-          <i class="text-base text-black mr-2" :class="config?.iconClass" />
+          <i class="text-base text-black mr-2" :class="config.iconClass" />
           <span
             class="text-xs text-gray-600 filter-item-text leading-6"
             v-html="
@@ -28,7 +28,7 @@
         </div>
       </template>
 
-      <div :data-qa-filter-type="props.config?.type">
+      <div :data-qa-filter-type="props.config.type">
         <component
           :is="getComponent"
           v-if="getComponent"
@@ -84,7 +84,7 @@ const data = ref({});
 
 const isOpen = computed({
   get() {
-    return props.open === props.config?.id;
+    return props.open === props.config.id;
   },
   set(value) {
     if (value) {
