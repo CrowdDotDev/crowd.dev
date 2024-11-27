@@ -205,16 +205,6 @@ export default (app) => {
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
   )
 
-  app.get(
-    '/tenant/:tenantId/github-installations',
-    safeWrap(require('./helpers/getGithubInstallations').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/github-connect-installation',
-    safeWrap(require('./helpers/githubConnectInstallation').default),
-  )
-
   app.get('/gitlab/:tenantId/connect', safeWrap(require('./helpers/gitlabAuthenticate').default))
 
   app.get(
