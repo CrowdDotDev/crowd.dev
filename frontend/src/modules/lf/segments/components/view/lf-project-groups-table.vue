@@ -16,9 +16,7 @@
         class-name="table-columns"
       >
         <template #default="{ row }">
-          <app-lf-pill :color="statusDisplay(row.status).color" type="solid">
-            {{ statusDisplay(row.status).label }}
-          </app-lf-pill>
+          <app-lf-status-pill :status="row.status" />
         </template>
       </el-table-column>
 
@@ -80,25 +78,22 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import AppLfPill from '@/shared/pill/pill.vue';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
+import AppLfStatusPill from '../fragments/lf-status-pill.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { updateProjectGroupsPageSize, doChangeProjectGroupCurrentPage } = lsSegmentsStore;
+const { doChangeProjectGroupCurrentPage } = lsSegmentsStore;
 
 const pagination = computed(() => projectGroups.value.pagination);
 const fullList = ref(projectGroups.value.list);
 const currentPage = ref(1);
-
-const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
 watch(projectGroups.value, (newList) => {
   // TODO: need to requirements on how to handle editing project groups.
@@ -110,9 +105,9 @@ watch(projectGroups.value, (newList) => {
   }
 });
 
-const onPageSizeChange = (pageSize) => {
-  updateProjectGroupsPageSize(pageSize);
-};
+// const onPageSizeChange = (pageSize) => {
+//   updateProjectGroupsPageSize(pageSize);
+// };
 
 const onLoadMore = (currentPage) => {
   if (!projectGroups.value.paginating) {

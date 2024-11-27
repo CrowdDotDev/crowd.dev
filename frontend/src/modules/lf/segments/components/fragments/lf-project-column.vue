@@ -6,12 +6,7 @@
       trigger="hover"
     >
       <template #reference>
-        <app-lf-pill color="bg-white text-gray-900" type="bordered">
-          <div class="flex items-center gap-1">
-            <lf-icon-old name="stack-line" />
-            {{ projects.length }} {{ label }}
-          </div>
-        </app-lf-pill>
+        <app-lf-project-count :count="projects.length" />
       </template>
       <template #default>
         <div class="flex flex-wrap gap-1 overflow-hidden">
@@ -32,9 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
-import AppLfPill from '@/shared/pill/pill.vue';
+import AppLfProjectCount from './lf-project-count.vue';
 import { Project } from '../../types/Segments';
 
 const props = withDefaults(defineProps<{
@@ -42,8 +35,6 @@ const props = withDefaults(defineProps<{
 }>(), {
   projects: () => [],
 });
-
-const label = computed(() => (props.projects.length > 1 ? 'projects' : 'project'));
 </script>
 
 <script lang="ts">

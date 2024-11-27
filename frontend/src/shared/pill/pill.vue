@@ -21,7 +21,7 @@ export default {
 
 <style lang="scss">
 .lf-pill {
-  @apply text-xs font-semibold rounded-full px-2.5 py-0.5 min-w-[60px] text-center;
+  @apply text-xs font-semibold rounded-full px-2.5 py-0.5 min-w-[60px] text-center max-h-[27px] flex justify-center items-center;
   &.bordered {
     @apply border border-gray-200 border-solid font-normal;
   }
