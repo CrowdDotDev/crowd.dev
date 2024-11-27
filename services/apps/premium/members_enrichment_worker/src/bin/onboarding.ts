@@ -1,11 +1,8 @@
-import { timeout } from '@crowd/common';
-import { MemberEnrichmentSource } from '@crowd/types';
+import { timeout } from '@crowd/common'
+import { MemberEnrichmentSource } from '@crowd/types'
 
-
-
-import { svc } from '../service';
-import { processMemberSources } from '../workflows/processMemberSources';
-
+import { svc } from '../service'
+import { processMemberSources } from '../workflows/processMemberSources'
 
 export * from '@temporalio/client'
 
