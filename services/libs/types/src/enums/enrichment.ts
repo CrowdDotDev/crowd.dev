@@ -14,4 +14,6 @@ export enum MemberEnrichmentMaterializedView {
   SERP_LINKEDIN_FINDER_ENRICHMENT_ANALYSIS = 'memberEnrichmentMonitoringSerp',
   PROGAI_LINKEDIN_SCRAPER_ENRICHMENT_ANALYSIS = 'memberEnrichmentMonitoringProgaiLinkedin',
   CRUSTDATA_LINKEDIN_SCRAPER_ENRICHMENT_ANALYSIS = 'memberEnrichmentMonitoringCrustdata',
+  ENTITY_UPDATES_ANALYSIS = 'memberEnrichmentMonitoringEntityUpdates',
+  LLM_USAGE_ANALYSIS = 'memberEnrichmentMonitoringLLMQueries',
 }
