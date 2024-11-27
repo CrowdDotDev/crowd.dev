@@ -49,8 +49,9 @@ async function getEnrichableMembers(limit: number): Promise<string[]> {
   from members m
           inner join members_with_activities ma on m.id = ma."memberId"
           left join "memberEnrichments" me on m.id = me."memberId"
-  where m."deletedAt" is null and m."tenantId" = $(tenantId)
-    and (me."memberId" is null or me."lastTriedAt" < now() - interval '3 months')
+  where m."deletedAt" is null and m."tenantId" = $(tenantId) and
+        coalesce((m.attributes ->'isBot'->>'default')::boolean, false) = false and
+        (me."memberId" is null or me."lastTriedAt" < now() - interval '3 months')
   order by ma.total_activities desc, m.id
   limit $(limit)
   `

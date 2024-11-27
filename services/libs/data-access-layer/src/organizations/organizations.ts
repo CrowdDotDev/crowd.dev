@@ -544,8 +544,7 @@ export async function findOrCreateOrganization(
       id = existing.id
     } else {
       log.trace(`Organization wasn't found via website or identities.`)
-      const displayName =
-        verifiedIdentities.length > 0 ? verifiedIdentities[0].value : data.displayName
+      const displayName = data.displayName ? data.displayName : verifiedIdentities[0].value
 
       const payload = {
         displayName,
