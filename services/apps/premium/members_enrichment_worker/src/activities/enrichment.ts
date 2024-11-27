@@ -1,4 +1,4 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { generateUUIDv1, setAttributesDefaultValues } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import {
   updateMemberAttributes,
@@ -7,6 +7,7 @@ import {
 } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
+import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
   deleteMemberOrgById,
   fetchMemberDataForLLMSquashing as fetchMemberDataForLLMSquashingDb,
@@ -161,6 +162,10 @@ export async function findMemberEnrichmentCache(
   return findMemberEnrichmentCacheDb(svc.postgres.reader.connection(), memberId, sources)
 }
 
+export async function getTenantPriorityArray(tenantId: string): Promise<string[]> {
+  return getPlatformPriorityArray(dbStoreQx(svc.postgres.reader), tenantId)
+}
+
 export async function fetchMemberDataForLLMSquashing(
   memberId: string,
 ): Promise<IMemberOriginalData> {
@@ -270,11 +275,21 @@ export async function updateMemberUsingSquashedPayload(
     }
 
     // process attributes
-    let attributes = existingMemberData.attributes
+    let attributes = existingMemberData.attributes as Record<string, unknown>
 
     if (squashedPayload.attributes) {
       svc.log.info({ memberId }, 'Updating member attributes!')
+
       attributes = { ...attributes, ...squashedPayload.attributes }
+
+      if (Object.keys(attributes).length > 0) {
+        const priorities = await getTenantPriorityArray(existingMemberData.tenantId)
+        attributes = await setAttributesDefaultValues(
+          existingMemberData.tenantId,
+          attributes,
+          priorities,
+        )
+      }
       updated = true
       promises.push(updateMemberAttributes(qx, memberId, attributes))
     }
