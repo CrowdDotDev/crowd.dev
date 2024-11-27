@@ -947,8 +947,8 @@ squash_work_experiences_with_llm as (
 )
     select
         (select total_times_called from check_profile_belongs_to_member_with_llm) as "checkProfileBelongsToMemberTotalTimesCalled",
-        (select round(average_cost, 5) from check_profile_belongs_to_member_with_llm) as "checkProfileExistsToMemberAvgCostPerRequest",
-        (select round(average_response_time, 2) from check_profile_belongs_to_member_with_llm) as "checkProfileExistsToMemberAvgResponseTime",
+        (select round(average_cost, 5) from check_profile_belongs_to_member_with_llm) as "checkProfileBelongsToMemberAvgCostPerRequest",
+        (select round(average_response_time, 2) from check_profile_belongs_to_member_with_llm) as "checkProfileBelongsToMemberAvgResponseTime",
 
         (select total_times_called from squash_multiple_value_attributes_with_llm) as "squashAttributesTotalTimesCalled",
         (select round(average_cost, 5) from squash_multiple_value_attributes_with_llm) as "squashAttributesAvgCostPerRequest",
