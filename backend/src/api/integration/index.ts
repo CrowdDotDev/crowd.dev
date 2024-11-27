@@ -33,10 +33,6 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
   app.put(
-    `/authenticate/:tenantId/:code`,
-    safeWrap(require('./helpers/githubAuthenticate').default),
-  )
-  app.put(
     `/tenant/:tenantId/integration/:id/github/repos`,
     safeWrap(require('./helpers/githubMapRepos').default),
   )
