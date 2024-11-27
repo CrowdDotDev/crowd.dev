@@ -6,6 +6,7 @@ import {
   IMemberEnrichmentCache,
   IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
+  IMemberOrganizationData,
   IMemberOriginalData,
   IOrganizationIdentity,
   MemberEnrichmentSource,
@@ -482,7 +483,7 @@ export async function findMemberOrgs(db: DbStore, memberId: string, orgId: strin
 export async function updateMemberOrg(
   tx: DbConnOrTx,
   memberId: string,
-  id: string,
+  original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
 ) {
   const keys = Object.keys(toUpdate)
@@ -490,22 +491,46 @@ export async function updateMemberOrg(
     return
   }
 
-  const sets = keys.map((k) => `"${k}" = $(${k})`).join(',\n')
-
-  await tx.none(
+  // first check if another row like this exists
+  // so that we don't get unique index violations
+  const existing = await tx.oneOrNone(
     `
-    update "memberOrganizations"
-    set ${sets}
-    where "memberId" = $(memberId) and id = $(id)
-    -- if such a column already exists we can just delete this one
-    on conflict do update set "deletedAt" = now()
+      select 1 from "memberOrganizations"
+      where "memberId" = $(memberId) and
+            "organizationId" = $(organizationId) and
+            "dateStart" = $(dateStart) and
+            "dateEnd" = $(dateEnd) and
+            "deletedAt" is null
     `,
     {
       memberId,
-      id,
-      ...toUpdate,
+      organizationId: original.orgId,
+      dateStart: toUpdate.dateStart ? toUpdate.dateStart : original.dateStart,
+      dateEnd: toUpdate.dateEnd ? toUpdate.dateEnd : original.dateEnd,
     },
   )
+
+  if (existing) {
+    // we should just delete the row
+    await tx.none(
+      `update "memberOrganizations" set "deletedAt" = now() where "memberId" = $(memberId) and id = $(id)`,
+      { id: original.id, memberId },
+    )
+  } else {
+    const sets = keys.map((k) => `"${k}" = $(${k})`)
+    await tx.none(
+      `
+      update "memberOrganizations"
+      set ${sets.join(',\n')}
+      where "memberId" = $(memberId) and id = $(id)
+      `,
+      {
+        memberId,
+        id: original.id,
+        ...toUpdate,
+      },
+    )
+  }
 }
 
 export async function insertWorkExperience(

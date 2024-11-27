@@ -337,9 +337,9 @@ export async function updateMemberUsingSquashedPayload(
       )
 
       if (results.toDelete.length > 0) {
-        for (const id of results.toDelete) {
+        for (const org of results.toDelete) {
           updated = true
-          promises.push(deleteMemberOrgById(tx.transaction(), memberId, id))
+          promises.push(deleteMemberOrgById(tx.transaction(), memberId, org.id))
         }
       }
 
@@ -364,9 +364,9 @@ export async function updateMemberUsingSquashedPayload(
       }
 
       if (results.toUpdate.size > 0) {
-        for (const [id, toUpdate] of results.toUpdate) {
+        for (const [org, toUpdate] of results.toUpdate) {
           updated = true
-          promises.push(updateMemberOrg(tx.transaction(), memberId, id, toUpdate))
+          promises.push(updateMemberOrg(tx.transaction(), memberId, org, toUpdate))
         }
       }
     }
@@ -727,15 +727,9 @@ export async function squashWorkExperiencesWithLLM(
 }
 
 interface IWorkExperienceChanges {
-  // just ids to delete
-  toDelete: string[]
-
-  // new work experiences to create
+  toDelete: IMemberOrganizationData[]
   toCreate: IMemberEnrichmentDataNormalizedOrganization[]
-
-  // map of ids to update with the properties to update
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  toUpdate: Map<string, Record<string, any>>
+  toUpdate: Map<IMemberOrganizationData, Record<string, any>>
 }
 
 function prepareWorkExperiences(
@@ -743,13 +737,11 @@ function prepareWorkExperiences(
   newVersion: IMemberEnrichmentDataNormalizedOrganization[],
 ): IWorkExperienceChanges {
   // we delete all the work experiences that were not manually created
-  const toDelete: string[] = oldVersion
-    .filter((c) => c.source !== OrganizationSource.UI)
-    .map((c) => c.id as string)
+  const toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
 
   const toCreate: IMemberEnrichmentDataNormalizedOrganization[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const toUpdate: Map<string, Record<string, any>> = new Map()
+  const toUpdate: Map<IMemberOrganizationData, Record<string, any>> = new Map()
 
   // sort both versions by start date and only use manual changes from the current version
   const orderedCurrentVersion = oldVersion
@@ -816,7 +808,7 @@ function prepareWorkExperiences(
       }
 
       if (Object.keys(toUpdateInner).length > 0) {
-        toUpdate.set(current.id, toUpdateInner)
+        toUpdate.set(current, toUpdateInner)
       }
 
       // remove the match from the new version array so we later don't process it again
