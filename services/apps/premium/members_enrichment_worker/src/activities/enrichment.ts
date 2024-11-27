@@ -77,34 +77,14 @@ export async function getEnrichmentInput(
         i.platform === PlatformType.LINKEDIN &&
         i.type === MemberIdentityType.USERNAME,
     ),
+    github: input.identities.find(
+      (i) =>
+        i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
+    ),
     displayName: input.displayName || undefined,
     website: input.website || undefined,
     location: input.location || undefined,
     activityCount: input.activityCount || 0,
-  }
-
-  // there can be multiple verified identities in github, we select the one with the most activities
-  const verifiedGithubIdentities = input.identities.filter(
-    (i) =>
-      i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
-  )
-
-  if (verifiedGithubIdentities.length > 1) {
-    const ghIdentityWithTheMostActivities = await findMemberIdentityWithTheMostActivityInPlatform(
-      input.id,
-      PlatformType.GITHUB,
-    )
-    if (ghIdentityWithTheMostActivities) {
-      enrichmentInput.github = input.identities.find(
-        (i) =>
-          i.verified &&
-          i.platform === PlatformType.GITHUB &&
-          i.type === MemberIdentityType.USERNAME &&
-          i.value === ghIdentityWithTheMostActivities.username,
-      )
-    }
-  } else {
-    enrichmentInput.github = verifiedGithubIdentities?.[0] || undefined
   }
 
   return enrichmentInput
