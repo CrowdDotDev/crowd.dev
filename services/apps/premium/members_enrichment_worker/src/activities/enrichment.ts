@@ -440,7 +440,10 @@ Considerations for Matching:
     svc.log,
   )
 
-  const result = await llmService.findRelatedLinkedinProfiles(memberId, prompt)
+  const result = await llmService.findRelatedLinkedinProfiles<{ profileIndex: number }>(
+    memberId,
+    prompt,
+  )
   return result.result
 }
 
