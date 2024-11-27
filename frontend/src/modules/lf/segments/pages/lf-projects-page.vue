@@ -13,19 +13,19 @@
       <lf-icon name="chevron-left" :size="12" class="mr-2" />
       <span>Project groups</span>
     </router-link>
-    <div class="text-sm text-primary-500 pb-2">
-      {{ projectGroupForm.name }}
-    </div>
 
-    <div class="w-full flex items-center justify-between mb-6">
-      <h4 class="text-gray-900">
-        Manage projects
+    <div class="w-full flex items-center justify-between mb-6 pt-7 border-t border-gray-100">
+      <h4 class="text-gray-900 flex items-center gap-2">
+        {{ projectGroupForm.name }}
+        <app-lf-status-pill :status="projectGroupForm.status" />
+        <app-lf-project-count :count="projectGroupForm.projects.length" />
       </h4>
       <el-button
         v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
-        class="btn btn--md btn--primary"
+        class="btn btn--md btn--text"
         @click="onAddProject"
       >
+        <lf-icon name="folder-plus" type="regular" class="mr-1.5" />
         Add project
       </el-button>
     </div>
@@ -139,6 +139,8 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
+import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
