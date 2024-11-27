@@ -59,6 +59,26 @@ export async function enrichMember(
   if (changeInEnrichmentSourceData) {
     // Member enrichment data has been updated, use squasher again!
     // TODO member enrichment: enable once we are sure it's working
-    // await processMemberSources(input.id, sources)
+    // await executeChild(processMemberSources, {
+    //   workflowId: 'member-enrichment/' + input.tenantId + '/' + input.id + '/processMemberSources',
+    //   cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
+    //   parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
+    //   workflowExecutionTimeout: '15 minutes',
+    //   retry: {
+    //     backoffCoefficient: 2,
+    //     maximumAttempts: 10,
+    //     initialInterval: 2 * 1000,
+    //     maximumInterval: 30 * 1000,
+    //   },
+    //   args: [
+    //     {
+    //       memberId: input.id,
+    //       sources,
+    //     },
+    //   ],
+    //   searchAttributes: {
+    //     TenantId: [input.tenantId],
+    //   },
+    // })
   }
 }
