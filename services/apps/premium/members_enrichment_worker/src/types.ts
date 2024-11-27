@@ -109,3 +109,8 @@ export type IMemberEnrichmentAttributeSettings = {
     transform?: (data: unknown) => unknown
   }
 }
+
+export interface IProcessMemberSourcesArgs {
+  memberId: string
+  sources: MemberEnrichmentSource[]
+}

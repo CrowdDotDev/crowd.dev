@@ -205,17 +205,20 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     normalized: IMemberEnrichmentDataNormalized,
   ): IMemberEnrichmentDataNormalized {
     if (data.employment?.name) {
+      const orgIdentities = []
+      if (data.employment?.domain) {
+        orgIdentities.push({
+          platform: this.platform,
+          value: data.employment.domain,
+          type: OrganizationIdentityType.PRIMARY_DOMAIN,
+          verified: true,
+        })
+      }
+
       normalized.memberOrganizations.push({
         name: data.employment.name,
         source: OrganizationSource.ENRICHMENT_CLEARBIT,
-        identities: [
-          {
-            platform: this.platform,
-            value: data.employment?.domain,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: true,
-          },
-        ],
+        identities: orgIdentities,
         title: data.employment.title,
         startDate: null,
         endDate: null,

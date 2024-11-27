@@ -4,6 +4,7 @@ import { enrichMemberWithLFAuth0 } from './workflows/lf-auth0/enrichMemberWithLF
 import { findAndSaveGithubSourceIds } from './workflows/lf-auth0/findAndSaveGithubSourceIds'
 import { getEnrichmentData } from './workflows/lf-auth0/getEnrichmentData'
 import { getMembersForLFIDEnrichment } from './workflows/lf-auth0/getMembersForLFIDEnrichment'
+import { processMemberSources } from './workflows/processMemberSources'
 import { refreshMemberEnrichmentMaterializedViews } from './workflows/refreshMemberEnrichmentMaterializedViews'
 
 export {
@@ -14,4 +15,5 @@ export {
   findAndSaveGithubSourceIds,
   getEnrichmentData,
   refreshMemberEnrichmentMaterializedViews,
+  processMemberSources,
 }

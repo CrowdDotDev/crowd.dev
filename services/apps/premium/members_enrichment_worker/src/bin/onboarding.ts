@@ -1,16 +1,18 @@
 import { timeout } from '@crowd/common'
 import { MemberEnrichmentSource } from '@crowd/types'
 
-import { processMemberSources } from '../activities/enrichment'
 import { svc } from '../service'
+import { processMemberSources } from '../workflows/processMemberSources'
+
+export * from '@temporalio/client'
 
 // we don't need any of these to be running like if we would run this as an actual temporal worker
 // we just need pg connection, redis & service logger
-process.env['CROWD_TEMPORAL_TASKQUEUE'] = 'not-important'
+process.env['CROWD_TEMPORAL_TASKQUEUE'] = 'members-enrichment'
 svc.config.envvars = []
 svc.config.producer = { enabled: false }
 svc.config.redis = { enabled: true }
-svc.config.temporal = { enabled: false }
+svc.config.temporal = { enabled: true }
 svc.config.questdb = { enabled: false }
 svc.options.opensearch = { enabled: false }
 
@@ -26,7 +28,7 @@ const tenantId = processArguments[0]
 const minMemberActivities = 100
 const maxConcurrentProcessing = 5
 
-async function getEnrichableMembers(limit: number, lastMemberId?: string): Promise<string[]> {
+async function getEnrichableMembers(limit: number): Promise<string[]> {
   const query = `
   -- only use members that have more than one enrichment source
   with members_with_sources as (select distinct "memberId", count(*)
@@ -46,7 +48,6 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   from members m
           inner join members_with_activities ma on m.id = ma."memberId"
   where m."deletedAt" is null and m."tenantId" = $(tenantId)
-  ${lastMemberId ? `and m.id > $(lastMemberId)` : ''}
     and (m."lastEnriched" is null
       or m."lastEnriched" < now() - interval '3 months')
   order by ma.total_activities desc, m.id
@@ -54,9 +55,7 @@ async function getEnrichableMembers(limit: number, lastMemberId?: string): Promi
   `
 
   return (
-    await svc.postgres.writer
-      .connection()
-      .any(query, { lastMemberId, limit, tenantId, minMemberActivities })
+    await svc.postgres.writer.connection().any(query, { limit, tenantId, minMemberActivities })
   ).map((row) => row.id)
 }
 
@@ -74,7 +73,7 @@ setImmediate(async () => {
   let processedMembersCount = 0
   const REPORT_INTERVAL = 10
 
-  const pageSize = 100
+  const pageSize = 20
   let members = await getEnrichableMembers(pageSize)
   let pagePromises: Promise<void>[] = []
   while (members.length > 0) {
@@ -88,7 +87,7 @@ setImmediate(async () => {
       processingCount++
       const startTime = Date.now()
 
-      const promise = processMemberSources(memberId, sources)
+      const promise = startProcessMemberSource(memberId, sources)
         .then((res) => {
           processingCount--
           if (res) {
@@ -127,7 +126,7 @@ setImmediate(async () => {
     await Promise.all(pagePromises)
     pagePromises = []
     // load next page
-    members = await getEnrichableMembers(pageSize, members[members.length - 1])
+    members = await getEnrichableMembers(pageSize)
 
     svc.log.info(
       {
@@ -154,3 +153,34 @@ setImmediate(async () => {
 
   process.exit(0)
 })
+
+async function startProcessMemberSource(
+  memberId: string,
+  sources: MemberEnrichmentSource[],
+): Promise<boolean> {
+  await svc.temporal.workflow.execute(processMemberSources, {
+    taskQueue: 'members-enrichment',
+    workflowId:
+      'member-enrichment/875c38bd-2b1b-4e91-ad07-0cfbabb4c49f/' +
+      memberId +
+      '/processMemberSources',
+    workflowExecutionTimeout: '15 minutes',
+    retry: {
+      backoffCoefficient: 2,
+      maximumAttempts: 10,
+      initialInterval: 2 * 1000,
+      maximumInterval: 30 * 1000,
+    },
+    args: [
+      {
+        memberId,
+        sources,
+      },
+    ],
+    searchAttributes: {
+      TenantId: ['875c38bd-2b1b-4e91-ad07-0cfbabb4c49f'],
+    },
+  })
+
+  return true
+}
