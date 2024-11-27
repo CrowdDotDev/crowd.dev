@@ -187,7 +187,9 @@ watch(
 // Watch for query change
 const alignQueryUrl = () => {
   const { query } = route;
-  const { projectGroup, segmentId, menu, ...parsedQuery } = query;
+  const {
+    projectGroup, segmentId, menu, ...parsedQuery
+  } = query;
   const parsed = parseQuery(
     parsedQuery,
     {
