@@ -452,9 +452,9 @@ Considerations for Matching:
 export async function squashMultipleValueAttributesWithLLM(
   memberId: string,
   attributes: {
-    [key: string]: any[]
+    [key: string]: unknown[]
   },
-): Promise<{ [key: string]: any }> {
+): Promise<{ [key: string]: unknown }> {
   const prompt = `
       I have an object with attributes structured as follows:
       
@@ -508,7 +508,7 @@ export async function squashMultipleValueAttributesWithLLM(
     svc.log,
   )
 
-  const result = await llmService.squashMultipleValueAttributes<{ [key: string]: any }>(
+  const result = await llmService.squashMultipleValueAttributes<{ [key: string]: unknown }>(
     memberId,
     prompt,
   )
