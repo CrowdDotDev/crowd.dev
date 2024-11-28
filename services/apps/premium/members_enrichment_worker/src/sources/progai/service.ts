@@ -25,7 +25,6 @@ import {
   IEnrichmentAPIContributionProgAI,
   IEnrichmentAPIEducationProgAI,
   IEnrichmentAPISkillsProgAI,
-  IEnrichmentAPIWorkExperienceProgAI,
   IMemberEnrichmentDataProgAI,
   IMemberEnrichmentDataProgAIResponse,
 } from './types'
