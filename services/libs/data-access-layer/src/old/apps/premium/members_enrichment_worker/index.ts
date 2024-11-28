@@ -500,15 +500,29 @@ export async function updateMemberOrg(
     dateStart: toUpdate.dateStart === undefined ? toUpdate.dateStart : original.dateStart,
     dateEnd: toUpdate.dateEnd === undefined ? toUpdate.dateEnd : original.dateEnd,
   }
+
+  let dateEndFilter = `and "dateEnd" = $(dateEnd)`
+  let dateStartFilter = `and "dateStart" = $(dateStart)`
+
+  if (params.dateEnd === null) {
+    dateEndFilter = `and "dateEnd" is null`
+    delete params.dateEnd
+  }
+
+  if (params.dateStart === null) {
+    dateStartFilter = ` and "dateStart" is null`
+    delete params.dateStart
+  }
+
   const existing = await tx.oneOrNone(
     `
       select 1 from "memberOrganizations"
-      where "memberId" = $(memberId) and
-            "organizationId" = $(organizationId) and
-            "dateStart" = $(dateStart) and
-            "dateEnd" = $(dateEnd) and
-            "deletedAt" is null
-            and id <> $(id)
+      where "memberId" = $(memberId)
+      and "organizationId" = $(organizationId)
+      ${dateStartFilter}
+      ${dateEndFilter}
+      and "deletedAt" is null
+      and id <> $(id)
     `,
     params,
   )
