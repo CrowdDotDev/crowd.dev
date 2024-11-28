@@ -233,7 +233,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       for (const attribute of Object.keys(multipleValueAttributesSquashed)) {
         if (multipleValueAttributesSquashed[attribute]) {
           attributesSquashed[attribute] = {
-            enrichment: multipleValueAttributesSquashed[attribute],
+            enrichment: await cleanAttributeValue(multipleValueAttributesSquashed[attribute]),
           }
         }
       }
