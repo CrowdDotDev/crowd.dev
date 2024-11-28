@@ -15,7 +15,6 @@ import { getOpensearchClient } from '@crowd/opensearch'
 import { RedisPubSubReceiver, getRedisClient, getRedisPubSubPair } from '@crowd/redis'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { getServiceTracer } from '@crowd/tracing'
 import { ApiWebsocketMessage, Edition } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -46,7 +45,6 @@ import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
-getServiceTracer()
 
 const app = express()
 

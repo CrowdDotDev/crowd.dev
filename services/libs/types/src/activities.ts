@@ -157,3 +157,12 @@ export type ActivityTypeDisplayProperties = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatter?: { [key: string]: (input: any) => string }
 }
+
+export interface ISentimentAnalysisResult {
+  sentiment: number
+  label: string
+  positive: number
+  negative: number
+  neutral: number
+  mixed: number
+}

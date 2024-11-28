@@ -1,6 +1,5 @@
 import { DbColumnSet, DbInstance } from '@crowd/database'
-import { ISentimentAnalysisResult } from '@crowd/sentiment'
-import { PlatformType } from '@crowd/types'
+import { ISentimentAnalysisResult, PlatformType } from '@crowd/types'
 
 export interface IDbActivity {
   id: string

@@ -15,7 +15,6 @@
     "@aws-sdk/client-sqs": "^3.332.0",
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "kafkajs": "^2.2.4"
   }
