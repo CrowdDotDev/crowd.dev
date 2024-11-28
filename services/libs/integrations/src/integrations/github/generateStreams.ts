@@ -64,6 +64,8 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     : // for onboarding runs, we only check recently added repos. This needed when integration updated
       settings.orgs.flatMap((org) => org.repos) // for non-onboarding runs, we check all repos
 
+  ctx.log.info(`${messageSentAt ? messageSentAt.toISOString() : 'Checking all repos'}`)
+
   if (reposToCheck.length === 0) {
     ctx.log.warn('No repos to check, skipping')
     return
