@@ -133,9 +133,14 @@ export default {
       }
     }
 
+    const offsetLoad = offset !== undefined ? offset : this.projectOffset
+    const limitLoad = limit !== undefined ? limit : this.projects.pagination.pageSize
+    this.projects.loading = offsetLoad === 0
+    this.projects.paginating = offsetLoad > 0
+
     LfService.queryProjects({
-      limit: limit !== undefined ? limit : this.projects.pagination.pageSize,
-      offset: offset !== undefined ? offset : this.projectOffset,
+      limit: limitLoad,
+      offset: offsetLoad,
       filter: {
         name: search,
         parentSlug: this.projects.parentSlug,
@@ -157,6 +162,7 @@ export default {
       })
       .finally(() => {
         this.projects.loading = false
+        this.projects.paginating = false
       })
   },
   findProject(id) {

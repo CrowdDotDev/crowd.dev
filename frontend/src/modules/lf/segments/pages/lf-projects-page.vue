@@ -63,7 +63,7 @@
       />
 
       <div v-else class="mt-6 flex flex-col gap-6">
-        <div class="h-10 flex items-center">
+        <!-- <div class="h-10 flex items-center">
           <app-pagination-sorter
             :page-size="pagination.pageSize"
             :total="pagination.total"
@@ -73,7 +73,7 @@
             module="project"
             @change-sorter="onPageSizeChange"
           />
-        </div>
+        </div> -->
 
         <app-integration-progress-wrapper :segments="segmentIds">
           <template #default="{ progress, progressError }">
@@ -90,7 +90,7 @@
           </template>
         </app-integration-progress-wrapper>
 
-        <div v-if="!!pagination.count">
+        <!-- <div v-if="!!pagination.count">
           <app-pagination
             :total="pagination.count"
             :page-size="Number(pagination.pageSize)"
@@ -99,6 +99,23 @@
             @change-current-page="doChangeProjectCurrentPage"
             @change-page-size="onPageSizeChange"
           />
+        </div> -->
+        <div v-if="!!pagination.count && !loading">
+          <app-infinite-pagination
+            :total="pagination.count"
+            :page-size="Number(pagination.pageSize)"
+            :current-page="pagination.currentPage || 1"
+            :is-loading="projects.paginating"
+            :use-slot="true"
+            @load-more="onLoadMore"
+          >
+            <lf-loading
+              :count="1"
+              height="6rem"
+              width="100%"
+              class="rounded"
+            />
+          </app-infinite-pagination>
         </div>
       </div>
     </div>
@@ -141,6 +158,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
 import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -183,6 +201,12 @@ onMounted(() => {
     });
 });
 
+const onLoadMore = () => {
+  if (!projects.value.paginating) {
+    doChangeProjectCurrentPage(pagination.value.currentPage + 1);
+  }
+};
+
 const onAddProject = () => {
   projectForm.id = null;
   isProjectFormDrawerOpen.value = true;
@@ -206,9 +230,9 @@ const onAddSubProject = ({ slug, id }) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-const onPageSizeChange = (pageSize) => {
-  updateProjectsPageSize(pageSize);
-};
+// const onPageSizeChange = (pageSize) => {
+//   updateProjectsPageSize(pageSize);
+// };
 
 const onSearchProjects = (query) => {
   trackEvent({

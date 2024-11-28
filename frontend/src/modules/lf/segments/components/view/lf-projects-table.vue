@@ -125,7 +125,6 @@
 </template>
 
 <script setup>
-import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import { useRoute } from 'vue-router';
@@ -159,8 +158,6 @@ const props = defineProps({
 });
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
-
-const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
 </script>
 

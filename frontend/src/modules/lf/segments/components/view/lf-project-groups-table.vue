@@ -62,15 +62,21 @@
         </template>
       </el-table-column>
     </el-table>
-
-    <div v-if="!!pagination.count && !projectGroups.loading" class="mt-8 px-6">
-      <app-infinite-pagination 
+    <div v-if="!!pagination.count && !projectGroups.loading">
+      <app-infinite-pagination
         :total="pagination.count"
         :page-size="Number(pagination.pageSize)"
         :current-page="pagination.currentPage || 1"
         :is-loading="projectGroups.paginating"
+        :use-slot="true"
         @load-more="onLoadMore"
-      />
+      >
+        <lf-loading
+          :count="1"
+          height="3rem"
+          width="100%"
+        />
+      </app-infinite-pagination>
     </div>
   </div>
 </template>
@@ -83,6 +89,7 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();

@@ -1,8 +1,11 @@
 <template>
   <div ref="infinitePaginationWrapper">
-    <div class="text-sm text-gray-500 text-center" v-if="isLoading">
-      Loading...
-    </div>
+    <slot v-if="useSlot && isLoading" />
+    <template v-else>
+      <div class="text-sm text-gray-500 text-center" v-if="isLoading">
+        Loading...
+      </div>
+    </template>
   </div>
 </template>
 
@@ -27,6 +30,10 @@ const props = defineProps({
   isLoading: {
     type: Boolean,
     required: true,
+  },
+  useSlot: {
+    type: Boolean,
+    default: false,
   },
 });
 

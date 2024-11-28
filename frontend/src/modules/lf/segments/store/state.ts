@@ -20,6 +20,7 @@ export interface SegmentsState {
     list: Project[]
     parentSlug: string
     loading: boolean
+    paginating: boolean
     pagination: {
       pageSize: number
       currentPage: number
