@@ -514,6 +514,17 @@ export async function updateMemberOrg(
     delete params.dateStart
   }
 
+  const query = `select 1 from "memberOrganizations"
+      where "memberId" = $(memberId)
+      and "organizationId" = $(organizationId)
+      ${dateStartFilter}
+      ${dateEndFilter}
+      and "deletedAt" is null
+      and id <> $(id)`
+
+  console.log(query)
+  console.log(params)
+
   const existing = await tx.oneOrNone(
     `
       select 1 from "memberOrganizations"
@@ -526,6 +537,8 @@ export async function updateMemberOrg(
     `,
     params,
   )
+
+  console.log('existing', existing)
 
   if (existing) {
     // we should just delete the row
