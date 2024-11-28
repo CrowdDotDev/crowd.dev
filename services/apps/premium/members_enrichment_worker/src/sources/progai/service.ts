@@ -270,7 +270,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           if (
             normalizedDomain &&
             !workExperience.companyUrl.toLowerCase().includes('github') &&
-            !workExperience.company.toLowerCase().includes('github')
+            !(workExperience.company || '').toLowerCase().includes('github')
           ) {
             identities.push({
               platform: PlatformType.LINKEDIN,
