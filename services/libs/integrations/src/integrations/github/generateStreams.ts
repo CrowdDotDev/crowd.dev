@@ -1,42 +1,11 @@
 import { GenerateStreamsHandler } from '../../types'
 
-import {
-  GitHubManualIntegrationSettingsDetailedMap,
-  GithubBasicStream,
-  GithubIntegrationSettings,
-  GithubManualIntegrationSettings,
-  GithubManualStreamType,
-  GithubRootStream,
-  GithubStreamType,
-  Repo,
-} from './types'
+import { GithubIntegrationSettings, GithubRootStream, GithubStreamType, Repo } from './types'
 
-const NEW_REPO_THRESHOLD_MS = 5000 // 5 seconds in milliseconds
+const NEW_REPO_THRESHOLD_MS = 20000 // 20 seconds in milliseconds
 
 interface AdditionalInfo {
   messageSentAt: string
-}
-
-const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = new Map([
-  [GithubStreamType.STARGAZERS, GithubManualStreamType.STARGAZERS],
-  [GithubStreamType.FORKS, GithubManualStreamType.FORKS],
-  [GithubStreamType.PULLS, GithubManualStreamType.PULLS],
-  [GithubStreamType.ISSUES, GithubManualStreamType.ISSUES],
-])
-
-const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = new Map([
-  [GithubManualStreamType.STARGAZERS, GithubStreamType.STARGAZERS],
-  [GithubManualStreamType.FORKS, GithubStreamType.FORKS],
-  [GithubManualStreamType.PULLS, GithubStreamType.PULLS],
-  [GithubManualStreamType.ISSUES, GithubStreamType.ISSUES],
-])
-
-const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> => {
-  const map = new Map<string, Array<GithubManualStreamType>>()
-  for (const [key, value] of Object.entries(obj)) {
-    map.set(key, value)
-  }
-  return map
 }
 
 const isRepoRecentlyUpdated = (repo: Repo, messageSentAt?: Date): boolean => {
