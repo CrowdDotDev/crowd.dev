@@ -495,6 +495,7 @@ export async function updateMemberOrg(
   // so that we don't get unique index violations
   const params = {
     memberId,
+    id: original.id,
     organizationId: original.orgId,
     dateStart: toUpdate.dateStart === undefined ? toUpdate.dateStart : original.dateStart,
     dateEnd: toUpdate.dateEnd === undefined ? toUpdate.dateEnd : original.dateEnd,
@@ -507,6 +508,7 @@ export async function updateMemberOrg(
             "dateStart" = $(dateStart) and
             "dateEnd" = $(dateEnd) and
             "deletedAt" is null
+            and id <> $(id)
     `,
     params,
   )
