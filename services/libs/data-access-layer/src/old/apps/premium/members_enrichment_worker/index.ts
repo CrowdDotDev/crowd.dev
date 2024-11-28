@@ -6,11 +6,78 @@ import {
   IMemberEnrichmentCache,
   IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
+  IMemberOrganizationData,
+  IMemberOriginalData,
   IOrganizationIdentity,
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationSource,
 } from '@crowd/types'
+
+export async function fetchMemberDataForLLMSquashing(
+  db: DbConnOrTx,
+  memberId: string,
+): Promise<IMemberOriginalData | null> {
+  const result = await db.oneOrNone(
+    `
+    with member_orgs as (select distinct mo."memberId",
+                                        mo."organizationId" as "orgId",
+                                        o."displayName"     as "orgName",
+                                        mo.title            as "jobTitle",
+                                        mo.id,
+                                        mo."dateStart",
+                                        mo."dateEnd",
+                                        mo.source
+                        from "memberOrganizations" mo
+                                  inner join organizations o on mo."organizationId" = o.id
+                        where mo."memberId" = $(memberId)
+                          and mo."deletedAt" is null
+                          and o."deletedAt" is null)
+    select m."displayName",
+          m.attributes,
+          m."manuallyChangedFields",
+          m."tenantId",
+          m.reach,
+          coalesce(
+                  (select json_agg(
+                                  (select row_to_json(r)
+                                    from (select mi.type,
+                                                mi.platform,
+                                                mi.value) r)
+                          )
+                    from "memberIdentities" mi
+                    where mi."memberId" = m.id
+                      and verified = true), '[]'::json) as identities,
+          case
+              when exists (select 1 from member_orgs where "memberId" = m.id)
+                  then (
+                  select json_agg(
+                                  (select row_to_json(r)
+                                  from (select mo."orgId",
+                                                mo.id,
+                                                mo."orgName",
+                                                mo."jobTitle",
+                                                mo."dateStart",
+                                                mo."dateEnd",
+                                                mo.source) r)
+                          )
+                  from member_orgs mo
+                  where mo."memberId" = m.id
+              )
+              else '[]'::json
+              end as organizations
+    from members m
+    where m.id = $(memberId)
+      and m."deletedAt" is null
+    group by m.id, m."displayName", m.attributes, m."manuallyChangedFields";
+    `,
+    {
+      memberId,
+    },
+  )
+
+  return result
+}
 
 /**
  * Gets enrichable members using the provided sources
@@ -206,14 +273,35 @@ export async function updateIdentitySourceId(
     )
 }
 
-export async function updateLastEnrichedDate(
-  tx: DbTransaction,
+export async function setMemberEnrichmentTryDate(tx: DbConnOrTx, memberId: string): Promise<void> {
+  await tx.none(
+    `
+    insert into "memberEnrichments"("memberId", "lastTriedAt")
+    values ($(memberId), now())
+    on conflict ("memberId") do update set "lastTriedAt" = now()
+    `,
+    { memberId },
+  )
+}
+
+export async function setMemberEnrichmentUpdateDate(
+  tx: DbConnOrTx,
   memberId: string,
-  tenantId: string,
-) {
-  await tx.query(
-    `UPDATE members SET "lastEnriched" = NOW(), "updatedAt" = NOW() WHERE id = $1 AND "tenantId" = $2;`,
-    [memberId, tenantId],
+): Promise<void> {
+  await tx.none(
+    `
+    insert into "memberEnrichments"("memberId", "lastTriedAt", "lastUpdatedAt")
+    values ($(memberId), now(), now())
+    on conflict ("memberId") do update set "lastUpdatedAt" = now()
+    `,
+    { memberId },
+  )
+}
+
+export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string): Promise<void> {
+  await tx.none(
+    `update "memberEnrichments" set "lastTriedAt" = null where "memberId" = $(memberId)`,
+    { memberId },
   )
 }
 
@@ -369,6 +457,17 @@ export async function deleteMemberOrg(tx: DbTransaction, memberId: string, orgId
   )
 }
 
+export async function deleteMemberOrgById(tx: DbConnOrTx, memberId: string, id: string) {
+  await tx.none(
+    `
+    update "memberOrganizations"
+    set "deletedAt" = now()
+    where "memberId" = $(memberId) and id = $(id);
+    `,
+    { memberId, id },
+  )
+}
+
 export async function findMemberOrgs(db: DbStore, memberId: string, orgId: string) {
   return await db.connection().query(
     `SELECT COUNT(*) AS count FROM "memberOrganizations"
@@ -379,6 +478,62 @@ export async function findMemberOrgs(db: DbStore, memberId: string, orgId: strin
               `,
     [memberId, orgId],
   )
+}
+
+export async function updateMemberOrg(
+  tx: DbConnOrTx,
+  memberId: string,
+  original: IMemberOrganizationData,
+  toUpdate: Record<string, unknown>,
+) {
+  const keys = Object.keys(toUpdate)
+  if (keys.length === 0) {
+    return
+  }
+
+  // first check if another row like this exists
+  // so that we don't get unique index violations
+  const params = {
+    memberId,
+    id: original.id,
+    organizationId: original.orgId,
+    dateStart: toUpdate.dateStart === undefined ? toUpdate.dateStart : original.dateStart,
+    dateEnd: toUpdate.dateEnd === undefined ? toUpdate.dateEnd : original.dateEnd,
+  }
+  const existing = await tx.oneOrNone(
+    `
+      select 1 from "memberOrganizations"
+      where "memberId" = $(memberId) and
+            "organizationId" = $(organizationId) and
+            "dateStart" = $(dateStart) and
+            "dateEnd" = $(dateEnd) and
+            "deletedAt" is null
+            and id <> $(id)
+    `,
+    params,
+  )
+
+  if (existing) {
+    // we should just delete the row
+    await tx.none(
+      `update "memberOrganizations" set "deletedAt" = now() where "memberId" = $(memberId) and id = $(id)`,
+      { id: original.id, memberId },
+    )
+  } else {
+    const sets = keys.map((k) => `"${k}" = $(${k})`)
+    await tx.none(
+      `
+      update "memberOrganizations"
+      set ${sets.join(',\n')}
+      where "memberId" = $(memberId) and id = $(id)
+      `,
+      {
+        memberId,
+        id: original.id,
+        ...toUpdate,
+      },
+    )
+  }
 }
 
 export async function insertWorkExperience(
@@ -431,7 +586,6 @@ export async function updateMember(
     `UPDATE members SET ${stmtDisplayName}
       attributes = $(attributes),
       contributions = $(contributions),
-      "lastEnriched" = NOW(),
       "updatedAt" = NOW()
     WHERE id = $(memberId) AND "tenantId" = $(tenantId);`,
     {
@@ -466,11 +620,13 @@ export async function insertMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  return tx.query(
+  const res = await tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
       VALUES ($1, $2, NOW(), NOW(), $3);`,
     [memberId, dataSanitized, source],
   )
+  await resetMemberEnrichmentTry(tx, memberId)
+  return res
 }
 
 export async function updateMemberEnrichmentCacheDb<T>(
@@ -480,7 +636,7 @@ export async function updateMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  return tx.query(
+  const res = await tx.query(
     `UPDATE "memberEnrichmentCache"
       SET
         "updatedAt" = NOW(),
@@ -488,6 +644,8 @@ export async function updateMemberEnrichmentCacheDb<T>(
       WHERE "memberId" = $1 and source = $3;`,
     [memberId, dataSanitized, source],
   )
+  await resetMemberEnrichmentTry(tx, memberId)
+  return res
 }
 
 export async function touchMemberEnrichmentCacheUpdatedAtDb(
@@ -506,20 +664,20 @@ export async function touchMemberEnrichmentCacheUpdatedAtDb(
 export async function findMemberEnrichmentCacheDb<T>(
   tx: DbConnOrTx,
   memberId: string,
-  source: MemberEnrichmentSource,
-): Promise<IMemberEnrichmentCache<T>> {
-  const result = await tx.oneOrNone(
+  sources: MemberEnrichmentSource[],
+): Promise<IMemberEnrichmentCache<T>[]> {
+  const results = await tx.any(
     `
     select *
     from "memberEnrichmentCache"
     where 
-      source = $(source)
+      source in ($(sources:csv))
       and "memberId" = $(memberId);
     `,
-    { source, memberId },
+    { sources, memberId },
   )
 
-  return result ?? null
+  return results
 }
 
 export async function findMemberEnrichmentCacheForAllSourcesDb<T>(

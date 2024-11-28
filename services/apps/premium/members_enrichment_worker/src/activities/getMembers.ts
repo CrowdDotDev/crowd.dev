@@ -6,7 +6,7 @@ import {
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
-import { svc } from '../main'
+import { svc } from '../service'
 import { IEnrichmentService } from '../types'
 
 export async function getEnrichableMembers(

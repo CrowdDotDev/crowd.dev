@@ -5,7 +5,7 @@ import {
 import { insertMemberIdentity } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker/normalize'
 import { IAttributes, IMemberIdentity } from '@crowd/types'
 
-import { svc } from '../../main'
+import { svc } from '../../service'
 
 export async function getIdentitiesExistInOtherMembers(
   tenantId: string,

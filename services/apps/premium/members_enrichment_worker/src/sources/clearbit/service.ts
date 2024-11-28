@@ -158,7 +158,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.FACEBOOK,
         },
         MemberIdentityType.USERNAME,
-        false,
         normalized,
       )
     }
@@ -170,7 +169,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.GITHUB,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -184,7 +182,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -196,7 +193,6 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -209,17 +205,20 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     normalized: IMemberEnrichmentDataNormalized,
   ): IMemberEnrichmentDataNormalized {
     if (data.employment?.name) {
+      const orgIdentities = []
+      if (data.employment?.domain) {
+        orgIdentities.push({
+          platform: this.platform,
+          value: data.employment.domain,
+          type: OrganizationIdentityType.PRIMARY_DOMAIN,
+          verified: true,
+        })
+      }
+
       normalized.memberOrganizations.push({
         name: data.employment.name,
         source: OrganizationSource.ENRICHMENT_CLEARBIT,
-        identities: [
-          {
-            platform: this.platform,
-            value: data.employment?.domain,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: false,
-          },
-        ],
+        identities: orgIdentities,
         title: data.employment.title,
         startDate: null,
         endDate: null,

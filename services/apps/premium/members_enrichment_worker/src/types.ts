@@ -16,6 +16,8 @@ import { IMemberEnrichmentDataProgAILinkedinScraper } from './sources/progai-lin
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface IEnrichmentSourceInput {
   memberId: string
   github?: IMemberIdentity
@@ -80,6 +82,8 @@ export interface IMemberEnrichmentDataNormalized {
 }
 
 export interface IMemberEnrichmentDataNormalizedOrganization {
+  id?: string
+  organizationId?: string
   name: string
   identities?: IOrganizationIdentity[]
   title?: string
@@ -104,4 +108,9 @@ export type IMemberEnrichmentAttributeSettings = {
     fields: string[]
     transform?: (data: unknown) => unknown
   }
+}
+
+export interface IProcessMemberSourcesArgs {
+  memberId: string
+  sources: MemberEnrichmentSource[]
 }

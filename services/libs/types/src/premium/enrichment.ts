@@ -1,5 +1,5 @@
 import { MemberEnrichmentSource } from '../enums'
-import { IMemberIdentity } from '../members'
+import { IMemberIdentity, IMemberReach } from '../members'
 
 export interface IMemberEnrichmentCache<T> {
   createdAt: string
@@ -29,4 +29,29 @@ export interface IEnrichableMemberIdentityActivityAggregate {
   activityCount: number
   username: string
   platform: string
+}
+
+export interface IMemberOrganizationData {
+  id: string
+  orgId: string
+  orgName: string
+  jobTitle: string
+  dateStart: string
+  dateEnd: string
+  source: string
+}
+
+export interface IMemberOriginalData {
+  // members table data
+  displayName: string
+  attributes: Record<string, Record<string, unknown>>
+  manuallyChangedFields: string[]
+  tenantId: string
+  reach: IMemberReach
+
+  // memberIdentities table data
+  identities: IMemberIdentity[]
+
+  // memberOrganizations table data
+  organizations: IMemberOrganizationData[]
 }

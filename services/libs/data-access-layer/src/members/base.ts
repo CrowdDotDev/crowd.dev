@@ -83,7 +83,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   // member agg fields
   ['lastActive', { name: 'msa."lastActive"' }],
   ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['lastEnriched', { name: 'm."lastEnriched"' }],
   ['score', { name: 'm.score' }],
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],

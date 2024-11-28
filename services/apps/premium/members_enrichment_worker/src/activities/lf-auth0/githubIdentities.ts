@@ -6,7 +6,7 @@ import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
 import { IMemberIdentity } from '@crowd/types'
 
-import { svc } from '../../main'
+import { svc } from '../../service'
 import { IGithubUser } from '../../sources/lfid/types'
 
 export async function getGithubIdentitiesWithoutSourceId(

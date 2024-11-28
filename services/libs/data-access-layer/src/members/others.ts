@@ -1,3 +1,5 @@
+import { IMemberReach } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export interface IMemberTask {
@@ -170,6 +172,25 @@ export async function removeMemberNotes(
     {
       memberId,
       noteIds,
+    },
+  )
+}
+
+export async function updateMemberReach(
+  qx: QueryExecutor,
+  memberId: string,
+  reach: IMemberReach,
+): Promise<void> {
+  return qx.result(
+    `
+          UPDATE "members"
+          SET
+              reach = $(reach)
+          WHERE "id" = $(memberId)
+      `,
+    {
+      memberId,
+      reach,
     },
   )
 }

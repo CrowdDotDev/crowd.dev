@@ -19,7 +19,6 @@ export function sourceHasDifferentDataComparedToCache(
 export function normalizeSocialIdentity(
   data: IMemberEnrichmentSocialData,
   identityType: MemberIdentityType,
-  addUrlAttribute: boolean,
   normalized: IMemberEnrichmentDataNormalized,
 ): IMemberEnrichmentDataNormalized {
   if (!normalized.identities) {
@@ -36,14 +35,6 @@ export function normalizeSocialIdentity(
     platform: data.platform,
     verified: false,
   })
-
-  if (addUrlAttribute && getSocialUrl(data)) {
-    if (!normalized.attributes.url) {
-      normalized.attributes.url = {}
-    }
-
-    normalized.attributes.url[data.platform] = getSocialUrl(data)
-  }
 
   return normalized
 }
@@ -84,14 +75,13 @@ export function normalizeAttributes(
       value = lodash.get(data, field)
     }
 
-    if (value) {
+    if ((Array.isArray(value) && value.length > 0) || (!Array.isArray(value) && value)) {
       // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
       if (!normalized.attributes[attributeName]) {
         normalized.attributes[attributeName] = {}
       }
 
-      // Check if 'attribute.fn' exists, otherwise set it the identity function
-      const fn = attribute.fn || ((value) => value)
+      const fn = attribute.transform || ((value) => value)
       value = fn(value)
 
       normalized.attributes[attributeName][platform] = value

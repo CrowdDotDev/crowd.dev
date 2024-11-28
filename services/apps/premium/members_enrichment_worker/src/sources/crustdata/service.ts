@@ -61,7 +61,11 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     },
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
-      transform: (skills: string) => skills.split(',').sort(),
+      transform: (skills: string) =>
+        skills
+          .split(',')
+          .map((s) => s.trim())
+          .sort(),
     },
     [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],
@@ -307,7 +311,17 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
+        normalized,
+      )
+    }
+
+    if (data.linkedin_flagship_url) {
+      normalized = normalizeSocialIdentity(
+        {
+          handle: data.linkedin_flagship_url.split('/').pop(),
+          platform: PlatformType.LINKEDIN,
+        },
+        MemberIdentityType.USERNAME,
         normalized,
       )
     }

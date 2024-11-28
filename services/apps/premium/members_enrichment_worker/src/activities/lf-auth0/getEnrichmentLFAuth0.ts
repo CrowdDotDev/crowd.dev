@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto'
 import { RedisCache, acquireLock, releaseLock } from '@crowd/redis'
 import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 
-import { svc } from '../../main'
+import { svc } from '../../service'
 import { IGetEnrichmentDataResponse } from '../../sources/lfid/types'
 
 // We'll keep the remaining rate limits in redisCache(lfx-auth0)

@@ -1,6 +1,7 @@
 import axios from 'axios'
 import lodash from 'lodash'
 
+import { websiteNormalizer } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   MemberAttributeName,
@@ -24,7 +25,6 @@ import {
   IEnrichmentAPIContributionProgAI,
   IEnrichmentAPIEducationProgAI,
   IEnrichmentAPISkillsProgAI,
-  IEnrichmentAPIWorkExperienceProgAI,
   IMemberEnrichmentDataProgAI,
   IMemberEnrichmentDataProgAIResponse,
 } from './types'
@@ -58,29 +58,17 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     },
     [MemberAttributeName.PROGRAMMING_LANGUAGES]: {
       fields: ['programming_languages'],
+      transform: (programmingLanguages: string[]) => programmingLanguages.sort(),
     },
     [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],
+      transform: (languages: string[]) => languages.sort(),
     },
     [MemberAttributeName.YEARS_OF_EXPERIENCE]: {
       fields: ['years_of_experience'],
     },
     [MemberAttributeName.EXPERTISE]: {
       fields: ['expertise'],
-    },
-    [MemberAttributeName.WORK_EXPERIENCES]: {
-      fields: ['work_experiences'],
-      transform: (workExperiences: IEnrichmentAPIWorkExperienceProgAI[]) =>
-        workExperiences.map((workExperience) => {
-          const { title, company, location, startDate, endDate } = workExperience
-          return {
-            title,
-            company,
-            location,
-            startDate,
-            endDate: endDate || 'Present',
-          }
-        }),
     },
     [MemberAttributeName.EDUCATION]: {
       fields: ['educations'],
@@ -237,7 +225,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.GITHUB,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -250,7 +237,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.LINKEDIN,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -262,7 +248,6 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           platform: PlatformType.TWITTER,
         },
         MemberIdentityType.USERNAME,
-        true,
         normalized,
       )
     }
@@ -279,12 +264,21 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
         const identities = []
 
         if (workExperience.companyUrl) {
-          identities.push({
-            platform: PlatformType.LINKEDIN,
-            value: workExperience.companyUrl,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: true,
-          })
+          const normalizedDomain = websiteNormalizer(workExperience.companyUrl, false)
+
+          // sometimes companyUrl is a github link, we don't want to add it as a primary domain
+          if (
+            normalizedDomain &&
+            !workExperience.companyUrl.toLowerCase().includes('github') &&
+            !workExperience.company.toLowerCase().includes('github')
+          ) {
+            identities.push({
+              platform: PlatformType.LINKEDIN,
+              value: normalizedDomain,
+              type: OrganizationIdentityType.PRIMARY_DOMAIN,
+              verified: true,
+            })
+          }
         }
 
         if (workExperience.companyLinkedInUrl) {
@@ -301,8 +295,10 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           source: OrganizationSource.ENRICHMENT_PROGAI,
           identities,
           title: workExperience.title,
-          startDate: workExperience.startDate,
-          endDate: workExperience.endDate,
+          startDate: workExperience.startDate
+            ? workExperience.startDate.replace('Z', '+00:00')
+            : null,
+          endDate: workExperience.endDate ? workExperience.endDate.replace('Z', '+00:00') : null,
         })
       }
     }
