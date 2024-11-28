@@ -513,7 +513,7 @@ export async function findOrCreateOrganization(
     let id
 
     if (!existing && verifiedIdentities.length === 0) {
-      log.warn(
+      log.debug(
         { tenantId },
         'Organization does not have any verified identities and was not found by name so we will not create it.',
       )

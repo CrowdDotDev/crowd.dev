@@ -228,7 +228,7 @@ export async function updateMemberUsingSquashedPayload(
 
     // process identities
     if (squashedPayload.identities.length > 0) {
-      svc.log.info({ memberId }, 'Adding to member identities!')
+      svc.log.debug({ memberId }, 'Adding to member identities!')
       for (const i of squashedPayload.identities) {
         updated = true
         promises.push(
@@ -247,7 +247,7 @@ export async function updateMemberUsingSquashedPayload(
     // process contributions
     // if squashed payload has data from progai, we should fetch contributions here
     // it's ommited from the payload because it takes a lot of space
-    svc.log.info('Processing contributions! ', { memberId, hasContributions })
+    svc.log.debug('Processing contributions! ', { memberId, hasContributions })
     if (hasContributions) {
       promises.push(
         findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
@@ -265,7 +265,6 @@ export async function updateMemberUsingSquashedPayload(
           .then((normalized) => {
             if (normalized) {
               const typed = normalized as IMemberEnrichmentDataNormalized
-              svc.log.info('Normalized contributions: ', { contributions: typed.contributions })
 
               if (typed.contributions) {
                 updated = true
@@ -280,7 +279,7 @@ export async function updateMemberUsingSquashedPayload(
     let attributes = existingMemberData.attributes as Record<string, unknown>
 
     if (squashedPayload.attributes) {
-      svc.log.info({ memberId }, 'Updating member attributes!')
+      svc.log.debug({ memberId }, 'Updating member attributes!')
 
       attributes = _.merge({}, attributes, squashedPayload.attributes)
 
@@ -298,7 +297,7 @@ export async function updateMemberUsingSquashedPayload(
 
     // process reach
     if (squashedPayload.reach && Object.keys(squashedPayload.reach).length > 0) {
-      svc.log.info({ memberId }, 'Updating member reach!')
+      svc.log.debug({ memberId }, 'Updating member reach!')
       let reach: IMemberReach
 
       if (existingMemberData.reach && existingMemberData.reach.total) {
