@@ -356,8 +356,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           source: OrganizationSource.ENRICHMENT_CRUSTDATA,
           identities,
           title: workExperience.employee_title,
-          startDate: workExperience.start_date,
-          endDate: workExperience.end_date,
+          startDate: workExperience?.start_date ?? null,
+          endDate: workExperience?.end_date ?? null,
           organizationDescription: workExperience.employer_linkedin_description,
         })
       }
