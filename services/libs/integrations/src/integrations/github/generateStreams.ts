@@ -66,11 +66,6 @@ const handler: GenerateStreamsHandler = async (ctx) => {
 
   ctx.log.info(`${messageSentAt ? messageSentAt.toISOString() : 'Checking all repos'}`)
 
-  if (reposToCheck.length === 0) {
-    ctx.log.warn('No repos to check, skipping')
-    return
-  }
-
   await ctx.publishStream<GithubRootStream>(GithubStreamType.ROOT, {
     reposToCheck,
   })
