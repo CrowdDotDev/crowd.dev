@@ -53,7 +53,7 @@ export default class GithubIntegrationService {
   }
 
   public static async findOrgs(query: string) {
-    const auth = process.env.GITHUB_PAT
+    const auth = GITHUB_TOKEN_CONFIG.token
     const response = await request('GET /search/users', {
       q: query,
       headers: {
@@ -68,7 +68,7 @@ export default class GithubIntegrationService {
   }
 
   public static async getOrgRepos(org: string) {
-    const auth = process.env.GITHUB_PAT
+    const auth = GITHUB_TOKEN_CONFIG.token
     const response = await request('GET /orgs/{org}/repos', {
       org,
       headers: {
