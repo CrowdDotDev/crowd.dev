@@ -1,4 +1,6 @@
-import { generateUUIDv1, setAttributesDefaultValues } from '@crowd/common'
+import _ from 'lodash'
+
+import { generateUUIDv1, replaceDoubleQuotes, setAttributesDefaultValues } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import {
   updateMemberAttributes,
@@ -280,7 +282,7 @@ export async function updateMemberUsingSquashedPayload(
     if (squashedPayload.attributes) {
       svc.log.info({ memberId }, 'Updating member attributes!')
 
-      attributes = { ...attributes, ...squashedPayload.attributes }
+      attributes = _.merge({}, attributes, squashedPayload.attributes)
 
       if (Object.keys(attributes).length > 0) {
         const priorities = await getTenantPriorityArray(existingMemberData.tenantId)
@@ -597,6 +599,9 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
             categorized.discarded.push(profilesFromVerifiedIdentities[i])
           }
         }
+      } else {
+        // if no match found, we should discard all profiles from verified identities
+        categorized.discarded = profilesFromVerifiedIdentities
       }
     } else {
       categorized.selected = profilesFromVerifiedIdentities[0]
@@ -619,6 +624,9 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
           categorized.discarded.push(profilesFromUnverfiedIdentities[i])
         }
       }
+    } else {
+      // if no match found, we should discard all profiles from verified identities
+      categorized.discarded = profilesFromUnverfiedIdentities
     }
   }
 
@@ -862,4 +870,34 @@ function dateIntersects(
   // Periods intersect if one period's start is before other period's end
   // and that same period's end is after the other period's start
   return start1 <= end2 && end1 >= start2
+}
+
+export async function cleanAttributeValue(
+  attributeValue: string | string[] | Record<string, any>,
+): Promise<string | string[] | Record<string, any>> {
+  if (!attributeValue) {
+    return attributeValue
+  }
+
+  if (typeof attributeValue === 'string') {
+    return replaceDoubleQuotes(attributeValue)
+  }
+
+  if (Array.isArray(attributeValue)) {
+    return attributeValue.map((v) => (typeof v === 'string' ? replaceDoubleQuotes(v) : v))
+  }
+
+  if (typeof attributeValue === 'object' && attributeValue !== null) {
+    const cleanedObject: Record<string, any> = {}
+    for (const [key, value] of Object.entries(attributeValue)) {
+      if (typeof value === 'string') {
+        cleanedObject[key] = replaceDoubleQuotes(value)
+      } else {
+        cleanedObject[key] = value
+      }
+    }
+    return cleanedObject
+  }
+
+  return attributeValue
 }

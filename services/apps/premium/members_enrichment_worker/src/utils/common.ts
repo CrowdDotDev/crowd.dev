@@ -81,7 +81,7 @@ export function normalizeAttributes(
         normalized.attributes[attributeName] = {}
       }
 
-      const fn = attribute.fn || ((value) => value)
+      const fn = attribute.transform || ((value) => value)
       value = fn(value)
 
       normalized.attributes[attributeName][platform] = value
