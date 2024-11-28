@@ -814,22 +814,8 @@ function prepareWorkExperiences(
     ) {
       const toUpdateInner: Record<string, any> = {}
 
-      // lets check if the dates and title are the same otherwise we need to update them
-      if (current.dateStart !== match.startDate) {
-        toUpdateInner.dateStart = match.startDate
-      }
-
-      if (current.dateEnd !== match.endDate) {
-        toUpdateInner.dateEnd = match.endDate
-      }
-
-      if (current.jobTitle !== match.title) {
-        toUpdateInner.title = match.title
-      }
-
-      if (Object.keys(toUpdateInner).length > 0) {
-        toUpdate.set(current, toUpdateInner)
-      }
+      toUpdateInner.dateEnd = match.endDate
+      toUpdate.set(current, toUpdateInner)
 
       // remove the match from the new version array so we later don't process it again
       orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
