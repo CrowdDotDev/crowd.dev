@@ -21,7 +21,7 @@ const {
   notifyFrontendMemberUnmergeSuccessful,
   syncRemoveMember,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '15 minutes',
+  startToCloseTimeout: '60 minutes',
 })
 
 export async function finishMemberMerging(
@@ -99,7 +99,8 @@ export async function finishOrganizationMerging(
 
   await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
 
-  await syncOrganization(primaryId)
+  const syncStart = new Date()
+  await syncOrganization(primaryId, syncStart)
   await deleteOrganization(secondaryId)
   await setMergeAction(primaryId, secondaryId, tenantId, {
     state: 'merged' as MergeActionState,
@@ -128,8 +129,9 @@ export async function finishOrganizationUnmerging(
   })
   await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
   await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
-  await syncOrganization(primaryId)
-  await syncOrganization(secondaryId)
+  const syncStart = new Date()
+  await syncOrganization(primaryId, syncStart)
+  await syncOrganization(secondaryId, syncStart)
   await setMergeAction(primaryId, secondaryId, tenantId, {
     state: 'unmerged' as MergeActionState,
     step: MergeActionStep.UNMERGE_DONE,
