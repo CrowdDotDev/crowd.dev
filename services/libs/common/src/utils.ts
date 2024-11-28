@@ -73,7 +73,7 @@ export const redactNullByte = (str: string | null | undefined): string =>
   str ? str.replace(/\\u0000|\0/g, '[NULL]') : ''
 
 export const replaceDoubleQuotes = (str: string | null | undefined): string =>
-  str ? str.replace(/"/g, "'") : ''
+  str ? str.replace(/["“”]/g, "'") : ''
 
 export const dateEqualityChecker = (a, b) => {
   if (a instanceof Date) {
