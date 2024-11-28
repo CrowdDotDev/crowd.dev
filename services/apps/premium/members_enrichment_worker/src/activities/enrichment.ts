@@ -796,21 +796,12 @@ function prepareWorkExperiences(
   // we iterate through the existing version experiences to see if update is needed
   for (const current of orderedCurrentVersion) {
     // try and find a matching experience in the new versions by title
-    let match = orderedNewVersion.find(
+    const match = orderedNewVersion.find(
       (e) =>
         e.title === current.jobTitle &&
         e.identities &&
         e.identities.some((e) => e.organizationId === current.orgId),
     )
-    if (!match) {
-      // if we didn't find a match by title we should check dates
-      match = orderedNewVersion.find(
-        (e) =>
-          dateIntersects(current.dateStart, current.dateEnd, e.startDate, e.endDate) &&
-          e.identities &&
-          e.identities.some((e) => e.organizationId === current.orgId),
-      )
-    }
 
     // if we found a match we can check if we need something to update
     if (match) {
