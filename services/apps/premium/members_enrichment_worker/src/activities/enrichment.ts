@@ -804,8 +804,13 @@ function prepareWorkExperiences(
     )
 
     // if we found a match we can check if we need something to update
-    if (match) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (
+      match &&
+      (current.source !== OrganizationSource.UI ||
+        (current.dateStart === match.startDate &&
+          current.dateEnd === null &&
+          match.endDate !== null))
+    ) {
       const toUpdateInner: Record<string, any> = {}
 
       // lets check if the dates and title are the same otherwise we need to update them
@@ -826,6 +831,15 @@ function prepareWorkExperiences(
       }
 
       // remove the match from the new version array so we later don't process it again
+      orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
+    } else if (
+      match &&
+      current.source === OrganizationSource.UI &&
+      (current.dateStart !== match.startDate || current.dateEnd !== null || match.endDate === null)
+    ) {
+      // there's an incoming work experiences, but it's conflicting with the existing manually updated data
+      // we shouldn't add or update anything when this happens
+      // we can only update dateEnd of existing manually changed data, when it has a null dateEnd
       orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
     }
     // if we didn't find a match we should just leave it as it is in the database since it was manual input
