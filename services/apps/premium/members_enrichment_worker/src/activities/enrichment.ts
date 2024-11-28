@@ -608,7 +608,7 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
     }
   }
 
-  if (!categorized.selected && profilesFromUnverfiedIdentities.length > 0) {
+  if (profilesFromUnverfiedIdentities.length > 0) {
     const result = await findRelatedLinkedinProfilesWithLLM(
       memberId,
       memberData,
@@ -617,7 +617,9 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
 
     // check if empty object
     if (result.profileIndex !== null) {
-      categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
+      if (!categorized.selected) {
+        categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
+      }
       // add profiles not selected to discarded
       for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
         if (i !== result.profileIndex) {
@@ -806,10 +808,9 @@ function prepareWorkExperiences(
     // if we found a match we can check if we need something to update
     if (
       match &&
-      (current.source !== OrganizationSource.UI ||
-        (current.dateStart === match.startDate &&
-          current.dateEnd === null &&
-          match.endDate !== null))
+      current.dateStart === match.startDate &&
+      current.dateEnd === null &&
+      match.endDate !== null
     ) {
       const toUpdateInner: Record<string, any> = {}
 
@@ -834,7 +835,6 @@ function prepareWorkExperiences(
       orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
     } else if (
       match &&
-      current.source === OrganizationSource.UI &&
       (current.dateStart !== match.startDate || current.dateEnd !== null || match.endDate === null)
     ) {
       // there's an incoming work experiences, but it's conflicting with the existing manually updated data
