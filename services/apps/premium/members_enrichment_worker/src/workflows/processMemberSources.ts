@@ -14,6 +14,7 @@ const {
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
   setMemberEnrichmentTryDate,
+  cleanAttributeValue,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 minutes',
   retry: {
@@ -96,7 +97,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           // remove the root source where the discarded linkedin profile is coming from
           for (const source of Object.keys(toBeSquashed)) {
             if (
-              toBeSquashed[source].identities.some(
+              (toBeSquashed[source].identities || []).some(
                 (i) =>
                   i.value === discardedLinkedinIdentity.value &&
                   i.platform === PlatformType.LINKEDIN,
@@ -132,7 +133,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           // remove the root source where the discarded linkedin profile is coming from
           for (const source of Object.keys(toBeSquashed)) {
             if (
-              toBeSquashed[source].identities.some(
+              (toBeSquashed[source].identities || []).some(
                 (i) =>
                   i.value === discardedLinkedinIdentity.value &&
                   i.platform === PlatformType.LINKEDIN,
@@ -211,12 +212,14 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
     const llmInputAttributes = {}
 
     for (const attribute of Object.keys(attributeCountMap)) {
-      if (attributeCountMap[attribute] == 1) {
+      if (attributeCountMap[attribute] === 1) {
         attributesSquashed[attribute] = {
-          enrichment: attributeValues[attribute],
+          enrichment: await cleanAttributeValue(attributeValues[attribute][0]),
         }
       } else {
-        llmInputAttributes[attribute] = attributeValues[attribute]
+        llmInputAttributes[attribute] = await Promise.all(
+          attributeValues[attribute].map((v) => cleanAttributeValue(v)),
+        )
       }
     }
 

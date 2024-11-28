@@ -25,7 +25,6 @@ import {
   IEnrichmentAPIContributionProgAI,
   IEnrichmentAPIEducationProgAI,
   IEnrichmentAPISkillsProgAI,
-  IEnrichmentAPIWorkExperienceProgAI,
   IMemberEnrichmentDataProgAI,
   IMemberEnrichmentDataProgAIResponse,
 } from './types'
@@ -59,29 +58,17 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     },
     [MemberAttributeName.PROGRAMMING_LANGUAGES]: {
       fields: ['programming_languages'],
+      transform: (programmingLanguages: string[]) => programmingLanguages.sort(),
     },
     [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],
+      transform: (languages: string[]) => languages.sort(),
     },
     [MemberAttributeName.YEARS_OF_EXPERIENCE]: {
       fields: ['years_of_experience'],
     },
     [MemberAttributeName.EXPERTISE]: {
       fields: ['expertise'],
-    },
-    [MemberAttributeName.WORK_EXPERIENCES]: {
-      fields: ['work_experiences'],
-      transform: (workExperiences: IEnrichmentAPIWorkExperienceProgAI[]) =>
-        workExperiences.map((workExperience) => {
-          const { title, company, location, startDate, endDate } = workExperience
-          return {
-            title,
-            company,
-            location,
-            startDate,
-            endDate: endDate || 'Present',
-          }
-        }),
     },
     [MemberAttributeName.EDUCATION]: {
       fields: ['educations'],

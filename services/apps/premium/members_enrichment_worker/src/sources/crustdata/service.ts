@@ -61,7 +61,11 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     },
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
-      transform: (skills: string) => skills.split(',').sort(),
+      transform: (skills: string) =>
+        skills
+          .split(',')
+          .map((s) => s.trim())
+          .sort(),
     },
     [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],

@@ -1,4 +1,5 @@
 import {
+  cleanAttributeValue,
   fetchMemberDataForLLMSquashing,
   findMemberEnrichmentCache,
   findMemberIdentityWithTheMostActivityInPlatform,
@@ -6,6 +7,7 @@ import {
   getEnrichmentData,
   getEnrichmentInput,
   getObsoleteSourcesOfMember,
+  getTenantPriorityArray,
   insertMemberEnrichmentCache,
   isCacheObsolete,
   isEnrichableBySource,
@@ -71,4 +73,6 @@ export {
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
+  getTenantPriorityArray,
+  cleanAttributeValue,
 }
