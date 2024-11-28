@@ -71,11 +71,20 @@
         :use-slot="true"
         @load-more="onLoadMore"
       >
-        <lf-loading
-          :count="1"
-          height="3rem"
-          width="100%"
-        />
+        <div
+          class="pt-10 pb-6 gap-4 flex justify-center items-center"
+        >
+          <p class="text-small text-gray-400">
+            {{ fullList.length }} of {{ pagination.total }} project groups
+          </p>
+          <lf-button type="primary-ghost"
+            loading-text="Loading project groups..."
+            :loading="projectGroups.paginating"
+            @click="onLoadMore(pagination.currentPage + 1)"
+          >
+            Load more
+          </lf-button>
+        </div>
       </app-infinite-pagination>
     </div>
   </div>
@@ -89,7 +98,7 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
-import LfLoading from '@/ui-kit/loading/Loading.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
@@ -111,10 +120,6 @@ watch(projectGroups.value, (newList) => {
     fullList.value = [...fullList.value, ...newList.list];
   }
 });
-
-// const onPageSizeChange = (pageSize) => {
-//   updateProjectGroupsPageSize(pageSize);
-// };
 
 const onLoadMore = (currentPage) => {
   if (!projectGroups.value.paginating) {

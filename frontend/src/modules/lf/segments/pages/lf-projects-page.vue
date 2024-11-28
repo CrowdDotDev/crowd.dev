@@ -18,7 +18,7 @@
       <h4 class="text-gray-900 flex items-center gap-2">
         {{ projectGroupForm.name }}
         <app-lf-status-pill :status="projectGroupForm.status" />
-        <app-lf-project-count :count="projectGroupForm.projects.length" />
+        <app-lf-project-count :count="projectGroupForm.projects?.length" />
       </h4>
       <el-button
         v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
@@ -63,22 +63,10 @@
       />
 
       <div v-else class="mt-6 flex flex-col gap-6">
-        <!-- <div class="h-10 flex items-center">
-          <app-pagination-sorter
-            :page-size="pagination.pageSize"
-            :total="pagination.total"
-            :current-page="pagination.currentPage"
-            :has-page-counter="false"
-            position="top"
-            module="project"
-            @change-sorter="onPageSizeChange"
-          />
-        </div> -->
-
         <app-integration-progress-wrapper :segments="segmentIds">
           <template #default="{ progress, progressError }">
             <app-lf-projects-table
-              v-for="project in projects.list"
+              v-for="project in fullList"
               :key="project.id"
               :project="project"
               :progress="progress"
@@ -90,16 +78,6 @@
           </template>
         </app-integration-progress-wrapper>
 
-        <!-- <div v-if="!!pagination.count">
-          <app-pagination
-            :total="pagination.count"
-            :page-size="Number(pagination.pageSize)"
-            :current-page="pagination.currentPage || 1"
-            module="project"
-            @change-current-page="doChangeProjectCurrentPage"
-            @change-page-size="onPageSizeChange"
-          />
-        </div> -->
         <div v-if="!!pagination.count && !loading">
           <app-infinite-pagination
             :total="pagination.count"
@@ -109,12 +87,20 @@
             :use-slot="true"
             @load-more="onLoadMore"
           >
-            <lf-loading
-              :count="1"
-              height="6rem"
-              width="100%"
-              class="rounded"
-            />
+            <div
+              class="pt-10 pb-6 gap-4 flex justify-center items-center"
+            >
+              <p class="text-small text-gray-400">
+                {{ fullList.length }} of {{ pagination.total }} projects
+              </p>
+              <lf-button type="primary-ghost"
+                loading-text="Loading projects..."
+                :loading="projects.paginating"
+                @click="onLoadMore(pagination.currentPage + 1)"
+              >
+                Load more
+              </lf-button>
+            </div>
           </app-infinite-pagination>
         </div>
       </div>
@@ -143,7 +129,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
@@ -158,7 +144,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
 import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
-import LfLoading from '@/ui-kit/loading/Loading.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -169,6 +155,9 @@ const {
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
 const { trackEvent } = useProductTracking();
+
+const fullList = ref(projects.value.list);
+// const currentPage = ref(1);
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
@@ -190,12 +179,23 @@ const pagination = computed(() => projects.value.pagination);
 
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
 
+watch(projects.value, (newList) => {
+  if (!newList.paginating) {
+    if (newList.pagination.currentPage !== 1) {
+      fullList.value = [...fullList.value, ...newList.list];
+    } else {
+      fullList.value = newList.list;
+    }
+  }
+});
+
 onMounted(() => {
   findProjectGroup(route.params.id)
     .then((response) => {
       Object.assign(projectGroupForm, response);
 
       listProjects({ parentSlug: projectGroupForm.slug, reset: true });
+      console.log('calling on mounth')
     }).finally(() => {
       loadingProjectGroup.value = false;
     });
