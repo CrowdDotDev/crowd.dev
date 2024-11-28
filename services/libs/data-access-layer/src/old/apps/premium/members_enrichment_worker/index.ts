@@ -493,6 +493,12 @@ export async function updateMemberOrg(
 
   // first check if another row like this exists
   // so that we don't get unique index violations
+  const params = {
+    memberId,
+    organizationId: original.orgId,
+    dateStart: toUpdate.dateStart === undefined ? toUpdate.dateStart : original.dateStart,
+    dateEnd: toUpdate.dateEnd === undefined ? toUpdate.dateEnd : original.dateEnd,
+  }
   const existing = await tx.oneOrNone(
     `
       select 1 from "memberOrganizations"
@@ -502,12 +508,7 @@ export async function updateMemberOrg(
             "dateEnd" = $(dateEnd) and
             "deletedAt" is null
     `,
-    {
-      memberId,
-      organizationId: original.orgId,
-      dateStart: toUpdate.dateStart ? toUpdate.dateStart : original.dateStart,
-      dateEnd: toUpdate.dateEnd ? toUpdate.dateEnd : original.dateEnd,
-    },
+    params,
   )
 
   if (existing) {
