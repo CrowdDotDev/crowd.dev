@@ -23,7 +23,8 @@
                   <p class="text-small text-gray-500 break-normal text-left">
                     Organization(s) that an individual represents while contributing to a project.
                     This association indicates that the person's activities were made in the context
-                    of their role within the organization, rather than as an independent contributor.
+                    of their role within the organization, rather than as an independent
+                    contributor.
                   </p>
                 </div>
               </el-popover>
@@ -40,14 +41,15 @@
                   </p>
                   <p class="text-small text-gray-500 break-normal mb-5 text-left">
                     Individual responsible for overseeing and managing code repositories by
-                    reviewing and merging pull requests, addressing issues, ensuring code quality, and guiding contributors.
+                    reviewing and merging pull requests, addressing issues, ensuring code quality,
+                    and guiding contributors.
                   </p>
                   <p class="text-small font-semibold mb-2 text-black">
                     Contributor
                   </p>
                   <p class="text-small text-gray-500 break-normal text-left">
-                    Someone who has contributed to a project by making changes or additions to its code.
-                    Contributions require that code was successfully merged into a repository.
+                    Someone who has contributed to a project by making changes or additions to its
+                    code. Contributions require that code was successfully merged into a repository.
                   </p>
                 </div>
               </el-popover>
@@ -57,13 +59,13 @@
         </thead>
 
         <tbody>
-          <tr
-            v-for="project in (projects || []).slice(0, showMore ? (projects || []).length : 3)"
-            :key="project.id"
-          >
+          <tr v-for="project in (projects || []).slice(0, showMore ? (projects || []).length : 3)" :key="project.id">
             <lf-table-cell class="pl-5">
               <p class="text-medium font-semibold py-1.5">
                 {{ project.name }}
+              </p>
+              <p class="text-small text-gray-500 whitespace-nowrap flex items-center gap-1">
+                <lf-icon name="monitor-waveform" />{{ project.activityCount }} {{ parseInt(project.activityCount) > 1 ? 'activities' : 'activity' }}
               </p>
             </lf-table-cell>
             <lf-table-cell>
@@ -71,7 +73,12 @@
                 <lf-contributor-details-projects-affiliation :project="project" />
               </div>
               <div v-else-if="hasPermission(LfPermission.memberEdit)">
-                <lf-button type="primary-link" size="small" class="!text-primary-300 hover:!text-primary-600" @click="isAffilationEditOpen = true">
+                <lf-button
+                  type="primary-link"
+                  size="small"
+                  class="!text-primary-300 hover:!text-primary-600"
+                  @click="isAffilationEditOpen = true"
+                >
                   <lf-icon-old name="add-line" />Add affiliation
                 </lf-button>
               </div>
@@ -93,11 +100,13 @@
                   <lf-icon-old name="pencil-line" />Edit affiliation
                 </lf-dropdown-item>
                 <lf-dropdown-item
-                  @click="setReportDataModal({
-                    contributor: props.contributor,
-                    type: ReportDataType.PROJECT_AFFILIATION,
-                    attribute: project,
-                  })"
+                  @click="
+                    setReportDataModal({
+                      contributor: props.contributor,
+                      type: ReportDataType.PROJECT_AFFILIATION,
+                      attribute: project,
+                    })
+                  "
                 >
                   <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
                 </lf-dropdown-item>
@@ -124,11 +133,11 @@
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Contributor, ContributorAffiliation } from '@/modules/contributor/types/Contributor';
-import LfContributorEditAffilations
-  from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit.vue';
+import LfContributorEditAffilations from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
@@ -156,7 +165,8 @@ const { setReportDataModal } = useSharedStore();
 const showMore = ref<boolean>(false);
 const isAffilationEditOpen = ref<boolean>(false);
 
-const getAffiliations = (projectId: string) => (props.contributor.affiliations || []).filter((affiliation) => affiliation.segmentId === projectId)
+const getAffiliations = (projectId: string) => (props.contributor.affiliations || [])
+  .filter((affiliation) => affiliation.segmentId === projectId)
   .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
     if (!obj[aff.organizationId]) {
       return {

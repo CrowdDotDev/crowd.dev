@@ -18,16 +18,25 @@
           <i class="text-base text-black mr-2" :class="config.iconClass" />
           <span
             class="text-xs text-gray-600 filter-item-text leading-6"
-            v-html="$sanitize(
-              (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options, data))
-                || `<span class='!text-gray-500'>${config.label}...</span>`,
-            )"
+            v-html="
+              $sanitize(
+                (props.modelValue && config.itemLabelRenderer(props.modelValue, props.config.options, data))
+                  || `<span class='!text-gray-500'>${config.label}...</span>`,
+              )
+            "
           />
         </div>
       </template>
 
       <div :data-qa-filter-type="props.config.type">
-        <component :is="getComponent" v-if="getComponent" v-model="form" v-model:data="data" :config="props.config" v-bind="props.config.options" />
+        <component
+          :is="getComponent"
+          v-if="getComponent"
+          v-model="form"
+          v-model:data="data"
+          :config="props.config"
+          v-bind="props.config.options"
+        />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">
         <el-button class="btn btn-link btn-link--sm btn-link--primary !h-8 mr-2" data-qa="filter-close" @click="close">
@@ -59,13 +68,16 @@ import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: string,
-  open: string;
+  open: string,
   config: FilterConfig,
   hideRemove?: boolean,
-  chipClasses?: string;
+  chipClasses?: string,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: any): void, (e: 'remove'): void, (e: 'update:open', value: string): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: any): void;
+  (e: 'remove'): void;
+  (e: 'update:open', value: string): void;
+}>();
 
 const form = ref({});
 const data = ref({});
@@ -102,9 +114,13 @@ const close = () => {
 
 const $v = useVuelidate();
 
-watch(() => props.modelValue, (value) => {
-  form.value = { ...value };
-}, { immediate: true, deep: true });
+watch(
+  () => props.modelValue,
+  (value) => {
+    form.value = { ...value };
+  },
+  { immediate: true, deep: true },
+);
 </script>
 
 <script lang="ts">
@@ -114,8 +130,8 @@ export default {
 </script>
 
 <style lang="scss">
-.filter-item-text{
-  b{
+.filter-item-text {
+  b {
     @apply font-medium text-gray-900 mr-2;
   }
 }
