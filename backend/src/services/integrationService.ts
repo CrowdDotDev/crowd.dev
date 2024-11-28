@@ -43,9 +43,9 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import {
-  GITHUB_TOKEN_CONFIG,
   DISCORD_CONFIG,
   GITHUB_CONFIG,
+  GITHUB_TOKEN_CONFIG,
   GITLAB_CONFIG,
   IS_TEST_ENV,
   KUBE_MODE,
@@ -388,7 +388,7 @@ export default class IntegrationService {
     return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
   }
 
-  async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
+  async mapGithubRepos(integrationId, mapping, fireOnboarding = true, isUpdateTransaction = false) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -469,9 +469,8 @@ export default class IntegrationService {
           integration.id,
           true,
           null,
-          {
-            messageSentAt: new Date().toISOString(),
-          },
+          null,
+          isUpdateTransaction ? { messageSentAt: new Date().toISOString() } : null,
         )
       }
 
