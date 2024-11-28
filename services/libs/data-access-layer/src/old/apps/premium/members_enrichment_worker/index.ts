@@ -1,18 +1,7 @@
-import { generateUUIDv4, redactNullByte } from '@crowd/common'
-import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
-import {
-  IAttributes,
-  IEnrichableMember,
-  IMemberEnrichmentCache,
-  IMemberEnrichmentSourceQueryInput,
-  IMemberIdentity,
-  IMemberOrganizationData,
-  IMemberOriginalData,
-  IOrganizationIdentity,
-  MemberEnrichmentSource,
-  MemberIdentityType,
-  OrganizationSource,
-} from '@crowd/types'
+import { generateUUIDv4, redactNullByte } from '@crowd/common';
+import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database';
+import { IAttributes, IEnrichableMember, IMemberEnrichmentCache, IMemberEnrichmentSourceQueryInput, IMemberIdentity, IMemberOrganizationData, IMemberOriginalData, IOrganizationIdentity, MemberEnrichmentSource, MemberIdentityType, OrganizationSource } from '@crowd/types';
+
 
 export async function fetchMemberDataForLLMSquashing(
   db: DbConnOrTx,
@@ -486,6 +475,12 @@ export async function updateMemberOrg(
   original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
 ) {
+  // generate a random hash
+  const hash = generateUUIDv4()
+  console.log(`[${hash}] - Original: ${JSON.stringify(original)}`)
+  console.log(`[${hash}] - To Update: ${JSON.stringify(toUpdate)}`)
+  console.log(`[${hash}] - Member ID: ${memberId}`)
+
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
     return
@@ -514,16 +509,7 @@ export async function updateMemberOrg(
     delete params.dateStart
   }
 
-  const query = `select 1 from "memberOrganizations"
-      where "memberId" = $(memberId)
-      and "organizationId" = $(organizationId)
-      ${dateStartFilter}
-      ${dateEndFilter}
-      and "deletedAt" is null
-      and id <> $(id)`
-
-  console.log(query)
-  console.log(params)
+  console.log(`[${hash}] - Params: ${JSON.stringify(params)}`)
 
   const existing = await tx.oneOrNone(
     `
@@ -538,7 +524,7 @@ export async function updateMemberOrg(
     params,
   )
 
-  console.log('existing', existing)
+  console.log(`[${hash}] - Existing: ${existing}`)
 
   if (existing) {
     // we should just delete the row
