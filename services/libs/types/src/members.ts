@@ -56,7 +56,6 @@ export interface IMember {
   displayName?: string
   avatarUrl?: string
   score: number
-  lastEnriched?: Date | null
   enrichedBy?: string[] | null
   joinedAt: string
   createdAt: string

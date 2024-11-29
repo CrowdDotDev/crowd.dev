@@ -212,7 +212,6 @@ export default class SampleDataService extends LoggerBase {
             }
           }
           member.contributions = member.openSourceContributions
-          member.lastEnriched = new Date()
           member.platform = 'github'
           await memberService.upsert(member)
         }

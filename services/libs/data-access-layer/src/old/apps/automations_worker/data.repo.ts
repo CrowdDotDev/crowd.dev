@@ -180,7 +180,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m."joinedAt",
         m.reach,
         m.contributions,
-        m."lastEnriched",
         m."enrichedBy",
         m."manuallyCreated",
         m."createdAt",

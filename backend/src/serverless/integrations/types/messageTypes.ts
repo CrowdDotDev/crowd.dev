@@ -68,7 +68,6 @@ export type Member = {
   bio?: string
   reach?: number | any
   location?: string
-  lastEnriched?: Date | null
   enrichedBy?: string[] | null
   contributions?: any
 }

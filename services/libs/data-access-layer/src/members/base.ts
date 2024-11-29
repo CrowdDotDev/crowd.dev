@@ -50,10 +50,6 @@ export enum MemberField {
   CREATED_BY_ID = 'createdById',
   UPDATED_BY_ID = 'updatedById',
 
-  ENRICHED_BY = 'enrichedBy',
-  LAST_ENRICHED_AT = 'lastEnrichedAt',
-  SEARCH_SYNCED_AT = 'searchSyncedAt',
-
   MANUALLY_CREATED = 'manuallyCreated',
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
 }

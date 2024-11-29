@@ -304,7 +304,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."displayName",
               m.attributes,
               m.score,
-              m."lastEnriched",
               m."joinedAt",
               m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",

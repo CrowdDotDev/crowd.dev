@@ -47,9 +47,6 @@ export default (sequelize) => {
       contributions: {
         type: DataTypes.JSONB,
       },
-      lastEnriched: {
-        type: DataTypes.DATE,
-      },
       enrichedBy: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
       },

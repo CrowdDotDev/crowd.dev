@@ -26,11 +26,6 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
     },
-    lastEnriched: {
-      hubspotType: HubspotPropertyType.DATE,
-      readonly: true,
-      serialize: serializeDate,
-    },
     joinedAt: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
