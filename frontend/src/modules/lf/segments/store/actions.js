@@ -160,7 +160,11 @@ export default {
       .then((response) => {
         const count = Number(response.count)
 
-        this.projects.list = response.rows
+        if (offsetLoad === 0 || reset) {
+          this.projects.list = response.rows
+        } else {
+          this.projects.list = [...this.projects.list, ...response.rows]
+        }
 
         if (!search) {
           this.projects.pagination.total = count
@@ -199,16 +203,24 @@ export default {
     return LfService.updateSegment(id, data)
       .then(() => {
         Message.success('Project updated successfully')
-        this.listProjects()
+        this.updateProjectList(id, data)
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project')
       })
       .finally(() => Promise.resolve())
   },
-  searchProject(search) {
-    this.projects.pagination.currentPage = 1
-    this.listProjects({ search, offset: 0 })
+  updateProjectList(id, data) {
+    this.projects.list = this.projects.list.map((p) => {
+      if (p.id === id) {
+        return { ...p, ...data }
+      }
+      return p
+    })
+  },
+  searchProject(search, page = null) {
+    this.projects.pagination.currentPage = page !== null ? page : 1
+    this.listProjects({ search, offset: page !== null ? undefined : 0 })
   },
   findSubProject(id) {
     return LfService.findSegment(id)

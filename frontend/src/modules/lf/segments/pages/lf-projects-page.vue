@@ -66,7 +66,7 @@
         <app-integration-progress-wrapper :segments="segmentIds">
           <template #default="{ progress, progressError }">
             <app-lf-projects-table
-              v-for="project in fullList"
+              v-for="project in projects.list"
               :key="project.id"
               :project="project"
               :progress="progress"
@@ -91,7 +91,7 @@
               class="pt-10 pb-6 gap-4 flex justify-center items-center"
             >
               <p class="text-small text-gray-400">
-                {{ fullList.length }} of {{ pagination.total }} projects
+                {{ projects.list.length }} of {{ pagination.total }} projects
               </p>
               <lf-button type="primary-ghost"
                 loading-text="Loading projects..."
@@ -129,7 +129,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
 import {
-  computed, onMounted, reactive, ref, watch,
+  computed, onMounted, reactive, ref, 
 } from 'vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
@@ -150,14 +150,12 @@ const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
 const { projects } = storeToRefs(lsSegmentsStore);
 const {
-  findProjectGroup, searchProject, listProjects, updateProjectsPageSize, doChangeProjectCurrentPage,
+  findProjectGroup, searchProject, listProjects, doChangeProjectCurrentPage,
 } = lsSegmentsStore;
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
 const { trackEvent } = useProductTracking();
 
-const fullList = ref(projects.value.list);
-// const currentPage = ref(1);
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
@@ -176,18 +174,9 @@ const isSubProjectFormDrawerOpen = ref(false);
 
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
+const searchQuery = ref('');
 
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
-
-watch(projects.value, (newList) => {
-  if (!newList.paginating) {
-    if (newList.pagination.currentPage !== 1) {
-      fullList.value = [...fullList.value, ...newList.list];
-    } else {
-      fullList.value = newList.list;
-    }
-  }
-});
 
 onMounted(() => {
   findProjectGroup(route.params.id)
@@ -195,7 +184,6 @@ onMounted(() => {
       Object.assign(projectGroupForm, response);
 
       listProjects({ parentSlug: projectGroupForm.slug, reset: true });
-      console.log('calling on mounth')
     }).finally(() => {
       loadingProjectGroup.value = false;
     });
@@ -203,7 +191,11 @@ onMounted(() => {
 
 const onLoadMore = () => {
   if (!projects.value.paginating) {
-    doChangeProjectCurrentPage(pagination.value.currentPage + 1);
+    if (searchQuery.value && searchQuery.value !== '') {
+      searchProject(searchQuery.value, pagination.value.currentPage + 1);
+    } else {
+      doChangeProjectCurrentPage(pagination.value.currentPage + 1);
+    }
   }
 };
 
@@ -230,16 +222,13 @@ const onAddSubProject = ({ slug, id }) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-// const onPageSizeChange = (pageSize) => {
-//   updateProjectsPageSize(pageSize);
-// };
-
 const onSearchProjects = (query) => {
   trackEvent({
     key: FeatureEventKey.SEARCH_PROJECTS,
     type: EventType.FEATURE,
   });
 
+  searchQuery.value = query;
   searchProject(query);
 };
 </script>
