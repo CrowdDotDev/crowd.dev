@@ -261,47 +261,53 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   ): IMemberEnrichmentDataNormalized {
     if (data.work_experiences) {
       for (const workExperience of data.work_experiences) {
-        const identities = []
-        let hasPrimaryDomainIdentity = false
+        if (
+          workExperience.company !== null ||
+          workExperience.companyUrl !== null ||
+          workExperience.companyLinkedInUrl !== null
+        ) {
+          const identities = []
+          let hasPrimaryDomainIdentity = false
 
-        if (workExperience.companyUrl) {
-          const normalizedDomain = websiteNormalizer(workExperience.companyUrl, false)
+          if (workExperience.companyUrl) {
+            const normalizedDomain = websiteNormalizer(workExperience.companyUrl, false)
 
-          // sometimes companyUrl is a github link, we don't want to add it as a primary domain
-          if (
-            normalizedDomain &&
-            !workExperience.companyUrl.toLowerCase().includes('github') &&
-            !(workExperience.company || '').toLowerCase().includes('github')
-          ) {
+            // sometimes companyUrl is a github link, we don't want to add it as a primary domain
+            if (
+              normalizedDomain &&
+              !workExperience.companyUrl.toLowerCase().includes('github') &&
+              !(workExperience.company || '').toLowerCase().includes('github')
+            ) {
+              identities.push({
+                platform: PlatformType.LINKEDIN,
+                value: normalizedDomain,
+                type: OrganizationIdentityType.PRIMARY_DOMAIN,
+                verified: true,
+              })
+              hasPrimaryDomainIdentity = true
+            }
+          }
+
+          if (workExperience.companyLinkedInUrl) {
             identities.push({
               platform: PlatformType.LINKEDIN,
-              value: normalizedDomain,
-              type: OrganizationIdentityType.PRIMARY_DOMAIN,
-              verified: true,
+              value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
+              type: OrganizationIdentityType.USERNAME,
+              verified: !hasPrimaryDomainIdentity,
             })
-            hasPrimaryDomainIdentity = true
           }
-        }
 
-        if (workExperience.companyLinkedInUrl) {
-          identities.push({
-            platform: PlatformType.LINKEDIN,
-            value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
-            type: OrganizationIdentityType.USERNAME,
-            verified: !hasPrimaryDomainIdentity,
+          normalized.memberOrganizations.push({
+            name: workExperience.company,
+            source: OrganizationSource.ENRICHMENT_PROGAI,
+            identities,
+            title: workExperience.title,
+            startDate: workExperience.startDate
+              ? workExperience.startDate.replace('Z', '+00:00')
+              : null,
+            endDate: workExperience.endDate ? workExperience.endDate.replace('Z', '+00:00') : null,
           })
         }
-
-        normalized.memberOrganizations.push({
-          name: workExperience.company,
-          source: OrganizationSource.ENRICHMENT_PROGAI,
-          identities,
-          title: workExperience.title,
-          startDate: workExperience.startDate
-            ? workExperience.startDate.replace('Z', '+00:00')
-            : null,
-          endDate: workExperience.endDate ? workExperience.endDate.replace('Z', '+00:00') : null,
-        })
       }
     }
 
