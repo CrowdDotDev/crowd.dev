@@ -3,7 +3,7 @@
     <el-table
       id="project-groups-table"
       ref="table"
-      :data="fullList"
+      :data="projectGroups.list"
       row-key="id"
       :resizable="false"
       @row-click="handleRowClick"
@@ -75,7 +75,7 @@
           class="pt-10 pb-6 gap-4 flex justify-center items-center"
         >
           <p class="text-small text-gray-400">
-            {{ fullList.length }} of {{ pagination.total }} project groups
+            {{ projectGroups.list.length }} of {{ pagination.total }} project groups
           </p>
           <lf-button type="primary-ghost"
             loading-text="Loading project groups..."
@@ -94,7 +94,7 @@
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
@@ -108,18 +108,6 @@ const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { doChangeProjectGroupCurrentPage } = lsSegmentsStore;
 
 const pagination = computed(() => projectGroups.value.pagination);
-const fullList = ref(projectGroups.value.list);
-const currentPage = ref(1);
-
-watch(projectGroups.value, (newList) => {
-  // TODO: need to requirements on how to handle editing project groups.
-  // The current implementation just re-fetches the current page, but if we edit a project group that is not in the current page
-  // The table will appear outdated
-  if (!newList.paginating && currentPage.value !== newList.pagination.currentPage) {
-    currentPage.value = newList.pagination.currentPage;
-    fullList.value = [...fullList.value, ...newList.list];
-  }
-});
 
 const onLoadMore = (currentPage) => {
   if (!projectGroups.value.paginating) {

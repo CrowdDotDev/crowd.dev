@@ -39,7 +39,11 @@ export default {
       .then((response) => {
         const count = Number(response.count)
 
-        this.projectGroups.list = response.rows
+        if (offsetLoad === 0 || reset) {
+          this.projectGroups.list = response.rows
+        } else {
+          this.projectGroups.list = [...this.projectGroups.list, ...response.rows]
+        }
 
         if (!search) {
           this.projectGroups.pagination.total = count
@@ -98,14 +102,21 @@ export default {
       .then(() => {
         Message.success('Project Group updated successfully')
 
-        this.listProjectGroups({
-          adminOnly: isAdminOnly(),
-        })
+        this.updateProjectGroupList(id, data)
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project group')
       })
       .finally(() => Promise.resolve())
+  },
+  updateProjectGroupList(id, data) {
+    this.projectGroups.list = this.projectGroups.list.map((p) => {
+      if (p.id === id) {
+        return { ...p.value, ...data }
+      }
+      return p
+    })
+    this.projectGroups.reload = true
   },
   searchProjectGroup(search, limit, adminOnly) {
     this.projectGroups.pagination.currentPage = 1
