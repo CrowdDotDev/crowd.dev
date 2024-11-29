@@ -265,29 +265,19 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           args.memberId,
           workExperienceDataInDifferentSources,
         )
-        // make sure only one version of same-value primary-domain identities exist in org identities
-        // also if there are multiple different-value primary-domain identities, mark one of them as unverified
-        // because these two can belong to different organizations
+        // make sure there's only one incoming verified identity and
         workExperiencesSquashedByLLM.forEach((we) => {
           let found = false
-          let foundValue
           const checkedIdentities = []
           we.identities.forEach((i) => {
-            if (i.type === OrganizationIdentityType.PRIMARY_DOMAIN) {
-              if (!found) {
-                found = true
-                foundValue = i.value
-                checkedIdentities.push(i)
-              } else {
-                if (i.value !== foundValue) {
-                  checkedIdentities.push({
-                    ...i,
-                    verified: false,
-                  })
-                }
-              }
-            } else {
-              checkedIdentities.push(i)
+            if (i.verified && !found) {
+              found = true
+              checkedIdentities.push(i.value)
+            } else if (i.verified && found) {
+              checkedIdentities.push({
+                ...i,
+                verified: false,
+              })
             }
           })
           we.identities = checkedIdentities
