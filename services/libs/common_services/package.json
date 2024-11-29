@@ -19,6 +19,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
+    "@crowd/ioc": "workspace:*",
     "@crowd/types": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@crowd/logging",
+  "name": "@crowd/ioc",
   "main": "src/index.ts",
   "scripts": {
     "lint": "npx eslint --ext .ts src --max-warnings=0",
@@ -8,15 +8,11 @@
     "tsc-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/bunyan": "^1.8.8",
-    "@types/bunyan-format": "^0.2.5",
     "@types/node": "^18.16.3",
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@crowd/common": "workspace:*",
-    "@crowd/ioc": "workspace:*",
-    "bunyan": "^1.8.15",
-    "bunyan-format": "^0.2.1"
+    "inversify": "^6.1.4",
+    "reflect-metadata": "^0.2.2"
   }
 }
