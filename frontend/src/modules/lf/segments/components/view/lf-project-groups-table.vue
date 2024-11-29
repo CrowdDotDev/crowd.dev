@@ -77,7 +77,8 @@
           <p class="text-small text-gray-400">
             {{ projectGroups.list.length }} of {{ pagination.total }} project groups
           </p>
-          <lf-button type="primary-ghost"
+          <lf-button
+            type="primary-ghost"
             loading-text="Loading project groups..."
             :loading="projectGroups.paginating"
             @click="onLoadMore(pagination.currentPage + 1)"
@@ -96,22 +97,33 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { doChangeProjectGroupCurrentPage } = lsSegmentsStore;
+const { doChangeProjectGroupCurrentPage, searchProjectGroup } = lsSegmentsStore;
 
 const pagination = computed(() => projectGroups.value.pagination);
 
+const props = defineProps({
+  search: {
+    type: String,
+    default: '',
+  },
+});
+
 const onLoadMore = (currentPage) => {
   if (!projectGroups.value.paginating) {
-    doChangeProjectGroupCurrentPage(currentPage);
+    if (props.search && props.search !== '') {
+      searchProjectGroup(props.search, undefined, undefined, currentPage);
+    } else {
+      doChangeProjectGroupCurrentPage(currentPage);
+    }
   }
 };
 

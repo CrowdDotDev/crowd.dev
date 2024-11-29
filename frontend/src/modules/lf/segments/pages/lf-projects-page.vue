@@ -93,7 +93,8 @@
               <p class="text-small text-gray-400">
                 {{ projects.list.length }} of {{ pagination.total }} projects
               </p>
-              <lf-button type="primary-ghost"
+              <lf-button
+                type="primary-ghost"
                 loading-text="Loading projects..."
                 :loading="projects.paginating"
                 @click="onLoadMore(pagination.currentPage + 1)"
@@ -129,7 +130,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
 import {
-  computed, onMounted, reactive, ref, 
+  computed, onMounted, reactive, ref,
 } from 'vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
@@ -142,9 +143,9 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
 import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -155,7 +156,6 @@ const {
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
 const { trackEvent } = useProductTracking();
-
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({

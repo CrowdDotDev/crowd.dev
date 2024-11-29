@@ -2,7 +2,7 @@
   <div ref="infinitePaginationWrapper">
     <slot v-if="useSlot && isLoading" />
     <template v-else>
-      <div class="text-sm text-gray-500 text-center" v-if="isLoading">
+      <div v-if="isLoading" class="text-sm text-gray-500 text-center">
         Loading...
       </div>
     </template>
@@ -42,18 +42,18 @@ const emit = defineEmits([
 ]);
 
 onMounted(() => {
-    observeSections();
-})
+  observeSections();
+});
 
 const observeSections = () => {
   const options = {
-      rootMargin: '0px 0px',
-      threshold: 0
-  }
-  const observer = new IntersectionObserver(sectionObserveHandler, options)
+    rootMargin: '0px 0px',
+    threshold: 0,
+  };
+  const observer = new IntersectionObserver(sectionObserveHandler, options);
 
   observer.observe(infinitePaginationWrapper.value as Element);
-}
+};
 
 const sectionObserveHandler = (entries: IntersectionObserverEntry[]) => {
   entries.forEach((entry) => {
@@ -61,7 +61,7 @@ const sectionObserveHandler = (entries: IntersectionObserverEntry[]) => {
       emit('loadMore', props.currentPage + 1);
     }
   });
-}
+};
 
 </script>
 <script lang="ts">

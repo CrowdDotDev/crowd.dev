@@ -4,7 +4,6 @@
     class="flex gap-1 items-center py-2 overflow-x-auto"
     style="max-width: 100%; scrollbar-width: thin"
   >
-  
     <div v-for="integration in props.integrations" :key="integration.id">
       <el-popover
         :disabled="

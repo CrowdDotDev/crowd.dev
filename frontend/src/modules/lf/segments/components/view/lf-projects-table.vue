@@ -6,7 +6,6 @@
     row-key="id"
     :resizable="false"
   >
-
     <!-- Status -->
     <el-table-column width="130" class-name="table-columns !bg-white">
       <template #header>
@@ -40,8 +39,8 @@
             :integrations="row.integrations"
             :progress="props.progress"
             :progress-error="progressError"
-        />
-      </div>
+          />
+        </div>
       </template>
     </el-table-column>
 
@@ -64,7 +63,7 @@
           <el-button
             v-if="
               hasPermission(LfPermission.subProjectCreate)
-              && hasAccessToSegmentId(project.id)
+                && hasAccessToSegmentId(project.id)
             "
             class="btn btn--link"
             @click="emit('onAddSubProject', project)"
@@ -130,9 +129,9 @@ import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-pr
 import { useRoute } from 'vue-router';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const route = useRoute();
 

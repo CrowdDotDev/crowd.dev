@@ -45,6 +45,7 @@
       <!-- Table -->
       <div v-else class="mt-8">
         <app-lf-project-groups-table
+          :search="searchQuery"
           @on-edit-project-group="onEditProjectGroup"
           @on-add-project="onAddProject"
         />
@@ -95,6 +96,7 @@ const { hasPermission } = usePermissions();
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
+const searchQuery = ref('');
 
 const projectGroupForm = reactive({
   id: null,
@@ -134,6 +136,7 @@ const onSearchProjectGroup = (val) => {
     type: EventType.FEATURE,
   });
 
+  searchQuery.value = val;
   searchProjectGroup(val);
 };
 </script>
