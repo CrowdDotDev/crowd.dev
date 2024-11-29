@@ -270,7 +270,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
         // might need a merge. To avoid this, we'll only send the org with one verified identity
         workExperiencesSquashedByLLM.forEach((we) => {
           let found = false
-          we.identities = we.identities.map((i) => {
+          we.identities = (we.identities || []).map((i) => {
             if (i.verified && !found) {
               found = true
               return i
