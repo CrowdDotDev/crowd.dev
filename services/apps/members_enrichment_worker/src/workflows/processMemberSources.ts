@@ -265,22 +265,20 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           args.memberId,
           workExperienceDataInDifferentSources,
         )
-        // make sure there's only one incoming verified identity and
+        // if there are multiple verified identities in work experiences, we reduce it
+        // to one because in our db they might exist in different organizations and
+        // might need a merge. To avoid this, we'll only send the org with one verified identity
         workExperiencesSquashedByLLM.forEach((we) => {
           let found = false
-          const checkedIdentities = []
-          we.identities.forEach((i) => {
+          we.identities = we.identities.map((i) => {
             if (i.verified && !found) {
               found = true
-              checkedIdentities.push(i.value)
-            } else if (i.verified && found) {
-              checkedIdentities.push({
-                ...i,
-                verified: false,
-              })
+              return i
+            } else if (i.verified) {
+              return { ...i, verified: false }
             }
+            return i
           })
-          we.identities = checkedIdentities
         })
         squashedPayload.memberOrganizations = workExperiencesSquashedByLLM
       }
