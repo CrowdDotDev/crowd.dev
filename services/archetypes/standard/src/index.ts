@@ -9,10 +9,8 @@ import { Logger, getServiceLogger } from '@crowd/logging'
 import { getClientILP, getClientSQL } from '@crowd/questdb'
 import { RedisClient, acquireLock, getRedisClient, releaseLock } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { Tracer, getServiceTracer } from '@crowd/tracing'
 
 // Retrieve automatically configured tracer and logger.
-const tracer = getServiceTracer()
 const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
@@ -71,7 +69,6 @@ Service holds all details and methods to run any kind of services at crowd.dev.
 */
 export class Service {
   readonly name: string
-  readonly tracer: Tracer
   readonly log: Logger
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
@@ -88,7 +85,6 @@ export class Service {
 
   constructor(config: Config) {
     this.name = process.env['SERVICE']
-    this.tracer = tracer
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES

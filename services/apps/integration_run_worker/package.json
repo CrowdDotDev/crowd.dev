@@ -26,7 +26,6 @@
     "@crowd/opensearch": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "axios": "^1.6.8",
     "config": "^3.3.9",
