@@ -72,12 +72,8 @@ export const escapeNullByte = (str: string | null | undefined): string =>
 export const redactNullByte = (str: string | null | undefined): string =>
   str ? str.replace(/\\u0000|\0/g, '[NULL]') : ''
 
-export const replaceDoubleQuotes = (str: string | null | undefined): string => {
-  const cleanedValue = str ? str.replace(/[\u201C\u201D\u0022\u201E\u201F\u2033\u2036"]/g, "'") : ''
-
-  console.log(`String ${str} cleaned to ${cleanedValue}`)
-  return cleanedValue
-}
+export const replaceDoubleQuotes = (str: string | null | undefined): string =>
+  str ? str.replace(/[\u201C\u201D\u0022\u201E\u201F\u2033\u2036"]/g, "'") : ''
 
 export const dateEqualityChecker = (a, b) => {
   if (a instanceof Date) {
