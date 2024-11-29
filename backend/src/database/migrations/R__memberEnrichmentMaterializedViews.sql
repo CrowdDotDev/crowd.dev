@@ -777,6 +777,7 @@ last_enriched_3_profiles as (
                  where mec."memberId" = m."memberId"
                  and data is not null
     )
+    and m."lastUpdatedAt" is not null
     order by m."lastUpdatedAt" desc
     limit 3
 ),
@@ -790,6 +791,7 @@ last_enriched_3_profiles_with_more_than_1000_activities as (
                  where mec."memberId" = m."memberId"
                  and data is not null
     )
+    and m."lastUpdatedAt" is not null
     order by m."lastUpdatedAt" desc
     limit 3
 ),
@@ -803,6 +805,7 @@ last_enriched_3_profiles_with_more_than_100_activities as (
                  where mec."memberId" = m."memberId"
                  and data is not null
     )
+    and m."lastUpdatedAt" is not null
     order by m."lastUpdatedAt" desc
     limit 3
 ),
@@ -816,6 +819,7 @@ last_enriched_3_profiles_with_more_than_10_activities as (
                  where mec."memberId" = m."memberId"
                  and data is not null
     )
+    and m."lastUpdatedAt" is not null
     order by m."lastUpdatedAt" desc
     limit 3
 ),
