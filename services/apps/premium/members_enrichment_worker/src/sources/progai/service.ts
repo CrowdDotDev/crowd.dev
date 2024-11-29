@@ -262,6 +262,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     if (data.work_experiences) {
       for (const workExperience of data.work_experiences) {
         const identities = []
+        let hasPrimaryDomainIdentity = false
 
         if (workExperience.companyUrl) {
           const normalizedDomain = websiteNormalizer(workExperience.companyUrl, false)
@@ -278,6 +279,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
               type: OrganizationIdentityType.PRIMARY_DOMAIN,
               verified: true,
             })
+            hasPrimaryDomainIdentity = true
           }
         }
 
@@ -286,7 +288,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
             platform: PlatformType.LINKEDIN,
             value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
             type: OrganizationIdentityType.USERNAME,
-            verified: true,
+            verified: !hasPrimaryDomainIdentity,
           })
         }
 
