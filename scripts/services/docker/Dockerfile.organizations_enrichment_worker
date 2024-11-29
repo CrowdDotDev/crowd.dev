@@ -19,4 +19,4 @@ RUN corepack enable && apt update && apt install -y ca-certificates --no-install
 COPY --from=builder /usr/crowd/app/node_modules ./node_modules
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/services/archetypes/ ./services/archetypes
-COPY --from=builder /usr/crowd/app/services/apps/premium/organizations_enrichment_worker/ ./services/apps/premium/organizations_enrichment_worker
+COPY --from=builder /usr/crowd/app/services/apps/organizations_enrichment_worker/ ./services/apps/organizations_enrichment_worker

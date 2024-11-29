@@ -1,19 +1,21 @@
-import { generateUUIDv4, partition } from '@crowd/common'
-import { ConversationService } from '@crowd/conversations'
+import { convert as convertHtmlToText } from 'html-to-text'
+
+import { generateUUIDv4, getCleanString, partition } from '@crowd/common'
 import {
   ALL_COLUMNS_TO_SELECT,
+  doesConversationWithSlugExists,
   insertActivities,
   insertConversations,
   mapActivityRowToResult,
+  queryConversations,
 } from '@crowd/data-access-layer'
 import { DbConnOrTx } from '@crowd/data-access-layer/src/database'
 import { IDbConversationCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
+import { PlatformType } from '@crowd/types'
 
 import { svc } from '../main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-const conversationService = new ConversationService(svc.postgres.writer, svc.questdbSQL, svc.log)
 
 export interface ICreateConversationsResult {
   conversationsCreated: number
@@ -95,22 +97,18 @@ export async function createConversations(): Promise<ICreateConversationsResult>
         // prepare new conversation
         // if not then create a new conversation
         conversationId = generateUUIDv4()
-        const conversationTitle = await conversationService.generateTitle(
+        const conversationTitle = await generateTitle(
           row.parent.tenantId,
           row.parent.egmentId,
           row.parent.title || row.parent.body,
-          ConversationService.hasHtmlActivities(row.parent.platform),
+          hasHtmlActivities(row.parent.platform),
         )
 
         // prepare the conversation data
         conversationsToCreate[row.parent.sourceId] = {
           id: conversationId,
           title: conversationTitle,
-          slug: await conversationService.generateSlug(
-            row.parent.tenantId,
-            row.parent.segmentId,
-            conversationTitle,
-          ),
+          slug: await generateSlug(row.parent.tenantId, row.parent.segmentId, conversationTitle),
           published: true,
           timestamp: row.parent.timestamp || row.child.timestamp,
           tenantId: row.parent.tenantId,
@@ -252,4 +250,87 @@ async function getMinActivityTimestamp(qdbConn: DbConnOrTx): Promise<string | nu
   }
 
   return result.minTimestamp
+}
+
+async function generateTitle(
+  tenantId: string,
+  segmentId: string,
+  title: string,
+  isHtml = false,
+): Promise<string> {
+  if (!title && getCleanString(title).length === 0) {
+    const results = await queryConversations(this.qdbStore, {
+      tenantId,
+      segmentIds: [segmentId],
+      countOnly: true,
+    })
+
+    return `conversation-${results.count}`
+  }
+
+  if (isHtml) {
+    // convert html to text
+    const plainText = convertHtmlToText(title)
+    // and remove new lines
+    return plainText.replace(/\n/g, ' ')
+  }
+
+  return title
+}
+
+function hasHtmlActivities(platform: PlatformType): boolean {
+  switch (platform) {
+    case PlatformType.DEVTO:
+      return true
+    default:
+      return false
+  }
+}
+
+const MAX_SLUG_WORD_LENGTH = 10
+async function generateSlug(tenantId: string, segmentId: string, title: string): Promise<string> {
+  // Remove non-standart characters and extra whitespaces
+  const cleanedTitle = getCleanString(title)
+
+  const slugArray = cleanedTitle.split(' ')
+  let cleanedSlug = ''
+
+  for (let i = 0; i < slugArray.length; i++) {
+    if (i >= MAX_SLUG_WORD_LENGTH) {
+      break
+    }
+    cleanedSlug += `${slugArray[i]}-`
+  }
+
+  // remove trailing dash
+  cleanedSlug = cleanedSlug.replace(/-$/gi, '')
+
+  // check generated slug already exists in tenant
+  let slugExists = await doesConversationWithSlugExists(
+    this.qdbStore,
+    cleanedSlug,
+    tenantId,
+    segmentId,
+  )
+
+  // generated slug already exists in the tenant, start adding suffixes and re-check
+  if (slugExists) {
+    let suffix = 1
+
+    const slugCopy = cleanedSlug
+
+    while (slugExists) {
+      const suffixedSlug = `${slugCopy}-${suffix}`
+      slugExists = await doesConversationWithSlugExists(
+        this.qdbStore,
+        cleanedSlug,
+        tenantId,
+        segmentId,
+      )
+      suffix += 1
+      cleanedSlug = suffixedSlug
+    }
+  }
+
+  return cleanedSlug
 }
