@@ -1207,6 +1207,7 @@ export default class ActivityService extends LoggerBase {
         platform: { eq: platform },
         sourceId: { eq: activity.sourceId },
         type: { eq: activity.type },
+        channel: { eq: activity.channel },
         and: [
           { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
           { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
