@@ -25,7 +25,8 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
+import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -1113,12 +1114,16 @@ export default class ActivityService extends LoggerBase {
                 username,
                 objectMemberId,
                 objectMemberUsername,
-                attributes: await this.findMatchingGitActivityAttributes({
-                  tenantId,
-                  segmentId,
-                  activity,
-                  attributes: activity.attributes || {},
-                }),
+                attributes:
+                  platform === PlatformType.GITHUB &&
+                  activity.type === GithubActivityType.AUTHORED_COMMIT
+                    ? await this.findMatchingGitActivityAttributes({
+                        tenantId,
+                        segmentId,
+                        activity,
+                        attributes: activity.attributes || {},
+                      })
+                    : activity.attributes || {},
                 body: activity.body,
                 title: activity.title,
                 channel: activity.channel,
@@ -1132,7 +1137,7 @@ export default class ActivityService extends LoggerBase {
             )
           }
 
-          if (platform === PlatformType.GIT) {
+          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
             await this.pushAttributesToMatchingGithubActivity({
               tenantId,
               segmentId,
@@ -1195,17 +1200,16 @@ export default class ActivityService extends LoggerBase {
     platform: PlatformType
     activity: IActivityData
   }): Promise<IDbActivityCreateData | null> {
-    const { sourceId, timestamp } = activity
-
     const { rows } = await queryActivities(this.qdbStore.connection(), {
       tenantId,
       segmentIds: [segmentId],
       filter: {
         platform: { eq: platform },
-        sourceId: { eq: sourceId },
+        sourceId: { eq: activity.sourceId },
+        type: { eq: activity.type },
         and: [
-          { timestamp: { gt: moment(timestamp).subtract(1, 'days').toISOString() } },
-          { timestamp: { lt: moment(timestamp).add(1, 'days').toISOString() } },
+          { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
+          { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
         ],
       },
       limit: 1,
@@ -1227,10 +1231,16 @@ export default class ActivityService extends LoggerBase {
     tenantId: string
     segmentId: string
     activity: IActivityData
-    attributes: any // eslint-disable-line @typescript-eslint/no-explicit-any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }): Promise<any> {
-    if (activity.platform !== PlatformType.GITHUB) {
+    attributes: Record<string, unknown>
+  }): Promise<Record<string, unknown>> {
+    if (
+      activity.platform !== PlatformType.GITHUB ||
+      activity.type !== GithubActivityType.AUTHORED_COMMIT
+    ) {
+      this.log.error(
+        { activity },
+        'You need to use github authored commit activity for finding matching git activity attributes',
+      )
       return attributes
     }
 
@@ -1259,10 +1269,13 @@ export default class ActivityService extends LoggerBase {
     segmentId: string
     activity: IActivityData
   }) {
-    if (activity.platform !== PlatformType.GIT) {
+    if (
+      activity.platform !== PlatformType.GIT ||
+      activity.type !== GitActivityType.AUTHORED_COMMIT
+    ) {
       this.log.error(
         { activity },
-        'You need to use git activity for pushing attributes to matching github activity',
+        'You need to use git authored commit activity for pushing attributes to matching github activity',
       )
       return
     }
@@ -1274,7 +1287,7 @@ export default class ActivityService extends LoggerBase {
       gitAttributes,
     }: {
       githubActivityId: string
-      gitAttributes: any // eslint-disable-line @typescript-eslint/no-explicit-any
+      gitAttributes: Record<string, unknown>
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
