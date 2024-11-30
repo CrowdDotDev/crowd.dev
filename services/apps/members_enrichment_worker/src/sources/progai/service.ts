@@ -1,7 +1,7 @@
 import axios from 'axios'
 import lodash from 'lodash'
 
-import { websiteNormalizer } from '@crowd/common'
+import { replaceDoubleQuotes, websiteNormalizer } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   MemberAttributeName,
@@ -298,10 +298,10 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           }
 
           normalized.memberOrganizations.push({
-            name: workExperience.company,
+            name: replaceDoubleQuotes(workExperience.company),
             source: OrganizationSource.ENRICHMENT_PROGAI,
             identities,
-            title: workExperience.title,
+            title: replaceDoubleQuotes(workExperience.title),
             startDate: workExperience.startDate
               ? workExperience.startDate.replace('Z', '+00:00')
               : null,

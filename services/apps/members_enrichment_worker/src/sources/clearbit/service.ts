@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import { replaceDoubleQuotes } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   MemberAttributeName,
@@ -216,10 +217,10 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
       }
 
       normalized.memberOrganizations.push({
-        name: data.employment.name,
+        name: replaceDoubleQuotes(data.employment.name),
         source: OrganizationSource.ENRICHMENT_CLEARBIT,
         identities: orgIdentities,
-        title: data.employment.title,
+        title: replaceDoubleQuotes(data.employment.title),
         startDate: null,
         endDate: null,
       })
