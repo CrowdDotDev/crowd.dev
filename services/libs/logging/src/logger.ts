@@ -1,7 +1,7 @@
 import * as Bunyan from 'bunyan'
 import BunyanFormat from 'bunyan-format'
 
-import { IS_DEV_ENV, IS_TEST_ENV, LOG_LEVEL, SERVICE } from '@crowd/common'
+import { ServiceEnvironment } from '@crowd/types'
 
 import { Logger } from './types'
 
@@ -20,13 +20,23 @@ export const getServiceLogger = (): Logger => {
   if (serviceLoggerInstance) return serviceLoggerInstance
 
   const options = {
-    name: SERVICE,
-    level: LOG_LEVEL as Bunyan.LogLevel,
-    stream: IS_DEV_ENV || IS_TEST_ENV ? PRETTY_FORMAT : JSON_FORMAT,
+    name: process.env.SERVICE || 'unknown-service',
+    level: (process.env.LOG_LEVEL || 'info') as Bunyan.LogLevel,
+    stream:
+      process.env.NODE_ENV === undefined ||
+      [ServiceEnvironment.TEST, ServiceEnvironment.DEVELOPMENT, ServiceEnvironment.DOCKER].includes(
+        process.env.NODE_ENV as ServiceEnvironment,
+      )
+        ? PRETTY_FORMAT
+        : JSON_FORMAT,
   }
 
   serviceLoggerInstance = Bunyan.createLogger(options as unknown as Bunyan.LoggerOptions)
-  if (!IS_DEV_ENV && !IS_TEST_ENV) {
+  if (
+    [ServiceEnvironment.PRODUCTION, ServiceEnvironment.STAGING].includes(
+      process.env.NODE_ENV as ServiceEnvironment,
+    )
+  ) {
     delete serviceLoggerInstance.fields.hostname
   }
 

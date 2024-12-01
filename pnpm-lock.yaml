@@ -1655,6 +1655,9 @@ importers:
 
   services/libs/common:
     dependencies:
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
@@ -1902,12 +1905,12 @@ importers:
 
   services/libs/logging:
     dependencies:
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../common
       '@crowd/ioc':
         specifier: workspace:*
         version: link:../ioc
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../types
       bunyan:
         specifier: ^1.8.15
         version: 1.8.15

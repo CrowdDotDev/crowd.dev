@@ -1,15 +1,16 @@
-import { Edition, QueuePriorityLevel } from '@crowd/types'
+import { getServiceChildLogger } from '@crowd/logging'
+import { Edition, QueuePriorityLevel, ServiceEnvironment } from '@crowd/types'
 
-export const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
+export const IS_TEST_ENV: boolean = process.env.NODE_ENV === ServiceEnvironment.TEST
 
 export const IS_DEV_ENV: boolean =
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'docker' ||
+  process.env.NODE_ENV === ServiceEnvironment.DEVELOPMENT ||
+  process.env.NODE_ENV === ServiceEnvironment.DOCKER ||
   process.env.NODE_ENV === undefined
 
-export const IS_PROD_ENV: boolean = process.env.NODE_ENV === 'production'
+export const IS_PROD_ENV: boolean = process.env.NODE_ENV === ServiceEnvironment.PRODUCTION
 
-export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
+export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === ServiceEnvironment.STAGING
 
 export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
@@ -83,4 +84,20 @@ export function getEnv() {
   if (IS_PROD_ENV) return 'prod'
   if (IS_STAGING_ENV) return 'staging'
   return 'local'
+}
+
+const log = getServiceChildLogger('common/env')
+
+export const getEnvVar = (varName: string, required?: boolean): string | undefined => {
+  const envVar = process.env[varName]
+
+  if (envVar === undefined) {
+    if (required === true) {
+      throw new Error(`Environment variable not set: ${varName}!`)
+    } else {
+      log.warn({ varName }, `Environment variable not set: ${varName}!`)
+    }
+  }
+
+  return envVar
 }

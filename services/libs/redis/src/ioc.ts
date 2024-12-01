@@ -1,3 +1,4 @@
+import { getEnvVar } from '@crowd/common'
 import { ContainerModule, IOC_TYPES, containerModule } from '@crowd/ioc'
 
 import { getRedisClient, getRedisPubSubPair } from './client'
@@ -8,10 +9,10 @@ export const REDIS_IOC_MODULE = async (options: {
   pubsub?: boolean
 }): Promise<ContainerModule> => {
   const config: IRedisConfiguration = {
-    username: process.env.CROWD_REDIS_USERNAME,
-    password: process.env.CROWD_REDIS_PASSWORD,
-    host: process.env.CROWD_REDIS_HOST,
-    port: process.env.CROWD_REDIS_PORT,
+    username: getEnvVar('CROWD_REDIS_USERNAME', true),
+    password: getEnvVar('CROWD_REDIS_PASSWORD', true),
+    host: getEnvVar('CROWD_REDIS_HOST', true),
+    port: getEnvVar('CROWD_REDIS_PORT', true),
   }
 
   let client: RedisClient

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@crowd/types": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "lodash.get": "~4.4.2",
     "moment-timezone": "^0.5.34",
     "tldts": "^6.1.11",
