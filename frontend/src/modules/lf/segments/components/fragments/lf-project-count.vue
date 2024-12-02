@@ -1,15 +1,15 @@
 <template>
-  <app-lf-pill color="bg-white text-gray-900" type="bordered">
-    <div class="flex items-center gap-1">
+  <div class="min-w-[105px]">
+    <lf-pill color="transparent" type="bordered" class="flex items-center gap-1 w-full">
       <lf-icon-old name="stack-line" />
       {{ props.count }} {{ label }}
-    </div>
-  </app-lf-pill>
+    </lf-pill>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import AppLfPill from '@/shared/pill/pill.vue';
+import LfPill from '@/ui-kit/pill/Pill.vue';
 
 const props = defineProps<{
   count: number;

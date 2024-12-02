@@ -1,18 +1,23 @@
 <template>
-  <app-lf-pill :color="statusDisplay(props.status)?.color || ''" type="solid">
-    {{ statusDisplay(props.status)?.label }}
-  </app-lf-pill>
+  <div class="min-w-[90px]">
+    <lf-pill :color="color" type="solid" class="w-full">
+      {{ statusDisplay(props.status)?.label }}
+    </lf-pill>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import statusOptions from '@/modules/lf/config/status';
-import AppLfPill from '@/shared/pill/pill.vue';
+import LfPill from '@/ui-kit/pill/Pill.vue';
+import { PillColor } from '@/ui-kit/pill/types/PillColor';
+import { computed } from 'vue';
 
 const props = defineProps<{
   status: string;
 }>();
 
 const statusDisplay = (status: string) => statusOptions.find((s) => s.value === status);
+const color = computed(() => (statusDisplay(props.status)?.color || 'primary') as PillColor);
 </script>
 
 <script lang="ts">

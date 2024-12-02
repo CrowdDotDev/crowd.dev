@@ -15,11 +15,13 @@
     </router-link>
 
     <div class="w-full flex items-center justify-between mb-6 pt-7 border-t border-gray-100">
-      <h4 class="text-gray-900 flex items-center gap-2">
-        {{ projectGroupForm.name }}
+      <div class="flex items-center gap-4 whitespace-nowrap">
+        <h4 class="text-gray-900 flex items-center">
+          {{ projectGroupForm.name }}
+        </h4>
         <app-lf-status-pill :status="projectGroupForm.status" />
         <app-lf-project-count :count="projectGroupForm.projects?.length" />
-      </h4>
+      </div>
       <el-button
         v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
         class="btn btn--md btn--text"
