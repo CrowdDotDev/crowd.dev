@@ -11,7 +11,6 @@ export interface MemberStaticFieldsTranslation {
   displayName: string
   emails: string
   score: string
-  lastEnriched: string
   joinedAt: string
   reach: unknown
   numberOfOpenSourceContributions: string
