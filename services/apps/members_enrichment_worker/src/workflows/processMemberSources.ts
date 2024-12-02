@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { MemberEnrichmentSource, OrganizationIdentityType, PlatformType } from '@crowd/types'
+import { MemberEnrichmentSource, PlatformType } from '@crowd/types'
 
 import * as activities from '../activities/enrichment'
 import { IMemberEnrichmentDataNormalized, IProcessMemberSourcesArgs } from '../types'

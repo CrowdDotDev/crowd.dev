@@ -840,28 +840,6 @@ function prepareWorkExperiences(
   }
 }
 
-function dateIntersects(
-  d1Start?: string | null,
-  d1End?: string | null,
-  d2Start?: string | null,
-  d2End?: string | null,
-): boolean {
-  // If both periods have no dates at all, we can't determine intersection
-  if ((!d1Start && !d1End) || (!d2Start && !d2End)) {
-    return false
-  }
-
-  // Convert strings to timestamps, using fallbacks for missing dates
-  const start1 = d1Start ? new Date(d1Start).getTime() : -Infinity
-  const end1 = d1End ? new Date(d1End).getTime() : Infinity
-  const start2 = d2Start ? new Date(d2Start).getTime() : -Infinity
-  const end2 = d2End ? new Date(d2End).getTime() : Infinity
-
-  // Periods intersect if one period's start is before other period's end
-  // and that same period's end is after the other period's start
-  return start1 <= end2 && end1 >= start2
-}
-
 export async function cleanAttributeValue(
   attributeValue: string | string[] | Record<string, any>,
 ): Promise<string | string[] | Record<string, any>> {
