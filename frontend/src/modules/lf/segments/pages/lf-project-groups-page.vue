@@ -7,14 +7,14 @@
         placeholder="Search project groups..."
         @on-change="onSearchProjectGroup"
       />
-      <el-button
+      <lf-button
         v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
-        class="btn btn--md btn--text"
-        @click="onAddProjectGroup"
+        size="medium"
+        type="secondary-ghost"
       >
-        <lf-icon name="folder-plus" type="regular" class="mr-1.5" />
+        <lf-icon name="folder-plus" type="regular" />
         Add project group
-      </el-button>
+      </lf-button>
     </div>
 
     <div
@@ -83,6 +83,7 @@ import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);

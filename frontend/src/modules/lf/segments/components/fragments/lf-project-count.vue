@@ -1,6 +1,6 @@
 <template>
   <div class="min-w-[105px]">
-    <lf-pill color="transparent" type="bordered" class="flex items-center gap-1 w-full">
+    <lf-pill color="transparent" type="bordered" class="!flex items-center gap-1 w-full">
       <lf-icon-old name="stack-line" />
       {{ props.count }} {{ label }}
     </lf-pill>
@@ -10,6 +10,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import LfPill from '@/ui-kit/pill/Pill.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{
   count: number;

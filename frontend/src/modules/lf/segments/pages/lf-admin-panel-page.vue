@@ -7,7 +7,7 @@
     </div>
     <lf-tabs v-model="activeTab" @update:model-value="changeView">
       <lf-tab v-model="activeTab" name="project-groups">
-        Project Groups
+        Projects
       </lf-tab>
       <template v-if="isAdminUser">
         <lf-tab v-model="activeTab" name="integrations">

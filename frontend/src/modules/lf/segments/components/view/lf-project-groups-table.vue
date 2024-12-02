@@ -22,7 +22,7 @@
 
       <!-- Name -->
       <el-table-column
-        label="Project Group"
+        label="Project group"
         prop="name"
         width="450"
         class-name="table-columns"
@@ -147,7 +147,7 @@ export default {
     @apply align-middle h-14 px-2;
 
     .cell {
-      @apply px-0 #{!important};
+      @apply normal-case px-0 #{!important};
     }
   }
 
