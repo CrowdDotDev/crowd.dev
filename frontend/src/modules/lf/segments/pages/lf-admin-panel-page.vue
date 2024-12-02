@@ -5,45 +5,72 @@
         Admin panel
       </h4>
     </div>
-
-    <el-tabs :model-value="activeTab" class="mb-6" @update:model-value="changeView">
-      <el-tab-pane label="Project Groups" name="project-groups">
+    <lf-tabs v-model="activeTab" @update:model-value="changeView">
+      <lf-tab v-model="activeTab" name="project-groups">
+        Project Groups
+      </lf-tab>
+      <template v-if="isAdminUser">
+        <lf-tab v-model="activeTab" name="integrations">
+          Integrations
+        </lf-tab>
+        <lf-tab v-model="activeTab" name="organizations">
+        Organizations
+        </lf-tab>
+        <lf-tab v-model="activeTab" name="automations">
+          Automations
+        </lf-tab>
+        <lf-tab v-model="activeTab" name="api-keys">
+          API Keys
+        </lf-tab>
+        <lf-tab v-model="activeTab" name="audit-logs">
+          Audit logs
+        </lf-tab>
+        <lf-tab v-model="activeTab" name="users">
+          Users
+        </lf-tab>
+      </template>
+      <lf-tab v-if="isDevMode" v-model="activeTab" name="dev">
+        Dev
+      </lf-tab>
+    </lf-tabs>
+    <div class="mt-6 border-t border-gray-100">
+      <div class="tab-content" label="Project Groups" name="project-groups">
         <app-lf-project-groups-page
           v-if="activeTab === 'project-groups'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Integrations" name="integrations">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="Integrations" name="integrations">
         <lf-admin-integration-status
           v-if="activeTab === 'integrations'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="Organizations" name="organizations">
         <app-organization-common-page
           v-if="activeTab === 'organizations'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Automations" name="automations">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="Automations" name="automations">
         <app-automation-list
           v-if="activeTab === 'automations'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="API Keys" name="api-keys">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="API Keys" name="api-keys">
         <app-api-keys-page
           v-if="activeTab === 'api-keys'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Audit logs" name="audit-logs">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="Audit logs" name="audit-logs">
         <app-lf-audit-logs-page
           v-if="activeTab === 'audit-logs'"
         />
-      </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Users" name="users">
+      </div>
+      <div class="tab-content" v-if="isAdminUser" label="Users" name="users">
         <lf-admin-users v-if="activeTab === 'users'" />
-      </el-tab-pane>
-      <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
+      </div>
+      <div class="tab-content" v-if="isDevMode" label="Dev" name="dev">
         <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
-      </el-tab-pane>
-    </el-tabs>
+      </div>
+    </div>
   </app-page-wrapper>
 </template>
 
@@ -63,6 +90,8 @@ import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 import LfAdminIntegrationStatus from '@/modules/admin/modules/integration/pages/integration-status.page.vue';
 import LfAdminUsers from '@/modules/admin/modules/users/pages/users.page.vue';
+import LfTabs from '@/ui-kit/tabs/Tabs.vue';
+import LfTab from '@/ui-kit/tabs/Tab.vue';
 
 const route = useRoute();
 const router = useRouter();
