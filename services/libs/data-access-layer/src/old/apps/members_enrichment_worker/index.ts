@@ -476,9 +476,6 @@ export async function updateMemberOrg(
   original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
 ) {
-  // generate a random hash
-  const hash = generateUUIDv4()
-
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
     return
