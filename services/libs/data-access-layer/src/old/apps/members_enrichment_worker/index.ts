@@ -1,7 +1,18 @@
-import { generateUUIDv4, redactNullByte } from '@crowd/common';
-import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database';
-import { IAttributes, IEnrichableMember, IMemberEnrichmentCache, IMemberEnrichmentSourceQueryInput, IMemberIdentity, IMemberOrganizationData, IMemberOriginalData, IOrganizationIdentity, MemberEnrichmentSource, MemberIdentityType, OrganizationSource } from '@crowd/types';
-
+import { generateUUIDv4, redactNullByte } from '@crowd/common'
+import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
+import {
+  IAttributes,
+  IEnrichableMember,
+  IMemberEnrichmentCache,
+  IMemberEnrichmentSourceQueryInput,
+  IMemberIdentity,
+  IMemberOrganizationData,
+  IMemberOriginalData,
+  IOrganizationIdentity,
+  MemberEnrichmentSource,
+  MemberIdentityType,
+  OrganizationSource,
+} from '@crowd/types'
 
 export async function fetchMemberDataForLLMSquashing(
   db: DbConnOrTx,
