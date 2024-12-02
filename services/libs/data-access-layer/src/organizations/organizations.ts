@@ -1,21 +1,29 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { generateUUIDv1, websiteNormalizer } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
+  IOrganization,
   IOrganizationIdSource,
   IQueryTimeseriesParams,
   ITimeseriesDatapoint,
+  OrganizationIdentityType,
   SyncStatus,
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 
+import { findOrgAttributes, markOrgAttributeDefault, upsertOrgAttributes } from './attributes'
+import { addOrgIdentity, upsertOrgIdentities } from './identities'
 import {
   IDbOrgIdentity,
   IDbOrganization,
   IDbOrganizationInput,
   IEnrichableOrganizationData,
 } from './types'
+import { prepareOrganizationData } from './utils'
+
+const log = getServiceChildLogger('data-access-layer/organizations')
 
 const ORG_SELECT_COLUMNS = [
   'id',
@@ -120,6 +128,28 @@ export async function findOrgById(
     `,
     {
       organizationId,
+    },
+  )
+
+  return result
+}
+
+export async function findOrgByName(
+  qx: QueryExecutor,
+  tenantId: string,
+  name: string,
+): Promise<IDbOrganization | null> {
+  const result = await qx.selectOneOrNone(
+    `
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId)
+          and trim(lower(o."displayName")) = trim(lower($(name)))
+          limit 1;
+    `,
+    {
+      tenantId,
+      name,
     },
   )
 
@@ -439,4 +469,132 @@ export async function getTimeseriesOfActiveOrganizations(
   `
 
   return qx.select(query, params)
+}
+
+export async function findOrCreateOrganization(
+  qe: QueryExecutor,
+  tenantId: string,
+  source: string,
+  data: IOrganization,
+  integrationId?: string,
+): Promise<string | undefined> {
+  const verifiedIdentities = data.identities ? data.identities.filter((i) => i.verified) : []
+
+  if (verifiedIdentities.length === 0 && !data.displayName) {
+    const message = `Missing organization identity or displayName while creating/updating organization!`
+    log.error(data, message)
+    throw new Error(message)
+  }
+
+  try {
+    // Normalize the website identities
+    for (const identity of data.identities.filter((i) =>
+      [
+        OrganizationIdentityType.PRIMARY_DOMAIN,
+        OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+      ].includes(i.type),
+    )) {
+      identity.value = websiteNormalizer(identity.value, false)
+    }
+
+    let existing
+    // find existing org by sent verified identities
+    for (const identity of verifiedIdentities) {
+      existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+      if (existing) {
+        break
+      }
+    }
+
+    if (!existing) {
+      existing = await findOrgByName(qe, tenantId, data.displayName)
+    }
+
+    let id
+
+    if (!existing && verifiedIdentities.length === 0) {
+      log.warn(
+        { tenantId },
+        'Organization does not have any verified identities and was not found by name so we will not create it.',
+      )
+      return undefined
+    }
+
+    if (existing) {
+      log.trace(`Found existing organization, organization will be updated!`)
+
+      const existingAttributes = await findOrgAttributes(qe, existing.id)
+
+      const processed = prepareOrganizationData(data, source, existing, existingAttributes)
+
+      log.trace({ updateData: processed.organization }, `Updating organization!`)
+
+      if (Object.keys(processed.organization).length > 0) {
+        log.info({ orgId: existing.id }, `Updating organization!`)
+        await updateOrganization(qe, existing.id, processed.organization)
+      }
+      await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
+      await upsertOrgAttributes(qe, existing.id, processed.attributes)
+      for (const attr of processed.attributes) {
+        if (attr.default) {
+          await markOrgAttributeDefault(qe, existing.id, attr)
+        }
+      }
+
+      id = existing.id
+    } else {
+      log.trace(`Organization wasn't found via website or identities.`)
+      const displayName = data.displayName ? data.displayName : verifiedIdentities[0].value
+
+      const payload = {
+        displayName,
+        description: data.description,
+        logo: data.logo,
+        tags: data.tags,
+        employees: data.employees,
+        location: data.location,
+        type: data.type,
+        size: data.size,
+        headline: data.headline,
+        industry: data.industry,
+        founded: data.founded,
+      }
+
+      log.trace({ data, payload }, `Preparing payload to create a new organization!`)
+
+      const processed = prepareOrganizationData(payload, source)
+
+      log.trace({ payload: processed }, `Creating new organization!`)
+
+      // if it doesn't exists create it
+      id = await insertOrganization(qe, tenantId, processed.organization)
+
+      await upsertOrgAttributes(qe, id, processed.attributes)
+      for (const attr of processed.attributes) {
+        if (attr.default) {
+          await markOrgAttributeDefault(qe, id, attr)
+        }
+      }
+
+      // create identities
+      for (const i of data.identities) {
+        // add the identity
+        await addOrgIdentity(qe, {
+          organizationId: id,
+          tenantId,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          verified: i.verified,
+          sourceId: i.sourceId,
+          integrationId,
+        })
+      }
+    }
+
+    return id
+  } catch (err) {
+    log.error(err, 'Error while upserting an organization!')
+    throw err
+  }
 }

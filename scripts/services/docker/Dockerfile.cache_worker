@@ -17,6 +17,7 @@ WORKDIR /usr/crowd/app
 RUN corepack enable && apt update && apt install -y ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/crowd/app/node_modules ./node_modules
+COPY --from=builder /usr/crowd/app/services/base.tsconfig.json ./services/base.tsconfig.json
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/services/archetypes/ ./services/archetypes
 COPY --from=builder /usr/crowd/app/services/apps/cache_worker/ ./services/apps/cache_worker

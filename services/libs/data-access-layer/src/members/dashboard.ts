@@ -16,7 +16,7 @@ export async function getMemberById(db: DbStore, id: string): Promise<IMember> {
       "id", "tenantId",
       "attributes", "displayName",
       "score",
-      "lastEnriched", "enrichedBy",
+      "enrichedBy",
       "joinedAt", "createdAt"
     FROM members
     WHERE "id" = $(id)

@@ -942,6 +942,14 @@ while test $# -gt 0; do
         restore_db_backup $2
         exit
         ;;
+    lint-backend)
+        (cd $CLI_HOME/../backend && pnpm run lint && pnpm run format-check && pnpm run tsc-check)
+        exit
+        ;;
+    lint-services)
+        (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
+        exit
+        ;;
     *)
         error "Invalid command '$1'" && say "$SCRIPT_USAGE"
         exit 1

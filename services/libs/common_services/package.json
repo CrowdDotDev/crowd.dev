@@ -12,13 +12,13 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.572.0",
     "@crowd/common": "workspace:*",
     "@crowd/database": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*"
   }
 }

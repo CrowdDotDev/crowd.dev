@@ -32,6 +32,7 @@ export enum OrganizationIdentityType {
   PRIMARY_DOMAIN = 'primary-domain',
   ALTERNATIVE_DOMAIN = 'alternative-domain',
   AFFILIATED_PROFILE = 'affiliated-profile',
+  EMAIL = 'email',
 }
 
 export enum OrganizationAttributeSource {
@@ -39,4 +40,5 @@ export enum OrganizationAttributeSource {
   PDL = 'peopledatalabs',
   EMAIL = 'email',
   GITHUB = 'github',
+  ENRICHMENT = 'enrichment',
 }
