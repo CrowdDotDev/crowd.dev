@@ -1,6 +1,6 @@
 <template>
   <app-page-wrapper>
-    <div class="w-full mb-6">
+    <div class="w-full">
       <h4 class="text-gray-900 py-6">
         Admin panel
       </h4>
