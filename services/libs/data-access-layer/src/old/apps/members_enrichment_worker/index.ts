@@ -125,8 +125,9 @@ export async function fetchMembersForEnrichment(
          INNER JOIN tenants ON tenants.id = members."tenantId"
          INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
          LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
-    WHERE 
+    WHERE
       ${enrichableBySqlJoined}
+      AND coalesce((m.attributes ->'isBot'->>'default')::boolean, false) = false 
       AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
       AND (${cacheAgeInnerQueryItems.join(' OR ')})
@@ -477,9 +478,6 @@ export async function updateMemberOrg(
 ) {
   // generate a random hash
   const hash = generateUUIDv4()
-  console.log(`[${hash}] - Original: ${JSON.stringify(original)}`)
-  console.log(`[${hash}] - To Update: ${JSON.stringify(toUpdate)}`)
-  console.log(`[${hash}] - Member ID: ${memberId}`)
 
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
@@ -509,8 +507,6 @@ export async function updateMemberOrg(
     delete params.dateStart
   }
 
-  console.log(`[${hash}] - Params: ${JSON.stringify(params)}`)
-
   const existing = await tx.oneOrNone(
     `
       select 1 from "memberOrganizations"
@@ -523,8 +519,6 @@ export async function updateMemberOrg(
     `,
     params,
   )
-
-  console.log(`[${hash}] - Existing: ${existing}`)
 
   if (existing) {
     // we should just delete the row

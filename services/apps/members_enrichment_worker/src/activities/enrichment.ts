@@ -65,7 +65,7 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  if ((await service.isEnrichableBySource(input)) && (await hasRemainingCredits(source))) {
+  if (await service.isEnrichableBySource(input)) {
     return service.getData(input)
   }
   return null
