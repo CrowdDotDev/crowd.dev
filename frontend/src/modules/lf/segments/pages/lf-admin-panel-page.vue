@@ -14,7 +14,7 @@
           Integrations
         </lf-tab>
         <lf-tab v-model="activeTab" name="organizations">
-        Organizations
+          Organizations
         </lf-tab>
         <lf-tab v-model="activeTab" name="automations">
           Automations
@@ -39,35 +39,35 @@
           v-if="activeTab === 'project-groups'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="Integrations" name="integrations">
+      <div v-if="isAdminUser" class="tab-content" label="Integrations" name="integrations">
         <lf-admin-integration-status
           v-if="activeTab === 'integrations'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="Organizations" name="organizations">
+      <div v-if="isAdminUser" class="tab-content" label="Organizations" name="organizations">
         <app-organization-common-page
           v-if="activeTab === 'organizations'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="Automations" name="automations">
+      <div v-if="isAdminUser" class="tab-content" label="Automations" name="automations">
         <app-automation-list
           v-if="activeTab === 'automations'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="API Keys" name="api-keys">
+      <div v-if="isAdminUser" class="tab-content" label="API Keys" name="api-keys">
         <app-api-keys-page
           v-if="activeTab === 'api-keys'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="Audit logs" name="audit-logs">
+      <div v-if="isAdminUser" class="tab-content" label="Audit logs" name="audit-logs">
         <app-lf-audit-logs-page
           v-if="activeTab === 'audit-logs'"
         />
       </div>
-      <div class="tab-content" v-if="isAdminUser" label="Users" name="users">
+      <div v-if="isAdminUser" class="tab-content" label="Users" name="users">
         <lf-admin-users v-if="activeTab === 'users'" />
       </div>
-      <div class="tab-content" v-if="isDevMode" label="Dev" name="dev">
+      <div v-if="isDevMode" class="tab-content" label="Dev" name="dev">
         <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
       </div>
     </div>

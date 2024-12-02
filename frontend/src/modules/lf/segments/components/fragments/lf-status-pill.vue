@@ -27,6 +27,6 @@ export default {
 </script>
 <style lang="scss">
 .lf-pill {
-  @apply font-secondary font-normal capitalize;
+  @apply capitalize;
 }
 </style>

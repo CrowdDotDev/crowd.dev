@@ -1,5 +1,6 @@
 <template>
-  <span class="lf-pill"
+  <span
+    class="lf-pill"
     :class="[
       `lf-pill--${props.color}`,
       `lf-pill--${props.type}`,
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<{
   class?: string;
 }>(), {
   type: 'solid',
+  class: '',
 });
 </script>
 

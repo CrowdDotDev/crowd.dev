@@ -1,6 +1,6 @@
-import { pillColor } from '@/ui-kit/pill/types/PillColor'
-import { pillType } from '@/ui-kit/pill/types/PillType'
-import LfPill from './Pill.vue'
+import { pillColor } from '@/ui-kit/pill/types/PillColor';
+import { pillType } from '@/ui-kit/pill/types/PillType';
+import LfPill from './Pill.vue';
 
 export default {
   title: 'LinuxFoundation/Pill',
@@ -29,7 +29,7 @@ export default {
       },
     },
   },
-}
+};
 
 export const Regular = {
   args: {
@@ -37,7 +37,7 @@ export const Regular = {
     type: 'solid',
     default: 'Pill',
   },
-}
+};
 
 export const Green = {
   args: {
@@ -45,7 +45,7 @@ export const Green = {
     type: 'solid',
     default: 'Pill',
   },
-}
+};
 
 export const Primary = {
   args: {
@@ -53,7 +53,7 @@ export const Primary = {
     type: 'solid',
     default: 'Pill',
   },
-}
+};
 
 export const Yellow = {
   args: {
@@ -61,7 +61,7 @@ export const Yellow = {
     type: 'solid',
     default: 'Pill',
   },
-}
+};
 
 export const Gray = {
   args: {
@@ -69,7 +69,7 @@ export const Gray = {
     type: 'solid',
     default: 'Pill',
   },
-}
+};
 
 export const BorderedTransparent = {
   args: {
@@ -77,4 +77,4 @@ export const BorderedTransparent = {
     type: 'bordered',
     default: 'Pill',
   },
-}
+};

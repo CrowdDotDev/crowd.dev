@@ -19,4 +19,4 @@ export default [
     label: 'Archived',
     value: 'archived',
   },
-]
+];
