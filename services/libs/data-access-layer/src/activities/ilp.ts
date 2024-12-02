@@ -122,7 +122,7 @@ export async function insertActivities(
       }
 
       if (activity.body) {
-        row.stringColumn('body', activity.body)
+        row.stringColumn('body', activity.body.slice(0, 2000))
       }
 
       if (activity.title) {
