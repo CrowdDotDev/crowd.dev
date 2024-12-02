@@ -45,7 +45,7 @@ export async function insertActivities(
         .stringColumn('id', id)
         .timestampColumn('createdAt', createdAt, 'ms')
         .timestampColumn('updatedAt', updatedAt, 'ms')
-        .stringColumn('attributes', objectToBytes(activity.attributes))
+        .stringColumn('attributes', objectToBytes(tryToUnwrapAttributes(activity.attributes)))
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
         .booleanColumn('member_isBot', activity.isBotActivity || false)
 
@@ -214,4 +214,14 @@ function objectToBytes(input: object): string {
   }
 
   return JSON.stringify(input)
+}
+
+function tryToUnwrapAttributes(attributes: string | object): object {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (typeof attributes === 'object') {
+      return attributes
+    }
+    attributes = JSON.parse(attributes)
+  }
 }
