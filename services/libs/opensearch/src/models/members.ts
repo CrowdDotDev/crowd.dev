@@ -27,9 +27,6 @@ export class MembersOpensearch extends OpensearchModelBase {
     score: {
       type: OpensearchFieldType.INT,
     },
-    lastEnriched: {
-      type: OpensearchFieldType.DATE,
-    },
     joinedAt: {
       type: OpensearchFieldType.DATE,
     },

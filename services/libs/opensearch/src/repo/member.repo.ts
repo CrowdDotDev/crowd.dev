@@ -223,7 +223,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     m.attributes,
     coalesce(m.contributions, '[]'::jsonb)              as contributions,
     m.score,
-    m."lastEnriched",
     m."joinedAt",
     m."manuallyCreated",
     m."createdAt",
