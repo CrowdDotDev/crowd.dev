@@ -205,6 +205,10 @@ export async function insertActivities(
 }
 
 function objectToBytes(input: object): string {
+  if (typeof input !== 'object') {
+    return input
+  }
+
   if (!input) {
     input = {}
   }
