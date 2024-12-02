@@ -2,7 +2,6 @@
   <app-page-wrapper>
     <router-link
       v-if="hasPermission(LfPermission.projectGroupEdit)"
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
         query: {
@@ -10,8 +9,10 @@
         },
       }"
     >
-      <lf-icon name="chevron-left" :size="12" class="mr-2" />
-      <span>Project groups</span>
+      <lf-button type="secondary-ghost" class="mb-6">
+        <lf-icon name="angle-left" type="regular" />
+        <span>Project groups</span>
+      </lf-button>
     </router-link>
 
     <div class="w-full flex items-center justify-between mb-6 pt-7 border-t border-gray-100">
@@ -22,14 +23,16 @@
         <app-lf-status-pill :status="projectGroupForm.status" />
         <app-lf-project-count :count="projectGroupForm.projects?.length" />
       </div>
-      <el-button
+
+      <lf-button
         v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
-        class="btn btn--md btn--text"
+        size="medium"
+        type="secondary-ghost"
         @click="onAddProject"
       >
-        <lf-icon name="folder-plus" type="regular" class="mr-1.5" />
+        <lf-icon name="layer-plus" type="regular" />
         Add project
-      </el-button>
+      </lf-button>
     </div>
 
     <!-- Search input -->

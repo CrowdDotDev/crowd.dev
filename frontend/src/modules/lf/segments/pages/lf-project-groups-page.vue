@@ -11,6 +11,7 @@
         v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
         size="medium"
         type="secondary-ghost"
+        @click="onAddProjectGroup"
       >
         <lf-icon name="folder-plus" type="regular" />
         Add project group
