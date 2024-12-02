@@ -1,9 +1,9 @@
-import { ProjectGroup, Project } from '@/modules/lf/segments/types/Segments';
+import { ProjectGroup, Project } from '@/modules/lf/segments/types/Segments'
 
 export interface SegmentsState {
   selectedProjectGroup: ProjectGroup | null
   adminProjectGroups: {
-    list: ProjectGroups[]
+    list: ProjectGroup[]
   }
   projectGroups: {
     list: ProjectGroup[]
@@ -56,6 +56,6 @@ const state: SegmentsState = {
       count: 0,
     },
   },
-};
+}
 
-export default () => state;
+export default () => state
