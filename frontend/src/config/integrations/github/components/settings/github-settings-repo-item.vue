@@ -68,7 +68,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]): void,
-  (e: 'update:modelValue', value: string): void}>();
+  (e: 'update:modelValue', value: string): void,
+  (e: 'remove-mapping', repoUrl: string): void}>();
 
 const repos = computed<GitHubRepository[]>({
   get: () => props.repositories,
@@ -92,6 +93,7 @@ const $v = useVuelidate(rules, {
 
 const removeRepo = () => {
   repos.value = repos.value.filter((r) => r.url !== props.repository.url);
+  emit('remove-mapping', props.repository.url);
 };
 
 watch(() => model.value, (value) => {

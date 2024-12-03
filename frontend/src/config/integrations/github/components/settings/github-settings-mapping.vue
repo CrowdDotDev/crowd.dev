@@ -52,6 +52,7 @@
               :subprojects="subprojects"
               :repository="repo"
               :org-syncing="isOrgSyncing(o)"
+              @remove-mapping="removeMapping"
             />
           </tbody>
         </lf-table>
@@ -130,6 +131,12 @@ const allOrganizations = computed<any[]>(() => {
     return acc;
   }, []);
 });
+
+const removeMapping = (repoUrl: string) => {
+  const newMappings = { ...repoMappings.value };
+  delete newMappings[repoUrl];
+  repoMappings.value = newMappings;
+};
 </script>
 
 <script lang="ts">
