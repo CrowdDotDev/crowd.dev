@@ -37,21 +37,73 @@ export default class GithubReposRepository {
     )
   }
 
-  static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
+  static async updateMapping(
+    integrationId,
+    newMapping: Record<string, string>,
+    oldMapping: {
+      url: string
+      segment: {
+        id: string
+        name: string
+      }
+    }[],
+    options: IRepositoryOptions,
+  ) {
     const tenantId = options.currentTenant.id
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
-    await GithubReposRepository.bulkInsert(
-      'githubRepos',
-      ['tenantId', 'integrationId', 'segmentId', 'url'],
-      (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
-      Object.entries(mapping).map(([url, segmentId], idx) => ({
-        [`tenantId_${idx}`]: tenantId,
-        [`integrationId_${idx}`]: integrationId,
-        [`segmentId_${idx}`]: segmentId,
-        [`url_${idx}`]: url,
-      })),
-      options,
-    )
+    // Create maps for efficient lookup
+    const oldMappingMap = new Map(oldMapping.map(m => [m.url, m.segment.id]))
+    const newMappingEntries = Object.entries(newMapping)
+
+    // Find repos to insert or update (where they didn't exist or segment changed)
+    const reposToUpsert = newMappingEntries.filter(([url, segmentId]) => {
+      const oldSegmentId = oldMappingMap.get(url)
+      return !oldSegmentId || oldSegmentId !== segmentId
+    })
+
+    if (reposToUpsert.length > 0) {
+      await GithubReposRepository.bulkInsert(
+        'githubRepos',
+        ['tenantId', 'integrationId', 'segmentId', 'url'],
+        (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
+        reposToUpsert.map(([url, segmentId], idx) => ({
+          [`tenantId_${idx}`]: tenantId,
+          [`integrationId_${idx}`]: integrationId,
+          [`segmentId_${idx}`]: segmentId,
+          [`url_${idx}`]: url,
+        })),
+        options,
+      )
+    }
+
+    // Find repos that were removed (exist in old but not in new)
+    const newUrlSet = new Set(Object.keys(newMapping))
+    const urlsToRemove = oldMapping
+      .filter(m => !newUrlSet.has(m.url))
+      .map(m => m.url)
+
+    if (urlsToRemove.length > 0) {
+      await seq.query(
+        `
+        UPDATE "githubRepos"
+        SET "deletedAt" = NOW()
+        WHERE "tenantId" = :tenantId
+        AND "integrationId" = :integrationId
+        AND "url" IN (:urls)
+        AND "deletedAt" IS NULL
+        `,
+        {
+          replacements: {
+            tenantId,
+            integrationId,
+            urls: urlsToRemove,
+          },
+          transaction,
+        },
+      )
+    }
   }
 
   static async getMapping(integrationId, options: IRepositoryOptions) {

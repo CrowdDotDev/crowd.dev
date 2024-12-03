@@ -398,7 +398,7 @@ export default class IntegrationService {
 
     try {
       const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+      await GithubReposRepository.updateMapping(integrationId, mapping, oldMapping, txOptions)
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
