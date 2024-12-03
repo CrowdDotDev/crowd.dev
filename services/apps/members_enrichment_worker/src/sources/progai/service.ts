@@ -288,10 +288,13 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
             }
           }
 
-          if (workExperience.companyLinkedInUrl) {
+          if (
+            workExperience.companyLinkedInUrl &&
+            this.getLinkedInProfileHandle(workExperience.companyLinkedInUrl)
+          ) {
             identities.push({
               platform: PlatformType.LINKEDIN,
-              value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
+              value: this.getLinkedInProfileHandle(workExperience.companyLinkedInUrl),
               type: OrganizationIdentityType.USERNAME,
               verified: !hasPrimaryDomainIdentity,
             })
@@ -312,6 +315,24 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     }
 
     return normalized
+  }
+
+  private getLinkedInProfileHandle(url: string): string | null {
+    let regex = /company\/([^/]+)/
+    let match = url.match(regex)
+
+    if (match) {
+      return `company:${match[1]}`
+    }
+
+    regex = /school\/([^/]+)/
+    match = url.match(regex)
+
+    if (match) {
+      return `school:${match[1]}`
+    }
+
+    return null
   }
 
   async getDataUsingGitHubHandle(githubUsername: string): Promise<IMemberEnrichmentDataProgAI> {
