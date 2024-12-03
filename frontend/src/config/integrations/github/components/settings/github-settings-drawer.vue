@@ -42,13 +42,18 @@
         <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
           Cancel
         </lf-button>
-        <lf-button
-          type="primary"
-          :disabled="$v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
-          @click="connect()"
+        <el-tooltip
+          :content="props.integration?.status === 'in-progress' ? 'Please wait while the integration is in progress' : ''"
+          :disabled="props.integration?.status !== 'in-progress'"
         >
-          {{ props.integration ? "Update settings" : "Connect" }}
-        </lf-button>
+          <lf-button
+            type="primary"
+            :disabled="$v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+            @click="connect()"
+          >
+            {{ props.integration ? "Update settings" : "Connect" }}
+          </lf-button>
+        </el-tooltip>
       </div>
     </div>
   </lf-drawer>
