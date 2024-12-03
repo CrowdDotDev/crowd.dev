@@ -397,11 +397,25 @@ export default class IntegrationService {
     }
 
     try {
+      const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
-        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+        // Convert old mapping to URL -> segmentId format
+        const oldMappingDict = oldMapping.reduce((acc, item) => {
+          acc[item.url] = item.segment.id
+          return acc
+        }, {})
+
+        // Find URLs to add and remove
+        const urlsToAdd = Object.entries(mapping).filter(([url]) => !oldMappingDict[url])
+        const urlsToRemove = oldMapping
+          .filter((item) => !mapping[item.url])
+          .map((item) => ({ url: item.url, segmentId: item.segment.id }))
+
+        // Group new URLs by segment
+        const reposToAdd: Record<string, string[]> = urlsToAdd.reduce(
           (acc, [url, segmentId]) => {
             if (!acc[segmentId as string]) {
               acc[segmentId as string] = []
@@ -412,7 +426,20 @@ export default class IntegrationService {
           {},
         )
 
-        for (const [segmentId, urls] of Object.entries(repos)) {
+        // Group URLs to remove by segment
+        const reposToRemove: Record<string, string[]> = urlsToRemove.reduce(
+          (acc, { url, segmentId }) => {
+            if (!acc[segmentId]) {
+              acc[segmentId] = []
+            }
+            acc[segmentId].push(url)
+            return acc
+          },
+          {},
+        )
+
+        // Handle additions
+        for (const [segmentId, urls] of Object.entries(reposToAdd)) {
           let isGitintegrationConfigured
           const segmentOptions: IRepositoryOptions = {
             ...this.options,
@@ -425,7 +452,6 @@ export default class IntegrationService {
           }
           try {
             await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
-
             isGitintegrationConfigured = true
           } catch (err) {
             isGitintegrationConfigured = false
@@ -447,6 +473,34 @@ export default class IntegrationService {
               },
               segmentOptions,
             )
+          }
+        }
+
+        // Handle removals
+        for (const [segmentId, urls] of Object.entries(reposToRemove)) {
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId,
+              },
+            ],
+          }
+
+          try {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId].remotes
+            const remainingRemotes = gitRemotes.filter((remote) => !urls.includes(remote))
+            
+            await this.gitConnectOrUpdate(
+              {
+                remotes: remainingRemotes,
+              },
+              segmentOptions,
+            )
+          } catch (err) {
+            this.options.log.error(err, `Failed to remove repos for segment ${segmentId}`)
           }
         }
       }
