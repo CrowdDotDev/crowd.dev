@@ -8,7 +8,7 @@
         <el-main id="main-page-wrapper" class="relative flex flex-col">
           <app-lf-banners />
           <router-view />
-          <div id="lfx-footer" class="mt-auto">
+          <div v-if="footerStore.visible" class="mt-auto">
             <lfx-footer />
           </div>
         </el-main>
@@ -23,8 +23,10 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfMenu from '@/modules/layout/components/menu/menu.vue';
 import '@linuxfoundation/lfx-ui-core';
+import { useFooterStore } from '../footer-store';
 
 const authStore = useAuthStore();
+const footerStore = useFooterStore();
 const { tenant } = storeToRefs(authStore);
 </script>
 
