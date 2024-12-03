@@ -42,7 +42,11 @@
         <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
           Cancel
         </lf-button>
-        <lf-button type="primary" :disabled="$v.$invalid || !repositories.length" @click="connect()">
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+          @click="connect()"
+        >
           {{ props.integration ? "Update settings" : "Connect" }}
         </lf-button>
       </div>
