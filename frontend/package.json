@@ -27,6 +27,7 @@
     "@cubejs-client/vue3": "^0.31.63",
     "@datadog/browser-rum": "^5.9.0",
     "@formbricks/js": "1.2.0",
+    "@linuxfoundation/lfx-ui-core": "^0.0.12",
     "@loomhq/loom-embed": "^1.5.0",
     "@nangohq/frontend": "^0.9.0",
     "@octokit/core": "^3.6.0",

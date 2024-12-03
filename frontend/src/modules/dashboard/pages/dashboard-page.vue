@@ -35,6 +35,9 @@
           </div>
         </div>
       </div>
+      <div class="mt-auto mb-5">
+        <lfx-footer />
+      </div>
     </div>
     <aside
       v-if="selectedProjectGroup"
@@ -48,7 +51,7 @@
 
 <script setup>
 import {
-  onMounted, ref,
+  onMounted, onUnmounted, ref,
 } from 'vue';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
@@ -76,6 +79,13 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
+  // Hide the main footer when this page is mounted we need to show it again but with in custom way
+  document.getElementById('lfx-footer').classList.add('hidden');
+});
+
+onUnmounted(() => {
+  // Show the main footer when this page is unmounted
+  document.getElementById('lfx-footer').classList.remove('hidden');
 });
 </script>
 
