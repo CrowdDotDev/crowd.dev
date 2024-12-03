@@ -60,16 +60,16 @@
     >
       <template #header>
         <div class="flex justify-end">
-          <el-button
+          <lf-button
             v-if="
               hasPermission(LfPermission.subProjectCreate)
                 && hasAccessToSegmentId(project.id)
             "
-            class="btn btn--link"
+            type="secondary-ghost"
             @click="emit('onAddSubProject', project)"
           >
-            <lf-icon name="layer-plus" :size="16" class="mr-2" />
-          </el-button>
+            <lf-icon name="layer-plus" :size="16" type="regular" />
+          </lf-button>
           <app-lf-projects-dropdown
             :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
@@ -91,10 +91,10 @@
               },
             }"
           >
-            <el-button class="btn btn--link btn--interactive">
-              <lf-icon name="grid-round-2" :size="16" class="mr-2" />
-              Manage integrations
-            </el-button>
+            <lf-button type="primary-ghost">
+              <lf-icon name="grid-round-2" :size="16" type="regular" />
+              Integrations
+            </lf-button>
           </router-link>
           <app-lf-sub-projects-dropdown
             :id="row.id"
@@ -130,6 +130,7 @@ import { useRoute } from 'vue-router';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
 
@@ -168,7 +169,7 @@ export default {
 
 <style lang="scss">
 #projects-table {
-  @apply rounded-md shadow border border-gray-200;
+  @apply rounded-md shadow-sm border border-solid border-gray-200;
 
   thead .table-columns {
     @apply align-middle h-auto px-4 py-4;
