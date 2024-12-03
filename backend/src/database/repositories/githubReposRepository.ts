@@ -122,6 +122,7 @@ export default class GithubReposRepository {
         JOIN segments s ON s.id = r."segmentId"
         WHERE r."integrationId" = :integrationId
         AND r."tenantId" = :tenantId
+        AND r."deletedAt" is null
       `,
       {
         replacements: {
