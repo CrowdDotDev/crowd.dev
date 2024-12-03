@@ -8,7 +8,7 @@
         <el-main id="main-page-wrapper" class="relative flex flex-col">
           <app-lf-banners />
           <router-view />
-          <div v-if="footerStore.visible" class="mt-auto">
+          <div v-if="footerStore.visible" class="mt-auto mb-1">
             <lfx-footer />
           </div>
         </el-main>
