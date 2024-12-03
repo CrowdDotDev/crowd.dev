@@ -72,7 +72,7 @@ async function models(
     {
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
-        application_name: SERVICE,
+        application_name: SERVICE ? `${SERVICE}-seq` : 'unknown-app-seq',
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 20000,
