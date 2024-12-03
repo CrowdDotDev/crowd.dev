@@ -56,6 +56,8 @@ export class SnowflakeClient {
         authenticator: 'SNOWFLAKE_JWT',
       },
       {
+        evictionRunIntervalMillis: 60000, // default = 0, off
+        idleTimeoutMillis: 60000, // default = 30000
         max: maxConnections,
         min: minConnections,
       },
