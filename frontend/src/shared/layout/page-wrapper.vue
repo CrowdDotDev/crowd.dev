@@ -3,7 +3,8 @@
   <div class="flex flex-col justify-center items-center">
     <div
       class="w-full gap-x-4 px-6 py-1 grid grid-cols-12 lg:gap-x-5 lg:px-8"
-      :class="computedClass">
+      :class="computedClass"
+    >
       <div :class="containerClass">
         <slot />
       </div>
