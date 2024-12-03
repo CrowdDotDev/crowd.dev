@@ -28,7 +28,8 @@ export default class GithubReposRepository {
         VALUES ${placeholders.join(', ')}
         ON CONFLICT ("tenantId", "url")
         DO UPDATE SET "segmentId" = EXCLUDED."segmentId",
-                      "integrationId" = EXCLUDED."integrationId"
+                      "integrationId" = EXCLUDED."integrationId",
+                      "deletedAt" = NULL
       `,
       {
         replacements,
