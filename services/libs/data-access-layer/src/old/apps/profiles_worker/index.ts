@@ -157,9 +157,8 @@ export async function runMemberAffiliationsUpdate(
     await insertActivities([activity], true)
   }
 
-  const qs = new QueryStream(
-    formatQuery(
-      `
+  const query = formatQuery(
+    `
         SELECT *
         FROM activities
         WHERE "memberId" = $(memberId)
@@ -168,9 +167,13 @@ export async function runMemberAffiliationsUpdate(
             cast('00000000-0000-0000-0000-000000000000' as uuid)
           )
       `,
-      { memberId },
-    ),
+    { memberId },
   )
+
+  console.log('running query: ')
+  console.log(query)
+
+  const qs = new QueryStream(query)
   const { processed, duration } = await qDb.stream(qs, async (stream) => {
     for await (const activity of stream) {
       await insertIfMatches(activity as unknown as IDbActivityCreateData)
