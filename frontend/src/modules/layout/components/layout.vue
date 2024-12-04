@@ -23,7 +23,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfMenu from '@/modules/layout/components/menu/menu.vue';
 import '@linuxfoundation/lfx-ui-core';
-import { useFooterStore } from '../footer-store';
+import { useFooterStore } from '@/modules/layout/pinia';
 
 const authStore = useAuthStore();
 const footerStore = useFooterStore();

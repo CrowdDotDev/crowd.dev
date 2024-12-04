@@ -64,7 +64,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { useFooterStore } from '@/modules/layout/footer-store';
+import { useFooterStore } from '@/modules/layout/pinia';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
