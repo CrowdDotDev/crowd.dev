@@ -82,7 +82,7 @@
       </el-popover>
     </div>
   </div>
-  <span v-else class="text-gray-400 text-sm">No integrations</span>
+  <span v-else class="text-gray-400 text-sm italic">No integrations connected</span>
 </template>
 
 <script lang="ts" setup>

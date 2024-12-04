@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const statusDisplay = (status: string) => statusOptions.find((s) => s.value === status);
-const color = computed(() => (statusDisplay(props.status)?.color || 'primary') as PillColor);
+const color = computed(() => (statusDisplay(props.status)?.class || 'primary') as PillColor);
 </script>
 
 <script lang="ts">
@@ -25,8 +25,3 @@ export default {
   name: 'LfStatusPill',
 };
 </script>
-<style lang="scss">
-.lf-pill {
-  @apply capitalize;
-}
-</style>

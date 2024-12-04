@@ -44,13 +44,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column>
+      <el-table-column class-name="table-columns">
         <template #default>
           <div class="flex grow" />
         </template>
       </el-table-column>
 
-      <el-table-column width="100">
+      <el-table-column width="100" class-name="table-columns">
         <template #default="{ row }">
           <div class="w-full flex justify-end gap-3">
             <app-lf-project-groups-dropdown
@@ -144,10 +144,10 @@ export default {
 <style lang="scss">
 #project-groups-table {
   thead .table-columns {
-    @apply align-middle h-14 px-2;
+    @apply align-middle h-auto px-2 pb-3;
 
     .cell {
-      @apply normal-case px-0 #{!important};
+      @apply text-xs normal-case px-0 #{!important};
     }
   }
 
