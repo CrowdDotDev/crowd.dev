@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="props.integrations?.length"
-    class="flex gap-1 items-center py-2 overflow-x-auto"
+    class="flex gap-1 items-center py-2"
     style="max-width: 100%; scrollbar-width: thin"
   >
     <div v-for="integration in props.integrations" :key="integration.id">
@@ -17,7 +17,7 @@
       >
         <template #reference>
           <div
-            class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center"
+            class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center border border-solid border-gray-200 rounded-[4px]"
           >
             <app-platform-svg
               :platform="integration.platform"
@@ -28,20 +28,20 @@
               v-if="integration.status === 'no-data'"
               name="triangle-exclamation"
               type="solid"
-              :size="12"
-              class="absolute right-0 top-0 leading-3 text-yellow-500"
+              :size="10"
+              class="integration-status-icon text-yellow-500"
             />
 
             <lf-icon
               v-else-if="integration.status === 'error'"
               name="circle-exclamation"
               type="solid"
-              :size="12"
-              class="absolute right-0 top-0 leading-3 text-red-600"
+              :size="10"
+              class="integration-status-icon text-red-600"
             />
             <div
               v-else-if="integration.status === 'in-progress'"
-              class="w-4 h-4 bg-white rounded-full -ml-2 flex items-center justify-center -mt-5"
+              class="integration-status-icon"
             >
               <lf-spinner size="0.75rem" class="!border-black" />
             </div>
@@ -117,3 +117,9 @@ export default {
   name: 'LfProjectIntegrationColumn',
 };
 </script>
+
+<style scoped lang="scss">
+.integration-status-icon {
+  @apply absolute -right-[5px] -top-[5px] leading-3 overflow-visible bg-white;
+}
+</style>
