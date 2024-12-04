@@ -1,5 +1,5 @@
 export interface FooterState {
-  visible: Boolean;
+  visible: boolean;
 }
 
 const state: FooterState = {
