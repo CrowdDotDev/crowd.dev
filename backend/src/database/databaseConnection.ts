@@ -9,10 +9,9 @@ export async function databaseInit(
   queryTimeoutMilliseconds: number = 60000,
   forceNewInstance: boolean = false,
   databaseHostnameOverride: string = null,
-  profileQueries: boolean = false,
 ) {
-  if (profileQueries || forceNewInstance) {
-    return models(queryTimeoutMilliseconds, databaseHostnameOverride, profileQueries)
+  if (forceNewInstance) {
+    return models(queryTimeoutMilliseconds, databaseHostnameOverride)
   }
 
   if (!cached) {
@@ -20,4 +19,8 @@ export async function databaseInit(
   }
 
   return cached
+}
+
+export async function databaseClose(database) {
+  await database.sequelize.close()
 }
