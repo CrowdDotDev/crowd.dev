@@ -36,6 +36,7 @@
         </lf-button>
 
         <app-lf-project-groups-dropdown
+          v-if="hasPermission(LfPermission.projectGroupCreate)"
           :id="projectGroupForm.id"
           :show-edit-only="true"
           @on-edit-project-group="onEditProjectGroup"
