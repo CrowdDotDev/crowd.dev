@@ -24,15 +24,23 @@
         <app-lf-project-count :count="projectGroupForm.projects?.length" />
       </div>
 
-      <lf-button
-        v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
-        size="medium"
-        type="secondary-ghost"
-        @click="onAddProject"
-      >
-        <lf-icon name="layer-plus" type="regular" />
-        Add project
-      </lf-button>
+      <div class="flex items-center gap-4">
+        <lf-button
+          v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
+          size="medium"
+          type="secondary-ghost"
+          @click="onAddProject"
+        >
+          <lf-icon name="layer-plus" type="regular" />
+          Add project
+        </lf-button>
+
+        <app-lf-project-groups-dropdown
+          :id="projectGroupForm.id"
+          :show-edit-only="true"
+          @on-edit-project-group="onEditProjectGroup"
+        />
+      </div>
     </div>
 
     <!-- Search input -->
@@ -128,6 +136,13 @@
       :grandparent-slug="projectGroupForm.slug"
       :grandparent-id="projectGroupForm.id"
     />
+
+    <app-lf-project-group-form
+      v-if="isProjectGroupFormDrawerOpen"
+      :id="projectGroupForm.id"
+      v-model="isProjectGroupFormDrawerOpen"
+      @on-project-group-edited="onProjectGroupEdited"
+    />
   </app-page-wrapper>
 </template>
 
@@ -137,6 +152,7 @@ import { useRoute } from 'vue-router';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
+import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-project-group-form.vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
@@ -149,6 +165,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
 import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
 
@@ -174,6 +191,7 @@ const projectForm = reactive({
 const subProjectForm = reactive({
   id: null,
 });
+const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
@@ -184,6 +202,14 @@ const searchQuery = ref('');
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
 
 onMounted(() => {
+  loadProjectGroups();
+});
+
+const onProjectGroupEdited = () => {
+  loadProjectGroups();
+};
+
+const loadProjectGroups = () => {
   findProjectGroup(route.params.id)
     .then((response) => {
       Object.assign(projectGroupForm, response);
@@ -192,7 +218,7 @@ onMounted(() => {
     }).finally(() => {
       loadingProjectGroup.value = false;
     });
-});
+};
 
 const onLoadMore = () => {
   if (!projects.value.paginating) {
@@ -202,6 +228,10 @@ const onLoadMore = () => {
       doChangeProjectCurrentPage(pagination.value.currentPage + 1);
     }
   }
+};
+
+const onEditProjectGroup = () => {
+  isProjectGroupFormDrawerOpen.value = true;
 };
 
 const onAddProject = () => {

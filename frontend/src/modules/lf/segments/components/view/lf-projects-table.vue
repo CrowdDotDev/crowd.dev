@@ -173,7 +173,7 @@ export default {
 
   thead .table-columns {
     @apply align-middle h-auto px-4 py-4;
-    @apply bg-gray-50 #{!important};
+    @apply normal-case bg-gray-50 #{!important};
 
     .cell {
       @apply px-0 #{!important};

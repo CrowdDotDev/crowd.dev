@@ -13,7 +13,7 @@
     transition: all 0.2s ease;
 
     &.is-active {
-      @apply font-medium text-gray-900 #{!important};
+      @apply font-medium text-primary-900 #{!important};
     }
     &:hover {
       @apply text-primary-500 #{!important};
