@@ -35,7 +35,7 @@
           </div>
         </div>
       </div>
-      <div class="mt-auto mb-6">
+      <div class="mt-auto mb-6 flex justify-center">
         <lfx-footer class="px-2 max-w-3xl" />
       </div>
     </div>
