@@ -54,11 +54,11 @@ export const getClientSQL = async (
 
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(client as any).query = async (query, options) => {
+  ;(client as any).query = async (query, options, ...args) => {
     const { replacements } = options || {}
     const timer = telemetry.timer('questdb.query_duration')
     try {
-      return oldQuery.apply(client, [query, options])
+      return oldQuery.apply(client, [query, options, ...args])
     } finally {
       const duration = timer.stop()
       if (profileQueries) {

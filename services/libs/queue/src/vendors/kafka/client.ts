@@ -19,6 +19,10 @@ import { configMap } from './config'
 import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
 
 export class KafkaQueueService extends LoggerBase implements IQueue {
+  private readonly MAX_RECONNECT_ATTEMPTS = 5
+  private readonly RECONNECT_DELAY = 5000
+
+  private reconnectAttempts: Map<string, number>
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
@@ -33,6 +37,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.processingMessages = 0
     this.started = false
     this.consumers = new Map<string, Consumer>()
+    this.reconnectAttempts = new Map<string, number>()
   }
 
   public async send(
@@ -88,13 +93,57 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         this.log.info('Consumer group is rebalancing')
       })
 
-      consumer.on(consumer.events.DISCONNECT, () => {
-        this.log.info('Consumer has been disconnected')
+      consumer.on(consumer.events.DISCONNECT, async () => {
+        this.log.warn('Consumer disconnected, attempting reconnection')
+        await this.handleConsumerError(groupId, consumer)
+      })
+      consumer.on(consumer.events.CRASH, async (event) => {
+        this.log.error({ error: event.payload.error }, 'Consumer crashed')
+        await this.handleConsumerError(groupId, consumer)
       })
       this.consumers.set(groupId, consumer)
-      await consumer.connect()
+      await this.connectConsumer(consumer)
     }
     return this.consumers.get(groupId)
+  }
+
+  private async handleConsumerError(groupId: string, consumer: Consumer) {
+    const attempts = this.reconnectAttempts.get(groupId) || 0
+
+    if (attempts < this.MAX_RECONNECT_ATTEMPTS) {
+      this.reconnectAttempts.set(groupId, attempts + 1)
+      this.log.info(
+        `Attempting to reconnect consumer (attempt ${attempts + 1}/${this.MAX_RECONNECT_ATTEMPTS})`,
+      )
+
+      try {
+        await timeout(this.RECONNECT_DELAY)
+        await this.connectConsumer(consumer)
+        this.reconnectAttempts.set(groupId, 0) // Reset attempts on successful reconnection
+      } catch (error) {
+        this.log.error({ error }, 'Failed to reconnect consumer')
+        await this.handleConsumerError(groupId, consumer)
+      }
+    } else {
+      this.log.error(
+        `Max reconnection attempts (${this.MAX_RECONNECT_ATTEMPTS}) reached for consumer ${groupId}`,
+      )
+
+      // try to gracefully shutdown but with an error code so that the service is restarted
+      this.stop()
+      await timeout(1000)
+      process.exit(1)
+    }
+  }
+
+  private async connectConsumer(consumer: Consumer) {
+    try {
+      await consumer.connect()
+      this.log.info('Consumer connected!')
+    } catch (err) {
+      this.log.error(err, 'Failed to connect consumer!')
+      throw err
+    }
   }
 
   public getClient() {
@@ -232,13 +281,30 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     const RETRY_DELAY = 2000
     let retries = options?.retry || 0
 
+    let healthCheckInterval
+
     try {
       this.started = true
       this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
 
       const consumer = await this.getConsumer(queueConf.name)
-      await consumer.connect()
       await consumer.subscribe({ topic: queueConf.name, fromBeginning: true })
+
+      // Add periodic health check
+      healthCheckInterval = setInterval(async () => {
+        if (!this.started) {
+          clearInterval(healthCheckInterval)
+          return
+        }
+
+        try {
+          consumer.pause([{ topic: queueConf.name }])
+          consumer.resume([{ topic: queueConf.name }])
+        } catch (error) {
+          this.log.error({ error }, 'Health check failed, attempting reconnection')
+          await this.handleConsumerError(queueConf.name, consumer)
+        }
+      }, 10 * 60000) // Check every 10 minutes
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
       await consumer.run({
@@ -276,6 +342,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       })
     } catch (e) {
       this.log.trace({ topic: queueConf.name, error: e }, 'Failed to start the queue!')
+      clearInterval(healthCheckInterval)
       if (retries < MAX_RETRY_FOR_CONNECTING_CONSUMER) {
         retries++
         this.log.trace({ topic: queueConf.name, retries }, 'Retrying to start the queue...')
@@ -293,14 +360,17 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     process.on('SIGINT', async () => {
       this.started = false
-      await this.consumers.forEach((c) => c.disconnect())
-      this.log.info('Kafka consumer disconnected')
+      const promises = Array.from(this.consumers.values()).map((c) => c.disconnect())
+      await Promise.all(promises)
+      this.log.info('Kafka consumers disconnected')
       process.exit(0)
     })
   }
 
   public stop() {
     this.started = false
+    this.consumers.forEach((c) => c.disconnect())
+    this.log.info('Kafka consumers disconnected')
   }
 
   public getMessageBody(message: KafkaMessage): IQueueMessage {
