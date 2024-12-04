@@ -39,8 +39,6 @@ export default class GithubIntegrationService {
       }),
     ])
 
-    // console.log([...orgRepos.data.items, ...repos.data.items])
-
     return [...orgRepos.data.items, ...repos.data.items].map((item) => ({
       name: item.name,
       url: item.html_url,
