@@ -12,7 +12,7 @@
       <el-table-column
         label="Status"
         prop="status"
-        width="110"
+        width="120"
         class-name="table-columns"
       >
         <template #default="{ row }">
@@ -145,6 +145,9 @@ export default {
 #project-groups-table {
   thead .table-columns {
     @apply align-middle h-auto px-2 pb-3;
+    &:first-child {
+      @apply pr-4;
+    }
 
     .cell {
       @apply text-xs normal-case px-0 #{!important};
@@ -161,6 +164,10 @@ export default {
 
     .table-columns {
       @apply align-middle h-20 px-2;
+
+      &:first-child {
+        @apply pr-4;
+      }
 
       &.el-table-fixed-column--right .cell {
           @apply justify-end;

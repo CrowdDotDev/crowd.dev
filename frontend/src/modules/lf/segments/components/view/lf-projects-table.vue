@@ -169,11 +169,19 @@ export default {
 
 <style lang="scss">
 #projects-table {
-  @apply rounded-md shadow-sm border border-solid border-gray-200;
+  @apply rounded-lg shadow-sm border border-solid border-gray-200;
 
   thead .table-columns {
-    @apply align-middle h-auto px-4 py-4;
+    @apply align-middle h-auto px-2 py-4;
     @apply normal-case bg-gray-50 #{!important};
+
+    &:first-child {
+      @apply pl-4;
+    }
+
+    &:last-child {
+      @apply pr-3;
+    }
 
     .cell {
       @apply px-0 #{!important};
@@ -182,7 +190,15 @@ export default {
 
   tbody {
     .table-columns {
-      @apply align-middle px-4 py-4;
+      @apply align-middle px-2 py-4;
+
+      &:first-child {
+        @apply pl-4;
+      }
+
+      &:last-child {
+        @apply pr-3;
+      }
 
       &.el-table-fixed-column--right .cell {
         @apply justify-end;
