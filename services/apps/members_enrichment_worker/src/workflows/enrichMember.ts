@@ -8,7 +8,6 @@ import {
 import { IEnrichableMember, MemberEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities'
-import { hasRemainingCredits } from '../activities/enrichment'
 import { IEnrichmentSourceInput } from '../types'
 import { sourceHasDifferentDataComparedToCache } from '../utils/common'
 
@@ -22,6 +21,7 @@ const {
   updateMemberEnrichmentCache,
   isCacheObsolete,
   getEnrichmentInput,
+  hasRemainingCredits,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
   retry: {

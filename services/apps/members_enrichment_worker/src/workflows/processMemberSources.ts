@@ -294,6 +294,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       existingMemberData,
       squashedPayload,
       progaiLinkedinScraperProfileSelected && hasContributions,
+      !!crustDataProfileSelected,
     )
 
     return memberUpdated

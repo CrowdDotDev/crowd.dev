@@ -220,6 +220,7 @@ export async function updateMemberUsingSquashedPayload(
   existingMemberData: IMemberOriginalData,
   squashedPayload: IMemberEnrichmentDataNormalized,
   hasContributions: boolean,
+  isHighConfidenceSourceSelectedForWorkExperiences: boolean,
 ): Promise<boolean> {
   return await svc.postgres.writer.transactionally(async (tx) => {
     let updated = false
@@ -318,7 +319,54 @@ export async function updateMemberUsingSquashedPayload(
 
     if (squashedPayload.memberOrganizations.length > 0) {
       const orgPromises = []
+
+      // try matching member's existing organizations with the new ones
+      // we'll be using displayName, title, dates
       for (const org of squashedPayload.memberOrganizations) {
+        if (!org.organizationId) {
+          // Check if any similar in existing work experiences
+          const existingOrg = existingMemberData.organizations.find((o) => {
+            const incomingOrgStartDate = org.startDate ? new Date(org.startDate) : null
+            const incomingOrgEndDate = org.endDate ? new Date(org.endDate) : null
+            const existingOrgStartDate = o.dateStart ? new Date(o.dateStart) : null
+            const existingOrgEndEndDate = o.dateEnd ? new Date(o.dateEnd) : null
+
+            const isSameStartMonthYear =
+              (!incomingOrgStartDate && !existingOrgStartDate) || // Both start dates are null
+              (incomingOrgStartDate &&
+                existingOrgStartDate &&
+                incomingOrgStartDate.getMonth() === existingOrgStartDate.getMonth() &&
+                incomingOrgStartDate.getFullYear() === existingOrgStartDate.getFullYear())
+
+            const isSameEndMonthYear =
+              (!incomingOrgEndDate && !existingOrgEndEndDate) || // Both end dates are null
+              (incomingOrgEndDate &&
+                existingOrgEndEndDate &&
+                incomingOrgEndDate.getMonth() === existingOrgEndEndDate.getMonth() &&
+                incomingOrgEndDate.getFullYear() === existingOrgEndEndDate.getFullYear())
+
+            return (
+              (o.orgName.toLowerCase().includes(org.name.toLowerCase()) ||
+                org.name.toLowerCase().includes(o.orgName.toLowerCase())) &&
+              ((isSameStartMonthYear && isSameEndMonthYear) || org.title === o.jobTitle)
+            )
+          })
+
+          if (existingOrg) {
+            // Get all orgs with the same name as the current one
+            const matchingOrgs = squashedPayload.memberOrganizations.filter(
+              (otherOrg) => otherOrg.name === org.name,
+            )
+
+            // Set organizationId for all matching orgs
+            for (const matchingOrg of matchingOrgs) {
+              matchingOrg.organizationId = existingOrg.orgId
+            }
+          }
+        }
+      }
+
+      for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
         orgPromises.push(
           findOrCreateOrganization(
             qx,
@@ -350,6 +398,7 @@ export async function updateMemberUsingSquashedPayload(
       const results = prepareWorkExperiences(
         existingMemberData.organizations,
         squashedPayload.memberOrganizations,
+        isHighConfidenceSourceSelectedForWorkExperiences,
       )
 
       if (results.toDelete.length > 0) {
@@ -759,13 +808,24 @@ interface IWorkExperienceChanges {
 function prepareWorkExperiences(
   oldVersion: IMemberOrganizationData[],
   newVersion: IMemberEnrichmentDataNormalizedOrganization[],
+  isHighConfidenceSourceSelectedForWorkExperiences: boolean,
 ): IWorkExperienceChanges {
   // we delete all the work experiences that were not manually created
-  const toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
+  let toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
 
   const toCreate: IMemberEnrichmentDataNormalizedOrganization[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toUpdate: Map<IMemberOrganizationData, Record<string, any>> = new Map()
+
+  if (isHighConfidenceSourceSelectedForWorkExperiences) {
+    toDelete = oldVersion
+    toCreate.push(...newVersion)
+    return {
+      toDelete,
+      toCreate,
+      toUpdate,
+    }
+  }
 
   // sort both versions by start date and only use manual changes from the current version
   const orderedCurrentVersion = oldVersion
@@ -779,6 +839,7 @@ function prepareWorkExperiences(
       // Compare dates if both values exist
       return new Date(a.dateStart as string).getTime() - new Date(b.dateStart as string).getTime()
     })
+
   let orderedNewVersion = newVersion.sort((a, b) => {
     // If either value is null/undefined, move it to the beginning
     if (!a.startDate && !b.startDate) return 0
