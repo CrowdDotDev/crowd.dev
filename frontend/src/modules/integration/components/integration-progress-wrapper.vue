@@ -42,13 +42,17 @@ watch(() => props.segments, () => {
 }, { deep: true });
 
 onMounted(() => {
+  console.log('Component mounted');
   fetchUpdates();
+  console.log('Setting interval with duration:', props.interval * 1000);
   intervalInstance.value = setInterval(() => {
+    console.log('Fetching updates...');
     fetchUpdates();
   }, props.interval * 1000);
 });
 
 onUnmounted(() => {
+  console.log('Component unmounted, clearing interval');
   clearInterval(intervalInstance.value);
 });
 </script>
