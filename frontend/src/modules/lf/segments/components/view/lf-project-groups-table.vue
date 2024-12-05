@@ -16,7 +16,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" @click="handleRowClick(projectGroup)" class="cursor-pointer">
+        <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" class="cursor-pointer" @click="handleRowClick(projectGroup)">
           <lf-table-cell class="pl-2">
             <app-lf-status-pill :status="projectGroup.status" />
           </lf-table-cell>
@@ -75,11 +75,11 @@ import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-proj
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import LfButton from '@/ui-kit/button/Button.vue';
-import AppLfProjectColumn from '../fragments/lf-project-column.vue';
-import AppLfStatusPill from '../fragments/lf-status-pill.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import AppLfStatusPill from '../fragments/lf-status-pill.vue';
+import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
