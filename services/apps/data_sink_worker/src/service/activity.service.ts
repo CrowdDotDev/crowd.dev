@@ -443,10 +443,40 @@ export default class ActivityService extends LoggerBase {
         throw new Error('Activity does not have a username or member.')
       }
 
+      let member = activity.member
+
+      const erasureRepo = new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
+
+      const anonymizedMember = await erasureRepo.anonymizeMemberIfRequested(activity.member)
+
+      if (anonymizedMember) {
+        member = anonymizedMember
+
+        this.log.warn(
+          { memberIdentities: member.identities },
+          'Member has identities that were requested to be erased by the user, so anonymized instead!',
+        )
+      }
+
       let username = activity.username
+
+      // check if activity.username was requested to be erased
+      const anonymizeUsernameIfRequested = await erasureRepo.getAnonymizationRequest({
+        value: activity.username,
+        platform,
+        type: MemberIdentityType.USERNAME,
+        hashValue: true,
+      })
+
+      if (anonymizeUsernameIfRequested) {
+        username = anonymizeUsernameIfRequested.value
+        // explicitly set the displayName to the anonymized username
+        member.displayName = username
+      }
+
       if (!username) {
         const identity = singleOrDefault(
-          activity.member.identities,
+          member.identities,
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
         if (!identity) {
@@ -467,7 +497,6 @@ export default class ActivityService extends LoggerBase {
         username = identity.value
       }
 
-      let member = activity.member
       if (!member) {
         member = {
           identities: [
@@ -485,8 +514,34 @@ export default class ActivityService extends LoggerBase {
         member.attributes = {}
       }
 
-      let objectMemberUsername = activity.objectMemberUsername
       let objectMember = activity.objectMember
+
+      const anonymizeObjectMemberIfRequested =
+        await erasureRepo.anonymizeMemberIfRequested(objectMember)
+
+      if (anonymizeObjectMemberIfRequested) {
+        objectMember = anonymizeObjectMemberIfRequested
+
+        this.log.warn(
+          { objectMemberIdentities: objectMember.identities },
+          'Object member has identities that were requested to be erased by the user, so anonymized instead!',
+        )
+      }
+
+      let objectMemberUsername = activity.objectMemberUsername
+
+      const anonymizeObjectMemberUsernameIfRequested = await erasureRepo.getAnonymizationRequest({
+        value: objectMemberUsername,
+        platform,
+        type: MemberIdentityType.USERNAME,
+        hashValue: true,
+      })
+
+      if (anonymizeObjectMemberUsernameIfRequested) {
+        objectMemberUsername = anonymizeObjectMemberUsernameIfRequested.value
+        // explicitly set the displayName to the anonymized username
+        objectMember.displayName = objectMemberUsername
+      }
 
       if (objectMember && !objectMemberUsername) {
         const identity = singleOrDefault(
@@ -511,75 +566,6 @@ export default class ActivityService extends LoggerBase {
               verified: true,
             },
           ],
-        }
-      }
-
-      const repo = new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
-
-      // check if member or object member have identities that were requested to be erased by the user
-      if (member && member.identities.length > 0) {
-        const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
-        if (toErase.length > 0) {
-          // prevent member/activity creation of one of the identities that are marked to be erased are verified
-          if (toErase.some((i) => i.verified)) {
-            this.log.warn(
-              { memberIdentities: member.identities },
-              'Member has identities that were requested to be erased by the user! Skipping activity processing!',
-            )
-            return
-          } else {
-            // we just remove the unverified identities that were marked to be erased and prevent them from being created
-            member.identities = member.identities.filter((i) => {
-              if (i.verified) return true
-
-              const maybeToErase = toErase.find(
-                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-              )
-
-              if (maybeToErase) return false
-              return true
-            })
-
-            if (member.identities.filter((i) => i.value).length === 0) {
-              this.log.warn(
-                'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
-              )
-              return
-            }
-          }
-        }
-      }
-
-      if (objectMember && objectMember.identities.length > 0) {
-        const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
-        if (toErase.length > 0) {
-          // prevent member/activity creation of one of the identities that are marked to be erased are verified
-          if (toErase.some((i) => i.verified)) {
-            this.log.warn(
-              { objectMemberIdentities: objectMember.identities },
-              'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
-            )
-            return
-          } else {
-            // we just remove the unverified identities that were marked to be erased and prevent them from being created
-            objectMember.identities = objectMember.identities.filter((i) => {
-              if (i.verified) return true
-
-              const maybeToErase = toErase.find(
-                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-              )
-
-              if (maybeToErase) return false
-              return true
-            })
-
-            if (objectMember.identities.filter((i) => i.value).length === 0) {
-              this.log.warn(
-                'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
-              )
-              return
-            }
-          }
         }
       }
 
@@ -1021,6 +1007,13 @@ export default class ActivityService extends LoggerBase {
                 platform,
                 false,
               )
+
+              // If this was an anonymized member, update the erasure table with the new memberId
+              if (anonymizedMember) {
+                for (const identity of member.identities) {
+                  await erasureRepo.updateErasureRequestMemberId(identity, memberId)
+                }
+              }
             }
             // determine isBot and isTeamMember
             memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT) as boolean) ?? false
@@ -1079,11 +1072,19 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
+                    // ?? ask: why are we using member.reach here?
                     reach: member.reach,
                   },
                   platform,
                   false,
                 )
+
+                // If this was an anonymized object member, update the erasure table with the new memberId
+                if (anonymizeObjectMemberIfRequested) {
+                  for (const identity of objectMember.identities) {
+                    await erasureRepo.updateErasureRequestMemberId(identity, memberId)
+                  }
+                }
               }
             }
           }
