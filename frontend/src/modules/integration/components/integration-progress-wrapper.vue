@@ -8,6 +8,7 @@ import {
 } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
+import { useTimeoutPoll } from '@vueuse/core';
 
 const props = withDefaults(defineProps<{
   interval?: number
@@ -20,22 +21,22 @@ const props = withDefaults(defineProps<{
 const progress = ref<IntegrationProgress | null>(null);
 const progressError = ref(false);
 
-const intervalInstance = ref<any>(null);
-
 const fetchUpdates = () => {
   IntegrationService.fetchIntegrationsProgress(props.segments)
     .then((data: IntegrationProgress) => {
       progress.value = data;
       if (data.length === 0) {
-        clearInterval(intervalInstance.value);
+        pause();
       }
     })
     .catch(() => {
       progress.value = null;
       progressError.value = true;
-      clearInterval(intervalInstance.value);
+      pause();
     });
 };
+
+const { pause, resume } = useTimeoutPoll(fetchUpdates, props.interval * 1000);
 
 watch(() => props.segments, () => {
   fetchUpdates();
@@ -43,17 +44,11 @@ watch(() => props.segments, () => {
 
 onMounted(() => {
   console.log('Component mounted');
-  fetchUpdates();
-  console.log('Setting interval with duration:', props.interval * 1000);
-  intervalInstance.value = setInterval(() => {
-    console.log('Fetching updates...');
-    fetchUpdates();
-  }, props.interval * 1000);
+  resume();
 });
 
 onUnmounted(() => {
-  console.log('Component unmounted, clearing interval');
-  clearInterval(intervalInstance.value);
+  pause();
 });
 </script>
 
