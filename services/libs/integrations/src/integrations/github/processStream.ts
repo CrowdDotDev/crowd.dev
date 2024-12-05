@@ -320,6 +320,8 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubRootStream
   const repos = data.reposToCheck
 
+  const { gh } = getClient(ctx)
+
   // now it's time to start streams
   // derivative streams should be started later, otherwise conversations can't be created correctly
   for (const repo of repos) {
