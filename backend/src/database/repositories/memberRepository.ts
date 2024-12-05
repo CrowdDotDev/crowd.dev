@@ -1488,9 +1488,7 @@ class MemberRepository {
           limit: 1,
           offset: 0,
           include: {
-            memberOrganizations: true,
             lfxMemberships: true,
-            identities: true,
             segments: true,
             maintainers: true,
             ...include,
