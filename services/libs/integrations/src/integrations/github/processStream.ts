@@ -66,6 +66,7 @@ const publishNextPageStream = async (ctx: IProcessStreamContext, response: IGetR
   if (response.hasNextPage) {
     await ctx.publishStream<GithubBasicStream>(`${streamIdentifier}:${response.nextPage}`, {
       repo: data.repo,
+      sf_repo_id: data.sf_repo_id,
       page: response.nextPage,
     })
     return true
@@ -80,7 +81,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
   const result = await gh.getRepoStargazers({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
     since_days_ago,
   })
@@ -106,7 +107,11 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
-  const result = await gh.getRepoForks({ repo: data.repo.url, page: data.page, since_days_ago })
+  const result = await gh.getRepoForks({
+    sf_repo_id: data.sf_repo_id,
+    page: data.page,
+    since_days_ago,
+  })
 
   for (const record of result.data) {
     const member = prepareMember(record)
@@ -130,7 +135,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
   const result = await gh.getRepoPullRequests({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
     since_days_ago,
   })
@@ -168,35 +173,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     }
   }
 
-  const hasNextPage = await publishNextPageStream(ctx, result)
-  if (!hasNextPage) {
-    // launch comments stream
-    await ctx.publishStream<GithubBasicStream>(
-      `${GithubStreamType.PULL_COMMENTS}:${data.repo.name}:firstPage`,
-      {
-        repo: data.repo,
-        page: 1,
-      },
-    )
-
-    // launch commits stream
-    await ctx.publishStream<GithubBasicStream>(
-      `${GithubStreamType.PULL_COMMITS}:${data.repo.name}:firstPage`,
-      {
-        repo: data.repo,
-        page: 1,
-      },
-    )
-
-    // launch reviews stream
-    await ctx.publishStream<GithubBasicStream>(
-      `${GithubStreamType.PULL_REVIEWS}:${data.repo.name}:firstPage`,
-      {
-        repo: data.repo,
-        page: 1,
-      },
-    )
-  }
+  await publishNextPageStream(ctx, result)
 }
 
 const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
@@ -206,7 +183,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
   const result = await gh.getRepoPullRequestReviewComments({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
     since_days_ago,
   })
@@ -231,7 +208,11 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
 
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
-  const result = await gh.getRepoIssues({ repo: data.repo.url, page: data.page, since_days_ago })
+  const result = await gh.getRepoIssues({
+    sf_repo_id: data.sf_repo_id,
+    page: data.page,
+    since_days_ago,
+  })
 
   for (const record of result.data) {
     const member = prepareMember(record)
@@ -255,17 +236,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
     }
   }
 
-  const hasNextPage = await publishNextPageStream(ctx, result)
-  if (!hasNextPage) {
-    // launch comments stream
-    await ctx.publishStream<GithubBasicStream>(
-      `${GithubStreamType.ISSUE_COMMENTS}:${data.repo.name}:firstPage`,
-      {
-        repo: data.repo,
-        page: 1,
-      },
-    )
-  }
+  await publishNextPageStream(ctx, result)
 }
 
 const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
@@ -275,7 +246,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
   const since_days_ago = ctx.onboarding ? undefined : '3'
 
   const result = await gh.getRepoIssueComments({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
     since_days_ago,
   })
@@ -299,7 +270,7 @@ const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
   const { gh } = getClient(ctx)
 
   const result = await gh.getRepoPushes({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
   })
 
@@ -322,7 +293,7 @@ const processPullReviewsStream: ProcessStreamHandler = async (ctx) => {
   const { gh } = getClient(ctx)
 
   const result = await gh.getRepoPullRequestReviews({
-    repo: data.repo.url,
+    sf_repo_id: data.sf_repo_id,
     page: data.page,
   })
 
@@ -352,15 +323,21 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   // now it's time to start streams
   // derivative streams should be started later, otherwise conversations can't be created correctly
   for (const repo of repos) {
+    const repoId = await gh.getRepoId({ repo: repo.url })
     for (const endpoint of [
       GithubStreamType.STARGAZERS,
       GithubStreamType.FORKS,
       GithubStreamType.PULLS,
       GithubStreamType.ISSUES,
+      GithubStreamType.PULL_COMMITS,
+      GithubStreamType.PULL_REVIEWS,
+      GithubStreamType.PULL_COMMENTS,
+      GithubStreamType.ISSUE_COMMENTS,
     ]) {
       // this firstPage thing is important to avoid duplicate streams and for handleNextPageStream to work
       await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
         repo,
+        sf_repo_id: repoId,
         page: 1,
       })
     }

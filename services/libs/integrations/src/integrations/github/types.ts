@@ -119,6 +119,7 @@ export interface GithubRootStream {
 
 export interface GithubBasicStream {
   repo: Repo
+  sf_repo_id: string
   page: number
   prNumber?: string
   reviewThreadId?: string
