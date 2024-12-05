@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="props.integrations?.length"
-    class="flex gap-1 items-center py-2"
+    class="flex gap-2 items-center py-2"
     style="max-width: 100%; scrollbar-width: thin"
   >
     <div v-for="integration in props.integrations" :key="integration.id">

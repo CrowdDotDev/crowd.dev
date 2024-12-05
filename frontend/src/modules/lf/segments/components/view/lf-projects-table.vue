@@ -190,7 +190,7 @@ export default {
 
   tbody {
     .table-columns {
-      @apply align-middle px-2 py-4;
+      @apply align-middle px-2 py-4 border-b-0;
 
       &:first-child {
         @apply pl-4;

@@ -21,7 +21,7 @@
           {{ projectGroupForm.name }}
         </h4>
         <app-lf-status-pill :status="projectGroupForm.status" />
-        <app-lf-project-count :count="projectGroupForm.projects?.length" />
+        <app-lf-project-count :count="projectCount" />
       </div>
 
       <div class="flex items-center gap-4">
@@ -201,6 +201,7 @@ const pagination = computed(() => projects.value.pagination);
 const searchQuery = ref('');
 
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
+const projectCount = computed(() => pagination.value.total);
 
 onMounted(() => {
   loadProjectGroups();
