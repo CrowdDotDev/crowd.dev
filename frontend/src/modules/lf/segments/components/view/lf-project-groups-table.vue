@@ -1,67 +1,44 @@
 <template>
   <div class="app-list-table not-clickable !px-0 !pt-0 !pb-6">
-    <el-table
-      id="project-groups-table"
-      ref="table"
-      :data="projectGroups.list"
-      row-key="id"
-      :resizable="false"
-      @row-click="handleRowClick"
-    >
-      <!-- Status -->
-      <el-table-column
-        label="Status"
-        prop="status"
-        width="120"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <app-lf-status-pill :status="row.status" />
-        </template>
-      </el-table-column>
-
-      <!-- Name -->
-      <el-table-column
-        label="Project group"
-        prop="name"
-        width="450"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <span class="text-gray-900 text-sm font-semibold">{{ row.name }}</span>
-        </template>
-      </el-table-column>
-
-      <!-- Projects -->
-      <el-table-column
-        label="Projects"
-        prop="projects"
-        width="150"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <app-lf-project-column :projects="row.projects" />
-        </template>
-      </el-table-column>
-
-      <el-table-column class-name="table-columns">
-        <template #default>
-          <div class="flex grow" />
-        </template>
-      </el-table-column>
-
-      <el-table-column width="100" class-name="table-columns">
-        <template #default="{ row }">
-          <div class="w-full flex justify-end gap-3">
+    <lf-table class="!overflow-visible" show-hover>
+      <thead>
+        <tr>
+          <lf-table-head class="pl-2 w-20">
+            Status
+          </lf-table-head>
+          <lf-table-head class="pl-3 min-w-35">
+            Project group
+          </lf-table-head>
+          <lf-table-head>
+            Projects
+          </lf-table-head>
+          <lf-table-head class="w-12" />
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" @click="handleRowClick(projectGroup)" class="cursor-pointer">
+          <lf-table-cell class="pl-2">
+            <app-lf-status-pill :status="projectGroup.status" />
+          </lf-table-cell>
+          <lf-table-cell class="pl-3">
+            <div class="text-sm font-semibold">
+              {{ projectGroup.name }}
+            </div>
+          </lf-table-cell>
+          <lf-table-cell>
+            <app-lf-project-column :projects="projectGroup.projects" />
+          </lf-table-cell>
+          <lf-table-cell class="pr-2 flex justify-end">
             <app-lf-project-groups-dropdown
-              :id="row.id"
-              @on-edit-project-group="emit('onEditProjectGroup', row.id)"
-              @on-add-project="emit('onAddProject', row.slug)"
+              :id="projectGroup.id"
+              @on-edit-project-group="emit('onEditProjectGroup', projectGroup.id)"
+              @on-add-project="emit('onAddProject', projectGroup.slug)"
             />
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+          </lf-table-cell>
+        </tr>
+      </tbody>
+    </lf-table>
+
     <div v-if="!!pagination.count && !projectGroups.loading">
       <app-infinite-pagination
         :total="pagination.count"
@@ -100,6 +77,9 @@ import { useRouter } from 'vue-router';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();
@@ -140,48 +120,3 @@ export default {
   name: 'AppLfProjectGroupsTable',
 };
 </script>
-
-<style lang="scss">
-#project-groups-table {
-  thead .table-columns {
-    @apply align-middle h-auto px-2 pb-3;
-    &:first-child {
-      @apply pr-4;
-    }
-
-    .cell {
-      @apply text-xs normal-case px-0 #{!important};
-    }
-  }
-
-  tbody {
-    tr {
-      @apply cursor-pointer;
-    }
-    tr td:last-child{
-      @apply px-6;
-    }
-
-    .table-columns {
-      @apply align-middle h-20 px-2;
-
-      &:first-child {
-        @apply pr-4;
-      }
-
-      &.el-table-fixed-column--right .cell {
-          @apply justify-end;
-
-        }
-    }
-
-    .cell {
-      @apply px-0 #{!important};
-    }
-  }
-
-  .el-table__empty-text {
-    @apply w-full
-  }
-}
-</style>
