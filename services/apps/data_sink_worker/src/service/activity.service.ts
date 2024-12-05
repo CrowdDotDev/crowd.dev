@@ -1072,8 +1072,7 @@ export default class ActivityService extends LoggerBase {
                       : new Date(activity.timestamp),
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
-                    // ?? ask: why are we using member.reach here?
-                    reach: member.reach,
+                    reach: objectMember.reach,
                   },
                   platform,
                   false,
@@ -1082,7 +1081,7 @@ export default class ActivityService extends LoggerBase {
                 // If this was an anonymized object member, update the erasure table with the new memberId
                 if (anonymizeObjectMemberIfRequested) {
                   for (const identity of objectMember.identities) {
-                    await erasureRepo.updateErasureRequestMemberId(identity, memberId)
+                    await erasureRepo.updateErasureRequestMemberId(identity, objectMemberId)
                   }
                 }
               }

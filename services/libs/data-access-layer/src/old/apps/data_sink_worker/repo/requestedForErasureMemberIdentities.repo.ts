@@ -107,12 +107,15 @@ export default class RequestedForErasureMemberIdentitiesRepository extends Repos
 
     const result = await this.db().oneOrNone(
       `
-      select r.id as "requestId", r."memberId" as "memberId"
+      select r.id, r."memberId"
       from "requestedForErasureMemberIdentities" r
-      where r.value = $(value) limit 1
+      where r.value = $(value) and r."platform" = $(platform) and r."type" = $(type) 
+      limit 1
     `,
       {
         value,
+        platform,
+        type,
       },
     )
 

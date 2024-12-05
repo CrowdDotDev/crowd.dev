@@ -283,13 +283,14 @@ async function anonymizeMemberInDb(
   await store.connection().none(
     `insert into "requestedForErasureMemberIdentities" 
          (id, platform, type, value, "memberId") 
-         values ($(id), $(platform), $(type), $(value))
+         values ($(id), $(platform), $(type), $(value), $(memberId))
          on conflict do nothing`,
     {
       id: identity.memberId,
       platform: identity.platform,
       type: identity.type,
       value: hashedUsername,
+      memberId: identity.memberId,
     },
   )
 
