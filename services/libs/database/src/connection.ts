@@ -86,7 +86,7 @@ export const getDbConnection = async (
     max: maxPoolSize || (IS_DEV_ENV ? 5 : 20),
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
-    application_name: process.env.SERVICE || 'unknown-app',
+    application_name: process.env.SERVICE ? `${process.env.SERVICE}-pg` : 'unknown-app=pg',
   })
 
   return dbConnection[cacheKey]

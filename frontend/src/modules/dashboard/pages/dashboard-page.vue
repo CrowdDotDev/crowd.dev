@@ -35,6 +35,9 @@
           </div>
         </div>
       </div>
+      <div class="mt-auto mb-6 flex justify-center">
+        <lfx-footer class="px-2 max-w-3xl" />
+      </div>
     </div>
     <aside
       v-if="selectedProjectGroup"
@@ -48,7 +51,7 @@
 
 <script setup>
 import {
-  onMounted, ref,
+  onMounted, onUnmounted, ref,
 } from 'vue';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
@@ -61,9 +64,12 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useFooterStore } from '@/modules/layout/pinia';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
+
+const footerStore = useFooterStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -76,6 +82,13 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
+  // Hide the main footer when this page is mounted we need to show it again but with in custom way
+  footerStore.setVisibility(false);
+});
+
+onUnmounted(() => {
+  // Show the main footer when this page is unmounted
+  footerStore.setVisibility(true);
 });
 </script>
 

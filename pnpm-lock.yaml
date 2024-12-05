@@ -1881,15 +1881,6 @@ importers:
         specifier: ^5.6.3
         version: 5.6.3
 
-  services/libs/ioc:
-    devDependencies:
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.31
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
-
   services/libs/logging:
     dependencies:
       '@crowd/common':
