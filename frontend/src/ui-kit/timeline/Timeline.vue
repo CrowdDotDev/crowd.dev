@@ -1,5 +1,5 @@
 <template>
-  <div class="c-timeline" v-for="group in props.groups" :key="group.label">
+  <div v-for="group in props.groups" :key="group.label" class="c-timeline">
     <div class="c-timeline__group-icon">
       <lf-avatar
         :name="group.label"
@@ -12,8 +12,8 @@
     <div>
       <div class="c-timeline__group-label">
         <router-link
-        v-if="group.labelLink"
-        :to="group.labelLink"
+          v-if="group.labelLink"
+          :to="group.labelLink"
           class="cursor-pointer"
         >
           {{ group.label }}
@@ -31,8 +31,8 @@
 </template>
 
 <script lang="ts" setup>
-import { TimelineGroup } from './types/TimelineTypes';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { TimelineGroup } from './types/TimelineTypes';
 
 const props = defineProps<{
   groups: TimelineGroup[];
