@@ -51,11 +51,8 @@
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import moment from 'moment';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -79,7 +76,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e:'edit'): void}>();
 
-const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const { deleteContributorOrganization } = useContributorStore();
 const { trackEvent } = useProductTracking();
 

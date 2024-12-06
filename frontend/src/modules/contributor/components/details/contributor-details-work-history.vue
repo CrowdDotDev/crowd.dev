@@ -31,8 +31,8 @@
     </div>
 
     <div v-if="!masked" class="flex flex-col gap-4">
-      <lf-timeline :groups="orgGrouped" v-slot="{ group }">
-        <lf-timeline-item data="Item 1" v-for="item in group.items" :key="item.id">
+      <lf-timeline v-slot="{ group }" :groups="shownGroups">
+        <lf-timeline-item v-for="item in group.items" :key="item.id" data="Item 1">
           <lf-contributor-details-work-history-item
             :contributor="props.contributor"
             :organization="item"
@@ -40,14 +40,7 @@
           />
         </lf-timeline-item>
       </lf-timeline>
-      <!-- <lf-contributor-details-work-history-item
-        v-for="org of (orgs || []).slice(0, showMore ? (orgs || []).length : 3)"
-        :key="org.id"
-        :contributor="props.contributor"
-        :organization="org"
-        @edit="isEditModalOpen = true; editOrganization = org"
-      /> -->
-      <div v-if="orgs.length === 0" class="pt-2 flex flex-col items-center">
+      <div v-if="orgGrouped.length === 0" class="pt-2 flex flex-col items-center">
         <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No work experiences
@@ -64,7 +57,7 @@
     </div>
 
     <lf-button
-      v-if="!masked && orgs.length > 3"
+      v-if="!masked && orgGrouped.length > minimumShownGroups"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -85,7 +78,7 @@
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { Contributor } from '@/modules/contributor/types/Contributor';
@@ -116,8 +109,7 @@ const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
 
-const orgs = computed(() => props.contributor.organizations);
-
+// const orgs = computed(() => props.contributor.organizations);
 const orgGrouped = computed(() => {
   const grouped = groupBy(props.contributor.organizations, 'id');
   return Object.keys(grouped).map((id): TimelineGroup => ({
@@ -135,13 +127,17 @@ const orgGrouped = computed(() => {
     items: grouped[id],
   }));
 });
+const minimumShownGroups = computed(() => {
+  const MIN_ITEMS = 3;
+  const groupMinIdx = props.contributor.organizations.length >= MIN_ITEMS ? MIN_ITEMS - 1 : 0;
+
+  return orgGrouped.value.length > 0 ?
+    orgGrouped.value.findIndex((group) => props.contributor.organizations[groupMinIdx].id === group.items[0].id) + 1 :
+    MIN_ITEMS;
+});
+const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups.value));
 
 const masked = computed(() => isMasked(props.contributor));
-watch(orgGrouped, () => {
-  console.log(orgGrouped.value);
-});
-
-
 </script>
 
 <script lang="ts">
