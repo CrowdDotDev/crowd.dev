@@ -8,9 +8,12 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/ioc": "workspace:*",
     "@temporalio/client": "~1.11.1",
     "@temporalio/common": "~1.11.1",
+    "@temporalio/worker": "~1.11.1",
     "@temporalio/proto": "~1.11.1"
   },
   "devDependencies": {

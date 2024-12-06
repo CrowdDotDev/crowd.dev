@@ -2,17 +2,16 @@ import { DataConverter } from '@temporalio/common'
 
 import { EncryptionCodec } from './encryption-codec'
 
-let dataConverterPromise: Promise<DataConverter>
+let dataConverter: DataConverter
 
-export async function getDataConverter(): Promise<DataConverter> {
-  if (!dataConverterPromise) {
-    dataConverterPromise = createDataConverter()
+export async function getDataConverter(keyId: string): Promise<DataConverter> {
+  if (!dataConverter) {
+    dataConverter = await createDataConverter(keyId)
   }
-  return await dataConverterPromise
+  return dataConverter
 }
 
-async function createDataConverter(): Promise<DataConverter> {
-  const keyId = process.env['CROWD_TEMPORAL_ENCRYPTION_KEY_ID']
+async function createDataConverter(keyId: string): Promise<DataConverter> {
   return {
     payloadCodecs: [await EncryptionCodec.create(keyId)],
   }

@@ -14,7 +14,6 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@crowd/ioc": "workspace:*",
     "@crowd/types": "workspace:*",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1"

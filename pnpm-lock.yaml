@@ -1905,9 +1905,6 @@ importers:
 
   services/libs/logging:
     dependencies:
-      '@crowd/ioc':
-        specifier: workspace:*
-        version: link:../ioc
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
@@ -2070,6 +2067,12 @@ importers:
 
   services/libs/temporal:
     dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/ioc':
+        specifier: workspace:*
+        version: link:../ioc
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
@@ -2080,6 +2083,9 @@ importers:
         specifier: ~1.11.1
         version: 1.11.1
       '@temporalio/proto':
+        specifier: ~1.11.1
+        version: 1.11.1
+      '@temporalio/worker':
         specifier: ~1.11.1
         version: 1.11.1
     devDependencies:

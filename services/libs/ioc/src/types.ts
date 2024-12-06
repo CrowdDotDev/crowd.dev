@@ -11,8 +11,12 @@ const getUniqueSymbol = (name: string): string => {
 }
 
 export const IOC_TYPES = {
+  SERVICE: getUniqueSymbol('service'),
   LOGGER: getUniqueSymbol('logger'),
 
   REDIS_CLIENT: getUniqueSymbol('redis_client'),
   REDIS_PUBSUB: getUniqueSymbol('redis_pubsub'),
+
+  TEMPORAL_CLIENT: getUniqueSymbol('temporal_client'),
+  TEMPORAL_WORKER: getUniqueSymbol('temporal_worker'),
 }

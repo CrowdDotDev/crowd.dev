@@ -1,3 +1,3 @@
 export * from './container'
 export * from './types'
-export { Container, ContainerModule } from 'inversify'
+export { Container, ContainerModule, AsyncContainerModule } from 'inversify'

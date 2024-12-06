@@ -243,7 +243,7 @@ export class ServiceWorker extends Service {
           showStackTraceSources: true,
           workflowBundle: workflowBundle,
           activities: require(path.resolve('./src/activities')),
-          dataConverter: await getDataConverter(),
+          dataConverter: await getDataConverter(process.env['CROWD_TEMPORAL_ENCRYPTION_KEY_ID']),
           maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
           maxConcurrentActivityTaskExecutions: this.options.maxConcurrentActivityTaskExecutions,
         })
