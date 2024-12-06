@@ -29,7 +29,7 @@ export async function fetchMemberDataForLLMSquashing(
                             mo."dateStart",
                             mo."dateEnd",
                             mo.source,
-                            jsonb_agg(oi)
+                            jsonb_agg(oi) as identities
                         from "memberOrganizations" mo
                             inner join organizations o on mo."organizationId" = o.id
                             inner join "organizationIdentities" oi on oi."organizationId" = o.id
@@ -62,7 +62,8 @@ export async function fetchMemberDataForLLMSquashing(
                                                 mo."jobTitle",
                                                 mo."dateStart",
                                                 mo."dateEnd",
-                                                mo.source) r)
+                                                mo.source,
+                                                mo.identities) r)
                           )
                   from member_orgs mo
                   where mo."memberId" = m.id
