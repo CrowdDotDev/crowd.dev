@@ -170,7 +170,6 @@ const connect = () => {
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, {
       settings,
-      status: 'in-progress',
     })
     : IntegrationService.create({
       settings,
