@@ -8,6 +8,7 @@ import SquaredAvatar from '@/shared/avatar/squared-avatar.vue';
 import Alert from '@/shared/alert/alert.vue';
 import Teleport from '@/shared/teleport/teleport.vue';
 import Pagination from '@/shared/pagination/pagination.vue';
+import InfinitePagination from '@/shared/pagination/infinite-pagination.vue';
 import PaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import FilterTypeSelectMulti from '@/shared/filter/components/type/filter-type-select-multi.vue';
 import InlineSelectInput from '@/shared/form/inline-select-input.vue';
@@ -35,6 +36,7 @@ export default {
     'app-keywords-input': KeywordsInput,
     'app-teleport': Teleport,
     'app-pagination': Pagination,
+    'app-infinite-pagination': InfinitePagination,
     'app-pagination-sorter': PaginationSorter,
     'app-inline-select-input': InlineSelectInput,
     'app-dialog': Dialog,

@@ -2,7 +2,6 @@
   <app-page-wrapper>
     <router-link
       v-if="hasPermission(LfPermission.projectGroupEdit)"
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
         query: {
@@ -10,24 +9,39 @@
         },
       }"
     >
-      <lf-icon name="chevron-left" :size="12" class="mr-2" />
-      <span>Project groups</span>
+      <lf-button type="secondary-ghost" class="mb-6">
+        <lf-icon name="angle-left" type="regular" />
+        <span>Project groups</span>
+      </lf-button>
     </router-link>
-    <div class="text-sm text-primary-500 pb-2">
-      {{ projectGroupForm.name }}
-    </div>
 
-    <div class="w-full flex items-center justify-between mb-6">
-      <h4 class="text-gray-900">
-        Manage projects
-      </h4>
-      <el-button
-        v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
-        class="btn btn--md btn--primary"
-        @click="onAddProject"
-      >
-        Add project
-      </el-button>
+    <div class="w-full flex items-center justify-between mb-6 pt-7 border-t border-gray-100">
+      <div class="flex items-center gap-4 whitespace-nowrap">
+        <h4 class="text-gray-900 flex items-center">
+          {{ projectGroupForm.name }}
+        </h4>
+        <app-lf-status-pill :status="projectGroupForm.status" />
+        <app-lf-project-count :count="projectCount" />
+      </div>
+
+      <div class="flex items-center gap-4">
+        <lf-button
+          v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
+          size="medium"
+          type="secondary-ghost"
+          @click="onAddProject"
+        >
+          <lf-icon name="layer-plus" type="regular" />
+          Add project
+        </lf-button>
+
+        <app-lf-project-groups-dropdown
+          v-if="hasPermission(LfPermission.projectGroupCreate)"
+          :id="projectGroupForm.id"
+          :show-edit-only="true"
+          @on-edit-project-group="onEditProjectGroup"
+        />
+      </div>
     </div>
 
     <!-- Search input -->
@@ -63,18 +77,6 @@
       />
 
       <div v-else class="mt-6 flex flex-col gap-6">
-        <div class="h-10 flex items-center">
-          <app-pagination-sorter
-            :page-size="pagination.pageSize"
-            :total="pagination.total"
-            :current-page="pagination.currentPage"
-            :has-page-counter="false"
-            position="top"
-            module="project"
-            @change-sorter="onPageSizeChange"
-          />
-        </div>
-
         <app-integration-progress-wrapper :segments="segmentIds">
           <template #default="{ progress, progressError }">
             <app-lf-projects-table
@@ -90,15 +92,31 @@
           </template>
         </app-integration-progress-wrapper>
 
-        <div v-if="!!pagination.count">
-          <app-pagination
+        <div v-if="!!pagination.count && !loading">
+          <app-infinite-pagination
             :total="pagination.count"
             :page-size="Number(pagination.pageSize)"
             :current-page="pagination.currentPage || 1"
-            module="project"
-            @change-current-page="doChangeProjectCurrentPage"
-            @change-page-size="onPageSizeChange"
-          />
+            :is-loading="projects.paginating"
+            :use-slot="true"
+            @load-more="onLoadMore"
+          >
+            <div
+              class="pt-10 pb-6 gap-4 flex justify-center items-center"
+            >
+              <p class="text-small text-gray-400">
+                {{ projects.list.length }} of {{ pagination.total }} projects
+              </p>
+              <lf-button
+                type="primary-ghost"
+                loading-text="Loading projects..."
+                :loading="projects.paginating"
+                @click="onLoadMore(pagination.currentPage + 1)"
+              >
+                Load more
+              </lf-button>
+            </div>
+          </app-infinite-pagination>
         </div>
       </div>
     </div>
@@ -119,6 +137,13 @@
       :grandparent-slug="projectGroupForm.slug"
       :grandparent-id="projectGroupForm.id"
     />
+
+    <app-lf-project-group-form
+      v-if="isProjectGroupFormDrawerOpen"
+      :id="projectGroupForm.id"
+      v-model="isProjectGroupFormDrawerOpen"
+      @on-project-group-edited="onProjectGroupEdited"
+    />
   </app-page-wrapper>
 </template>
 
@@ -128,6 +153,7 @@ import { useRoute } from 'vue-router';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
+import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-project-group-form.vue';
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
@@ -139,12 +165,16 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
+import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
+import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
 const { projects } = storeToRefs(lsSegmentsStore);
 const {
-  findProjectGroup, searchProject, listProjects, updateProjectsPageSize, doChangeProjectCurrentPage,
+  findProjectGroup, searchProject, listProjects, doChangeProjectCurrentPage,
 } = lsSegmentsStore;
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
@@ -162,15 +192,26 @@ const projectForm = reactive({
 const subProjectForm = reactive({
   id: null,
 });
+const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
+const searchQuery = ref('');
 
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
+const projectCount = computed(() => pagination.value.total);
 
 onMounted(() => {
+  loadProjectGroups();
+});
+
+const onProjectGroupEdited = () => {
+  loadProjectGroups();
+};
+
+const loadProjectGroups = () => {
   findProjectGroup(route.params.id)
     .then((response) => {
       Object.assign(projectGroupForm, response);
@@ -179,7 +220,21 @@ onMounted(() => {
     }).finally(() => {
       loadingProjectGroup.value = false;
     });
-});
+};
+
+const onLoadMore = () => {
+  if (!projects.value.paginating) {
+    if (searchQuery.value && searchQuery.value !== '') {
+      searchProject(searchQuery.value, pagination.value.currentPage + 1);
+    } else {
+      doChangeProjectCurrentPage(pagination.value.currentPage + 1);
+    }
+  }
+};
+
+const onEditProjectGroup = () => {
+  isProjectGroupFormDrawerOpen.value = true;
+};
 
 const onAddProject = () => {
   projectForm.id = null;
@@ -204,16 +259,13 @@ const onAddSubProject = ({ slug, id }) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-const onPageSizeChange = (pageSize) => {
-  updateProjectsPageSize(pageSize);
-};
-
 const onSearchProjects = (query) => {
   trackEvent({
     key: FeatureEventKey.SEARCH_PROJECTS,
     type: EventType.FEATURE,
   });
 
+  searchQuery.value = query;
   searchProject(query);
 };
 </script>

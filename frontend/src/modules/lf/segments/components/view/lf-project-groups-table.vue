@@ -1,115 +1,69 @@
 <template>
-  <div class="mb-6 h-10 flex items-center">
-    <app-pagination-sorter
-      :page-size="pagination.pageSize"
-      :total="pagination.total"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      position="top"
-      module="project group"
-      @change-sorter="onPageSizeChange"
-    />
-  </div>
-
-  <div class="app-list-table not-clickable panel !px-0 !pt-0 !pb-6">
-    <el-table
-      id="project-groups-table"
-      ref="table"
-      :data="list"
-      row-key="id"
-      :resizable="false"
-    >
-      <!-- Name -->
-      <el-table-column
-        label="Project Group"
-        prop="name"
-        width="300"
-        fixed
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <span class="text-gray-900 text-sm font-semibold">{{ row.name }}</span>
-        </template>
-      </el-table-column>
-
-      <!-- Projects -->
-      <el-table-column
-        label="Projects"
-        prop="projects"
-        width="300"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <div v-if="row.projects.length" class="flex flex-wrap gap-2">
-            <app-tags
-              :tags="row.projects.map((p) => p.name)"
-              :collapse-tags="true"
-              :collapse-tags-tooltip="true"
-              tag-class="badge--gray-light h-6 text-xs"
-            />
-          </div>
-          <span v-else class="text-gray-500 text-sm">No projects</span>
-        </template>
-      </el-table-column>
-
-      <!-- Status -->
-      <el-table-column
-        label="Status"
-        prop="status"
-        width="150"
-        class-name="table-columns"
-      >
-        <template #default="{ row }">
-          <div class="flex items-center gap-3">
-            <span
-              class="w-1.5 h-1.5 rounded-full"
-              :class="statusDisplay(row.status).color"
-            />
-            {{ statusDisplay(row.status).label }}
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column>
-        <template #default>
-          <div class="flex grow" />
-        </template>
-      </el-table-column>
-
-      <el-table-column fixed="right" width="288">
-        <template #default="{ row }">
-          <div class="w-full flex justify-end gap-3">
-            <router-link
-              class="h-10 flex items-center"
-              :to="{
-                name: 'adminProjects',
-                params: { id: row.id },
-              }"
-            >
-              <el-button class="btn btn--secondary">
-                <lf-icon name="layer-group" :size="16" />
-                <span>Manage projects</span>
-              </el-button>
-            </router-link>
+  <div class="app-list-table not-clickable !px-0 !pt-0 !pb-6">
+    <lf-table class="!overflow-visible" show-hover>
+      <thead>
+        <tr>
+          <lf-table-head class="pl-2 w-20">
+            Status
+          </lf-table-head>
+          <lf-table-head class="pl-3 min-w-35">
+            Project group
+          </lf-table-head>
+          <lf-table-head>
+            Projects
+          </lf-table-head>
+          <lf-table-head class="w-12" />
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" class="cursor-pointer" @click="handleRowClick(projectGroup)">
+          <lf-table-cell class="pl-2">
+            <app-lf-status-pill :status="projectGroup.status" />
+          </lf-table-cell>
+          <lf-table-cell class="pl-3">
+            <div class="text-sm font-semibold">
+              {{ projectGroup.name }}
+            </div>
+          </lf-table-cell>
+          <lf-table-cell>
+            <app-lf-project-column :projects="projectGroup.projects" />
+          </lf-table-cell>
+          <lf-table-cell class="pr-2 flex justify-end">
             <app-lf-project-groups-dropdown
-              :id="row.id"
-              @on-edit-project-group="emit('onEditProjectGroup', row.id)"
-              @on-add-project="emit('onAddProject', row.slug)"
+              :id="projectGroup.id"
+              @on-edit-project-group="emit('onEditProjectGroup', projectGroup.id)"
+              @on-add-project="emit('onAddProject', projectGroup.slug)"
             />
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+          </lf-table-cell>
+        </tr>
+      </tbody>
+    </lf-table>
 
-    <div v-if="!!pagination.count" class="mt-8 px-6">
-      <app-pagination
+    <div v-if="!!pagination.count && !projectGroups.loading">
+      <app-infinite-pagination
         :total="pagination.count"
         :page-size="Number(pagination.pageSize)"
         :current-page="pagination.currentPage || 1"
-        module="project group"
-        @change-current-page="doChangeProjectGroupCurrentPage"
-        @change-page-size="onPageSizeChange"
-      />
+        :is-loading="projectGroups.paginating"
+        :use-slot="true"
+        @load-more="onLoadMore"
+      >
+        <div
+          class="pt-10 pb-6 gap-4 flex justify-center items-center"
+        >
+          <p class="text-small text-gray-400">
+            {{ projectGroups.list.length }} of {{ pagination.total }} project groups
+          </p>
+          <lf-button
+            type="primary-ghost"
+            loading-text="Loading project groups..."
+            :loading="projectGroups.paginating"
+            @click="onLoadMore(pagination.currentPage + 1)"
+          >
+            Load more
+          </lf-button>
+        </div>
+      </app-infinite-pagination>
     </div>
   </div>
 </template>
@@ -117,25 +71,47 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
-import AppTags from '@/shared/tags/tags.vue';
 import { computed } from 'vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useRouter } from 'vue-router';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import AppLfStatusPill from '../fragments/lf-status-pill.vue';
+import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
+const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { updateProjectGroupsPageSize, doChangeProjectGroupCurrentPage } = lsSegmentsStore;
+const { doChangeProjectGroupCurrentPage, searchProjectGroup } = lsSegmentsStore;
 
 const pagination = computed(() => projectGroups.value.pagination);
-const list = computed(() => projectGroups.value.list);
 
-const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
+const props = defineProps({
+  search: {
+    type: String,
+    default: '',
+  },
+});
 
-const onPageSizeChange = (pageSize) => {
-  updateProjectGroupsPageSize(pageSize);
+const onLoadMore = (currentPage) => {
+  if (!projectGroups.value.paginating) {
+    if (props.search && props.search !== '') {
+      searchProjectGroup(props.search, undefined, undefined, currentPage);
+    } else {
+      doChangeProjectGroupCurrentPage(currentPage);
+    }
+  }
+};
+
+const handleRowClick = (row) => {
+  router.push({
+    name: 'adminProjects',
+    params: { id: row.id },
+  });
 };
 </script>
 
@@ -144,39 +120,3 @@ export default {
   name: 'AppLfProjectGroupsTable',
 };
 </script>
-
-<style lang="scss">
-#project-groups-table {
-  thead .table-columns {
-    @apply align-middle h-14 px-6;
-
-    .cell {
-      @apply px-0;
-    }
-  }
-
-  tbody {
-    tr td:last-child{
-      @apply px-6;
-    }
-
-    .table-columns {
-      @apply align-middle h-20 px-6;
-
-      &.el-table-fixed-column--right .cell {
-          @apply justify-end;
-        }
-    }
-
-    .cell {
-      @apply px-0;
-      display: flex !important;
-      align-items: center !important;
-    }
-  }
-
-  .el-table__empty-text {
-    @apply w-full
-  }
-}
-</style>
