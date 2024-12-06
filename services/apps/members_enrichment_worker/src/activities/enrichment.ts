@@ -324,6 +324,8 @@ export async function updateMemberUsingSquashedPayload(
       }
     }
 
+    const orgIdsToSync: string[] = []
+
     if (squashedPayload.memberOrganizations.length > 0) {
       const orgPromises = []
 
@@ -410,7 +412,7 @@ export async function updateMemberUsingSquashedPayload(
             ),
           )
 
-          await syncOrganization(org.organizationId)
+          orgIdsToSync.push(org.organizationId)
         }
       }
 
@@ -422,6 +424,8 @@ export async function updateMemberUsingSquashedPayload(
       }
     }
 
+    await Promise.all(promises)
+
     if (updated) {
       await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
       await syncMember(memberId)
@@ -429,7 +433,10 @@ export async function updateMemberUsingSquashedPayload(
       await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
     }
 
-    await Promise.all(promises)
+    for (const orgId of orgIdsToSync) {
+      await syncOrganization(orgId)
+    }
+
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
 
     return updated
