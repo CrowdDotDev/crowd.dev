@@ -1,6 +1,11 @@
 import _ from 'lodash'
 
-import { generateUUIDv1, replaceDoubleQuotes, setAttributesDefaultValues } from '@crowd/common'
+import {
+  generateUUIDv1,
+  hasIntersection,
+  replaceDoubleQuotes,
+  setAttributesDefaultValues,
+} from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import {
   updateMemberAttributes,
@@ -38,6 +43,7 @@ import {
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationAttributeSource,
+  OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
@@ -326,32 +332,9 @@ export async function updateMemberUsingSquashedPayload(
       for (const org of squashedPayload.memberOrganizations) {
         if (!org.organizationId) {
           // Check if any similar in existing work experiences
-          const existingOrg = existingMemberData.organizations.find((o) => {
-            const incomingOrgStartDate = org.startDate ? new Date(org.startDate) : null
-            const incomingOrgEndDate = org.endDate ? new Date(org.endDate) : null
-            const existingOrgStartDate = o.dateStart ? new Date(o.dateStart) : null
-            const existingOrgEndEndDate = o.dateEnd ? new Date(o.dateEnd) : null
-
-            const isSameStartMonthYear =
-              (!incomingOrgStartDate && !existingOrgStartDate) || // Both start dates are null
-              (incomingOrgStartDate &&
-                existingOrgStartDate &&
-                incomingOrgStartDate.getMonth() === existingOrgStartDate.getMonth() &&
-                incomingOrgStartDate.getFullYear() === existingOrgStartDate.getFullYear())
-
-            const isSameEndMonthYear =
-              (!incomingOrgEndDate && !existingOrgEndEndDate) || // Both end dates are null
-              (incomingOrgEndDate &&
-                existingOrgEndEndDate &&
-                incomingOrgEndDate.getMonth() === existingOrgEndEndDate.getMonth() &&
-                incomingOrgEndDate.getFullYear() === existingOrgEndEndDate.getFullYear())
-
-            return (
-              (o.orgName.toLowerCase().includes(org.name.toLowerCase()) ||
-                org.name.toLowerCase().includes(o.orgName.toLowerCase())) &&
-              ((isSameStartMonthYear && isSameEndMonthYear) || org.title === o.jobTitle)
-            )
-          })
+          const existingOrg = existingMemberData.organizations.find((o) =>
+            doesIncomingOrgExistInExistingOrgs(o, org),
+          )
 
           if (existingOrg) {
             // Get all orgs with the same name as the current one
@@ -451,6 +434,49 @@ export async function updateMemberUsingSquashedPayload(
 
     return updated
   })
+}
+
+export function doesIncomingOrgExistInExistingOrgs(
+  existingOrg: IMemberOrganizationData,
+  incomingOrg: IMemberEnrichmentDataNormalizedOrganization,
+): boolean {
+  // Check if any similar in existing work experiences
+  const incomingVerifiedPrimaryDomainIdentityValues = incomingOrg.identities
+    .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified)
+    .map((i) => i.value)
+
+  const existingVerifiedPrimaryDomainIdentityValues = existingOrg.identities
+    .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified)
+    .map((i) => i.value)
+
+  const incomingOrgStartDate = incomingOrg.startDate ? new Date(incomingOrg.startDate) : null
+  const incomingOrgEndDate = incomingOrg.endDate ? new Date(incomingOrg.endDate) : null
+  const existingOrgStartDate = existingOrg.dateStart ? new Date(existingOrg.dateStart) : null
+  const existingOrgEndEndDate = existingOrg.dateEnd ? new Date(existingOrg.dateEnd) : null
+
+  const isSameStartMonthYear =
+    (!incomingOrgStartDate && !existingOrgStartDate) || // Both start dates are null
+    (incomingOrgStartDate &&
+      existingOrgStartDate &&
+      incomingOrgStartDate.getMonth() === existingOrgStartDate.getMonth() &&
+      incomingOrgStartDate.getFullYear() === existingOrgStartDate.getFullYear())
+
+  const isSameEndMonthYear =
+    (!incomingOrgEndDate && !existingOrgEndEndDate) || // Both end dates are null
+    (incomingOrgEndDate &&
+      existingOrgEndEndDate &&
+      incomingOrgEndDate.getMonth() === existingOrgEndEndDate.getMonth() &&
+      incomingOrgEndDate.getFullYear() === existingOrgEndEndDate.getFullYear())
+
+  return (
+    hasIntersection(
+      incomingVerifiedPrimaryDomainIdentityValues,
+      existingVerifiedPrimaryDomainIdentityValues,
+    ) ||
+    ((existingOrg.orgName.toLowerCase().includes(incomingOrg.name.toLowerCase()) ||
+      incomingOrg.name.toLowerCase().includes(existingOrg.orgName.toLowerCase())) &&
+      ((isSameStartMonthYear && isSameEndMonthYear) || incomingOrg.title === existingOrg.jobTitle))
+  )
 }
 
 export async function setMemberEnrichmentTryDate(memberId: string): Promise<void> {

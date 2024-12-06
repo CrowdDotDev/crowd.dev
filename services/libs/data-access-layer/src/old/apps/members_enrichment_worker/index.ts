@@ -20,19 +20,23 @@ export async function fetchMemberDataForLLMSquashing(
 ): Promise<IMemberOriginalData | null> {
   const result = await db.oneOrNone(
     `
-    with member_orgs as (select distinct mo."memberId",
-                                        mo."organizationId" as "orgId",
-                                        o."displayName"     as "orgName",
-                                        mo.title            as "jobTitle",
-                                        mo.id,
-                                        mo."dateStart",
-                                        mo."dateEnd",
-                                        mo.source
+    with member_orgs as (select
+                            distinct mo."memberId",
+                            mo."organizationId" as "orgId",
+                            o."displayName"     as "orgName",
+                            mo.title            as "jobTitle",
+                            mo.id,
+                            mo."dateStart",
+                            mo."dateEnd",
+                            mo.source,
+                            jsonb_agg(oi)
                         from "memberOrganizations" mo
-                                  inner join organizations o on mo."organizationId" = o.id
+                            inner join organizations o on mo."organizationId" = o.id
+                            inner join "organizationIdentities" oi on oi."organizationId" = o.id
                         where mo."memberId" = $(memberId)
                           and mo."deletedAt" is null
-                          and o."deletedAt" is null)
+                          and o."deletedAt" is null
+                        group by mo."memberId", mo."organizationId", o."displayName", mo.id)
     select m."displayName",
           m.attributes,
           m."manuallyChangedFields",
