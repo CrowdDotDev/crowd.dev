@@ -26,6 +26,7 @@ import {
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
@@ -425,6 +426,8 @@ export async function updateMemberUsingSquashedPayload(
               org.source,
             ),
           )
+
+          await syncOrganization(org.organizationId)
         }
       }
 
@@ -438,6 +441,7 @@ export async function updateMemberUsingSquashedPayload(
 
     if (updated) {
       await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
+      await syncMember(memberId)
     } else {
       await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
     }
@@ -899,6 +903,22 @@ function prepareWorkExperiences(
     toCreate,
     toUpdate,
   }
+}
+
+export async function syncMember(memberId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  await syncApi.triggerMemberSync(memberId, { withAggs: false })
+}
+
+export async function syncOrganization(organizationId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs: false })
 }
 
 export async function cleanAttributeValue(
