@@ -371,6 +371,7 @@ export async function updateMemberUsingSquashedPayload(
                 i.organizationId = orgId
               }
             }
+            orgIdsToSync.push(orgId)
           }),
         )
       }
@@ -411,8 +412,6 @@ export async function updateMemberUsingSquashedPayload(
               org.source,
             ),
           )
-
-          orgIdsToSync.push(org.organizationId)
         }
       }
 
