@@ -156,6 +156,42 @@ export async function findOrgByName(
   return result
 }
 
+export async function findOrgByVerifiedDomain(
+  qx: QueryExecutor,
+  tenantId: string,
+  identity: IDbOrgIdentity,
+): Promise<IDbOrganization | null> {
+  if (identity.type !== OrganizationIdentityType.PRIMARY_DOMAIN) {
+    throw new Error('Invalid identity type')
+  }
+  const result = await qx.selectOneOrNone(
+    `
+    with "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where
+                    oi."tenantId" = $(tenantId)
+                    and lower(oi.value) = lower($(value))
+                    and oi.type = $(type)
+                    and oi.verified = true
+          )
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId)
+          and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          limit 1;
+    `,
+    {
+      tenantId,
+      value: identity.value,
+      platform: identity.platform,
+      type: identity.type,
+    },
+  )
+
+  return result
+}
+
 export async function findOrgByVerifiedIdentity(
   qx: QueryExecutor,
   tenantId: string,
@@ -501,6 +537,11 @@ export async function findOrCreateOrganization(
     // find existing org by sent verified identities
     for (const identity of verifiedIdentities) {
       existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+
+      if (!existing && identity.type === OrganizationIdentityType.PRIMARY_DOMAIN) {
+        // if primary domain isn't found in the incoming platform, check if the domain exists in any platform
+        existing = await findOrgByVerifiedDomain(qe, tenantId, identity)
+      }
       if (existing) {
         break
       }
