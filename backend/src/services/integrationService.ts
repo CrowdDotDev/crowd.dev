@@ -396,6 +396,10 @@ export default class IntegrationService {
       transaction,
     }
 
+    let reposToAdd: Record<string, string[]> = {}
+    let reposToRemove: Record<string, string[]> = {}
+    let urlsWithChangedSegment: { url: string; oldSegmentId: string; newSegmentId: unknown }[] = []
+
     try {
       const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
       await GithubReposRepository.updateMapping(integrationId, mapping, oldMapping, txOptions)
@@ -408,35 +412,100 @@ export default class IntegrationService {
           return acc
         }, {})
 
-        // Find URLs to add and remove
+        // Find URLs to add, remove and those that changed segments
         const urlsToAdd = Object.entries(mapping).filter(([url]) => !oldMappingDict[url])
         const urlsToRemove = oldMapping
           .filter((item) => !mapping[item.url])
           .map((item) => ({ url: item.url, segmentId: item.segment.id }))
+        urlsWithChangedSegment = Object.entries(mapping)
+          .filter(([url, segmentId]) => oldMappingDict[url] && oldMappingDict[url] !== segmentId)
+          .map(([url, newSegmentId]) => ({
+            url,
+            oldSegmentId: oldMappingDict[url],
+            newSegmentId,
+          }))
 
         // Group new URLs by segment
-        const reposToAdd: Record<string, string[]> = urlsToAdd.reduce(
-          (acc, [url, segmentId]) => {
-            if (!acc[segmentId as string]) {
-              acc[segmentId as string] = []
-            }
-            acc[segmentId as string].push(url)
-            return acc
-          },
-          {},
-        )
+        reposToAdd = urlsToAdd.reduce((acc, [url, segmentId]) => {
+          if (!acc[segmentId as string]) {
+            acc[segmentId as string] = []
+          }
+          acc[segmentId as string].push(url)
+          return acc
+        }, {})
 
         // Group URLs to remove by segment
-        const reposToRemove: Record<string, string[]> = urlsToRemove.reduce(
-          (acc, { url, segmentId }) => {
-            if (!acc[segmentId]) {
-              acc[segmentId] = []
-            }
-            acc[segmentId].push(url)
-            return acc
-          },
-          {},
-        )
+        reposToRemove = urlsToRemove.reduce((acc, { url, segmentId }) => {
+          if (!acc[segmentId]) {
+            acc[segmentId] = []
+          }
+          acc[segmentId].push(url)
+          return acc
+        }, {})
+
+        // Handle segment changes
+        for (const { url, oldSegmentId, newSegmentId } of urlsWithChangedSegment) {
+          // Remove from old segment
+          const oldSegmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: oldSegmentId,
+              },
+            ],
+          }
+
+          try {
+            const oldGitInfo = await this.gitGetRemotes(oldSegmentOptions)
+            const oldGitRemotes = oldGitInfo[oldSegmentId].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: oldGitRemotes.filter((remote) => remote !== url),
+              },
+              oldSegmentOptions,
+            )
+          } catch (err) {
+            this.options.log.error(err, `Failed to remove repo from old segment ${oldSegmentId}`)
+          }
+
+          // Add to new segment
+          const newSegmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: newSegmentId as string,
+              },
+            ],
+          }
+
+          let isGitIntegrationConfigured
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, newSegmentOptions)
+            isGitIntegrationConfigured = true
+          } catch (err) {
+            isGitIntegrationConfigured = false
+          }
+
+          if (isGitIntegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(newSegmentOptions)
+            const gitRemotes = gitInfo[newSegmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, url])),
+              },
+              newSegmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: [url],
+              },
+              newSegmentOptions,
+            )
+          }
+        }
 
         // Handle additions
         for (const [segmentId, urls] of Object.entries(reposToAdd)) {
@@ -492,7 +561,7 @@ export default class IntegrationService {
             const gitInfo = await this.gitGetRemotes(segmentOptions)
             const gitRemotes = gitInfo[segmentId].remotes
             const remainingRemotes = gitRemotes.filter((remote) => !urls.includes(remote))
-            
+
             await this.gitConnectOrUpdate(
               {
                 remotes: remainingRemotes,
@@ -505,7 +574,10 @@ export default class IntegrationService {
         }
       }
 
-      if (fireOnboarding) {
+      const hasAddedRepos = Object.values(reposToAdd).some((urls) => urls.length > 0)
+      const hasChangedSegments = urlsWithChangedSegment.length > 0
+
+      if (fireOnboarding && (hasAddedRepos || hasChangedSegments)) {
         const integration = await IntegrationRepository.update(
           integrationId,
           { status: 'in-progress' },
@@ -525,6 +597,10 @@ export default class IntegrationService {
           null,
           null,
           isUpdateTransaction ? { messageSentAt: new Date().toISOString() } : null,
+        )
+      } else if (hasAddedRepos || hasChangedSegments) {
+        this.options.log.debug(
+          'No onboarding message sent because no repos to add or change segments for!',
         )
       }
 

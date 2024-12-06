@@ -12,7 +12,7 @@ const isRepoRecentlyUpdated = (repo: Repo, messageSentAt?: Date): boolean => {
   if (!repo.updatedAt) return true // If no updatedAt, process it to be safe
 
   if (messageSentAt) {
-    // For newly added repos, check if they were updated within 2 seconds of the message
+    // For newly added repos, check if they were updated within 20 seconds of the message
     const repoUpdateTime = new Date(repo.updatedAt).getTime()
     const messageTime = messageSentAt.getTime()
     return Math.abs(repoUpdateTime - messageTime) < NEW_REPO_THRESHOLD_MS
