@@ -2,6 +2,8 @@ import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMember } from '@crowd/types'
 
+import { IMemberId } from '../profiles_worker/types'
+
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 
 class MemberRepository {
@@ -158,6 +160,32 @@ class MemberRepository {
     }
 
     return member
+  }
+
+  async getMemberIdsWithDeletedWorkexperience(limit: number, offset: number) {
+    let results: IMemberId[] = []
+    try {
+      results = await this.connection.query(
+        `
+        select distinct "memberId" as id 
+        from "memberOrganizations" 
+        where "deletedAt" is not null
+        order by id asc
+        limit $(limit)
+        offset $(offset);
+      `,
+        {
+          limit,
+          offset,
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while finding members!', err)
+
+      throw new Error(err)
+    }
+
+    return results?.map((r) => r.id) || []
   }
 }
 
