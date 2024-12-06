@@ -46,8 +46,7 @@ export async function fetchMemberDataForLLMSquashing(
                                                 mi.value) r)
                           )
                     from "memberIdentities" mi
-                    where mi."memberId" = m.id
-                      and verified = true), '[]'::json) as identities,
+                    where mi."memberId" = m.id), '[]'::json) as identities,
           case
               when exists (select 1 from member_orgs where "memberId" = m.id)
                   then (
