@@ -1,0 +1,1 @@
+alter table "requestedForErasureMemberIdentities" add column "memberId" uuid;
