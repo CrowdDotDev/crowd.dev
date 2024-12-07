@@ -129,3 +129,8 @@ export const areArraysEqual = <T>(a: T[], b: T[]): boolean => {
 export const firstArrayContainsSecondArray = <T>(array1: T[], array2: T[]): boolean => {
   return array2.every((val) => array1.includes(val))
 }
+
+export const hasIntersection = (arr1: string[], arr2: string[]): boolean => {
+  const set1 = new Set(arr1)
+  return arr2.some((item) => set1.has(item))
+}

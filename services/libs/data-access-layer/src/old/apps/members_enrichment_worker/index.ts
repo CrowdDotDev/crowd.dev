@@ -20,19 +20,23 @@ export async function fetchMemberDataForLLMSquashing(
 ): Promise<IMemberOriginalData | null> {
   const result = await db.oneOrNone(
     `
-    with member_orgs as (select distinct mo."memberId",
-                                        mo."organizationId" as "orgId",
-                                        o."displayName"     as "orgName",
-                                        mo.title            as "jobTitle",
-                                        mo.id,
-                                        mo."dateStart",
-                                        mo."dateEnd",
-                                        mo.source
+    with member_orgs as (select
+                            distinct mo."memberId",
+                            mo."organizationId" as "orgId",
+                            o."displayName"     as "orgName",
+                            mo.title            as "jobTitle",
+                            mo.id,
+                            mo."dateStart",
+                            mo."dateEnd",
+                            mo.source,
+                            jsonb_agg(oi) as identities
                         from "memberOrganizations" mo
-                                  inner join organizations o on mo."organizationId" = o.id
+                            inner join organizations o on mo."organizationId" = o.id
+                            inner join "organizationIdentities" oi on oi."organizationId" = o.id
                         where mo."memberId" = $(memberId)
                           and mo."deletedAt" is null
-                          and o."deletedAt" is null)
+                          and o."deletedAt" is null
+                        group by mo."memberId", mo."organizationId", o."displayName", mo.id)
     select m."displayName",
           m.attributes,
           m."manuallyChangedFields",
@@ -46,8 +50,7 @@ export async function fetchMemberDataForLLMSquashing(
                                                 mi.value) r)
                           )
                     from "memberIdentities" mi
-                    where mi."memberId" = m.id
-                      and verified = true), '[]'::json) as identities,
+                    where mi."memberId" = m.id), '[]'::json) as identities,
           case
               when exists (select 1 from member_orgs where "memberId" = m.id)
                   then (
@@ -59,7 +62,8 @@ export async function fetchMemberDataForLLMSquashing(
                                                 mo."jobTitle",
                                                 mo."dateStart",
                                                 mo."dateEnd",
-                                                mo.source) r)
+                                                mo.source,
+                                                mo.identities) r)
                           )
                   from member_orgs mo
                   where mo."memberId" = m.id
@@ -136,8 +140,9 @@ export async function fetchMembersForEnrichment(
          INNER JOIN tenants ON tenants.id = members."tenantId"
          INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
          LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
-    WHERE 
+    WHERE
       ${enrichableBySqlJoined}
+      AND coalesce((m.attributes ->'isBot'->>'default')::boolean, false) = false 
       AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
       AND (${cacheAgeInnerQueryItems.join(' OR ')})

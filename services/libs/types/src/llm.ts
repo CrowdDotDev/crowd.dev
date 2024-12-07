@@ -30,6 +30,7 @@ export interface ILlmPricing {
 export const LLM_MODEL_REGION_MAP: Record<LlmModelType, string> = {
   [LlmModelType.CLAUDE_3_OPUS]: 'us-west-2',
   [LlmModelType.CLAUDE_3_5_SONNET]: 'us-east-1',
+  [LlmModelType.CLAUDE_3_5_SONNET_V2]: 'us-west-2',
 }
 
 // to estimate costs - these numbers can change
@@ -39,6 +40,10 @@ export const LLM_MODEL_PRICING_MAP: Record<LlmModelType, ILlmPricing> = {
     costPer1000OutputTokens: 0.075,
   },
   [LlmModelType.CLAUDE_3_5_SONNET]: {
+    costPer1000InputTokens: 0.003,
+    costPer1000OutputTokens: 0.015,
+  },
+  [LlmModelType.CLAUDE_3_5_SONNET_V2]: {
     costPer1000InputTokens: 0.003,
     costPer1000OutputTokens: 0.015,
   },
@@ -54,7 +59,7 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
     },
   },
   [LlmQueryType.MEMBER_ENRICHMENT_FIND_RELATED_LINKEDIN_PROFILES]: {
-    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    modelId: LlmModelType.CLAUDE_3_5_SONNET_V2,
     arguments: {
       max_tokens: 200000,
       anthropic_version: 'bedrock-2023-05-31',
@@ -62,7 +67,7 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
     },
   },
   [LlmQueryType.MEMBER_ENRICHMENT_SQUASH_MULTIPLE_VALUE_ATTRIBUTES]: {
-    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    modelId: LlmModelType.CLAUDE_3_5_SONNET_V2,
     arguments: {
       max_tokens: 200000,
       anthropic_version: 'bedrock-2023-05-31',
@@ -70,7 +75,7 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
     },
   },
   [LlmQueryType.MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES]: {
-    modelId: LlmModelType.CLAUDE_3_5_SONNET,
+    modelId: LlmModelType.CLAUDE_3_5_SONNET_V2,
     arguments: {
       max_tokens: 200000,
       anthropic_version: 'bedrock-2023-05-31',

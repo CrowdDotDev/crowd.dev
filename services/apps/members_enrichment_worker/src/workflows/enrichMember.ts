@@ -21,6 +21,7 @@ const {
   updateMemberEnrichmentCache,
   isCacheObsolete,
   getEnrichmentInput,
+  hasRemainingCredits,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
   retry: {
@@ -45,6 +46,12 @@ export async function enrichMember(
     // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
     if (await isCacheObsolete(source, cache)) {
       const enrichmentInput: IEnrichmentSourceInput = await getEnrichmentInput(input)
+
+      if (!(await hasRemainingCredits(source))) {
+        // no credits remaining, only update cache.updatedAt and keep the old data
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
+        continue
+      }
 
       const data = await getEnrichmentData(source, enrichmentInput)
 
