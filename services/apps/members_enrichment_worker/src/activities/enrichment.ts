@@ -363,16 +363,26 @@ export async function updateMemberUsingSquashedPayload(
               description: org.organizationDescription,
               identities: org.identities ? org.identities : [],
             },
-          ).then((orgId) => {
-            // set the organization id for later use
-            org.organizationId = orgId
-            if (org.identities) {
-              for (const i of org.identities) {
-                i.organizationId = orgId
+          )
+            .then((orgId) => {
+              // set the organization id for later use
+              org.organizationId = orgId
+              if (org.identities) {
+                for (const i of org.identities) {
+                  i.organizationId = orgId
+                }
               }
-            }
-            orgIdsToSync.push(orgId)
-          }),
+              orgIdsToSync.push(orgId)
+            })
+            .then(() =>
+              Promise.all(
+                orgIdsToSync.map((orgId) =>
+                  syncOrganization(orgId).catch((error) => {
+                    console.error(`Failed to sync organization with ID ${orgId}:`, error)
+                  }),
+                ),
+              ),
+            ),
         )
       }
 
@@ -430,10 +440,6 @@ export async function updateMemberUsingSquashedPayload(
       await syncMember(memberId)
     } else {
       await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
-    }
-
-    for (const orgId of orgIdsToSync) {
-      await syncOrganization(orgId)
     }
 
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
