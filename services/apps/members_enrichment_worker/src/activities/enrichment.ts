@@ -372,7 +372,9 @@ export async function updateMemberUsingSquashedPayload(
                   i.organizationId = orgId
                 }
               }
-              orgIdsToSync.push(orgId)
+              if (orgId) {
+                orgIdsToSync.push(orgId)
+              }
             })
             .then(() =>
               Promise.all(
