@@ -701,26 +701,31 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
   }
 
   if (profilesFromUnverfiedIdentities.length > 0) {
-    const result = await findRelatedLinkedinProfilesWithLLM(
-      memberId,
-      memberData,
-      profilesFromUnverfiedIdentities,
-    )
-
-    // check if empty object
-    if (result.profileIndex !== null) {
-      if (!categorized.selected) {
-        categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
-      }
-      // add profiles not selected to discarded
-      for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
-        if (i !== result.profileIndex) {
-          categorized.discarded.push(profilesFromUnverfiedIdentities[i])
-        }
-      }
-    } else {
-      // if no match found, we should discard all profiles from verified identities
+    if (categorized.selected) {
+      // we already found a match from verified identities, discard all profiles from unverified identities
       categorized.discarded = profilesFromUnverfiedIdentities
+    } else {
+      const result = await findRelatedLinkedinProfilesWithLLM(
+        memberId,
+        memberData,
+        profilesFromUnverfiedIdentities,
+      )
+
+      // check if empty object
+      if (result.profileIndex !== null) {
+        if (!categorized.selected) {
+          categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
+        }
+        // add profiles not selected to discarded
+        for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
+          if (i !== result.profileIndex) {
+            categorized.discarded.push(profilesFromUnverfiedIdentities[i])
+          }
+        }
+      } else {
+        // if no match found, we should discard all profiles from verified identities
+        categorized.discarded = profilesFromUnverfiedIdentities
+      }
     }
   }
 
