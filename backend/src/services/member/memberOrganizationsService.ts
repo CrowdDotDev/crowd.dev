@@ -1,4 +1,5 @@
 /* eslint-disable no-continue */
+import { Error404 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization } from '@crowd/types'
 
@@ -64,16 +65,22 @@ export default class MemberOrganizationsService extends LoggerBase {
     const memberOrganizationToBeDeleted = existingMemberOrganizations.find(
       (mo) => mo.memberOrganizations.id === id,
     )
+    if (!memberOrganizationToBeDeleted) {
+      throw new Error404(`Member organization with id ${id} not found!`)
+    }
+
     const remainingMemberOrganizations = await MemberOrganizationsRepository.delete(
       id,
       memberId,
       this.options,
     )
+
     await MemberAffiliationService.startAffiliationRecalculation(
       memberId,
       [memberOrganizationToBeDeleted.memberOrganizations.organizationId],
       this.options,
     )
+
     return remainingMemberOrganizations
   }
 }
