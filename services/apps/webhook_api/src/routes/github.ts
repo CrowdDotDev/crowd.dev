@@ -30,19 +30,7 @@ export const installGithubRoutes = async (app: express.Express) => {
       const identifier = data.installation.id.toString()
       const repo = new WebhooksRepository(req.dbStore, req.log)
 
-      if (event === 'installation' && data.action === 'created') {
-        await repo.addGithubInstallation(
-          identifier,
-          data.installation.account.type,
-          data.installation.account.login,
-          data.installation.account.avatar_url,
-          data.repositories.length,
-        )
-        res.sendStatus(204)
-        return
-      }
-      if (event === 'installation' && data.action === 'deleted') {
-        await repo.deleteGithubInstallation(identifier)
+      if (event === 'installation') {
         res.sendStatus(204)
         return
       }

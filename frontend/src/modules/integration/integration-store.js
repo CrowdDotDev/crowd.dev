@@ -216,7 +216,7 @@ export default {
       }
     },
 
-    async doDestroy({ commit }, integrationId) {
+    async doDestroy({ commit, dispatch }, integrationId) {
       try {
         commit('DESTROY_STARTED');
 
@@ -224,6 +224,7 @@ export default {
         Message.success('Integration was disconnected successfully');
 
         commit('DESTROY_SUCCESS', integrationId);
+        dispatch('doFetch');
       } catch (error) {
         Errors.handle(error);
         commit('DESTROY_ERROR');

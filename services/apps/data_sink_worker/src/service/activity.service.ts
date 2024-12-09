@@ -1,6 +1,7 @@
 import vader from 'crowd-sentiment'
 import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
+import moment from 'moment-timezone'
 
 import {
   EDITION,
@@ -12,9 +13,11 @@ import {
 } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { insertActivities, queryActivities } from '@crowd/data-access-layer'
+import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
+  IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
@@ -24,7 +27,8 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
+import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -1088,6 +1092,7 @@ export default class ActivityService extends LoggerBase {
             }
           }
 
+          const activityId = dbActivity?.id ?? generateUUIDv4()
           if (createActivity) {
             organizationId = await txMemberAffiliationService.findAffiliation(
               memberId,
@@ -1099,7 +1104,7 @@ export default class ActivityService extends LoggerBase {
               tenantId,
               segmentId,
               {
-                id: dbActivity?.id ?? generateUUIDv4(),
+                id: activityId,
                 type: activity.type,
                 platform,
                 timestamp: new Date(activity.timestamp),
@@ -1111,7 +1116,16 @@ export default class ActivityService extends LoggerBase {
                 username,
                 objectMemberId,
                 objectMemberUsername,
-                attributes: activity.attributes || {},
+                attributes:
+                  platform === PlatformType.GITHUB &&
+                  activity.type === GithubActivityType.AUTHORED_COMMIT
+                    ? await this.findMatchingGitActivityAttributes({
+                        tenantId,
+                        segmentId,
+                        activity,
+                        attributes: activity.attributes || {},
+                      })
+                    : activity.attributes || {},
                 body: activity.body,
                 title: activity.title,
                 channel: activity.channel,
@@ -1123,6 +1137,14 @@ export default class ActivityService extends LoggerBase {
                 isTeamMember: memberIsTeamMember ?? false,
               },
             )
+          }
+
+          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
+            await this.pushAttributesToMatchingGithubActivity({
+              tenantId,
+              segmentId,
+              activity,
+            })
           }
         } finally {
           // release locks matter what
@@ -1212,5 +1234,132 @@ export default class ActivityService extends LoggerBase {
     }
 
     return null
+  }
+
+  private async findMatchingActivity({
+    tenantId,
+    segmentId,
+    platform,
+    activity,
+  }: {
+    tenantId: string
+    segmentId: string
+    platform: PlatformType
+    activity: IActivityData
+  }): Promise<IDbActivityCreateData | null> {
+    const { rows } = await queryActivities(this.qdbStore.connection(), {
+      tenantId,
+      segmentIds: [segmentId],
+      filter: {
+        platform: { eq: platform },
+        sourceId: { eq: activity.sourceId },
+        type: { eq: activity.type },
+        channel: { eq: activity.channel },
+        and: [
+          { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
+          { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
+        ],
+      },
+      limit: 1,
+    })
+
+    if (rows.length > 0) {
+      return rows[0]
+    }
+
+    return null
+  }
+
+  private async findMatchingGitActivityAttributes({
+    tenantId,
+    segmentId,
+    activity,
+    attributes,
+  }: {
+    tenantId: string
+    segmentId: string
+    activity: IActivityData
+    attributes: Record<string, unknown>
+  }): Promise<Record<string, unknown>> {
+    if (
+      activity.platform !== PlatformType.GITHUB ||
+      activity.type !== GithubActivityType.AUTHORED_COMMIT
+    ) {
+      this.log.error(
+        { activity },
+        'You need to use github authored commit activity for finding matching git activity attributes',
+      )
+      return attributes
+    }
+
+    const gitActivity = await this.findMatchingActivity({
+      tenantId,
+      segmentId,
+      platform: PlatformType.GIT,
+      activity,
+    })
+    if (!gitActivity) {
+      return attributes
+    }
+
+    return {
+      ...gitActivity.attributes,
+      ...attributes,
+    }
+  }
+
+  private async pushAttributesToMatchingGithubActivity({
+    tenantId,
+    segmentId,
+    activity,
+  }: {
+    tenantId: string
+    segmentId: string
+    activity: IActivityData
+  }) {
+    if (
+      activity.platform !== PlatformType.GIT ||
+      activity.type !== GitActivityType.AUTHORED_COMMIT
+    ) {
+      this.log.error(
+        { activity },
+        'You need to use git authored commit activity for pushing attributes to matching github activity',
+      )
+      return
+    }
+
+    const { attributes } = activity
+
+    const updateActivityWithAttributes = async ({
+      githubActivityId,
+      gitAttributes,
+    }: {
+      githubActivityId: string
+      gitAttributes: Record<string, unknown>
+    }) => {
+      await updateActivities(
+        this.qdbStore.connection(),
+        async () => ({
+          attributes: gitAttributes,
+        }),
+        `id = $(id)`,
+        { id: githubActivityId },
+      )
+    }
+
+    const githubActivity = await this.findMatchingActivity({
+      tenantId,
+      segmentId,
+      platform: PlatformType.GITHUB,
+      activity,
+    })
+    if (!githubActivity) {
+      return
+    }
+
+    await updateActivityWithAttributes({
+      githubActivityId: githubActivity.id,
+      gitAttributes: attributes,
+    })
   }
 }

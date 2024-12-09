@@ -29,10 +29,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import LfGithubConnectFinishingModal
-  from '@/config/integrations/github/components/connect/github-connect-finishing-modal.vue';
-// import LfGithubDetailsModal from '@/config/integrations/github/components/github-details-modal.vue';
-import LfGithubConnectModal from './github-connect-modal.vue';
 
 const route = useRoute();
 const { doGithubConnect } = mapActions('integration');

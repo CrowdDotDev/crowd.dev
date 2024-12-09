@@ -7,7 +7,7 @@ const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 export class IntegrationService {
   static async update(id, data) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
 
@@ -38,7 +38,7 @@ export class IntegrationService {
 
   static async create(data) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
 
@@ -147,13 +147,14 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async githubMapRepos(integrationId, mapping, segments) {
+  static async githubMapRepos(integrationId, mapping, segments, isUpdateTransaction = false) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
       {
         mapping,
         segments,
+        isUpdateTransaction,
       },
     );
     return response.data;

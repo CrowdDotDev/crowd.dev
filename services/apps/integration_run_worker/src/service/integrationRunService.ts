@@ -230,6 +230,7 @@ export default class IntegrationRunService extends LoggerBase {
     onboarding: boolean,
     isManualRun?: boolean,
     manualSettings?: unknown,
+    additionalInfo?: unknown,
   ): Promise<void> {
     this.log = getChildLogger('start-integration-run', this.log, {
       integrationId,
@@ -278,6 +279,7 @@ export default class IntegrationRunService extends LoggerBase {
       onboarding,
       isManualRun,
       manualSettings,
+      additionalInfo,
     )
   }
 
@@ -285,6 +287,7 @@ export default class IntegrationRunService extends LoggerBase {
     runId: string,
     isManualRun?: boolean,
     manualSettings?: unknown,
+    additionalInfo?: unknown,
   ): Promise<void> {
     this.log.info({ runId }, 'Trying to generate root streams for integration run!')
 
@@ -417,6 +420,9 @@ export default class IntegrationRunService extends LoggerBase {
       // this is for controling manual one off runs
       isManualRun,
       manualSettings,
+
+      // this is mainly for github when we add new repos
+      additionalInfo,
 
       log: this.log,
       cache,
