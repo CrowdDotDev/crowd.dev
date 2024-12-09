@@ -1,6 +1,11 @@
 import _ from 'lodash'
 
-import { generateUUIDv1, replaceDoubleQuotes, setAttributesDefaultValues } from '@crowd/common'
+import {
+  generateUUIDv1,
+  hasIntersection,
+  replaceDoubleQuotes,
+  setAttributesDefaultValues,
+} from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import {
   updateMemberAttributes,
@@ -26,6 +31,7 @@ import {
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
@@ -37,6 +43,7 @@ import {
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationAttributeSource,
+  OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
@@ -65,7 +72,7 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  if ((await service.isEnrichableBySource(input)) && (await hasRemainingCredits(source))) {
+  if (await service.isEnrichableBySource(input)) {
     return service.getData(input)
   }
   return null
@@ -220,6 +227,7 @@ export async function updateMemberUsingSquashedPayload(
   existingMemberData: IMemberOriginalData,
   squashedPayload: IMemberEnrichmentDataNormalized,
   hasContributions: boolean,
+  isHighConfidenceSourceSelectedForWorkExperiences: boolean,
 ): Promise<boolean> {
   return await svc.postgres.writer.transactionally(async (tx) => {
     let updated = false
@@ -228,7 +236,7 @@ export async function updateMemberUsingSquashedPayload(
 
     // process identities
     if (squashedPayload.identities.length > 0) {
-      svc.log.info({ memberId }, 'Adding to member identities!')
+      svc.log.debug({ memberId }, 'Adding to member identities!')
       for (const i of squashedPayload.identities) {
         updated = true
         promises.push(
@@ -247,7 +255,7 @@ export async function updateMemberUsingSquashedPayload(
     // process contributions
     // if squashed payload has data from progai, we should fetch contributions here
     // it's ommited from the payload because it takes a lot of space
-    svc.log.info('Processing contributions! ', { memberId, hasContributions })
+    svc.log.debug('Processing contributions! ', { memberId, hasContributions })
     if (hasContributions) {
       promises.push(
         findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
@@ -265,7 +273,6 @@ export async function updateMemberUsingSquashedPayload(
           .then((normalized) => {
             if (normalized) {
               const typed = normalized as IMemberEnrichmentDataNormalized
-              svc.log.info('Normalized contributions: ', { contributions: typed.contributions })
 
               if (typed.contributions) {
                 updated = true
@@ -280,7 +287,7 @@ export async function updateMemberUsingSquashedPayload(
     let attributes = existingMemberData.attributes as Record<string, unknown>
 
     if (squashedPayload.attributes) {
-      svc.log.info({ memberId }, 'Updating member attributes!')
+      svc.log.debug({ memberId }, 'Updating member attributes!')
 
       attributes = _.merge({}, attributes, squashedPayload.attributes)
 
@@ -298,7 +305,7 @@ export async function updateMemberUsingSquashedPayload(
 
     // process reach
     if (squashedPayload.reach && Object.keys(squashedPayload.reach).length > 0) {
-      svc.log.info({ memberId }, 'Updating member reach!')
+      svc.log.debug({ memberId }, 'Updating member reach!')
       let reach: IMemberReach
 
       if (existingMemberData.reach && existingMemberData.reach.total) {
@@ -317,9 +324,35 @@ export async function updateMemberUsingSquashedPayload(
       }
     }
 
+    const orgIdsToSync: string[] = []
+
     if (squashedPayload.memberOrganizations.length > 0) {
       const orgPromises = []
+
+      // try matching member's existing organizations with the new ones
+      // we'll be using displayName, title, dates
       for (const org of squashedPayload.memberOrganizations) {
+        if (!org.organizationId) {
+          // Check if any similar in existing work experiences
+          const existingOrg = existingMemberData.organizations.find((o) =>
+            doesIncomingOrgExistInExistingOrgs(o, org),
+          )
+
+          if (existingOrg) {
+            // Get all orgs with the same name as the current one
+            const matchingOrgs = squashedPayload.memberOrganizations.filter(
+              (otherOrg) => otherOrg.name === org.name,
+            )
+
+            // Set organizationId for all matching orgs
+            for (const matchingOrg of matchingOrgs) {
+              matchingOrg.organizationId = existingOrg.orgId
+            }
+          }
+        }
+      }
+
+      for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
         orgPromises.push(
           findOrCreateOrganization(
             qx,
@@ -330,15 +363,28 @@ export async function updateMemberUsingSquashedPayload(
               description: org.organizationDescription,
               identities: org.identities ? org.identities : [],
             },
-          ).then((orgId) => {
-            // set the organization id for later use
-            org.organizationId = orgId
-            if (org.identities) {
-              for (const i of org.identities) {
-                i.organizationId = orgId
+          )
+            .then((orgId) => {
+              // set the organization id for later use
+              org.organizationId = orgId
+              if (org.identities) {
+                for (const i of org.identities) {
+                  i.organizationId = orgId
+                }
               }
-            }
-          }),
+              if (orgId) {
+                orgIdsToSync.push(orgId)
+              }
+            })
+            .then(() =>
+              Promise.all(
+                orgIdsToSync.map((orgId) =>
+                  syncOrganization(orgId).catch((error) => {
+                    console.error(`Failed to sync organization with ID ${orgId}:`, error)
+                  }),
+                ),
+              ),
+            ),
         )
       }
 
@@ -351,6 +397,7 @@ export async function updateMemberUsingSquashedPayload(
       const results = prepareWorkExperiences(
         existingMemberData.organizations,
         squashedPayload.memberOrganizations,
+        isHighConfidenceSourceSelectedForWorkExperiences,
       )
 
       if (results.toDelete.length > 0) {
@@ -388,17 +435,62 @@ export async function updateMemberUsingSquashedPayload(
       }
     }
 
+    await Promise.all(promises)
+
     if (updated) {
       await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
+      await syncMember(memberId)
     } else {
       await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
     }
 
-    await Promise.all(promises)
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
 
     return updated
   })
+}
+
+export function doesIncomingOrgExistInExistingOrgs(
+  existingOrg: IMemberOrganizationData,
+  incomingOrg: IMemberEnrichmentDataNormalizedOrganization,
+): boolean {
+  // Check if any similar in existing work experiences
+  const incomingVerifiedPrimaryDomainIdentityValues = incomingOrg.identities
+    .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified)
+    .map((i) => i.value)
+
+  const existingVerifiedPrimaryDomainIdentityValues = existingOrg.identities
+    .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified)
+    .map((i) => i.value)
+
+  const incomingOrgStartDate = incomingOrg.startDate ? new Date(incomingOrg.startDate) : null
+  const incomingOrgEndDate = incomingOrg.endDate ? new Date(incomingOrg.endDate) : null
+  const existingOrgStartDate = existingOrg.dateStart ? new Date(existingOrg.dateStart) : null
+  const existingOrgEndEndDate = existingOrg.dateEnd ? new Date(existingOrg.dateEnd) : null
+
+  const isSameStartMonthYear =
+    (!incomingOrgStartDate && !existingOrgStartDate) || // Both start dates are null
+    (incomingOrgStartDate &&
+      existingOrgStartDate &&
+      incomingOrgStartDate.getMonth() === existingOrgStartDate.getMonth() &&
+      incomingOrgStartDate.getFullYear() === existingOrgStartDate.getFullYear())
+
+  const isSameEndMonthYear =
+    (!incomingOrgEndDate && !existingOrgEndEndDate) || // Both end dates are null
+    (incomingOrgEndDate &&
+      existingOrgEndEndDate &&
+      incomingOrgEndDate.getMonth() === existingOrgEndEndDate.getMonth() &&
+      incomingOrgEndDate.getFullYear() === existingOrgEndEndDate.getFullYear())
+
+  return (
+    hasIntersection(
+      incomingVerifiedPrimaryDomainIdentityValues,
+      existingVerifiedPrimaryDomainIdentityValues,
+    ) ||
+    ((existingOrg.orgName.toLowerCase().includes(incomingOrg.name.toLowerCase()) ||
+      incomingOrg.name.toLowerCase().includes(existingOrg.orgName.toLowerCase())) &&
+      ((isSameStartMonthYear && isSameEndMonthYear) || incomingOrg.title === existingOrg.jobTitle))
+  )
 }
 
 export async function setMemberEnrichmentTryDate(memberId: string): Promise<void> {
@@ -608,25 +700,32 @@ export async function findWhichLinkedinProfileToUseAmongScraperResult(
     }
   }
 
-  if (!categorized.selected && profilesFromUnverfiedIdentities.length > 0) {
-    const result = await findRelatedLinkedinProfilesWithLLM(
-      memberId,
-      memberData,
-      profilesFromUnverfiedIdentities,
-    )
-
-    // check if empty object
-    if (result.profileIndex !== null) {
-      categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
-      // add profiles not selected to discarded
-      for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
-        if (i !== result.profileIndex) {
-          categorized.discarded.push(profilesFromUnverfiedIdentities[i])
-        }
-      }
-    } else {
-      // if no match found, we should discard all profiles from verified identities
+  if (profilesFromUnverfiedIdentities.length > 0) {
+    if (categorized.selected) {
+      // we already found a match from verified identities, discard all profiles from unverified identities
       categorized.discarded = profilesFromUnverfiedIdentities
+    } else {
+      const result = await findRelatedLinkedinProfilesWithLLM(
+        memberId,
+        memberData,
+        profilesFromUnverfiedIdentities,
+      )
+
+      // check if empty object
+      if (result.profileIndex !== null) {
+        if (!categorized.selected) {
+          categorized.selected = profilesFromUnverfiedIdentities[result.profileIndex]
+        }
+        // add profiles not selected to discarded
+        for (let i = 0; i < profilesFromUnverfiedIdentities.length; i++) {
+          if (i !== result.profileIndex) {
+            categorized.discarded.push(profilesFromUnverfiedIdentities[i])
+          }
+        }
+      } else {
+        // if no match found, we should discard all profiles from verified identities
+        categorized.discarded = profilesFromUnverfiedIdentities
+      }
     }
   }
 
@@ -758,13 +857,24 @@ interface IWorkExperienceChanges {
 function prepareWorkExperiences(
   oldVersion: IMemberOrganizationData[],
   newVersion: IMemberEnrichmentDataNormalizedOrganization[],
+  isHighConfidenceSourceSelectedForWorkExperiences: boolean,
 ): IWorkExperienceChanges {
   // we delete all the work experiences that were not manually created
-  const toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
+  let toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
 
   const toCreate: IMemberEnrichmentDataNormalizedOrganization[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toUpdate: Map<IMemberOrganizationData, Record<string, any>> = new Map()
+
+  if (isHighConfidenceSourceSelectedForWorkExperiences) {
+    toDelete = oldVersion
+    toCreate.push(...newVersion)
+    return {
+      toDelete,
+      toCreate,
+      toUpdate,
+    }
+  }
 
   // sort both versions by start date and only use manual changes from the current version
   const orderedCurrentVersion = oldVersion
@@ -778,6 +888,7 @@ function prepareWorkExperiences(
       // Compare dates if both values exist
       return new Date(a.dateStart as string).getTime() - new Date(b.dateStart as string).getTime()
     })
+
   let orderedNewVersion = newVersion.sort((a, b) => {
     // If either value is null/undefined, move it to the beginning
     if (!a.startDate && !b.startDate) return 0
@@ -796,45 +907,34 @@ function prepareWorkExperiences(
   // we iterate through the existing version experiences to see if update is needed
   for (const current of orderedCurrentVersion) {
     // try and find a matching experience in the new versions by title
-    let match = orderedNewVersion.find(
+    const match = orderedNewVersion.find(
       (e) =>
         e.title === current.jobTitle &&
         e.identities &&
         e.identities.some((e) => e.organizationId === current.orgId),
     )
-    if (!match) {
-      // if we didn't find a match by title we should check dates
-      match = orderedNewVersion.find(
-        (e) =>
-          dateIntersects(current.dateStart, current.dateEnd, e.startDate, e.endDate) &&
-          e.identities &&
-          e.identities.some((e) => e.organizationId === current.orgId),
-      )
-    }
 
     // if we found a match we can check if we need something to update
-    if (match) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (
+      match &&
+      current.dateStart === match.startDate &&
+      current.dateEnd === null &&
+      match.endDate !== null
+    ) {
       const toUpdateInner: Record<string, any> = {}
 
-      // lets check if the dates and title are the same otherwise we need to update them
-      if (current.dateStart !== match.startDate) {
-        toUpdateInner.dateStart = match.startDate
-      }
-
-      if (current.dateEnd !== match.endDate) {
-        toUpdateInner.dateEnd = match.endDate
-      }
-
-      if (current.jobTitle !== match.title) {
-        toUpdateInner.title = match.title
-      }
-
-      if (Object.keys(toUpdateInner).length > 0) {
-        toUpdate.set(current, toUpdateInner)
-      }
+      toUpdateInner.dateEnd = match.endDate
+      toUpdate.set(current, toUpdateInner)
 
       // remove the match from the new version array so we later don't process it again
+      orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
+    } else if (
+      match &&
+      (current.dateStart !== match.startDate || current.dateEnd !== null || match.endDate === null)
+    ) {
+      // there's an incoming work experiences, but it's conflicting with the existing manually updated data
+      // we shouldn't add or update anything when this happens
+      // we can only update dateEnd of existing manually changed data, when it has a null dateEnd
       orderedNewVersion = orderedNewVersion.filter((e) => e.id !== match.id)
     }
     // if we didn't find a match we should just leave it as it is in the database since it was manual input
@@ -850,26 +950,20 @@ function prepareWorkExperiences(
   }
 }
 
-function dateIntersects(
-  d1Start?: string | null,
-  d1End?: string | null,
-  d2Start?: string | null,
-  d2End?: string | null,
-): boolean {
-  // If both periods have no dates at all, we can't determine intersection
-  if ((!d1Start && !d1End) || (!d2Start && !d2End)) {
-    return false
-  }
+export async function syncMember(memberId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
 
-  // Convert strings to timestamps, using fallbacks for missing dates
-  const start1 = d1Start ? new Date(d1Start).getTime() : -Infinity
-  const end1 = d1End ? new Date(d1End).getTime() : Infinity
-  const start2 = d2Start ? new Date(d2Start).getTime() : -Infinity
-  const end2 = d2End ? new Date(d2End).getTime() : Infinity
+  await syncApi.triggerMemberSync(memberId, { withAggs: false })
+}
 
-  // Periods intersect if one period's start is before other period's end
-  // and that same period's end is after the other period's start
-  return start1 <= end2 && end1 >= start2
+export async function syncOrganization(organizationId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs: false })
 }
 
 export async function cleanAttributeValue(

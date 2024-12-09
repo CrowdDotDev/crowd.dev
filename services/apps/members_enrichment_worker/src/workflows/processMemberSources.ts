@@ -233,7 +233,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       for (const attribute of Object.keys(multipleValueAttributesSquashed)) {
         if (multipleValueAttributesSquashed[attribute]) {
           attributesSquashed[attribute] = {
-            enrichment: multipleValueAttributesSquashed[attribute],
+            enrichment: await cleanAttributeValue(multipleValueAttributesSquashed[attribute]),
           }
         }
       }
@@ -265,6 +265,21 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           args.memberId,
           workExperienceDataInDifferentSources,
         )
+        // if there are multiple verified identities in work experiences, we reduce it
+        // to one because in our db they might exist in different organizations and
+        // might need a merge. To avoid this, we'll only send the org with one verified identity
+        workExperiencesSquashedByLLM.forEach((we) => {
+          let found = false
+          we.identities = (we.identities || []).map((i) => {
+            if (i.verified && !found) {
+              found = true
+              return i
+            } else if (i.verified) {
+              return { ...i, verified: false }
+            }
+            return i
+          })
+        })
         squashedPayload.memberOrganizations = workExperiencesSquashedByLLM
       }
     }
@@ -279,6 +294,7 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
       existingMemberData,
       squashedPayload,
       progaiLinkedinScraperProfileSelected && hasContributions,
+      !!crustDataProfileSelected,
     )
 
     return memberUpdated
