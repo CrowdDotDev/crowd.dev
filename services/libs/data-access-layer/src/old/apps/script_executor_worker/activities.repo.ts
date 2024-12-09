@@ -53,6 +53,7 @@ export class ActivityRepository {
         SET "memberId" = $(correctMemberId)
         WHERE "username" = $(username)
         AND platform = $(platform)
+        AND "memberId" != $(correctMemberId)
         `,
         {
           username,
