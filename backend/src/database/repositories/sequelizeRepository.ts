@@ -10,6 +10,8 @@ import {
 } from '@crowd/data-access-layer/src/queryExecutor'
 import { Unleash, getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { Edition, SegmentData } from '@crowd/types'
@@ -17,6 +19,7 @@ import { Edition, SegmentData } from '@crowd/types'
 import {
   API_CONFIG,
   IS_TEST_ENV,
+  OPENSEARCH_CONFIG,
   PRODUCT_DB_CONFIG,
   REDIS_CONFIG,
   TEMPORAL_CONFIG,
@@ -68,6 +71,10 @@ export default class SequelizeRepository {
       productDb = await getDbConnection(PRODUCT_DB_CONFIG)
     }
 
+    const qdb = await getClientSQL()
+
+    const opensearch = await getOpensearchClient(OPENSEARCH_CONFIG)
+
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -80,6 +87,8 @@ export default class SequelizeRepository {
       unleash,
       temporal,
       productDb,
+      qdb,
+      opensearch,
     }
   }
 

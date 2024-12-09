@@ -1498,10 +1498,12 @@ class OrganizationRepository {
     const organizationMap = {}
 
     for (const res of activeOrgsResults) {
-      organizationIds.push(res.organizationId)
-      organizationMap[res.organizationId] = {
-        activityCount: res.activityCount,
-        activeDaysCount: res.activeDaysCount,
+      if (res.organizationId) {
+        organizationIds.push(res.organizationId)
+        organizationMap[res.organizationId] = {
+          activityCount: res.activityCount,
+          activeDaysCount: res.activeDaysCount,
+        }
       }
     }
 
