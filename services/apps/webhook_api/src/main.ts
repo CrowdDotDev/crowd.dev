@@ -21,6 +21,7 @@ import { loggingMiddleware } from './middleware/logging'
 import { queueMiddleware } from './middleware/queue'
 import { installDataIssueRoutes } from './routes/dataIssue'
 import { installDiscourseRoutes } from './routes/discourse'
+import { installGithubRoutes } from './routes/github'
 import { installGitlabRoutes } from './routes/gitlab'
 import { installGroupsIoRoutes } from './routes/groupsio'
 
@@ -86,6 +87,7 @@ setImmediate(async () => {
   app.use(queueMiddleware(queueClient))
 
   // add routes
+  installGithubRoutes(app)
   installGroupsIoRoutes(app)
   installDiscourseRoutes(app)
   installGitlabRoutes(app)
