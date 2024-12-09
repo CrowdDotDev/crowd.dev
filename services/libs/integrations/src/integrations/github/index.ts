@@ -7,6 +7,7 @@ import generateStreams from './generateStreams'
 import { GITHUB_MEMBER_ATTRIBUTES } from './memberAttributes'
 import processData from './processData'
 import processStream from './processStream'
+import processWebhookStream from './processWebhookStream'
 
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GITHUB,
@@ -15,6 +16,7 @@ const descriptor: IIntegrationDescriptor = {
   generateStreams,
   processStream,
   processData,
+  processWebhookStream,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postProcess: (settings: any) => {
     return settings

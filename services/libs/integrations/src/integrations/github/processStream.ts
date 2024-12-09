@@ -24,12 +24,12 @@ let gh: GithubSnowflakeClient | undefined = undefined
 const initClient = (ctx: IProcessStreamContext) => {
   const settings = ctx.platformSettings as GithubPlatformSettings
   sf = new SnowflakeClient({
-    privateKeyString: settings.privateKey,
-    account: settings.account,
-    username: settings.username,
-    database: settings.database,
-    warehouse: settings.warehouse,
-    role: settings.role,
+    privateKeyString: settings.sfPrivateKey,
+    account: settings.sfAccount,
+    username: settings.sfUsername,
+    database: settings.sfDatabase,
+    warehouse: settings.sfWarehouse,
+    role: settings.sfRole,
   })
   gh = new GithubSnowflakeClient(sf)
 }

@@ -128,12 +128,21 @@ export interface GithubBasicStream {
 }
 
 export interface GithubPlatformSettings {
+  sfPrivateKey: string
+  sfAccount: string
+  sfUsername: string
+  sfDatabase: string
+  sfWarehouse: string
+  sfRole: string
+  appId: string
+  clientId: string
+  clientSecret: string
   privateKey: string
-  account: string
-  username: string
-  database: string
-  warehouse: string
-  role: string
+  webhookSecret: string
+  isCommitDataEnabled: string
+  globalLimit?: number
+  callbackUrl: string
+  personalAccessTokens: string
 }
 
 export interface GithubIntegrationSettings {

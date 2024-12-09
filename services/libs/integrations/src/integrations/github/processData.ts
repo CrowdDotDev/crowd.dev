@@ -24,15 +24,10 @@ import {
 
 import { generateSourceIdHash } from '../../helpers'
 import { ProcessDataHandler } from '../../types'
+import { default as oldHandler } from '../github-old/processData'
 
 import { GITHUB_GRID } from './grid'
-import {
-  GithubActivityType,
-  GithubApiData,
-  GithubPrepareMemberOutput,
-  GithubPrepareOrgMemberOutput,
-  INDIRECT_FORK,
-} from './types'
+import { GithubActivityType, GithubApiData, GithubPrepareMemberOutput } from './types'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -228,67 +223,6 @@ const parseMember = (
   return member
 }
 
-const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData => {
-  const { orgFromApi } = memberData
-
-  const member: IMemberData = {
-    identities: [
-      {
-        platform: PlatformType.GITHUB,
-        value: orgFromApi.login,
-        type: MemberIdentityType.USERNAME,
-        verified: true,
-      },
-    ],
-    displayName: orgFromApi?.name?.trim() || orgFromApi.login,
-    attributes: {
-      [MemberAttributeName.URL]: {
-        [PlatformType.GITHUB]: orgFromApi.url,
-      },
-      [MemberAttributeName.BIO]: {
-        [PlatformType.GITHUB]: orgFromApi.description || '',
-      },
-      [MemberAttributeName.LOCATION]: {
-        [PlatformType.GITHUB]: orgFromApi.location || '',
-      },
-      [MemberAttributeName.AVATAR_URL]: {
-        [PlatformType.GITHUB]: orgFromApi.avatarUrl || '',
-      },
-    },
-  }
-
-  if (orgFromApi.email) {
-    member.identities.push({
-      platform: PlatformType.GITHUB,
-      value: orgFromApi.email,
-      type: MemberIdentityType.EMAIL,
-      verified: true,
-    })
-  }
-
-  if (orgFromApi?.twitterUsername) {
-    member.identities.push({
-      platform: PlatformType.TWITTER,
-      value: orgFromApi.twitterUsername,
-      type: MemberIdentityType.USERNAME,
-      verified: false,
-    })
-  }
-
-  if (orgFromApi.websiteUrl) {
-    member.attributes[MemberAttributeName.WEBSITE_URL] = {
-      [PlatformType.GITHUB]: orgFromApi.websiteUrl,
-    }
-  }
-
-  // mark as organization
-  member.attributes[MemberAttributeName.IS_ORGANIZATION] = {
-    [PlatformType.GITHUB]: true,
-  }
-
-  return member
-}
-
 const parseStar: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data as IGetRepoStargazersResult
@@ -363,53 +297,6 @@ const parseFork: ProcessDataHandler = async (ctx) => {
     member,
     score: GITHUB_GRID.fork.score,
     isContribution: GITHUB_GRID.fork.isContribution,
-  }
-
-  await ctx.publishActivity(activity)
-}
-
-const parseForkByOrg: ProcessDataHandler = async (ctx) => {
-  const apiData = ctx.data as GithubApiData
-  const data = apiData.data
-  const relatedData = apiData.relatedData
-  const memberData = apiData.orgMember
-  const subType = apiData.subType
-
-  const member = parseOrgMember(memberData)
-
-  if (subType && subType === INDIRECT_FORK) {
-    const activity: IActivityData = {
-      type: GithubActivityType.FORK,
-      sourceId: data.id,
-      sourceParentId: '',
-      timestamp: new Date(data.createdAt).toISOString(),
-      channel: apiData.repo.url,
-      member,
-      score: GITHUB_GRID.fork.score,
-      isContribution: GITHUB_GRID.fork.isContribution,
-      attributes: {
-        isIndirectFork: true,
-        directParent: relatedData.url,
-        isForkByOrg: true,
-      },
-    }
-
-    await ctx.publishActivity(activity)
-    return
-  }
-
-  const activity: IActivityData = {
-    type: GithubActivityType.FORK,
-    sourceId: data.id,
-    sourceParentId: '',
-    timestamp: new Date(data.createdAt).toISOString(),
-    channel: apiData.repo.url,
-    member,
-    score: GITHUB_GRID.fork.score,
-    isContribution: GITHUB_GRID.fork.isContribution,
-    attributes: {
-      isForkByOrg: true,
-    },
   }
 
   await ctx.publishActivity(activity)
@@ -692,6 +579,9 @@ const handler: ProcessDataHandler = async (ctx) => {
 
   const event = data?.type as GithubActivityType
 
+  // for webhoks we are using old code
+  const webhookEvent = data?.webhookType
+
   if (event) {
     // parse github api data
     switch (event) {
@@ -731,6 +621,8 @@ const handler: ProcessDataHandler = async (ctx) => {
       default:
         await ctx.abortWithError(`Event not supported '${event}'!`)
     }
+  } else if (webhookEvent) {
+    await oldHandler(ctx)
   } else {
     await ctx.abortWithError('No event type found in data!')
   }
