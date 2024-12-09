@@ -26,3 +26,7 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   tenantId: string
   testRun?: boolean
 }
+
+export interface IFixMisattributedActivitiesArgs {
+  testRun?: boolean
+}

@@ -11,6 +11,11 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  findActivitiesWithWrongMembers,
+  findMemberIdentity,
+  updateActivities,
+} from './activities/fix-misattributed-activities'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -38,4 +43,7 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  findActivitiesWithWrongMembers,
+  findMemberIdentity,
+  updateActivities,
 }

@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMember } from '@crowd/types'
+import { IMember, IMemberIdentity } from '@crowd/types'
 
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 
@@ -158,6 +158,34 @@ class MemberRepository {
     }
 
     return member
+  }
+
+  async findMemberIdentity(
+    username: string,
+    platform: string,
+    type = 'username',
+  ): Promise<IMemberIdentity | null> {
+    let memberIdentity: IMemberIdentity
+
+    try {
+      memberIdentity = await this.connection.oneOrNone(
+        `
+        select * from "memberIdentities" where value = $(username) and platform = $(platform) 
+        and type = $(type) and verified = true
+      `,
+        {
+          username,
+          platform,
+          type,
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while finding member identity!', err)
+
+      throw new Error(err)
+    }
+
+    return memberIdentity
   }
 }
 
