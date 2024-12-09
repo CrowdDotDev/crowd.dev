@@ -15,7 +15,6 @@ import { getOpensearchClient } from '@crowd/opensearch'
 import { RedisPubSubReceiver, getRedisClient, getRedisPubSubPair } from '@crowd/redis'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { getServiceTracer } from '@crowd/tracing'
 import { ApiWebsocketMessage, Edition } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -46,7 +45,6 @@ import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
-getServiceTracer()
 
 const app = express()
 
@@ -184,11 +182,16 @@ setImmediate(async () => {
     bodyParser.json({
       limit: '5mb',
       verify(req: any, res, buf) {
-        const url = req.originalUrl
-        if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
-          // Stripe and sendgrid webhooks needs the body raw
-          // for verifying the webhook with signing secret
-          req.rawBody = buf.toString()
+        try {
+          const url = req.originalUrl
+          if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
+            // Stripe and sendgrid webhooks needs the body raw
+            // for verifying the webhook with signing secret
+            req.rawBody = buf.toString()
+          }
+        } catch (err) {
+          serviceLogger.error(err, 'Error while verifying request body for strip/sendgrid webhook!')
+          throw err
         }
       },
     }),
@@ -287,11 +290,7 @@ setImmediate(async () => {
 
   app.use('/webhooks', webhookRoutes)
 
-  const io = require('@pm2/io')
-
   app.use(errorMiddleware)
-
-  app.use(io.expressErrorHandler())
 })
 
 export default server

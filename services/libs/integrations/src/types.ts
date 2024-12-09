@@ -14,7 +14,7 @@ import {
   IntegrationResultType,
 } from '@crowd/types'
 
-import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
+import { IBatchOperationResult } from './integrations/hubspot/api/types'
 
 export interface IIntegrationContext {
   onboarding?: boolean

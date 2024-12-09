@@ -1498,10 +1498,12 @@ class OrganizationRepository {
     const organizationMap = {}
 
     for (const res of activeOrgsResults) {
-      organizationIds.push(res.organizationId)
-      organizationMap[res.organizationId] = {
-        activityCount: res.activityCount,
-        activeDaysCount: res.activeDaysCount,
+      if (res.organizationId) {
+        organizationIds.push(res.organizationId)
+        organizationMap[res.organizationId] = {
+          activityCount: res.activityCount,
+          activeDaysCount: res.activeDaysCount,
+        }
       }
     }
 
@@ -1685,7 +1687,9 @@ class OrganizationRepository {
           ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
               segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
             }`
-          : ''
+          : ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
+            }`
       }
       WHERE 1=1
         AND o."tenantId" = $(tenantId)

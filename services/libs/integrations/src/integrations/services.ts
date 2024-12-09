@@ -13,32 +13,11 @@ const intFolder = path.resolve(`${__dirname}/`)
 
 const integrationFolders = fs
   .readdirSync(intFolder, { withFileTypes: true })
-  .filter(
-    (dir) =>
-      dir.isDirectory() &&
-      dir.name !== 'premium' &&
-      fs.existsSync(`${intFolder}/${dir.name}/index.ts`),
-  )
+  .filter((dir) => dir.isDirectory() && fs.existsSync(`${intFolder}/${dir.name}/index.ts`))
 
 for (const intFolder of integrationFolders) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   INTEGRATION_SERVICES.push(require(`./${intFolder.name}`).default)
-}
-
-// add premium integrations - check for js because library is compiled to javascript
-const premiumFolder = path.resolve(`${__dirname}/premium`)
-
-if (fs.existsSync(premiumFolder)) {
-  const premiumIntFolders = fs
-    .readdirSync(premiumFolder, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory() && fs.existsSync(`${premiumFolder}/${dir.name}/index.ts`))
-
-  if (premiumIntFolders.length > 0) {
-    for (const premiumIntFolder of premiumIntFolders) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      INTEGRATION_SERVICES.push(require(`./premium/${premiumIntFolder.name}`).default)
-    }
-  }
 }
 
 log.info(

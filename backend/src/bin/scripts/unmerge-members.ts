@@ -164,7 +164,6 @@ if (
                 "tenantId", 
                 "createdById", 
                 "updatedById", 
-                "lastEnriched", 
                 "contributions", 
                 "enrichedBy", 
                 "manuallyCreated")
@@ -183,7 +182,6 @@ if (
                   :tenantId,
                   :createdById,
                   :updatedById,
-                  :lastEnriched,
                   :contributions,
                   :enrichedBy,
                   :manuallyCreated)`,

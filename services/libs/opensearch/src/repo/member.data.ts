@@ -71,7 +71,6 @@ export interface IDbMemberSyncData {
   displayName: string | null
   attributes: unknown | null
   score: number | null
-  lastEnriched: string | null
   joinedAt: string
   createdAt: string
   manuallyCreated: boolean

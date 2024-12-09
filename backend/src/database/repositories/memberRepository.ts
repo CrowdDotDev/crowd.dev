@@ -8,15 +8,7 @@ import {
   memberEditOrganizationsAction,
   memberEditProfileAction,
 } from '@crowd/audit-logs'
-import {
-  Error400,
-  Error404,
-  Error409,
-  RawQueryParser,
-  dateEqualityChecker,
-  distinct,
-  groupBy,
-} from '@crowd/common'
+import { Error400, Error404, Error409, RawQueryParser, distinct, groupBy } from '@crowd/common'
 import {
   countMembersWithActivities,
   getActiveMembers,
@@ -140,7 +132,6 @@ class MemberRepository {
         'displayName',
         'attributes',
         'emails',
-        'lastEnriched',
         'enrichedBy',
         'contributions',
         'score',
@@ -811,7 +802,6 @@ class MemberRepository {
               m."attributes",
               m."emails",
               m."score",
-              m."lastEnriched",
               m."enrichedBy",
               m."contributions",
               m."reach",
@@ -861,7 +851,6 @@ class MemberRepository {
     displayName: (a, b) => a === b,
     attributes: (a, b) => lodash.isEqual(a, b),
     emails: (a, b) => lodash.isEqual(a, b),
-    lastEnriched: (a, b) => dateEqualityChecker(a, b),
     contributions: (a, b) => lodash.isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => lodash.isEqual(a, b),
@@ -1499,9 +1488,7 @@ class MemberRepository {
           limit: 1,
           offset: 0,
           include: {
-            memberOrganizations: true,
             lfxMemberships: true,
-            identities: true,
             segments: true,
             maintainers: true,
             ...include,
@@ -1975,7 +1962,6 @@ class MemberRepository {
       // member agg fields
       ['lastActive', { name: 'msa."lastActive"' }],
       ['identityPlatforms', { name: 'msa."activeOn"' }],
-      ['lastEnriched', { name: 'm."lastEnriched"' }],
       ['score', { name: 'm.score' }],
       ['averageSentiment', { name: 'msa."averageSentiment"' }],
       ['activityTypes', { name: 'msa."activityTypes"' }],
@@ -3117,87 +3103,6 @@ class MemberRepository {
       }
       return a.name > b.name ? 1 : -1
     })
-  }
-
-  static async getMemberIdsandCountForEnrich(
-    { limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
-    options: IRepositoryOptions,
-  ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      limit,
-      offset,
-    }
-
-    let orderByString = ''
-    const orderByParts = orderBy.split('_')
-    const direction = orderByParts[1].toLowerCase()
-    switch (orderByParts[0]) {
-      case 'joinedAt':
-        orderByString = 'm."joinedAt"'
-        break
-      case 'displayName':
-        orderByString = 'm."displayName"'
-        break
-      case 'reach':
-        orderByString = "(m.reach ->> 'total')::int"
-        break
-      case 'score':
-        orderByString = 'm.score'
-        break
-
-      default:
-        throw new Error(`Invalid order by: ${orderBy}!`)
-    }
-    orderByString = `${orderByString} ${direction}`
-
-    const countQuery = `
-    SELECT count(*) FROM (
-      SELECT m.id
-      FROM members m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."tenantId" = :tenantId
-      AND ms."segmentId" IN (:segmentIds)
-      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
-      AND m."deletedAt" is NULL
-    ) as count
-    `
-
-    const memberCount = await seq.query(countQuery, {
-      replacements: params,
-      type: QueryTypes.SELECT,
-    })
-
-    if (countOnly) {
-      return {
-        count: (memberCount[0] as any).count,
-        ids: [],
-      }
-    }
-
-    const members = await seq.query(
-      `SELECT m.id FROM members m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds)
-      AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
-      AND m."deletedAt" is NULL
-      ORDER BY ${orderByString}
-      LIMIT :limit OFFSET :offset`,
-      {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      },
-    )
-
-    return {
-      count: (memberCount[0] as any).count,
-      ids: members.map((i: any) => i.id),
-    }
   }
 
   static async moveNotesBetweenMembers(

@@ -3,6 +3,7 @@ import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/con
 const error: IntegrationStatusConfig = {
   key: 'error',
   show: (integration: any) => integration.status === 'error',
+  statuses: ['error'],
   status: {
     text: 'Connection failed',
     icon: 'error-warning-fill',

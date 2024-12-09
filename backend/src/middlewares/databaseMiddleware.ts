@@ -8,8 +8,7 @@ const log = getServiceLogger()
 let qdb
 export async function databaseMiddleware(req, res, next) {
   try {
-    const profileQueries = !!req.profileSql
-    const database = await databaseInit(undefined, undefined, undefined, profileQueries)
+    const database = await databaseInit()
     req.database = database
     if (!qdb) {
       qdb = await getClientSQL()

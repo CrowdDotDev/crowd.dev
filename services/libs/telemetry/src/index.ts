@@ -67,13 +67,15 @@ const telemetry = {
   timer: (name: string, tags?: Record<string, string | number>) => {
     const start = process.hrtime()
     return {
-      stop: (extraTags?: Record<string, string | number>) => {
+      stop: (extraTags?: Record<string, string | number>): number => {
         const diff = process.hrtime(start)
         const duration = diff[0] * 1e3 + diff[1] * 1e-6
         telemetry.distribution(name, duration, {
           ...tags,
           ...extraTags,
         })
+
+        return duration
       },
     }
   },

@@ -3,6 +3,7 @@ import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/con
 const connecting: IntegrationStatusConfig = {
   key: 'connecting',
   show: (integration: any) => integration.status === 'in-progress',
+  statuses: ['in-progress'],
   status: {
     text: 'Connecting',
     icon: 'loader-4-line animate-spin',

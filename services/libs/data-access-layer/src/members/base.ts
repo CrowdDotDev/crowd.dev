@@ -50,10 +50,6 @@ export enum MemberField {
   CREATED_BY_ID = 'createdById',
   UPDATED_BY_ID = 'updatedById',
 
-  ENRICHED_BY = 'enrichedBy',
-  LAST_ENRICHED_AT = 'lastEnrichedAt',
-  SEARCH_SYNCED_AT = 'searchSyncedAt',
-
   MANUALLY_CREATED = 'manuallyCreated',
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
 }
@@ -83,7 +79,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   // member agg fields
   ['lastActive', { name: 'msa."lastActive"' }],
   ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['lastEnriched', { name: 'm."lastEnriched"' }],
   ['score', { name: 'm.score' }],
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],

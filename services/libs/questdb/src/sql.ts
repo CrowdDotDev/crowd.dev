@@ -8,7 +8,9 @@ const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
 
-export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
+export const getClientSQL = async (
+  profileQueries?: boolean,
+): Promise<pgpromise.IDatabase<unknown>> => {
   if (client) {
     return client
   }
@@ -49,6 +51,21 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     idleTimeoutMillis: 120000,
     max: 4,
   })
+
+  const oldQuery = client.query
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(client as any).query = async (query, options, ...args) => {
+    const { replacements } = options || {}
+    const timer = telemetry.timer('questdb.query_duration')
+    try {
+      return oldQuery.apply(client, [query, options, ...args])
+    } finally {
+      const duration = timer.stop()
+      if (profileQueries) {
+        log.info({ duration, query, replacements }, 'QuestDB query')
+      }
+    }
+  }
 
   return client
 }

@@ -231,4 +231,5 @@ export const ORG_DB_ATTRIBUTE_SOURCE_PRIORITY = [
   OrganizationAttributeSource.PDL,
   OrganizationAttributeSource.EMAIL,
   OrganizationAttributeSource.GITHUB,
+  OrganizationAttributeSource.ENRICHMENT,
 ]

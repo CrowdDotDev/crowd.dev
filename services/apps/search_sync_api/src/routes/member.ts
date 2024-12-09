@@ -49,12 +49,14 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = syncService(req)
 
-    const { organizationId } = req.body
+    const { organizationId, syncFrom } = req.body
     try {
       req.log.trace(
         `Calling memberSyncService.syncOrganizationMembers for organization ${organizationId}`,
       )
-      await memberSyncService.syncOrganizationMembers(organizationId)
+      await memberSyncService.syncOrganizationMembers(organizationId, {
+        syncFrom: syncFrom ? new Date(syncFrom) : null,
+      })
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)
