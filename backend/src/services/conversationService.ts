@@ -570,14 +570,14 @@ export default class ConversationService extends LoggerBase {
 
     for (const conversation of results.rows) {
       const data = conversation as any
-      
+
       const firstActivity = single(
         activities.rows,
         (a) => a.conversationId === conversation.id && a.parentId === null,
       )
 
       const remainingActivities = activities.rows
-        .filter(a => a.conversationId === conversation.id && a.parentId !== null)
+        .filter((a) => a.conversationId === conversation.id && a.parentId !== null)
         .sort(
           (a, b) =>
             // from oldest to newest

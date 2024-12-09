@@ -58,7 +58,7 @@ export default class GithubReposRepository {
     console.log('New mapping:', newMapping)
 
     // Create maps for efficient lookup
-    const oldMappingMap = new Map(oldMapping.map(m => [m.url, m.segment.id]))
+    const oldMappingMap = new Map(oldMapping.map((m) => [m.url, m.segment.id]))
     const newMappingEntries = Object.entries(newMapping)
 
     // Find repos to insert or update (where they didn't exist or segment changed)
@@ -87,9 +87,7 @@ export default class GithubReposRepository {
 
     // Find repos that were removed (exist in old but not in new)
     const newUrlSet = new Set(Object.keys(newMapping))
-    const urlsToRemove = oldMapping
-      .filter(m => !newUrlSet.has(m.url))
-      .map(m => m.url)
+    const urlsToRemove = oldMapping.filter((m) => !newUrlSet.has(m.url)).map((m) => m.url)
 
     console.log('URLs to remove:', urlsToRemove)
 

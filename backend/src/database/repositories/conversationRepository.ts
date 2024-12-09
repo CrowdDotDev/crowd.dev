@@ -271,7 +271,7 @@ class ConversationRepository {
       )
 
       const remainingActivities = results.rows
-        .filter(a => a.parentId !== null)
+        .filter((a) => a.parentId !== null)
         .sort(
           (a, b) =>
             // from oldest to newest

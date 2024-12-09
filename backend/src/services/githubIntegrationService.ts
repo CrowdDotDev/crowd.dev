@@ -1,7 +1,8 @@
 import { request } from '@octokit/request'
-import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
-import { GITHUB_TOKEN_CONFIG } from '@/conf'
 
+import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
+
+import { GITHUB_TOKEN_CONFIG } from '@/conf'
 
 import { IServiceOptions } from './IServiceOptions'
 
@@ -23,7 +24,7 @@ export default class GithubIntegrationService {
         q: `owner:${query}`,
         headers: {
           authorization: `bearer ${auth}`,
-        }
+        },
       }).catch((err) => {
         this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
         return { data: { items: [] } }
@@ -32,7 +33,7 @@ export default class GithubIntegrationService {
         q: query,
         headers: {
           authorization: `bearer ${auth}`,
-        }
+        },
       }).catch((err) => {
         this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
         return { data: { items: [] } }
@@ -56,7 +57,7 @@ export default class GithubIntegrationService {
       q: query,
       headers: {
         authorization: `bearer ${auth}`,
-      }
+      },
     })
     return response.data.items.map((item) => ({
       name: item.login,
@@ -71,7 +72,7 @@ export default class GithubIntegrationService {
       org,
       headers: {
         authorization: `bearer ${auth}`,
-      }
+      },
     })
     return response.data.map((repo) => ({
       name: repo.name,
