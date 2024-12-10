@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 
-import { Error404, distinct } from '@crowd/common'
+import { Error404, distinct, single } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   IQueryActivityResult,
@@ -264,9 +264,21 @@ class ConversationRepository {
         }
       }
 
-      output.activities = [...results.rows].sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      // find the conversation starter
+      const firstActivity = single(
+        results.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
       )
+
+      const remainingActivities = results.rows
+        .filter((a) => a.parentId !== null)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+
+      output.activities = [firstActivity, ...remainingActivities]
 
       output.memberCount = results.rows
         .map((row) => row.memberId)

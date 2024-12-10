@@ -55,4 +55,11 @@ export const GITHUB_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
     canDelete: false,
     show: true,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.IS_BOT].name,
+    label: MemberAttributes[MemberAttributeName.IS_BOT].label,
+    type: MemberAttributeType.BOOLEAN,
+    canDelete: false,
+    show: true,
+  },
 ]

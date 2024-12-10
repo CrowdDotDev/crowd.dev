@@ -570,17 +570,22 @@ export default class ConversationService extends LoggerBase {
 
     for (const conversation of results.rows) {
       const data = conversation as any
-      data.activities = activities.rows
-        .filter((a) => a.conversationId === conversation.id)
+
+      const firstActivity = single(
+        activities.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
+      )
+
+      const remainingActivities = activities.rows
+        .filter((a) => a.conversationId === conversation.id && a.parentId !== null)
         .sort(
           (a, b) =>
             // from oldest to newest
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         )
 
-      // TODO questdb: This should not be needed. Front-end must be updated to
-      // only get activities array.
-      data.conversationStarter = data.activities[0]
+      data.activities = [firstActivity, ...remainingActivities]
+      data.conversationStarter = data.activities[0] ?? null
       data.lastReplies = data.activities.slice(1)
     }
 
