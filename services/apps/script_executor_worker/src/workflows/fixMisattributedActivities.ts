@@ -4,7 +4,7 @@ import * as activities from '../activities/fix-misattributed-activities'
 import { IFixMisattributedActivitiesArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '3 minute',
+  startToCloseTimeout: '10 minute',
   retry: { maximumAttempts: 3 },
 })
 
