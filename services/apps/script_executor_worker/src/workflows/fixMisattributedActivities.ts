@@ -17,7 +17,10 @@ export async function fixMisattributedActivities(
     console.log(`Running in test mode with limit 10!`)
   }
 
+  const tenantId = args.tenantId
+
   const activitiesWithWrongMember = await activity.findActivitiesWithWrongMembers(
+    tenantId,
     PROCESS_ACTIVITIES_PER_RUN,
   )
 
@@ -27,7 +30,7 @@ export async function fixMisattributedActivities(
   }
 
   for (const a of activitiesWithWrongMember) {
-    const memberIdentity = await activity.findMemberIdentity(a.username, a.platform)
+    const memberIdentity = await activity.findMemberIdentity(a.username, a.platform, tenantId)
     console.log('activity with wrong member', a)
     console.log('memberIdentity found for username and platform', memberIdentity)
     // if (memberIdentity) {
@@ -38,6 +41,7 @@ export async function fixMisattributedActivities(
   if (!args.testRun) {
     await continueAsNew<typeof fixMisattributedActivities>({
       testRun: args.testRun,
+      tenantId: args.tenantId,
     })
   }
 }

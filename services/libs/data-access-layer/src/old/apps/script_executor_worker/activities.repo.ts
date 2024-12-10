@@ -13,7 +13,10 @@ export class ActivityRepository {
     private readonly log: Logger,
   ) {}
 
-  async getActivitiesWithWrongMembers(limit = 100): Promise<IActivityWithWrongMember[]> {
+  async getActivitiesWithWrongMembers(
+    tenantId: string,
+    limit = 100,
+  ): Promise<IActivityWithWrongMember[]> {
     try {
       return await this.connection.query(
         `
@@ -27,11 +30,13 @@ export class ActivityRepository {
           AND mi.type = 'username'
           AND mi."verified" = true
         WHERE a."memberId" <> mi."memberId"
+          AND a."tenantId" = $(tenantId)
         GROUP BY a.username, a.platform
         ORDER BY COUNT(*) DESC
         LIMIT $(limit)
         `,
         {
+          tenantId,
           limit,
         },
       )
@@ -45,6 +50,7 @@ export class ActivityRepository {
     username: string,
     platform: string,
     correctMemberId: string,
+    tenantId: string,
   ): Promise<void> {
     try {
       await this.connection.none(
@@ -54,11 +60,13 @@ export class ActivityRepository {
         WHERE "username" = $(username)
         AND platform = $(platform)
         AND "memberId" != $(correctMemberId)
+        AND "tenantId" = $(tenantId)
         `,
         {
           username,
           platform,
           correctMemberId,
+          tenantId,
         },
       )
     } catch (err) {

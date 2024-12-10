@@ -163,6 +163,7 @@ class MemberRepository {
   async findMemberIdentity(
     username: string,
     platform: string,
+    tenantId: string,
     type = 'username',
   ): Promise<IMemberIdentity | null> {
     let memberIdentity: IMemberIdentity
@@ -171,12 +172,13 @@ class MemberRepository {
       memberIdentity = await this.connection.oneOrNone(
         `
         select * from "memberIdentities" where value = $(username) and platform = $(platform) 
-        and type = $(type) and verified = true
+        and type = $(type) and verified = true and "tenantId" = $(tenantId)
       `,
         {
           username,
           platform,
           type,
+          tenantId,
         },
       )
     } catch (err) {
