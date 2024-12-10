@@ -131,6 +131,7 @@ export interface GithubApiData {
   objectMember?: GithubPrepareMemberOutput
   sourceParentId?: string
   repo: Repo
+  isOld: boolean
 }
 
 export interface GithubWebhookData {

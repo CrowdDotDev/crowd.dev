@@ -387,6 +387,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
       data: record,
       member,
       repo: data.repo,
+      isOld: true,
     })
   }
 }
@@ -419,6 +420,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
         data: record,
         member,
         repo: data.repo,
+        isOld: true,
       })
     } else if (record.owner.__typename === 'Organization') {
       const orgMember = prepareMemberFromOrg(record.owner)
@@ -429,6 +431,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
         data: record,
         orgMember,
         repo: data.repo,
+        isOld: true,
       })
     } else {
       ctx.log.warn(`Unsupported owner type: ${record.owner.__typename}`)
@@ -450,6 +453,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
           relatedData: record,
           member,
           repo: data.repo,
+          isOld: true,
         })
       } else if (indirectFork.owner.__typename === 'Organization') {
         const orgMember = prepareMemberFromOrg(indirectFork.owner)
@@ -462,6 +466,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
           relatedData: record,
           orgMember,
           repo: data.repo,
+          isOld: true,
         })
       } else {
         ctx.log.warn(`Unsupported owner type: ${indirectFork.owner.__typename}`)
@@ -504,6 +509,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
       data: pull,
       member,
       repo: data.repo,
+      isOld: true,
     })
 
     // now we need to parse pullRequestEvents
@@ -546,6 +552,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             member,
             objectMember,
             repo: data.repo,
+            isOld: true,
           })
 
           break
@@ -592,6 +599,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               member,
               objectMember,
               repo: data.repo,
+              isOld: true,
             })
             // Requested review from multiple members
           } else if (pullEvent?.requestedReviewer?.members) {
@@ -619,6 +627,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
                 member,
                 objectMember,
                 repo: data.repo,
+                isOld: true,
               })
             }
           }
@@ -647,6 +656,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               relatedData: pull,
               member,
               repo: data.repo,
+              isOld: true,
             })
           }
           break
@@ -672,6 +682,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             relatedData: pull,
             member,
             repo: data.repo,
+            isOld: true,
           })
 
           break
@@ -697,6 +708,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             relatedData: pull,
             member,
             repo: data.repo,
+            isOld: true,
           })
 
           break
@@ -796,6 +808,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
       data: record,
       member,
       repo: data.repo,
+      isOld: true,
     })
   }
 }
@@ -878,6 +891,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
       data: record,
       member,
       repo: data.repo,
+      isOld: true,
     })
   }
 }
@@ -948,6 +962,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
           sourceParentId: response.repository.pullRequest.id,
           member,
           repo: data.repo,
+          isOld: true,
         })
       }
     }
@@ -987,6 +1002,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
       data: issue,
       member,
       repo: data.repo,
+      isOld: true,
     })
 
     // now need to parse issue events
@@ -1010,6 +1026,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
             relatedData: issue,
             member,
             repo: data.repo,
+            isOld: true,
           })
 
           break
@@ -1074,6 +1091,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
       data: record,
       member,
       repo: data.repo,
+      isOld: true,
     })
   }
 }
@@ -1112,6 +1130,7 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
       data: discussion,
       member,
       repo: data.repo,
+      isOld: true,
     })
   }
 
@@ -1169,6 +1188,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
       data: record,
       member,
       repo: data.repo,
+      isOld: true,
     })
 
     // going through replies
@@ -1195,6 +1215,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
         member,
         sourceParentId: commentId,
         repo: data.repo,
+        isOld: true,
       })
     }
   }

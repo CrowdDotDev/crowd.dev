@@ -582,6 +582,15 @@ const handler: ProcessDataHandler = async (ctx) => {
   // for webhoks we are using old code
   const webhookEvent = data?.webhookType
 
+  const isOld = data?.isOld
+
+  // this is for old events that don't have pullRequestNodeId
+  // generated during webhooks for pull requests
+  if (event === GithubActivityType.AUTHORED_COMMIT && (isOld || !data.pullRequestNodeId)) {
+    await oldHandler(ctx)
+    return
+  }
+
   if (event) {
     // parse github api data
     switch (event) {
