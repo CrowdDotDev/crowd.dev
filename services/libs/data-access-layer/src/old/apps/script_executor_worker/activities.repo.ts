@@ -29,6 +29,7 @@ export class ActivityRepository {
           AND a.platform = mi.platform 
           AND mi.type = 'username'
           AND mi."verified" = true
+          AND a."tenantId" = mi."tenantId"
         WHERE a."memberId" <> mi."memberId"
           AND a."tenantId" = $(tenantId)
         GROUP BY a.username, a.platform
