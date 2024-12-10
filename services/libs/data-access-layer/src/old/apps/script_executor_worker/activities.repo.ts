@@ -33,7 +33,7 @@ export class ActivityRepository {
         WHERE a."memberId" <> mi."memberId"
           AND a."tenantId" = $(tenantId)
         GROUP BY a.username, a.platform
-        ORDER BY COUNT(*) DESC
+        ORDER BY "activityCount" DESC
         LIMIT $(limit)
         `,
         {
