@@ -1,11 +1,14 @@
-import { DbConnection, DbTransaction } from '@crowd/database'
+import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IActivityCreateData } from '@crowd/types'
+
+import { updateActivities } from '../../../activities/update'
 
 export class ActivityRepository {
   constructor(
     private readonly connection: DbConnection | DbTransaction,
     private readonly log: Logger,
+    private readonly questdbSQL: DbConnOrTx,
   ) {}
 
   async getActivitiesWithWrongMembers(
@@ -42,6 +45,7 @@ export class ActivityRepository {
 
   async updateActivityWithWrongMember(activityId: string, correctMemberId: string): Promise<void> {
     try {
+      // Update the activity in pgsql to persist progress
       await this.connection.none(
         `
         UPDATE activities
@@ -50,6 +54,16 @@ export class ActivityRepository {
         `,
         {
           correctMemberId,
+          activityId,
+        },
+      )
+
+      // Update the activity in QuestDB
+      await updateActivities(
+        this.questdbSQL,
+        async () => ({ memberId: correctMemberId }),
+        'id = $(activityId)',
+        {
           activityId,
         },
       )

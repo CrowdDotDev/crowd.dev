@@ -8,7 +8,11 @@ export async function findActivitiesWithWrongMembers(tenantId: string, limit: nu
   let activitiesWithWrongMember: IActivityCreateData[] = []
 
   try {
-    const activityRepo = new ActivityRepository(svc.postgres.reader.connection(), svc.log)
+    const activityRepo = new ActivityRepository(
+      svc.postgres.reader.connection(),
+      svc.log,
+      svc.questdbSQL,
+    )
     activitiesWithWrongMember = await activityRepo.getActivitiesWithWrongMembers(tenantId, limit)
   } catch (err) {
     throw new Error(err)
@@ -32,7 +36,11 @@ export async function findMemberIdentity(username: string, platform: string, ten
 
 export async function updateActivityWithWrongMember(activityId: string, correctMemberId: string) {
   try {
-    const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
+    const activityRepo = new ActivityRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+      svc.questdbSQL,
+    )
     await activityRepo.updateActivityWithWrongMember(activityId, correctMemberId)
   } catch (err) {
     throw new Error(err)
