@@ -25,13 +25,5 @@
     "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
     "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID",
     "webhookSecret": "CROWD_GITHUB_ISSUE_REPORTER_WEBHOOK_SECRET"
-  },
-  "github": {
-    "privateKey": "CROWD_SNOWFLAKE_PRIVATE_KEY",
-    "account": "CROWD_SNOWFLAKE_ACCOUNT",
-    "username": "CROWD_SNOWFLAKE_USERNAME",
-    "database": "CROWD_SNOWFLAKE_DATABASE",
-    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
-    "role": "CROWD_SNOWFLAKE_ROLE"
   }
 }
