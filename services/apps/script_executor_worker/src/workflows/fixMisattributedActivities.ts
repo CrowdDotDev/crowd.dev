@@ -11,7 +11,7 @@ const activity = proxyActivities<typeof activities>({
 export async function fixMisattributedActivities(
   args: IFixMisattributedActivitiesArgs,
 ): Promise<void> {
-  const PROCESS_ACTIVITIES_PER_RUN = args.testRun ? 10 : 100
+  const PROCESS_ACTIVITIES_PER_RUN = args.testRun ? 10 : 1000
 
   if (args.testRun) {
     console.log(`Running in test mode with limit 10!`)
@@ -31,11 +31,15 @@ export async function fixMisattributedActivities(
 
   for (const a of activitiesWithWrongMember) {
     const memberIdentity = await activity.findMemberIdentity(a.username, a.platform, tenantId)
-    console.log('activity with wrong member', a)
-    console.log('memberIdentity found for username and platform', memberIdentity)
-    // if (memberIdentity) {
-    //   await activity.updateActivities(a.username, a.platform, memberIdentity.memberId)
-    // }
+    if (memberIdentity) {
+      await activity.updateActivityWithWrongMember(
+        a.id,
+        a.username,
+        a.platform,
+        memberIdentity.memberId,
+        tenantId,
+      )
+    }
   }
 
   if (!args.testRun) {

@@ -1,14 +1,11 @@
-import {
-  ActivityRepository,
-  IActivityWithWrongMember,
-} from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activities.repo'
+import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activities.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
-import { IMemberIdentity } from '@crowd/types'
+import { IActivityCreateData, IMemberIdentity } from '@crowd/types'
 
 import { svc } from '../../main'
 
 export async function findActivitiesWithWrongMembers(tenantId: string, limit: number) {
-  let activitiesWithWrongMember: IActivityWithWrongMember[] = []
+  let activitiesWithWrongMember: IActivityCreateData[] = []
 
   try {
     const activityRepo = new ActivityRepository(svc.postgres.reader.connection(), svc.log)
@@ -33,7 +30,8 @@ export async function findMemberIdentity(username: string, platform: string, ten
   return memberIdentity
 }
 
-export async function updateActivities(
+export async function updateActivityWithWrongMember(
+  activityId: string,
   username: string,
   platform: string,
   correctMemberId: string,
@@ -41,7 +39,13 @@ export async function updateActivities(
 ) {
   try {
     const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
-    await activityRepo.updateActivities(username, platform, correctMemberId, tenantId)
+    await activityRepo.updateActivityWithWrongMember(
+      activityId,
+      username,
+      platform,
+      correctMemberId,
+      tenantId,
+    )
   } catch (err) {
     throw new Error(err)
   }

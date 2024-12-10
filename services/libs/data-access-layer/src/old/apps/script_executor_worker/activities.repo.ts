@@ -1,11 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-
-export interface IActivityWithWrongMember {
-  username: string
-  platform: string
-  activityCount: number
-}
+import { IActivityCreateData } from '@crowd/types'
 
 export class ActivityRepository {
   constructor(
@@ -16,14 +11,14 @@ export class ActivityRepository {
   async getActivitiesWithWrongMembers(
     tenantId: string,
     limit = 100,
-  ): Promise<IActivityWithWrongMember[]> {
+  ): Promise<IActivityCreateData[]> {
     try {
       return await this.connection.query(
         `
         SELECT 
+          a.id,
           a.username,
-          a.platform,
-          COUNT(*) as "activityCount"
+          a.platform
         FROM activities a
         JOIN "memberIdentities" mi ON a.username = mi.value
           AND a.platform = mi.platform 
@@ -32,8 +27,6 @@ export class ActivityRepository {
           AND a."tenantId" = mi."tenantId"
         WHERE a."memberId" <> mi."memberId"
           AND a."tenantId" = $(tenantId)
-        GROUP BY a.username, a.platform
-        ORDER BY "activityCount" DESC
         LIMIT $(limit)
         `,
         {
@@ -47,7 +40,8 @@ export class ActivityRepository {
     }
   }
 
-  async updateActivities(
+  async updateActivityWithWrongMember(
+    activityId: string,
     username: string,
     platform: string,
     correctMemberId: string,
@@ -58,9 +52,9 @@ export class ActivityRepository {
         `
         UPDATE activities
         SET "memberId" = $(correctMemberId)
-        WHERE "username" = $(username)
+        WHERE id = $(activityId)
+        AND "username" = $(username)
         AND platform = $(platform)
-        AND "memberId" != $(correctMemberId)
         AND "tenantId" = $(tenantId)
         `,
         {
@@ -68,6 +62,7 @@ export class ActivityRepository {
           platform,
           correctMemberId,
           tenantId,
+          activityId,
         },
       )
     } catch (err) {
