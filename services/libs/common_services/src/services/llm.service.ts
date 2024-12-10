@@ -123,7 +123,7 @@ export class LlmService extends LoggerBase {
     const outputCost = (outputTokenCount / 1000) * pricing.costPer1000OutputTokens
     const totalCost = inputCost + outputCost
 
-    this.log.info({ type, entityId, inputCost, outputCost, totalCost }, 'Estimated LLM cost!')
+    this.log.debug({ type, entityId, inputCost, outputCost, totalCost }, 'Estimated LLM cost!')
 
     const result = {
       prompt,
