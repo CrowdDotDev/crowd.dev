@@ -27,7 +27,7 @@ const tenantId = processArguments[0]
 
 const minMemberActivities = 100
 const maxConcurrentProcessing = 5
-const maxMembersToProcess = 1000
+const maxMembersToProcess = Infinity
 
 async function getEnrichableMembers(limit: number): Promise<string[]> {
   const query = `

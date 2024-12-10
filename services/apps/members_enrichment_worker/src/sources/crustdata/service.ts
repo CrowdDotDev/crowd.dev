@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { isEmail } from '@crowd/common'
+import { isEmail, replaceDoubleQuotes } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   IMemberEnrichmentCache,
@@ -352,13 +352,15 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
         }
 
         normalized.memberOrganizations.push({
-          name: workExperience.employer_name,
+          name: replaceDoubleQuotes(workExperience.employer_name),
           source: OrganizationSource.ENRICHMENT_CRUSTDATA,
           identities,
-          title: workExperience.employee_title,
+          title: replaceDoubleQuotes(workExperience.employee_title),
           startDate: workExperience?.start_date ?? null,
           endDate: workExperience?.end_date ?? null,
-          organizationDescription: workExperience.employer_linkedin_description,
+          organizationDescription: replaceDoubleQuotes(
+            workExperience.employer_linkedin_description,
+          ),
         })
       }
     }
