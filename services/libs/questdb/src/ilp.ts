@@ -20,7 +20,7 @@ export const getClientILP = (): Sender => {
   log.trace({ host, port }, 'Creating QuestDB client (ILP) instance!')
 
   let conn = `http::addr=${host}:${port};${autoflush}`
-  if (getEnv() !== 'local') {
+  if (getEnv() === 'prod') {
     conn = `https::addr=${host}:${port};token=${token};${autoflush}`
   }
 
