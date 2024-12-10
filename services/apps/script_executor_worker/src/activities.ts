@@ -13,7 +13,7 @@ import {
 import {
   findActivitiesWithWrongMembers,
   findMemberIdentity,
-  updateActivities,
+  updateActivityWithWrongMember,
 } from './activities/fix-misattributed-activities'
 import {
   deleteOrganizationIdentity,
@@ -45,5 +45,5 @@ export {
   isLfxMember,
   findActivitiesWithWrongMembers,
   findMemberIdentity,
-  updateActivities,
+  updateActivityWithWrongMember,
 }

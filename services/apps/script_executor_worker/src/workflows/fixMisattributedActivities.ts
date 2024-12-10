@@ -1,6 +1,6 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities/fix-misattributed-activities'
+import * as activities from '../activities'
 import { IFixMisattributedActivitiesArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
