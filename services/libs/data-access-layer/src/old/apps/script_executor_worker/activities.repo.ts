@@ -1,6 +1,5 @@
 import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IActivityCreateData } from '@crowd/types'
 
 import { updateActivities } from '../../../activities/update'
 
@@ -14,14 +13,13 @@ export class ActivityRepository {
   async getActivitiesWithWrongMembers(
     tenantId: string,
     limit = 100,
-  ): Promise<IActivityCreateData[]> {
+  ): Promise<{ correctMemberId: string; activityIds: string[] }[]> {
     try {
       return await this.connection.query(
         `
         SELECT 
-          a.id,
-          a.username,
-          a.platform
+          mi."memberId" as "correctMemberId",
+          array_agg(a.id) as "activityIds"
         FROM activities a
         JOIN "memberIdentities" mi ON a.username = mi.value
           AND a.platform = mi.platform 
@@ -30,6 +28,7 @@ export class ActivityRepository {
           AND a."tenantId" = mi."tenantId"
         WHERE a."memberId" <> mi."memberId"
           AND a."tenantId" = $(tenantId)
+        GROUP BY mi."memberId"
         LIMIT $(limit)
         `,
         {
@@ -69,6 +68,39 @@ export class ActivityRepository {
       )
     } catch (err) {
       this.log.error('Error while updating activities!', err)
+      throw new Error(err)
+    }
+  }
+
+  async batchUpdateActivitiesWithWrongMember(
+    activityIds: string[],
+    correctMemberId: string,
+  ): Promise<void> {
+    try {
+      // Batch update activities in PostgreSQL
+      await this.connection.none(
+        `
+        UPDATE activities
+        SET "memberId" = $(correctMemberId)
+        WHERE id = ANY($(activityIds))
+        `,
+        {
+          correctMemberId,
+          activityIds,
+        },
+      )
+
+      // Batch update activities in QuestDB
+      await updateActivities(
+        this.questdbSQL,
+        async () => ({ memberId: correctMemberId }),
+        'id IN ($(activityIds:csv))',
+        {
+          activityIds: activityIds.join(','),
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while batch updating activities!', err)
       throw new Error(err)
     }
   }

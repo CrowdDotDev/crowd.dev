@@ -29,11 +29,9 @@ export async function fixMisattributedActivities(
     return
   }
 
-  for (const a of activitiesWithWrongMember) {
-    const memberIdentity = await activity.findMemberIdentity(a.username, a.platform, tenantId)
-    if (memberIdentity) {
-      await activity.updateActivityWithWrongMember(a.id, memberIdentity.memberId)
-    }
+  // Process each group of activities
+  for (const group of activitiesWithWrongMember) {
+    await activity.batchUpdateActivitiesWithWrongMember(group.activityIds, group.correctMemberId)
   }
 
   if (!args.testRun) {

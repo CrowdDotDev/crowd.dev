@@ -1,11 +1,11 @@
 import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activities.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
-import { IActivityCreateData, IMemberIdentity } from '@crowd/types'
+import { IMemberIdentity } from '@crowd/types'
 
 import { svc } from '../../main'
 
 export async function findActivitiesWithWrongMembers(tenantId: string, limit: number) {
-  let activitiesWithWrongMember: IActivityCreateData[] = []
+  let activitiesWithWrongMember = []
 
   try {
     const activityRepo = new ActivityRepository(
@@ -42,6 +42,22 @@ export async function updateActivityWithWrongMember(activityId: string, correctM
       svc.questdbSQL,
     )
     await activityRepo.updateActivityWithWrongMember(activityId, correctMemberId)
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function batchUpdateActivitiesWithWrongMember(
+  activityIds: string[],
+  correctMemberId: string,
+) {
+  try {
+    const activityRepo = new ActivityRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+      svc.questdbSQL,
+    )
+    await activityRepo.batchUpdateActivitiesWithWrongMember(activityIds, correctMemberId)
   } catch (err) {
     throw new Error(err)
   }

@@ -11,6 +11,7 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  batchUpdateActivitiesWithWrongMember,
   findActivitiesWithWrongMembers,
   findMemberIdentity,
   updateActivityWithWrongMember,
@@ -46,4 +47,5 @@ export {
   findActivitiesWithWrongMembers,
   findMemberIdentity,
   updateActivityWithWrongMember,
+  batchUpdateActivitiesWithWrongMember,
 }
