@@ -32,13 +32,7 @@ export async function fixMisattributedActivities(
   for (const a of activitiesWithWrongMember) {
     const memberIdentity = await activity.findMemberIdentity(a.username, a.platform, tenantId)
     if (memberIdentity) {
-      await activity.updateActivityWithWrongMember(
-        a.id,
-        a.username,
-        a.platform,
-        memberIdentity.memberId,
-        tenantId,
-      )
+      await activity.updateActivityWithWrongMember(a.id, memberIdentity.memberId)
     }
   }
 

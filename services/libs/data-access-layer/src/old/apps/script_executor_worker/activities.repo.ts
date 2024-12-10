@@ -40,28 +40,16 @@ export class ActivityRepository {
     }
   }
 
-  async updateActivityWithWrongMember(
-    activityId: string,
-    username: string,
-    platform: string,
-    correctMemberId: string,
-    tenantId: string,
-  ): Promise<void> {
+  async updateActivityWithWrongMember(activityId: string, correctMemberId: string): Promise<void> {
     try {
       await this.connection.none(
         `
         UPDATE activities
         SET "memberId" = $(correctMemberId)
         WHERE id = $(activityId)
-        AND "username" = $(username)
-        AND platform = $(platform)
-        AND "tenantId" = $(tenantId)
         `,
         {
-          username,
-          platform,
           correctMemberId,
-          tenantId,
           activityId,
         },
       )

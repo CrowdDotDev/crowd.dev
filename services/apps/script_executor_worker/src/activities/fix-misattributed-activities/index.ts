@@ -30,22 +30,10 @@ export async function findMemberIdentity(username: string, platform: string, ten
   return memberIdentity
 }
 
-export async function updateActivityWithWrongMember(
-  activityId: string,
-  username: string,
-  platform: string,
-  correctMemberId: string,
-  tenantId: string,
-) {
+export async function updateActivityWithWrongMember(activityId: string, correctMemberId: string) {
   try {
     const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
-    await activityRepo.updateActivityWithWrongMember(
-      activityId,
-      username,
-      platform,
-      correctMemberId,
-      tenantId,
-    )
+    await activityRepo.updateActivityWithWrongMember(activityId, correctMemberId)
   } catch (err) {
     throw new Error(err)
   }
