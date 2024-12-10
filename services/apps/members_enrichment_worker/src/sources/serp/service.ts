@@ -128,11 +128,17 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
           platform: PlatformType.LINKEDIN,
           type: MemberIdentityType.USERNAME,
           verified: false,
-          value: this.normalizeLinkedUrl(data.linkedinUrl).split('/').pop(),
+          value: this.getLinkedInProfileHandle(this.normalizeLinkedUrl(data.linkedinUrl)),
         },
       ],
     }
     return normalized
+  }
+
+  private getLinkedInProfileHandle(url: string): string | null {
+    const regex = /in\/([^/]+)/
+    const match = url.match(regex)
+    return match ? match[1] : null
   }
 
   private normalizeLinkedUrl(url: string): string {

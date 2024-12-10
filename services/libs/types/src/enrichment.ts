@@ -1,5 +1,6 @@
 import { MemberEnrichmentSource } from './enums'
 import { IMemberIdentity, IMemberReach } from './members'
+import { IOrganizationIdentity } from './organizations'
 
 export interface IMemberEnrichmentCache<T> {
   createdAt: string
@@ -39,6 +40,7 @@ export interface IMemberOrganizationData {
   dateStart: string
   dateEnd: string
   source: string
+  identities?: IOrganizationIdentity[]
 }
 
 export interface IMemberOriginalData {
