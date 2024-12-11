@@ -1611,16 +1611,28 @@ importers:
       '@crowd/database':
         specifier: workspace:*
         version: link:../../libs/database
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
+      '@crowd/telemetry':
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       '@crowd/temporal':
         specifier: workspace:*
         version: link:../../libs/temporal
+      '@temporalio/activity':
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/worker':
+        specifier: ~1.11.1
+        version: 1.11.1
+      '@temporalio/workflow':
         specifier: ~1.11.1
         version: 1.11.1
     devDependencies:
