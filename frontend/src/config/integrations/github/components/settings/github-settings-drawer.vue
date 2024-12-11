@@ -166,9 +166,9 @@ const buildSettings = (): GitHubSettings => {
     }),
   );
   console.log('building settings');
-  console.log('repoMappings', repoMappings.value);
-  console.log('initialRepoMappings', initialRepoMappings.value);
-  console.log('orgs', orgs);
+  console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
+  console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
+  console.log('orgs', JSON.parse(JSON.stringify(orgs)));
   return { orgs, updateMemberAttributes: true };
 };
 
@@ -240,8 +240,8 @@ const fetchGithubMappings = () => {
   );
 
   console.log('fetchGithubMappings');
-  console.log('repoMappings', repoMappings.value);
-  console.log('initialRepoMappings', initialRepoMappings.value);
+  console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
+  console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
 };
 
 watch(
