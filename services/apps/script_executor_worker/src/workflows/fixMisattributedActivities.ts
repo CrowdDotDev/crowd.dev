@@ -1,43 +1,48 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { proxyActivities } from '@temporalio/workflow'
+import { parse } from 'csv-parse/sync'
+import * as fs from 'fs'
+import * as path from 'path'
 
 import * as activities from '../activities'
-import { IFixMisattributedActivitiesArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 minute',
   retry: { maximumAttempts: 3 },
 })
 
-export async function fixMisattributedActivities(
-  args: IFixMisattributedActivitiesArgs,
-): Promise<void> {
-  const PROCESS_ACTIVITIES_PER_RUN = args.testRun ? 10 : 1000
+export async function fixMisattributedActivities(): Promise<void> {
+  // Read CSV file
+  const csvFilePath = path.join(process.cwd(), 'misattributed_activities.csv')
+  const fileContent = fs.readFileSync(csvFilePath, 'utf-8')
+  const records = parse(fileContent, {
+    columns: true,
+    skip_empty_lines: true,
+  })
 
-  if (args.testRun) {
-    console.log(`Running in test mode with limit 10!`)
-  }
-
-  const tenantId = args.tenantId
-
-  const activitiesWithWrongMember = await activity.findActivitiesWithWrongMembers(
-    tenantId,
-    PROCESS_ACTIVITIES_PER_RUN,
-  )
-
-  if (!activitiesWithWrongMember.length) {
-    console.log(`No activities found with misattributed members!`)
+  if (!records.length) {
+    console.log(`No activities found in the CSV file!`)
     return
   }
 
-  // Process each group of activities
-  for (const group of activitiesWithWrongMember) {
-    await activity.batchUpdateActivitiesWithWrongMember(group.activityIds, group.correctMemberId)
-  }
+  let processedMemberCount = 0
+  const totalRecords = records.length
 
-  if (!args.testRun) {
-    await continueAsNew<typeof fixMisattributedActivities>({
-      testRun: args.testRun,
-      tenantId: args.tenantId,
-    })
+  // Process each record from CSV
+  for (const record of records) {
+    // await activity.batchUpdateActivitiesWithWrongMember(
+    //   record.wrongMemberId,
+    //   record.correctMemberId,
+    // )
+
+    console.log(
+      `Processing member wrongMemberId: ${record.wrongMemberId}, correctMemberId: ${record.correctMemberId}, activitiesCount: ${record.activitiesCount}`,
+    )
+
+    break
+
+    processedMemberCount++
+
+    // Log progress
+    console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file.`)
   }
 }

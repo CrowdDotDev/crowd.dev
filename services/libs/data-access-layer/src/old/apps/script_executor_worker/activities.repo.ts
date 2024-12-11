@@ -13,13 +13,13 @@ export class ActivityRepository {
   async getActivitiesWithWrongMembers(
     tenantId: string,
     limit = 100,
-  ): Promise<{ correctMemberId: string; activityIds: string[] }[]> {
+  ): Promise<{ wrongMemberId: string; correctMemberId: string }[]> {
     try {
       return await this.connection.query(
         `
         SELECT 
-          mi."memberId" as "correctMemberId",
-          array_agg(a.id) as "activityIds"
+          a."memberId" as "wrongMemberId",
+          mi."memberId" as "correctMemberId"
         FROM activities a
         JOIN "memberIdentities" mi ON a.username = mi.value
           AND a.platform = mi.platform 
@@ -28,7 +28,7 @@ export class ActivityRepository {
           AND a."tenantId" = mi."tenantId"
         WHERE a."memberId" <> mi."memberId"
           AND a."tenantId" = $(tenantId)
-        GROUP BY mi."memberId"
+        GROUP BY a."memberId", mi."memberId"
         LIMIT $(limit)
         `,
         {
@@ -73,30 +73,17 @@ export class ActivityRepository {
   }
 
   async batchUpdateActivitiesWithWrongMember(
-    activityIds: string[],
+    wrongMemberId: string,
     correctMemberId: string,
   ): Promise<void> {
     try {
-      // Batch update activities in PostgreSQL
-      await this.connection.none(
-        `
-        UPDATE activities
-        SET "memberId" = $(correctMemberId)
-        WHERE id = ANY($(activityIds))
-        `,
-        {
-          correctMemberId,
-          activityIds,
-        },
-      )
-
       // Batch update activities in QuestDB
       await updateActivities(
         this.questdbSQL,
         async () => ({ memberId: correctMemberId }),
-        'id IN ($(activityIds:csv))',
+        '"memberId" = $(wrongMemberId)',
         {
-          activityIds: activityIds.join(','),
+          wrongMemberId,
         },
       )
     } catch (err) {

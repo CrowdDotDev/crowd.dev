@@ -48,7 +48,7 @@ export async function updateActivityWithWrongMember(activityId: string, correctM
 }
 
 export async function batchUpdateActivitiesWithWrongMember(
-  activityIds: string[],
+  wrongMemberId: string,
   correctMemberId: string,
 ) {
   try {
@@ -57,7 +57,7 @@ export async function batchUpdateActivitiesWithWrongMember(
       svc.log,
       svc.questdbSQL,
     )
-    await activityRepo.batchUpdateActivitiesWithWrongMember(activityIds, correctMemberId)
+    await activityRepo.batchUpdateActivitiesWithWrongMember(wrongMemberId, correctMemberId)
   } catch (err) {
     throw new Error(err)
   }
