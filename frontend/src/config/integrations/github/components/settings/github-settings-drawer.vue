@@ -259,6 +259,7 @@ watch(
   () => props.integration,
   (value?: Integration<GitHubSettings>) => {
     if (value) {
+      console.log('watch');
       fetchGithubMappings();
       const { orgs } = value.settings;
       organizations.value = orgs
