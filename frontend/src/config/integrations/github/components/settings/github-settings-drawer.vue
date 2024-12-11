@@ -116,6 +116,7 @@ const subprojects = ref([]);
 const organizations = ref<GitHubOrganization[]>([]);
 const repositories = ref<GitHubSettingsRepository[]>([]);
 const repoMappings = ref<Record<string, string>>({});
+const initialRepoMappings = ref<Record<string, string>>({});
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -157,7 +158,10 @@ const buildSettings = (): GitHubSettings => {
         .map((r) => ({
           name: r.name,
           url: r.url,
-          updatedAt: r.updatedAt || dayjs().toISOString(),
+          updatedAt: (props.integration
+            && repoMappings.value[r.url] !== initialRepoMappings.value[r.url])
+            ? dayjs().toISOString()
+            : r.updatedAt || dayjs().toISOString(),
         })),
     }),
   );
@@ -219,13 +223,15 @@ const fetchGithubMappings = () => {
   if (!props.integration) return;
   IntegrationService.fetchGitHubMappings(props.integration).then(
     (res: any[]) => {
-      repoMappings.value = res.reduce(
+      const mappings = res.reduce(
         (rm, mapping) => ({
           ...rm,
           [mapping.url]: mapping.segment.id,
         }),
         {},
       );
+      repoMappings.value = mappings;
+      initialRepoMappings.value = mappings;
     },
   );
 };
