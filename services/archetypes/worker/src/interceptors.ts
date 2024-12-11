@@ -24,7 +24,6 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       task_queue: info.taskQueue,
     }
 
-    activity.telemetryIncrement('temporal.workflow_processing', 1, tags)
     const start = new Date()
 
     try {
@@ -34,7 +33,6 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       const end = new Date()
       const duration = end.getTime() - start.getTime()
       activity.telemetryDistribution('temporal.workflow_execution_duration', duration, tags)
-      activity.telemetryDecrement('temporal.workflow_processing', 1, tags)
     }
   }
 }

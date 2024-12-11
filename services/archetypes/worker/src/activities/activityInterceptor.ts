@@ -16,8 +16,6 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       activity_type: this.ctx.info.activityType,
     }
 
-    telemetry.increment('temporal.activity_processing', 1, tags)
-
     const timer = telemetry.timer('temporal.activity_execution_duration', tags)
 
     try {
@@ -37,7 +35,6 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       throw err
     } finally {
       timer.stop()
-      telemetry.decrement('temporal.activity_processing', 1, tags)
     }
   }
 }
