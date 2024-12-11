@@ -1,8 +1,13 @@
 <template>
   <div>
     <div class="pt-6 pb-6">
-      <lf-search v-model="search" class="h-9" :lazy="true" placeholder="Search users..."
-        @update:model-value="searchUsers()" />
+      <lf-search
+        v-model="search"
+        class="h-9"
+        :lazy="true"
+        placeholder="Search users..."
+        @update:model-value="searchUsers()"
+      />
     </div>
     <div v-if="users.length > 0">
       <lf-table>
@@ -36,16 +41,47 @@
                   class="border rounded-full border-gray-200 px-2.5 py-1"
                   :class="roleIndex !== user.roles.length - 1 ? 'mr-3' : ''"
                 >
-                  <el-tooltip v-if="role !== UserRole.projectAdmin" content="This role applies to all project groups" placement="top">
+                  <el-tooltip
+                    v-if="role !== UserRole.projectAdmin"
+                    content="This role applies to all project groups"
+                    placement="top"
+                  >
                     <p class="text-medium">
                       {{ roleDisplay(role) }}
                     </p>
                   </el-tooltip>
-                  <el-tooltip v-else content="This role applies to a specific project group" placement="top">
-                    <p class="text-medium">
-                      {{ roleDisplay(role) }}
-                    </p>
-                  </el-tooltip>
+                  <el-popover
+                    v-else
+                    trigger="hover"
+                    placement="top"
+                    popper-class="!w-80"
+                  >
+                    <template #reference>
+                      <div class="flex items-baseline text-medium">
+                        {{ roleDisplay(role, user.adminSegments) }}
+                        <lf-icon class="mx-1" :name="'folders'" :size="16" />
+                        <p>
+                          {{ user.adminSegments?.length }}
+                        </p>
+                      </div>
+                    </template>
+                    <div class="p-1">
+                      <span class="text-xs text-gray-400">Project groups</span>
+                      <div class="overflow-auto max-h-30 mt-4">
+                        <p
+                          v-for="(segmentId, segmentIdx) in user.adminSegments"
+                          :key="segmentId"
+                          class="w-fit border rounded-full border-gray-200 px-2.5 py-1 text-gray-900 text-xs"
+                          :class="segmentIdx !== user.adminSegments.length - 1 ? 'mb-3' : ''"
+                        >
+                          {{
+                            segmentStore.projectGroups.list.find(
+                              (pg) => pg.id === segmentId)?.name
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                  </el-popover>
                 </div>
               </div>
             </td>
@@ -53,7 +89,12 @@
         </tbody>
       </lf-table>
       <div v-if="users.length < total" class="pt-4">
-        <lf-button type="primary-ghost" loading-text="Loading users..." :loading="loading" @click="loadMore()">
+        <lf-button
+          type="primary-ghost"
+          loading-text="Loading users..."
+          :loading="loading"
+          @click="loadMore()"
+        >
           Load more
         </lf-button>
       </div>
@@ -69,10 +110,14 @@
 </template>
 
 <script setup lang="ts">
-import LfSearch from '@/ui-kit/search/Search.vue';
 import { onMounted, ref } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfSearch from '@/ui-kit/search/Search.vue';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
-import { UserModel, UserRole } from '@/modules/admin/modules/users/models/User.model';
+import {
+  UserModel,
+  UserRole,
+} from '@/modules/admin/modules/users/models/User.model';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';

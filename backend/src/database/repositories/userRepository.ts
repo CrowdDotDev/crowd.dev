@@ -872,6 +872,7 @@ export default class UserRepository {
 
     const status = tenantUser ? tenantUser.status : null
     const roles = tenantUser ? tenantUser.roles : []
+    const adminSegments = tenantUser ? tenantUser.adminSegments : []
 
     // If the user is only invited,
     // tenant members can only see its email
@@ -885,6 +886,7 @@ export default class UserRepository {
       roles,
       status,
       invitationToken: tenantUser?.invitationToken,
+      adminSegments,
     }
   }
 }
