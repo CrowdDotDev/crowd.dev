@@ -175,6 +175,12 @@ const buildSettings = (): GitHubSettings => {
 const connect = () => {
   let integration: any = null;
   const settings: GitHubSettings = buildSettings();
+
+  // Add debug logging before API calls
+  console.log('Before API calls:');
+  console.log('repoMappings:', JSON.parse(JSON.stringify(repoMappings.value)));
+  console.log('initialRepoMappings:', JSON.parse(JSON.stringify(initialRepoMappings.value)));
+
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, {
       settings,
@@ -187,6 +193,11 @@ const connect = () => {
   )
     .then((res) => {
       integration = res;
+      // Add debug logging before mapRepos
+      console.log('Before mapRepos:');
+      console.log('repoMappings:', JSON.parse(JSON.stringify(repoMappings.value)));
+      console.log('initialRepoMappings:', JSON.parse(JSON.stringify(initialRepoMappings.value)));
+
       return IntegrationService.githubMapRepos(res.id, repoMappings.value, [
         res.segmentId,
       ], !!props.integration?.id);
