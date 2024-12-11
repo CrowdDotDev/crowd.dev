@@ -165,21 +165,12 @@ const buildSettings = (): GitHubSettings => {
         })),
     }),
   );
-  console.log('building settings');
-  console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
-  console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
-  console.log('orgs', JSON.parse(JSON.stringify(orgs)));
   return { orgs, updateMemberAttributes: true };
 };
 
 const connect = () => {
   let integration: any = null;
   const settings: GitHubSettings = buildSettings();
-
-  // Add debug logging before API calls
-  console.log('Before API calls:');
-  console.log('repoMappings:', JSON.parse(JSON.stringify(repoMappings.value)));
-  console.log('initialRepoMappings:', JSON.parse(JSON.stringify(initialRepoMappings.value)));
 
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, {
@@ -193,11 +184,6 @@ const connect = () => {
   )
     .then((res) => {
       integration = res;
-      // Add debug logging before mapRepos
-      console.log('Before mapRepos:');
-      console.log('repoMappings:', JSON.parse(JSON.stringify(repoMappings.value)));
-      console.log('initialRepoMappings:', JSON.parse(JSON.stringify(initialRepoMappings.value)));
-
       return IntegrationService.githubMapRepos(res.id, repoMappings.value, [
         res.segmentId,
       ], !!props.integration?.id);
@@ -248,10 +234,6 @@ const fetchGithubMappings = () => {
       // Create new objects to ensure no reference sharing
       repoMappings.value = { ...mappings };
       initialRepoMappings.value = { ...mappings };
-
-      console.log('fetchGithubMappings');
-      console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
-      console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
     },
   );
 };
@@ -260,7 +242,6 @@ watch(
   () => props.integration,
   (value?: Integration<GitHubSettings>) => {
     if (value) {
-      console.log('watch');
       fetchGithubMappings();
       const { orgs } = value.settings;
       organizations.value = orgs
