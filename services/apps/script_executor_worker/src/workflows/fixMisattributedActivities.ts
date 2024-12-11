@@ -21,20 +21,14 @@ export async function fixMisattributedActivities(): Promise<void> {
 
   // Process each record from CSV
   for (const record of records) {
-    // await activity.batchUpdateActivitiesWithWrongMember(
-    //   record.wrongMemberId,
-    //   record.correctMemberId,
-    // )
-
-    console.log(
-      `Processing member wrongMemberId: ${record.wrongMemberId}, correctMemberId: ${record.correctMemberId}, activitiesCount: ${record.activitiesCount}`,
+    await activity.batchUpdateActivitiesWithWrongMember(
+      record.wrongMemberId,
+      record.correctMemberId,
     )
-
-    break
 
     processedMemberCount++
 
     // Log progress
-    console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file.`)
+    console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file!`)
   }
 }
