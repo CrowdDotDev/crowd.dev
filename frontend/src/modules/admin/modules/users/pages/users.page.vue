@@ -1,7 +1,8 @@
 <template>
   <div>
     <div class="pt-6 pb-6">
-      <lf-search v-model="search" class="h-9" :lazy="true" placeholder="Search users..." @update:model-value="searchUsers()" />
+      <lf-search v-model="search" class="h-9" :lazy="true" placeholder="Search users..."
+        @update:model-value="searchUsers()" />
     </div>
     <div v-if="users.length > 0">
       <lf-table>
@@ -28,30 +29,38 @@
               </p>
             </td>
             <td>
-              <p class="text-medium">
-                {{ roleDisplay(user.roles) }}
-              </p>
+              <div class="flex items-center">
+                <div
+                  v-for="(role, roleIndex) in user.roles"
+                  :key="role"
+                  class="border rounded-full border-gray-200 px-2.5 py-1"
+                  :class="roleIndex !== user.roles.length - 1 ? 'mr-3' : ''"
+                >
+                  <el-tooltip v-if="role !== UserRole.projectAdmin" content="This role applies to all project groups" placement="top">
+                    <p class="text-medium">
+                      {{ roleDisplay(role) }}
+                    </p>
+                  </el-tooltip>
+                  <el-tooltip v-else content="This role applies to a specific project group" placement="top">
+                    <p class="text-medium">
+                      {{ roleDisplay(role) }}
+                    </p>
+                  </el-tooltip>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
       </lf-table>
       <div v-if="users.length < total" class="pt-4">
-        <lf-button
-          type="primary-ghost"
-          loading-text="Loading users..."
-          :loading="loading"
-          @click="loadMore()"
-        >
+        <lf-button type="primary-ghost" loading-text="Loading users..." :loading="loading" @click="loadMore()">
           Load more
         </lf-button>
       </div>
     </div>
 
     <div v-else-if="!loading">
-      <app-empty-state-cta
-        icon="user-group"
-        title="No users found"
-      />
+      <app-empty-state-cta icon="user-group" title="No users found" />
     </div>
     <div v-if="loading" class="pt-8 flex justify-center">
       <lf-spinner />
@@ -63,17 +72,18 @@
 import LfSearch from '@/ui-kit/search/Search.vue';
 import { onMounted, ref } from 'vue';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
-import { UserModel } from '@/modules/admin/modules/users/models/User.model';
+import { UserModel, UserRole } from '@/modules/admin/modules/users/models/User.model';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const search = ref('');
 const loading = ref<boolean>(false);
 const offset = ref(0);
 const limit = ref(20);
 const total = ref(0);
-
+const segmentStore = useLfSegmentsStore();
 const users = ref<UserModel[]>([]);
 
 const fetchUsers = () => {
@@ -117,17 +127,15 @@ const loadMore = () => {
   fetchUsers();
 };
 
-const roleDisplay = (roles: string[]) => {
-  const role = roles?.[0];
-
-  if (role === 'admin') {
+const roleDisplay = (role: UserRole) => {
+  if (role === UserRole.admin) {
     return 'Admin';
   }
-  if (role === 'projectAdmin') {
+  if (role === UserRole.projectAdmin) {
     return 'Project Admin';
   }
 
-  if (role === 'readonly') {
+  if (role === UserRole.readonly) {
     return 'Read-only';
   }
   return role;
