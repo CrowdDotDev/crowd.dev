@@ -247,12 +247,11 @@ const fetchGithubMappings = () => {
       );
       repoMappings.value = mappings;
       initialRepoMappings.value = mappings;
+      console.log('fetchGithubMappings');
+      console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
+      console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
     },
   );
-
-  console.log('fetchGithubMappings');
-  console.log('repoMappings', JSON.parse(JSON.stringify(repoMappings.value)));
-  console.log('initialRepoMappings', JSON.parse(JSON.stringify(initialRepoMappings.value)));
 };
 
 watch(
