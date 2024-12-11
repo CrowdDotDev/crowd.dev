@@ -1,5 +1,5 @@
 <template>
-  <div class="min-w-[105px]">
+  <div>
     <lf-pill color="transparent" type="bordered" class="!flex items-center gap-1 w-full">
       <lf-icon-old name="stack-line" />
       {{ pluralize('project', props.count, true) }}
