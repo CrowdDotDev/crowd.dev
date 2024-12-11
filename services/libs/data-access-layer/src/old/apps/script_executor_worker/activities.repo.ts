@@ -78,10 +78,10 @@ export class ActivityRepository {
   ): Promise<void> {
     try {
       await this.questdbSQL.none(
-        'UPDATE "activities" SET "memberId" = $(memberId) WHERE "memberId" = $(wrongMemberId)',
+        'UPDATE "activities" SET "memberId" = $(correctMemberId) WHERE "memberId" = $(wrongMemberId)',
         {
           wrongMemberId,
-          memberId: correctMemberId,
+          correctMemberId,
         },
       )
     } catch (err) {
