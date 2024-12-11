@@ -3,8 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../activities'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 minute',
-  retry: { maximumAttempts: 3 },
+  startToCloseTimeout: '60 minutes',
 })
 
 export async function fixMisattributedActivities(): Promise<void> {
