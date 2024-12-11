@@ -20,6 +20,7 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
     const info = workflowInfo()
 
     const tags = {
+      workflow_id: info.workflowId,
       workflow_type: info.workflowType,
       task_queue: info.taskQueue,
     }

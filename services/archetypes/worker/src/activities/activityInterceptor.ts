@@ -11,6 +11,7 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
     next: Next<ActivityInboundCallsInterceptor, 'execute'>,
   ): Promise<unknown> {
     const tags = {
+      workflow_id: this.ctx.info.workflowExecution.workflowId,
       workflow_type: this.ctx.info.workflowType,
       task_queue: this.ctx.info.taskQueue,
       activity_type: this.ctx.info.activityType,
