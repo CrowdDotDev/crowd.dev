@@ -77,13 +77,11 @@ export class ActivityRepository {
     correctMemberId: string,
   ): Promise<void> {
     try {
-      // Batch update activities in QuestDB
-      await updateActivities(
-        this.questdbSQL,
-        async () => ({ memberId: correctMemberId }),
-        '"memberId" = $(wrongMemberId)',
+      await this.questdbSQL.none(
+        'UPDATE "activities" SET "memberId" = $(memberId) WHERE "memberId" = $(wrongMemberId)',
         {
           wrongMemberId,
+          memberId: correctMemberId,
         },
       )
     } catch (err) {
