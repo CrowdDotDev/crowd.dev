@@ -1,25 +1,29 @@
+import { parse } from 'csv-parse/sync'
+import * as fs from 'fs'
+import * as path from 'path'
+
 import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activities.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import { IMemberIdentity } from '@crowd/types'
 
 import { svc } from '../../main'
 
-export async function findActivitiesWithWrongMembers(tenantId: string, limit: number) {
-  let activitiesWithWrongMember = []
+// export async function findActivitiesWithWrongMembers(tenantId: string, limit: number) {
+//   let activitiesWithWrongMember = []
 
-  try {
-    const activityRepo = new ActivityRepository(
-      svc.postgres.reader.connection(),
-      svc.log,
-      svc.questdbSQL,
-    )
-    activitiesWithWrongMember = await activityRepo.getActivitiesWithWrongMembers(tenantId, limit)
-  } catch (err) {
-    throw new Error(err)
-  }
+//   try {
+//     const activityRepo = new ActivityRepository(
+//       svc.postgres.reader.connection(),
+//       svc.log,
+//       svc.questdbSQL,
+//     )
+//     activitiesWithWrongMember = await activityRepo.getActivitiesWithWrongMembers(tenantId, limit)
+//   } catch (err) {
+//     throw new Error(err)
+//   }
 
-  return activitiesWithWrongMember
-}
+//   return activitiesWithWrongMember
+// }
 
 export async function findMemberIdentity(username: string, platform: string, tenantId: string) {
   let memberIdentity: IMemberIdentity
@@ -61,4 +65,19 @@ export async function batchUpdateActivitiesWithWrongMember(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function findActivitiesWithWrongMembers(): Promise<
+  Array<{
+    wrongMemberId: string
+    correctMemberId: string
+    activitiesCount: number
+  }>
+> {
+  const csvFilePath = path.join(process.cwd(), 'misattributed_activities.csv')
+  const fileContent = fs.readFileSync(csvFilePath, 'utf-8')
+  return parse(fileContent, {
+    columns: true,
+    skip_empty_lines: true,
+  })
 }

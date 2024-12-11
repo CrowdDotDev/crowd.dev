@@ -1,7 +1,4 @@
 import { proxyActivities } from '@temporalio/workflow'
-import { parse } from 'csv-parse/sync'
-import * as fs from 'fs'
-import * as path from 'path'
 
 import * as activities from '../activities'
 
@@ -12,12 +9,7 @@ const activity = proxyActivities<typeof activities>({
 
 export async function fixMisattributedActivities(): Promise<void> {
   // Read CSV file
-  const csvFilePath = path.join(process.cwd(), 'misattributed_activities.csv')
-  const fileContent = fs.readFileSync(csvFilePath, 'utf-8')
-  const records = parse(fileContent, {
-    columns: true,
-    skip_empty_lines: true,
-  })
+  const records = await activity.findActivitiesWithWrongMembers()
 
   if (!records.length) {
     console.log(`No activities found in the CSV file!`)
