@@ -32,7 +32,7 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
     } finally {
       const end = new Date()
       const duration = end.getTime() - start.getTime()
-      activity.telemetryDistribution('temporal.workflow_execution_duration', duration, tags)
+      await activity.telemetryDistribution('temporal.workflow_execution_duration', duration, tags)
     }
   }
 }
