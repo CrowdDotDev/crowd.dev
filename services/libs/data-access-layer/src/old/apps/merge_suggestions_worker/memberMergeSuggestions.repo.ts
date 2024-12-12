@@ -283,6 +283,28 @@ class MemberMergeSuggestionsRepository {
 
     return results.map((r) => [r.memberId, r.toMergeId])
   }
+
+  async removeRawMemberSuggestions(suggestion: string[]): Promise<void> {
+    const query = `
+      delete from "memberToMergeRaw" 
+      where 
+        ("memberId" = $(memberId) and "toMergeId" = $(toMergeId))
+        or 
+        ("memberId" = $(toMergeId) and "toMergeId" = $(memberId))
+    `
+
+    const replacements = {
+      memberId: suggestion[0],
+      toMergeId: suggestion[1],
+    }
+
+    try {
+      await this.connection.result(query, replacements)
+    } catch (error) {
+      this.log.error('Error removing raw member suggestions', error)
+      throw error
+    }
+  }
 }
 
 export default MemberMergeSuggestionsRepository

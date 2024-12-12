@@ -63,6 +63,7 @@ export async function mergeMembersWithLLM(
 
     if (members.length !== 2) {
       console.log(`Failed getting members data in suggestion. Skipping suggestion: ${suggestion}`)
+      await memberActivitiesProxy.removeRawMemberMergeSuggestions(suggestion)
       continue
     }
 
