@@ -2,6 +2,7 @@ import LfSvg from '@/shared/svg/svg.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfTimeline from './Timeline.vue';
 import LfTimelineItem from './TimelineItem.vue';
+import { TimelineGroup } from './types/TimelineTypes';
 
 export default {
   title: 'LinuxFoundation/Timeline',
@@ -26,7 +27,7 @@ export const Regular = {
       },
     ],
   },
-  render: (args: any) => ({
+  render: (args: { groups: TimelineGroup[] }) => ({
     components: {
       LfTimeline, LfTimelineItem, LfSvg, LfIconOld,
     },
@@ -34,10 +35,11 @@ export const Regular = {
       return { args };
     },
     template: `<lf-timeline :groups="args.groups" v-slot="{ group }">
-      <lf-timeline-item data="Item 1" v-for="item in group.items" :key="item.id">
+      <lf-timeline-item :data="item" v-for="item in group.items" :key="item.id">
+        <!-- SAMPLE CONTENT -->
         <div class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
-          <p class="truncate" style="max-width: 30ch">
+          <p class="truncate text-gray-900" style="max-width: 30ch">
             {{ item.label }}
           </p>
         </div>

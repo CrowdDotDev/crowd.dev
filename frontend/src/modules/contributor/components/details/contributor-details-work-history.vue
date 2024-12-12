@@ -32,7 +32,7 @@
 
     <div v-if="!masked" class="flex flex-col gap-4">
       <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
-        <lf-timeline-item v-for="item in group.items" :key="item.id" data="Item 1">
+        <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
           <lf-contributor-details-work-history-item
             :contributor="props.contributor"
             :organization="item"
@@ -144,7 +144,6 @@ const masked = computed(() => isMasked(props.contributor));
 const onGroupHover = (index: TimelineGroup | null) => {
   hoveredGroup.value = index;
 };
-
 </script>
 
 <script lang="ts">
