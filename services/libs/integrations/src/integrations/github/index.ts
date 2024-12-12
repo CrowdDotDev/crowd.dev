@@ -12,7 +12,7 @@ import processWebhookStream from './processWebhookStream'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GITHUB,
   memberAttributes: GITHUB_MEMBER_ATTRIBUTES,
-  // checkEvery: 12 * 60, // 12 hours
+  // checkEvery: 24 * 60, // 24 hours
   generateStreams,
   processStream,
   processData,

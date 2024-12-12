@@ -21,7 +21,7 @@ export class GithubSnowflakeClient {
 
   public async getOrgRepositories({
     org,
-    perPage = 100,
+    perPage = 1000,
     page = 1,
   }: {
     org: string
@@ -56,7 +56,7 @@ export class GithubSnowflakeClient {
   public async getRepoStargazers({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -99,7 +99,7 @@ export class GithubSnowflakeClient {
   public async getRepoForks({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -144,7 +144,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequests({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -189,7 +189,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequestReviews({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = undefined,
   }: {
     sf_repo_id: string
@@ -234,7 +234,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequestReviewComments({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -279,7 +279,7 @@ export class GithubSnowflakeClient {
   public async getRepoPushes({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -327,7 +327,7 @@ export class GithubSnowflakeClient {
   public async getRepoIssues({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -371,7 +371,7 @@ export class GithubSnowflakeClient {
   public async getRepoIssueComments({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string

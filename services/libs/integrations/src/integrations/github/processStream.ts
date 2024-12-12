@@ -78,7 +78,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoStargazers({
     sf_repo_id: data.sf_repo_id,
@@ -105,7 +105,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoForks({
     sf_repo_id: data.sf_repo_id,
@@ -132,7 +132,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoPullRequests({
     sf_repo_id: data.sf_repo_id,
@@ -180,7 +180,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoPullRequestReviewComments({
     sf_repo_id: data.sf_repo_id,
@@ -206,7 +206,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoIssues({
     sf_repo_id: data.sf_repo_id,
@@ -243,7 +243,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoIssueComments({
     sf_repo_id: data.sf_repo_id,
