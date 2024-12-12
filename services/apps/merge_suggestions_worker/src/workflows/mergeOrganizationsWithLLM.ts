@@ -51,6 +51,7 @@ export async function mergeOrganizationsWithLLM(
       console.log(
         `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
       )
+      await organizationActivitiesProxy.removeRawOrganizationMergeSuggestions(suggestion)
       continue
     }
 
