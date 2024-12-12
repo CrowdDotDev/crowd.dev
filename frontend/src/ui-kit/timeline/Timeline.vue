@@ -23,8 +23,12 @@
         </span>
       </div>
 
-      <div class="c-timeline__items">
-        <slot name="default" :group="group" />
+      <div
+        class="c-timeline__items"
+        @mouseover="emit('onGroupHover', group)"
+        @mouseleave="emit('onGroupHover', null)"
+      >
+        <slot name="default" :group="group" :hovered="hovered" />
       </div>
     </div>
   </div>
@@ -32,11 +36,16 @@
 
 <script lang="ts" setup>
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { ref } from 'vue';
 import { TimelineGroup } from './types/TimelineTypes';
+
+const emit = defineEmits(['onGroupHover']);
 
 const props = defineProps<{
   groups: TimelineGroup[];
 }>();
+
+const hovered = ref(false);
 
 </script>
 

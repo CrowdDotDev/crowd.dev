@@ -17,7 +17,7 @@
         </p>
       </div>
 
-      <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-if="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />
@@ -71,7 +71,8 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   organization: Organization,
-  contributor: Contributor
+  contributor: Contributor,
+  isGroupHover: boolean,
 }>();
 
 const emit = defineEmits<{(e:'edit'): void}>();

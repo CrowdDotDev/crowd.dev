@@ -31,11 +31,12 @@
     </div>
 
     <div v-if="!masked" class="flex flex-col gap-4">
-      <lf-timeline v-slot="{ group }" :groups="shownGroups">
+      <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
         <lf-timeline-item v-for="item in group.items" :key="item.id" data="Item 1">
           <lf-contributor-details-work-history-item
             :contributor="props.contributor"
             :organization="item"
+            :is-group-hover="hoveredGroup?.id === group.id"
             @edit="isEditModalOpen = true; editOrganization = item"
           />
         </lf-timeline-item>
@@ -108,11 +109,12 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
+const hoveredGroup = ref<TimelineGroup | null>(null);
 
-// const orgs = computed(() => props.contributor.organizations);
 const orgGrouped = computed(() => {
   const grouped = groupBy(props.contributor.organizations, 'id');
-  return Object.keys(grouped).map((id): TimelineGroup => ({
+  return Object.keys(grouped).map((id, index): TimelineGroup => ({
+    id: index,
     label: grouped[id][0].displayName,
     labelLink: {
       name: 'organizationView',
@@ -138,6 +140,11 @@ const minimumShownGroups = computed(() => {
 const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups.value));
 
 const masked = computed(() => isMasked(props.contributor));
+
+const onGroupHover = (index: TimelineGroup | null) => {
+  hoveredGroup.value = index;
+};
+
 </script>
 
 <script lang="ts">
