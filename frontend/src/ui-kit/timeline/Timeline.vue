@@ -1,5 +1,11 @@
 <template>
-  <div v-for="group in props.groups" :key="group.label" class="c-timeline">
+  <div
+    v-for="group in props.groups"
+    :key="group.label"
+    class="c-timeline"
+    @mouseover="emit('onGroupHover', group)"
+    @mouseleave="emit('onGroupHover', null)"
+  >
     <div class="c-timeline__group-icon">
       <lf-avatar
         :name="group.label"
@@ -9,12 +15,12 @@
         img-class="!object-contain"
       />
     </div>
-    <div>
+    <div class="grow">
       <div class="c-timeline__group-label">
         <router-link
           v-if="group.labelLink"
           :to="group.labelLink"
-          class="cursor-pointer"
+          class="cursor-pointer text-gray-900 hover:text-primary-500"
         >
           {{ group.label }}
         </router-link>
@@ -23,11 +29,7 @@
         </span>
       </div>
 
-      <div
-        class="c-timeline__items"
-        @mouseover="emit('onGroupHover', group)"
-        @mouseleave="emit('onGroupHover', null)"
-      >
+      <div class="c-timeline__items">
         <slot name="default" :group="group" :hovered="hovered" />
       </div>
     </div>

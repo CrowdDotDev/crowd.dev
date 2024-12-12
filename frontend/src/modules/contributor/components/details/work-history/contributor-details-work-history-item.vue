@@ -5,7 +5,7 @@
   >
     <div class="flex">
       <div class="flex flex-auto flex-col overflow-hidden">
-        <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-500 mb-1.5 flex items-center gap-1.5">
+        <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
           <p class="truncate" style="max-width: 30ch">
             {{ props.organization?.memberOrganizations?.title }}
