@@ -12,6 +12,7 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
   ): Promise<unknown> {
     const tags = {
       workflow_id: this.ctx.info.workflowExecution.workflowId,
+      workflow_run_id: this.ctx.info.workflowExecution.runId,
       workflow_type: this.ctx.info.workflowType,
       task_queue: this.ctx.info.taskQueue,
       activity_type: this.ctx.info.activityType,
