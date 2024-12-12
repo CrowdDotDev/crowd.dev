@@ -129,15 +129,8 @@ const orgGrouped = computed(() => {
     items: grouped[id],
   }));
 });
-const minimumShownGroups = computed(() => {
-  const MIN_ITEMS = 3;
-  const groupMinIdx = props.contributor.organizations.length >= MIN_ITEMS ? MIN_ITEMS - 1 : 0;
-
-  return orgGrouped.value.length > 0
-    ? orgGrouped.value.findIndex((group) => props.contributor.organizations[groupMinIdx].id === group.items[0].id) + 1
-    : MIN_ITEMS;
-});
-const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups.value));
+const minimumShownGroups = 3;
+const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups));
 
 const masked = computed(() => isMasked(props.contributor));
 
