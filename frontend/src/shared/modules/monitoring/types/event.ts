@@ -135,4 +135,6 @@ export enum FeatureEventKey {
   SELECT_PROJECT_GROUP = 'Select project group',
   FILTER_DASHBOARD = 'Filter dashboard',
   COPILOT_REVIEW_PROFILE = 'Copilot review profile',
+  SEARCH = 'Search',
+  FILTER = 'Filter',
 }

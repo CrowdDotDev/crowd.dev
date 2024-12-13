@@ -1,30 +1,32 @@
 import { ProjectGroup, Project } from '@/modules/lf/segments/types/Segments';
 
 export interface SegmentsState {
-  selectedProjectGroup: ProjectGroup | null;
+  selectedProjectGroup: ProjectGroup | null
   adminProjectGroups: {
-    list: ProjectGroups[],
+    list: ProjectGroup[]
   }
   projectGroups: {
-    list: ProjectGroup[],
-    loading: boolean,
+    list: ProjectGroup[]
+    loading: boolean
+    paginating: boolean
     pagination: {
-      pageSize: number,
-      currentPage: number,
-      total: number,
-      count: number,
-    },
-  },
+      pageSize: number
+      currentPage: number
+      total: number
+      count: number
+    }
+  }
   projects: {
-    list: Project[],
-    parentSlug: string,
-    loading: boolean,
+    list: Project[]
+    parentSlug: string
+    loading: boolean
+    paginating: boolean
     pagination: {
-      pageSize: number,
-      currentPage: number,
-      total: number,
-      count: number,
-    },
+      pageSize: number
+      currentPage: number
+      total: number
+      count: number
+    }
   }
 }
 

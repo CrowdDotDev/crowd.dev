@@ -22,7 +22,7 @@
           <span class="text-xs">Edit project group</span>
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id)"
+          v-if="hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id) && !showEditOnly"
           class="h-10 mb-1"
           :command="addProject"
         >
@@ -30,11 +30,12 @@
           <span class="text-xs">Add project</span>
         </el-dropdown-item>
         <el-divider
-          v-if="(hasPermission(LfPermission.projectGroupEdit) && hasAccessToSegmentId(id))
-            || (hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id))"
+          v-if="((hasPermission(LfPermission.projectGroupEdit) && hasAccessToSegmentId(id))
+            || (hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id))) && !showEditOnly"
           class="border-gray-200 !my-2"
         />
         <el-dropdown-item
+          v-if="!showEditOnly"
           class="h-10"
           :command="() => updateSelectedProjectGroup(id)"
         >
@@ -60,6 +61,10 @@ defineProps({
   id: {
     type: String,
     default: null,
+  },
+  showEditOnly: {
+    type: Boolean,
+    default: false,
   },
 });
 
