@@ -6,22 +6,21 @@
   // Tabs style
   --lf-tabs-background: var(--lf-color-gray-50);
   --lf-tabs-radius: #{rem(8)};
-  --lf-tabs-spacing: #{rem(4)};
+  --lf-tabs-spacing: #{rem(12)};
   --lf-tabs-padding: #{rem(4)};
 
   // Tab style
   --lf-tab-font-weight: 600;
-  --lf-tab-text: var(--lf-color-gray-600);
+  --lf-tab-text: var(--lf-color-gray-500);
   --lf-tab-radius: #{rem(6)};
 
   // Hover
   --lf-tab-hover-background: var(--lf-color-gray-100);
 
   // Active
-  --lf-tab-active-background: var(--lf-color-white);
-  --lf-tab-active-text: var(--lf-color-primary-500);
+  --lf-tab-active-background: var(--lf-color-primary-50);
+  --lf-tab-active-text: var(--lf-color-gray-900);
   --lf-tab-active-shadow: var(--shadow-m);
-
 
   /* ---------------------------------- *\
            Tab sizes

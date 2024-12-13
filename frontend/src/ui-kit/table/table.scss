@@ -8,7 +8,16 @@
     display: none;
   }
 
-  td, th {
+  &.hover-enabled {
+    tbody {
+      tr {
+        @apply hover:bg-gray-100;
+      }
+    }
+  }
+
+  td,
+  th {
     &.is-sticky {
       @apply sticky pl-3 bg-white left-0 right-0 z-20;
 
@@ -36,12 +45,13 @@
     thead {
       @apply border-b border-gray-100;
       th {
-        @apply h-12 text-sm leading-5 font-semibold text-gray-400 text-left whitespace-nowrap;
+        @apply h-12 text-xs leading-5 font-semibold text-gray-400 text-left whitespace-nowrap;
       }
     }
 
     tbody {
-      tr, .tr {
+      tr,
+      .tr {
         &:not(:last-child) {
           @apply border-b border-gray-100;
         }
@@ -65,7 +75,8 @@
     @apply border-t border-x border-gray-100 shadow-sm rounded-lg;
 
     table {
-      td, th {
+      td,
+      th {
         @apply py-5 pr-5;
 
         &:first-child {
