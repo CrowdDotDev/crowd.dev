@@ -3,6 +3,9 @@ interface BaseData {
   organizationId: string
   dateStart: string
   dateEnd: string
+  title: string
+  isPrimaryOrganization?: boolean
+  memberCount?: number
 }
 
 export interface IManualAffiliationData extends BaseData {
@@ -12,4 +15,9 @@ export interface IManualAffiliationData extends BaseData {
 
 export interface IWorkExperienceData extends BaseData {
   id: string
+}
+
+export interface IOrganizationMemberCount {
+  organizationId: string
+  memberCount: number
 }

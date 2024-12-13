@@ -7,7 +7,7 @@ create table "memberOrganizationAffiliationOverrides" (
 
     primary key ("id"),
     foreign key ("organizationId") references "organizations" (id),
-    foreign key ("memberId") references members (id)
+    foreign key ("memberId") references members (id),
     unique ("memberId", "organizationId")
 );
 

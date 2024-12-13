@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import QueryStream from 'pg-query-stream'
 
+import { getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { IMemberOrganization, ITenant } from '@crowd/types'
@@ -61,39 +62,28 @@ export async function runMemberAffiliationsUpdate(
 
   const nullableOrg = (orgId: string) => (orgId ? `cast('${orgId}' as uuid)` : 'NULL')
 
-  const isDateInInterval = (date: Date, start: Date, end: Date | null) => {
-    return date >= start && (end === null || date <= end)
+  const isDateInInterval = (date: Date, start: Date | null, end: Date | null) => {
+    return (!start || date >= start) && (!end || date <= end)
   }
 
-  const oneDayBefore = (date: Date) => new Date(date.setDate(date.getDate() - 1))
-
-  const getLongestDateRange = (orgs: MemberOrganizationWithOverrides[]) => {
-    const orgsWithDates = orgs.filter((row) => !!row.dateStart)
-    if (orgsWithDates.length === 0) {
-      // all orgs have no dates, return the first one
-      return orgs[0]
-    }
-
-    const sortedByDateRange = orgsWithDates.sort((a, b) => {
-      return (
-        new Date(b.dateEnd || '9999-12-31').getTime() -
-        new Date(b.dateStart).getTime() -
-        (new Date(a.dateEnd || '9999-12-31').getTime() - new Date(a.dateStart).getTime())
-      )
-    })
-
-    return sortedByDateRange[0]
-  }
-
-  const findOrgsInDateInterval = (
+  const findOrgsWithRolesInDate = (
     date: Date,
     memberOrganizations: MemberOrganizationWithOverrides[],
   ): MemberOrganizationWithOverrides[] => {
-    return memberOrganizations.filter(
-      (row) =>
-        (!row.dateStart && !row.dateEnd) ||
-        isDateInInterval(date, new Date(row.dateStart), new Date(row.dateEnd)),
-    )
+    const p = memberOrganizations.filter((row) => {
+      const dateStart = row.dateStart ? new Date(row.dateStart) : null
+      const dateEnd = row.dateEnd ? new Date(row.dateEnd) : null
+
+      return (!dateStart && !dateEnd) || isDateInInterval(date, dateStart, dateEnd)
+    })
+
+    return p
+  }
+
+  const oneDayBefore = (date: Date) => {
+    const newDate = new Date(date)
+    newDate.setDate(newDate.getDate() - 1)
+    return newDate
   }
 
   const selectPrimaryOrg = (
@@ -116,7 +106,7 @@ export async function runMemberAffiliationsUpdate(
         return primaryOrgs[0]
       }
     } else {
-      // no orgs were marked as primary by the users, use additional metrics to decide the primary
+      // no orgs were marked as primary by the user, use additional metrics to decide the primary
       // 1. favor the one with dates if there's only one
       const withDates = orgs.filter((row) => !!row.dateStart)
       if (withDates.length === 1) {
@@ -145,50 +135,51 @@ export async function runMemberAffiliationsUpdate(
       Math.min(...memberOrgsWithDates.map((row) => new Date(row.dateStart).getTime())),
     )
 
-    const latestStartDate = new Date(
-      Math.max(...memberOrgsWithDates.map((row) => new Date(row.dateStart).getTime())),
-    )
+    const now = new Date()
 
     // loop from earliest to latest start date, day by day
     const timeline = []
     let currentPrimaryOrg = null
     let currentStartDate = null
 
-    for (let date = earliestStartDate; date <= latestStartDate; date.setDate(date.getDate() + 1)) {
-      const orgs = findOrgsInDateInterval(date, memberOrganizations)
-      const primaryOrg = selectPrimaryOrg(orgs)
+    for (let date = earliestStartDate; date <= now; date.setDate(date.getDate() + 1)) {
+      const orgs = findOrgsWithRolesInDate(date, memberOrganizations)
 
       if (orgs.length === 0) {
         // means there's a gap in the timeline, close the current range if there's one, but don't open a new one
         if (currentPrimaryOrg) {
           timeline.push({
             organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate,
-            dateEnd: oneDayBefore(date),
+            dateStart: currentStartDate.toISOString(),
+            dateEnd: oneDayBefore(date).toISOString(),
           })
         }
         currentPrimaryOrg = null
         currentStartDate = null
-      } else if (currentPrimaryOrg == null) {
-        // means there's a new range starting
-        currentPrimaryOrg = primaryOrg
-        currentStartDate = date
-      } else if (currentPrimaryOrg !== primaryOrg) {
-        // we have a new primary org, we need to close the current range and open a new one
-        timeline.push({
-          organizationId: currentPrimaryOrg.organizationId,
-          dateStart: currentStartDate,
-          dateEnd: oneDayBefore(date),
-        })
-        currentPrimaryOrg = primaryOrg
-        currentStartDate = date
+      } else {
+        const primaryOrg = selectPrimaryOrg(orgs)
+
+        if (currentPrimaryOrg == null) {
+          // means there's a new range starting
+          currentPrimaryOrg = primaryOrg
+          currentStartDate = new Date(date)
+        } else if (currentPrimaryOrg !== primaryOrg) {
+          // we have a new primary org, we need to close the current range and open a new one
+          timeline.push({
+            organizationId: currentPrimaryOrg.organizationId,
+            dateStart: currentStartDate.toISOString(),
+            dateEnd: oneDayBefore(date).toISOString(),
+          })
+          currentPrimaryOrg = primaryOrg
+          currentStartDate = new Date(date)
+        }
       }
 
-      // if we're at the last date, close the current range
-      if (currentPrimaryOrg && currentStartDate && date.getTime() === latestStartDate.getTime()) {
+      // if we're at the end, close the current range
+      if (currentPrimaryOrg && currentStartDate && new Date(date.getTime() + 86400000) > now) {
         timeline.push({
           organizationId: currentPrimaryOrg.organizationId,
-          dateStart: currentStartDate,
+          dateStart: currentStartDate.toISOString(),
           dateEnd: currentPrimaryOrg.dateEnd,
         })
       }
@@ -242,7 +233,13 @@ export async function runMemberAffiliationsUpdate(
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
 
+  console.log('MEMBER ORGS')
+  console.log(memberOrganizations)
+
   const timeline = buildTimeline(memberOrganizations)
+
+  console.log('BUILT TIMELINE')
+  console.log(timeline)
 
   const orgCases: Condition[] = [
     ..._.chain(manualAffiliations)
