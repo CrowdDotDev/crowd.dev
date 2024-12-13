@@ -110,7 +110,8 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
              platform as type,
              status as state,
              "integrationIdentifier" as identifier,
-             "tenantId"
+             "tenantId",
+             "updatedAt"
       from integrations where id = $(integrationId) and "deletedAt" is null
     `,
       {
