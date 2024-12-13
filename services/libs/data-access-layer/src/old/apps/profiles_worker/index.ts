@@ -233,13 +233,7 @@ export async function runMemberAffiliationsUpdate(
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
 
-  console.log('MEMBER ORGS')
-  console.log(memberOrganizations)
-
   const timeline = buildTimeline(memberOrganizations)
-
-  console.log('BUILT TIMELINE')
-  console.log(timeline)
 
   const orgCases: Condition[] = [
     ..._.chain(manualAffiliations)
@@ -315,9 +309,6 @@ export async function runMemberAffiliationsUpdate(
   } else {
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
-
-  console.log(fullCase)
-  return
 
   async function insertIfMatches(activity: IDbActivityCreateData) {
     activity.organizationId = null
