@@ -19,6 +19,7 @@ export class StartIntegrationRunQueueMessage implements IQueueMessage {
     public readonly onboarding: boolean,
     public readonly isManualRun?: boolean,
     public readonly manualSettings?: unknown,
+    public readonly additionalInfo?: unknown,
   ) {}
 }
 
@@ -29,6 +30,7 @@ export class GenerateRunStreamsQueueMessage implements IQueueMessage {
     public readonly runId: string,
     public readonly isManualRun?: boolean,
     public readonly manualSettings?: unknown,
+    public readonly additionalInfo?: unknown,
   ) {}
 }
 

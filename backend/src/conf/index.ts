@@ -39,6 +39,7 @@ import {
   SlackAlertingConfiguration,
   SlackConfiguration,
   SlackNotifierConfiguration,
+  SnowflakeConfiguration,
   StackExchangeConfiguration,
   TenantMode,
   TwitterConfiguration,
@@ -172,3 +173,6 @@ export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
 export const GITLAB_CONFIG: GitlabConfiguration = config.get<GitlabConfiguration>('gitlab')
 
 export const REDDIT_CONFIG: IRedditConfig = config.get<IRedditConfig>('reddit')
+
+export const SNOWFLAKE_CONFIG: SnowflakeConfiguration =
+  config.get<SnowflakeConfiguration>('snowflake')

@@ -70,11 +70,17 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
             msg.onboarding,
             msg.isManualRun,
             msg.manualSettings,
+            msg.additionalInfo,
           )
           break
         case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
           const msg2 = message as GenerateRunStreamsQueueMessage
-          await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
+          await service.generateStreams(
+            msg2.runId,
+            msg2.isManualRun,
+            msg2.manualSettings,
+            msg2.additionalInfo,
+          )
           break
         case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
           await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)

@@ -8,6 +8,7 @@ import {
   getEnrichmentInput,
   getObsoleteSourcesOfMember,
   getTenantPriorityArray,
+  hasRemainingCredits,
   insertMemberEnrichmentCache,
   isCacheObsolete,
   isEnrichableBySource,
@@ -75,4 +76,5 @@ export {
   updateMemberUsingSquashedPayload,
   getTenantPriorityArray,
   cleanAttributeValue,
+  hasRemainingCredits,
 }

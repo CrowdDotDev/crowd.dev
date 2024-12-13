@@ -165,7 +165,7 @@ watch(
     } else if (routeName === 'activity' && routeHash === '#conversation') {
       key = FeatureEventKey.FILTER_CONVERSATIONS;
     } else {
-      key = null;
+      key = FeatureEventKey.FILTER;
     }
 
     if (key) {

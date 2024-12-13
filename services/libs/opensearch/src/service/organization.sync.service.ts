@@ -414,9 +414,12 @@ export class OrganizationSyncService {
           OrganizationField.LOCATION,
           OrganizationField.INDUSTRY,
         ])
-        const data = await buildFullOrgForMergeSuggestions(qx, base)
-        const prefixed = OrganizationSyncService.prefixData(data)
-        await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
+
+        if (base) {
+          const data = await buildFullOrgForMergeSuggestions(qx, base)
+          const prefixed = OrganizationSyncService.prefixData(data)
+          await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
+        }
       }
 
       return {
