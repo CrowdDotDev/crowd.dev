@@ -63,7 +63,7 @@ const changeValue = debounce((search: string) => {
   } else if (routeName === 'activity' && routeHash === '#conversation') {
     key = FeatureEventKey.SEARCH_CONVERSATIONS;
   } else {
-    key = null;
+    key = FeatureEventKey.SEARCH;
   }
 
   if (key) {

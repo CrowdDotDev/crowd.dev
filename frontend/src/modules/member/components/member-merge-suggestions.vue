@@ -285,7 +285,7 @@ const mergeSuggestion = () => {
   loadingMessage();
 
   trackEvent({
-    key: FeatureEventKey.MERGE_MEMBERS_MERGE_SUGGESTION,
+    key: FeatureEventKey.MERGE_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: membersToMerge.value.similarity,
