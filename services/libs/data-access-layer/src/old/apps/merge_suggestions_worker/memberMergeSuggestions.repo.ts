@@ -299,7 +299,7 @@ class MemberMergeSuggestionsRepository {
     }
 
     try {
-      await this.connection.result(query, replacements)
+      await this.connection.none(query, replacements)
     } catch (error) {
       this.log.error('Error removing raw member suggestions', error)
       throw error

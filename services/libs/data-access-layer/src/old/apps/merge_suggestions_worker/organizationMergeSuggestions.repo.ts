@@ -316,7 +316,7 @@ class OrganizationMergeSuggestionsRepository {
     }
 
     try {
-      await this.connection.result(query, replacements)
+      await this.connection.none(query, replacements)
     } catch (error) {
       this.log.error('Error removing raw organization suggestions', error)
       throw error
