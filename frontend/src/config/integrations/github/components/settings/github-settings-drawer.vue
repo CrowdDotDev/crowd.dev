@@ -43,16 +43,19 @@
           Cancel
         </lf-button>
         <el-tooltip
-          :content="props.integration?.status === 'in-progress' ? 'Please wait while the integration is in progress' : ''"
-          :disabled="props.integration?.status !== 'in-progress'"
+          content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
+      Please contact support if you need to onboard new data or update settings."
+          placement="top"
         >
-          <lf-button
-            type="primary"
-            :disabled="$v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
-            @click="connect()"
-          >
-            {{ props.integration ? "Update settings" : "Connect" }}
-          </lf-button>
+          <span>
+            <lf-button
+              type="primary"
+              :disabled="true || $v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+              @click="connect()"
+            >
+              {{ props.integration ? "Update settings" : "Connect" }}
+            </lf-button>
+          </span>
         </el-tooltip>
       </div>
     </div>
