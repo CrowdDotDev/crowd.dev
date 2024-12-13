@@ -4,6 +4,7 @@ import cronGenerator from 'cron-time-generator'
 import { timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
+import GithubReposRepository from '../../database/repositories/githubReposRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import GithubIntegrationService from '../../services/githubIntegrationService'
 import IntegrationService from '../../services/integrationService'
@@ -106,10 +107,26 @@ export const refreshGithubRepoSettings = async () => {
           status: 'in-progress',
         })
 
+        const currentMapping: {
+          url: string
+          segment: {
+            id: string
+            name: string
+          }
+        }[] = await GithubReposRepository.getMapping(integration.id, options)
+
+        const newFullMapping: Record<string, string> = {
+          ...currentMapping.reduce((acc, item) => {
+            acc[item.url] = item.segment.id
+            return acc
+          }, {}),
+          ...newRepoMappings,
+        }
+
         // Map new repos
         await integrationService.mapGithubRepos(
           integration.id,
-          newRepoMappings,
+          newFullMapping,
           true,
           // this will fire onboarding only for new repos
           true,

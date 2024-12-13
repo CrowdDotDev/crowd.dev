@@ -5,10 +5,18 @@
       <!--        <lf-icon name="circle-info" type="regular" />-->
       <!--        Details-->
       <!--      </lf-button>-->
-      <lf-button type="secondary" @click="isSettingsDrawerOpen = true">
-        <lf-icon name="link-simple" />
-        Connect
-      </lf-button>
+      <el-tooltip
+        content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
+      Please contact support if you need to onboard new data or update settings."
+        placement="top"
+      >
+        <span>
+          <lf-button type="secondary" disabled @click="isSettingsDrawerOpen = true">
+            <lf-icon name="link-simple" />
+            Connect
+          </lf-button>
+        </span>
+      </el-tooltip>
     </div>
     <lf-github-settings-drawer v-if="isSettingsDrawerOpen" v-model="isSettingsDrawerOpen" :integration="null" />
   </div>
