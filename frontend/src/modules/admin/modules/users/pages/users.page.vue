@@ -50,15 +50,10 @@
                       {{ roleDisplay(role) }}
                     </p>
                   </el-tooltip>
-                  <el-popover
-                    v-else
-                    trigger="hover"
-                    placement="top"
-                    popper-class="!w-80"
-                  >
+                  <el-popover v-else trigger="hover" placement="top" popper-class="!w-80">
                     <template #reference>
                       <div class="flex items-baseline text-medium">
-                        {{ roleDisplay(role, user.adminSegments) }}
+                        {{ roleDisplay(role) }}
                         <lf-icon class="mx-1" :name="'folders'" :size="16" />
                         <p>
                           {{ user.adminSegments?.length }}
@@ -67,16 +62,15 @@
                     </template>
                     <div class="p-1">
                       <span class="text-xs text-gray-400">Project groups</span>
-                      <div class="overflow-auto max-h-30 mt-4">
+                      <div class="overflow-auto max-h-30 mt-4 flex items-baseline flex-wrap gap-2">
                         <p
-                          v-for="(segmentId, segmentIdx) in user.adminSegments"
+                          v-for="segmentId in user.adminSegments"
                           :key="segmentId"
-                          class="w-fit border rounded-full border-gray-200 px-2.5 py-1 text-gray-900 text-xs"
-                          :class="segmentIdx !== user.adminSegments.length - 1 ? 'mb-3' : ''"
+                          class="badge--border !block badge--gray-light h-6 text-xs"
                         >
                           {{
-                            segmentStore.projectGroups.list.find(
-                              (pg) => pg.id === segmentId)?.name
+                            projects.find(
+                              (p) => p.id === segmentId)?.name
                           }}
                         </p>
                       </div>
@@ -89,12 +83,7 @@
         </tbody>
       </lf-table>
       <div v-if="users.length < total" class="pt-4">
-        <lf-button
-          type="primary-ghost"
-          loading-text="Loading users..."
-          :loading="loading"
-          @click="loadMore()"
-        >
+        <lf-button type="primary-ghost" loading-text="Loading users..." :loading="loading" @click="loadMore()">
           Load more
         </lf-button>
       </div>
@@ -110,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
@@ -122,6 +111,7 @@ import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
 
 const search = ref('');
 const loading = ref<boolean>(false);
@@ -171,6 +161,23 @@ const loadMore = () => {
   offset.value = users.value.length;
   fetchUsers();
 };
+
+const projects = computed(() => treeMap(segmentStore.projectGroups.list));
+
+function treeMap(projectList: ProjectGroup[]) {
+  const projects = [...projectList.map((pg) => ({ id: pg.id, name: pg.name }))];
+  projectList.forEach((projectGroup) => {
+    if (projectGroup.projects.length > 0) {
+      projects.push(...projectGroup.projects.map((p) => ({ id: p.id, name: p.name })));
+      projectGroup.projects.forEach((project) => {
+        if (project.subprojects.length > 0) {
+          projects.push(...project.subprojects.map((s) => ({ id: s.id, name: s.name })));
+        }
+      });
+    }
+  });
+  return projects;
+}
 
 const roleDisplay = (role: UserRole) => {
   if (role === UserRole.admin) {
