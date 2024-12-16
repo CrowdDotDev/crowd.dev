@@ -6,8 +6,8 @@
       <!--        Details-->
       <!--      </lf-button>-->
       <el-tooltip
-        content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
-      Please contact support if you need to onboard new data or update settings."
+        content="Onboarding new data for GitHub is currently being
+        managed by the CM dev team. Please reach out in Slack (#lfx-cm) to get your project onboarded."
         placement="top"
         :disabled="isTeam"
       >
