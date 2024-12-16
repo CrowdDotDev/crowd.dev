@@ -427,3 +427,11 @@ export async function getRawOrganizationMergeSuggestions(
 
   return suggestions
 }
+
+export async function removeRawOrganizationMergeSuggestions(suggestion: string[]): Promise<void> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  await organizationMergeSuggestionsRepo.removeRawOrganizationMergeSuggestions(suggestion)
+}

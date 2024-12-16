@@ -350,3 +350,11 @@ export async function getRawMemberMergeSuggestions(
   )
   return memberMergeSuggestionsRepo.getRawMemberSuggestions(similarityFilter, limit)
 }
+
+export async function removeRawMemberMergeSuggestions(suggestion: string[]): Promise<void> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  await memberMergeSuggestionsRepo.removeRawMemberSuggestions(suggestion)
+}
