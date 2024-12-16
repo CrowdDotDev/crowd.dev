@@ -7,7 +7,7 @@
     <lf-icon-old name="link-unlink" />
     Unmerge profile
   </lf-dropdown-item>
-  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
+  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit) && !hasGithubIdentity" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
     <lf-icon-old name="github-fill" />
     Find GitHub
   </lf-dropdown-item>
@@ -46,7 +46,7 @@ import { MemberService } from '@/modules/member/member-service';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
@@ -65,6 +65,7 @@ const { isTeamMember, isBot, isMasked } = useContributorHelpers();
 const { updateContributorAttributes } = useContributorStore();
 
 const unmerge = ref<Contributor | null>(null);
+const hasGithubIdentity = computed(() => (!!props.contributor.identities?.find((identity) => identity.platform === 'github')));
 
 const markTeamMember = (teamMember: boolean) => {
   trackEvent({
