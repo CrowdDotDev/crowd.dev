@@ -45,10 +45,6 @@ interface IJiraCreateIssueResponse {
 export default class DataIssueService extends LoggerBase {
   private readonly qx: PgPromiseQueryExecutor
 
-  private readonly DATA_ISSUES_GITHUB_REPO: string = 'linux-foundation-support'
-
-  private readonly DATA_ISSUES_GITHUB_OWNER: string = 'CrowdDotDev'
-
   options: IServiceOptions
 
   constructor(options: IServiceOptions) {

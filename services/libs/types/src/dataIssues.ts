@@ -20,7 +20,7 @@ export interface IGithubIssueReporterConfiguration {
   webhookSecret: string
 }
 
-export interface IJireIssueReporterConfiguration {
+export interface IJiraIssueReporterConfiguration {
   clientId: string
   clientSecret: string
   apiUrl: string
