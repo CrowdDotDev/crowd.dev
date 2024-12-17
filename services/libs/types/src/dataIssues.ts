@@ -7,7 +7,7 @@ export interface IDataIssue {
   dataIssue: string
   dataType: string
   description: string
-  githubIssueUrl: string
+  issueUrl: string
   createdById: string
   createdAt: Date
   updatedAt: Date
@@ -18,4 +18,11 @@ export interface IGithubIssueReporterConfiguration {
   privateKey: string
   installationId: string
   webhookSecret: string
+}
+
+export interface IJireIssueReporterConfiguration {
+  clientId: string
+  clientSecret: string
+  apiUrl: string
+  projectKey: string
 }

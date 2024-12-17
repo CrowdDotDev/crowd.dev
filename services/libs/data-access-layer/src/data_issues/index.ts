@@ -10,7 +10,7 @@ export interface IDbInsertDataIssuePayload {
   dataIssue: string
   dataType: string
   description: string
-  githubIssueUrl: string
+  issueUrl: string
   createdById: string
 }
 
@@ -26,7 +26,7 @@ export enum DataIssueField {
   DATA_ISSUE = 'dataIssue',
   DATA_TYPE = 'dataType',
   DESCRIPTION = 'description',
-  GITHUB_ISSUE_URL = 'githubIssueUrl',
+  ISSUE_URL = 'issueUrl',
   CREATED_BY_ID = 'createdById',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
@@ -38,8 +38,8 @@ export async function createDataIssue(
 ): Promise<IDataIssue> {
   const id = generateUUIDv4()
   await qx.result(
-    `insert into "dataIssues" ("id", "entity", "profileUrl", "dataIssue", "dataType", "description", "githubIssueUrl", "createdById")
-        values ($(id), $(entity), $(profileUrl), $(dataIssue), $(dataType), $(description), $(githubIssueUrl), $(createdById))`,
+    `insert into "dataIssues" ("id", "entity", "profileUrl", "dataIssue", "dataType", "description", "issueUrl", "createdById")
+        values ($(id), $(entity), $(profileUrl), $(dataIssue), $(dataType), $(description), $(issueUrl), $(createdById))`,
     {
       id,
       entity: data.entity,
@@ -47,7 +47,7 @@ export async function createDataIssue(
       dataIssue: data.dataIssue,
       dataType: data.dataType,
       description: data.description,
-      githubIssueUrl: data.githubIssueUrl,
+      issueUrl: data.issueUrl,
       createdById: data.createdById,
     },
   )
@@ -77,16 +77,10 @@ export async function markDataIssueAsResolved(
   return findDataIssueById(qx, id, Object.values(DataIssueField))
 }
 
-export async function findDataIssueByGithubUrl(
-  qx: QueryExecutor,
-  githubUrl: string,
-): Promise<IDataIssue> {
-  const response = await qx.select(
-    `select * from "dataIssues" where "githubIssueUrl" = $(githubUrl)`,
-    {
-      githubUrl,
-    },
-  )
+export async function findDataIssueByUrl(qx: QueryExecutor, issueUrl: string): Promise<IDataIssue> {
+  const response = await qx.select(`select * from "dataIssues" where "issueUrl" = $(issueUrl)`, {
+    issueUrl,
+  })
   if (response.length > 0) {
     return response[0]
   }

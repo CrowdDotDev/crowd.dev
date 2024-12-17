@@ -3,7 +3,7 @@ import verifyGithubWebhook from 'verify-github-webhook'
 
 import { Error400BadRequest } from '@crowd/common'
 import {
-  findDataIssueByGithubUrl,
+  findDataIssueByUrl,
   markDataIssueAsResolved,
 } from '@crowd/data-access-layer/src/data_issues'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -49,7 +49,7 @@ export const installDataIssueRoutes = async (app: express.Express) => {
       if (event === 'issues' && data.action === 'closed') {
         // find data issue by issue url in (dataIssues)
         const qx = dbStoreQx(req.dbStore)
-        const dataIssue = await findDataIssueByGithubUrl(qx, data.issue.html_url)
+        const dataIssue = await findDataIssueByUrl(qx, data.issue.html_url)
 
         if (!dataIssue || !dataIssue.createdById) {
           res.sendStatus(200)

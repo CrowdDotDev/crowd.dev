@@ -130,6 +130,12 @@
     "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
     "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID"
   },
+  "jiraIssueReporter": {
+    "apiUrl": "CROWD_JIRA_ISSUE_REPORTER_API_URL",
+    "clientId": "CROWD_JIRA_ISSUE_REPORTER_CLIENT_ID",
+    "clientSecret": "CROWD_JIRA_ISSUE_REPORTER_CLIENT_SECRET",
+    "projectKey": "CROWD_JIRA_ISSUE_REPORTER_PROJECT_KEY"
+  },
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   },

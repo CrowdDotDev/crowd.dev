@@ -1,7 +1,4 @@
-import { createAppAuth } from '@octokit/auth-app'
-import { InstallationAccessTokenData } from '@octokit/auth-app/dist-types/types'
-import { Octokit } from '@octokit/core'
-import { request } from '@octokit/request'
+import axios from 'axios'
 
 import { createDataIssue } from '@crowd/data-access-layer/src/data_issues'
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
@@ -10,7 +7,7 @@ import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecut
 import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'
 
-import { GITHUB_ISSUE_REPORTER_CONFIG } from '@/conf'
+import { JIRA_ISSUE_REPORTER_CONFIG } from '@/conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -23,6 +20,26 @@ export interface IDataIssueCreatePayload {
   description: string
   githubIssueUrl: string
   createdById: string
+}
+
+interface IJireAPIAuthTokenResponse {
+  access_token: string
+  token_type: string
+  scope: string
+  expires_in: number
+}
+
+interface IJiraCreateIssueResponse {
+  id: string
+  key: string
+  self: string
+  transitions: {
+    status: string
+    errorCollection: {
+      errorMessages: string[]
+      errors: object
+    }
+  }
 }
 
 export default class DataIssueService extends LoggerBase {
@@ -65,29 +82,40 @@ export default class DataIssueService extends LoggerBase {
       reportedBy = `${user.email}`
     }
 
-    const appToken = await DataIssueService.getGitHubAppToken(
-      GITHUB_ISSUE_REPORTER_CONFIG.appId,
-      Buffer.from(GITHUB_ISSUE_REPORTER_CONFIG.privateKey, 'base64').toString('utf8'),
-      GITHUB_ISSUE_REPORTER_CONFIG.installationId,
+    const authToken = await DataIssueService.getJiraAuthToken(
+      JIRA_ISSUE_REPORTER_CONFIG.clientId,
+      Buffer.from(JIRA_ISSUE_REPORTER_CONFIG.clientSecret, 'base64').toString('utf8'),
     )
 
     try {
-      const result = await request(
-        `POST /repos/${this.DATA_ISSUES_GITHUB_OWNER}/${this.DATA_ISSUES_GITHUB_REPO}/issues`,
+      const result = await axios.post<IJiraCreateIssueResponse>(
+        `${JIRA_ISSUE_REPORTER_CONFIG.apiUrl}/issue`,
+        {
+          fields: {
+            project: {
+              key: JIRA_ISSUE_REPORTER_CONFIG.projectKey,
+            },
+            summary: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
+              .slice(1)
+              .toLowerCase()})`,
+            description: `**Entity**\n${entityName}\n\n**Profile**\n[${data.profileUrl}](${data.profileUrl})\n\n**Data Issue**\n${data.dataIssue}\n\n**Description**\n${data.description}\n\n**Reported by**\n${reportedBy}`,
+            issuetype: {
+              // todo: ask @joana if we should use any other issue type
+              name: 'Task',
+            },
+            labels: ['data-issue'],
+          },
+        },
         {
           headers: {
-            authorization: `token ${appToken}`,
+            Authorization: `Bearer ${authToken}`,
           },
-          title: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
-            .slice(1)
-            .toLowerCase()})`,
-          body: `**Entity**\n${entityName}\n\n**Profile**\n[${data.profileUrl}](${data.profileUrl})\n\n**Data Issue**\n${data.dataIssue}\n\n**Description**\n${data.description}\n\n**Reported by**\n${reportedBy}`,
-          labels: ['Data issue'],
         },
       )
+
       const res = await createDataIssue(qx, {
         ...data,
-        githubIssueUrl: result.data.html_url,
+        issueUrl: result.data.self,
         createdById: user.id,
       })
 
@@ -98,25 +126,25 @@ export default class DataIssueService extends LoggerBase {
     }
   }
 
-  public static async getGitHubAppToken(
-    appId: string,
-    privateKey: string,
-    installationId: string,
-  ): Promise<string> {
-    const octokit = new Octokit({
-      authStrategy: createAppAuth,
-      auth: {
-        appId,
-        privateKey,
-        installationId,
-      },
-    })
+  public static async getJiraAuthToken(clientId: string, clientSecret: string): Promise<string> {
+    try {
+      const response = await axios.post<IJireAPIAuthTokenResponse>(
+        'https://auth.atlassian.com/oauth/token',
+        {
+          grant_type: 'client_credentials',
+          client_id: clientId,
+          client_secret: clientSecret,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
 
-    const authResponse = await octokit.auth({
-      type: 'installation',
-      installationId,
-    })
-
-    return (authResponse as InstallationAccessTokenData).token
+      return response.data.access_token
+    } catch (error) {
+      throw new Error('Failed to obtain Jira access token')
+    }
   }
 }
