@@ -120,7 +120,8 @@ export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration
 export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
   config.get<IGithubIssueReporterConfiguration>('githubIssueReporter')
 
-export const JIRA_ISSUE_REPORTER_CONFIG: IJiraIssueReporterConfiguration = config.get<IJiraIssueReporterConfiguration>('jiraIssueReporter')
+export const JIRA_ISSUE_REPORTER_CONFIG: IJiraIssueReporterConfiguration =
+  config.get<IJiraIssueReporterConfiguration>('jiraIssueReporter')
 
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 
