@@ -7,7 +7,7 @@
       <!--      </lf-button>-->
       <lf-button type="secondary" @click="isGitConnectDrawerVisible = true">
         <lf-icon name="link-simple" />
-        Connect
+        <slot>Connect</slot>
       </lf-button>
     </div>
     <lf-git-settings-drawer

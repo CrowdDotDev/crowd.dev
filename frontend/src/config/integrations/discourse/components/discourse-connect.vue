@@ -6,7 +6,7 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="isDiscourseConnectDrawerOpen = true">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
   <lf-discourse-settings-drawer
