@@ -1,4 +1,5 @@
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
+import config from '@/config';
 
 class AuthServiceClass {
   setToken(token: string) {
@@ -14,7 +15,7 @@ class AuthServiceClass {
   }
 
   getTenantId() {
-    return localStorage.getItem('currentTenant');
+    return localStorage.getItem('currentTenant') || config.lf.tenantId;
   }
 
   logout() {
