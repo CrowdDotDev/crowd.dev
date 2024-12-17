@@ -7,7 +7,7 @@
     <lf-icon-old name="link-unlink" />
     Unmerge profile
   </lf-dropdown-item>
-  <lf-dropdown-item 
+  <lf-dropdown-item
     v-if="hasPermission(LfPermission.memberEdit) && !hasGithubIdentity"
     :disabled="!!props.contributor.username?.github"
     @click="emit('findGithub')"
