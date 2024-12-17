@@ -50,7 +50,7 @@
                       {{ roleDisplay(role) }}
                     </p>
                   </el-tooltip>
-                  <el-popover v-else trigger="hover" placement="top" popper-class="!w-80">
+                  <el-popover v-else trigger="hover" placement="top" :width="250">
                     <template #reference>
                       <div class="flex items-baseline text-medium">
                         {{ roleDisplay(role) }}
@@ -62,17 +62,17 @@
                     </template>
                     <div class="p-1">
                       <span class="text-xs text-gray-400">Project groups</span>
-                      <div class="overflow-auto max-h-30 mt-4 flex items-baseline flex-wrap gap-2">
-                        <p
+                      <div class="overflow-auto max-h-30 mt-4 flex items-baseline flex-wrap gap-1">
+                        <lf-badge
                           v-for="segmentId in user.adminSegments"
                           :key="segmentId"
-                          class="badge--border !block badge--gray-light h-6 text-xs"
+                          type="tertiary"
+                          size="medium"
                         >
                           {{
-                            projects.find(
-                              (p) => p.id === segmentId)?.name
+                            getSegmentName(segmentId)
                           }}
-                        </p>
+                        </lf-badge>
                       </div>
                     </div>
                   </el-popover>
@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
@@ -110,15 +110,14 @@ import {
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
+import { getSegmentName } from '@/utils/segments';
+import LfBadge from '@/ui-kit/badge/Badge.vue';
 
 const search = ref('');
 const loading = ref<boolean>(false);
 const offset = ref(0);
 const limit = ref(20);
 const total = ref(0);
-const segmentStore = useLfSegmentsStore();
 const users = ref<UserModel[]>([]);
 
 const fetchUsers = () => {
@@ -161,23 +160,6 @@ const loadMore = () => {
   offset.value = users.value.length;
   fetchUsers();
 };
-
-const projects = computed(() => treeMap(segmentStore.projectGroups.list));
-
-function treeMap(projectList: ProjectGroup[]) {
-  const projects = [...projectList.map((pg) => ({ id: pg.id, name: pg.name }))];
-  projectList.forEach((projectGroup) => {
-    if (projectGroup.projects.length > 0) {
-      projects.push(...projectGroup.projects.map((p) => ({ id: p.id, name: p.name })));
-      projectGroup.projects.forEach((project) => {
-        if (project.subprojects.length > 0) {
-          projects.push(...project.subprojects.map((s) => ({ id: s.id, name: s.name })));
-        }
-      });
-    }
-  });
-  return projects;
-}
 
 const roleDisplay = (role: UserRole) => {
   if (role === UserRole.admin) {
