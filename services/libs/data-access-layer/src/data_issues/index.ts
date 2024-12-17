@@ -14,10 +14,6 @@ export interface IDbInsertDataIssuePayload {
   createdById: string
 }
 
-export interface IMarkDataIssueAsResolvedPayload {
-  resolutionEmailSentTo: string
-}
-
 export enum DataIssueField {
   // meta
   ID = 'id',
@@ -49,28 +45,6 @@ export async function createDataIssue(
       description: data.description,
       issueUrl: data.issueUrl,
       createdById: data.createdById,
-    },
-  )
-
-  return findDataIssueById(qx, id, Object.values(DataIssueField))
-}
-
-export async function markDataIssueAsResolved(
-  qx: QueryExecutor,
-  dataIssueId: string,
-  data: IMarkDataIssueAsResolvedPayload,
-): Promise<IDataIssue> {
-  const id = generateUUIDv4()
-  await qx.result(
-    `update "dataIssues" 
-     set
-        "resolutionEmailSentAt" = now(),
-        "resolutionEmailSentTo" = $(resolutionEmailSentTo)
-     where "id" = $(dataIssueId)`,
-    {
-      id,
-      resolutionEmailSentTo: data.resolutionEmailSentTo,
-      dataIssueId,
     },
   )
 
