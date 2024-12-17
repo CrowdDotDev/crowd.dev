@@ -6,7 +6,7 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="isJiraSettingsDrawerVisible = true">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
   <lf-jira-settings-drawer v-if="isJiraSettingsDrawerVisible" v-model="isJiraSettingsDrawerVisible" :integration="props.integration" />

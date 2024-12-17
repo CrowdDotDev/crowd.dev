@@ -19,7 +19,7 @@
         <lf-spinner />
       </div>
       <div v-else-if="integrations.length > 0">
-        <lf-table>
+        <lf-table class="pb-16">
           <thead>
             <tr>
               <lf-table-head class="pl-2">
@@ -85,19 +85,39 @@
                 </div>
               </td>
               <td>
-                <router-link
-                  :to="{
-                    name: 'integration',
-                    params: {
-                      grandparentId: integration.grandparentId,
-                      id: integration.segmentId,
-                    },
-                  }"
-                >
-                  <lf-button type="secondary">
-                    Manage integration
-                  </lf-button>
-                </router-link>
+                <div class="flex justify-end gap-3">
+                  <component
+                    :is="lfIntegrations[integration.platform].connectComponent"
+                    v-if="status === 'notConnected' && lfIntegrations[integration.platform].connectComponent"
+                    :integration="integration"
+                    :hide-details="true"
+                  >
+                    Connect {{ lfIntegrations[integration.platform].name }}
+                  </component>
+                  <component
+                    :is="lfIntegrations[integration.platform].actionComponent"
+                    v-if="status === 'waitingForAction' && lfIntegrations[integration.platform].actionComponent"
+                    :integration="integration"
+                  />
+                  <template v-if="status !== 'notConnected'">
+                    <lf-dropdown placement="bottom-end" width="14.5rem">
+                      <template #trigger>
+                        <lf-button type="secondary-ghost" icon-only>
+                          <lf-icon name="ellipsis" />
+                        </lf-button>
+                      </template>
+                      <component
+                        :is="lfIntegrations[integration.platform].dropdownComponent"
+                        v-if="status === 'done' && lfIntegrations[integration.platform].dropdownComponent"
+                        :integration="integration"
+                      />
+                      <lf-dropdown-item type="danger" @click="disconnectIntegration(integration)">
+                        <lf-icon name="link-simple-slash" type="regular" />
+                        Disconnect integration
+                      </lf-dropdown-item>
+                    </lf-dropdown>
+                  </template>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -145,7 +165,12 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
-import { lfIntegrations } from '../../../../../config/integrations';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import { lfIntegrations } from '@/config/integrations';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 
 const loading = ref(true);
 
@@ -159,6 +184,10 @@ const limit = ref<number>(20);
 const total = ref<number>(0);
 
 const integrationStatusCount = ref<Record<string, number>>({});
+
+const { doDestroy } = mapActions('integration');
+
+const { trackEvent } = useProductTracking();
 
 const fetchGlobalIntegrations = () => {
   loading.value = true;
@@ -227,6 +256,18 @@ onMounted(() => {
   fetchGlobalIntegrations();
   fetchGlobalIntegrationStatusCount();
 });
+
+const disconnectIntegration = async (integration: any) => {
+  trackEvent({
+    key: FeatureEventKey.DISCONNECT_INTEGRATION,
+    type: EventType.FEATURE,
+    properties: {
+      platform: integration.platform,
+    },
+  });
+  await doDestroy(integration.id);
+  fetchGlobalIntegrations();
+};
 </script>
 
 <script lang="ts">
