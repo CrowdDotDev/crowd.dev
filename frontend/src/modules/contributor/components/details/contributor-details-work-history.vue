@@ -31,14 +31,17 @@
     </div>
 
     <div v-if="!masked" class="flex flex-col gap-4">
-      <lf-contributor-details-work-history-item
-        v-for="org of (orgs || []).slice(0, showMore ? (orgs || []).length : 3)"
-        :key="org.id"
-        :contributor="props.contributor"
-        :organization="org"
-        @edit="isEditModalOpen = true; editOrganization = org"
-      />
-      <div v-if="orgs.length === 0" class="pt-2 flex flex-col items-center">
+      <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
+        <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
+          <lf-contributor-details-work-history-item
+            :contributor="props.contributor"
+            :organization="item"
+            :is-group-hover="hoveredGroup?.id === group.id"
+            @edit="isEditModalOpen = true; editOrganization = item"
+          />
+        </lf-timeline-item>
+      </lf-timeline>
+      <div v-if="orgGrouped.length === 0" class="pt-2 flex flex-col items-center">
         <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No work experiences
@@ -55,7 +58,7 @@
     </div>
 
     <lf-button
-      v-if="!masked && orgs.length > 3"
+      v-if="!masked && orgGrouped.length > minimumShownGroups"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -88,6 +91,12 @@ import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { TimelineGroup } from '@/ui-kit/timeline/types/TimelineTypes';
+import { groupBy } from 'lodash';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
+import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -95,14 +104,39 @@ const props = defineProps<{
 
 const { hasPermission } = usePermissions();
 const { isMasked } = useContributorHelpers();
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
+const hoveredGroup = ref<TimelineGroup | null>(null);
 
-const orgs = computed(() => props.contributor.organizations);
+const orgGrouped = computed(() => {
+  const grouped = groupBy(props.contributor.organizations, 'id');
+  return Object.keys(grouped).map((id, index): TimelineGroup => ({
+    id: index,
+    label: grouped[id][0].displayName,
+    labelLink: {
+      name: 'organizationView',
+      params: {
+        id,
+      },
+      query: {
+        projectGroup: selectedProjectGroup.value?.id,
+      },
+    },
+    icon: grouped[id][0].logo,
+    items: grouped[id],
+  }));
+});
+const minimumShownGroups = 3;
+const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups));
 
 const masked = computed(() => isMasked(props.contributor));
+
+const onGroupHover = (index: TimelineGroup | null) => {
+  hoveredGroup.value = index;
+};
 </script>
 
 <script lang="ts">
