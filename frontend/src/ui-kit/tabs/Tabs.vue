@@ -37,7 +37,7 @@ const model = computed({
 
 watch(() => props.modelValue, () => {
   if (props.fragment) {
-    router.push({
+    router.replace({
       ...route,
       hash: `#${props.modelValue}`,
     });
