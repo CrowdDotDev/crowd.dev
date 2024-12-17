@@ -65,7 +65,7 @@ const { isTeamMember, isBot, isMasked } = useContributorHelpers();
 const { updateContributorAttributes } = useContributorStore();
 
 const unmerge = ref<Contributor | null>(null);
-const hasGithubIdentity = computed(() => (!!props.contributor.identities?.find((identity) => identity.platform === 'github')));
+const hasGithubIdentity = computed(() => (props.contributor.identities?.some((identity) => identity.platform === 'github')));
 
 const markTeamMember = (teamMember: boolean) => {
   trackEvent({
