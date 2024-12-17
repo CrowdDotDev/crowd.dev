@@ -179,7 +179,7 @@ watch(
       });
     }
 
-    router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
+    router.replace({ query, hash: props.hash ? `#${props.hash}` : undefined });
   },
   { deep: true },
 );
@@ -201,7 +201,7 @@ const alignQueryUrl = () => {
 
   if (!parsed || Object.keys(parsed).length === 0) {
     const query = setQuery(props.modelValue);
-    router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
+    router.replace({ query, hash: props.hash ? `#${props.hash}` : undefined });
     alignFilterList(props.modelValue);
     fetch(props.modelValue);
     return;
