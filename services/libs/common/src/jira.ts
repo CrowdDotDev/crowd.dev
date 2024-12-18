@@ -14,7 +14,7 @@ export function createParagraph(text: string, isUrl = false) {
       content: [
         {
           type: 'text',
-          text: '',
+          text,
           marks: [
             {
               type: 'link',
