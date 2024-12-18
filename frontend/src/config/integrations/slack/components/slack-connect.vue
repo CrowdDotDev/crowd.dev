@@ -41,7 +41,7 @@ const { tenant } = storeToRefs(authStore);
 const connectUrl = computed(() => {
   const redirectUrl = 
     `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true${
-    route.hash ? `%26hash=${route.hash.replace('#', '')}` : ''}`;
+    route.hash ? encodeURIComponent(route.hash) : ''}`;
 
   trackEvent({
     key: FeatureEventKey.CONNECT_INTEGRATION,
