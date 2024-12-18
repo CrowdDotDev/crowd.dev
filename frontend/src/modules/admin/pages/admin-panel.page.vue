@@ -34,38 +34,26 @@
       </lf-tab>
     </lf-tabs>
     <div class="mt-6 border-t border-gray-100">
-      <div class="tab-content" label="Project Groups" name="project-groups">
+      <div class="tab-content">
         <app-lf-project-groups-page
           v-if="activeTab === 'project-groups'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="Integrations" name="integrations">
         <lf-admin-integration-status
-          v-if="activeTab === 'integrations'"
+          v-else-if="activeTab === 'integrations'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="Organizations" name="organizations">
         <app-organization-common-page
-          v-if="activeTab === 'organizations'"
+          v-else-if="activeTab === 'organizations'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="Automations" name="automations">
         <app-automation-list
-          v-if="activeTab === 'automations'"
+          v-else-if="activeTab === 'automations'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="API Keys" name="api-keys">
         <app-api-keys-page
-          v-if="activeTab === 'api-keys'"
+          v-else-if="activeTab === 'api-keys'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="Audit logs" name="audit-logs">
         <app-lf-audit-logs-page
-          v-if="activeTab === 'audit-logs'"
+          v-else-if="activeTab === 'audit-logs'"
         />
-      </div>
-      <div v-if="isAdminUser" class="tab-content" label="Users" name="users">
-        <lf-admin-users v-if="activeTab === 'users'" />
+        <lf-admin-users v-else-if="activeTab === 'users'" />
       </div>
       <div v-if="isDevMode" class="tab-content" label="Dev" name="dev">
         <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
@@ -79,7 +67,7 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AppLfProjectGroupsPage from '@/modules/lf/segments/pages/lf-project-groups-page.vue';
+import AppLfProjectGroupsPage from '@/modules/admin/modules/projects/pages/project-groups.page.vue';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';

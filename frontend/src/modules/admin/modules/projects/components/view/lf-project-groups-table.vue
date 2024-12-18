@@ -18,7 +18,7 @@
       <tbody>
         <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" class="cursor-pointer" @click="handleRowClick(projectGroup)">
           <lf-table-cell class="pl-2">
-            <app-lf-status-pill :status="projectGroup.status" />
+            <app-lf-status-pill :status="projectGroup.status" class="w-20" />
           </lf-table-cell>
           <lf-table-cell class="pl-3">
             <div class="text-sm font-semibold">
@@ -71,7 +71,7 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
+import AppLfProjectGroupsDropdown from '@/modules/admin/modules/projects/components/lf-project-groups-dropdown.vue';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import LfButton from '@/ui-kit/button/Button.vue';

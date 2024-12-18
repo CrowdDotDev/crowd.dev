@@ -1,0 +1,73 @@
+.c-popover {
+  @apply relative w-fit flex;
+
+  &__trigger {
+    @apply w-fit;
+  }
+
+  &__content {
+    @apply absolute z-50 w-max transition-all overflow-visible;
+
+    &.is-placed {
+      &-bottom-start {
+        left: var(--lf-popover-trigger-left);
+        top: calc(var(--lf-popover-trigger-bottom) + var(--lf-popover-spacing));
+      }
+
+      &-bottom-end {
+        left: calc(var(--lf-popover-trigger-right) - var(--lf-popover-content-width));
+        top: calc(var(--lf-popover-trigger-bottom) + var(--lf-popover-spacing));
+      }
+
+      &-bottom {
+        left: calc(var(--lf-popover-trigger-left) + var(--lf-popover-trigger-width) / 2 - var(--lf-popover-content-width) / 2);
+        top: calc(var(--lf-popover-trigger-bottom) + var(--lf-popover-spacing));
+      }
+
+      &-top-start {
+        left: var(--lf-popover-trigger-left);
+        top: calc(var(--lf-popover-trigger-top) - var(--lf-popover-content-height) - var(--lf-popover-spacing));
+      }
+
+      &-top-end {
+        left: calc(var(--lf-popover-trigger-right) - var(--lf-popover-content-width));
+        top: calc(var(--lf-popover-trigger-top) - var(--lf-popover-content-height) - var(--lf-popover-spacing));
+      }
+
+      &-top {
+        left: calc(var(--lf-popover-trigger-left) + var(--lf-popover-trigger-width) / 2 - var(--lf-popover-content-width) / 2);
+        top: calc(var(--lf-popover-trigger-top) - var(--lf-popover-content-height) - var(--lf-popover-spacing));
+      }
+
+      &-left {
+        left: calc(var(--lf-popover-trigger-left) - var(--lf-popover-content-width) - var(--lf-popover-spacing));
+        top: calc(var(--lf-popover-trigger-top) + var(--lf-popover-trigger-height) / 2 - var(--lf-popover-content-height) / 2);
+      }
+
+      &-left-start {
+        left: calc(var(--lf-popover-trigger-left) - var(--lf-popover-content-width) - var(--lf-popover-spacing));
+        top: var(--lf-popover-trigger-top);
+      }
+
+      &-left-end {
+        left: calc(var(--lf-popover-trigger-left) - var(--lf-popover-content-width) - var(--lf-popover-spacing));
+        top: calc(var(--lf-popover-trigger-bottom) - var(--lf-popover-content-height));
+      }
+
+      &-right {
+        left: calc(var(--lf-popover-trigger-right) + var(--lf-popover-spacing));
+        top: calc(var(--lf-popover-trigger-top) + var(--lf-popover-trigger-height) / 2 - var(--lf-popover-content-height) / 2);
+      }
+
+      &-right-start {
+        left: calc(var(--lf-popover-trigger-right) + var(--lf-popover-spacing));
+        top: var(--lf-popover-trigger-top);
+      }
+
+      &-right-end {
+        left: calc(var(--lf-popover-trigger-right) + var(--lf-popover-spacing));
+        top: calc(var(--lf-popover-trigger-bottom) - var(--lf-popover-content-height));
+      }
+    }
+  }
+}
