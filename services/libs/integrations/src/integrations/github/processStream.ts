@@ -22,6 +22,9 @@ import {
 let sf: SnowflakeClient | undefined = undefined
 let gh: GithubSnowflakeClient | undefined = undefined
 
+let sfIncremental: SnowflakeClient | undefined = undefined
+let ghIncremental: GithubSnowflakeClient | undefined = undefined
+
 const initClient = (ctx: IProcessStreamContext) => {
   const settings = ctx.platformSettings as GithubPlatformSettings
   sf = new SnowflakeClient({
@@ -29,15 +32,39 @@ const initClient = (ctx: IProcessStreamContext) => {
     account: settings.sfAccount,
     username: settings.sfUsername,
     database: settings.sfDatabase,
-    warehouse: ctx.onboarding ? settings.sfWarehouse : settings.sfIncrementalWarehouse,
+    warehouse: settings.sfWarehouse,
     role: settings.sfRole,
   })
   gh = new GithubSnowflakeClient(sf)
 }
 
-const getClient = (ctx: IProcessStreamContext) => {
-  initClient(ctx)
-  return { sf, gh }
+const initIncrementalClient = (ctx: IProcessStreamContext) => {
+  const settings = ctx.platformSettings as GithubPlatformSettings
+  sfIncremental = new SnowflakeClient({
+    privateKeyString: settings.sfPrivateKey,
+    account: settings.sfAccount,
+    username: settings.sfUsername,
+    database: settings.sfDatabase,
+    warehouse: settings.sfIncrementalWarehouse,
+    role: settings.sfRole,
+  })
+  ghIncremental = new GithubSnowflakeClient(sfIncremental)
+}
+
+const getClient = (
+  ctx: IProcessStreamContext,
+): { sf: SnowflakeClient; gh: GithubSnowflakeClient } => {
+  if (ctx.onboarding) {
+    if (!sf) {
+      initClient(ctx)
+    }
+    return { sf, gh }
+  } else {
+    if (!sfIncremental) {
+      initIncrementalClient(ctx)
+    }
+    return { sf: sfIncremental, gh: ghIncremental }
+  }
 }
 
 const prepareMember = (data: IBasicResponse): GithubPrepareMemberOutput => {
