@@ -114,11 +114,8 @@ const isDevMode = !!localStorage.getItem('devmode');
 
 onMounted(() => {
   const initialActiveTab = route.hash.substring(1) as string;
-  const paramHash = route.query.hash as string;
-
-  if (paramHash) {
-    activeTab.value = paramHash;
-  } else if ((initialActiveTab === 'automations' || initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
+  
+  if ((initialActiveTab === 'automations' || initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
     activeTab.value = 'project-groups';
   } else {
     activeTab.value = route.hash.substring(1) as string || 'project-groups';
