@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import merge from 'lodash.merge'
+import moment from 'moment'
 
 import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
-import { ActivityDisplayService } from '@crowd/integrations'
+import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
+  IActivityData,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
   MemberIdentityType,
   PageData,
+  PlatformType,
 } from '@crowd/types'
 
 import { IMemberSegmentAggregates } from '../members/types'
@@ -1328,4 +1331,67 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
     memberId,
     platform,
   })
+}
+
+export async function findMatchingPullRequestNodeId(
+  qdbConn: DbConnOrTx,
+  tenantId: string,
+  activity: IActivityData,
+): Promise<string | null> {
+  if (!activity.attributes.prSha) {
+    return null
+  }
+
+  const query = `
+    SELECT "sourceId"
+    FROM activities
+    WHERE "deletedAt" IS NULL
+      AND "tenantId" = $(tenantId)
+      AND "platform" = $(platform)
+      AND "type" = $(type)
+      AND "timestamp" > $(after)
+      AND "timestamp" < $(before)
+      AND JSON_EXTRACT(attributes, '$.sha') = $(prSha)
+    LIMIT 1;
+  `
+  const row = await qdbConn.oneOrNone(query, {
+    tenantId,
+    platform: PlatformType.GITHUB,
+    type: GithubActivityType.PULL_REQUEST_OPENED,
+    // assuming that the PR is open for at least 6 months
+    after: moment(activity.timestamp).subtract(6, 'months').toISOString(),
+    before: moment(activity.timestamp).toISOString(),
+    prSha: activity.attributes.prSha,
+  })
+
+  if (!row) {
+    return null
+  }
+
+  return row.sourceId
+}
+
+export async function findCommitsForPRSha(
+  qdbConn: DbConnOrTx,
+  tenantId: string,
+  prSha: string,
+): Promise<string[]> {
+  const query = `
+    SELECT id
+    FROM activities
+    WHERE "deletedAt" IS NULL
+      AND "tenantId" = $(tenantId)
+      AND "platform" = $(platform)
+      AND "type" = $(type)
+      AND JSON_EXTRACT(attributes, '$.prSha') = $(prSha)
+  `
+
+  const rows = await qdbConn.any(query, {
+    tenantId,
+    platform: PlatformType.GITHUB,
+    type: GithubActivityType.PULL_REQUEST_OPENED,
+    prSha,
+  })
+
+  return rows.map((r) => r.id)
 }
