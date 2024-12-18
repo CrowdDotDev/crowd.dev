@@ -80,7 +80,7 @@ export default class DataIssueService extends LoggerBase {
 
     const authToken = await DataIssueService.getJiraAuthToken(
       JIRA_ISSUE_REPORTER_CONFIG.clientId,
-      Buffer.from(JIRA_ISSUE_REPORTER_CONFIG.clientSecret, 'base64').toString('utf8'),
+      JIRA_ISSUE_REPORTER_CONFIG.clientSecret,
     )
 
     try {
