@@ -26,10 +26,12 @@ const props = defineProps({
   segmentId: {
     type: String,
     required: false,
+    default: null,
   },
   grandparentId: {
     type: String,
     required: false,
+    default: null,
   },
 });
 
@@ -41,7 +43,7 @@ const connect = () => {
   if (props.grandparentId && props.segmentId) {
     localStorage.setItem('segmentId', props.segmentId);
     localStorage.setItem('segmentGrandparentId', props.grandparentId);
-  } 
+  }
   window.open(connectUrl.value, '_self');
 };
 
