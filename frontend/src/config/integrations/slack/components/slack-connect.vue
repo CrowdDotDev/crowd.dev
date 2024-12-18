@@ -32,16 +32,20 @@ const props = defineProps({
   segmentId: {
     type: String,
     required: false,
-  }
+  },
+  grandparentId: {
+    type: String,
+    required: false,
+  },
 });
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
 
 const connectUrl = computed(() => {
-  const redirectUrl = 
-    `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true${
-    route.hash ? encodeURIComponent(route.hash) : ''}`;
+  const redirectUrl = props.grandparentId && props.segmentId ?
+    `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?slack-success=true` :
+    `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
 
   trackEvent({
     key: FeatureEventKey.CONNECT_INTEGRATION,
@@ -61,7 +65,6 @@ const connect = () => {
 const finallizeSlackConnect = () => {
   const slackSuccess = route.query['slack-success'];
   if (slackSuccess) {
-    // this opens up multiple dialogs based on how many instance is on the page
     ConfirmDialog({
       vertical: true,
       type: 'custom',

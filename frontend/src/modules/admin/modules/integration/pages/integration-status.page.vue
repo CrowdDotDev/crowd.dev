@@ -92,6 +92,7 @@
                     :integration="integration"
                     :hide-details="true"
                     :segment-id="integration.segmentId"
+                    :grandparent-id="integration.grandparentId"
                   >
                     Connect {{ lfIntegrations[integration.platform].name }}
                   </component>
