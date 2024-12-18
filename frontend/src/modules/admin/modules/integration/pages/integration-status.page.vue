@@ -91,6 +91,7 @@
                     v-if="status === 'notConnected' && lfIntegrations[integration.platform].connectComponent"
                     :integration="integration"
                     :hide-details="true"
+                    :segment-id="integration.segmentId"
                   >
                     Connect {{ lfIntegrations[integration.platform].name }}
                   </component>
@@ -204,6 +205,7 @@ const fetchGlobalIntegrations = () => {
       } else {
         integrations.value = res.rows;
       }
+      console.log(res);
       total.value = res.count;
     })
     .finally(() => {
