@@ -34,7 +34,6 @@
       />
     </div>
 
-
     <div v-else-if="!masked" class="pt-2 flex flex-col items-center">
       <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
