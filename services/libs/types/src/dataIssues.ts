@@ -22,6 +22,7 @@ export interface IGithubIssueReporterConfiguration {
 
 export interface IJiraIssueReporterConfiguration {
   apiUrl: string
-  apiToken: string
+  token: string
+  apiTokenEmail: string
   projectKey: string
 }

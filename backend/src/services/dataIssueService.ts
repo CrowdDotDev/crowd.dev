@@ -7,6 +7,7 @@ import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecut
 import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'
 
+import { createHeading, createParagraph } from '@crowd/common'
 import { JIRA_ISSUE_REPORTER_CONFIG } from '@/conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -20,13 +21,6 @@ export interface IDataIssueCreatePayload {
   description: string
   githubIssueUrl: string
   createdById: string
-}
-
-interface IJireAPIAuthTokenResponse {
-  access_token: string
-  token_type: string
-  scope: string
-  expires_in: number
 }
 
 interface IJiraCreateIssueResponse {
@@ -89,9 +83,23 @@ export default class DataIssueService extends LoggerBase {
             summary: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
               .slice(1)
               .toLowerCase()})`,
-            description: `**Entity**\n${entityName}\n\n**Profile**\n[${data.profileUrl}](${data.profileUrl})\n\n**Data Issue**\n${data.dataIssue}\n\n**Description**\n${data.description}\n\n**Reported by**\n${reportedBy}`,
+              description: {
+                version: 1,
+                type: "doc",
+                content: [
+                  createHeading("Entity"),
+                  createParagraph(entityName),
+                  createHeading("Profile"),
+                  createParagraph(data.profileUrl, true),
+                  createHeading("Data Issue"),
+                  createParagraph(data.dataIssue),
+                  createHeading("Description"),
+                  createParagraph(data.description),
+                  createHeading("Reported by"),
+                  createParagraph(reportedBy)
+                ]
+              },
             issuetype: {
-              // todo: ask @joana if we should use any other issue type
               name: 'Task',
             },
             labels: ['data-issue'],
@@ -99,7 +107,9 @@ export default class DataIssueService extends LoggerBase {
         },
         {
           headers: {
-            Authorization: `Bearer ${JIRA_ISSUE_REPORTER_CONFIG.apiToken}`,
+            Authorization: `Basic ${Buffer.from(
+              `${JIRA_ISSUE_REPORTER_CONFIG.apiTokenEmail}:${JIRA_ISSUE_REPORTER_CONFIG.token}`,
+            ).toString('base64')}`,
           },
         },
       )
@@ -114,28 +124,6 @@ export default class DataIssueService extends LoggerBase {
     } catch (error) {
       this.log.info(error)
       throw new Error('Error during session create!')
-    }
-  }
-
-  public static async getJiraAuthToken(clientId: string, clientSecret: string): Promise<string> {
-    try {
-      const response = await axios.post<IJireAPIAuthTokenResponse>(
-        'https://auth.atlassian.com/oauth/token',
-        {
-          grant_type: 'client_credentials',
-          client_id: clientId,
-          client_secret: clientSecret,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      return response.data.access_token
-    } catch (error) {
-      throw new Error('Failed to obtain Jira access token')
     }
   }
 }
