@@ -28,13 +28,20 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();
+const props = defineProps({
+  segmentId: {
+    type: String,
+    required: false,
+  }
+});
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
 
 const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
-  console.log(redirectUrl);
+  const redirectUrl = 
+    `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true${
+    route.hash ? `%26hash=${route.hash.replace('#', '')}` : ''}`;
 
   trackEvent({
     key: FeatureEventKey.CONNECT_INTEGRATION,
@@ -44,7 +51,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id || props.segmentId}`;
 });
 
 const connect = () => {
@@ -54,6 +61,7 @@ const connect = () => {
 const finallizeSlackConnect = () => {
   const slackSuccess = route.query['slack-success'];
   if (slackSuccess) {
+    // this opens up multiple dialogs based on how many instance is on the page
     ConfirmDialog({
       vertical: true,
       type: 'custom',
