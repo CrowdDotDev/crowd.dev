@@ -21,8 +21,7 @@ export interface IGithubIssueReporterConfiguration {
 }
 
 export interface IJiraIssueReporterConfiguration {
-  clientId: string
-  clientSecret: string
   apiUrl: string
+  apiToken: string
   projectKey: string
 }

@@ -132,8 +132,7 @@
   },
   "jiraIssueReporter": {
     "apiUrl": "CROWD_JIRA_ISSUE_REPORTER_API_URL",
-    "clientId": "CROWD_JIRA_ISSUE_REPORTER_CLIENT_ID",
-    "clientSecret": "CROWD_JIRA_ISSUE_REPORTER_CLIENT_SECRET",
+    "apiToken": "CROWD_JIRA_ISSUE_REPORTER_API_TOKEN",
     "projectKey": "CROWD_JIRA_ISSUE_REPORTER_PROJECT_KEY"
   },
   "stackexchange": {

@@ -78,11 +78,6 @@ export default class DataIssueService extends LoggerBase {
       reportedBy = `${user.email}`
     }
 
-    const authToken = await DataIssueService.getJiraAuthToken(
-      JIRA_ISSUE_REPORTER_CONFIG.clientId,
-      JIRA_ISSUE_REPORTER_CONFIG.clientSecret,
-    )
-
     try {
       const result = await axios.post<IJiraCreateIssueResponse>(
         `${JIRA_ISSUE_REPORTER_CONFIG.apiUrl}/issue`,
@@ -104,7 +99,7 @@ export default class DataIssueService extends LoggerBase {
         },
         {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer ${JIRA_ISSUE_REPORTER_CONFIG.apiToken}`,
           },
         },
       )
