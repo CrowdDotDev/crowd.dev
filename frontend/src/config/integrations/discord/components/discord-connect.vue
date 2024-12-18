@@ -22,12 +22,26 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const props = defineProps({
+  segmentId: {
+    type: String,
+    required: false,
+  },
+  grandparentId: {
+    type: String,
+    required: false,
+  },
+});
 
 const { doDiscordConnect } = mapActions('integration');
 
 const connectUrl = computed(() => config.discordInstallationUrl);
 
 const connect = () => {
+  if (props.grandparentId && props.segmentId) {
+    localStorage.setItem('segmentId', props.segmentId);
+    localStorage.setItem('segmentGrandparentId', props.grandparentId);
+  } 
   window.open(connectUrl.value, '_self');
 };
 

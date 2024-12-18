@@ -206,7 +206,6 @@ const fetchGlobalIntegrations = () => {
       } else {
         integrations.value = res.rows;
       }
-      console.log(res);
       total.value = res.count;
     })
     .finally(() => {
