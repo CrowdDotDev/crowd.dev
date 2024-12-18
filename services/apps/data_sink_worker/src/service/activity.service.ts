@@ -12,7 +12,12 @@ import {
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { insertActivities, queryActivities } from '@crowd/data-access-layer'
+import {
+  findCommitsForPRSha,
+  findMatchingPullRequestNodeId,
+  insertActivities,
+  queryActivities,
+} from '@crowd/data-access-layer'
 import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
@@ -1111,7 +1116,16 @@ export default class ActivityService extends LoggerBase {
                 sourceId: activity.sourceId,
                 isContribution: activity.isContribution,
                 score: activity.score,
-                sourceParentId: activity.sourceParentId,
+                sourceParentId:
+                  platform === PlatformType.GITHUB &&
+                  activity.type === GithubActivityType.AUTHORED_COMMIT &&
+                  activity.sourceParentId
+                    ? await findMatchingPullRequestNodeId(
+                        this.qdbStore.connection(),
+                        tenantId,
+                        activity,
+                      )
+                    : activity.sourceParentId,
                 memberId,
                 username,
                 objectMemberId,
@@ -1140,11 +1154,12 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-            await this.pushAttributesToMatchingGithubActivity({
-              tenantId,
-              segmentId,
-              activity,
-            })
+            await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+          } else if (
+            platform === PlatformType.GITHUB &&
+            activity.type === GithubActivityType.PULL_REQUEST_OPENED
+          ) {
+            await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
           }
         } finally {
           // release locks matter what
@@ -1364,5 +1379,35 @@ export default class ActivityService extends LoggerBase {
       githubActivityId: githubActivity.id,
       gitAttributes: attributes,
     })
+  }
+
+  private async pushPRSourceIdToMatchingGithubCommits({
+    tenantId,
+    activity,
+  }: {
+    tenantId: string
+    activity: IActivityData
+  }) {
+    if (
+      activity.platform !== PlatformType.GITHUB ||
+      activity.type !== GithubActivityType.PULL_REQUEST_OPENED
+    ) {
+      return
+    }
+
+    const commits = await findCommitsForPRSha(
+      this.qdbStore.connection(),
+      tenantId,
+      activity.attributes.sha as string,
+    )
+
+    await updateActivities(
+      this.qdbStore.connection(),
+      async () => ({
+        sourceParentId: activity.sourceId,
+      }),
+      `id IN ($(commits))`,
+      { commits },
+    )
   }
 }
