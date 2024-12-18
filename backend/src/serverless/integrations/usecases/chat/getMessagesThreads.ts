@@ -1,5 +1,7 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { IIntegrationStream } from '../../../../types/integration/stepResult'
 import { SocialResponse } from '../../types/superfaceTypes'
 import { cleanSuperfaceError } from '../cleanError'

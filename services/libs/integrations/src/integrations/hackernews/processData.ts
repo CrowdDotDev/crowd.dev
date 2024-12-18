@@ -1,5 +1,5 @@
-import { HackerNewsActivityType, HackerNewsPublishData } from './types'
-import { HACKERNEWS_GRID } from './grid'
+import sanitizeHtml from 'sanitize-html'
+
 import {
   IActivityData,
   IMemberData,
@@ -7,8 +7,11 @@ import {
   MemberIdentityType,
   PlatformType,
 } from '@crowd/types'
-import sanitizeHtml from 'sanitize-html'
+
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
+import { HACKERNEWS_GRID } from './grid'
+import { HackerNewsActivityType, HackerNewsPublishData } from './types'
 
 async function parsePost(ctx: IProcessDataContext) {
   const data = ctx.data as HackerNewsPublishData

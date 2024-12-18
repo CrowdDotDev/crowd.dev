@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
-import { getNangoToken } from '../../nango'
+
 import { IProcessStreamContext } from '../../../types'
+import { getNangoToken } from '../../nango'
 import {
   StackOverflowPlatformSettings,
   StackOverflowUser,

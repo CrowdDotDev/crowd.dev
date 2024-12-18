@@ -1,7 +1,9 @@
 import Sequelize, { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
+
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 

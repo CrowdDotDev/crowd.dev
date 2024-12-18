@@ -1,12 +1,14 @@
 import { QueryTypes } from 'sequelize'
-import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+
 import { generateUUIDv1, timeout } from '@crowd/common'
-import { IMemberUsername, MemberIdentityType } from '@crowd/types'
 import {
   MemberField,
   fetchMemberIdentities,
   findMemberById,
 } from '@crowd/data-access-layer/src/members'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import { IMemberUsername, MemberIdentityType } from '@crowd/types'
+
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'

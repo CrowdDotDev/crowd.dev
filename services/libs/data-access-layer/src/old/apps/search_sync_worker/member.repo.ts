@@ -1,5 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IDbMemberId } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {

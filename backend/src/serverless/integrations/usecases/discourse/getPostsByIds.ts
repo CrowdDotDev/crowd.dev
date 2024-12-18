@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
+
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
-import { DiscoursePostsByIdsResponse, DiscoursePostsByIdsInput } from '../../types/discourseTypes'
+import { DiscoursePostsByIdsInput, DiscoursePostsByIdsResponse } from '../../types/discourseTypes'
 
 const serializeObjectToQueryString = (params: Object) =>
   Object.entries(params)

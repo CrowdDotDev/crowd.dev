@@ -311,7 +311,7 @@
                         Contributions require that code was successfully merged into a repository.
                       </p>
                       <div class="flex gap-1">
-                        <lf-icon name="information-line" :size="16" class="text-gray-400" />
+                        <lf-icon-old name="information-line" :size="16" class="text-gray-400" />
                         <p class="text-tiny text-gray-400">
                           Roles are automatically assigned based on data from connected integrations and individual activities on behalf of a project.
                         </p>
@@ -904,7 +904,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';

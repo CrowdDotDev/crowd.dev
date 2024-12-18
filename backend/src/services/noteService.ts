@@ -1,8 +1,10 @@
 import { Error400 } from '@crowd/common'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import NoteRepository from '../database/repositories/noteRepository'
+
 import MemberRepository from '../database/repositories/memberRepository'
+import NoteRepository from '../database/repositories/noteRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class NoteService {
   options: IServiceOptions

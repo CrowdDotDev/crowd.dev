@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { single, distinct } from '@crowd/common'
-import { DbStore, RepositoryBase } from '@crowd/database'
-import { Logger } from '@crowd/logging'
-import { IActivityData, IMemberData } from './types'
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
+
+import { distinct, single } from '@crowd/common'
+import { DbStore, RepositoryBase } from '@crowd/database'
 import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
+
+import { IActivityData, IMemberData } from './types'
 
 export class DataRepository extends RepositoryBase<DataRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -179,7 +180,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m."joinedAt",
         m.reach,
         m.contributions,
-        m."lastEnriched",
         m."enrichedBy",
         m."manuallyCreated",
         m."createdAt",

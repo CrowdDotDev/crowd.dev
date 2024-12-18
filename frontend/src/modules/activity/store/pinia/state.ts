@@ -1,14 +1,13 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
+import moment from 'moment';
 
 export interface ActivityState {
   filters: Filter,
   savedFilterBody: any,
   activities: any[],
-  totalActivities: number
-  pagination: {
-    page: number,
-    perPage: number
-  }
+  totalActivities: number,
+  limit: number,
+  timestamp: string,
   activityChannels: Record<string, string[]>,
 }
 
@@ -21,10 +20,8 @@ export default () => ({
       order: 'descending',
     },
   } as Filter,
-  pagination: {
-    page: 1,
-    perPage: 20,
-  },
+  limit: 20,
+  timestamp: moment().toISOString(),
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,

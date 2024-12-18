@@ -10,7 +10,7 @@ import options from './options';
 const type: MultiSelectFilterConfig = {
   id: 'type',
   label: 'Type',
-  iconClass: 'ri-bank-line',
+  iconClass: 'landmark',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
+import track from '../../segment/track'
 import NoteService from '../../services/noteService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from '../../segment/track'
 
 /**
  * PUT /tenant/{tenantId}/note/{id}

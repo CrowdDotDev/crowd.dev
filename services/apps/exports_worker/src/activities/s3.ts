@@ -1,9 +1,9 @@
+import { Hash } from '@aws-sdk/hash-node'
+import { HttpRequest } from '@aws-sdk/protocol-http'
 import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
 import { parseUrl } from '@aws-sdk/url-parser'
 import { formatUrl } from '@aws-sdk/util-format-url'
 
-import { Hash } from '@aws-sdk/hash-node'
-import { HttpRequest } from '@aws-sdk/protocol-http'
 import { ResultS3Upload } from '../types/s3'
 
 /*

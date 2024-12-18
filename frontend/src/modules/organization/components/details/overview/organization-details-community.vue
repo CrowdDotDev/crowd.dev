@@ -17,13 +17,7 @@
           <p class="text-tiny text-secondary-300 mb-2">
             Community size
           </p>
-          <lf-loading
-            v-if="loadingMemberCount"
-            :count="1"
-            height="1rem"
-            width="4rem"
-            class="rounded"
-          />
+          <lf-loading v-if="loadingMemberCount" :count="1" height="1rem" width="4rem" class="rounded" />
           <p v-else class="text-small text-gray-600">
             {{ pluralize('person', memberCount || 0, true) }}
           </p>
@@ -33,14 +27,14 @@
             # of activities
           </p>
           <lf-loading
-            v-if="loadingActivityCount || props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            v-if="props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
             :count="1"
             height="1rem"
             width="4rem"
             class="rounded"
           />
           <p v-else class="text-small text-gray-600">
-            {{ activityCount && formatNumber(activityCount) || '-' }}
+            {{ (activityCount && formatNumber(activityCount)) || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 xl:border-l border-gray-200">
@@ -48,8 +42,11 @@
             Joined date
           </p>
           <p class="text-small text-gray-600">
-            {{ moment(props.organization.joinedAt).isAfter(moment('1970-01-01', 'year'))
-              ? moment(props.organization.joinedAt).format('MMM DD, YYYY') : '-' }}
+            {{
+              moment(props.organization.joinedAt).isAfter(moment('1970-01-01', 'year'))
+                ? moment(props.organization.joinedAt).format('MMM DD, YYYY')
+                : '-'
+            }}
           </p>
         </article>
       </div>
@@ -63,13 +60,14 @@ import moment from 'moment';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';
-import { computed, onMounted, ref } from 'vue';
+import {
+  computed, onMounted, ref,
+} from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfLoading from '@/ui-kit/loading/Loading.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { ActivityService } from '@/modules/activity/activity-service';
 import LfOrganizationDetailsCommunityProjectSelect
   from '@/modules/organization/components/details/overview/community/organization-details-community-project-select.vue';
 
@@ -82,8 +80,7 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const selectedSegment = ref<string>(selectedProjectGroup.value?.id || '');
 const memberCount = ref<number>(0);
 const loadingMemberCount = ref<boolean>(true);
-const activityCount = ref<number>(0);
-const loadingActivityCount = ref<boolean>(true);
+const activityCount = computed<number>(() => props.organization.activityCount);
 
 const doGetMembersCount = () => {
   loadingMemberCount.value = true;
@@ -104,35 +101,10 @@ const doGetMembersCount = () => {
     });
 };
 
-const doGetActivityCount = () => {
-  loadingActivityCount.value = true;
-  ActivityService.query(
-    {
-      filter: {
-        and: [
-          { organizationId: { in: [props.organization.id] } },
-        ],
-      },
-      limit: 1,
-      offset: 0,
-      orderBy: 'timestamp_DESC',
-      segments: selectedSegment.value ? [selectedSegment.value] : props.organization.segments,
-    },
-    true,
-  )
-    .then((data) => {
-      activityCount.value = data.count;
-    })
-    .finally(() => {
-      loadingActivityCount.value = false;
-    });
-};
-
 const hasSegments = computed(() => selectedProjectGroup.value?.id);
 
 const loadData = () => {
   doGetMembersCount();
-  doGetActivityCount();
 };
 
 onMounted(() => {

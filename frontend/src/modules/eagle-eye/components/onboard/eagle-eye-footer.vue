@@ -12,7 +12,7 @@
       :disabled="loadingUpdateSettings"
       @click="emit('onStepChange', -1)"
     >
-      <i class="ri-arrow-left-s-line mr-3 text-lg" /><span>Previous step</span>
+      <lf-icon name="chevron-left" :size="20" class="mr-3" /><span>Previous step</span>
     </el-button>
 
     <el-button
@@ -31,10 +31,8 @@
         showFinalStep
           ? 'Start exploring Community Lens'
           : 'Next step'
-      }}</span><i
-        v-if="!showFinalStep"
-        class="ri-arrow-right-s-line ml-3 text-lg"
-      />
+      }}</span>
+      <lf-icon v-if="!showFinalStep" name="chevron-right" :size="20" class="ml-3" />
     </el-button>
   </div>
 </template>
@@ -42,6 +40,7 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 import { mapState } from '@/shared/vuex/vuex.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onStepChange', 'onSubmit']);
 defineProps({

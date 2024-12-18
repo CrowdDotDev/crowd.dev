@@ -14,7 +14,7 @@ import {
   IntegrationResultType,
 } from '@crowd/types'
 
-import { IBatchOperationResult } from './integrations/premium/hubspot/api/types'
+import { IBatchOperationResult } from './integrations/hubspot/api/types'
 
 export interface IIntegrationContext {
   onboarding?: boolean
@@ -54,6 +54,7 @@ export interface IGenerateStreamsContext extends IIntegrationContext {
   platformSettings?: unknown
   isManualRun?: boolean
   manualSettings?: unknown
+  additionalInfo?: unknown
 }
 
 export interface IProcessStreamContext extends IIntegrationContext {

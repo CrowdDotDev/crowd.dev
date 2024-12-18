@@ -1,11 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { RateLimitError } from '@crowd/types'
+
+import { IProcessStreamContext } from '../../../types'
 import {
   DiscourseConnectionParams,
   DiscoursePostsFromTopicResponse,
   DiscoursePostsInput,
 } from '../types'
-import { IProcessStreamContext } from '../../../types'
 
 // this methods returns ids of posts in a topic
 // then we need to parse each topic individually (can be batched)

@@ -6,7 +6,7 @@
       @click="openFilterPopover"
     >
       <div class="flex items-center text-xs">
-        <i class="ri-stack-line text-base text-gray-900 mr-2" />
+        <lf-icon name="layer-group" :size="16" class="text-gray-900 mr-2" />
         <span class="font-medium text-gray-900">Projects:</span>
         <span class="text-gray-600 pl-1">{{ filterLabel.trimmedText }}</span>
       </div>
@@ -75,6 +75,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfProjectFilter from '@/modules/lf/segments/components/filter/lf-project-filter.vue';
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   segments: {

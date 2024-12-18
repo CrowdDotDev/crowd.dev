@@ -1,5 +1,6 @@
 import { ConversationState } from '@/modules/conversation/store/state';
 import { ConversationService } from '@/modules/conversation/conversation-service';
+import moment from 'moment';
 
 export default {
   fetchConversation(this: ConversationState, body: any, reload = false, append = false): Promise<any> {
@@ -7,16 +8,14 @@ export default {
 
     if (!append) {
       this.conversations = [];
-      this.pagination = {
-        page: 1,
-        perPage: 20,
-      };
+      this.lastActive = moment().toISOString();
     }
     return ConversationService.query(mappedBody)
       .then((data: any) => {
         // If append is true, join new activities with the existent ones
         if (append) {
-          this.conversations = this.conversations.concat(...data.rows);
+          const filteredRows = data.rows.filter((row: any) => !this.conversations.some((conversation: any) => conversation.id === row.id));
+          this.conversations = this.conversations.concat(...filteredRows);
         } else {
           this.conversations = data.rows;
         }

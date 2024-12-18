@@ -19,9 +19,9 @@ import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
-  modelValue: IncludeEnum | '',
-  settings: Record<string, string>,
-}>();
+    modelValue: IncludeEnum | '',
+    settings: Record<string, string>,
+  }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: IncludeEnum | ''): any }>();
 

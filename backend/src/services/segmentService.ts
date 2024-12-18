@@ -1,3 +1,9 @@
+import { Error400 } from '@crowd/common'
+import {
+  buildSegmentActivityTypes,
+  isSegmentSubproject,
+} from '@crowd/data-access-layer/src/segments'
+import { LoggerBase } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   PlatformType,
@@ -7,17 +13,13 @@ import {
   SegmentLevel,
   SegmentUpdateData,
 } from '@crowd/types'
-import { Error400 } from '@crowd/common'
-import { LoggerBase } from '@crowd/logging'
-import {
-  buildSegmentActivityTypes,
-  isSegmentSubproject,
-} from '@crowd/data-access-layer/src/segments'
-import SegmentRepository from '../database/repositories/segmentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
+
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
+import SegmentRepository from '../database/repositories/segmentRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 interface UnnestedActivityTypes {
   [key: string]: any

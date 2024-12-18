@@ -1,6 +1,6 @@
 <template>
   <div v-if="props.contributor.activitySycning?.state === MergeActionState.IN_PROGRESS" class="pt-12 flex flex-col items-center">
-    <lf-icon name="loader-4-line" :size="40" class="text-gray-300 animate-spin" />
+    <lf-icon-old name="loader-4-line" :size="40" class="text-gray-300 animate-spin" />
     <h6 class="text-center py-3">
       Syncing activities...
     </h6>
@@ -11,7 +11,7 @@
     </p>
   </div>
   <div v-else-if="props.contributor.activitySycning?.state === MergeActionState.ERROR" class="pt-12 flex flex-col items-center">
-    <lf-icon name="error-warning-line" :size="40" class="text-gray-300" />
+    <lf-icon-old name="error-warning-line" :size="40" class="text-gray-300" />
     <h6 class="text-center py-3">
       Error syncing activities
     </h6>
@@ -22,11 +22,12 @@
   </div>
   <div v-else-if="masked">
     <div class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600">
-      <lf-icon name="error-warning-line" class="mr-2" /> This person's activities are not shown because of the GDPR.
+      <lf-icon name="circle-exclamation" type="regular" class="mr-2" /> This person's activities are not shown because of the GDPR.
     </div>
   </div>
   <app-activity-timeline
     v-else
+    ref="timeline"
     :entity="props.contributor"
     entity-type="member"
     :show-affiliations="true"
@@ -40,9 +41,10 @@ import { Contributor } from '@/modules/contributor/types/Contributor';
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import { useRoute } from 'vue-router';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -52,9 +54,19 @@ const route = useRoute();
 
 const { isMasked } = useContributorHelpers();
 
+const timeline = ref(null);
+
 const { subProjectId } = route.query;
 
 const masked = computed(() => isMasked(props.contributor));
+
+const loadMore = () => {
+  timeline.value.fetchActivities();
+};
+
+defineExpose({
+  loadMore,
+});
 </script>
 
 <script lang="ts">

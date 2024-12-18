@@ -1,6 +1,8 @@
-import { isNullOrUndefined } from '@crowd/common'
-import { ITableName } from './types'
 import pgp from 'pg-promise'
+
+import { isNullOrUndefined } from '@crowd/common'
+
+import { ITableName } from './types'
 
 export const escapeTableName = (tableName: ITableName): string => {
   return `${

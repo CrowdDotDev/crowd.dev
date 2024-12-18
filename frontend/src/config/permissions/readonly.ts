@@ -75,6 +75,8 @@ const readonly: Record<LfPermission, boolean> = {
   [LfPermission.mergeOrganizations]: false,
   [LfPermission.customViewsCreate]: true,
   [LfPermission.customViewsTenantManage]: false,
+  [LfPermission.dataQualityRead]: false,
+  [LfPermission.dataQualityEdit]: false,
 };
 
 export default readonly;

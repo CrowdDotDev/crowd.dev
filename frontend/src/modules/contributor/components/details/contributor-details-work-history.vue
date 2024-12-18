@@ -10,7 +10,7 @@
             <template #content>
               Work experiences are mostly obtained<br> via enrichment but can also be added <br>manually.
             </template>
-            <lf-icon name="question-line" :size="16" class="text-gray-400" />
+            <lf-icon name="circle-question" :size="16" class="text-gray-400" />
           </lf-tooltip>
         </div>
       </div>
@@ -25,21 +25,24 @@
           :icon-only="true"
           @click="isEditModalOpen = true; editOrganization = null"
         >
-          <lf-icon name="add-fill" />
+          <lf-icon name="plus" />
         </lf-button>
       </lf-tooltip>
     </div>
 
     <div v-if="!masked" class="flex flex-col gap-4">
-      <lf-contributor-details-work-history-item
-        v-for="org of (orgs || []).slice(0, showMore ? (orgs || []).length : 3)"
-        :key="org.id"
-        :contributor="props.contributor"
-        :organization="org"
-        @edit="isEditModalOpen = true; editOrganization = org"
-      />
-      <div v-if="orgs.length === 0" class="pt-2 flex flex-col items-center">
-        <lf-icon name="survey-line" :size="40" class="text-gray-300" />
+      <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
+        <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
+          <lf-contributor-details-work-history-item
+            :contributor="props.contributor"
+            :organization="item"
+            :is-group-hover="hoveredGroup?.id === group.id"
+            @edit="isEditModalOpen = true; editOrganization = item"
+          />
+        </lf-timeline-item>
+      </lf-timeline>
+      <div v-if="orgGrouped.length === 0" class="pt-2 flex flex-col items-center">
+        <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No work experiences
         </p>
@@ -55,7 +58,7 @@
     </div>
 
     <lf-button
-      v-if="!masked && orgs.length > 3"
+      v-if="!masked && orgGrouped.length > minimumShownGroups"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -75,7 +78,7 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -87,6 +90,13 @@ import { Organization } from '@/modules/organization/types/Organization';
 import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { TimelineGroup } from '@/ui-kit/timeline/types/TimelineTypes';
+import { groupBy } from 'lodash';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
+import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -94,14 +104,39 @@ const props = defineProps<{
 
 const { hasPermission } = usePermissions();
 const { isMasked } = useContributorHelpers();
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
+const hoveredGroup = ref<TimelineGroup | null>(null);
 
-const orgs = computed(() => props.contributor.organizations);
+const orgGrouped = computed(() => {
+  const grouped = groupBy(props.contributor.organizations, 'id');
+  return Object.keys(grouped).map((id, index): TimelineGroup => ({
+    id: index,
+    label: grouped[id][0].displayName,
+    labelLink: {
+      name: 'organizationView',
+      params: {
+        id,
+      },
+      query: {
+        projectGroup: selectedProjectGroup.value?.id,
+      },
+    },
+    icon: grouped[id][0].logo,
+    items: grouped[id],
+  }));
+});
+const minimumShownGroups = 3;
+const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups));
 
 const masked = computed(() => isMasked(props.contributor));
+
+const onGroupHover = (index: TimelineGroup | null) => {
+  hoveredGroup.value = index;
+};
 </script>
 
 <script lang="ts">

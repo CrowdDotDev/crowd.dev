@@ -23,7 +23,7 @@
     "axios": "^1.6.8",
     "moment": "~2.29.4",
     "tsx": "^4.7.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",

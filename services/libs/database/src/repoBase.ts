@@ -1,14 +1,18 @@
-import { Logger, LoggerBase, logError } from '@crowd/logging'
 import { partition } from '@crowd/common'
-import { DbColumnSet, DbConnection, DbInstance, DbTransaction } from './types'
+import { Logger, LoggerBase, logError } from '@crowd/logging'
+
 import { DbStore } from './dbStore'
+import { DbColumnSet, DbConnection, DbInstance, DbTransaction } from './types'
 
 export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extends LoggerBase {
   private database: DbConnection | DbTransaction
   private inTransaction: boolean
   protected readonly dbInstance: DbInstance
 
-  protected constructor(protected readonly store: DbStore, parentLog: Logger) {
+  protected constructor(
+    protected readonly store: DbStore,
+    parentLog: Logger,
+  ) {
     super(parentLog)
 
     this.database = store.connection()

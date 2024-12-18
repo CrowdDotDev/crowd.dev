@@ -6,149 +6,48 @@
     row-key="id"
     :resizable="false"
   >
+    <!-- Status -->
+    <el-table-column width="130" class-name="table-columns !bg-white">
+      <template #header>
+        <app-lf-status-pill :status="project.status" />
+      </template>
+      <template #default="{ row }">
+        <app-lf-status-pill :status="row.status" />
+      </template>
+    </el-table-column>
+
     <!-- Name -->
     <el-table-column
       prop="name"
-      width="300"
-      fixed
+      width="500"
       class-name="table-columns !bg-white"
     >
       <template #header>
         <div>
-          <span class="pt-1.5 pb-3 block">Project</span>
           <div
-            class="text-base font-semibold text-gray-900 normal-case flex items-center h-8 mb-4"
+            class="text-medium font-semibold text-gray-900 normal-case flex items-center"
           >
             {{ project.name }}
           </div>
         </div>
       </template>
       <template #default="{ row }">
-        <span class="text-gray-900 text-sm">{{ row.name }}</span>
-      </template>
-    </el-table-column>
-
-    <!-- Connected Integrations -->
-    <el-table-column width="250" class-name="table-columns !py-0 !bg-white">
-      <template #header>
-        <div>
-          <span class="pt-1.5 pb-3 block">Connected Integrations</span>
-          <div class="flex items-center h-8 mb-4">
-            <span class="text-gray-400 text-sm normal-case font-normal">-</span>
-          </div>
-        </div>
-      </template>
-      <template #default="{ row }">
-        <div
-          v-if="row.integrations?.length"
-          class="flex gap-1 items-center py-2 overflow-x-auto"
-          style="max-width: 100%; scrollbar-width: thin"
-        >
-          <div v-for="integration in row.integrations" :key="integration.id">
-            <el-popover
-              :disabled="
-                integration.status !== 'in-progress'
-                  && integration.type !== 'mapped'
-                  && !getProgress(row.id, integration.platform)
-                  && !progressError
-              "
-              :width="290"
-              placement="top"
-            >
-              <template #reference>
-                <div
-                  class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center"
-                >
-                  <app-platform-svg
-                    :platform="integration.platform"
-                    :color="integration.platform === 'github' && integration?.type === 'mapped' ? 'gray' : 'black'"
-                  />
-
-                  <i
-                    v-if="integration.status === 'no-data'"
-                    class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
-                  />
-                  <i
-                    v-else-if="integration.status === 'error'"
-                    class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
-                  />
-                  <div
-                    v-else-if="integration.status === 'in-progress'"
-                    class="w-4 h-4 bg-white rounded-full -ml-2 flex items-center justify-center -mt-5"
-                  >
-                    <lf-spinner size="0.75rem" class="!border-black" />
-                  </div>
-                </div>
-              </template>
-              <div class="px-1">
-                <template v-if="integration.type === 'mapped'">
-                  <p class="text-xs text-black leading-5">
-                    Syncing
-                    {{
-                      CrowdIntegrations.getConfig(integration.platform)?.name
-                    }}
-                    data since this sub-project is mapped with
-                    <b>{{ integration.mappedWith }}</b> sub-project
-                  </p>
-                </template>
-                <template v-else>
-                  <app-integration-progress
-                    v-if="!progressError"
-                    :progress="getProgress(row.id, integration.platform)"
-                    :show-bar="true"
-                    :show-parts="true"
-                  >
-                    <h6 class="text-xs text-black leading-5 pb-3">
-                      Connecting
-                      {{
-                        CrowdIntegrations.getConfig(integration.platform)?.name
-                      }}
-                      integration
-                    </h6>
-                  </app-integration-progress>
-                  <div v-if="progressError" class="text-xs text-gray-500">
-                    <i class="ri-alert-line text-yellow-600" /> Error loading
-                    progress
-                  </div>
-                </template>
-              </div>
-            </el-popover>
-          </div>
-        </div>
-        <span v-else class="text-gray-400 text-sm">No integrations</span>
-      </template>
-    </el-table-column>
-
-    <!-- Status -->
-    <el-table-column width="150" class-name="table-columns !bg-white">
-      <template #header>
-        <div>
-          <span class="pt-1.5 pb-3 block">Status</span>
-          <div class="flex items-center gap-3 h-8 mb-4">
-            <span
-              class="w-1.5 h-1.5 rounded-full"
-              :class="statusDisplay(project.status)?.color"
-            />
-            <span class="normal-case text-gray-900 font-normal text-sm">
-              {{ statusDisplay(project.status)?.label }}
-            </span>
-          </div>
-        </div>
-      </template>
-      <template #default="{ row }">
-        <div class="flex items-center gap-3">
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :class="statusDisplay(row.status)?.color"
+        <div class="flex items-center gap-5">
+          <span class="text-gray-900 text-sm">{{ row.name }}</span>
+          <app-lf-project-integration-column
+            :segment-id="row.id"
+            :integrations="row.integrations"
+            :progress="props.progress"
+            :progress-error="progressError"
           />
-          <span class="text-gray-900">
-            {{ statusDisplay(row.status)?.label }}
-          </span>
         </div>
       </template>
     </el-table-column>
 
-    <el-table-column class-name="!bg-white">
+    <el-table-column class-name="table-columns !bg-white">
+      <template #header>
+        <div class="flex grow" />
+      </template>
       <template #default>
         <div class="flex grow" />
       </template>
@@ -160,8 +59,17 @@
       class-name="table-columns !bg-white"
     >
       <template #header>
-        <span class="h-10 block" />
-        <div class="flex justify-end mb-4">
+        <div class="flex justify-end">
+          <lf-button
+            v-if="
+              hasPermission(LfPermission.subProjectCreate)
+                && hasAccessToSegmentId(project.id)
+            "
+            type="secondary-ghost"
+            @click="emit('onAddSubProject', project)"
+          >
+            <lf-icon name="layer-plus" :size="16" type="regular" />
+          </lf-button>
           <app-lf-projects-dropdown
             :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
@@ -183,9 +91,10 @@
               },
             }"
           >
-            <el-button class="btn btn--secondary">
-              Manage integrations
-            </el-button>
+            <lf-button type="primary-ghost">
+              <lf-icon name="grid-round-2" :size="16" type="regular" />
+              Integrations
+            </lf-button>
           </router-link>
           <app-lf-sub-projects-dropdown
             :id="row.id"
@@ -194,24 +103,6 @@
         </div>
       </template>
     </el-table-column>
-
-    <template
-      v-if="
-        project.subprojects?.length
-          && hasPermission(LfPermission.subProjectCreate)
-          && hasAccessToSegmentId(project.id)
-      "
-      #append
-    >
-      <div class="w-full flex justify-start p-6">
-        <el-button
-          class="btn btn-link btn-link--primary"
-          @click="emit('onAddSubProject', project)"
-        >
-          + Add sub-project
-        </el-button>
-      </div>
-    </template>
 
     <template
       v-if="
@@ -233,16 +124,15 @@
 </template>
 
 <script setup>
-import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import { useRoute } from 'vue-router';
-import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
-import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
+import AppLfStatusPill from '../fragments/lf-status-pill.vue';
 
 const route = useRoute();
 
@@ -269,11 +159,6 @@ const props = defineProps({
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
-const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
-
-const getProgress = (segmentId, platform) => (props.progress || []).find(
-  (p) => p.segmentId === segmentId && p.platform === platform,
-);
 </script>
 
 <script>
@@ -284,24 +169,36 @@ export default {
 
 <style lang="scss">
 #projects-table {
-  @apply rounded-md shadow;
-  border: 1px solid #e5e7eb;
+  @apply rounded-lg shadow-sm border border-solid border-gray-200;
 
   thead .table-columns {
-    @apply align-top h-auto px-6;
+    @apply align-middle h-auto px-2 py-4;
+    @apply normal-case bg-gray-50 #{!important};
+
+    &:first-child {
+      @apply pl-4;
+    }
+
+    &:last-child {
+      @apply pr-3;
+    }
 
     .cell {
-      @apply px-0;
+      @apply px-0 #{!important};
     }
   }
 
   tbody {
-    tr td:last-child {
-      @apply px-6;
-    }
-
     .table-columns {
-      @apply align-middle h-14 px-6;
+      @apply align-middle px-2 py-4 border-b-0;
+
+      &:first-child {
+        @apply pl-4;
+      }
+
+      &:last-child {
+        @apply pr-3;
+      }
 
       &.el-table-fixed-column--right .cell {
         @apply justify-end;
@@ -309,9 +206,7 @@ export default {
     }
 
     .cell {
-      @apply px-0;
-      display: flex !important;
-      align-items: center !important;
+      @apply px-0 #{!important};
     }
   }
 

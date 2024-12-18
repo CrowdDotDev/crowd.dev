@@ -7,7 +7,9 @@ import {
 import { INTEGRATION_SERVICES } from '@crowd/integrations'
 import { LoggerBase, getChildLogger } from '@crowd/logging'
 import { IntegrationType } from '@crowd/types'
+
 import IntegrationRepository from '@/database/repositories/integrationRepository'
+
 import IntegrationRunRepository from '../../../database/repositories/integrationRunRepository'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import {

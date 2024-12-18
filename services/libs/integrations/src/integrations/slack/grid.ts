@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { SlackActivityType } from './types'
 
 export const SLACK_GRID: Record<SlackActivityType, IActivityScoringGrid> = {

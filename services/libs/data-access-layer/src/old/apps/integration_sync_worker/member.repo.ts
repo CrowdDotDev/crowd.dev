@@ -1,6 +1,5 @@
-import { DbStore, RepositoryBase } from '@crowd/database'
 import { generateUUIDv1 as uuid } from '@crowd/common'
-
+import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   IMember,
@@ -9,6 +8,7 @@ import {
   PlatformType,
   SyncStatus,
 } from '@crowd/types'
+
 import { IMemberIdWithAttributes } from './member.data'
 
 export interface IMemberIdObject {
@@ -304,7 +304,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."displayName",
               m.attributes,
               m.score,
-              m."lastEnriched",
               m."joinedAt",
               m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",

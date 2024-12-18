@@ -17,8 +17,6 @@ export default {
   listProjectGroups({
     search = null, offset, limit, reset = false, adminOnly,
   } = {}) {
-    this.projectGroups.loading = true;
-
     if (reset) {
       this.projectGroups.pagination = {
         pageSize: 20,
@@ -27,10 +25,14 @@ export default {
         count: 0,
       };
     }
+    const offsetLoad = offset !== undefined ? offset : this.projectGroupOffset;
+    const limitLoad = limit !== undefined ? limit : this.projectGroups.pagination.pageSize;
+    this.projectGroups.loading = offsetLoad === 0;
+    this.projectGroups.paginating = offsetLoad > 0;
 
     return LfService.queryProjectGroups({
-      limit: limit !== undefined ? limit : this.projectGroups.pagination.pageSize,
-      offset: offset !== undefined ? offset : this.projectGroupOffset,
+      limit: limitLoad,
+      offset: offsetLoad,
       filter: {
         name: search,
         adminOnly,
@@ -39,7 +41,11 @@ export default {
       .then((response) => {
         const count = Number(response.count);
 
-        this.projectGroups.list = response.rows;
+        if (offsetLoad === 0 || reset) {
+          this.projectGroups.list = response.rows;
+        } else {
+          this.projectGroups.list = [...this.projectGroups.list, ...response.rows];
+        }
 
         if (!search) {
           this.projectGroups.pagination.total = count;
@@ -53,6 +59,7 @@ export default {
         return Promise.reject();
       })
       .finally(() => {
+        this.projectGroups.paginating = false;
         this.projectGroups.loading = false;
       });
   },
@@ -97,21 +104,28 @@ export default {
       .then(() => {
         Message.success('Project Group updated successfully');
 
-        this.listProjectGroups({
-          adminOnly: isAdminOnly(),
-        });
+        this.updateProjectGroupList(id, data);
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project group');
       })
       .finally(() => Promise.resolve());
   },
-  searchProjectGroup(search, limit, adminOnly) {
-    this.projectGroups.pagination.currentPage = 1;
+  updateProjectGroupList(id, data) {
+    this.projectGroups.list = this.projectGroups.list.map((p) => {
+      if (p.id === id) {
+        return { ...p.value, ...data };
+      }
+      return p;
+    });
+    this.projectGroups.reload = true;
+  },
+  searchProjectGroup(search, limit, adminOnly, page) {
+    this.projectGroups.pagination.currentPage = page !== undefined ? page : 1;
     this.listProjectGroups({
       search,
       limit,
-      offset: 0,
+      offset: page !== undefined ? undefined : 0,
       adminOnly: adminOnly !== undefined ? adminOnly : isAdminOnly(),
     });
   },
@@ -134,9 +148,14 @@ export default {
       };
     }
 
+    const offsetLoad = offset !== undefined ? offset : this.projectOffset;
+    const limitLoad = limit !== undefined ? limit : this.projects.pagination.pageSize;
+    this.projects.loading = offsetLoad === 0;
+    this.projects.paginating = offsetLoad > 0;
+
     LfService.queryProjects({
-      limit: limit !== undefined ? limit : this.projects.pagination.pageSize,
-      offset: offset !== undefined ? offset : this.projectOffset,
+      limit: limitLoad,
+      offset: offsetLoad,
       filter: {
         name: search,
         parentSlug: this.projects.parentSlug,
@@ -145,7 +164,11 @@ export default {
       .then((response) => {
         const count = Number(response.count);
 
-        this.projects.list = response.rows;
+        if (offsetLoad === 0 || reset) {
+          this.projects.list = response.rows;
+        } else {
+          this.projects.list = [...this.projects.list, ...response.rows];
+        }
 
         if (!search) {
           this.projects.pagination.total = count;
@@ -158,6 +181,7 @@ export default {
       })
       .finally(() => {
         this.projects.loading = false;
+        this.projects.paginating = false;
       });
   },
   findProject(id) {
@@ -183,16 +207,24 @@ export default {
     return LfService.updateSegment(id, data)
       .then(() => {
         Message.success('Project updated successfully');
-        this.listProjects();
+        this.updateProjectList(id, data);
       })
       .catch(() => {
         Message.error('Something went wrong while updating the project');
       })
       .finally(() => Promise.resolve());
   },
-  searchProject(search) {
-    this.projects.pagination.currentPage = 1;
-    this.listProjects({ search, offset: 0 });
+  updateProjectList(id, data) {
+    this.projects.list = this.projects.list.map((p) => {
+      if (p.id === id) {
+        return { ...p, ...data };
+      }
+      return p;
+    });
+  },
+  searchProject(search, page = null) {
+    this.projects.pagination.currentPage = page !== null ? page : 1;
+    this.listProjects({ search, offset: page !== null ? undefined : 0 });
   },
   findSubProject(id) {
     return LfService.findSegment(id)

@@ -1,12 +1,15 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+
 import { Error404 } from '@crowd/common'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 

@@ -163,7 +163,7 @@
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <lf-icon
+                              <lf-icon-old
                                 v-else
                                 name="fingerprint-fill"
                                 :size="20"
@@ -237,7 +237,7 @@
                       :alt="platformDetails(i.platform)?.name"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    <lf-icon
+                    <lf-icon-old
                       v-else
                       name="fingerprint-fill"
                       :size="20"
@@ -266,7 +266,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { useRouter } from 'vue-router';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
@@ -362,9 +362,9 @@ const unmerge = () => {
     .then(() => {
       getContributorMergeActions(props.modelValue?.id);
       Message.info(
-        "We're finalizing profiles merging. We will let you know once the process is completed.",
+        "We're finalizing profiles unmerging. We will let you know once the process is completed.",
         {
-          title: 'Profiles merging in progress',
+          title: 'Profiles unmerging in progress',
         },
       );
       getContributor(props.modelValue?.id)

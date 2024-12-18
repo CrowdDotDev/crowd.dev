@@ -1,4 +1,5 @@
 import { INote, ITag, ITask } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export async function findTasks(qx: QueryExecutor, taskIds: string[]): Promise<ITask[]> {

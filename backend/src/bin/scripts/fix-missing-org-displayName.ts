@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/dot-notation */
-/* eslint-disable no-console */
-/* eslint-disable import/no-extraneous-dependencies */
 
+/* eslint-disable no-console */
+
+/* eslint-disable import/no-extraneous-dependencies */
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+
 import { databaseInit } from '@/database/databaseConnection'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 const options = [
   {

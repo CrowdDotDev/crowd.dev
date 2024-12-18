@@ -1,10 +1,18 @@
 import _ from 'lodash'
+import QueryStream from 'pg-query-stream'
 
 import { DbConnOrTx, DbStore } from '@crowd/database'
+import { getServiceChildLogger } from '@crowd/logging'
 import { ITenant } from '@crowd/types'
+
+import { insertActivities } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { pgpQx } from '../../../queryExecutor'
+import { formatQuery, pgpQx } from '../../../queryExecutor'
+import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
+
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
+
+const logger = getServiceChildLogger('profiles_worker')
 
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
@@ -20,19 +28,27 @@ export async function runMemberAffiliationsUpdate(
   }
 
   const tsBetweenOrOpenEnd = (start: string, end: string) => {
+    if (!start) {
+      return 'TRUE'
+    }
+
     if (end) {
       return tsBetween(start, end)
     }
     return tsAfter(start)
   }
 
-  type Condition = { when: string[]; then: string }
-
-  const condition = ({ when, then }: Condition) => {
-    return `WHEN ${when.join(' AND ')} THEN ${then}`
+  type Condition = {
+    when: string[]
+    orgId: string
+    matches: (activity: IDbActivityCreateData) => boolean
   }
 
-  const nullableOrg = (orgId: string) => (orgId ? `'${orgId}'` : 'NULL')
+  const condition = ({ when, orgId }: Condition) => {
+    return `WHEN ${when.join(' AND ')} THEN ${nullableOrg(orgId)}`
+  }
+
+  const nullableOrg = (orgId: string) => (orgId ? `cast('${orgId}' as uuid)` : 'NULL')
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
@@ -57,7 +73,20 @@ export async function runMemberAffiliationsUpdate(
       .reverse()
       .map((row) => ({
         when: [`"segmentId" = '${row.segmentId}'`, tsBetweenOrOpenEnd(row.dateStart, row.dateEnd)],
-        then: nullableOrg(row.organizationId),
+        matches: (activity) => {
+          if (activity.segmentId !== row.segmentId) {
+            return false
+          }
+
+          if (!row.dateStart) {
+            return true
+          }
+          if (row.dateEnd) {
+            return activity.timestamp >= row.dateStart && activity.timestamp <= row.dateEnd
+          }
+          return activity.timestamp >= row.dateStart
+        },
+        orgId: row.organizationId,
       }))
       .value(),
 
@@ -67,7 +96,16 @@ export async function runMemberAffiliationsUpdate(
       .reverse()
       .map((row) => ({
         when: [tsBetweenOrOpenEnd(row.dateStart, row.dateEnd)],
-        then: nullableOrg(row.organizationId),
+        matches: (activity) => {
+          if (!row.dateStart) {
+            return true
+          }
+          if (row.dateEnd) {
+            return activity.timestamp >= row.dateStart && activity.timestamp <= row.dateEnd
+          }
+          return activity.timestamp >= row.dateStart
+        },
+        orgId: row.organizationId,
       }))
       .value(),
 
@@ -77,7 +115,10 @@ export async function runMemberAffiliationsUpdate(
       .reverse()
       .map((row) => ({
         when: [tsAfter(row.createdAt)],
-        then: nullableOrg(row.organizationId),
+        matches: (activity) => {
+          return activity.timestamp >= row.createdAt
+        },
+        orgId: row.organizationId,
       }))
       .value(),
   ]
@@ -89,7 +130,6 @@ export async function runMemberAffiliationsUpdate(
     .head()
     .value()
 
-  const qdbQx = pgpQx(qDb)
   let fullCase: string
   if (orgCases.length > 0) {
     fullCase = `
@@ -99,20 +139,45 @@ export async function runMemberAffiliationsUpdate(
             END
             `
   } else {
-    fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
+    fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  const query = `
-      UPDATE activities
-      SET "organizationId" = ${fullCase}
-      WHERE "memberId" = $(memberId)
-        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000') != COALESCE(
-          ${fullCase},
-          '00000000-0000-0000-0000-000000000000'
-        )
-    `
+  async function insertIfMatches(activity: IDbActivityCreateData) {
+    activity.organizationId = null
 
-  await qdbQx.result(query, { memberId })
+    if (orgCases.length > 0) {
+      for (const condition of orgCases) {
+        if (condition.matches(activity)) {
+          activity.organizationId = condition.orgId
+          break
+        }
+      }
+    }
+
+    await insertActivities([activity], true)
+  }
+
+  const qs = new QueryStream(
+    formatQuery(
+      `
+        SELECT *
+        FROM activities
+        WHERE "memberId" = $(memberId)
+          AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+            ${fullCase},
+            cast('00000000-0000-0000-0000-000000000000' as uuid)
+          )
+      `,
+      { memberId },
+    ),
+  )
+  const { processed, duration } = await qDb.stream(qs, async (stream) => {
+    for await (const activity of stream) {
+      await insertIfMatches(activity as unknown as IDbActivityCreateData)
+    }
+  })
+
+  logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {

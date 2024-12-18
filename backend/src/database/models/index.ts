@@ -1,12 +1,14 @@
-import Sequelize, { DataTypes } from 'sequelize'
 import pg from 'pg'
+import Sequelize, { DataTypes } from 'sequelize'
+
+import { IS_CLOUD_ENV } from '@crowd/common'
 
 /**
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
-import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { IS_CLOUD_ENV } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 
@@ -45,11 +47,7 @@ function getCredentials(): Credentials {
   }
 }
 
-async function models(
-  queryTimeoutMilliseconds: number,
-  databaseHostnameOverride = null,
-  profileQueries = false,
-) {
+async function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = null) {
   log.info('Initializing sequelize database connection!')
   const database = {} as any
 
@@ -63,14 +61,14 @@ async function models(
 
   const credentials = getCredentials()
 
-  const sequelize = new (<any>Sequelize)(
+  const sequelize = new (Sequelize as any)(
     DB_CONFIG.database,
     credentials.username,
     credentials.password,
     {
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
-        application_name: SERVICE,
+        application_name: SERVICE ? `${SERVICE}-seq` : 'unknown-app-seq',
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 20000,
@@ -104,19 +102,19 @@ async function models(
     },
   )
 
-  if (profileQueries) {
-    const oldQuery = sequelize.query
-    sequelize.query = async (query, options) => {
-      const { replacements } = options || {}
-      const result = await logExecutionTimeV2(
-        () => oldQuery.apply(sequelize, [query, options]),
-        log,
-        `DB Query:\n${query}\n${replacements ? `Params: ${JSON.stringify(replacements)}` : ''}`,
-      )
+  // if (profileQueries) {
+  //   const oldQuery = sequelize.query
+  //   sequelize.query = async (query, options) => {
+  //     const { replacements } = options || {}
+  //     const result = await logExecutionTimeV2(
+  //       () => oldQuery.apply(sequelize, [query, options]),
+  //       log,
+  //       `DB Query:\n${query}\n${replacements ? `Params: ${JSON.stringify(replacements)}` : ''}`,
+  //     )
 
-      return result
-    }
-  }
+  //     return result
+  //   }
+  // }
 
   const modelClasses = [
     require('./auditLog').default,

@@ -1,10 +1,12 @@
 import crypto from 'crypto'
 import lodash from 'lodash'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import { IRepositoryOptions } from './IRepositoryOptions'
+
 import Roles from '../../security/roles'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 export default class TenantUserRepository {
   static async findByTenant(tenantId: string, options: IRepositoryOptions): Promise<any[]> {

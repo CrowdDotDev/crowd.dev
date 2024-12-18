@@ -10,11 +10,12 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
     "pg-promise": "^11.4.3"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   }
 }

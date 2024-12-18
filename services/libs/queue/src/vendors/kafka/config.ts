@@ -1,12 +1,14 @@
-import { CrowdQueue } from '../../types'
-import { IKafkaChannelConfig } from './types'
 import {
+  DATA_SINK_WORKER_PARTITIONS,
   INTEGRATION_RUN_WORKER_PARTITIONS,
   INTEGRATION_STREAM_WORKER_PARTITIONS,
   INTEGRATION_SYNC_WORKER_PARTITIONS,
-  DATA_SINK_WORKER_PARTITIONS,
   SEARCH_SYNC_WORKER_PARTITIONS,
 } from '@crowd/common'
+
+import { CrowdQueue } from '../../types'
+
+import { IKafkaChannelConfig } from './types'
 
 export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.INTEGRATION_RUN_WORKER,

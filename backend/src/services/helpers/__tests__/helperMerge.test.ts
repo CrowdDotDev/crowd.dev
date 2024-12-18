@@ -1,4 +1,5 @@
 import { PlatformType } from '@crowd/types'
+
 import merge from '../merge'
 
 describe('Merge helper tests', () => {

@@ -1,19 +1,21 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
+
 import { Error400, Error401 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import UserRepository from '../../database/repositories/userRepository'
-import EmailSender from '../emailSender'
-import TenantUserRepository from '../../database/repositories/tenantUserRepository'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+
 import { API_CONFIG, SSO_CONFIG } from '../../conf'
-import TenantService from '../tenantService'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantRepository from '../../database/repositories/tenantRepository'
-import { tenantSubdomain } from '../tenantSubdomain'
+import TenantUserRepository from '../../database/repositories/tenantUserRepository'
+import UserRepository from '../../database/repositories/userRepository'
+import Roles from '../../security/roles'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
-import Roles from '../../security/roles'
+import EmailSender from '../emailSender'
+import TenantService from '../tenantService'
+import { tenantSubdomain } from '../tenantSubdomain'
 
 const BCRYPT_SALT_ROUNDS = 12
 

@@ -1,8 +1,9 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IWebhookData } from './incomingWebhook.data'
 import { WebhookState, WebhookType } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
+
+import { IWebhookData } from './incomingWebhook.data'
 
 export default class IncomingWebhookRepository extends RepositoryBase<IncomingWebhookRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {

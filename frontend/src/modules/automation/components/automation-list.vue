@@ -29,7 +29,7 @@
           <template #reference>
             <el-button class="btn btn--primary btn--sm flex items-center !py-2">
               Add automation
-              <span class="ri-arrow-down-s-line text-base ml-2 flex items-center h-4" />
+              <lf-icon name="chevron-down" class="ml-2" :size="16" type="regular" />
             </el-button>
           </template>
 
@@ -98,13 +98,13 @@
     <!-- Empty state for no automations configured -->
     <app-empty-state-cta
       v-else-if="automationTypes[filter.type]?.emptyScreen"
-      icon="ri-flow-chart"
+      icon="arrow-progress"
       :title="automationTypes[filter.type]?.emptyScreen.title"
       :description="automationTypes[filter.type]?.emptyScreen.body"
     />
     <app-empty-state-cta
       v-else
-      icon="ri-flow-chart"
+      icon="arrow-progress"
       title="Start automating your workflows"
       :description="`Take instant action on your data. For example, set up Slack notifications for new people or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
@@ -136,6 +136,7 @@ import { useStore } from 'vuex';
 import config from '@/config';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { automationTypes } from '../config/automation-types';
 
 const { hasPermission } = usePermissions();

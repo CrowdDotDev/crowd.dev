@@ -1,26 +1,29 @@
+import { Error404 } from '@crowd/common'
 import {
   AutomationState,
   AutomationSyncTrigger,
   AutomationType,
   IAutomationData,
-  PlatformType,
   PageData,
+  PlatformType,
 } from '@crowd/types'
-import { Error404 } from '@crowd/common'
+
+import AutomationExecutionRepository from '@/database/repositories/automationExecutionRepository'
+import IntegrationRepository from '@/database/repositories/integrationRepository'
+import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
+import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
+import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/queueService'
+
+import AutomationRepository from '../database/repositories/automationRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   AutomationCriteria,
   CreateAutomationRequest,
   UpdateAutomationRequest,
 } from '../types/automationTypes'
+
 import { IServiceOptions } from './IServiceOptions'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import AutomationRepository from '../database/repositories/automationRepository'
 import { ServiceBase } from './serviceBase'
-import { getIntegrationSyncWorkerEmitter } from '@/serverless/utils/queueService'
-import IntegrationRepository from '@/database/repositories/integrationRepository'
-import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
-import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
-import AutomationExecutionRepository from '@/database/repositories/automationExecutionRepository'
 
 export default class AutomationService extends ServiceBase<
   IAutomationData,

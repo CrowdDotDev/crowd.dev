@@ -1,6 +1,3 @@
-import {
-  createConversations,
-  linkActivitiesToConversations,
-} from './activities/createConversations'
+import { createConversations } from './activities/createConversations'
 
-export { createConversations, linkActivitiesToConversations }
+export { createConversations }

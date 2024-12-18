@@ -1,6 +1,7 @@
 import { generateUUIDv4 } from '@crowd/common'
-import { QueryExecutor } from '../queryExecutor'
 import { IEventData, ISessionData } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
 
 type IDbSessionInsertData = Omit<ISessionData, 'endTime'>
 type IDbEventInsertData = Omit<IEventData, 'id' | 'createdAt'>

@@ -18,6 +18,7 @@
         <!-- Avatar -->
         <div class="pr-3">
           <router-link
+            v-if="activity.member"
             :to="{
               name: 'memberView',
               params: { id: activity.member.id },
@@ -35,6 +36,7 @@
           <div class="flex justify-between">
             <div>
               <app-member-display-name
+                v-if="activity.member"
                 class="flex items-center pb-0.5"
                 custom-class="text-2xs leading-4 text-gray-900 font-medium block"
                 :member="activity.member"

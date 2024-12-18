@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
-import UserCreator from '../../services/user/userCreator'
 import PermissionChecker from '../../services/user/permissionChecker'
+import UserCreator from '../../services/user/userCreator'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.userCreate)

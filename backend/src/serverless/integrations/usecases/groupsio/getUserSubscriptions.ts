@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('getGroupsIoUserSubscriptions')

@@ -1,7 +1,7 @@
+import { generateUUIDv1 as uuid } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IAutomationExecution } from '@crowd/types'
-import { generateUUIDv1 as uuid } from '@crowd/common'
 
 export class AutomationExecutionRepository extends RepositoryBase<AutomationExecutionRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {

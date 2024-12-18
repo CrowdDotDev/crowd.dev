@@ -1,5 +1,5 @@
-import { createRateLimiter } from '../apiRateLimiter'
 import { safeWrap } from '../../middlewares/errorMiddleware'
+import { createRateLimiter } from '../apiRateLimiter'
 
 export default (app) => {
   app.put(`/auth/password-reset`, safeWrap(require('./authPasswordReset').default))

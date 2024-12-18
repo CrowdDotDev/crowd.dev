@@ -9,7 +9,7 @@
         class="filter-dropdown-search"
       >
         <template #prefix>
-          <i class="ri-search-line" />
+          <lf-icon name="search" :size="16" />
         </template>
         <template #suffix>
           <i v-if="search.length > 0" class="ri-close-line text-base cursor-pointer" @click="search = ''" />
@@ -53,6 +53,7 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import LfFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: SelectFilterValue,

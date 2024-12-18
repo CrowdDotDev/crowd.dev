@@ -95,14 +95,12 @@
                 })
               "
             >
-              <i
-                class="text-lg group-hover:text-gray-900"
-                :class="{
-                  'ri-thumb-up-line text-gray-400':
-                    !isRelevant,
-                  'ri-thumb-up-fill text-green-600 group-hover:text-green-600':
-                    isRelevant,
-                }"
+              <lf-icon
+                name="thumbs-up"
+                :type="isRelevant ? 'solid' : 'light'"
+                :size="20"
+                class="group-hover:text-gray-900"
+                :class="isRelevant ? 'text-green-600 group-hover:text-green-600' : 'text-gray-400'"
               />
             </div>
           </span>
@@ -122,14 +120,12 @@
                 })
               "
             >
-              <i
-                class="text-lg group-hover:text-gray-900"
-                :class="{
-                  'ri-thumb-down-line text-gray-400':
-                    !isNotRelevant,
-                  'ri-thumb-down-fill text-red-600 group-hover:text-red-600':
-                    isNotRelevant,
-                }"
+              <lf-icon
+                name="thumbs-down"
+                :type="isNotRelevant ? 'solid' : 'light'"
+                :size="20"
+                class="group-hover:text-gray-900"
+                :class="isNotRelevant ? 'text-red-600 group-hover:text-red-600' : 'text-gray-400'"
               />
             </div>
           </span>
@@ -150,14 +146,10 @@
                 'cursor-auto': !isGenerateReplyAvailable,
               }"
             >
-              <i
-                class="ri-lightbulb-flash-line text-lg"
-                :class="{
-                  'text-gray-300':
-                    !isGenerateReplyAvailable,
-                  'text-gray-400 group-hover:text-gray-900':
-                    isGenerateReplyAvailable,
-                }"
+              <lf-icon
+                name="lightbulb"
+                :size="20"
+                :class="isGenerateReplyAvailable ? 'text-gray-400 group-hover:text-gray-900' : 'text-gray-300'"
               />
             </div>
           </span>
@@ -175,9 +167,7 @@
                 <div
                   class="rounded-full bg-yellow-100 flex items-center justify-center min-h-6 min-w-[1.6rem]"
                 >
-                  <i
-                    class="ri-error-warning-line text-yellow-500 text-base"
-                  />
+                  <lf-icon name="circle-exclamation" :size="16" class="text-yellow-500" />
                 </div>
                 <div class="text-gray-600 text-2xs">
                   This is just a starting point. We
@@ -231,16 +221,12 @@
                       class="text-xs text-gray-400 flex items-center"
                     >
                       <span>Was this helpful? </span>
-                      <i
+                      <lf-icon
+                        name="thumbs-up"
+                        :type="generatedReplyThumbsUpFeedback ? 'solid' : 'light'"
+                        :size="16"
                         class="cursor-pointer mx-1"
-                        :class="{
-                          'text-green-500':
-                            generatedReplyThumbsUpFeedback,
-                          'ri-thumb-up-line':
-                            !generatedReplyThumbsUpFeedback,
-                          'ri-thumb-up-fill':
-                            generatedReplyThumbsUpFeedback,
-                        }"
+                        :class="generatedReplyThumbsUpFeedback ? 'text-green-500' : ''"
                         @click="
                           generatedReplyFeedback(
                             generatedReply,
@@ -248,16 +234,12 @@
                           )
                         "
                       />
-                      <i
+                      <lf-icon
+                        name="thumbs-down"
+                        :type="generatedReplyThumbsDownFeedback ? 'solid' : 'light'"
+                        :size="16"
                         class="cursor-pointer"
-                        :class="{
-                          'text-red-500':
-                            generatedReplyThumbsDownFeedback,
-                          'ri-thumb-down-line':
-                            !generatedReplyThumbsDownFeedback,
-                          'ri-thumb-down-fill':
-                            generatedReplyThumbsDownFeedback,
-                        }"
+                        :class="generatedReplyThumbsDownFeedback ? 'text-red-500' : ''"
                         @click="
                           generatedReplyFeedback(
                             generatedReply,
@@ -277,9 +259,7 @@
                           v-if="replyInClipboard"
                           class="flex flex-wrap items-center"
                         >
-                          <i
-                            class="ri-check-line text-primary-500"
-                          />
+                          <lf-icon name="check" :size="16" class="text-primary-500" />
                           <span
                             class="text-xs ml-1 text-gray-600"
                           >Copied to clipboard.
@@ -300,8 +280,9 @@
                             placement="top"
                             content="Copy to clipboard"
                           >
-                            <i
-                              class="ri-clipboard-line text-lg"
+                            <lf-icon
+                              name="clipboard"
+                              :size="20"
                               @click="
                                 copyToClipboard(
                                   generatedReply,
@@ -342,14 +323,16 @@
                 })
               "
             >
-              <i
-                class="text-lg text-gray-400 group-hover:text-gray-900"
+              <lf-icon
+                name="book-bookmark"
+                :type="isBookmarked || isBookmarkedByTeam ? 'solid' : 'light'"
+                class="text-gray-400 group-hover:text-gray-900"
                 :class="{
-                  'ri-bookmark-line text-gray-400':
+                  'text-gray-400':
                     !isBookmarked && !isBookmarkedByTeam,
-                  'ri-bookmark-fill text-primary-600 group-hover:text-primary-600':
+                  'text-primary-600 group-hover:text-primary-600':
                     isBookmarked && !isBookmarkedByTeam,
-                  'ri-bookmark-fill text-primary-300':
+                  'text-primary-300':
                     isBookmarkedByTeam,
                 }"
               />
@@ -374,6 +357,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({

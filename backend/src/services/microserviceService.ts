@@ -1,7 +1,9 @@
 import { Error400 } from '@crowd/common'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
+
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class MicroserviceService {
   options: IServiceOptions

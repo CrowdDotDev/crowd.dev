@@ -6,7 +6,7 @@
       ${ props.contributor.activitySycning?.operationType === 'merge' ? 'merged' : 'unmerged' }. This process may take some minutes.`"
     >
       <div class="flex items-center gap-1.5 cursor-default">
-        <lf-icon name="loader-4-fill" :size="16" class="text-secondary-400 animate-spin" />
+        <lf-icon-old name="loader-4-fill" :size="16" class="text-secondary-400 animate-spin" />
         <p class="text-small text-secondary-400 font-semibold">
           Syncing activities...
         </p>
@@ -20,7 +20,7 @@ import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed } from 'vue';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{
   contributor: Contributor,

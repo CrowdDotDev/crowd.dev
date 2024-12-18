@@ -1,17 +1,20 @@
-import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
+import { v4 as uuid } from 'uuid'
+
+import { captureApiChange, memberEditAffiliationsAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
   deleteMemberAffiliations,
   findMemberAffiliations,
   insertMemberAffiliations,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { captureApiChange, memberEditAffiliationsAction } from '@crowd/audit-logs'
+
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationCreate,
   MemberSegmentAffiliationUpdate,
 } from '../../types/memberSegmentAffiliationTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import SequelizeRepository from './sequelizeRepository'

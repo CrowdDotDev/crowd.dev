@@ -1,17 +1,19 @@
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceChildLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG } from '../conf'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
+
 import { generateUUIDv1 } from '@crowd/common'
-import { QueueFactory } from '@crowd/queue'
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getServiceChildLogger } from '@crowd/logging'
+import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { MemberIdentityType } from '@crowd/types'
+
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

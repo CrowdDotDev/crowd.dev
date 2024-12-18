@@ -16,7 +16,6 @@
     "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/temporal": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
     "kafkajs": "~2.2.4",
     "pg-promise": "^11.4.3"
@@ -24,6 +23,6 @@
   "devDependencies": {
     "@types/config": "^3.3.1",
     "@types/node": "^20.8.2",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.3"
   }
 }

@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const tags: StringFilterConfig = {
   id: 'tags',
   label: 'Tags',
-  iconClass: 'ri-price-tag-3-line',
+  iconClass: 'tags',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {

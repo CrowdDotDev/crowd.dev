@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
-      <lfx-header-v2 id="lfx-header" product="Community Management" />
+      <lfx-header-v2 v-if="!$route.meta.hideLfxHeader" id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <component :is="Component" v-if="Component" />
@@ -71,11 +71,18 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-    this.init();
+    const queryParameters = new URLSearchParams(window.location.search);
+    if (queryParameters.get('state') === 'noconnect' && window.location.pathname.includes('/integration')) {
+      return;
+    }
     this.listProjectGroups({
       limit: null,
       reset: true,
     });
+    if (['/auth/callback'].includes(window.location.pathname)) {
+      return;
+    }
+    this.init();
   },
 
   unmounted() {

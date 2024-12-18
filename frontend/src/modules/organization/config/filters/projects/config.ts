@@ -8,7 +8,7 @@ import { filterLabel } from '@/modules/lf/utils/filters';
 const projects: ProjectsCustomFilterConfig = {
   id: 'projects',
   label: 'Project group',
-  iconClass: 'ri-folders-line',
+  iconClass: 'layer-group',
   inBody: true,
   type: FilterConfigType.CUSTOM,
   component: ProjectsFilter,

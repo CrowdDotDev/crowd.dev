@@ -1,10 +1,11 @@
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
+import { randomUUID } from 'crypto'
 import * as fs from 'fs'
 import path from 'path'
-import { randomUUID } from 'crypto'
 
 import { getTemporalClient } from '@crowd/temporal'
+
 import { TEMPORAL_CONFIG } from '@/conf'
 
 /* eslint-disable no-console */

@@ -22,18 +22,17 @@
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
+    "@crowd/common_services": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
+    "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@crowd/redis": "workspace:*",
     "@crowd/queue": "workspace:*",
-    "@crowd/tracing": "workspace:*",
+    "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
-    "@crowd/feature-flags": "workspace:*",
-    "@crowd/common_services": "workspace:*",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/config": "^3.3.0",

@@ -1,8 +1,10 @@
 import { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import { GitHubStats } from '@/serverless/integrations/usecases/github/rest/getRemoteStats'
+
 import { Repos } from '@/serverless/integrations/types/regularTypes'
+import { GitHubStats } from '@/serverless/integrations/usecases/github/rest/getRemoteStats'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
+import SequelizeRepository from './sequelizeRepository'
 
 class IntegrationProgressRepository {
   static async getPendingStreamsCount(integrationId: string, options: IRepositoryOptions) {

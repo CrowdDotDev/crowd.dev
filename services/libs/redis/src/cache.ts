@@ -1,5 +1,6 @@
-import { ICache } from '@crowd/types'
 import { Logger, LoggerBase } from '@crowd/logging'
+import { ICache } from '@crowd/types'
+
 import { RedisClient } from './types'
 
 export class RedisCache extends LoggerBase implements ICache {
@@ -40,6 +41,12 @@ export class RedisCache extends LoggerBase implements ICache {
     } else {
       await this.client.set(actualKey, value)
     }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const actualKey = this.prefixer(key)
+    const value = await this.client.exists(actualKey)
+    return value === 1
   }
 
   async increment(key: string, incrementBy = 1, ttlSeconds?: number): Promise<number> {

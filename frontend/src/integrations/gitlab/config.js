@@ -1,5 +1,3 @@
-import GitLabConnect from './components/gitlab-connect.vue';
-
 export default {
   enabled: true,
   name: 'GitLab',
@@ -8,7 +6,6 @@ export default {
   description:
     'Connect GitLab to sync profile information, merge requests, issues, and more.',
   image: '/images/integrations/gitlab.png',
-  connectComponent: GitLabConnect,
   url: ({ username }) => (username ? `https://gitlab.com/${username}` : null),
   chartColor: '#FC6D26',
   showProfileLink: true,

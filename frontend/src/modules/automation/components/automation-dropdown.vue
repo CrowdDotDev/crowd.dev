@@ -5,13 +5,14 @@
     @command="$event()"
   >
     <span class="el-dropdown-link">
-      <i class="text-xl ri-more-line" />
+      <lf-icon name="ellipsis" type="regular" :size="24" />
     </span>
     <template #dropdown>
       <el-dropdown-item
         :command="openExecutions"
       >
-        <i class="ri-history-line mr-2" /><span
+        <lf-icon name="clock-rotate-left" class="mr-2" />
+        <span
           class="text-xs"
         >View executions</span>
       </el-dropdown-item>
@@ -19,17 +20,15 @@
         <el-dropdown-item
           :command="edit"
         >
-          <i class="ri-pencil-line mr-2" /><span
-            class="text-xs"
-          >Edit automation</span>
+          <lf-icon name="pen" class="mr-2" />
+          <span class="text-xs">Edit automation</span>
         </el-dropdown-item>
         <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item
           :command="doDestroyWithConfirm"
         >
-          <i
-            class="ri-delete-bin-line mr-2 text-red-500"
-          /><span class="text-xs text-red-500">Delete automation</span>
+          <lf-icon name="trash-can" class="mr-2 text-red-500" />
+          <span class="text-xs text-red-500">Delete automation</span>
         </el-dropdown-item>
       </template>
     </template>
@@ -43,6 +42,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   automation: {
@@ -70,7 +70,7 @@ const doDestroyWithConfirm = () => ConfirmDialog({
             "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
   cancelButtonText: 'Cancel',
-  icon: 'ri-delete-bin-line',
+  icon: 'fa-light fa-trash-can',
 })
   .then(() => {
     trackEvent({

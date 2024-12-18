@@ -147,8 +147,8 @@
     "secretKey": "CROWD_NANGO_SECRET_KEY"
   },
   "enrichment": {
-    "url": "CROWD_ENRICHMENT_URL",
-    "apiKey": "CROWD_ENRICHMENT_API_KEY"
+    "url": "CROWD_ENRICHMENT_PROGAI_URL",
+    "apiKey": "CROWD_ENRICHMENT_PROGAI_API_KEY"
   },
   "organizationEnrichment": {
     "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
@@ -222,5 +222,13 @@
     "clientSecret": "CROWD_GITLAB_CLIENT_SECRET",
     "callbackUrl": "CROWD_GITLAB_CALLBACK_URL",
     "webhookToken": "CROWD_GITLAB_WEBHOOK_TOKEN"
+  },
+  "snowflake": {
+    "privateKey": "CROWD_SNOWFLAKE_PRIVATE_KEY",
+    "account": "CROWD_SNOWFLAKE_ACCOUNT",
+    "username": "CROWD_SNOWFLAKE_USERNAME",
+    "database": "CROWD_SNOWFLAKE_DATABASE",
+    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "role": "CROWD_SNOWFLAKE_ROLE"
   }
 }

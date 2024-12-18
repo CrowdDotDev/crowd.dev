@@ -1,5 +1,4 @@
 import config from '@/config';
-import JiraConnect from './components/jira-connect.vue';
 
 export default {
   enabled: true,
@@ -13,7 +12,6 @@ export default {
   },
   image:
     '/images/integrations/jira.png',
-  connectComponent: JiraConnect,
   url: () => null,
   showProfileLink: false,
   placeholder: 'Jira username or email address',

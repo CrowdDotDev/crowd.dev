@@ -1,9 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
 
+import * as commonActivities from '../activities/common'
 import * as memberActivities from '../activities/memberMergeSuggestions'
 import * as organizationActivities from '../activities/organizationMergeSuggestions'
-import * as commonActivities from '../activities/common'
-
 import { ILLMResult, IProcessCheckSimilarityWithLLM } from '../types'
 import { removeEmailLikeIdentitiesFromMember } from '../utils'
 
@@ -59,9 +58,8 @@ export async function testMergingEntitiesWithLLM(
       console.log(
         `Checking similarity between: ${organizationCouple[0]} and ${organizationCouple[1]}`,
       )
-      const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
-        organizationCouple,
-      )
+      const organizations =
+        await organizationActivitiesProxy.getOrganizationsForLLMConsumption(organizationCouple)
 
       if (organizations.length !== 2) {
         console.log(

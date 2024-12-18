@@ -1,4 +1,5 @@
 import { MemberIdentityType, PlatformType } from '@crowd/types'
+
 import { State } from './regularTypes'
 
 export type IntegrationsMessage = {
@@ -67,7 +68,6 @@ export type Member = {
   bio?: string
   reach?: number | any
   location?: string
-  lastEnriched?: Date | null
   enrichedBy?: string[] | null
   contributions?: any
 }

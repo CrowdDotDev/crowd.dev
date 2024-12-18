@@ -1,10 +1,11 @@
 // generateStreams.ts content
 import { GenerateStreamsHandler } from '../../types'
+
 import {
-  GroupsioIntegrationSettings,
-  GroupsioStreamType,
   GroupsioGroupMembersStreamMetadata,
+  GroupsioIntegrationSettings,
   GroupsioPastGroupMembersStreamMetadata,
+  GroupsioStreamType,
 } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {

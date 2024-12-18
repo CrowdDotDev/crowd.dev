@@ -1,9 +1,10 @@
-import MemberService from '../../services/memberService'
-import Operations from './operations'
+import { IServiceOptions } from '../../services/IServiceOptions'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
+import MemberService from '../../services/memberService'
 import MicroserviceService from '../../services/microserviceService'
-import { IServiceOptions } from '../../services/IServiceOptions'
+
+import Operations from './operations'
 
 /**
  * Update a bulk of members

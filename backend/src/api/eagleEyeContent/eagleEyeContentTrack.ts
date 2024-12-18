@@ -1,8 +1,9 @@
 import { Error404 } from '@crowd/common'
+
 import Permissions from '../../security/permissions'
-import PermissionChecker from '../../services/user/permissionChecker'
-import EagleEyeContentService from '../../services/eagleEyeContentService'
 import track from '../../segment/track'
+import EagleEyeContentService from '../../services/eagleEyeContentService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentRead)

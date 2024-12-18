@@ -1,5 +1,6 @@
 import { groupBy } from '@crowd/common'
 import { OrganizationAttributeSource, OrganizationAttributeType } from '@crowd/types'
+
 import {
   ORG_DB_ATTRIBUTES,
   ORG_DB_ATTRIBUTE_SOURCE_PRIORITY,

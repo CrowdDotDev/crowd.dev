@@ -1,4 +1,5 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
+
 import { IOrganizationFullAggregatesOpensearch, IOrganizationIdentity } from '@crowd/types'
 
 class OrganizationSimilarityCalculator {

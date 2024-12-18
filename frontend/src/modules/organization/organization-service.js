@@ -200,7 +200,7 @@ export class OrganizationService {
         ],
       },
       offset: 0,
-      orderBy: 'displayName_ASC',
+      orderBy: 'activityCount_DESC',
       limit,
       ...(segments && {
         segments,

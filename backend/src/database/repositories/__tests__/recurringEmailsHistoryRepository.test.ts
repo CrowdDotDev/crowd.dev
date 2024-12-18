@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto'
 
-import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import {
-  RecurringEmailsHistoryData,
   RecurringEmailType,
+  RecurringEmailsHistoryData,
 } from '../../../types/recurringEmailsHistoryTypes'
+import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import RecurringEmailsHistoryRepository from '../recurringEmailsHistoryRepository'
 
 const db = null

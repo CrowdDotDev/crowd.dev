@@ -1,7 +1,9 @@
-import { DashboardTimeframe, FeatureFlag } from '@crowd/types'
 import { RedisCache } from '@crowd/redis'
-import { IServiceOptions } from './IServiceOptions'
+import { DashboardTimeframe, FeatureFlag } from '@crowd/types'
+
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+
+import { IServiceOptions } from './IServiceOptions'
 
 interface IDashboardQueryParams {
   segment?: string

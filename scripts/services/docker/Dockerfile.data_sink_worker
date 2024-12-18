@@ -17,5 +17,6 @@ WORKDIR /usr/crowd/app
 RUN corepack enable
 
 COPY --from=builder /usr/crowd/app/node_modules ./node_modules
+COPY --from=builder /usr/crowd/app/services/base.tsconfig.json ./services/base.tsconfig.json
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/services/apps/data_sink_worker/ ./services/apps/data_sink_worker

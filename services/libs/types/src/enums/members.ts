@@ -30,6 +30,17 @@ export enum MemberAttributeName {
   SYNC_REMOTE = 'syncRemote',
   LANGUAGES = 'languages',
   PROGRAMMING_LANGUAGES = 'programmingLanguages',
+  SENIORITY_LEVEL = 'seniorityLevel',
+  EMAILS = 'emails',
+  SKILLS = 'skills',
+  COUNTRY = 'country',
+  YEARS_OF_EXPERIENCE = 'yearsOfExperience',
+  EDUCATION = 'education',
+  SCHOOLS = 'schools',
+  AWARDS = 'awards',
+  CERTIFICATIONS = 'certifications',
+  WORK_EXPERIENCES = 'workExperiences',
+  EXPERTISE = 'expertise',
 }
 
 export enum MemberAttributeOpensearch {
@@ -113,70 +124,56 @@ export const MemberAttributes = {
     name: MemberAttributeName.COMPANY,
     label: 'Company',
   },
-}
-
-export enum MemberEnrichmentAttributeName {
-  SENIORITY_LEVEL = 'seniorityLevel',
-  EMAILS = 'emails',
-  SKILLS = 'skills',
-  COUNTRY = 'country',
-  PROGRAMMING_LANGUAGES = 'programmingLanguages',
-  LANGUAGES = 'languages',
-  YEARS_OF_EXPERIENCE = 'yearsOfExperience',
-  EDUCATION = 'education',
-  AWARDS = 'awards',
-  CERTIFICATIONS = 'certifications',
-  WORK_EXPERIENCES = 'workExperiences',
-  EXPERTISE = 'expertise',
-}
-
-export const MemberEnrichmentAttributes = {
-  [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
-    name: MemberEnrichmentAttributeName.SENIORITY_LEVEL,
+  [MemberAttributeName.SENIORITY_LEVEL]: {
+    name: MemberAttributeName.SENIORITY_LEVEL,
     label: 'Seniority Level',
   },
-  [MemberEnrichmentAttributeName.EMAILS]: {
-    name: MemberEnrichmentAttributeName.EMAILS,
+  [MemberAttributeName.EMAILS]: {
+    name: MemberAttributeName.EMAILS,
     label: 'Emails',
   },
-  [MemberEnrichmentAttributeName.SKILLS]: {
-    name: MemberEnrichmentAttributeName.SKILLS,
+  [MemberAttributeName.SKILLS]: {
+    name: MemberAttributeName.SKILLS,
     label: 'Skills',
   },
-  [MemberEnrichmentAttributeName.COUNTRY]: {
-    name: MemberEnrichmentAttributeName.COUNTRY,
+  [MemberAttributeName.COUNTRY]: {
+    name: MemberAttributeName.COUNTRY,
     label: 'Country',
   },
-  [MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES]: {
-    name: MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES,
+  [MemberAttributeName.PROGRAMMING_LANGUAGES]: {
+    name: MemberAttributeName.PROGRAMMING_LANGUAGES,
     label: 'Programming Languages',
   },
-  [MemberEnrichmentAttributeName.LANGUAGES]: {
-    name: MemberEnrichmentAttributeName.LANGUAGES,
+  [MemberAttributeName.LANGUAGES]: {
+    name: MemberAttributeName.LANGUAGES,
     label: 'Languages',
   },
-  [MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE]: {
-    name: MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE,
+  [MemberAttributeName.YEARS_OF_EXPERIENCE]: {
+    name: MemberAttributeName.YEARS_OF_EXPERIENCE,
     label: 'Years of Experience',
   },
-  [MemberEnrichmentAttributeName.EDUCATION]: {
-    name: MemberEnrichmentAttributeName.EDUCATION,
+  [MemberAttributeName.EDUCATION]: {
+    name: MemberAttributeName.EDUCATION,
     label: 'Education',
   },
-  [MemberEnrichmentAttributeName.AWARDS]: {
-    name: MemberEnrichmentAttributeName.AWARDS,
+  [MemberAttributeName.SCHOOLS]: {
+    name: MemberAttributeName.SCHOOLS,
+    label: 'Schools',
+  },
+  [MemberAttributeName.AWARDS]: {
+    name: MemberAttributeName.AWARDS,
     label: 'Awards',
   },
-  [MemberEnrichmentAttributeName.CERTIFICATIONS]: {
-    name: MemberEnrichmentAttributeName.CERTIFICATIONS,
+  [MemberAttributeName.CERTIFICATIONS]: {
+    name: MemberAttributeName.CERTIFICATIONS,
     label: 'Certifications',
   },
-  [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
-    name: MemberEnrichmentAttributeName.WORK_EXPERIENCES,
+  [MemberAttributeName.WORK_EXPERIENCES]: {
+    name: MemberAttributeName.WORK_EXPERIENCES,
     label: 'Work Experiences',
   },
-  [MemberEnrichmentAttributeName.EXPERTISE]: {
-    name: MemberEnrichmentAttributeName.EXPERTISE,
+  [MemberAttributeName.EXPERTISE]: {
+    name: MemberAttributeName.EXPERTISE,
     label: 'Expertise',
   },
 }

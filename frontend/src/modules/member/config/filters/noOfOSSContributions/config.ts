@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const noOfOSSContributions: NumberFilterConfig = {
   id: 'noOfOSSContributions',
   label: '# of open source contributions',
-  iconClass: 'ri-code-line',
+  iconClass: 'laptop-code',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {

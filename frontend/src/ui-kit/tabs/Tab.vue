@@ -5,23 +5,21 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, getCurrentInstance } from 'vue';
 
 const props = defineProps<{
   name: string,
-  modelValue: string;
 }>();
 
-const router = useRouter();
-const route = useRoute();
+const parent = computed(() => {
+  const instance = getCurrentInstance();
+  return instance?.parent;
+});
 
-const isActive = computed<boolean>(() => (route?.hash.substring(1) || props.modelValue) === props.name);
+const isActive = computed<boolean>(() => parent.value.props.modelValue === props.name);
 
 const selectTab = () => {
-  router?.push({
-    hash: `#${props.name}`,
-  });
+  parent.value?.emit('update:modelValue', props.name);
 };
 </script>
 

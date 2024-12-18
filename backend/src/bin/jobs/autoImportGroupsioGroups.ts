@@ -1,8 +1,11 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
+import { getUserSubscriptions } from '@/serverless/integrations/usecases/groupsio/getUserSubscriptions'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
-import { getUserSubscriptions } from '@/serverless/integrations/usecases/groupsio/getUserSubscriptions'
 
 const log = getServiceChildLogger('autoImportGroupsioGroupsCronJob')
 

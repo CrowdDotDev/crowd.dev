@@ -7,7 +7,5 @@ const activity = proxyActivities<typeof activities>({
 })
 
 export async function createConversations(): Promise<void> {
-  const relations = await activity.createConversations()
-
-  await activity.linkActivitiesToConversations(relations)
+  await activity.createConversations()
 }

@@ -20,12 +20,10 @@
       <template #trigger>
         <div class="flex items-center gap-1 py-2">
           <p class="text-small">
-            <span class="font-semibold">
-              Sort:
-            </span>
+            <span class="font-semibold"> Sort: </span>
             {{ sorters[sort] }}
           </p>
-          <lf-icon name="arrow-down-s-line" :size="16" />
+          <lf-icon-old name="arrow-down-s-line" :size="16" />
         </div>
       </template>
 
@@ -37,12 +35,7 @@
         @click="onSortChange(key)"
       >
         <span>{{ label }}</span>
-        <lf-icon
-          v-if="sort === key"
-          name="check-line"
-          :size="16"
-          class="text-primary-500"
-        />
+        <lf-icon-old v-if="sort === key" name="check-line" :size="16" class="text-primary-500" />
       </lf-dropdown-item>
     </lf-dropdown>
   </div>
@@ -71,11 +64,7 @@
               class="border-2 rounded-full p-0.5"
               :class="isNew(contributor) ? 'border-primary-500' : 'border-transparent'"
             >
-              <lf-avatar
-                :src="avatar(contributor)"
-                :name="contributor.displayName"
-                :size="32"
-              />
+              <lf-avatar :src="avatar(contributor)" :name="contributor.displayName" :size="32" />
             </div>
             <p class="text-medium font-semibold text-black group-hover:text-primary-500 transition">
               {{ contributor.displayName }}
@@ -109,7 +98,7 @@
             <template #badge>
               <div>
                 <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
-                  <lf-icon name="fingerprint-line" :size="16" />
+                  <lf-icon-old name="fingerprint-line" :size="16" />
                   <p class="text-small text-gray-600 whitespace-nowrap">
                     {{ pluralize('identity', identities(contributor).length, true) }}
                   </p>
@@ -117,11 +106,7 @@
               </div>
             </template>
           </app-identities-horizontal-list-members>
-          <lf-tooltip
-            v-else
-            placement="top-end"
-            content="This person's data is not shown because of the GDPR."
-          >
+          <lf-tooltip v-else placement="top-end" content="This person's data is not shown because of the GDPR.">
             <div class="h-6 w-21 rounded-md bg-gray-200" />
           </lf-tooltip>
         </div>
@@ -129,7 +114,7 @@
     </div>
     <div v-if="!loading && !contributors.length">
       <div class="flex justify-center pb-8">
-        <lf-icon name="group-2-line" :size="80" class="text-gray-200" />
+        <lf-icon-old name="group-2-line" :size="80" class="text-gray-200" />
       </div>
       <h5 class="text-center text-h5">
         No people found
@@ -139,18 +124,13 @@
       </p>
     </div>
     <div
-      v-if="pagination.total > (pagination.page * pagination.perPage)"
+      v-if="pagination.total > pagination.page * pagination.perPage"
       class="pt-10 pb-6 gap-4 flex justify-center items-center"
     >
       <p class="text-small text-gray-400">
         {{ contributors.length }} of {{ totalContacts }} people
       </p>
-      <lf-button
-        type="primary-ghost"
-        loading-text="Loading people..."
-        :loading="loading"
-        @click="loadMore"
-      >
+      <lf-button type="primary-ghost" loading-text="Loading people..." :loading="loading" @click="loadMore">
         Load more
       </lf-button>
     </div>
@@ -171,13 +151,12 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { Pagination } from '@/shared/types/Pagination';
 import { Member } from '@/modules/member/types/Member';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfButton from '@/ui-kit/button/Button.vue';
-import AppIdentitiesHorizontalListMembers
-  from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import pluralize from 'pluralize';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -202,6 +181,7 @@ const totalContacts = ref<number>(0);
 const loading = ref<boolean>(false);
 
 const savedBody = ref<any>({});
+const searchStr = ref<string>('');
 
 const {
   avatar, isNew, identities, isMasked,
@@ -246,21 +226,18 @@ const doGetMembersCount = () => {
       segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
     },
     true,
-  )
-    .then(({ count }) => {
-      totalContacts.value = count;
-    });
+  ).then(({ count }) => {
+    totalContacts.value = count;
+  });
 };
 
 const fetch = () => {
   loading.value = true;
   MemberService.listMembers({
     filter: {
-      and: [
-        orgFilter,
-        savedBody.value,
-      ],
+      and: [orgFilter, savedBody.value],
     },
+    search: searchStr.value,
     offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     orderBy: sort.value,
@@ -284,7 +261,7 @@ const fetch = () => {
 };
 
 const loadMore = () => {
-  if (pagination.value.total <= (pagination.value.page * pagination.value.perPage)) {
+  if (pagination.value.total <= pagination.value.page * pagination.value.perPage) {
     return;
   }
   pagination.value.page += 1;
@@ -292,7 +269,8 @@ const loadMore = () => {
 };
 
 const onFilterChange = (filterQuery: FilterQuery) => {
-  savedBody.value = filterQuery.filter;
+  savedBody.value = filterQuery.body;
+  searchStr.value = filterQuery.search;
   pagination.value.page = 1;
   pagination.value.total = 0;
   fetch();
@@ -306,6 +284,7 @@ const onSortChange = (sortingValue: string) => {
 
 onMounted(() => {
   doGetMembersCount();
+  fetch();
 });
 
 defineExpose({

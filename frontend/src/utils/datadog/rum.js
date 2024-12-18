@@ -19,6 +19,10 @@ export function initRUM() {
   });
 }
 
-export function setRumUser(id) {
-  datadogRum.setUser({ id });
+export function setRumUser(user) {
+  datadogRum.setUser({
+    id: user['https://sso.linuxfoundation.org/claims/username'],
+    email: user.email,
+    name: user.name,
+  });
 }
