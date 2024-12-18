@@ -144,6 +144,8 @@ export interface GithubPlatformSettings {
   globalLimit?: number
   callbackUrl: string
   personalAccessTokens: string
+  tgNotifierToken: string
+  tgNotifierChatId: string
 }
 
 export interface GithubIntegrationSettings {

@@ -8,6 +8,7 @@ import {
 
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
 
+import { capGithubArchive } from './cap'
 import {
   GithubActivityType,
   GithubApiData,
@@ -35,9 +36,7 @@ const initClient = (ctx: IProcessStreamContext) => {
 }
 
 const getClient = (ctx: IProcessStreamContext) => {
-  if (!sf) {
-    initClient(ctx)
-  }
+  initClient(ctx)
   return { sf, gh }
 }
 
@@ -319,6 +318,10 @@ const processPullReviewsStream: ProcessStreamHandler = async (ctx) => {
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubRootStream
   const repos = data.reposToCheck
+
+  if (ctx.onboarding) {
+    await capGithubArchive(ctx, repos)
+  }
 
   const { gh } = getClient(ctx)
 
