@@ -32,7 +32,6 @@ export const sendTelegramMessage = async (token: string, chatId: string, message
   }
 }
 
-// @eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const capGithubArchive = async (ctx: IProcessStreamContext, repos: Repos) => {
   const cache = ctx.globalCache
   const dailyCount = Number(await cache.get(DAILY_CAP_KEY)) || 0
