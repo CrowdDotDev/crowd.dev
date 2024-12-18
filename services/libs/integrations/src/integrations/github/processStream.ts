@@ -28,7 +28,7 @@ const initClient = (ctx: IProcessStreamContext) => {
     account: settings.sfAccount,
     username: settings.sfUsername,
     database: settings.sfDatabase,
-    warehouse: settings.sfWarehouse,
+    warehouse: ctx.onboarding ? settings.sfWarehouse : settings.sfIncrementalWarehouse,
     role: settings.sfRole,
   })
   gh = new GithubSnowflakeClient(sf)

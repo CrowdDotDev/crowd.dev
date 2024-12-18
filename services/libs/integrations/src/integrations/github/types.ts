@@ -133,6 +133,7 @@ export interface GithubPlatformSettings {
   sfUsername: string
   sfDatabase: string
   sfWarehouse: string
+  sfIncrementalWarehouse: string
   sfRole: string
   appId: string
   clientId: string

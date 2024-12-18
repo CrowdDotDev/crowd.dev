@@ -37,6 +37,7 @@
     "sfUsername": "CROWD_SNOWFLAKE_USERNAME",
     "sfDatabase": "CROWD_SNOWFLAKE_DATABASE",
     "sfWarehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "sfIncrementalWarehouse": "CROWD_SNOWFLAKE_INCREMENTAL_WAREHOUSE",
     "sfRole": "CROWD_SNOWFLAKE_ROLE",
     "appId": "CROWD_GITHUB_APP_ID",
     "clientId": "CROWD_GITHUB_CLIENT_ID",
