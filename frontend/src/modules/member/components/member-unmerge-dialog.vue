@@ -362,9 +362,9 @@ const unmerge = () => {
     .then(() => {
       getContributorMergeActions(props.modelValue?.id);
       Message.info(
-        "We're finalizing profiles merging. We will let you know once the process is completed.",
+        "We're finalizing profiles unmerging. We will let you know once the process is completed.",
         {
-          title: 'Profiles merging in progress',
+          title: 'Profiles unmerging in progress',
         },
       );
       getContributor(props.modelValue?.id)

@@ -40,6 +40,8 @@ const search = (val: string) => {
         key = FeatureEventKey.SEARCH_MEMBERS_MERGE_SUGGESTIONS;
       } else if (routeName === 'organizationMergeSuggestions') {
         key = FeatureEventKey.SEARCH_ORGANIZATIONS_MERGE_SUGGESTIONS;
+      } else {
+        key = FeatureEventKey.SEARCH;
       }
 
       if (key) {
