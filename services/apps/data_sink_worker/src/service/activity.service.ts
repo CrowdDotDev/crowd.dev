@@ -1339,8 +1339,11 @@ export default class ActivityService extends LoggerBase {
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
-        async () => ({
-          attributes: gitAttributes,
+        async (activity) => ({
+          attributes: {
+            ...gitAttributes,
+            ...activity.attributes,
+          },
         }),
         `id = $(id)`,
         { id: githubActivityId },
