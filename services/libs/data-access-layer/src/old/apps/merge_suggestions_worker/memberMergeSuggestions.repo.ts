@@ -1,12 +1,13 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
-  IMemberMergeSuggestion,
-  SuggestionType,
-  MemberMergeSuggestionTable,
-  LLMSuggestionVerdictType,
   ILLMConsumableMemberDbResult,
+  IMemberMergeSuggestion,
+  LLMSuggestionVerdictType,
+  MemberMergeSuggestionTable,
+  SuggestionType,
 } from '@crowd/types'
+
 import {
   IFindRawMemberMergeSuggestionsReplacement,
   IMemberId,
@@ -14,7 +15,7 @@ import {
   IMemberNoMerge,
   IRawMemberMergeSuggestionResult,
 } from './types'
-import { removeDuplicateSuggestions, chunkArray } from './utils'
+import { chunkArray, removeDuplicateSuggestions } from './utils'
 
 class MemberMergeSuggestionsRepository {
   constructor(
@@ -281,6 +282,28 @@ class MemberMergeSuggestionsRepository {
     )
 
     return results.map((r) => [r.memberId, r.toMergeId])
+  }
+
+  async removeRawMemberSuggestions(suggestion: string[]): Promise<void> {
+    const query = `
+      delete from "memberToMergeRaw" 
+      where 
+        ("memberId" = $(memberId) and "toMergeId" = $(toMergeId))
+        or 
+        ("memberId" = $(toMergeId) and "toMergeId" = $(memberId))
+    `
+
+    const replacements = {
+      memberId: suggestion[0],
+      toMergeId: suggestion[1],
+    }
+
+    try {
+      await this.connection.none(query, replacements)
+    } catch (error) {
+      this.log.error('Error removing raw member suggestions', error)
+      throw error
+    }
   }
 }
 

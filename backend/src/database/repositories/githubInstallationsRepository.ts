@@ -1,4 +1,5 @@
 import { QueryTypes } from 'sequelize'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

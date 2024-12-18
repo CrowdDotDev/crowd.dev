@@ -1,7 +1,9 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
+
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+
 import { svc } from '../main'
 import { triggerRecalculateAffiliationsForEachTenant } from '../workflows/member/triggerRecalculateAffiliationsForEachTenant'
-import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleRecalculateAffiliationsOfNewRolesForEachTenant = async () => {
   try {

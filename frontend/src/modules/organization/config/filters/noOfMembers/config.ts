@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const noOfMembers: NumberFilterConfig = {
   id: 'noOfMembers',
   label: '# of people',
-  iconClass: 'ri-group-2-line',
+  iconClass: 'people-group',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {

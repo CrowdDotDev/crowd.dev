@@ -1,5 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IPlatforms } from './types'
 
 class IntegrationRepository {

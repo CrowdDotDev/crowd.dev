@@ -1,43 +1,61 @@
-import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import vader from 'crowd-sentiment'
+import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
+import moment from 'moment-timezone'
+
+import {
+  EDITION,
+  escapeNullByte,
+  generateUUIDv4,
+  isObjectEmpty,
+  singleOrDefault,
+  trimUtf8ToMaxByteLength,
+} from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { ConversationService } from '@crowd/conversations'
-import { IQueryActivityResult, insertActivities } from '@crowd/data-access-layer'
+import { insertActivities, queryActivities } from '@crowd/data-access-layer'
+import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
+  IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
+import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
+import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   Edition,
   IActivityData,
+  ISentimentAnalysisResult,
   MemberAttributeName,
   MemberIdentityType,
   PlatformType,
   TemporalWorkflowId,
 } from '@crowd/types'
-import isEqual from 'lodash.isequal'
-import mergeWith from 'lodash.mergewith'
+
 import { TEMPORAL_CONFIG } from '../conf'
+
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+
+export class SuppressedActivityError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SuppressedActivityError'
+  }
+}
 
 export default class ActivityService extends LoggerBase {
-  private readonly conversationService: ConversationService
-
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -47,8 +65,6 @@ export default class ActivityService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
-
-    this.conversationService = new ConversationService(pgStore, qdbStore.connection(), this.log)
   }
 
   public async create(
@@ -68,7 +84,6 @@ export default class ActivityService extends LoggerBase {
       })
 
       const id = await this.pgStore.transactionally(async (txStore) => {
-        const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         await txSettingsRepo.createActivityType(
@@ -87,33 +102,11 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        const id = await txRepo.create(tenantId, segmentId, {
-          type: activity.type,
-          timestamp: activity.timestamp.toISOString(),
-          platform: activity.platform,
-          isContribution: activity.isContribution,
-          score: activity.score,
-          sourceId: activity.sourceId,
-          sourceParentId: activity.sourceParentId,
-          tenantId,
-          memberId: activity.memberId,
-          username: activity.username,
-          sentiment,
-          attributes: activity.attributes || {},
-          body: escapeNullByte(activity.body),
-          title: escapeNullByte(activity.title),
-          channel: activity.channel,
-          url: activity.url,
-          organizationId: activity.organizationId,
-          objectMemberId: activity.objectMemberId,
-          objectMemberUsername: activity.objectMemberUsername,
-        })
-
         this.log.debug('Creating an activity in QuestDB!')
         try {
           await insertActivities([
             {
-              id,
+              id: activity.id,
               timestamp: activity.timestamp.toISOString(),
               platform: activity.platform,
               type: activity.type,
@@ -144,7 +137,7 @@ export default class ActivityService extends LoggerBase {
           throw error
         }
 
-        return id
+        return activity.id
       })
 
       if (EDITION !== Edition.LFX) {
@@ -199,7 +192,6 @@ export default class ActivityService extends LoggerBase {
     try {
       let toUpdate: IDbActivityUpdateData
       const updated = await this.pgStore.transactionally(async (txStore) => {
-        const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         toUpdate = await this.mergeActivityData(activity, original)
@@ -224,25 +216,6 @@ export default class ActivityService extends LoggerBase {
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
-          await txRepo.update(id, tenantId, segmentId, {
-            tenantId: tenantId,
-            segmentId: segmentId,
-            type: toUpdate.type || original.type,
-            isContribution: toUpdate.isContribution || original.isContribution,
-            score: toUpdate.score || original.score,
-            sourceId: toUpdate.sourceId || original.sourceId,
-            sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-            memberId: toUpdate.memberId || original.memberId,
-            username: toUpdate.username || original.username,
-            sentiment: toUpdate.sentiment || original.sentiment,
-            attributes: toUpdate.attributes || original.attributes,
-            body: escapeNullByte(toUpdate.body || original.body),
-            title: escapeNullByte(toUpdate.title || original.title),
-            channel: toUpdate.channel || original.channel,
-            url: toUpdate.url || original.url,
-            organizationId: toUpdate.organizationId || original.organizationId,
-            platform: toUpdate.platform || (original.platform as PlatformType),
-          })
 
           // use insert instead of update to avoid using pg protocol with questdb
           try {
@@ -279,28 +252,6 @@ export default class ActivityService extends LoggerBase {
             throw error
           }
 
-          // await updateActivity(this.qdbStore.connection(), id, {
-          //   tenantId: tenantId,
-          //   segmentId: segmentId,
-          //   type: toUpdate.type || original.type,
-          //   isContribution: toUpdate.isContribution || original.isContribution,
-          //   score: toUpdate.score || original.score,
-          //   sourceId: toUpdate.sourceId || original.sourceId,
-          //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          //   memberId: toUpdate.memberId || original.memberId,
-          //   username: toUpdate.username || original.username,
-          //   sentiment: toUpdate.sentiment || original.sentiment,
-          //   attributes: toUpdate.attributes || original.attributes,
-          //   body: escapeNullByte(toUpdate.body || original.body),
-          //   title: escapeNullByte(toUpdate.title || original.title),
-          //   channel: toUpdate.channel || original.channel,
-          //   url: toUpdate.url || original.url,
-          //   organizationId: toUpdate.organizationId || original.organizationId,
-          //   platform: toUpdate.platform || (original.platform as PlatformType),
-          //   isBotActivity: memberInfo.isBot,
-          //   isTeamMemberActivity: memberInfo.isTeamMember,
-          // })
-
           return true
         } else {
           this.log.debug({ activityId: id }, 'No changes to update in an activity.')
@@ -309,29 +260,27 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        const activityToProcess: IQueryActivityResult = {
-          id: id,
-          tenantId: tenantId,
-          segmentId: segmentId,
-          type: toUpdate.type || original.type,
-          isContribution: toUpdate.isContribution || original.isContribution,
-          score: toUpdate.score || original.score,
-          sourceId: toUpdate.sourceId || original.sourceId,
-          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          memberId: toUpdate.memberId || original.memberId,
-          username: toUpdate.username || original.username,
-          sentiment: toUpdate.sentiment || original.sentiment,
-          attributes: toUpdate.attributes || original.attributes,
-          body: escapeNullByte(toUpdate.body || original.body),
-          title: escapeNullByte(toUpdate.title || original.title),
-          channel: toUpdate.channel || original.channel,
-          url: toUpdate.url || original.url,
-          organizationId: toUpdate.organizationId || original.organizationId,
-          platform: toUpdate.platform || (original.platform as PlatformType),
-          timestamp: original.timestamp,
-        }
-
-        await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
+        // const activityToProcess: IQueryActivityResult = {
+        //   id: id,
+        //   tenantId: tenantId,
+        //   segmentId: segmentId,
+        //   type: toUpdate.type || original.type,
+        //   isContribution: toUpdate.isContribution || original.isContribution,
+        //   score: toUpdate.score || original.score,
+        //   sourceId: toUpdate.sourceId || original.sourceId,
+        //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+        //   memberId: toUpdate.memberId || original.memberId,
+        //   username: toUpdate.username || original.username,
+        //   sentiment: toUpdate.sentiment || original.sentiment,
+        //   attributes: toUpdate.attributes || original.attributes,
+        //   body: escapeNullByte(toUpdate.body || original.body),
+        //   title: escapeNullByte(toUpdate.title || original.title),
+        //   channel: toUpdate.channel || original.channel,
+        //   url: toUpdate.url || original.url,
+        //   organizationId: toUpdate.organizationId || original.organizationId,
+        //   platform: toUpdate.platform || (original.platform as PlatformType),
+        //   timestamp: original.timestamp,
+        // }
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(
@@ -505,10 +454,18 @@ export default class ActivityService extends LoggerBase {
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
         if (!identity) {
-          this.log.error("Activity's member does not have an identity for the platform.")
-          throw new Error(
-            `Activity's member does not have an identity for the platform: ${platform}!`,
-          )
+          if (platform === PlatformType.JIRA) {
+            throw new SuppressedActivityError(
+              `Activity's member does not have an identity for the platform: ${platform}!`,
+            )
+          } else {
+            this.log.error(
+              "Activity's member does not have an identity for the platform. Suppressing it!",
+            )
+            throw new Error(
+              `Activity's member does not have an identity for the platform: ${platform}!`,
+            )
+          }
         }
 
         username = identity.value
@@ -665,7 +622,6 @@ export default class ActivityService extends LoggerBase {
 
       await this.pgStore.transactionally(async (txStore) => {
         try {
-          const txRepo = new ActivityRepository(txStore, this.log)
           const txMemberRepo = new MemberRepository(txStore, this.log)
           const txMemberService = new MemberService(
             txStore,
@@ -709,14 +665,22 @@ export default class ActivityService extends LoggerBase {
           }
 
           // find existing activity
-          const dbActivity = await txRepo.findExisting(
+          const {
+            rows: [dbActivity],
+          } = await queryActivities(this.qdbStore.connection(), {
             tenantId,
-            segmentId,
-            activity.sourceId,
-            platform,
-            activity.type,
-            activity.channel,
-          )
+            segmentIds: [segmentId],
+            filter: {
+              and: [
+                { timestamp: { eq: activity.timestamp } },
+                { sourceId: { eq: activity.sourceId } },
+                { platform: { eq: platform } },
+                { type: { eq: activity.type } },
+                { channel: { eq: activity.channel } },
+              ],
+            },
+            limit: 1,
+          })
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here
@@ -757,8 +721,6 @@ export default class ActivityService extends LoggerBase {
                   'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
                 )
 
-                // delete activity
-                await txRepo.delete(dbActivity.id)
                 createActivity = true
               }
 
@@ -873,8 +835,6 @@ export default class ActivityService extends LoggerBase {
                       'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
                     )
 
-                    // delete activity
-                    await txRepo.delete(dbActivity.id)
                     createActivity = true
                   }
 
@@ -1132,6 +1092,7 @@ export default class ActivityService extends LoggerBase {
             }
           }
 
+          const activityId = dbActivity?.id ?? generateUUIDv4()
           if (createActivity) {
             organizationId = await txMemberAffiliationService.findAffiliation(
               memberId,
@@ -1143,6 +1104,7 @@ export default class ActivityService extends LoggerBase {
               tenantId,
               segmentId,
               {
+                id: activityId,
                 type: activity.type,
                 platform,
                 timestamp: new Date(activity.timestamp),
@@ -1154,7 +1116,16 @@ export default class ActivityService extends LoggerBase {
                 username,
                 objectMemberId,
                 objectMemberUsername,
-                attributes: activity.attributes || {},
+                attributes:
+                  platform === PlatformType.GITHUB &&
+                  activity.type === GithubActivityType.AUTHORED_COMMIT
+                    ? await this.findMatchingGitActivityAttributes({
+                        tenantId,
+                        segmentId,
+                        activity,
+                        attributes: activity.attributes || {},
+                      })
+                    : activity.attributes || {},
                 body: activity.body,
                 title: activity.title,
                 channel: activity.channel,
@@ -1166,6 +1137,14 @@ export default class ActivityService extends LoggerBase {
                 isTeamMember: memberIsTeamMember ?? false,
               },
             )
+          }
+
+          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
+            await this.pushAttributesToMatchingGithubActivity({
+              tenantId,
+              segmentId,
+              activity,
+            })
           }
         } finally {
           // release locks matter what
@@ -1193,7 +1172,9 @@ export default class ActivityService extends LoggerBase {
         await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
-      this.log.error(err, 'Error while processing an activity!')
+      if (!(err instanceof SuppressedActivityError)) {
+        this.log.error(err, 'Error while processing an activity!')
+      }
       throw err
     }
   }
@@ -1204,9 +1185,181 @@ export default class ActivityService extends LoggerBase {
     const settings = DEFAULT_ACTIVITY_TYPE_SETTINGS[activity.platform]?.[activity.type]
 
     if (settings && settings.calculateSentiment === true) {
-      return getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
+      const ALLOWED_MAX_BYTE_LENGTH = 5000
+
+      const prepareText = (text: string): string => {
+        // https://docs.aws.amazon.com/comprehend/latest/APIReference/API_DetectSentiment.html
+        // needs to be utf-8 encoded
+        let prepared = Buffer.from(text).toString('utf8')
+        // from docs - AWS performs analysis on the first 500 characters and ignores the rest
+
+        // Remove Non-ASCII characters
+        // eslint-disable-next-line no-control-regex
+        prepared = prepared.replace(/[^\x00-\x7F]/g, '')
+
+        prepared = prepared.slice(0, 500)
+        // trim down to max allowed byte length
+        prepared = trimUtf8ToMaxByteLength(prepared, ALLOWED_MAX_BYTE_LENGTH)
+
+        return prepared.trim()
+      }
+
+      const text = `${activity.body || ''} ${activity.title || ''}`.trim()
+
+      const preparedText = prepareText(text)
+
+      if (preparedText.length === 0) {
+        return undefined
+      }
+
+      const sentiment = vader.SentimentIntensityAnalyzer.polarity_scores(preparedText)
+      const compound = Math.round(((sentiment.compound + 1) / 2) * 100)
+      // Some activities are inherently different, we might want to dampen their sentiment
+
+      let label = 'neutral'
+      if (compound < 33) {
+        label = 'negative'
+      } else if (compound > 66) {
+        label = 'positive'
+      }
+
+      return {
+        positive: Math.round(sentiment.pos * 100),
+        negative: Math.round(sentiment.neg * 100),
+        neutral: Math.round(sentiment.neu * 100),
+        mixed: Math.round(sentiment.neu * 100),
+        sentiment: compound,
+        label,
+      }
     }
 
     return null
+  }
+
+  private async findMatchingActivity({
+    tenantId,
+    segmentId,
+    platform,
+    activity,
+  }: {
+    tenantId: string
+    segmentId: string
+    platform: PlatformType
+    activity: IActivityData
+  }): Promise<IDbActivityCreateData | null> {
+    const { rows } = await queryActivities(this.qdbStore.connection(), {
+      tenantId,
+      segmentIds: [segmentId],
+      filter: {
+        platform: { eq: platform },
+        sourceId: { eq: activity.sourceId },
+        type: { eq: activity.type },
+        channel: { eq: activity.channel },
+        and: [
+          { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
+          { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
+        ],
+      },
+      limit: 1,
+    })
+
+    if (rows.length > 0) {
+      return rows[0]
+    }
+
+    return null
+  }
+
+  private async findMatchingGitActivityAttributes({
+    tenantId,
+    segmentId,
+    activity,
+    attributes,
+  }: {
+    tenantId: string
+    segmentId: string
+    activity: IActivityData
+    attributes: Record<string, unknown>
+  }): Promise<Record<string, unknown>> {
+    if (
+      activity.platform !== PlatformType.GITHUB ||
+      activity.type !== GithubActivityType.AUTHORED_COMMIT
+    ) {
+      this.log.error(
+        { activity },
+        'You need to use github authored commit activity for finding matching git activity attributes',
+      )
+      return attributes
+    }
+
+    const gitActivity = await this.findMatchingActivity({
+      tenantId,
+      segmentId,
+      platform: PlatformType.GIT,
+      activity,
+    })
+    if (!gitActivity) {
+      return attributes
+    }
+
+    return {
+      ...gitActivity.attributes,
+      ...attributes,
+    }
+  }
+
+  private async pushAttributesToMatchingGithubActivity({
+    tenantId,
+    segmentId,
+    activity,
+  }: {
+    tenantId: string
+    segmentId: string
+    activity: IActivityData
+  }) {
+    if (
+      activity.platform !== PlatformType.GIT ||
+      activity.type !== GitActivityType.AUTHORED_COMMIT
+    ) {
+      this.log.error(
+        { activity },
+        'You need to use git authored commit activity for pushing attributes to matching github activity',
+      )
+      return
+    }
+
+    const { attributes } = activity
+
+    const updateActivityWithAttributes = async ({
+      githubActivityId,
+      gitAttributes,
+    }: {
+      githubActivityId: string
+      gitAttributes: Record<string, unknown>
+    }) => {
+      await updateActivities(
+        this.qdbStore.connection(),
+        async () => ({
+          attributes: gitAttributes,
+        }),
+        `id = $(id)`,
+        { id: githubActivityId },
+      )
+    }
+
+    const githubActivity = await this.findMatchingActivity({
+      tenantId,
+      segmentId,
+      platform: PlatformType.GITHUB,
+      activity,
+    })
+    if (!githubActivity) {
+      return
+    }
+
+    await updateActivityWithAttributes({
+      githubActivityId: githubActivity.id,
+      gitAttributes: attributes,
+    })
   }
 }

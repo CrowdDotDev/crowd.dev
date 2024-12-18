@@ -1,3 +1,6 @@
+import { randomUUID } from 'crypto'
+import lodash from 'lodash'
+
 import {
   captureApiChange,
   organizationMergeAction,
@@ -5,7 +8,9 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   IOrganization,
   IOrganizationIdentity,
@@ -21,19 +26,18 @@ import {
   SyncMode,
   TemporalWorkflowId,
 } from '@crowd/types'
-import { randomUUID } from 'crypto'
-import lodash from 'lodash'
-import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
-import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
+import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+
 import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {
@@ -1009,19 +1013,19 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const segmentId = data.segments && data.segments.length > 0 ? data.segments[0] : undefined
-
-    const res = await OrganizationRepository.findAndCountAll(
+    const { filter, orderBy, limit, offset, segments } = data
+    return OrganizationRepository.findAndCountAll(
       {
-        ...data,
-        segmentId,
-        include: {
-          segments: true,
-        },
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: segments.length > 0 ? segments[0] : undefined,
+        fields: ['id', 'segmentId', 'displayName', 'memberCount', 'activityCount', 'logo'],
+        include: { aggregates: false, identities: false, lfxMemberships: true },
       },
       this.options,
     )
-    return res
   }
 
   async findAndCountAll(args) {

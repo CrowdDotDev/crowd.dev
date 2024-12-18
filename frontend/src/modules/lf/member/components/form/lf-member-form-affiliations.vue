@@ -102,9 +102,7 @@
                     class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                     @click="deleteOrganization(oi)"
                   >
-                    <i
-                      class="ri-delete-bin-line text-lg text-gray-600"
-                    />
+                    <lf-icon name="trash-can" :size="20" class="text-gray-600" />
                   </el-button>
                 </div>
               </template>
@@ -146,6 +144,7 @@ import {
 } from 'vue';
 import moment from 'moment';
 import AppLfMemberFormSubprojectsModal from '@/modules/lf/member/components/form/lf-member-form-subprojects-modal.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

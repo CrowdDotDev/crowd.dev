@@ -1,11 +1,13 @@
 // index.ts content
+import { PlatformType } from '@crowd/types'
+
 import { IIntegrationDescriptor } from '../../types'
+
 import generateStreams from './generateStreams'
 import { GROUPSIO_MEMBER_ATTRIBUTES } from './memberAttributes'
-import processStream from './processStream'
 import processData from './processData'
+import processStream from './processStream'
 import processWebhookStream from './processWebhookStream'
-import { PlatformType } from '@crowd/types'
 
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GROUPSIO,

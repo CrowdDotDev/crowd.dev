@@ -1,7 +1,8 @@
 import { Error404 } from '@crowd/common'
-import UserRepository from '../userRepository'
-import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
+
 import Roles from '../../../security/roles'
+import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
+import UserRepository from '../userRepository'
 
 const db = null
 

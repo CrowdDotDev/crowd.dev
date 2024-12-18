@@ -19,7 +19,7 @@ const action: MultiSelectFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
-      action: { in: value },
+      actionType: { in: value },
     };
     return [
       (include ? filter : { not: filter }),

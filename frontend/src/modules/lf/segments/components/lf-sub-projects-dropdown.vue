@@ -10,16 +10,14 @@
         type="button"
         @click.prevent.stop
       >
-        <i class="text-xl ri-more-fill" />
+        <lf-icon name="ellipsis" :size="24" />
       </button>
       <template #dropdown>
         <el-dropdown-item
           class="h-10"
           :command="editSubProject"
         >
-          <i
-            class="ri-pencil-line text-base mr-2"
-          />
+          <lf-icon name="pen" :size="16" class="mr-2" />
           <span class="text-xs">Edit sub-project</span>
         </el-dropdown-item>
       </template>
@@ -30,6 +28,7 @@
 <script setup>
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 defineProps({
   id: {

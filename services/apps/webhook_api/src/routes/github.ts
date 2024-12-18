@@ -1,8 +1,10 @@
-import { asyncWrap } from '../middleware/error'
-import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
-import { Error400BadRequest } from '@crowd/common'
-import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
+
+import { Error400BadRequest } from '@crowd/common'
+import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
+import { PlatformType, WebhookType } from '@crowd/types'
+
+import { asyncWrap } from '../middleware/error'
 
 const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'
@@ -28,19 +30,7 @@ export const installGithubRoutes = async (app: express.Express) => {
       const identifier = data.installation.id.toString()
       const repo = new WebhooksRepository(req.dbStore, req.log)
 
-      if (event === 'installation' && data.action === 'created') {
-        await repo.addGithubInstallation(
-          identifier,
-          data.installation.account.type,
-          data.installation.account.login,
-          data.installation.account.avatar_url,
-          data.repositories.length,
-        )
-        res.sendStatus(204)
-        return
-      }
-      if (event === 'installation' && data.action === 'deleted') {
-        await repo.deleteGithubInstallation(identifier)
+      if (event === 'installation') {
         res.sendStatus(204)
         return
       }

@@ -3,7 +3,7 @@
     v-model="form"
     :fetch-fn="fetchOrganizations"
     :create-fn="createOrganization"
-    placeholder="Select  organization"
+    :placeholder="isCreatingOrganization ? 'Creating organization...' : 'Select organization'"
     input-class="organization-input"
     :create-if-not-found="true"
     :in-memory-filter="false"
@@ -11,7 +11,10 @@
     class="w-full"
     :teleported="false"
   >
-    <template v-if="form && (form.displayName || form.name)" #prefix>
+    <template v-if="isCreatingOrganization" #prefix>
+      <lf-spinner size="1rem" class="mr-2 text-black" />
+    </template>
+    <template v-else-if="form && (form.displayName || form.name)" #prefix>
       <div class="flex items-center">
         <lf-avatar
           :name="form.displayName || form.name"
@@ -21,7 +24,7 @@
         >
           <template #placeholder>
             <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-              <lf-icon name="community-line" :size="12" class="text-gray-400" />
+              <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
             </div>
           </template>
         </lf-avatar>
@@ -38,7 +41,7 @@
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                <lf-icon name="community-line" :size="12" class="text-gray-400" />
+                <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
               </div>
             </template>
           </lf-avatar>
@@ -52,19 +55,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { Organization } from '@/modules/organization/types/Organization';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfProjectGroupsTags from '@/shared/modules/project-groups/components/project-groups-tags.vue';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const props = defineProps<{
   modelValue: Organization | null,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Organization | null): any}>();
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const isCreatingOrganization = ref<boolean>(false);
 
 const form = computed<Organization | null>({
   get() {
@@ -81,25 +91,32 @@ const fetchOrganizations = async ({ query } : {
   query,
   limit: 40,
   excludeSegments: true,
-})
-  .then((options: Organization[]) => options.filter((m) => m.id !== form.value?.id));
+  segments: [selectedProjectGroup.value?.id],
+});
 
-const createOrganization = (value: string) => OrganizationService.create({
-  name: value,
-  attributes: {
-    name: {
-      default: value,
-      custom: [value],
+const createOrganization = (value: string) => {
+  isCreatingOrganization.value = true;
+
+  return OrganizationService.create({
+    name: value,
+    attributes: {
+      name: {
+        default: value,
+        custom: [value],
+      },
     },
-  },
-})
-  .then((newOrganization) => ({
-    id: newOrganization.id,
-    label: newOrganization.displayName || newOrganization.name,
-    displayName: newOrganization.displayName || newOrganization.name,
-    name: newOrganization.displayName || newOrganization.name,
-  }))
-  .catch(() => null);
+  })
+    .then((newOrganization) => ({
+      id: newOrganization.id,
+      label: newOrganization.displayName || newOrganization.name,
+      displayName: newOrganization.displayName || newOrganization.name,
+      name: newOrganization.displayName || newOrganization.name,
+    }))
+    .catch(() => null)
+    .finally(() => {
+      isCreatingOrganization.value = false;
+    });
+};
 
 onMounted(() => {
   fetchOrganizations({ query: '' });

@@ -1,5 +1,3 @@
-import HackerNewsConnect from './components/hackerNews-connect.vue';
-
 export default {
   enabled: true,
   name: 'Hacker News',
@@ -11,7 +9,6 @@ export default {
     description: 'Get posts as well as their comments mentioning your community.',
   },
   image: '/images/integrations/hackernews.svg',
-  connectComponent: HackerNewsConnect,
   url: ({ username }) => (username ? `https://news.ycombinator.com/user?id=${username}` : null),
   chartColor: '#FF712E',
   showProfileLink: true,

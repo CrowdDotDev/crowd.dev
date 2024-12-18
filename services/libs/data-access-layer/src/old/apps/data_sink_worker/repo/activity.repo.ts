@@ -1,6 +1,6 @@
-import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase, eqOrNull } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import {
   IDbActivity,
   IDbActivityCreateData,
@@ -123,93 +123,21 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     await this.db().none('delete from activities where id = $(id)', { id })
   }
 
-  private async updateParentIds(
-    tenantId: string,
-    segmentId: string,
-    id: string,
-    data: IDbActivityCreateData | IDbActivityUpdateData,
-  ): Promise<void> {
-    const promises: Promise<void>[] = [
-      this.db().none(
-        `
-        update activities set "parentId" = $(id)
-        where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceId)
-        and "segmentId" = $(segmentId)
-      `,
-        {
-          id,
-          tenantId,
-          segmentId,
-          sourceId: data.sourceId,
-        },
-      ),
-    ]
-
-    if (data.sourceParentId) {
-      promises.push(
-        this.db().none(
-          `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and  "segmentId" = $(segmentId) and "deletedAt" IS NULL limit 1)
-          where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)
-          `,
-          {
-            id,
-            tenantId,
-            segmentId,
-            sourceParentId: data.sourceParentId,
-          },
-        ),
-      )
-    }
-
-    await Promise.all(promises)
+  public async existsWithId(id: string): Promise<boolean> {
+    const result = await this.db().oneOrNone('select 1 from activities where id = $(id)', { id })
+    return result !== null
   }
 
-  public async create(
-    tenantId: string,
-    segmentId: string,
-    data: IDbActivityCreateData,
-  ): Promise<string> {
-    this.log.debug('Creating an activity in PostgreSQL!')
-
-    const id = generateUUIDv1()
-    const ts = new Date()
-    const prepared = RepositoryBase.prepare(
-      { ...data, id, tenantId, segmentId, createdAt: ts, updatedAt: ts },
-      this.insertActivityColumnSet,
-    )
-    const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
-
-    await this.db().none(query)
-
-    await this.updateParentIds(tenantId, segmentId, id, data)
-
-    return id
-  }
-
-  public async update(
-    id: string,
-    tenantId: string,
-    segmentId: string,
-    data: IDbActivityUpdateData,
-  ): Promise<void> {
-    const prepared = RepositoryBase.prepare(
-      { ...data, updatedAt: new Date() },
-      this.updateActivityColumnSet,
-    )
+  public async rawUpdate(id: string, data: IDbActivityUpdateData): Promise<void> {
+    const prepared = RepositoryBase.prepare(data, this.updateActivityColumnSet)
     const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
-    const condition = this.format(
-      'where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)',
-      {
-        id,
-        tenantId,
-        segmentId,
-      },
-    )
-    const result = await this.db().result(`${query} ${condition}`)
+    const condition = this.format('where id = $(id)', { id })
+    await this.db().none(`${query} ${condition}`)
+  }
 
-    this.checkUpdateRowCount(result.rowCount, 1)
-
-    await this.updateParentIds(tenantId, segmentId, id, data)
+  public async rawInsert(data: IDbActivityCreateData): Promise<void> {
+    const prepared = RepositoryBase.prepare(data, this.insertActivityColumnSet)
+    const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
+    await this.db().none(`${query} on conflict do nothing`)
   }
 }

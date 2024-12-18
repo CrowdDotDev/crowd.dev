@@ -1,0 +1,11 @@
+.c-drawer {
+  @apply fixed top-0 left-0 w-full h-full z-40;
+  background: rgba(0, 0, 0, 0.1);
+
+  .c-drawer__content {
+    @apply bg-white h-full absolute top-0 right-0 w-full;
+    box-shadow: -4px 0px 10px 0px #0000000D;
+  }
+}
+
+

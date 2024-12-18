@@ -6,6 +6,7 @@ import {
   OrganizationMergeSuggestionTable,
   SuggestionType,
 } from '@crowd/types'
+
 import {
   IFindRawOrganizationMergeSuggestionsReplacement,
   IOrganizationId,
@@ -13,7 +14,7 @@ import {
   IOrganizationNoMerge,
   IRawOrganizationMergeSuggestionResult,
 } from './types'
-import { removeDuplicateSuggestions, chunkArray } from './utils'
+import { chunkArray, removeDuplicateSuggestions } from './utils'
 
 class OrganizationMergeSuggestionsRepository {
   constructor(
@@ -298,6 +299,28 @@ class OrganizationMergeSuggestionsRepository {
     )
 
     return results.map((r) => [r.organizationId, r.toMergeId])
+  }
+
+  async removeRawOrganizationMergeSuggestions(suggestion: string[]): Promise<void> {
+    const query = `
+      delete from "organizationToMergeRaw" 
+      where 
+        ("organizationId" = $(organizationId) and "toMergeId" = $(toMergeId))
+        or 
+        ("organizationId" = $(toMergeId) and "toMergeId" = $(organizationId))
+    `
+
+    const replacements = {
+      organizationId: suggestion[0],
+      toMergeId: suggestion[1],
+    }
+
+    try {
+      await this.connection.none(query, replacements)
+    } catch (error) {
+      this.log.error('Error removing raw organization suggestions', error)
+      throw error
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 import { TenantPlans } from '@crowd/types'
+
 import { PLANS_CONFIG } from '../conf'
 
 class Plans {

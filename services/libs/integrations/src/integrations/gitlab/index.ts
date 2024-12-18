@@ -1,11 +1,13 @@
 // index.ts content
+import { PlatformType } from '@crowd/types'
+
 import { IIntegrationDescriptor } from '../../types'
+
 import generateStreams from './generateStreams'
 import { GITLAB_MEMBER_ATTRIBUTES } from './memberAttributes'
+import processData from './processData'
 import processStream from './processStream'
 import processWebhookStream from './processWebhookStream'
-import processData from './processData'
-import { PlatformType } from '@crowd/types'
 
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GITLAB,

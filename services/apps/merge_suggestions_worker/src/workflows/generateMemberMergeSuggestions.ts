@@ -1,12 +1,13 @@
-import { proxyActivities, continueAsNew } from '@temporalio/workflow'
-import * as activities from '../activities/memberMergeSuggestions'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { IProcessGenerateMemberMergeSuggestionsArgs } from '../types'
 import {
   IMemberBaseForMergeSuggestions,
   IMemberMergeSuggestion,
   MemberMergeSuggestionTable,
 } from '@crowd/types'
+
+import * as activities from '../activities/memberMergeSuggestions'
+import { IProcessGenerateMemberMergeSuggestionsArgs } from '../types'
 import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
@@ -46,9 +47,8 @@ export async function generateMemberMergeSuggestions(
       activity.getMemberMergeSuggestions(args.tenantId, member),
     )
 
-    const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(
-      mergeSuggestionsPromises,
-    )
+    const mergeSuggestionsResults: IMemberMergeSuggestion[][] =
+      await Promise.all(mergeSuggestionsPromises)
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
   }
 

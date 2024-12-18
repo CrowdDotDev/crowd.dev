@@ -1,5 +1,6 @@
-import { PlatformType, TenantPlans } from '@crowd/types'
 import { Error403 } from '@crowd/common'
+import { PlatformType, TenantPlans } from '@crowd/types'
+
 import SequelizeTestUtils from '../../../database/utils/sequelizeTestUtils'
 import Plans from '../../../security/plans'
 import PermissionChecker from '../permissionChecker'

@@ -1,10 +1,10 @@
-import { proxyActivities, continueAsNew } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as organizationActivities from '../activities/organizationMergeSuggestions'
-import * as commonActivities from '../activities/common'
-
-import { ILLMResult, IProcessMergeOrganizationSuggestionsWithLLM } from '../types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
+
+import * as commonActivities from '../activities/common'
+import * as organizationActivities from '../activities/organizationMergeSuggestions'
+import { ILLMResult, IProcessMergeOrganizationSuggestionsWithLLM } from '../types'
 
 const organizationActivitiesProxy = proxyActivities<typeof organizationActivities>({
   startToCloseTimeout: '1 minute',
@@ -22,8 +22,8 @@ export async function mergeOrganizationsWithLLM(
   args: IProcessMergeOrganizationSuggestionsWithLLM,
 ): Promise<void> {
   const SUGGESTIONS_PER_RUN = 5
-  const REGION = 'us-west-2'
-  const MODEL_ID = 'anthropic.claude-3-opus-20240229-v1:0'
+  const REGION = 'us-east-1'
+  const MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0'
   const MODEL_ARGS = {
     max_tokens: 2000,
     anthropic_version: 'bedrock-2023-05-31',
@@ -44,14 +44,14 @@ export async function mergeOrganizationsWithLLM(
   }
 
   for (const suggestion of suggestions) {
-    const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
-      suggestion,
-    )
+    const organizations =
+      await organizationActivitiesProxy.getOrganizationsForLLMConsumption(suggestion)
 
     if (organizations.length !== 2) {
       console.log(
         `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
       )
+      await organizationActivitiesProxy.removeRawOrganizationMergeSuggestions(suggestion)
       continue
     }
 

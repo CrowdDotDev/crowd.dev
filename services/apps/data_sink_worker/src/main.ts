@@ -6,12 +6,13 @@ import {
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
+import { getClientILP, getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, WORKER_SETTINGS } from './conf'
 import { WorkerQueueReceiver } from './queue'
-import { getClientILP, getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 const ilp = getClientILP()

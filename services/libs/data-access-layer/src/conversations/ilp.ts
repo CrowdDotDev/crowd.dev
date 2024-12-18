@@ -1,13 +1,17 @@
 import { Sender } from '@questdb/nodejs-client'
 
 import { generateUUIDv4 } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
 import { getClientILP } from '@crowd/questdb'
 
 import { IDbConversationCreateData } from '../old/apps/data_sink_worker/repo/conversation.data'
 
+const log = getServiceChildLogger('data-access-layer/conversations/ilp.ts')
+
 const ilp: Sender = getClientILP()
 export async function insertConversations(
   conversations: IDbConversationCreateData[],
+  update = false,
 ): Promise<string[]> {
   const ids: string[] = []
   const now = Date.now()
@@ -16,6 +20,14 @@ export async function insertConversations(
     for (const conversation of conversations) {
       const id = conversation.id || generateUUIDv4()
       ids.push(id)
+
+      let updatedAt
+      if (update || !conversation.updatedAt) {
+        updatedAt = now
+      } else {
+        const res = new Date(conversation.updatedAt)
+        updatedAt = res.getTime()
+      }
 
       const row = ilp
         .table('conversations')
@@ -30,14 +42,12 @@ export async function insertConversations(
           conversation.createdAt ? new Date(conversation.createdAt).getTime() : now,
           'ms',
         )
-        .timestampColumn(
-          'updatedAt',
-          conversation.updatedAt ? new Date(conversation.updatedAt).getTime() : now,
-          'ms',
-        )
+        .timestampColumn('updatedAt', updatedAt, 'ms')
 
       if (conversation.deletedAt) {
-        row.timestampColumn('deletedAt', new Date(conversation.updatedAt).getTime())
+        const res = new Date(conversation.updatedAt)
+        log.info({ deletedAt: res }, 'insertConversations.deletedAt')
+        row.timestampColumn('deletedAt', res.getTime(), 'ms')
       }
 
       if (conversation.createdById) {
@@ -48,7 +58,16 @@ export async function insertConversations(
         row.stringColumn('updatedById', conversation.updatedById)
       }
 
-      await row.at(conversation.timestamp ? new Date(conversation.timestamp).getTime() : now, 'ms')
+      let timestamp
+      if (conversation.timestamp) {
+        const res = new Date(conversation.timestamp)
+        // log.info({ timestamp: res }, 'insertConversations.timestamp')
+        timestamp = res.getTime()
+      } else {
+        timestamp = now
+      }
+
+      await row.at(timestamp, 'ms')
     }
   }
 

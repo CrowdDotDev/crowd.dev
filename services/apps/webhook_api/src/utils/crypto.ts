@@ -1,5 +1,5 @@
-import * as crypto from 'crypto'
 import * as buffer from 'buffer'
+import * as crypto from 'crypto'
 
 export function generateWebhookSecret(length = 32): string {
   return crypto.randomBytes(length).toString('hex')

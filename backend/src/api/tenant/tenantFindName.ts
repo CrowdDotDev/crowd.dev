@@ -1,4 +1,5 @@
 import { Error404 } from '@crowd/common'
+
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
 

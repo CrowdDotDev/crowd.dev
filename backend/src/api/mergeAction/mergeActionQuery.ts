@@ -1,4 +1,5 @@
 import MergeActionsService from '@/services/MergeActionsService'
+
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 

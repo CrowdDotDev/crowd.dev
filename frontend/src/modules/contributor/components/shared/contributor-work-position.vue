@@ -12,7 +12,7 @@
     >
       <template #placeholder>
         <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-          <lf-icon name="community-line" :size="14" class="text-gray-400" />
+          <lf-icon-old name="community-line" :size="14" class="text-gray-400" />
         </div>
       </template>
     </lf-avatar>
@@ -39,7 +39,7 @@ import { computed } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{

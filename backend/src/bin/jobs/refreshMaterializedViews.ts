@@ -1,7 +1,10 @@
 import { QueryTypes } from 'sequelize'
+
 import { Logger, getChildLogger, getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
+
+import { databaseClose, databaseInit } from '@/database/databaseConnection'
+
 import { CrowdJob } from '../../types/jobTypes'
-import { databaseInit } from '@/database/databaseConnection'
 
 export const refreshMaterializedView = async (
   view: string,
@@ -60,8 +63,14 @@ const job: CrowdJob = {
   onTrigger: async () => {
     const database = await databaseInit(1000 * 60 * 15, true)
     const log = getServiceChildLogger('RefreshMVJob')
-    await refreshMaterializedView('member_segments_mv', database, log)
-    await refreshMaterializedView('organization_segments_mv', database, log)
+    try {
+      await refreshMaterializedView('member_segments_mv', database, log)
+      await refreshMaterializedView('organization_segments_mv', database, log)
+    } catch (err) {
+      log.error(err, 'Error while refreshing materialized views!')
+    } finally {
+      await databaseClose(database)
+    }
   },
 }
 

@@ -14,7 +14,7 @@ const unaffiliated: SavedView = {
     },
     settings: {
       bot: 'exclude',
-      teamMember: 'exclude',
+      teamMember: 'include',
       organization: 'exclude',
     },
     unaffiliated: {

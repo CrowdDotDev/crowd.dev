@@ -1,7 +1,9 @@
 import { AxiosError, AxiosRequestConfig } from 'axios'
+
 import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
-import { SlackGetMessagesInput, SlackGetChannelsInput, SlackGetMembersInput } from '../types'
+
+import { SlackGetChannelsInput, SlackGetMembersInput, SlackGetMessagesInput } from '../types'
 
 export const handleSlackError = (
   err: AxiosError,

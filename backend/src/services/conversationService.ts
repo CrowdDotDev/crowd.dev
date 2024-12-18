@@ -1,3 +1,7 @@
+import emoji from 'emoji-dictionary'
+import { convert as convertHtmlToText } from 'html-to-text'
+import fetch from 'node-fetch'
+
 import { Error403, distinct, getCleanString, single, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
@@ -12,15 +16,15 @@ import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { PageData, PlatformType } from '@crowd/types'
-import emoji from 'emoji-dictionary'
-import { convert as convertHtmlToText } from 'html-to-text'
-import fetch from 'node-fetch'
-import SegmentRepository from '@/database/repositories/segmentRepository'
+
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SegmentRepository from '@/database/repositories/segmentRepository'
+
 import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import { s3 } from './aws'
 import ConversationSettingsService from './conversationSettingsService'
@@ -505,12 +509,33 @@ export default class ConversationService extends LoggerBase {
       countOnly,
     })
 
+    if (results.count === 0 || results.rows.length === 0) {
+      return results
+    }
+
+    // Filter activities to have happened in the last month. If the activities
+    // worker failed to create a conversation for activities, this gives a buffer
+    // of a month to search for activities.
+    const since = new Date(results.rows[results.rows.length - 1].createdAt)
+    since.setMonth(since.getMonth() - 1)
+
     const conversationIds = results.rows.map((r) => r.id)
     const activities = (await queryActivities(
       this.options.qdb,
       {
         filter: {
-          and: [{ conversationId: { in: conversationIds } }],
+          and: [
+            {
+              conversationId: {
+                in: conversationIds,
+              },
+            },
+            {
+              timestamp: {
+                gte: since,
+              },
+            },
+          ],
         },
         tenantId,
         segmentIds,
@@ -545,17 +570,22 @@ export default class ConversationService extends LoggerBase {
 
     for (const conversation of results.rows) {
       const data = conversation as any
-      data.activities = activities.rows
-        .filter((a) => a.conversationId === conversation.id)
+
+      const firstActivity = single(
+        activities.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
+      )
+
+      const remainingActivities = activities.rows
+        .filter((a) => a.conversationId === conversation.id && a.parentId !== null)
         .sort(
           (a, b) =>
             // from oldest to newest
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         )
 
-      // TODO questdb: This should not be needed. Front-end must be updated to
-      // only get activities array.
-      data.conversationStarter = data.activities[0]
+      data.activities = [firstActivity, ...remainingActivities]
+      data.conversationStarter = data.activities[0] ?? null
       data.lastReplies = data.activities.slice(1)
     }
 

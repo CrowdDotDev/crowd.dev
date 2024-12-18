@@ -20,9 +20,7 @@
         class="btn btn--secondary bg-white !py-1.5 !px-3 outline-none"
       >
         <div class="flex items-center text-xs">
-          <i
-            class="ri-apps-2-line text-base text-gray-900 mr-2"
-          />
+          <lf-icon name="grid-round-2" :size="16" class="text-gray-900 mr-2" />
           <span class="font-medium text-gray-900">Platform:</span>
           <span class="text-gray-600 pl-1">{{
             getPlatformName
@@ -76,13 +74,15 @@ import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
-import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import AppWidgetPeriod from '@/modules/dashboard/components/widget/widget-period.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppDashboardFilters',
   components: {
+    LfIcon,
     AppWidgetPeriod,
     AppLfProjectFilterButton,
   },

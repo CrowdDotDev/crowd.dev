@@ -1,7 +1,10 @@
 import pgp from 'pg-promise'
+
+import { RawQueryParser } from '@crowd/common'
+import { DbConnOrTx } from '@crowd/database'
+
 import { QueryFilter } from './query'
 import { QueryExecutor } from './queryExecutor'
-import { RawQueryParser } from '@crowd/common'
 
 export function prepareBulkInsert(
   table: string,
@@ -123,4 +126,12 @@ export async function queryTableById<T extends string>(
   }
 
   return null
+}
+
+export async function refreshMaterializedView(
+  tx: DbConnOrTx,
+  mvName: string,
+  concurrently = false,
+) {
+  await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
 }

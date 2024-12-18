@@ -1,6 +1,7 @@
+import MemberAffiliationsService from '@/services/member/memberAffiliationsService'
+
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberAffiliationsService from '@/services/member/memberAffiliationsService'
 
 /**
  * PUT /tenant/{tenantId}/member/:memberId/affiliation

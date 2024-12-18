@@ -1,14 +1,16 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
-import { getNangoToken } from '../../nango'
+
 import { IProcessStreamContext } from '../../../types'
+import { getNangoToken } from '../../nango'
 import {
-  StackOverflowPlatformSettings,
-  StackOverflowQuestionsResponse,
-  StackOverflowGetQuestionsInput,
   STACKOVERFLOW_LAST_MAX_PAGES,
   STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS,
+  StackOverflowGetQuestionsInput,
+  StackOverflowPlatformSettings,
+  StackOverflowQuestionsResponse,
 } from '../types'
 
 /**

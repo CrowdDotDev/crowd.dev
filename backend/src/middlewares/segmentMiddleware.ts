@@ -1,4 +1,5 @@
 import { FeatureFlag } from '@crowd/types'
+
 import SegmentRepository from '../database/repositories/segmentRepository'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 

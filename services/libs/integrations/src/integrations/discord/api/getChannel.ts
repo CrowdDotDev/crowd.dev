@@ -1,7 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { handleDiscordError } from './errorHandler'
-import { DiscordApiChannel } from '../types'
+
 import { IProcessStreamContext } from '../../../types'
+import { DiscordApiChannel } from '../types'
+
+import { handleDiscordError } from './errorHandler'
 import { retryWrapper } from './handleRateLimit'
 
 export const getChannel = async (

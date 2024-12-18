@@ -9,16 +9,16 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.572.0",
     "@crowd/common": "workspace:*",
-    "@crowd/logging": "workspace:*",
-    "@crowd/types": "workspace:*",
     "@crowd/database": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/tracing": "workspace:*",
-    "@crowd/queue": "workspace:*"
+    "@crowd/types": "workspace:*"
   }
 }

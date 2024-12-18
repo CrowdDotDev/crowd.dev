@@ -3,13 +3,11 @@ import { organizationDefaultFilterRenderer } from '@/shared/modules/filters/conf
 import allOrganizations from './views/all-organizations';
 
 import teamOrganization from './settings/teamOrganization/config';
-import hasActivities from './settings/hasActivities/config';
 
 export const organizationSavedViews: SavedViewsConfig = {
   defaultView: allOrganizations,
   settings: {
     teamOrganization,
-    hasActivities,
   },
   defaultFilters: {
     render: organizationDefaultFilterRenderer,
@@ -42,7 +40,6 @@ export const commonOrganizationSavedViews: SavedViewsConfig = {
     },
   },
   settings: {
-    hasActivities,
   },
   defaultFilters: {
     render: organizationDefaultFilterRenderer,

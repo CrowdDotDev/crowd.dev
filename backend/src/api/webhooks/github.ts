@@ -1,9 +1,11 @@
 import { PlatformType } from '@crowd/types'
+
+import { getIntegrationStreamWorkerEmitter } from '@/serverless/utils/queueService'
+
+import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { WebhookType } from '../../types/webhooks'
-import { getIntegrationStreamWorkerEmitter } from '@/serverless/utils/queueService'
 
 export default async (req, res) => {
   const signature = req.headers['x-hub-signature']

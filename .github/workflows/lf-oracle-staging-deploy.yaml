@@ -1,0 +1,39 @@
+name: LF Oracle Staging Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: Space separated list of services to deploy
+        required: true
+
+env:
+  CLOUD_ENV: lf-oracle-staging
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  ORACLE_USER: ${{ secrets.ORACLE_USER }}
+  ORACLE_TENANT: ${{ secrets.ORACLE_TENANT }}
+  ORACLE_REGION: ${{ secrets.ORACLE_REGION }}
+  ORACLE_FINGERPRINT: ${{ secrets.ORACLE_FINGERPRINT }}
+  ORACLE_KEY: ${{ secrets.ORACLE_KEY }}
+  ORACLE_CLUSTER: ${{ secrets.ORACLE_STAGING_CLUSTER }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install OCI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh > install.sh
+          chmod +x install.sh
+          ./install.sh --accept-all-defaults
+          echo "OCI_CLI_DIR=/home/runner/bin" >> $GITHUB_ENV
+
+      - name: Update PATH
+        run: echo "${{ env.OCI_CLI_DIR }}" >> $GITHUB_PATH
+
+      - uses: ./.github/actions/node/builder
+        with:
+          services: ${{ github.event.inputs.services }}

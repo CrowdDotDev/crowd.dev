@@ -11,11 +11,10 @@
     "@types/bunyan": "^1.8.8",
     "@types/bunyan-format": "^0.2.5",
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1"
   }

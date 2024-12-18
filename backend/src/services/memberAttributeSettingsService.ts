@@ -1,18 +1,21 @@
 /* eslint-disable no-restricted-globals */
 import moment from 'moment'
 import { Transaction } from 'sequelize/types'
-import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+
 import { Error400 } from '@crowd/common'
+import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+
 import { AttributeData } from '../database/attributes/attribute'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   MemberAttributeSettingsCreateData,
-  MemberAttributeSettingsUpdateData,
   MemberAttributeSettingsCriteria,
   MemberAttributeSettingsCriteriaResult,
+  MemberAttributeSettingsUpdateData,
 } from '../database/repositories/types/memberAttributeSettingsTypes'
 import camelCaseNames from '../utils/camelCaseNames'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export default class MemberAttributeSettingsService {

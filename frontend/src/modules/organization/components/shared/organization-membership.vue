@@ -4,7 +4,7 @@
     content="Active member organization of the LF or one of its projects"
   >
     <div class="text-primary-500 flex items-center gap-1 flex-nowrap">
-      <lf-icon name="bookmark-3-fill" :size="16" />
+      <lf-icon-old name="bookmark-3-fill" :size="16" />
       <span class="font-semibold text-tiny whitespace-nowrap" v-bind="$attrs">Member</span>
     </div>
   </lf-tooltip>
@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Organization } from '../../types/Organization';
 
 const props = withDefaults(

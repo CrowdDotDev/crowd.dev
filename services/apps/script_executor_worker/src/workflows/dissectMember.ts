@@ -7,10 +7,11 @@ import {
   workflowInfo,
 } from '@temporalio/workflow'
 
-import * as activities from '../activities/dissect-member'
-import * as commonActivities from '../activities/common'
-import { IDissectMemberArgs } from '../types'
 import { IMemberUnmergeBackup, IUnmergeBackup, MemberIdentityType } from '@crowd/types'
+
+import * as commonActivities from '../activities/common'
+import * as activities from '../activities/dissect-member'
+import { IDissectMemberArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minute',

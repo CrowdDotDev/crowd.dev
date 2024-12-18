@@ -143,7 +143,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'onProjectGroupEdited']);
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -241,6 +242,7 @@ const onSubmit = () => {
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
+        emit('onProjectGroupEdited');
       });
   } else {
     trackEvent({

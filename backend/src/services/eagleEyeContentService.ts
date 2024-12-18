@@ -1,6 +1,8 @@
-import { LoggerBase } from '@crowd/logging'
 import axios from 'axios'
 import moment from 'moment'
+
+import { Error400 } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
 import {
   EagleEyeAction,
   EagleEyeContent,
@@ -11,12 +13,13 @@ import {
   PageData,
   QueryData,
 } from '@crowd/types'
-import { Error400 } from '@crowd/common'
+
 import { EAGLE_EYE_CONFIG } from '../conf'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import track from '../segment/track'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {

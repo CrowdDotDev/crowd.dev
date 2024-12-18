@@ -1,14 +1,16 @@
 /* eslint-disable no-continue */
-
-import { LoggerBase } from '@crowd/logging'
 import { uniq } from 'lodash'
-import { IMemberAffiliation } from '@crowd/types'
+
+import { groupBy } from '@crowd/common'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { groupBy } from '@crowd/common'
-import { IServiceOptions } from '../IServiceOptions'
+import { LoggerBase } from '@crowd/logging'
+import { IMemberAffiliation } from '@crowd/types'
+
 import MemberAffiliationsRepository from '@/database/repositories/member/memberAffiliationsRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from '../IServiceOptions'
 
 export default class MemberAffiliationsService extends LoggerBase {
   options: IServiceOptions

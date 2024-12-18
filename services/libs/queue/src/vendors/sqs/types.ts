@@ -1,11 +1,3 @@
-export interface ISqsClientConfig {
-  host: string
-  port: number
-  region: string
-  accessKeyId: string
-  secretAccessKey: string
-}
-
 import {
   ChangeMessageVisibilityRequest,
   DeleteMessageRequest,
@@ -16,7 +8,16 @@ import {
   SendMessageBatchRequest,
   SendMessageRequest,
 } from '@aws-sdk/client-sqs'
+
 import { IQueueConfig } from '../../types'
+
+export interface ISqsClientConfig {
+  host: string
+  port: number
+  region: string
+  accessKeyId: string
+  secretAccessKey: string
+}
 
 export type SqsClient = SQSClient
 export type SqsMessage = Message

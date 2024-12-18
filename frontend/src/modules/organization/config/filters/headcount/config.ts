@@ -9,7 +9,7 @@ import options from './options';
 const headcount: MultiSelectFilterConfig = {
   id: 'headcount',
   label: 'Headcount',
-  iconClass: 'ri-group-2-line',
+  iconClass: 'building-user',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

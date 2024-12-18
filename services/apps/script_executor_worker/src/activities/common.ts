@@ -1,3 +1,6 @@
+import axios from 'axios'
+
+import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import {
   IMemberIdentity,
   IMemberUnmergeBackup,
@@ -5,9 +8,8 @@ import {
   IUnmergeBackup,
   IUnmergePreviewResult,
 } from '@crowd/types'
-import axios from 'axios'
+
 import { svc } from '../main'
-import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function mergeMembers(
   primaryMemberId: string,

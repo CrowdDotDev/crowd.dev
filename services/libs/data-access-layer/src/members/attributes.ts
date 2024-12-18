@@ -1,4 +1,5 @@
 import { IAttributes, IMember } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export async function fetchMemberAttributes(

@@ -1,6 +1,9 @@
+import moment from 'moment'
+
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState, IntegrationType } from '@crowd/types'
+
 import {
   IGenerateStreamsData,
   IPendingDelayedRun,
@@ -107,13 +110,25 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
              platform as type,
              status as state,
              "integrationIdentifier" as identifier,
-             "tenantId"
+             "tenantId",
+             "updatedAt"
       from integrations where id = $(integrationId) and "deletedAt" is null
     `,
       {
         integrationId,
       },
     )
+
+    if (!results) {
+      return null
+    }
+
+    if (
+      results.type === IntegrationType.GITHUB &&
+      moment(results.updatedAt).isBefore(moment('2024-12-10'))
+    ) {
+      return null
+    }
 
     return results
   }

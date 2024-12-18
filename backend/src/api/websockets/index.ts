@@ -1,6 +1,8 @@
-import { Server as SocketServer } from 'socket.io'
 import { Server } from 'http'
+import { Server as SocketServer } from 'socket.io'
+
 import { Logger, getServiceChildLogger } from '@crowd/logging'
+
 import WebSocketNamespace from './namespace'
 import { IAuthenticatedSocket } from './types'
 

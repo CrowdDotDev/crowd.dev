@@ -9,15 +9,14 @@ import VueLazyLoad from 'vue3-lazyload';
 import { createPinia } from 'pinia';
 import { createRouter } from '@/router';
 import { createStore } from '@/store';
-import plugins from '@/plugins';
 import modules from '@/modules';
 import config from '@/config';
 
 import { init as i18nInit } from '@/i18n';
 
 import App from '@/app.vue';
-import { vueSanitizeOptions } from '@/plugins/sanitize';
-import marked from '@/plugins/marked';
+import { vueSanitizeOptions } from '@/shared/plugins/sanitize';
+import marked from '@/shared/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
 
@@ -67,8 +66,6 @@ i18nInit();
         app.component(name, components[name]);
       });
     });
-
-  Object.values(plugins).map((plugin) => app.use(plugin));
 
   app.use(store).use(router).mount('#app');
 

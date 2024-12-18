@@ -1,9 +1,11 @@
-import { Error400BadRequest } from '@crowd/common'
-import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'
-import { verifyWebhookSignature } from '../utils/crypto'
-import { asyncWrap } from '../middleware/error'
+
+import { Error400BadRequest } from '@crowd/common'
 import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
+import { PlatformType, WebhookType } from '@crowd/types'
+
+import { asyncWrap } from '../middleware/error'
+import { verifyWebhookSignature } from '../utils/crypto'
 
 export const installDiscourseRoutes = async (app: express.Express) => {
   app.post(

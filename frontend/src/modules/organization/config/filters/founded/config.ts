@@ -10,7 +10,7 @@ import {
 const founded: DateFilterConfig = {
   id: 'founded',
   label: 'Founded',
-  iconClass: 'ri-flag-2-line',
+  iconClass: 'flag',
   type: FilterConfigType.DATE,
   options: {
     datepickerType: 'year',

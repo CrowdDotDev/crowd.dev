@@ -1,7 +1,8 @@
+import config from 'config'
+
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IOpenSearchConfig, QueuePriorityLevel } from '@crowd/types'
-import config from 'config'
 
 export interface IServiceConfig {
   edition: string

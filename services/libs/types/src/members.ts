@@ -1,8 +1,8 @@
 import { IAttributes } from './attributes'
 import { MemberAttributeOpensearch, MemberAttributeType, MemberIdentityType } from './enums/members'
+import { PlatformType } from './enums/platforms'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
-import { PlatformType } from './enums/platforms'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -56,7 +56,6 @@ export interface IMember {
   displayName?: string
   avatarUrl?: string
   score: number
-  lastEnriched?: Date | null
   enrichedBy?: string[] | null
   joinedAt: string
   createdAt: string
@@ -131,7 +130,7 @@ export interface IMemberContribution {
   url: string
   topics: string[]
   summary: string
-  numberCommits: 81
+  numberCommits: number
   lastCommitDate: string
   firstCommitDate: string
 }

@@ -1,4 +1,5 @@
 import Axios from 'axios'
+
 import { OPEN_STATUS_API_CONFIG } from '../../conf'
 
 export default async (req, res) => {

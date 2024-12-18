@@ -16,7 +16,7 @@
         class="btn btn--full btn--md btn--secondary"
         @click="settingsDrawerOpen = true"
       >
-        <i class="ri-sound-module-line text-lg" /><span>Feed settings</span>
+        <lf-icon name="sliders" :size="20" /><span>Feed settings</span>
       </el-button>
       <!-- Keywords -->
       <div
@@ -105,9 +105,7 @@
             <div
               class="w-5 h-5 rounded-md bg-gray-900 flex items-center justify-center"
             >
-              <i
-                class="ri-lightbulb-flash-line text-sm text-white"
-              />
+              <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
             <span class="text-xs text-gray-900">{{
               aiRepliesEnabled ? 'Activated' : 'Deactivated'
@@ -134,6 +132,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);

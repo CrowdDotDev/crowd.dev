@@ -6,27 +6,27 @@
 
 <script setup lang="ts">
 import {
-  computed, onBeforeMount, onMounted, ref, useSlots, watch,
+  computed, onMounted, watch,
 } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { TabsSize } from '@/ui-kit/tabs/types/TabsSize';
 
 const props = withDefaults(defineProps<{
   modelValue?: string,
-  size?: TabsSize
+  size?: TabsSize,
+  fragment?: boolean,
 }>(), {
   modelValue: '',
   size: 'medium',
+  fragment: true,
 });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
 const route = useRoute();
-const slots = useSlots();
+const router = useRouter();
 
-const tabList = ref<string[]>([]);
-
-const tabsValue = computed({
+const model = computed({
   get() {
     return props.modelValue || '';
   },
@@ -35,12 +35,22 @@ const tabsValue = computed({
   },
 });
 
+watch(() => props.modelValue, () => {
+  if (props.fragment) {
+    router.replace({
+      ...route,
+      hash: `#${props.modelValue}`,
+    });
+  }
+});
+
 const readHash = () => {
+  if (!props.fragment) {
+    return;
+  }
   const hash = route?.hash.replace('#', '');
-  if (hash && hash !== tabsValue.value) {
-    if (tabList.value.includes(hash)) {
-      tabsValue.value = hash;
-    }
+  if (hash && hash !== model.value) {
+    emit('update:modelValue', hash);
   }
 };
 
@@ -48,20 +58,8 @@ onMounted(() => {
   readHash();
 });
 
-onBeforeMount(() => {
-  if (slots.default) {
-    tabList.value = slots.default()
-      .filter((child) => child.type.name === 'LfTab')
-      .map((tab) => tab.props.name);
-  }
-});
-
-watch(() => route.hash, () => {
+watch(() => route?.hash, () => {
   readHash();
-});
-
-defineExpose({
-  tabsValue,
 });
 </script>
 

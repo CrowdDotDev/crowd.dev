@@ -16,7 +16,7 @@
             :icon-only="true"
             class="my-1"
           >
-            <lf-icon name="add-fill" />
+            <lf-icon name="plus" />
           </lf-button>
         </lf-tooltip>
       </lf-contributor-details-identity-add-dropdown>
@@ -33,6 +33,7 @@
         @unmerge="unmerge(identity.id)"
       />
     </div>
+
 
     <div v-else-if="!masked" class="pt-2 flex flex-col items-center">
       <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
@@ -79,7 +80,6 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { computed, ref } from 'vue';
@@ -95,6 +95,7 @@ import LfContributorIdentityEdit
   from '@/modules/contributor/components/edit/identity/contributor-identity-edit.vue';
 import LfContributorIdentityAdd
   from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

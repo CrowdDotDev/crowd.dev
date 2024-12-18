@@ -1,7 +1,9 @@
-import { LoggerBase } from '@crowd/logging'
 import { queryAuditLogs } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { IServiceOptions } from './IServiceOptions'
+import { LoggerBase } from '@crowd/logging'
+
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class AuditLogsService extends LoggerBase {
   options: IServiceOptions

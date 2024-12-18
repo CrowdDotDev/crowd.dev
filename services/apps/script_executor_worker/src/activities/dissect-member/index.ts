@@ -1,8 +1,10 @@
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
-import { svc } from '../../main'
 import MergeActionRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/mergeAction.repo'
-import { IMember, IMergeAction } from '@crowd/types'
 import { IFindMemberIdentitiesGroupedByPlatformResult } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
+import { IMember, IMergeAction } from '@crowd/types'
+
+import { svc } from '../../main'
+
 export async function findMemberMergeActions(
   memberId: string,
   startDate: string,

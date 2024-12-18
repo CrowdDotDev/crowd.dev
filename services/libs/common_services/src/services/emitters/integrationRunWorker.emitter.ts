@@ -8,6 +8,7 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {
@@ -45,11 +46,18 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     onboarding: boolean,
     isManualRun?: boolean,
     manualSettings?: unknown,
+    additionalInfo?: unknown,
   ): Promise<void> {
     await this.sendMessage(
       tenantId,
       integrationId,
-      new StartIntegrationRunQueueMessage(integrationId, onboarding, isManualRun, manualSettings),
+      new StartIntegrationRunQueueMessage(
+        integrationId,
+        onboarding,
+        isManualRun,
+        manualSettings,
+        additionalInfo,
+      ),
       undefined,
       { onboarding },
     )
@@ -62,11 +70,12 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     onboarding: boolean,
     isManualRun?: boolean,
     manualSettings?: unknown,
+    additionalInfo?: unknown,
   ): Promise<void> {
     await this.sendMessage(
       tenantId,
       runId,
-      new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings),
+      new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings, additionalInfo),
       runId,
       { onboarding },
     )

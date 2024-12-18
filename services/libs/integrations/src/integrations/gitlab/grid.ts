@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { GitlabActivityType } from './types'
 
 export const GITLAB_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {

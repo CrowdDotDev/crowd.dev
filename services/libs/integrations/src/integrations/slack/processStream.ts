@@ -1,21 +1,22 @@
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
-import {
-  SlackStreamType,
-  ISlackRootStreamData,
-  ISlackMemberStreamData,
-  ISlackChannelStreamData,
-  ISlackThreadStreamData,
-  ISlackStreamBase,
-  ISlackAPIData,
-  SlackMessage,
-  SlackMember,
-} from './types'
+
 import getChannels from './api/getChannels'
-import getTeam from './api/getTeam'
-import getMessages from './api/getMessages'
 import getMember from './api/getMember'
 import getMembers from './api/getMembers'
+import getMessages from './api/getMessages'
 import getMessagesInThreads from './api/getMessagesInThreads'
+import getTeam from './api/getTeam'
+import {
+  ISlackAPIData,
+  ISlackChannelStreamData,
+  ISlackMemberStreamData,
+  ISlackRootStreamData,
+  ISlackStreamBase,
+  ISlackThreadStreamData,
+  SlackMember,
+  SlackMessage,
+  SlackStreamType,
+} from './types'
 
 async function removeMentions(text: string, ctx: IProcessStreamContext): Promise<string> {
   const regex = /<@!?[^>]*>/

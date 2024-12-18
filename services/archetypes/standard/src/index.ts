@@ -1,19 +1,16 @@
 import { Sender } from '@questdb/nodejs-client'
 import { Kafka, Producer as KafkaProducer } from 'kafkajs'
-
 import pgpromise from 'pg-promise'
 
-import { getClientILP, getClientSQL } from '@crowd/questdb'
+import { DbConnection } from '@crowd/database'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, getServiceLogger } from '@crowd/logging'
+import { getClientILP, getClientSQL } from '@crowd/questdb'
 import { RedisClient, acquireLock, getRedisClient, releaseLock } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { Tracer, getServiceTracer } from '@crowd/tracing'
-import { DbConnection } from '@crowd/database'
 
 // Retrieve automatically configured tracer and logger.
-const tracer = getServiceTracer()
 const logger = getServiceLogger()
 
 // List all required environment variables, grouped per "component".
@@ -72,7 +69,6 @@ Service holds all details and methods to run any kind of services at crowd.dev.
 */
 export class Service {
   readonly name: string
-  readonly tracer: Tracer
   readonly log: Logger
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
@@ -89,7 +85,6 @@ export class Service {
 
   constructor(config: Config) {
     this.name = process.env['SERVICE']
-    this.tracer = tracer
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES

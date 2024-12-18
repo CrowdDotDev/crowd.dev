@@ -1,4 +1,3 @@
-import { IMemberOrganization, IOrganization } from '@crowd/types'
 import {
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
@@ -7,11 +6,18 @@ import {
   updateMemberOrganization,
 } from '@crowd/data-access-layer/src/members'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import SequelizeRepository from '../sequelizeRepository'
+import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
+
 import { IRepositoryOptions } from '../IRepositoryOptions'
+import SequelizeRepository from '../sequelizeRepository'
+
+type IOrganizationSummary = Pick<IOrganization, 'id' | 'displayName' | 'logo'>
 
 class MemberOrganizationsRepository {
-  static async list(memberId: string, options: IRepositoryOptions) {
+  static async list(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
@@ -27,7 +33,7 @@ class MemberOrganizationsRepository {
       const orgIds: string[] = [...new Set(memberOrganizations.map((mo) => mo.organizationId))]
 
       // Fetch organizations
-      let organizations: IOrganization[] = []
+      let organizations: IOrganizationSummary[] = []
       if (orgIds.length) {
         organizations = await queryOrgs(qx, {
           filter: {
@@ -40,8 +46,8 @@ class MemberOrganizationsRepository {
       }
 
       // Create mapping by id to speed up the processing
-      const orgByid: Record<string, IOrganization> = organizations.reduce(
-        (obj: Record<string, IOrganization>, org) => ({
+      const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(
+        (obj: Record<string, IOrganizationSummary>, org) => ({
           ...obj,
           [org.id]: org,
         }),
@@ -49,7 +55,7 @@ class MemberOrganizationsRepository {
       )
 
       // Format the results
-      const result = memberOrganizations.map((mo) => ({
+      const result: IRenderFriendlyMemberOrganization[] = memberOrganizations.map((mo) => ({
         ...(orgByid[mo.organizationId] || {}),
         id: mo.organizationId,
         memberOrganizations: mo,
@@ -70,7 +76,7 @@ class MemberOrganizationsRepository {
     memberId: string,
     data: Partial<IMemberOrganization>,
     options: IRepositoryOptions,
-  ) {
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     // Hard delete any existing soft-deleted member organization to prevent conflict errors
@@ -89,7 +95,7 @@ class MemberOrganizationsRepository {
     memberId: string,
     data: Partial<IMemberOrganization>,
     options: IRepositoryOptions,
-  ) {
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     // Hard delete any existing soft-deleted member organization to prevent conflict errors

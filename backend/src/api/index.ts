@@ -1,13 +1,3 @@
-import { SERVICE } from '@crowd/common'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { getServiceLogger } from '@crowd/logging'
-import { getOpensearchClient } from '@crowd/opensearch'
-import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
-import { telemetryExpressMiddleware } from '@crowd/telemetry'
-import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
-import { getServiceTracer } from '@crowd/tracing'
-import { ApiWebsocketMessage, Edition } from '@crowd/types'
 import bodyParser from 'body-parser'
 import bunyanMiddleware from 'bunyan-middleware'
 import cors from 'cors'
@@ -16,8 +6,20 @@ import helmet from 'helmet'
 import * as http from 'http'
 import os from 'os'
 import { QueryTypes } from 'sequelize'
-import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
+
+import { SERVICE } from '@crowd/common'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { getServiceLogger } from '@crowd/logging'
+import { getOpensearchClient } from '@crowd/opensearch'
+import { RedisPubSubReceiver, getRedisClient, getRedisPubSubPair } from '@crowd/redis'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { ApiWebsocketMessage, Edition } from '@crowd/types'
+
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
+
 import {
   API_CONFIG,
   OPENSEARCH_CONFIG,
@@ -36,13 +38,13 @@ import { redisMiddleware } from '../middlewares/redisMiddleware'
 import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
 import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
+
 import setupSwaggerUI from './apiDocumentation'
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
-getServiceTracer()
 
 const app = express()
 
@@ -179,12 +181,17 @@ setImmediate(async () => {
   app.use(
     bodyParser.json({
       limit: '5mb',
-      verify(req, res, buf) {
-        const url = (<any>req).originalUrl
-        if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
-          // Stripe and sendgrid webhooks needs the body raw
-          // for verifying the webhook with signing secret
-          ;(<any>req).rawBody = buf.toString()
+      verify(req: any, res, buf) {
+        try {
+          const url = req.originalUrl
+          if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
+            // Stripe and sendgrid webhooks needs the body raw
+            // for verifying the webhook with signing secret
+            req.rawBody = buf.toString()
+          }
+        } catch (err) {
+          serviceLogger.error(err, 'Error while verifying request body for strip/sendgrid webhook!')
+          throw err
         }
       },
     }),
@@ -239,6 +246,7 @@ setImmediate(async () => {
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
   require('./mergeAction').default(routes)
+  require('./dataQuality').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)
@@ -282,11 +290,7 @@ setImmediate(async () => {
 
   app.use('/webhooks', webhookRoutes)
 
-  const io = require('@pm2/io')
-
   app.use(errorMiddleware)
-
-  app.use(io.expressErrorHandler())
 })
 
 export default server

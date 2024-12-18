@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Edit identity</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon name="close-line" />
+            <lf-icon-old name="close-line" />
           </lf-button>
         </div>
 
@@ -20,7 +20,7 @@
                     class="h-5 w-5 object-contain"
                     :alt="form.value"
                   />
-                  <lf-icon
+                  <lf-icon-old
                     v-else
                     name="fingerprint-fill"
                     :size="20"
@@ -60,7 +60,7 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Message from '@/shared/message/message';

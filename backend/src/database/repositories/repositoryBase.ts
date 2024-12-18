@@ -1,12 +1,14 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
 import { Sequelize } from 'sequelize'
-import { PageData, SearchCriteria } from '@crowd/types'
+
 import {
-  optionsQx,
   QueryExecutor,
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
+  optionsQx,
 } from '@crowd/data-access-layer/src/queryExecutor'
+import { PageData, SearchCriteria } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'

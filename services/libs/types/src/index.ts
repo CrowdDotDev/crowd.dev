@@ -7,6 +7,8 @@ export * from './queue/data_sink_worker'
 export * from './queue/search_sync_worker'
 export * from './queue/integration_sync_worker'
 
+export * from './dashboard'
+
 export * from './integrations'
 
 export * from './members'
@@ -56,3 +58,7 @@ export * from './service'
 export * from './productAnalytics'
 
 export * from './dataIssues'
+
+export * from './enrichment'
+
+export * from './llm'

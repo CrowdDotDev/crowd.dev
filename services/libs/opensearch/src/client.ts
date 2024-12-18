@@ -1,6 +1,7 @@
 import { Client } from '@opensearch-project/opensearch'
-import { IOpenSearchConfig } from '@crowd/types'
+
 import { getServiceChildLogger } from '@crowd/logging'
+import { IOpenSearchConfig } from '@crowd/types'
 
 const log = getServiceChildLogger('opensearch.connection')
 
