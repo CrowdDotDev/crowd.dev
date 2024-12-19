@@ -13,6 +13,8 @@
     v-if="isHackernewsSettingsDrawerOpen"
     v-model="isHackernewsSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -24,6 +26,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const isHackernewsSettingsDrawerOpen = ref(false);

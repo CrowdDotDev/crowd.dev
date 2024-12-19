@@ -113,7 +113,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async hackerNewsConnect(keywords, urls) {
+  static async hackerNewsConnect(keywords, urls, segments) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
 
@@ -124,6 +124,7 @@ export class IntegrationService {
         keywords,
         urls,
         ...getSegments(),
+        segments,
       },
     );
 
@@ -393,7 +394,7 @@ export class IntegrationService {
     return response.status === 200;
   }
 
-  static async discourseConnect(forumHostname, apiKey, webhookSecret) {
+  static async discourseConnect(forumHostname, apiKey, webhookSecret, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -404,6 +405,7 @@ export class IntegrationService {
         apiUsername: 'system',
         webhookSecret,
         ...getSegments(),
+        segments,
       },
     );
 

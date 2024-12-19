@@ -420,7 +420,9 @@ export default {
       }
     },
 
-    async doHackerNewsConnect({ commit }, { keywords, urls }) {
+    async doHackerNewsConnect({ commit }, {
+      keywords, urls, segmentId, grandparentId,
+    }) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -430,6 +432,7 @@ export default {
         const integration = await IntegrationService.hackerNewsConnect(
           keywords,
           urls,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -443,6 +446,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -614,7 +618,7 @@ export default {
     async doDiscourseConnect(
       { commit },
       {
-        forumHostname, apiKey, webhookSecret, isUpdate,
+        forumHostname, apiKey, webhookSecret, isUpdate, segmentId, grandparentId,
       },
     ) {
       try {
@@ -624,6 +628,7 @@ export default {
           forumHostname,
           apiKey,
           webhookSecret,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -642,6 +647,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
