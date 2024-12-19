@@ -642,6 +642,7 @@ export default {
       { commit },
       {
         email, token, tokenExpiry, password, groups, isUpdate, autoImports,
+        segmentId, grandparentId,
       },
     ) {
       console.log('doGroupsioConnect', email, token, groups, isUpdate);
@@ -656,6 +657,7 @@ export default {
           password,
           groups,
           autoImports,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -675,6 +677,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
