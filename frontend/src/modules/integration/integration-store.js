@@ -447,7 +447,9 @@ export default {
       }
     },
 
-    async doStackOverflowOnboard({ commit }, { tags, keywords, segmentId, grandparentId }) {
+    async doStackOverflowOnboard({ commit }, {
+      tags, keywords, segmentId, grandparentId,
+    }) {
       // Function to connect to StackOverflow.
 
       try {
@@ -470,7 +472,7 @@ export default {
           name: 'integration',
           params: {
             id: segmentId,
-            grandparentId: grandparentId,
+            grandparentId,
           },
         });
       } catch (error) {
