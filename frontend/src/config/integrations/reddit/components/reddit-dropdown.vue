@@ -7,6 +7,8 @@
     v-if="isRedditSettingsDrawerOpen"
     v-model="isRedditSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -20,6 +22,14 @@ const props = defineProps({
   integration: {
     type: Object,
     default: () => {},
+  },
+  segmentId: {
+    type: String,
+    required: true,
+  },
+  grandparentId: {
+    type: String,
+    required: true,
   },
 });
 

@@ -145,6 +145,14 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
+  grandparentId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -221,6 +229,8 @@ const handleSubredditValidation = async (index) => {
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doRedditOnboard', {
     subreddits: model.value.map((i) => i.value),
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   });
 
   const isUpdate = !!props.integration?.settings?.subreddits;
