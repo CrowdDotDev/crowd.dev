@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Nango from '@nangohq/frontend';
 import { useThrottleFn } from '@vueuse/core';
 import config from '@/config';
@@ -22,8 +22,16 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const { doLinkedinConnect } = mapActions('integration');
 
+const props = defineProps<{
+  segmentId: string;
+  grandparentId: string;
+}>();
+
 const callOnboard = useThrottleFn(async () => {
-  await doLinkedinConnect({});
+  await doLinkedinConnect({
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
+  });
 }, 2000);
 
 const connect = async () => {
@@ -41,7 +49,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLinkedInConnect',
 };

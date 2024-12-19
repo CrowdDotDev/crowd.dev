@@ -105,7 +105,7 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   defineEmits,
   defineProps,
@@ -121,16 +121,12 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const store = useStore();
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  integration: any;
+  segmentId: string;
+  grandparentId: string;
+}>();
 
 const { trackEvent } = useProductTracking();
 
@@ -138,7 +134,7 @@ const emit = defineEmits(['update:modelValue']);
 const organizations = computed(
   () => props.integration.settings?.organizations,
 );
-const selectedOrg = computed(() => organizations.value.find((o) => o.inUse === true));
+const selectedOrg = computed(() => organizations.value.find((o: any) => o.inUse === true));
 
 const model = ref(
   selectedOrg.value ? selectedOrg.value.id : null,
@@ -174,7 +170,11 @@ const connect = async () => {
 
   await store.dispatch(
     'integration/doLinkedinOnboard',
-    model.value,
+    {
+      organizationId: model.value,
+      segmentId: props.segmentId,
+      grandparentId: props.grandparentId,
+    },
   );
 
   const isUpdate = props.integration?.settings?.organizations.length > 0;
@@ -191,18 +191,18 @@ const connect = async () => {
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
-    window.analytics.track('LinkedIn: settings drawer', {
+    (window as any).analytics.track('LinkedIn: settings drawer', {
       action: 'open',
     });
   } else if (newValue === false && oldValue) {
-    window.analytics.track('LinkedIn: settings drawer', {
+    (window as any).analytics.track('LinkedIn: settings drawer', {
       action: 'close',
     });
   }
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfLinkedinSettingsDrawer',
 };
