@@ -32,6 +32,8 @@
           :is="props.config.connectComponent"
           v-if="props.config.connectComponent"
           :integration="integration"
+          :segment-id="route.params.id"
+          :grandparent-id="route.params.grandparentId"
         />
       </div>
     </div>
@@ -49,11 +51,15 @@
             :is="props.config.connectedParamsComponent"
             v-else-if="isComplete && props.config.connectedParamsComponent"
             :integration="integration"
+            :segment-id="route.params.id"
+            :grandparent-id="route.params.grandparentId"
           />
           <component
             :is="props.config.statusComponent"
             v-else-if="!isComplete && props.config.statusComponent"
             :integration="integration"
+            :segment-id="route.params.id"
+            :grandparent-id="route.params.grandparentId"
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -66,6 +72,8 @@
             :is="props.config.actionComponent"
             v-if="props.config.actionComponent"
             :integration="integration"
+            :segment-id="route.params.id"
+            :grandparent-id="route.params.grandparentId"
           />
           <lf-dropdown placement="bottom-end" width="14.5rem">
             <template #trigger>
@@ -77,6 +85,8 @@
               :is="props.config.dropdownComponent"
               v-if="props.config.dropdownComponent"
               :integration="integration"
+              :segment-id="route.params.id"
+              :grandparent-id="route.params.grandparentId"
             />
             <lf-dropdown-item type="danger" @click="disconnectIntegration()">
               <lf-icon name="link-simple-slash" type="regular" />
@@ -104,12 +114,15 @@ import { IntegrationProgress } from '@/modules/integration/types/IntegrationProg
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import moment from 'moment';
+import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   config: IntegrationConfig,
   progress: IntegrationProgress | null,
   progressError: boolean,
 }>();
+
+const route = useRoute();
 
 const { doDestroy } = mapActions('integration');
 const { findByPlatform } = mapGetters('integration');

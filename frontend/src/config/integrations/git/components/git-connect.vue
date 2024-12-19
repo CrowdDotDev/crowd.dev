@@ -17,24 +17,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfGitSettingsDrawer from '@/config/integrations/git/components/git-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+}>();
 
 const isGitConnectDrawerVisible = ref(false);
 // const isDetailsModalOpen = ref(false);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppGitConnect',
 };

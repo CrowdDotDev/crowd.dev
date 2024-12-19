@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   defineProps, computed, onMounted, ref,
 } from 'vue';
@@ -27,12 +27,10 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const route = useRoute();
 
-defineProps({
-  integration: {
-    type: Object,
-    default: () => ({}),
-  },
-});
+const props = defineProps<{
+  integration: any,
+  segmentId: string | null,
+}>();
 
 const { doGitlabConnect } = mapActions('integration');
 
@@ -44,7 +42,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/gitlab/${
     tenant.value.id
-  }/connect?crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
+  }/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`;
 });
 
 const connect = async () => {
@@ -97,7 +95,7 @@ onMounted(() => {
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfGitlabConnect',
 };

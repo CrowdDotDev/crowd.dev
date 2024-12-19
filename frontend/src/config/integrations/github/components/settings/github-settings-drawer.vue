@@ -79,7 +79,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import { useRoute } from 'vue-router';
 import useVuelidate from '@vuelidate/core';
 import { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import {
@@ -104,14 +103,14 @@ import { showIntegrationProgressNotification } from '@/modules/integration/helpe
 const props = defineProps<{
   modelValue: boolean;
   integration?: Integration<GitHubSettings>;
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
-
-const route = useRoute();
 
 const isAddRepositoryModalOpen = ref(false);
 
@@ -132,7 +131,7 @@ const isDrawerVisible = computed({
 });
 
 const fetchSubProjects = () => {
-  LfService.findSegment(route.params.grandparentId).then((segment) => {
+  LfService.findSegment(props.grandparentId).then((segment) => {
     subprojects.value = segment.projects.map((p) => p.subprojects).flat();
   });
 };

@@ -16,23 +16,20 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfConfluenceSettingsDrawer from '@/config/integrations/confluence/components/confluence-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+}>();
 
 const isConfluenceSettingsDrawerVisible = ref(false);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfConfluenceConnect',
 };

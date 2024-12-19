@@ -12,23 +12,20 @@
   <lf-jira-settings-drawer v-if="isJiraSettingsDrawerVisible" v-model="isJiraSettingsDrawerVisible" :integration="props.integration" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfJiraSettingsDrawer from '@/config/integrations/jira/components/jira-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+}>();
 
 const isJiraSettingsDrawerVisible = ref(false);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfJiraConnect',
 };

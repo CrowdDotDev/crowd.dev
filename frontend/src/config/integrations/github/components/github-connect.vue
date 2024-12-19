@@ -18,7 +18,13 @@
         </span>
       </el-tooltip>
     </div>
-    <lf-github-settings-drawer v-if="isSettingsDrawerOpen" v-model="isSettingsDrawerOpen" :integration="null" />
+    <lf-github-settings-drawer
+      v-if="isSettingsDrawerOpen"
+      v-model="isSettingsDrawerOpen"
+      :integration="null"
+      :segment-id="props.segmentId"
+      :grandparent-id="props.grandparentId"
+    />
   </div>
 </template>
 
@@ -28,9 +34,10 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 
-// const props = defineProps<{
-//   hideDetails: boolean;
-// }>();
+const props = defineProps<{
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const isSettingsDrawerOpen = ref(false);
 </script>

@@ -53,7 +53,12 @@
                   </div>
                   <div class="text-tiny text-gray-500">
                     <template v-if="status === 'done'">
-                      <component :is="lfIntegrations[integration.platform].connectedParamsComponent" :integration="integration" />
+                      <component
+                        :is="lfIntegrations[integration.platform].connectedParamsComponent"
+                        :integration="integration"
+                        :segment-id="integration.segmentId"
+                        :grandparent-id="integration.grandparentId"
+                      />
                     </template>
                     <template v-else-if="status === 'connecting'">
                       <app-integration-progress-wrapper :segments="[integration.segmentId]">
@@ -100,6 +105,8 @@
                     :is="lfIntegrations[integration.platform].actionComponent"
                     v-if="status === 'waitingForAction' && lfIntegrations[integration.platform].actionComponent"
                     :integration="integration"
+                    :segment-id="integration.segmentId"
+                    :grandparent-id="integration.grandparentId"
                   />
                   <template v-if="status !== 'notConnected'">
                     <lf-dropdown placement="bottom-end" width="14.5rem">
@@ -112,6 +119,8 @@
                         :is="lfIntegrations[integration.platform].dropdownComponent"
                         v-if="status === 'done' && lfIntegrations[integration.platform].dropdownComponent"
                         :integration="integration"
+                        :segment-id="integration.segmentId"
+                        :grandparent-id="integration.grandparentId"
                       />
                       <lf-dropdown-item type="danger" @click="disconnectIntegration(integration)">
                         <lf-icon name="link-simple-slash" type="regular" />

@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import config from '@/config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -22,18 +22,10 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const props = defineProps({
-  segmentId: {
-    type: String,
-    required: false,
-    default: null,
-  },
-  grandparentId: {
-    type: String,
-    required: false,
-    default: null,
-  },
-});
+const props = defineProps<{
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const { doDiscordConnect } = mapActions('integration');
 
@@ -72,7 +64,7 @@ onMounted(() => {
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfDiscordConnect',
 };

@@ -16,21 +16,19 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfGroupsioSettingsDrawer from '@/config/integrations/groupsio/components/groupsio-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+}>();
 const isSettingsDrawerOpen = ref(false);
 </script>
-<script>
+
+<script lang="ts">
 export default {
   name: 'LfGroupsioConnect',
 };
