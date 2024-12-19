@@ -202,20 +202,20 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async linkedinConnect() {
+  static async linkedinConnect(segmentId) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/linkedin-connect/${tenantId}`,
-      getSegments(),
+      { segments: [segmentId] },
     );
 
     return response.data;
   }
 
-  static async linkedinOnboard(organizationId) {
+  static async linkedinOnboard(organizationId, segmentId) {
     const body = {
       organizationId,
-      ...getSegments(),
+      segments: [segmentId],
     };
 
     const tenantId = AuthService.getTenantId();

@@ -316,11 +316,11 @@ export default {
       }
     },
 
-    async doLinkedinConnect({ commit }) {
+    async doLinkedinConnect({ commit }, { segmentId, grandparentId }) {
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.linkedinConnect();
+        const integration = await IntegrationService.linkedinConnect(segmentId);
 
         commit('CREATE_SUCCESS', integration);
         if (integration.settings?.organizations.length === 1) {
@@ -333,6 +333,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -341,12 +342,13 @@ export default {
       }
     },
 
-    async doLinkedinOnboard({ commit }, organizationId) {
+    async doLinkedinOnboard({ commit }, { organizationId, segmentId, grandparentId }) {
       try {
         commit('UPDATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
         const integration = await IntegrationService.linkedinOnboard(
           organizationId,
+          segmentId,
         );
 
         commit('UPDATE_SUCCESS', integration);
@@ -357,6 +359,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
