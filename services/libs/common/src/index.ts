@@ -23,6 +23,7 @@ export * from './http'
 export * from './websiteNormalizer'
 export * from './emailDomainValidator'
 export * from './displayName'
+export * from './jira'
 
 export * from './i18n'
 export * from './member'

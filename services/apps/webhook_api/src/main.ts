@@ -19,7 +19,6 @@ import { emittersMiddleware } from './middleware/emitters'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
 import { queueMiddleware } from './middleware/queue'
-import { installDataIssueRoutes } from './routes/dataIssue'
 import { installDiscourseRoutes } from './routes/discourse'
 import { installGithubRoutes } from './routes/github'
 import { installGitlabRoutes } from './routes/gitlab'
@@ -91,7 +90,6 @@ setImmediate(async () => {
   installGroupsIoRoutes(app)
   installDiscourseRoutes(app)
   installGitlabRoutes(app)
-  installDataIssueRoutes(app)
 
   app.use(errorMiddleware())
 
