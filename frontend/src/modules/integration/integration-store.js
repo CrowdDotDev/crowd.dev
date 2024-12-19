@@ -753,10 +753,10 @@ export default {
       }
     },
 
-    async doGitlabConnect({ commit, dispatch }, { code, state }) {
+    async doGitlabConnect({ commit, dispatch }, { code, state, segmentId, grandparentId }) {
       try {
         commit('CREATE_STARTED');
-        const integration = await IntegrationService.gitlabConnect(code, state);
+        const integration = await IntegrationService.gitlabConnect(code, state, [segmentId]);
         commit('CREATE_SUCCESS', integration);
         dispatch('doFetch');
 
@@ -764,6 +764,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
 

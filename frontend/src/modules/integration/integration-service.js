@@ -575,13 +575,14 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gitlabConnect(code, state) {
+  static async gitlabConnect(code, state, segments = []) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.get(`/gitlab/${tenantId}/callback`, {
       params: {
         code,
         state,
         ...getSegments(),
+        segments,
       },
     });
     return response.data;
