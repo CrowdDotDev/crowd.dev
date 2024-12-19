@@ -12,31 +12,22 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfRedditSettingsDrawer from '@/config/integrations/reddit/components/reddit-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-  segmentId: {
-    type: String,
-    required: true,
-  },
-  grandparentId: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  integration: any,
+  segmentId: string,
+  grandparentId: string,
+}>();
 
 const isRedditSettingsDrawerOpen = ref(false);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfRedditDropdown',
 };

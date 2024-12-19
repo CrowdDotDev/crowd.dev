@@ -112,7 +112,7 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   defineEmits,
   defineProps,
@@ -136,27 +136,15 @@ const store = useStore();
 
 const tenantId = computed(() => AuthService.getTenantId());
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-  segmentId: {
-    type: String,
-    required: true,
-  },
-  grandparentId: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean,
+  integration: any,
+  segmentId: string,
+  grandparentId: string,
+}>();
 
 const emit = defineEmits(['update:modelValue']);
-const subreddits = props.integration?.settings?.subreddits.map((i) => ({
+const subreddits = props.integration?.settings?.subreddits.map((i: any) => ({
   value: i,
   validating: false,
   touched: true,
@@ -171,12 +159,12 @@ const logoUrl = CrowdIntegrations.getConfig('reddit').image;
 
 const hasFormChanged = computed(
   () => !isEqual(
-    subreddits.map((i) => i.value),
-    model.value.map((i) => i.value),
+    subreddits.map((i: any) => i.value),
+    model.value.map((i: any) => i.value),
   ),
 );
 const connectDisabled = computed(() => (
-  model.value.filter((s) => (
+  model.value.filter((s: any) => (
     s.valid === false
         || s.value === ''
         || s.touched !== true
@@ -192,7 +180,7 @@ const isVisible = computed({
   },
 });
 
-const deleteItem = (index) => {
+const deleteItem = (index: number) => {
   model.value.splice(index, 1);
 };
 
@@ -200,7 +188,7 @@ const doReset = () => {
   model.value = JSON.parse(JSON.stringify(subreddits));
 };
 
-const handleSubredditValidation = async (index) => {
+const handleSubredditValidation = async (index: number) => {
   try {
     let subreddit = model.value[index].value;
 
@@ -228,7 +216,7 @@ const handleSubredditValidation = async (index) => {
 
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doRedditOnboard', {
-    subreddits: model.value.map((i) => i.value),
+    subreddits: model.value.map((i: any) => i.value),
     segmentId: props.segmentId,
     grandparentId: props.grandparentId,
   });
@@ -255,18 +243,18 @@ const connect = async () => {
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
-    window.analytics.track('Reddit: connect drawer', {
+    (window as any).analytics.track('Reddit: connect drawer', {
       action: 'open',
     });
   } else if (newValue === false && oldValue) {
-    window.analytics.track('Reddit: connect drawer', {
+    (window as any).analytics.track('Reddit: connect drawer', {
       action: 'close',
     });
   }
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfRedditSettingsDrawer',
 };
