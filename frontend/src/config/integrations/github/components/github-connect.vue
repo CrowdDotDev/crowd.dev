@@ -21,7 +21,7 @@
     <lf-github-settings-drawer
       v-if="isSettingsDrawerOpen"
       v-model="isSettingsDrawerOpen"
-      :integration="null"
+      :integration="props.integration"
       :segment-id="props.segmentId"
       :grandparent-id="props.grandparentId"
     />
@@ -35,6 +35,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 
 const props = defineProps<{
+  integration: any,
   segmentId: string | null;
   grandparentId: string | null;
 }>();

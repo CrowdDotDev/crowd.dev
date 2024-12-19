@@ -177,12 +177,12 @@ const connect = () => {
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, {
       settings,
-    })
+    }, [props.segmentId])
     : IntegrationService.create({
       settings,
       platform: 'github',
       status: 'in-progress',
-    })
+    }, [props.segmentId])
   )
     .then((res) => {
       integration = res;

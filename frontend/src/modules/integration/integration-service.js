@@ -5,11 +5,13 @@ import { router } from '@/router';
 const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 
 export class IntegrationService {
-  static async update(id, data) {
+  static async update(id, data, segments = []) {
     const body = {
       ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
@@ -36,11 +38,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async create(data) {
+  static async create(data, segments = []) {
     const body = {
       ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
