@@ -21,7 +21,7 @@ export class GithubSnowflakeClient {
 
   public async getOrgRepositories({
     org,
-    perPage = 100,
+    perPage = 1000,
     page = 1,
   }: {
     org: string
@@ -56,7 +56,7 @@ export class GithubSnowflakeClient {
   public async getRepoStargazers({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -99,7 +99,7 @@ export class GithubSnowflakeClient {
   public async getRepoForks({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -144,7 +144,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequests({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -189,7 +189,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequestReviews({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = undefined,
   }: {
     sf_repo_id: string
@@ -234,7 +234,7 @@ export class GithubSnowflakeClient {
   public async getRepoPullRequestReviewComments({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -279,7 +279,7 @@ export class GithubSnowflakeClient {
   public async getRepoPushes({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -288,29 +288,26 @@ export class GithubSnowflakeClient {
     since_days_ago?: string
   }): Promise<IGetResponse<IGetRepoPushesResult>> {
     const result = await this.client.run<IGetRepoPushesResult>(
-      `SELECT
-        p.CREATED_AT_TIMESTAMP as "timestamp",
-        p.ACTOR_LOGIN as "actorLogin", 
-        p.ACTOR_ID as "actorId",
-        p.ACTOR_AVATAR_URL as "actorAvatarUrl",
-        p.ORG_LOGIN as "orgLogin",
-        p.ORG_ID as "orgId", 
-        p.ORG_AVATAR_URL as "orgAvatarUrl",
-        p.PAYLOAD as "payload",
-        pr.PAYLOAD:pull_request.node_id as "pullRequestNodeId",
-        pr.PAYLOAD:number as "pullRequestNumber"
-      FROM github_events_ingest.cybersyn.github_events p
-      INNER JOIN github_events_ingest.cybersyn.github_events pr
-        ON pr.repo_id = p.repo_id
-        AND pr.type = 'PullRequestEvent'
-        AND pr.PAYLOAD:pull_request.head.sha = p.PAYLOAD:head
-      WHERE
-        p.type = 'PushEvent'
-        AND p.repo_id = ?
-        ${since_days_ago ? 'AND p.CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
-      ORDER BY p.CREATED_AT_TIMESTAMP DESC
-      LIMIT ?
-      OFFSET ?`,
+      `
+        SELECT
+            p.CREATED_AT_TIMESTAMP as "timestamp",
+            p.ACTOR_LOGIN as "actorLogin",
+            p.ACTOR_ID as "actorId",
+            p.ACTOR_AVATAR_URL as "actorAvatarUrl",
+            p.ORG_LOGIN as "orgLogin",
+            p.ORG_ID as "orgId",
+            p.ORG_AVATAR_URL as "orgAvatarUrl",
+            p.PAYLOAD as "payload",
+            p.PAYLOAD_HEAD as "payloadHead"
+        FROM github_events_ingest.cybersyn.github_events p
+        WHERE repo_id = ?
+        AND type = 'PushEvent'
+        AND payload_ref NOT IN ('refs/heads/master', 'refs/heads/main')
+        ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
+        ORDER BY CREATED_AT_TIMESTAMP DESC
+        LIMIT ?
+        OFFSET ?
+      `,
       since_days_ago
         ? [sf_repo_id, since_days_ago, perPage, (page - 1) * perPage]
         : [sf_repo_id, perPage, (page - 1) * perPage],
@@ -327,7 +324,7 @@ export class GithubSnowflakeClient {
   public async getRepoIssues({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
@@ -371,7 +368,7 @@ export class GithubSnowflakeClient {
   public async getRepoIssueComments({
     sf_repo_id,
     page = 1,
-    perPage = 100,
+    perPage = 1000,
     since_days_ago = '',
   }: {
     sf_repo_id: string
