@@ -368,11 +368,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gerritConnect(remote) {
+  static async gerritConnect(remote, segments = []) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(`/tenant/${tenantId}/gerrit-connect`, {
       remote,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
