@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import { createHeading, createParagraph } from '@crowd/common'
 import { createDataIssue } from '@crowd/data-access-layer/src/data_issues'
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
@@ -7,7 +8,6 @@ import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecut
 import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'
 
-import { createHeading, createParagraph } from '@crowd/common'
 import { JIRA_ISSUE_REPORTER_CONFIG } from '@/conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -83,22 +83,22 @@ export default class DataIssueService extends LoggerBase {
             summary: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
               .slice(1)
               .toLowerCase()})`,
-              description: {
-                version: 1,
-                type: "doc",
-                content: [
-                  createHeading("Entity"),
-                  createParagraph(entityName),
-                  createHeading("Profile"),
-                  createParagraph(data.profileUrl, true),
-                  createHeading("Data Issue"),
-                  createParagraph(data.dataIssue),
-                  createHeading("Description"),
-                  createParagraph(data.description),
-                  createHeading("Reported by"),
-                  createParagraph(reportedBy)
-                ]
-              },
+            description: {
+              version: 1,
+              type: 'doc',
+              content: [
+                createHeading('Entity'),
+                createParagraph(entityName),
+                createHeading('Profile'),
+                createParagraph(data.profileUrl, true),
+                createHeading('Data Issue'),
+                createParagraph(data.dataIssue),
+                createHeading('Description'),
+                createParagraph(data.description),
+                createHeading('Reported by'),
+                createParagraph(reportedBy),
+              ],
+            },
             issuetype: {
               name: 'Task',
             },
