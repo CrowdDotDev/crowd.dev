@@ -492,11 +492,13 @@ export default {
       }
     },
 
-    async doGitConnect({ commit }, { remotes, isUpdate }) {
+    async doGitConnect({ commit }, {
+      remotes, isUpdate, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.gitConnect(remotes);
+        const integration = await IntegrationService.gitConnect(remotes, [segmentId]);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -513,7 +515,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

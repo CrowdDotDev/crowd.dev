@@ -13,6 +13,8 @@
     <lf-git-settings-drawer
       v-model="isGitConnectDrawerVisible"
       :integration="props.integration"
+      :segment-id="props.segmentId"
+      :grandparent-id="props.grandparentId"
     />
   </div>
 </template>
@@ -25,6 +27,8 @@ import LfGitSettingsDrawer from '@/config/integrations/git/components/git-settin
 
 const props = defineProps<{
   integration: any,
+  segmentId?: string;
+  grandparentId?: string;
 }>();
 
 const isGitConnectDrawerVisible = ref(false);
