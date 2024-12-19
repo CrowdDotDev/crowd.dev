@@ -84,7 +84,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoConnect(users, organizations, apiKey) {
+  static async devtoConnect(users, organizations, apiKey, segments) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
 
@@ -94,6 +94,7 @@ export class IntegrationService {
       organizations,
       apiKey,
       ...getSegments(),
+      segments,
     });
 
     return response.data;

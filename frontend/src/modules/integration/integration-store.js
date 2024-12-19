@@ -387,7 +387,9 @@ export default {
       }
     },
 
-    async doDevtoConnect({ commit }, { users, organizations, apiKey }) {
+    async doDevtoConnect({ commit }, {
+      users, organizations, apiKey, segmentId, grandparentId,
+    }) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -398,6 +400,7 @@ export default {
           users,
           organizations,
           apiKey,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -408,6 +411,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

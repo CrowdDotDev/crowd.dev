@@ -13,6 +13,8 @@
     v-if="isDevtoConnectDrawerVisible"
     v-model="isDevtoConnectDrawerVisible"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -24,6 +26,8 @@ import LfDevtoConnectDrawer from '@/config/integrations/devto/components/devto-c
 
 const props = defineProps<{
   integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const isDevtoConnectDrawerVisible = ref(false);
