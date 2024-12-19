@@ -51,6 +51,10 @@ export class LfService {
   static async queryProjectGroups(body) {
     const tenantId = AuthService.getTenantId();
 
+    if (!tenantId) {
+      return { rows: [], count: 0 };
+    }
+
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/projectGroup/query`,
       {
