@@ -46,11 +46,12 @@
           content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
       Please contact support if you need to onboard new data or update settings."
           placement="top"
+          :disabled="isTeam"
         >
           <span>
             <lf-button
               type="primary"
-              :disabled="true || $v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+              :disabled="!isTeam || $v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
               @click="connect()"
             >
               {{ props.integration ? "Update settings" : "Connect" }}
@@ -100,6 +101,9 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import { isTeamUser } from '@/config/permissions';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -110,6 +114,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
+const { user } = storeToRefs(useAuthStore());
 
 const route = useRoute();
 
@@ -138,6 +143,8 @@ const fetchSubProjects = () => {
 };
 
 const $v = useVuelidate();
+
+const isTeam = computed(() => isTeamUser(user.value));
 
 const allOrganizations = computed<any[]>(() => {
   const owners = new Set();
