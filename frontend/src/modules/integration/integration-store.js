@@ -580,7 +580,7 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit,
+        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit, segmentId, grandparentId,
       },
     ) {
       try {
@@ -593,7 +593,7 @@ export default {
           repoNames,
           enableAllRepos,
           enableGit,
-        });
+        }, [segmentId]);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -611,6 +611,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -713,6 +714,7 @@ export default {
       { commit },
       {
         url, username, personalAccessToken, apiToken, projects, isUpdate,
+        segmentId, grandparentId,
       },
     ) {
       try {
@@ -724,6 +726,7 @@ export default {
           personalAccessToken,
           apiToken,
           projects,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -743,6 +746,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

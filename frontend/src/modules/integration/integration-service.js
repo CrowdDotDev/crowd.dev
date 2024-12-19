@@ -5,11 +5,13 @@ import { router } from '@/router';
 const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 
 export class IntegrationService {
-  static async update(id, data) {
+  static async update(id, data, segments = []) {
     const body = {
       ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
@@ -36,11 +38,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async create(data) {
+  static async create(data, segments = []) {
     const body = {
       ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
@@ -368,11 +372,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gerritConnect(remote) {
+  static async gerritConnect(remote, segments = []) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(`/tenant/${tenantId}/gerrit-connect`, {
       remote,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
@@ -513,6 +518,7 @@ export class IntegrationService {
     personalAccessToken,
     apiToken,
     projects,
+    segments = [],
   ) {
     const tenantId = AuthService.getTenantId();
 
@@ -523,6 +529,7 @@ export class IntegrationService {
       apiToken,
       projects,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
