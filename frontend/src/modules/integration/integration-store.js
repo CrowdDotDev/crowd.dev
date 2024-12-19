@@ -447,13 +447,16 @@ export default {
       }
     },
 
-    async doStackOverflowOnboard({ commit }, { tags, keywords }) {
+    async doStackOverflowOnboard({ commit }, {
+      tags, keywords, segmentId, grandparentId,
+    }) {
       // Function to connect to StackOverflow.
 
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.stackOverflowOnboard(
+          segmentId,
           tags,
           keywords,
         );
@@ -462,13 +465,14 @@ export default {
 
         showIntegrationProgressNotification(
           'stackoverflow',
-          integration.segmentId,
+          segmentId,
         );
 
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -525,12 +529,15 @@ export default {
       }
     },
 
-    async doConfluenceConnect({ commit }, { settings, isUpdate }) {
+    async doConfluenceConnect({ commit }, {
+      settings, isUpdate, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
           settings,
+          segmentId,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -548,7 +555,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
