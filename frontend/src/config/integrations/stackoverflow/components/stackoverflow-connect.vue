@@ -13,6 +13,8 @@
     v-if="isStackoverflowConnectDrawerOpen"
     v-model="isStackoverflowConnectDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -27,6 +29,14 @@ const props = defineProps({
   integration: {
     type: Object,
     default: () => {},
+  },
+  segmentId: {
+    type: String,
+    required: true,
+  },
+  grandparentId: {
+    type: String,
+    required: true,
   },
 });
 

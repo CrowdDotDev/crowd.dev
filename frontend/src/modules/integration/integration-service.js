@@ -313,7 +313,7 @@ export class IntegrationService {
     return response.data.total;
   }
 
-  static async stackOverflowOnboard(tags, keywords) {
+  static async stackOverflowOnboard(segmentId, tags, keywords) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
     // Calling the authenticate function in the backend.
@@ -322,7 +322,7 @@ export class IntegrationService {
       {
         tags,
         keywords,
-        ...getSegments(),
+        segments: [segmentId],
       },
     );
 
