@@ -379,9 +379,6 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 const handler: ProcessStreamHandler = async (ctx) => {
   const streamIdentifier = ctx.stream.identifier
 
-  // just don't do anything for now
-  return
-
   if (streamIdentifier.startsWith(GithubStreamType.ROOT)) {
     await processRootStream(ctx)
   } else {
