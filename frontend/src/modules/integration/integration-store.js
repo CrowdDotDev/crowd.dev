@@ -529,12 +529,15 @@ export default {
       }
     },
 
-    async doConfluenceConnect({ commit }, { settings, isUpdate }) {
+    async doConfluenceConnect({ commit }, {
+      settings, isUpdate, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
           settings,
+          segmentId,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -552,7 +555,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

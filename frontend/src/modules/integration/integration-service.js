@@ -353,13 +353,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async confluenceConnect(settings) {
+  static async confluenceConnect(settings, segmentId) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/tenant/${tenantId}/confluence-connect`,
       {
         settings,
-        ...getSegments(),
+        segments: [segmentId],
       },
     );
 

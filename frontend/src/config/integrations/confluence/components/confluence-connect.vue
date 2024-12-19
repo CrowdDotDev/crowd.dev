@@ -13,6 +13,8 @@
     v-if="isConfluenceSettingsDrawerVisible"
     v-model="isConfluenceSettingsDrawerVisible"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -24,6 +26,8 @@ import LfConfluenceSettingsDrawer from '@/config/integrations/confluence/compone
 
 const props = defineProps<{
   integration: any,
+  segmentId: string,
+  grandparentId: string,
 }>();
 
 const isConfluenceSettingsDrawerVisible = ref(false);
