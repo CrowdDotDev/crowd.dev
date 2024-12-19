@@ -84,7 +84,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoConnect(users, organizations, apiKey) {
+  static async devtoConnect(users, organizations, apiKey, segments) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
 
@@ -94,6 +94,7 @@ export class IntegrationService {
       organizations,
       apiKey,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
@@ -438,7 +439,7 @@ export class IntegrationService {
     return response.data.isWebhooksReceived;
   }
 
-  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports) {
+  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -451,13 +452,14 @@ export class IntegrationService {
         groups,
         autoImports,
         ...getSegments(),
+        segments,
       },
     );
 
     return response.data;
   }
 
-  static async groupsioGetToken(email, password, twoFactorCode = null) {
+  static async groupsioGetToken(email, password, twoFactorCode = null, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -467,6 +469,7 @@ export class IntegrationService {
         password,
         twoFactorCode,
         ...getSegments(),
+        segments,
       },
     );
 

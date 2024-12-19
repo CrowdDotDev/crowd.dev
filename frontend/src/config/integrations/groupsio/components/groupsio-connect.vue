@@ -13,6 +13,8 @@
     v-if="isSettingsDrawerOpen"
     v-model="isSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -24,7 +26,10 @@ import LfGroupsioSettingsDrawer from '@/config/integrations/groupsio/components/
 
 const props = defineProps<{
   integration: any,
+  segmentId?: string,
+  grandparentId?: string,
 }>();
+
 const isSettingsDrawerOpen = ref(false);
 </script>
 
