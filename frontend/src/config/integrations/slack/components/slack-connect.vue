@@ -6,7 +6,7 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="connect()">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
 </template>
@@ -28,13 +28,26 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();
+const props = defineProps({
+  segmentId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  grandparentId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+});
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
 
 const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
-  console.log(redirectUrl);
+  const redirectUrl = props.grandparentId && props.segmentId
+    ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?slack-success=true`
+    : `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
 
   trackEvent({
     key: FeatureEventKey.CONNECT_INTEGRATION,
@@ -44,7 +57,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id || props.segmentId}`;
 });
 
 const connect = () => {

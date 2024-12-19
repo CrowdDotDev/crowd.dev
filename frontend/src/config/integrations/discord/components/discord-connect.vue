@@ -6,7 +6,7 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="connect()">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
 </template>
@@ -22,12 +22,28 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const props = defineProps({
+  segmentId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  grandparentId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+});
 
 const { doDiscordConnect } = mapActions('integration');
 
 const connectUrl = computed(() => config.discordInstallationUrl);
 
 const connect = () => {
+  if (props.grandparentId && props.segmentId) {
+    localStorage.setItem('segmentId', props.segmentId);
+    localStorage.setItem('segmentGrandparentId', props.grandparentId);
+  }
   window.open(connectUrl.value, '_self');
 };
 

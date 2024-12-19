@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center gap-4">
-      <!--      <lf-button type="secondary-ghost" class="!text-gray-500" @click="isDetailsModalOpen = true">-->
+      <!--      <lf-button v-if="!props.hideDetails" type="secondary-ghost" class="!text-gray-500" @click="isDetailsModalOpen = true">-->
       <!--        <lf-icon name="circle-info" type="regular" />-->
       <!--        Details-->
       <!--      </lf-button>-->
@@ -13,7 +13,7 @@
         <span>
           <lf-button type="secondary" disabled @click="isSettingsDrawerOpen = true">
             <lf-icon name="link-simple" />
-            Connect
+            <slot>Connect</slot>
           </lf-button>
         </span>
       </el-tooltip>
@@ -27,6 +27,10 @@ import { ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
+
+// const props = defineProps<{
+//   hideDetails: boolean;
+// }>();
 
 const isSettingsDrawerOpen = ref(false);
 </script>
