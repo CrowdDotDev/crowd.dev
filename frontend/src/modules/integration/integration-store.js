@@ -293,12 +293,12 @@ export default {
       }
     },
 
-    async doRedditOnboard({ commit }, { subreddits }) {
+    async doRedditOnboard({ commit }, { subreddits, segmentId, grandparentId }) {
       // Function to trigger Oauth performance.
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.redditOnboard(subreddits);
+        const integration = await IntegrationService.redditOnboard(subreddits, segmentId);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -306,7 +306,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

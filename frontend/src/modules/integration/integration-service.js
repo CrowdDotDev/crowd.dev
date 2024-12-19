@@ -186,12 +186,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async redditOnboard(subreddits) {
+  static async redditOnboard(subreddits, segmentId) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
     const body = {
       subreddits,
-      ...getSegments(),
+      segments: [segmentId],
     };
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
