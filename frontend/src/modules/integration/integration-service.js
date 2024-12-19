@@ -341,12 +341,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gitConnect(remotes) {
+  static async gitConnect(remotes, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(`/tenant/${tenantId}/git-connect`, {
       remotes,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
