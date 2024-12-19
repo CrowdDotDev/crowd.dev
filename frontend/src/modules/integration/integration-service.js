@@ -513,6 +513,7 @@ export class IntegrationService {
     personalAccessToken,
     apiToken,
     projects,
+    segments = [],
   ) {
     const tenantId = AuthService.getTenantId();
 
@@ -523,6 +524,7 @@ export class IntegrationService {
       apiToken,
       projects,
       ...getSegments(),
+      segments,
     });
 
     return response.data;

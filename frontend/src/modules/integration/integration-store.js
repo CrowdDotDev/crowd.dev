@@ -710,6 +710,7 @@ export default {
       { commit },
       {
         url, username, personalAccessToken, apiToken, projects, isUpdate,
+        segmentId, grandparentId,
       },
     ) {
       try {
@@ -721,6 +722,7 @@ export default {
           personalAccessToken,
           apiToken,
           projects,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -740,6 +742,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {

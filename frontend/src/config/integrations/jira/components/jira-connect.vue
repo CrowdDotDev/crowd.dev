@@ -9,7 +9,13 @@
       <slot>Connect</slot>
     </lf-button>
   </div>
-  <lf-jira-settings-drawer v-if="isJiraSettingsDrawerVisible" v-model="isJiraSettingsDrawerVisible" :integration="props.integration" />
+  <lf-jira-settings-drawer
+    v-if="isJiraSettingsDrawerVisible"
+    v-model="isJiraSettingsDrawerVisible"
+    :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
+  />
 </template>
 
 <script setup lang="ts">
@@ -20,6 +26,8 @@ import LfJiraSettingsDrawer from '@/config/integrations/jira/components/jira-set
 
 const props = defineProps<{
   integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const isJiraSettingsDrawerVisible = ref(false);
