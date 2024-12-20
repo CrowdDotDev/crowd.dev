@@ -98,7 +98,6 @@ import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
-import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -118,6 +117,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import { OrganizationApiService } from '@/modules/organization/services/organization.api.service';
 import Message from '@/shared/message/message';
 import Errors from '@/shared/error/errors';
+import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 
 const props = defineProps<{
   modelValue: boolean,

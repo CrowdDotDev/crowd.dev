@@ -10,7 +10,7 @@ import activity from '@/modules/activity/activity-module';
 import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 
-import lf from '@/modules/lf/lf-modules';
+import admin from '@/modules/admin/admin.module';
 import dataQuality from '@/modules/data-quality/data-quality.module';
 import eagleEye from '@/modules/eagle-eye/eagle-eye-module';
 
@@ -27,7 +27,7 @@ const modules: Record<string, any> = {
   automation,
   eagleEye,
   organization,
-  lf,
+  admin,
   dataQuality,
 };
 

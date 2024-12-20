@@ -27,8 +27,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Project } from '@/modules/lf/segments/types/Segments';
 import AppLfProjectCount from './lf-project-count.vue';
-import { Project } from '../../types/Segments';
 
 const props = withDefaults(defineProps<{
   projects: Project[];
