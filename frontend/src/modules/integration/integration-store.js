@@ -756,7 +756,9 @@ export default {
       }
     },
 
-    async doGitlabConnect({ commit, dispatch }, { code, state, segmentId, grandparentId }) {
+    async doGitlabConnect({ commit, dispatch }, {
+      code, state, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
         const integration = await IntegrationService.gitlabConnect(code, state, [segmentId]);
