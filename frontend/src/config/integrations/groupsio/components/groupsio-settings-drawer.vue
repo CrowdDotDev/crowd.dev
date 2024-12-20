@@ -236,6 +236,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  segmentId: {
+    type: String,
+    default: null,
+  },
+  grandparentId: {
+    type: String,
+    default: null,
+  },
 });
 
 const form = reactive({
@@ -311,6 +319,7 @@ const validateAccount = async () => {
       form.email,
       form.password,
       form.twoFactorCode,
+      [props.segmentId],
     );
     const { groupsioCookie, groupsioCookieExpiry } = response;
     cookie.value = groupsioCookie;
@@ -500,6 +509,8 @@ const connect = async () => {
     groups: selectedGroups,
     autoImports,
     isUpdate,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       trackEvent({

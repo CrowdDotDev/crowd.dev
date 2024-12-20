@@ -6,12 +6,12 @@
     <!--    </lf-button>-->
     <lf-button type="secondary" @click="connect()">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   defineProps, computed, onMounted,
 } from 'vue';
@@ -28,12 +28,11 @@ import LfButton from '@/ui-kit/button/Button.vue';
 const route = useRoute();
 const router = useRouter();
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  segmentId: string | null;
+  grandparentId: string | null;
+  integration: any;
+}>();
 
 // Only render twitter drawer and settings button, if integration has settings
 const hashtags = computed(() => props.integration?.settings?.hashtags || []);
@@ -42,7 +41,9 @@ const hashtags = computed(() => props.integration?.settings?.hashtags || []);
 // This will allow to be reused by the twitter drawer component
 // and override the current configured hashtag
 const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
+  const redirectUrl = props.grandparentId && props.segmentId
+    ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?success=true`
+    : `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
   const authStore = useAuthStore();
   const { tenant } = storeToRefs(authStore);
@@ -50,7 +51,7 @@ const connectUrl = computed(() => {
   return `${config.backendUrl}/twitter/${
     tenant.value.id
   }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
-    route.params.id
+    props.segmentId
   }`;
 });
 
@@ -82,7 +83,7 @@ onMounted(() => {
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfTwitterConnect',
 };

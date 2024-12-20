@@ -6,12 +6,12 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="connect()">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   defineProps, computed, onMounted, ref,
 } from 'vue';
@@ -27,28 +27,28 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const route = useRoute();
 
-defineProps({
-  integration: {
-    type: Object,
-    default: () => ({}),
-  },
-});
+const props = defineProps<{
+  integration: any,
+  segmentId: string | null,
+  grandparentId: string | null,
+}>();
 
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 const { doGitlabConnect } = mapActions('integration');
 
 const isFinishingModalOpen = ref(false);
 
-const connectUrl = computed(() => {
-  const authStore = useAuthStore();
-  const { tenant } = storeToRefs(authStore);
-
-  return `${config.backendUrl}/gitlab/${
-    tenant.value.id
-  }/connect?crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
-});
+const connectUrl = computed(() => `${config.backendUrl}/gitlab/${
+  tenant.value.id
+}/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`);
 
 const connect = async () => {
   try {
+    if (props.grandparentId && props.segmentId) {
+      localStorage.setItem('segmentId', props.segmentId);
+      localStorage.setItem('segmentGrandparentId', props.grandparentId);
+    }
     const result = await ConfirmDialog({
       type: 'notification',
       title: 'Are you the admin of your GitLab organization?',
@@ -85,6 +85,8 @@ const finallizeGitlabConnect = () => {
     doGitlabConnect({
       code,
       state,
+      segmentId: props.segmentId,
+      grandparentId: props.grandparentId,
     })
       .then(() => {
         isFinishingModalOpen.value = false;
@@ -97,7 +99,7 @@ onMounted(() => {
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfGitlabConnect',
 };

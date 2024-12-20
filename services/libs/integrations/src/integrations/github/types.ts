@@ -133,6 +133,7 @@ export interface GithubPlatformSettings {
   sfUsername: string
   sfDatabase: string
   sfWarehouse: string
+  sfIncrementalWarehouse: string
   sfRole: string
   appId: string
   clientId: string
@@ -143,6 +144,8 @@ export interface GithubPlatformSettings {
   globalLimit?: number
   callbackUrl: string
   personalAccessTokens: string
+  tgNotifierToken: string
+  tgNotifierChatId: string
 }
 
 export interface GithubIntegrationSettings {

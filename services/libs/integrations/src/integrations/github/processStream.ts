@@ -8,6 +8,7 @@ import {
 
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
 
+import { capGithubArchive } from './cap'
 import {
   GithubActivityType,
   GithubApiData,
@@ -20,6 +21,9 @@ import {
 
 let sf: SnowflakeClient | undefined = undefined
 let gh: GithubSnowflakeClient | undefined = undefined
+
+let sfIncremental: SnowflakeClient | undefined = undefined
+let ghIncremental: GithubSnowflakeClient | undefined = undefined
 
 const initClient = (ctx: IProcessStreamContext) => {
   const settings = ctx.platformSettings as GithubPlatformSettings
@@ -34,11 +38,33 @@ const initClient = (ctx: IProcessStreamContext) => {
   gh = new GithubSnowflakeClient(sf)
 }
 
-const getClient = (ctx: IProcessStreamContext) => {
-  if (!sf) {
-    initClient(ctx)
+const initIncrementalClient = (ctx: IProcessStreamContext) => {
+  const settings = ctx.platformSettings as GithubPlatformSettings
+  sfIncremental = new SnowflakeClient({
+    privateKeyString: settings.sfPrivateKey,
+    account: settings.sfAccount,
+    username: settings.sfUsername,
+    database: settings.sfDatabase,
+    warehouse: settings.sfIncrementalWarehouse,
+    role: settings.sfRole,
+  })
+  ghIncremental = new GithubSnowflakeClient(sfIncremental)
+}
+
+const getClient = (
+  ctx: IProcessStreamContext,
+): { sf: SnowflakeClient; gh: GithubSnowflakeClient } => {
+  if (ctx.onboarding) {
+    if (!sf) {
+      initClient(ctx)
+    }
+    return { sf, gh }
+  } else {
+    if (!sfIncremental) {
+      initIncrementalClient(ctx)
+    }
+    return { sf: sfIncremental, gh: ghIncremental }
   }
-  return { sf, gh }
 }
 
 const prepareMember = (data: IBasicResponse): GithubPrepareMemberOutput => {
@@ -78,7 +104,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoStargazers({
     sf_repo_id: data.sf_repo_id,
@@ -105,7 +131,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoForks({
     sf_repo_id: data.sf_repo_id,
@@ -132,7 +158,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoPullRequests({
     sf_repo_id: data.sf_repo_id,
@@ -180,7 +206,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoPullRequestReviewComments({
     sf_repo_id: data.sf_repo_id,
@@ -206,7 +232,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoIssues({
     sf_repo_id: data.sf_repo_id,
@@ -243,7 +269,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
-  const since_days_ago = ctx.onboarding ? undefined : '3'
+  const since_days_ago = ctx.onboarding ? undefined : '2'
 
   const result = await gh.getRepoIssueComments({
     sf_repo_id: data.sf_repo_id,
@@ -320,6 +346,10 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubRootStream
   const repos = data.reposToCheck
 
+  if (ctx.onboarding) {
+    await capGithubArchive(ctx, repos)
+  }
+
   const { gh } = getClient(ctx)
 
   // now it's time to start streams
@@ -348,9 +378,6 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
 const handler: ProcessStreamHandler = async (ctx) => {
   const streamIdentifier = ctx.stream.identifier
-
-  // just don't do anything for now
-  return
 
   if (streamIdentifier.startsWith(GithubStreamType.ROOT)) {
     await processRootStream(ctx)

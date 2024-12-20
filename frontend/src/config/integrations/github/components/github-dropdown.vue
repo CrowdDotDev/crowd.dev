@@ -7,6 +7,8 @@
     v-if="isGitHubSettingsDrawerOpen"
     v-model="isGitHubSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
@@ -18,6 +20,8 @@ import LfGithubSettingsDrawer from '@/config/integrations/github/components/sett
 
 const props = defineProps<{
   integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const isGitHubSettingsDrawerOpen = ref(false);

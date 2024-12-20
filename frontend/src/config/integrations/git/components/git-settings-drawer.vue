@@ -74,6 +74,7 @@ import AppArrayInput from '@/shared/form/array-input.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -84,6 +85,14 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
+  },
+  segmentId: {
+    type: String,
+    default: null,
+  },
+  grandparentId: {
+    type: String,
+    default: null,
   },
 });
 
@@ -133,6 +142,8 @@ const connect = async () => {
   doGitConnect({
     remotes: form.remotes,
     isUpdate,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       trackEvent({
