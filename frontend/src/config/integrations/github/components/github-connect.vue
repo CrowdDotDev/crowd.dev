@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center gap-4">
-      <!--      <lf-button type="secondary-ghost" class="!text-gray-500" @click="isDetailsModalOpen = true">-->
+      <!--      <lf-button v-if="!props.hideDetails" type="secondary-ghost" class="!text-gray-500" @click="isDetailsModalOpen = true">-->
       <!--        <lf-icon name="circle-info" type="regular" />-->
       <!--        Details-->
       <!--      </lf-button>-->
@@ -13,11 +13,17 @@
       >
         <lf-button type="secondary" :disabled="!isTeam" @click="isSettingsDrawerOpen = true">
           <lf-icon name="link-simple" />
-          Connect
+          <slot>Connect</slot>
         </lf-button>
       </el-tooltip>
     </div>
-    <lf-github-settings-drawer v-if="isSettingsDrawerOpen" v-model="isSettingsDrawerOpen" :integration="null" />
+    <lf-github-settings-drawer
+      v-if="isSettingsDrawerOpen"
+      v-model="isSettingsDrawerOpen"
+      :integration="props.integration"
+      :segment-id="props.segmentId"
+      :grandparent-id="props.grandparentId"
+    />
   </div>
 </template>
 
@@ -29,6 +35,12 @@ import LfGithubSettingsDrawer from '@/config/integrations/github/components/sett
 import { isTeamUser } from '@/config/permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+
+const props = defineProps<{
+  integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const isSettingsDrawerOpen = ref(false);
 

@@ -194,17 +194,15 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
-  ref, reactive, onMounted, computed, defineEmits, defineProps,
+  computed, defineEmits, defineProps, onMounted, reactive, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { required, url, helpers } from '@vuelidate/validators';
+import { helpers, required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import {
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
@@ -216,6 +214,13 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const { trackEvent } = useProductTracking();
+
+const props = defineProps<{
+  modelValue: boolean,
+  integration: any,
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const tenantId = AuthService.getTenantId();
 
@@ -248,17 +253,6 @@ function generateRandomSecret(length) {
   window.crypto.getRandomValues(array);
   return Array.from(array).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
-
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: null,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-});
 
 const form = reactive({
   discourseURL: '',
@@ -312,10 +306,9 @@ async function validate() {
       webhookSecret.value = generateRandomSecret(32);
     }
   } catch {
-    const errors = {
+    $externalResults.value = {
       apiKey: 'Invalid credentials',
     };
-    $externalResults.value = errors;
     isAPIConnectionValid.value = false;
   }
 
@@ -388,11 +381,7 @@ const verifyWebhook = async () => {
   isWebhookVerifying.value = true;
   try {
     const webhookVerified = await IntegrationService.discourseVerifyWebhook(props.integration?.id);
-    if (webhookVerified) {
-      isWebhookValid.value = true;
-    } else {
-      isWebhookValid.value = false;
-    }
+    isWebhookValid.value = !!webhookVerified;
   } catch {
     isWebhookValid.value = false;
   } finally {
@@ -410,6 +399,8 @@ const connect = async () => {
     apiKey: form.apiKey,
     webhookSecret: webhookSecret.value,
     isUpdate,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       trackEvent({
@@ -430,7 +421,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfDiscourseSettingsDrawer',
 };
