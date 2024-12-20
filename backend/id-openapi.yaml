@@ -59,7 +59,7 @@ paths:
           description: Bad request
         '404':
           description: Member not found
-    
+
     post:
       security:
         - BearerAuth: []
@@ -103,9 +103,9 @@ paths:
                   description: Organization ID
                 source:
                   type: string
-                  enum: ['ui', 'email-domain', 'enrichment','hubspot', 'github']
+                  enum: ['ui', 'email-domain', 'enrichment', 'hubspot', 'github']
                   example: 'ui'
-                  description: Data source. For manual updates, always use 'ui'                  
+                  description: Data source. For manual updates, always use 'ui'
                 title:
                   type: string
                   example: 'Software Engineer'
@@ -188,7 +188,7 @@ paths:
                   description: Organization ID
                 source:
                   type: string
-                  enum: ['ui', 'email-domain', 'enrichment','hubspot', 'github']
+                  enum: ['ui', 'email-domain', 'enrichment', 'hubspot', 'github']
                   example: 'ui'
                   description: Data source. For manual updates, always use 'ui'
                 title:
@@ -304,7 +304,7 @@ paths:
           description: Bad request
         '404':
           description: Member not found
-    
+
     patch:
       security:
         - BearerAuth: []
@@ -384,7 +384,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: JWT token obtained from LFX authentication service
-      
+
   schemas:
     Organization:
       type: object
@@ -405,7 +405,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MemberOrganization'
-    
+
     MemberOrganization:
       type: object
       properties:
