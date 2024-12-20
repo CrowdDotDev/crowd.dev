@@ -37,6 +37,7 @@
     "sfUsername": "CROWD_SNOWFLAKE_USERNAME",
     "sfDatabase": "CROWD_SNOWFLAKE_DATABASE",
     "sfWarehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "sfIncrementalWarehouse": "CROWD_SNOWFLAKE_INCREMENTAL_WAREHOUSE",
     "sfRole": "CROWD_SNOWFLAKE_ROLE",
     "appId": "CROWD_GITHUB_APP_ID",
     "clientId": "CROWD_GITHUB_CLIENT_ID",
@@ -45,7 +46,9 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED",
-    "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS"
+    "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS",
+    "tgNotifierToken": "CROWD_TG_NOTIFIER_TOKEN",
+    "tgNotifierChatId": "CROWD_TG_NOTIFIER_CHAT_ID"
   },
   "gitlab": {
     "clientId": "CROWD_GITLAB_CLIENT_ID",

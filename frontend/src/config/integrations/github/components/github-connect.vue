@@ -6,16 +6,15 @@
       <!--        Details-->
       <!--      </lf-button>-->
       <el-tooltip
-        content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
-      Please contact support if you need to onboard new data or update settings."
+        content="Onboarding new data for GitHub is currently being
+        managed by the CM dev team. Please reach out in Slack (#lfx-cm) to get your project onboarded."
         placement="top"
+        :disabled="isTeam"
       >
-        <span>
-          <lf-button type="secondary" disabled @click="isSettingsDrawerOpen = true">
-            <lf-icon name="link-simple" />
-            <slot>Connect</slot>
-          </lf-button>
-        </span>
+        <lf-button type="secondary" :disabled="!isTeam" @click="isSettingsDrawerOpen = true">
+          <lf-icon name="link-simple" />
+          <slot>Connect</slot>
+        </lf-button>
       </el-tooltip>
     </div>
     <lf-github-settings-drawer
@@ -29,10 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
+import { isTeamUser } from '@/config/permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   integration: any,
@@ -41,6 +43,10 @@ const props = defineProps<{
 }>();
 
 const isSettingsDrawerOpen = ref(false);
+
+const { user } = storeToRefs(useAuthStore());
+
+const isTeam = computed(() => isTeamUser(user.value));
 </script>
 
 <script lang="ts">
