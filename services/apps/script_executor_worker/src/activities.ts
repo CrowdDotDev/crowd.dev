@@ -10,6 +10,7 @@ import {
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
+import { getMemberIdsWithDeletedWorkexperiences } from './activities/fix-member-affiliations'
 import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
@@ -38,4 +39,5 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  getMemberIdsWithDeletedWorkexperiences,
 }
