@@ -3,6 +3,7 @@ import QueryStream from 'pg-query-stream'
 
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 import { ITenant } from '@crowd/types'
 
 import { insertActivities } from '../../../activities'
@@ -17,6 +18,7 @@ const logger = getServiceChildLogger('profiles_worker')
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
   qDb: DbConnOrTx,
+  queueClient: IQueue,
   memberId: string,
 ) {
   const qx = pgpQx(pgDb.connection())
@@ -154,7 +156,7 @@ export async function runMemberAffiliationsUpdate(
       }
     }
 
-    await insertActivities([activity], true)
+    await insertActivities(queueClient, [activity], true)
   }
 
   const qs = new QueryStream(
