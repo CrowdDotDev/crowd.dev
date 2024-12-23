@@ -14,6 +14,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@crowd/types": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
