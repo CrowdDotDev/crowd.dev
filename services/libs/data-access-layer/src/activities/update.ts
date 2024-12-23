@@ -2,6 +2,7 @@ import QueryStream from 'pg-query-stream'
 
 import { DbConnOrTx } from '@crowd/database'
 import { getServiceChildLogger, timer } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
 import { formatQuery } from '../queryExecutor'
@@ -20,20 +21,41 @@ export async function streamActivities(
   const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`)
 
   const t = timer(logger, `query activities with ${whereClause}`)
-  const res = await qdb.stream(qs, async (stream) => {
-    for await (const item of stream) {
-      t.end()
 
-      const activity = item as unknown as IDbActivityCreateData
+  return new Promise((resolve, reject) => {
+    let processedAllRows = false
+    let streamResult = null
 
-      await onActivity(activity)
+    function tryFinish() {
+      if (processedAllRows && streamResult) {
+        resolve(streamResult)
+      }
     }
+
+    qdb
+      .stream(qs, async (stream) => {
+        for await (const item of stream) {
+          t.end()
+
+          const activity = item as unknown as IDbActivityCreateData
+
+          await onActivity(activity)
+        }
+
+        processedAllRows = true
+        tryFinish()
+      })
+      .then((res) => {
+        streamResult = res
+        tryFinish()
+      })
+      .catch(reject)
   })
-  return res
 }
 
 export async function updateActivities(
   qdb: DbConnOrTx,
+  queueClient: IQueue,
   mapActivity: (activity: IDbActivityCreateData) => Promise<Partial<IDbActivityCreateData>>,
   where: string,
   params?: Record<string, unknown>,
@@ -42,6 +64,7 @@ export async function updateActivities(
     qdb,
     async (activity) => {
       await insertActivities(
+        queueClient,
         [
           {
             ...activity,

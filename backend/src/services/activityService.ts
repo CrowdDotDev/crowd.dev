@@ -30,7 +30,7 @@ import {
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
+import { QUEUE_CLIENT, getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -181,7 +181,7 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
-        await insertActivities([{ ...data, id: record.id }], true)
+        await insertActivities(QUEUE_CLIENT(), [{ ...data, id: record.id }], true)
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
