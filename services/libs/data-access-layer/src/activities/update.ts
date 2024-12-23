@@ -20,16 +20,36 @@ export async function streamActivities(
   const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`)
 
   const t = timer(logger, `query activities with ${whereClause}`)
-  const res = await qdb.stream(qs, async (stream) => {
-    for await (const item of stream) {
-      t.end()
 
-      const activity = item as unknown as IDbActivityCreateData
+  return new Promise((resolve, reject) => {
+    let processedAllRows = false
+    let streamResult = null
 
-      await onActivity(activity)
+    function tryFinish() {
+      if (processedAllRows && streamResult) {
+        resolve(streamResult)
+      }
     }
+
+    qdb
+      .stream(qs, async (stream) => {
+        for await (const item of stream) {
+          t.end()
+
+          const activity = item as unknown as IDbActivityCreateData
+
+          await onActivity(activity)
+        }
+
+        processedAllRows = true
+        tryFinish()
+      })
+      .then((res) => {
+        streamResult = res
+        tryFinish()
+      })
+      .catch(reject)
   })
-  return res
 }
 
 export async function updateActivities(
