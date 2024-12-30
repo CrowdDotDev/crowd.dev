@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { i18n, init as i18nInit } from '@/i18n';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
@@ -8,7 +9,6 @@ import { OrganizationField } from '@/modules/organization/organization-field';
 import StringArrayField from '@/shared/fields/string-array-field';
 import GenericField from '@/shared/fields/generic-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
-import moment from 'moment';
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`);
