@@ -22,7 +22,7 @@
   <!-- Bottom of feed message -->
   <app-empty-state
     v-if="showBottomFeedMessage"
-    icon="ri-search-eye-line"
+    icon="eyes"
     description="We couldn't find any more results based on your feed setting."
     class="pb-12"
   />

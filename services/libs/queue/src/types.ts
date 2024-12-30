@@ -1,6 +1,8 @@
-import { SendMessageBatchCommandOutput, SendMessageResult, SQSClient } from '@aws-sdk/client-sqs'
-import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
+import { SQSClient, SendMessageBatchCommandOutput, SendMessageResult } from '@aws-sdk/client-sqs'
 import { Kafka, KafkaMessage, RecordMetadata } from 'kafkajs'
+
+import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
+
 import { IKafkaClientConfig } from './vendors/kafka/types'
 import { SqsMessage } from './vendors/sqs/types'
 

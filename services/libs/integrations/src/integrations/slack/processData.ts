@@ -1,6 +1,5 @@
-import { ProcessDataHandler, IProcessDataContext } from '../../types'
-import { ISlackAPIData, SlackActivityType, SlackMember, SlackMessage } from './types'
-import { SLACK_GRID } from './grid'
+import sanitizeHtml from 'sanitize-html'
+
 import {
   IActivityData,
   IMemberData,
@@ -8,7 +7,11 @@ import {
   MemberIdentityType,
   PlatformType,
 } from '@crowd/types'
-import sanitizeHtml from 'sanitize-html'
+
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
+import { SLACK_GRID } from './grid'
+import { ISlackAPIData, SlackActivityType, SlackMember, SlackMessage } from './types'
 
 /**
  * Get the URL for a Slack message

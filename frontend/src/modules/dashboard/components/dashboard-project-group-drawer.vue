@@ -36,9 +36,11 @@
                 class="flex flex-grow items-center justify-between gap-2 px-6"
               >
                 <div class="flex items-center gap-4">
-                  <i
+                  <lf-icon
                     v-if="project.subprojects.length"
-                    class="ri-arrow-down-s-line text-black text-lg"
+                    name="chevron-down"
+                    :size="20"
+                    class="text-black"
                     :class="{
                       'rotate-180': openedProject === project.name,
                     }"
@@ -96,13 +98,19 @@
                             : 'black'
                         "
                       />
-                      <i
+                      <lf-icon
                         v-if="status === 'no-data'"
-                        class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+                        name="triangle-exclamation"
+                        :size="12"
+                        type="solid"
+                        class="absolute right-0 top-0 leading-3 text-yellow-500"
                       />
-                      <i
+                      <lf-icon
                         v-else-if="status === 'error'"
-                        class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
+                        name="circle-exclamation"
+                        :size="12"
+                        type="solid"
+                        class="absolute right-0 top-0 leading-3 text-red-600"
                       />
                     </div>
                   </div>
@@ -119,7 +127,7 @@
         </el-collapse>
 
         <!-- Load more button -->
-        <div v-if="isLoadMoreVisible" class="flex grow justify-center mt-8">
+        <div v-if="!isLoadMoreVisible" class="flex grow justify-center mt-8">
           <div
             v-if="loading"
             v-loading="loading"
@@ -130,14 +138,15 @@
             class="btn btn-link btn-link--primary"
             @click="onLoadMore"
           >
-            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+            <lf-icon name="arrow-down" :size="14" />
+            <span class="text-xs">Load more</span>
           </el-button>
         </div>
       </div>
       <app-empty-state
         v-else
         class="mt-4"
-        icon="ri-stack-line"
+        icon="fa-light fa-layer-group"
         description="No projects found"
       />
     </template>
@@ -155,6 +164,7 @@ import {
   EventType,
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({

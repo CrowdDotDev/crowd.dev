@@ -1,7 +1,8 @@
 import { diff } from 'deep-object-diff'
 
 import { ActionType } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { type CaptureFn, type BuildActionFn, createCaptureFn, CaptureOneFn } from './baseActions'
+
+import { type BuildActionFn, type CaptureFn, CaptureOneFn, createCaptureFn } from './baseActions'
 
 function modifyEntityAction<T>(
   actionType: ActionType,

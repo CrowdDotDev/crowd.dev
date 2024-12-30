@@ -1,6 +1,7 @@
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { getSelectIntegrationColumnSet, IDbIntegration } from '../repo/integration.data'
+
+import { IDbIntegration, getSelectIntegrationColumnSet } from '../repo/integration.data'
 
 export default class IntegrationRepository extends RepositoryBase<IntegrationRepository> {
   private readonly selectIntegrationColumnSet: DbColumnSet

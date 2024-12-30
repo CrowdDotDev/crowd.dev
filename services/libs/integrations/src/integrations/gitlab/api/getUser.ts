@@ -1,4 +1,5 @@
-import { Gitlab, UserSchema, SimpleUserSchema } from '@gitbeaker/rest'
+import { Gitlab, SimpleUserSchema, UserSchema } from '@gitbeaker/rest'
+
 import type { IProcessStreamContext } from '../../../types'
 import { RedisSemaphore } from '../utils/lock'
 

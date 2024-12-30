@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ISimilarityFilter, ISimilarMemberOpensearchResult } from '../types'
+import { MemberField, queryMembers } from '@crowd/data-access-layer/src/members'
+import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { buildFullMemberForMergeSuggestions } from '@crowd/opensearch'
-import { svc } from '../main'
 import {
   ILLMConsumableMember,
-  IMemberMergeSuggestion,
-  OpenSearchIndex,
-  MemberMergeSuggestionTable,
   IMemberBaseForMergeSuggestions,
+  IMemberMergeSuggestion,
+  MemberMergeSuggestionTable,
+  OpenSearchIndex,
 } from '@crowd/types'
-import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
+
+import { svc } from '../main'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
-import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { queryMembers, MemberField } from '@crowd/data-access-layer/src/members'
+import { ISimilarMemberOpensearchResult, ISimilarityFilter } from '../types'
 
 /**
  * Finds similar members of given member in a tenant
@@ -164,9 +165,6 @@ export async function getMemberMergeSuggestions(
   const similarMembersQueryBody = {
     query: {
       bool: identitiesPartialQuery,
-    },
-    collapse: {
-      field: 'uuid_memberId',
     },
     _source: [
       'uuid_memberId',
@@ -351,4 +349,12 @@ export async function getRawMemberMergeSuggestions(
     svc.log,
   )
   return memberMergeSuggestionsRepo.getRawMemberSuggestions(similarityFilter, limit)
+}
+
+export async function removeRawMemberMergeSuggestions(suggestion: string[]): Promise<void> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  await memberMergeSuggestionsRepo.removeRawMemberSuggestions(suggestion)
 }

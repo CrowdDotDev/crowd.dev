@@ -5,7 +5,7 @@
     @mouseleave="hovered = false"
   >
     <div class="flex items-start">
-      <lf-icon name="mail-line" :size="20" class="text-gray-500" />
+      <lf-icon-old name="mail-line" :size="20" class="text-gray-500" />
       <div class="pl-2">
         <div class="flex items-center">
           <lf-tooltip
@@ -24,7 +24,7 @@
             </a>
           </lf-tooltip>
           <lf-tooltip v-if="props.email.verified" content="Verified email">
-            <lf-icon
+            <lf-icon-old
               name="verified-badge-line"
               :size="16"
               class="ml-1 text-primary-500"
@@ -42,7 +42,7 @@
     <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon name="more-fill" />
+          <lf-icon-old name="more-fill" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -51,14 +51,14 @@
         class="w-full"
         @click="emit('edit')"
       >
-        <lf-icon name="pencil-line" />Edit email
+        <lf-icon-old name="pencil-line" />Edit email
       </lf-dropdown-item>
       <!-- Unmerge -->
       <lf-dropdown-item
         v-if="hasPermission(LfPermission.organizationEdit)"
         @click="emit('unmerge')"
       >
-        <lf-icon name="link-unlink" />Unmerge email
+        <lf-icon-old name="link-unlink" />Unmerge email
       </lf-dropdown-item>
 
       <lf-dropdown-item
@@ -80,14 +80,14 @@
         class="w-full"
         @click="removeEmail"
       >
-        <lf-icon name="delete-bin-6-line" />Delete email
+        <lf-icon-old name="delete-bin-6-line" />Delete email
       </lf-dropdown-item>
     </lf-dropdown>
   </article>
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';

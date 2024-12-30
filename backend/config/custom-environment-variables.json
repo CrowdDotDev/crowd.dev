@@ -130,6 +130,12 @@
     "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
     "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID"
   },
+  "jiraIssueReporter": {
+    "apiUrl": "CROWD_JIRA_ISSUE_REPORTER_API_URL",
+    "apiTokenEmail": "CROWD_JIRA_ISSUE_REPORTER_API_TOKEN_EMAIL",
+    "token": "CROWD_JIRA_ISSUE_REPORTER_API_TOKEN",
+    "projectKey": "CROWD_JIRA_ISSUE_REPORTER_PROJECT_KEY"
+  },
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   },
@@ -147,8 +153,8 @@
     "secretKey": "CROWD_NANGO_SECRET_KEY"
   },
   "enrichment": {
-    "url": "CROWD_ENRICHMENT_URL",
-    "apiKey": "CROWD_ENRICHMENT_API_KEY"
+    "url": "CROWD_ENRICHMENT_PROGAI_URL",
+    "apiKey": "CROWD_ENRICHMENT_PROGAI_API_KEY"
   },
   "organizationEnrichment": {
     "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"
@@ -222,5 +228,13 @@
     "clientSecret": "CROWD_GITLAB_CLIENT_SECRET",
     "callbackUrl": "CROWD_GITLAB_CALLBACK_URL",
     "webhookToken": "CROWD_GITLAB_WEBHOOK_TOKEN"
+  },
+  "snowflake": {
+    "privateKey": "CROWD_SNOWFLAKE_PRIVATE_KEY",
+    "account": "CROWD_SNOWFLAKE_ACCOUNT",
+    "username": "CROWD_SNOWFLAKE_USERNAME",
+    "database": "CROWD_SNOWFLAKE_DATABASE",
+    "warehouse": "CROWD_SNOWFLAKE_WAREHOUSE",
+    "role": "CROWD_SNOWFLAKE_ROLE"
   }
 }

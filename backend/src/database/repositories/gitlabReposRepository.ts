@@ -1,5 +1,6 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
@@ -108,5 +109,28 @@ export default class GitlabReposRepository {
     )
 
     return result[0].has_repos
+  }
+
+  static async delete(integrationId, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+    const tenantId = options.currentTenant.id
+
+    await seq.query(
+      `
+        UPDATE "gitlabRepos"
+        SET "deletedAt" = NOW()
+        WHERE "integrationId" = :integrationId
+          AND "tenantId" = :tenantId
+      `,
+      {
+        replacements: {
+          integrationId,
+          tenantId,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
   }
 }

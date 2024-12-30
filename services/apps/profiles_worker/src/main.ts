@@ -1,5 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
+
 import { scheduleRecalculateAffiliationsOfNewRolesForEachTenant } from './schedules/triggerRecalculateAffiliationsOfNewRolesForEachTenant'
 
 const config: Config = {

@@ -1,21 +1,18 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 export enum GithubActivityType {
-  DISCUSSION_STARTED = 'discussion-started',
   PULL_REQUEST_OPENED = 'pull_request-opened',
   PULL_REQUEST_CLOSED = 'pull_request-closed',
-  PULL_REQUEST_REVIEW_REQUESTED = 'pull_request-review-requested',
+  // PULL_REQUEST_REVIEW_REQUESTED = 'pull_request-review-requested',
   PULL_REQUEST_REVIEWED = 'pull_request-reviewed',
-  PULL_REQUEST_ASSIGNED = 'pull_request-assigned',
+  // PULL_REQUEST_ASSIGNED = 'pull_request-assigned',
   PULL_REQUEST_MERGED = 'pull_request-merged',
   ISSUE_OPENED = 'issues-opened',
   ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',
   STAR = 'star',
-  UNSTAR = 'unstar',
   PULL_REQUEST_COMMENT = 'pull_request-comment',
-  PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
+  // PULL_REQUEST_REVIEW_THREAD_COMMENT = 'pull_request-review-thread-comment',
   ISSUE_COMMENT = 'issue-comment',
-  DISCUSSION_COMMENT = 'discussion-comment',
   AUTHORED_COMMIT = 'authored-commit',
 }
 
@@ -82,32 +79,16 @@ export enum GithubWebhookSubType {
   DISCUSSION_COMMENT_REPLY = 'discussion-comment-reply',
 }
 
-export enum GithubWehookEvent {
-  ISSUES = 'issues',
-  DISCUSSION = 'discussion',
-  PULL_REQUEST = 'pull_request',
-  PULL_REQUEST_REVIEW = 'pull_request_review',
-  STAR = 'star',
-  FORK = 'fork',
-  DISCUSSION_COMMENT = 'discussion_comment',
-  PULL_REQUEST_REVIEW_COMMENT = 'pull_request_review_comment',
-  ISSUE_COMMENT = 'issue_comment',
-  PULL_REQUEST_COMMENT = 'pull_request_comment',
-}
-
 export enum GithubStreamType {
   ROOT = 'root',
   STARGAZERS = 'stargazers',
   FORKS = 'forks',
   PULLS = 'pulls',
   PULL_COMMENTS = 'pull-comments',
-  PULL_REVIEW_THREADS = 'pull-review-threads',
-  PULL_REVIEW_THREAD_COMMENTS = 'pull-review-thread-comments',
   PULL_COMMITS = 'pull-commits',
+  PULL_REVIEWS = 'pull-reviews',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue-comments',
-  DISCUSSIONS = 'discussions',
-  DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
 export enum GithubManualStreamType {
@@ -116,7 +97,6 @@ export enum GithubManualStreamType {
   FORKS = 'forks',
   PULLS = 'pulls',
   ISSUES = 'issues',
-  DISCUSSIONS = 'discussions',
 }
 
 export const INDIRECT_FORK = 'indirect-fork'
@@ -133,25 +113,14 @@ export interface GithubApiData {
   repo: Repo
 }
 
-export interface GithubWebhookData {
-  webhookType: GithubWehookEvent
-  subType?: string
-  data: any[] | any
-  relatedData?: any | any[]
-  member?: GithubPrepareMemberOutput
-  orgMember?: GithubPrepareOrgMemberOutput
-  objectMember?: GithubPrepareMemberOutput
-  sourceParentId?: string
-  date?: string
-}
-
 export interface GithubRootStream {
   reposToCheck: Repos
 }
 
 export interface GithubBasicStream {
   repo: Repo
-  page: string
+  sf_repo_id: string
+  page: number
   prNumber?: string
   reviewThreadId?: string
   issueNumber?: string
@@ -159,6 +128,13 @@ export interface GithubBasicStream {
 }
 
 export interface GithubPlatformSettings {
+  sfPrivateKey: string
+  sfAccount: string
+  sfUsername: string
+  sfDatabase: string
+  sfWarehouse: string
+  sfIncrementalWarehouse: string
+  sfRole: string
   appId: string
   clientId: string
   clientSecret: string
@@ -168,11 +144,19 @@ export interface GithubPlatformSettings {
   globalLimit?: number
   callbackUrl: string
   personalAccessTokens: string
+  tgNotifierToken: string
+  tgNotifierChatId: string
 }
 
 export interface GithubIntegrationSettings {
-  repos: Repos
-  unavailableRepos: Repos
+  orgs: Array<{
+    name: string
+    logo: string
+    url: string
+    fullSync: boolean
+    updatedAt: string
+    repos: Array<Repo>
+  }>
 }
 
 export interface GitHubManualIntegrationSettingsDefault extends GithubIntegrationSettings {
@@ -198,14 +182,9 @@ export enum GithubPullRequestEvents {
 }
 
 export type Repo = {
-  url: string
   name: string
-  createdAt: string
-  owner: string
-  available?: boolean
-  fork?: boolean
-  private?: boolean
-  cloneUrl?: string
+  url: string
+  updatedAt: string
 }
 
 export type Repos = Array<Repo>
@@ -227,8 +206,26 @@ export interface AppTokenResponse {
 
 export interface GithubPrepareMemberOutput {
   email: string
-  orgs: any
-  memberFromApi: any
+  org: {
+    id: string
+    login: string
+    avatarUrl: string
+  }
+  memberFromApi: {
+    id: string
+    login: string
+    avatarUrl: string
+    isBot?: boolean
+    isDeleted?: boolean
+    name?: string
+    bio?: string
+    location?: string
+    company?: string
+    url?: string
+    isHireable?: boolean
+    twitterUsername?: string
+    websiteUrl?: string
+  }
 }
 
 export interface GithubBotMember {

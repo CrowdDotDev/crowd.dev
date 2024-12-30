@@ -3,6 +3,7 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { QueryTypes } from 'sequelize'
+
 import { databaseInit } from '@/database/databaseConnection'
 
 /* eslint-disable no-console */

@@ -1,7 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { RateLimitError } from '@crowd/types'
-import type { DiscourseConnectionParams, DiscourseCategoryResponse } from '../types'
+
 import { IProcessStreamContext } from '../../../types'
+import type { DiscourseCategoryResponse, DiscourseConnectionParams } from '../types'
 
 export const getDiscourseCategories = async (
   params: DiscourseConnectionParams,

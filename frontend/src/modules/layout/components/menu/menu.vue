@@ -5,7 +5,7 @@
   >
     <lf-menu-link
       title="All project groups"
-      icon="folders-line"
+      icon="folders"
       :is-collapsed="isCollapsed"
       :to="{ path: '/project-groups' }"
     />
@@ -17,14 +17,14 @@
     </div>
     <lf-menu-link
       title="Overview"
-      icon="home-5-line"
+      icon="gauge-high"
       :is-collapsed="isCollapsed"
       :to="{ path: '/', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
     <lf-menu-link
       title="People"
-      icon="group-2-line"
+      icon="user-group-simple"
       :is-collapsed="isCollapsed"
       :to="{ path: '/people', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
@@ -32,7 +32,7 @@
     />
     <lf-menu-link
       title="Organizations"
-      icon="community-line"
+      icon="building"
       :is-collapsed="isCollapsed"
       :to="{ path: '/organizations', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
@@ -40,11 +40,25 @@
     />
     <lf-menu-link
       title="Activities"
-      icon="radar-line"
+      icon="monitor-waveform"
       :is-collapsed="isCollapsed"
       :to="{ path: '/activities', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
+    <template v-if="hasPermission(LfPermission.dataQualityRead)">
+      <div class="px-3 py-2">
+        <div class="border-b border-gray-200" />
+      </div>
+      <lf-menu-link
+
+        title="Data Quality Copilot"
+        icon="message-exclamation"
+        :is-collapsed="isCollapsed"
+        :to="{ path: '/data-quality-assistant', query: { projectGroup: selectedProjectGroup?.id } }"
+        :disabled="!selectedProjectGroup"
+      />
+    </template>
+
     <div class="flex-grow" />
     <div class="flex justify-end pb-8">
       <div
@@ -52,8 +66,8 @@
         @click="toggleMenu()"
       >
         <lf-icon
-          :name="`arrow-${isCollapsed ? 'right' : 'left'}-double-fill`"
-          :size="20"
+          :name="`chevrons-${isCollapsed ? 'right' : 'left'}`"
+          :size="16"
           class="text-white"
         />
       </div>
@@ -61,19 +75,19 @@
     <lf-menu-link
       v-if="hasPermission(LfPermission.eagleEyeRead)"
       title="Community Lens"
-      icon="eye-2-line"
+      icon="eye"
       :is-collapsed="isCollapsed"
       :to="{ path: '/community-lens' }"
     />
     <template
       v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
     >
-      <div class="px-3 py-4">
+      <div class="px-3 py-2">
         <div class="border-b border-gray-200" />
       </div>
       <lf-menu-link
         title="Admin panel"
-        icon="settings-3-line"
+        icon="gear"
         :is-collapsed="isCollapsed"
         :to="{ path: '/admin' }"
       />

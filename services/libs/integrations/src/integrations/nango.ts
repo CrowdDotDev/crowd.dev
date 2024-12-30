@@ -1,6 +1,8 @@
-import { RequestThrottler } from '@crowd/common'
-import { IProcessStreamContext, IGenerateStreamsContext } from '../types'
 import axios from 'axios'
+
+import { RequestThrottler } from '@crowd/common'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../types'
 
 export const getNangoToken = async (
   connectionId: string,

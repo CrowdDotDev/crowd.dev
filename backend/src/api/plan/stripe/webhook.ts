@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+
 import { PLANS_CONFIG } from '../../../conf'
 import Plans from '../../../security/plans'
 import TenantService from '../../../services/tenantService'

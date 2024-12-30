@@ -4,7 +4,10 @@ import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionG
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const IntegrationListPage = () => import(
-  '@/modules/integration/components/integration-list-page.vue'
+  '@/modules/admin/modules/integration/pages/integration-list.page.vue'
+);
+const IntegrationSuccessPage = () => import(
+  '@/modules/integration/pages/integration-success-page.vue'
 );
 
 export default [
@@ -14,7 +17,6 @@ export default [
     component: Layout,
     exact: true,
     meta: {
-      auth: true,
       title: 'Integrations',
       eventKey: PageEventKey.INTEGRATIONS,
       hideBanner: true,
@@ -25,25 +27,34 @@ export default [
         path: '/integrations',
         exact: true,
         meta: {
-          auth: true,
         },
         beforeEnter: [
-          PermissionGuard(LfPermission.integrationRead),
           (to, from, next) => {
             const segmentId = localStorage.getItem('segmentId');
             const segmentGrandparentId = localStorage.getItem('segmentGrandparentId');
+            console.log(to.query.state);
+            const state = to.query.state ?? '';
 
             // Redirect to integrations list page with correct id
-            if (segmentId && Object.keys(to.query).length) {
-              next({
-                name: 'integration',
-                params: {
-                  id: segmentId,
-                  grandparentId: segmentGrandparentId,
-                },
-                query: to.query,
-              });
-              return;
+            if (Object.keys(to.query).length) {
+              if (state === 'noconnect') {
+                next({
+                  name: 'integrationSuccess',
+                  query: to.query,
+                });
+                return;
+              }
+              if (segmentId !== 'null') {
+                next({
+                  name: 'integration',
+                  params: {
+                    id: segmentId,
+                    grandparentId: segmentGrandparentId,
+                  },
+                  query: to.query,
+                });
+                return;
+              }
             }
 
             localStorage.setItem('segmentId', null);
@@ -70,5 +81,14 @@ export default [
         ],
       },
     ],
+  },
+  {
+    name: 'integrationSuccess',
+    path: '/integrations/success',
+    component: IntegrationSuccessPage,
+    exact: true,
+    meta: {
+      hideLfxHeader: true,
+    },
   },
 ];

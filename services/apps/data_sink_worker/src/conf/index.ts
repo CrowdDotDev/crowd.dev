@@ -1,13 +1,14 @@
+import config from 'config'
+
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ISentimentClientConfig } from '@crowd/sentiment'
 import { ITemporalConfig } from '@crowd/temporal'
 import { QueuePriorityLevel } from '@crowd/types'
-import config from 'config'
+
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -55,19 +56,6 @@ export const SLACK_ALERTING_CONFIG = (): ISlackAlertingConfig => {
 
   slackAlertingConfig = config.get<ISlackAlertingConfig>('slackAlerting')
   return slackAlertingConfig
-}
-
-let sentimentConfigInitialized = false
-let sentimentConfig: ISentimentClientConfig | undefined
-export const SENTIMENT_CONFIG = (): ISentimentClientConfig | undefined => {
-  if (sentimentConfigInitialized) return sentimentConfig
-
-  sentimentConfigInitialized = true
-  if (config.has('sentiment')) {
-    sentimentConfig = config.get<ISentimentClientConfig>('sentiment')
-  }
-
-  return sentimentConfig
 }
 
 let unleashConfig: IUnleashConfig | undefined

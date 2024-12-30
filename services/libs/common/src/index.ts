@@ -23,7 +23,9 @@ export * from './http'
 export * from './websiteNormalizer'
 export * from './emailDomainValidator'
 export * from './displayName'
+export * from './jira'
 
 export * from './i18n'
+export * from './member'
 
 export { Error400, Error401, Error403, Error404, Error405, Error409, Error500, Error542 }

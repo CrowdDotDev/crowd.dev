@@ -1,12 +1,13 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
   workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities'
+
 import { recalculateAffiliationsForNewRoles } from './recalculateAffiliationsForNewRoles'
 
 const { getAllTenants } = proxyActivities<typeof activities>({

@@ -1,4 +1,5 @@
 import { Error403 } from '@crowd/common'
+
 import AuthProfileEditor from '../../services/auth/authProfileEditor'
 
 export default async (req, res) => {

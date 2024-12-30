@@ -1,5 +1,6 @@
-import { getServiceLogger } from '@crowd/logging'
 import { timeout } from '@crowd/common'
+import { getServiceLogger } from '@crowd/logging'
+
 import server from '../api'
 import { API_CONFIG } from '../conf'
 

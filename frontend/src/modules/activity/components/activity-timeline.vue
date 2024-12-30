@@ -84,7 +84,7 @@
     </div>
     <div>
       <el-timeline>
-        <template v-if="activities.length && !loading">
+        <template v-if="activities.length">
           <el-timeline-item
             v-for="activity in activities"
             :key="activity.id"
@@ -217,14 +217,13 @@
         class="app-page-spinner"
       />
       <div v-if="!noMore" class="flex justify-center pt-4">
-        <el-button
-          class="btn btn-link btn-link--primary"
+        <lf-button
+          type="primary-ghost"
           :disabled="loading"
           @click="fetchActivities()"
         >
-          <i class="ri-arrow-down-line mr-2" />Load
-          more
-        </el-button>
+          Load more
+        </lf-button>
       </div>
     </div>
   </div>
@@ -237,7 +236,6 @@
 </template>
 
 <script setup>
-import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
@@ -262,6 +260,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
+import moment from 'moment';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -305,16 +305,14 @@ const enabledPlatforms = computed(() => CrowdIntegrations.enabledConfigs.concat(
   label: i.name,
 })));
 
-const loading = ref(true);
+const loading = ref(false);
 const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
-const limit = ref(20);
-const offset = ref(0);
+const limit = ref(10);
+const timestamp = ref(moment(props.entity.lastActive).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
-
-let filter = {};
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
@@ -345,6 +343,9 @@ const segments = computed(() => {
 });
 
 const fetchActivities = async ({ reset } = { reset: false }) => {
+  if (loading.value) {
+    return;
+  }
   const filterToApply = {
     platform: platform.value ? { in: [platform.value] } : undefined,
   };
@@ -372,9 +373,22 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     }
   }
 
-  if (!isEqual(filter, filterToApply) || reset) {
+  filterToApply.and = [
+    {
+      timestamp: {
+        lte: timestamp.value,
+      },
+    },
+    ...(timestamp.value ? [{
+      timestamp: {
+        gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
+      },
+    }] : []),
+  ];
+
+  if (reset) {
     activities.value.length = 0;
-    offset.value = 0;
+    timestamp.value = moment().toISOString();
     noMore.value = false;
   }
 
@@ -388,18 +402,22 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
-    offset: offset.value,
     segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
   });
 
-  filter = { ...filterToApply };
   loading.value = false;
-  if (data.rows.length < limit.value) {
+
+  const activityIds = activities.value.map((a) => a.id);
+  const rows = data.rows.filter((a) => !activityIds.includes(a.id));
+  if (rows.length >= props.entity.activityCount) {
     noMore.value = true;
-    activities.value.push(...data.rows);
+  }
+  activities.value = reset ? rows : [...activities.value, ...rows];
+
+  if (data.rows.length === 0) {
+    timestamp.value = moment(timestamp.value).subtract(1, 'month').toISOString();
   } else {
-    offset.value += limit.value;
-    activities.value.push(...data.rows);
+    timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();
   }
 };
 
@@ -411,7 +429,7 @@ const reloadActivities = async () => {
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 const debouncedQueryChange = debounce(async () => {
-  await fetchActivities();
+  await fetchActivities({ reset: true });
 }, 300);
 
 const getPlatformDetails = (p) => CrowdIntegrations.getConfig(p);
@@ -424,13 +442,17 @@ watch(query, (newValue, oldValue) => {
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    await fetchActivities();
+    await fetchActivities({ reset: true });
   }
 });
 
 onMounted(async () => {
   await store.dispatch('integration/doFetch', segments.value.map((s) => s.id));
   await fetchActivities();
+});
+
+defineExpose({
+  fetchActivities,
 });
 </script>
 

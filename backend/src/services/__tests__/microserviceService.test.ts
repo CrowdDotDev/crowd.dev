@@ -1,5 +1,5 @@
-import MicroserviceService from '../microserviceService'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
+import MicroserviceService from '../microserviceService'
 
 const db = null
 

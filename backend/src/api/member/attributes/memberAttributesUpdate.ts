@@ -1,6 +1,7 @@
+import MemberAttributesService from '@/services/member/memberAttributesService'
+
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberAttributesService from '@/services/member/memberAttributesService'
 
 /**
  * PATCH /tenant/{tenantId}/member/:memberId/attributes

@@ -1,7 +1,10 @@
-import { LoggerBase } from '@crowd/logging'
 import sendgridMail from '@sendgrid/mail'
 import assert from 'assert'
+
+import { LoggerBase } from '@crowd/logging'
+
 import { API_CONFIG, SENDGRID_CONFIG } from '../conf'
+
 import { AdvancedSuppressionManager } from './helpers/sendgridAsmType'
 
 export default class EmailSender extends LoggerBase {

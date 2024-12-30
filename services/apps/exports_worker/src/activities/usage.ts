@@ -1,5 +1,5 @@
-import { FeatureFlagRedisKey, ITriggerCSVExport } from '@crowd/types'
 import { RedisCache } from '@crowd/redis'
+import { FeatureFlagRedisKey, ITriggerCSVExport } from '@crowd/types'
 
 import { svc } from '../main'
 

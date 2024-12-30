@@ -1,18 +1,29 @@
-import { IMemberOrganization, IOrganizationIdSource, SyncStatus } from '@crowd/types'
+import { generateUUIDv1, websiteNormalizer } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
+import {
+  IMemberOrganization,
+  IOrganization,
+  IOrganizationIdSource,
+  IQueryTimeseriesParams,
+  ITimeseriesDatapoint,
+  OrganizationIdentityType,
+  SyncStatus,
+} from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
+
+import { findOrgAttributes, markOrgAttributeDefault, upsertOrgAttributes } from './attributes'
+import { addOrgIdentity, upsertOrgIdentities } from './identities'
 import {
-  IActiveOrganizationsTimeseriesResult,
   IDbOrgIdentity,
   IDbOrganization,
   IDbOrganizationInput,
   IEnrichableOrganizationData,
-  IQueryNumberOfActiveOrganizations,
-  IQueryNumberOfNewOrganizations,
-  IQueryTimeseriesOfNewOrganizations,
 } from './types'
-import { generateUUIDv1 } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { prepareOrganizationData } from './utils'
+
+const log = getServiceChildLogger('data-access-layer/organizations')
 
 const ORG_SELECT_COLUMNS = [
   'id',
@@ -113,9 +124,68 @@ export async function findOrgById(
     `
     select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
     from organizations o
+    WHERE o.id = $(organizationId)
     `,
     {
       organizationId,
+    },
+  )
+
+  return result
+}
+
+export async function findOrgByName(
+  qx: QueryExecutor,
+  tenantId: string,
+  name: string,
+): Promise<IDbOrganization | null> {
+  const result = await qx.selectOneOrNone(
+    `
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId)
+          and trim(lower(o."displayName")) = trim(lower($(name)))
+          limit 1;
+    `,
+    {
+      tenantId,
+      name,
+    },
+  )
+
+  return result
+}
+
+export async function findOrgByVerifiedDomain(
+  qx: QueryExecutor,
+  tenantId: string,
+  identity: IDbOrgIdentity,
+): Promise<IDbOrganization | null> {
+  if (identity.type !== OrganizationIdentityType.PRIMARY_DOMAIN) {
+    throw new Error('Invalid identity type')
+  }
+  const result = await qx.selectOneOrNone(
+    `
+    with "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where
+                    oi."tenantId" = $(tenantId)
+                    and lower(oi.value) = lower($(value))
+                    and oi.type = $(type)
+                    and oi.verified = true
+          )
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId)
+          and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          limit 1;
+    `,
+    {
+      tenantId,
+      value: identity.value,
+      platform: identity.platform,
+      type: identity.type,
     },
   )
 
@@ -392,97 +462,180 @@ export async function updateOrganization(
   })
 }
 
-export async function getNumberOfNewOrganizations(
-  db: DbStore,
-  arg: IQueryNumberOfNewOrganizations,
-): Promise<number> {
+export async function getTimeseriesOfNewOrganizations(
+  qx: QueryExecutor,
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
   const query = `
-    SELECT DISTINCT COUNT(id)
-    FROM organizations
-    WHERE "tenantId" = $(tenantId)
-    AND "createdAt" BETWEEN $(after) AND $(before)
-    AND "deletedAt" IS NULL;
+    SELECT
+      COUNT(DISTINCT o.id) AS count,
+      TO_CHAR(osa."joinedAt", 'YYYY-MM-DD') AS "date"
+    FROM organizations AS o
+    JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
+    WHERE o."tenantId" = $(tenantId)
+      AND osa."joinedAt" >= $(startDate)
+      AND osa."joinedAt" < $(endDate)
+      ${params.segmentIds ? 'AND osa."segmentId" IN ($(segmentIds:csv))' : 'AND osa."segmentId" IS NULL'}
+      ${params.platform ? 'AND $(platform) = ANY(osa."activeOn")' : ''}
+    GROUP BY 2
+    ORDER BY 2
   `
 
-  const rows: { count: number }[] = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    after: arg.after,
-    before: arg.before,
-  })
-
-  return Number(rows[0].count) || 0
-}
-
-export async function getNumberOfActiveOrganizations(
-  db: DbStore,
-  arg: IQueryNumberOfActiveOrganizations,
-): Promise<number> {
-  let query = `
-    SELECT COUNT_DISTINCT("organizationId")
-    FROM activities
-    WHERE "tenantId" = $(tenantId)
-    AND "organizationId" IS NOT NULL
-    AND "createdAt" BETWEEN $(after) AND $(before)
-    AND "deletedAt" IS NULL`
-
-  if (arg.platform) {
-    query += ` AND "platform" = $(platform)`
-  }
-
-  if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
-  }
-
-  query += ';'
-
-  const rows: { count: number }[] = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-    before: arg.before,
-    platform: arg.platform,
-  })
-
-  return Number(rows[0].count) || 0
+  return qx.select(query, params)
 }
 
 export async function getTimeseriesOfActiveOrganizations(
-  db: DbStore,
-  arg: IQueryTimeseriesOfNewOrganizations,
-): Promise<IActiveOrganizationsTimeseriesResult[]> {
-  let query = `
-    SELECT COUNT_DISTINCT("organizationId") AS count, timestamp
+  qx: QueryExecutor,
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  const query = `
+    SELECT
+      COUNT_DISTINCT("organizationId") AS count,
+      DATE_TRUNC('day', timestamp)
     FROM activities
     WHERE tenantId = $(tenantId)
-    AND "organizationId" IS NOT NULL
-    AND timestamp BETWEEN $(after) AND $(before)
+      AND "deletedAt" IS NULL
+      AND "organizationId" IS NOT NULL
+      ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
+      AND timestamp >= $(startDate)
+      AND timestamp < $(endDate)
+      ${params.platform ? 'AND "platform" = $(platform)' : ''}
+    GROUP BY 2
+    ORDER BY 2
   `
 
-  if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
+  return qx.select(query, params)
+}
+
+export async function findOrCreateOrganization(
+  qe: QueryExecutor,
+  tenantId: string,
+  source: string,
+  data: IOrganization,
+  integrationId?: string,
+): Promise<string | undefined> {
+  const verifiedIdentities = data.identities ? data.identities.filter((i) => i.verified) : []
+
+  if (verifiedIdentities.length === 0 && !data.displayName) {
+    const message = `Missing organization identity or displayName while creating/updating organization!`
+    log.error(data, message)
+    throw new Error(message)
   }
 
-  if (arg.platform) {
-    query += ` AND "platform" = $(platform)`
+  try {
+    // Normalize the website identities
+    for (const identity of data.identities.filter((i) =>
+      [
+        OrganizationIdentityType.PRIMARY_DOMAIN,
+        OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+      ].includes(i.type),
+    )) {
+      identity.value = websiteNormalizer(identity.value, false)
+    }
+
+    let existing
+    // find existing org by sent verified identities
+    for (const identity of verifiedIdentities) {
+      existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+
+      if (!existing && identity.type === OrganizationIdentityType.PRIMARY_DOMAIN) {
+        // if primary domain isn't found in the incoming platform, check if the domain exists in any platform
+        existing = await findOrgByVerifiedDomain(qe, tenantId, identity)
+      }
+      if (existing) {
+        break
+      }
+    }
+
+    if (!existing) {
+      existing = await findOrgByName(qe, tenantId, data.displayName)
+    }
+
+    let id
+
+    if (!existing && verifiedIdentities.length === 0) {
+      log.debug(
+        { tenantId },
+        'Organization does not have any verified identities and was not found by name so we will not create it.',
+      )
+      return undefined
+    }
+
+    if (existing) {
+      log.trace(`Found existing organization, organization will be updated!`)
+
+      const existingAttributes = await findOrgAttributes(qe, existing.id)
+
+      const processed = prepareOrganizationData(data, source, existing, existingAttributes)
+
+      log.trace({ updateData: processed.organization }, `Updating organization!`)
+
+      if (Object.keys(processed.organization).length > 0) {
+        log.info({ orgId: existing.id }, `Updating organization!`)
+        await updateOrganization(qe, existing.id, processed.organization)
+      }
+      await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
+      await upsertOrgAttributes(qe, existing.id, processed.attributes)
+      for (const attr of processed.attributes) {
+        if (attr.default) {
+          await markOrgAttributeDefault(qe, existing.id, attr)
+        }
+      }
+
+      id = existing.id
+    } else {
+      log.trace(`Organization wasn't found via website or identities.`)
+      const displayName = data.displayName ? data.displayName : verifiedIdentities[0].value
+
+      const payload = {
+        displayName,
+        description: data.description,
+        logo: data.logo,
+        tags: data.tags,
+        employees: data.employees,
+        location: data.location,
+        type: data.type,
+        size: data.size,
+        headline: data.headline,
+        industry: data.industry,
+        founded: data.founded,
+      }
+
+      log.trace({ data, payload }, `Preparing payload to create a new organization!`)
+
+      const processed = prepareOrganizationData(payload, source)
+
+      log.trace({ payload: processed }, `Creating new organization!`)
+
+      // if it doesn't exists create it
+      id = await insertOrganization(qe, tenantId, processed.organization)
+
+      await upsertOrgAttributes(qe, id, processed.attributes)
+      for (const attr of processed.attributes) {
+        if (attr.default) {
+          await markOrgAttributeDefault(qe, id, attr)
+        }
+      }
+
+      // create identities
+      for (const i of data.identities) {
+        // add the identity
+        await addOrgIdentity(qe, {
+          organizationId: id,
+          tenantId,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          verified: i.verified,
+          sourceId: i.sourceId,
+          integrationId,
+        })
+      }
+    }
+
+    return id
+  } catch (err) {
+    log.error(err, 'Error while upserting an organization!')
+    throw err
   }
-
-  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
-
-  const rows = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-    before: arg.before,
-    platform: arg.platform,
-  })
-
-  const results: IActiveOrganizationsTimeseriesResult[] = []
-  rows.forEach((row) => {
-    results.push({
-      date: row.timestamp,
-      count: Number(row.count),
-    })
-  })
-
-  return results
 }

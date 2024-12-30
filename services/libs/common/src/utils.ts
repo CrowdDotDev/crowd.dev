@@ -69,6 +69,12 @@ export class BatchProcessor<T> {
 export const escapeNullByte = (str: string | null | undefined): string =>
   str ? str.replace(/\0/g, 'u0000') : str
 
+export const redactNullByte = (str: string | null | undefined): string =>
+  str ? str.replace(/\\u0000|\0/g, '[NULL]') : ''
+
+export const replaceDoubleQuotes = (str: string | null | undefined): string =>
+  str ? str.replace(/[\u201C\u201D\u0022\u201E\u201F\u2033\u2036"]/g, "'") : ''
+
 export const dateEqualityChecker = (a, b) => {
   if (a instanceof Date) {
     a = a.toISOString()

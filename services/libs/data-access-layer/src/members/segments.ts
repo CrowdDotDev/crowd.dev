@@ -1,9 +1,19 @@
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+
 import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
+
+export async function findLastSyncDate(qx: QueryExecutor, memberId: string): Promise<Date | null> {
+  const result = await qx.selectOneOrNone(
+    `SELECT MAX("createdAt") AS "lastSyncDate" FROM "memberSegmentsAgg" WHERE "memberId" = $(memberId)`,
+    { memberId },
+  )
+  return result?.lastSyncDate ? new Date(result.lastSyncDate) : null
+}
 
 export async function cleanupMemberAggregates(qx: QueryExecutor, memberId: string) {
   return qx.result(

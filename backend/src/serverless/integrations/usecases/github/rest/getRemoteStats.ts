@@ -1,5 +1,7 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosResponse } from 'axios'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { Repos } from '../../../types/regularTypes'
 
 const commitsRegExp = /&page=(\d+)>; rel="last"/

@@ -1,5 +1,6 @@
-import { Logger } from './types'
 import { performance } from 'perf_hooks'
+
+import { Logger } from './types'
 
 export const logExecutionTime = async <T>(
   process: () => Promise<T>,
@@ -38,5 +39,23 @@ export const logExecutionTimeV2 = async <T>(
   } catch (e) {
     log.info(`Process ${name} failed after ${end()} seconds!`)
     throw e
+  }
+}
+
+export const timer = (log: Logger, name?: string) => {
+  const start = performance.now()
+  let isEnded = false
+  return {
+    end: function (overrideName?: string) {
+      if (isEnded) {
+        return
+      }
+      isEnded = true
+
+      const end = performance.now()
+      const duration = end - start
+      const durationInSeconds = duration / 1000
+      log.info(`Process ${overrideName ?? name} took ${durationInSeconds.toFixed(2)} seconds!`)
+    },
   }
 }

@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const headline: StringFilterConfig = {
   id: 'headline',
   label: 'Headline',
-  iconClass: 'ri-menu-2-line',
+  iconClass: 'comment-lines',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {

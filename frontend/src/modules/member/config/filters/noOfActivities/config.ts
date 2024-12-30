@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const noOfActivities: NumberFilterConfig = {
   id: 'noOfActivities',
   label: '# of activities',
-  iconClass: 'ri-radar-line',
+  iconClass: 'list-timeline',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {

@@ -11,7 +11,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const channel: CustomFilterConfig = {
   id: 'channel',
   label: 'Channel',
-  iconClass: 'ri-discuss-line',
+  iconClass: 'messages',
   type: FilterConfigType.CUSTOM,
   component: ChannelFilter,
   options: {

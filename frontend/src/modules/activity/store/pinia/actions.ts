@@ -1,5 +1,6 @@
 import { ActivityState } from '@/modules/activity/store/pinia/state';
 import { ActivityService } from '@/modules/activity/activity-service';
+import moment from 'moment';
 
 export default {
   fetchActivities(this: ActivityState, { body = {}, reload = false, append = false }:
@@ -9,16 +10,15 @@ export default {
     // Clear activities
     if (!append) {
       this.activities = [];
-      this.pagination = {
-        page: 1,
-        perPage: 20,
-      };
+      this.timestamp = moment().toISOString();
     }
     return ActivityService.query(mappedBody)
       .then((data: any) => {
         // If append is true, join new activities with the existent ones
         if (append) {
-          this.activities = this.activities.concat(...data.rows);
+          const filteredRows = data.rows.filter((row: any) => !this.activities.some((activity: any) => activity.id === row.id));
+
+          this.activities = this.activities.concat(...filteredRows);
         } else {
           this.activities = data.rows;
         }

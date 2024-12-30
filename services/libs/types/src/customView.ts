@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { CustomViewPlacement, CustomViewVisibility } from './enums/customViews'
 
 export interface IConfigStatic {

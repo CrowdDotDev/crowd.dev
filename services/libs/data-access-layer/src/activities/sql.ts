@@ -1,28 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import merge from 'lodash.merge'
+import moment from 'moment'
 
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
+import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
+  IActivityData,
+  IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
+  ITimeseriesDatapoint,
   MemberIdentityType,
   PageData,
   PlatformType,
 } from '@crowd/types'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
-import { ActivityDisplayService } from '@crowd/integrations'
+import { IMemberSegmentAggregates } from '../members/types'
+import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
+import { IDbOrganizationAggregateData } from '../organizations'
+import { checkUpdateRowCount } from '../utils'
+
 import {
   ActivityType,
   IActiveMemberData,
   IActiveOrganizationData,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
   IActivitySentiment,
-  IActivityTimeseriesResult,
   IMemberSegment,
   INewActivityPlatforms,
   INumberOfActivitiesPerMember,
@@ -34,15 +44,8 @@ import {
   IQueryDistinctParameters,
   IQueryGroupedActivitiesParameters,
   IQueryNumberOfActiveMembersParameters,
-  IQueryNumberOfActiveOrganizationsParameters,
   IQueryTopActivitiesParameters,
 } from './types'
-
-import merge from 'lodash.merge'
-import { IPlatforms } from '../old/apps/cache_worker/types'
-import { checkUpdateRowCount } from '../utils'
-import { IDbOrganizationAggregateData } from '../organizations'
-import { IMemberSegmentAggregates } from '../members/types'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -51,6 +54,8 @@ const s3Url = `https://${
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
+  tenantId: string,
+  segmentIds: string[],
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
     return []
@@ -59,95 +64,11 @@ export async function getActivitiesById(
   const data = await queryActivities(conn, {
     filter: { and: [{ id: { in: ids } }] },
     limit: ids.length,
+    tenantId,
+    segmentIds,
   })
 
   return data.rows
-}
-
-export async function insertActivity(
-  conn: DbConnOrTx,
-  id: string,
-  data: IDbActivityCreateData,
-): Promise<void> {
-  const now = new Date()
-
-  const toInsert: any = {
-    id,
-    type: data.type,
-    timestamp: data.timestamp,
-    platform: data.platform,
-    isContribution: data.isContribution,
-    score: data.score,
-    importHash: data.importHash,
-    sourceId: data.sourceId,
-    createdAt: now,
-    updatedAt: now,
-    memberId: data.memberId,
-    parentId: data.parentId,
-    tenantId: data.tenantId,
-    createdById: data.createdById,
-    updatedById: data.updatedById,
-    sourceParentId: data.sourceParentId,
-    conversationId: data.conversationId,
-    attributes: JSON.stringify(data.attributes || {}),
-    title: data.title,
-    body: data.body,
-    channel: data.channel,
-    url: data.url,
-    username: data.username,
-    objectMemberId: data.objectMemberId,
-    objectMemberUsername: data.objectMemberUsername,
-    segmentId: data.segmentId,
-    organizationId: data.organizationId,
-
-    member_isTeamMember: data.isTeamMemberActivity,
-    member_isBot: data.isBotActivity,
-  }
-
-  if (data.sentiment) {
-    toInsert.sentimentLabel = data.sentiment.label
-    toInsert.sentimentScore = data.sentiment.sentiment
-    toInsert.sentimentScoreMixed = data.sentiment.mixed
-    toInsert.sentimentScoreNeutral = data.sentiment.neutral
-    toInsert.sentimentScoreNegative = data.sentiment.negative
-    toInsert.sentimentScorePositive = data.sentiment.positive
-  }
-
-  if (
-    (data.attributes && data.platform === PlatformType.GIT) ||
-    data.platform === PlatformType.GITHUB
-  ) {
-    if (data.attributes.isMainBranch) {
-      toInsert.gitIsMainBranch = data.attributes.isMainBranch
-    }
-    if (data.attributes.isIndirectFork) {
-      toInsert.gitIsIndirectFork = data.attributes.isIndirectFork
-    }
-    if (data.attributes.additions) {
-      toInsert.gitInsertions = data.attributes.additions
-    }
-    if (data.attributes.deletions) {
-      toInsert.gitDeletions = data.attributes.deletions
-    }
-  }
-
-  const columns = Object.keys(toInsert)
-  const columnStrings: string[] = []
-  const valueStrings: string[] = []
-  for (const column of columns) {
-    columnStrings.push(`"${column}"`)
-    valueStrings.push(`$(${column})`)
-  }
-
-  const query = `
-    insert into activities (${columnStrings.join(', ')})
-    values (${valueStrings.join(', ')});
-  `
-
-  const result = await conn.result(query, toInsert)
-  console.log('activity insert result', result.rowCount)
-  checkUpdateRowCount(result.rowCount, 1)
-  await updateActivityParentIds(conn, id, data)
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -365,7 +286,7 @@ const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['isTeamMember', 'a."member_isTeamMember"'],
   ['isBot', 'a."member_isBot"'],
   ['platform', 'a.platform'],
-  ['type', 'a.type'],
+  ['type', 'a."type"'],
   ['channel', 'a.channel'],
   ['timestamp', 'a.timestamp'],
   ['memberId', 'a."memberId"'],
@@ -455,6 +376,19 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'url',
 ]
 
+export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT.concat([
+  'member_isBot',
+  'member_isTeamMember',
+  'gitIsMainBranch',
+  'gitIsIndirectFork',
+  'gitLines',
+  'gitInsertions',
+  'gitDeletions',
+  'gitIsMerge',
+])
+
+const logger = getServiceChildLogger('activities')
+
 export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
@@ -543,7 +477,7 @@ export async function queryActivities(
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     lowerLimit: arg.offset,
-    upperLimit: arg.offset + arg.limit - 1,
+    upperLimit: arg.offset + arg.limit,
   }
   let filterString = RawQueryParser.parseFilters(
     arg.filter,
@@ -612,14 +546,16 @@ export async function queryActivities(
     `
 
     if (arg.limit > 0) {
-      query += ` limit $(lowerLimit)`
-
-      if (params.upperLimit) {
-        query += `, $(upperLimit)`
+      if (params.lowerLimit) {
+        query += ` limit $(lowerLimit), $(upperLimit)`
+      } else {
+        query += ` limit $(upperLimit)`
       }
     }
 
     query += ';'
+
+    logger.info('QuestDB activity query', query)
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
@@ -630,45 +566,7 @@ export async function queryActivities(
     count = countResults[0] ? countResults[0].count : 0
   }
 
-  const results: any[] = []
-
-  for (const a of activities) {
-    const sentiment: IActivitySentiment | null =
-      a.sentimentLabel &&
-      a.sentimentScore &&
-      a.sentimentScoreMixed &&
-      a.sentimentScoreNeutral &&
-      a.sentimentScoreNegative &&
-      a.sentimentScorePositive
-        ? {
-            label: a.sentimentLabel,
-            sentiment: a.sentimentScore,
-            mixed: a.sentimentScoreMixed,
-            neutral: a.sentimentScoreNeutral,
-            negative: a.sentimentScoreNegative,
-            positive: a.sentimentScorePositive,
-          }
-        : null
-
-    const data: any = {}
-    for (const column of columns) {
-      if (column.startsWith('sentiment')) {
-        continue
-      }
-
-      if (column === 'attributes') {
-        data[column] = JSON.parse(a[column])
-      } else {
-        data[column] = a[column]
-      }
-    }
-
-    if (sentiment) {
-      data.sentiment = sentiment
-    }
-
-    results.push(data)
-  }
+  const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
 
   return {
     count: Number(count),
@@ -676,6 +574,44 @@ export async function queryActivities(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export function mapActivityRowToResult(a: any, columns: string[]): any {
+  const sentiment: IActivitySentiment | null =
+    a.sentimentLabel &&
+    a.sentimentScore &&
+    a.sentimentScoreMixed &&
+    a.sentimentScoreNeutral &&
+    a.sentimentScoreNegative &&
+    a.sentimentScorePositive
+      ? {
+          label: a.sentimentLabel,
+          sentiment: a.sentimentScore,
+          mixed: a.sentimentScoreMixed,
+          neutral: a.sentimentScoreNeutral,
+          negative: a.sentimentScoreNegative,
+          positive: a.sentimentScorePositive,
+        }
+      : null
+
+  const data: any = {}
+  for (const column of columns) {
+    if (column.startsWith('sentiment')) {
+      continue
+    }
+
+    if (column === 'attributes') {
+      data[column] = JSON.parse(a[column])
+    } else {
+      data[column] = a[column]
+    }
+  }
+
+  if (sentiment) {
+    data.sentiment = sentiment
+  }
+
+  return data
 }
 
 export async function findTopActivityTypes(
@@ -691,7 +627,7 @@ export async function findTopActivityTypes(
     FROM activities a
     WHERE a."tenantId" = $(tenantId)
     AND a."timestamp" BETWEEN $(after) AND $(before)
-    GROUP BY a.type, a.platform
+    GROUP BY a."type", a.platform
     ORDER BY COUNT(*) DESC
     LIMIT $(limit);
   `
@@ -807,7 +743,7 @@ export async function getOrgAggregates(
           SELECT
             p."organizationId",
             p."segmentId",
-            STRING_AGG(p.platform, ':') AS "activeOn"
+            string_distinct_agg(p.platform, ':') AS "activeOn"
           FROM platforms p
         ),
         activites_agg AS (
@@ -835,7 +771,7 @@ export async function getOrgAggregates(
         MIN(a."lastActive") AS "lastActive",
         MIN(a."joinedAt") AS "joinedAt",
         MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        STRING_AGG(p.platform, ':') AS "activeOn"
+        string_distinct_agg(p.platform, ':') AS "activeOn"
         -- </option1>
 
         -- -- <option2>
@@ -866,57 +802,92 @@ export async function getOrgAggregates(
     organizationId,
     segmentId: r.segmentId,
     tenantId: r.tenantId,
-    memberCount: r.memberCount,
-    activityCount: r.activityCount,
+    memberCount: parseInt(r.memberCount),
+    activityCount: parseInt(r.activityCount),
     activeOn: r.activeOn.split(':'),
     lastActive: r.lastActive,
     joinedAt: r.joinedAt,
-    avgContributorEngagement: r.avgContributorEngagement,
+    avgContributorEngagement: parseInt(r.avgContributorEngagement),
   }))
 }
 
 export async function getMemberAggregates(
   qdbConn: DbConnOrTx,
   memberId: string,
-  segmentIds?: string[],
 ): Promise<IMemberSegmentAggregates[]> {
   const results = await qdbConn.any(
     `
-    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId", "tenantId"
-                                from activities
-                                where "memberId" = $(memberId)
-                                  ${
-                                    segmentIds && segmentIds.length > 0
-                                      ? `and "segmentId" in ($(segmentIds:csv))`
-                                      : ''
-                                  }
-                                  and "deletedAt" is null),
-        activity_types as (select distinct "memberId", "segmentId", type, platform
-                            from relevant_activities
-                            where platform is not null
-                              and type is not null),
-        distinct_platforms as (select distinct "memberId", "segmentId", platform from relevant_activities),
-        average_sentiment as (select "memberId", "segmentId", avg("sentimentScore") as "averageSentiment"
-                              from relevant_activities
-                              where "sentimentScore" is not null)
-    select a."memberId",
-           a."segmentId",
-           a."tenantId",
-           count_distinct(a.id)                             as "activityCount",
-           max(a.timestamp)                                 as "lastActive",
-           string_agg(p.platform, ':')                      as "activeOn",
-           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
-           count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
-           s."averageSentiment"
-    from relevant_activities a
-            inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
-            inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
-            left join average_sentiment s on a."memberId" = s."memberId" and a."segmentId" = s."segmentId"
-    group by a."memberId", a."segmentId", a."tenantId", s."averageSentiment";
+    WITH
+      platforms AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      activity_types AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform,
+          a.type
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      platforms_agg AS (
+        SELECT
+          p."memberId",
+          p."segmentId",
+          string_distinct_agg(p.platform, ':') AS "activeOn"
+        FROM platforms p
+        GROUP BY 1, 2
+      ),
+      activity_types_agg AS (
+        SELECT
+          at."memberId",
+          at."segmentId",
+          string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
+        FROM activity_types at
+        GROUP BY 1, 2
+      ),
+      activites_agg AS (
+        SELECT
+          a."memberId",
+          a."tenantId",
+          a."segmentId",
+          count_distinct(a.id)              AS "activityCount",
+          max(a.timestamp)                  AS "lastActive",
+          count_distinct(date_trunc('day', a.timestamp))   AS "activeDaysCount",
+          avg(a.sentimentScore)             AS "averageSentiment"
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+          AND a."deletedAt" IS NULL
+        GROUP BY a."memberId", a."tenantId", a."segmentId"
+      )
+    SELECT
+      a."memberId",
+      a."tenantId",
+      a."segmentId",
+
+      a.activityCount,
+      a.lastActive,
+      a.activeDaysCount,
+      a.averageSentiment,
+      '' AS "activeOn",
+      '' AS "activityTypes"
+      -- p.activeOn,
+      -- at.activityTypes
+    FROM activites_agg a
+
+    -- JOIN platforms_agg p ON p.memberId = a.memberId AND p.segmentId = a.segmentId
+    -- JOIN activity_types_agg at ON at.memberId = a.memberId AND at.segmentId = a.segmentId
+    ;
     `,
     {
       memberId,
-      segmentIds,
     },
   )
 
@@ -925,12 +896,13 @@ export async function getMemberAggregates(
       memberId: result.memberId,
       segmentId: result.segmentId,
       tenantId: result.tenantId,
-      activityCount: result.activityCount,
+      // --
+      activityCount: parseInt(result.activityCount),
       lastActive: result.lastActive,
+      activeDaysCount: result.activeDaysCount,
+      averageSentiment: parseFloat(result.averageSentiment),
       activeOn: result.activeOn.split(':'),
       activityTypes: result.activityTypes.split('|'),
-      averageSentiment: result.averageSentiment,
-      activeDaysCount: result.activeDaysCount,
     }
   })
 }
@@ -983,7 +955,7 @@ export async function countMembersWithActivities(
   arg: IQueryNumberOfActiveMembersParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
+    SELECT COUNT(id) AS count, "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -1010,8 +982,7 @@ export async function countMembersWithActivities(
     query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId", date'
-  query += ' ORDER BY "date" DESC;'
+  query += ' ORDER BY "date" ASC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
@@ -1023,49 +994,10 @@ export async function countMembersWithActivities(
   })
 }
 
-export async function countOrganizationsWithActivities(
-  qdbConn: DbConnOrTx,
-  arg: IQueryNumberOfActiveOrganizationsParameters,
-): Promise<{ count: number; segmentId: string; date?: string }[]> {
-  let query = `
-    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
-    FROM activities
-    WHERE "deletedAt" IS NULL
-    AND "tenantId" = $(tenantId)
-    AND "organizationId" IS NOT NULL
-  `
-
-  if (arg.segmentIds) {
-    query += ' AND "segmentId" IN ($(segmentIds:csv))'
-  }
-
-  if (arg.platform) {
-    query += ' AND platform = $(platform)'
-  }
-
-  if (arg.timestampFrom && arg.timestampTo) {
-    query += ' AND timestamp BETWEEN $(after) AND $(before)'
-  }
-
-  if (arg.groupBy === 'day') {
-    query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
-  }
-
-  query += ' GROUP BY "segmentId", timestamp ORDER BY "date" DESC;'
-
-  return await qdbConn.any(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.timestampFrom,
-    before: arg.timestampTo,
-    platform: arg.platform,
-  })
-}
-
 export async function activitiesTimeseries(
   qdbConn: DbConnOrTx,
   arg: IQueryGroupedActivitiesParameters,
-): Promise<IActivityTimeseriesResult[]> {
+): Promise<ITimeseriesDatapoint[]> {
   let query = `
     SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
     FROM activities
@@ -1087,10 +1019,10 @@ export async function activitiesTimeseries(
 
   query += `
     SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY "date" DESC;
+    ORDER BY "date" ASC;
   `
 
-  const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
+  const rows: ITimeseriesDatapoint[] = await qdbConn.query(query, {
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     platform: arg.platform,
@@ -1359,6 +1291,8 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
+  tenantId: string,
+  segmentIds?: string[],
 ): Promise<IQueryActivityResult[]> {
   const query = `
   select id from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
@@ -1373,5 +1307,91 @@ export async function getLastActivitiesForMembers(
   return getActivitiesById(
     qdbConn,
     results.map((r) => r.id),
+    tenantId,
+    segmentIds,
   )
+}
+
+export async function findMemberIdentityWithTheMostActivityInPlatform(
+  qdbConn: DbConnOrTx,
+  platform: string,
+  memberId: string,
+): Promise<IEnrichableMemberIdentityActivityAggregate> {
+  const query = `
+  SELECT count(a.id) AS "activityCount", a.platform, a.username
+      FROM activities a
+      WHERE a."memberId" = $(memberId)
+        AND a.platform = $(platform)
+      GROUP BY a.platform, a.username
+      ORDER BY "activityCount" DESC
+    LIMIT 1;
+  `
+
+  return qdbConn.oneOrNone(query, {
+    memberId,
+    platform,
+  })
+}
+
+export async function findMatchingPullRequestNodeId(
+  qdbConn: DbConnOrTx,
+  tenantId: string,
+  activity: IActivityData,
+): Promise<string | null> {
+  if (!activity.attributes.prSha) {
+    return null
+  }
+
+  const query = `
+    SELECT "sourceId"
+    FROM activities
+    WHERE "deletedAt" IS NULL
+      AND "tenantId" = $(tenantId)
+      AND "platform" = $(platform)
+      AND "type" = $(type)
+      AND "timestamp" > $(after)
+      AND "timestamp" < $(before)
+      AND JSON_EXTRACT(attributes, '$.sha') = $(prSha)
+    LIMIT 1;
+  `
+  const row = await qdbConn.oneOrNone(query, {
+    tenantId,
+    platform: PlatformType.GITHUB,
+    type: GithubActivityType.PULL_REQUEST_OPENED,
+    // assuming that the PR is open for at least 6 months
+    after: moment(activity.timestamp).subtract(6, 'months').toISOString(),
+    before: moment(activity.timestamp).toISOString(),
+    prSha: activity.attributes.prSha,
+  })
+
+  if (!row) {
+    return null
+  }
+
+  return row.sourceId
+}
+
+export async function findCommitsForPRSha(
+  qdbConn: DbConnOrTx,
+  tenantId: string,
+  prSha: string,
+): Promise<string[]> {
+  const query = `
+    SELECT id
+    FROM activities
+    WHERE "deletedAt" IS NULL
+      AND "tenantId" = $(tenantId)
+      AND "platform" = $(platform)
+      AND "type" = $(type)
+      AND JSON_EXTRACT(attributes, '$.prSha') = $(prSha)
+  `
+
+  const rows = await qdbConn.any(query, {
+    tenantId,
+    platform: PlatformType.GITHUB,
+    type: GithubActivityType.PULL_REQUEST_OPENED,
+    prSha,
+  })
+
+  return rows.map((r) => r.id)
 }

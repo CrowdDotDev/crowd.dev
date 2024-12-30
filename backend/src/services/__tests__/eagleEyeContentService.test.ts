@@ -1,4 +1,5 @@
 import { EagleEyeActionType, EagleEyeContent } from '@crowd/types'
+
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import EagleEyeContentService from '../eagleEyeContentService'
 

@@ -7,7 +7,6 @@ import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 
 export default {
   async reset({ dispatch }) {
@@ -49,7 +48,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getRecentConversations');
-    // dispatch('getConversationCount');
+    dispatch('getConversationCount');
   },
   // Fetch recent conversations
   async getRecentConversations({ commit, state }) {
@@ -72,6 +71,13 @@ export default {
                 .toISOString(),
             },
           },
+          {
+            lastActive: {
+              lte: moment()
+                .utc()
+                .toISOString(),
+            },
+          },
           ...(platform !== 'all'
             ? [
               {
@@ -82,7 +88,7 @@ export default {
         ],
       },
       orderBy: 'lastActive_DESC',
-      limit: 5,
+      limit: 20,
       offset: 0,
       segments: segments.childSegments,
     })
@@ -104,6 +110,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
+      countOnly: true,
     })
       .then(({ count }) => {
         state.conversations.total = count;
@@ -124,7 +131,6 @@ export default {
     state.activities.loading = true;
 
     const { platform, period, segments } = state.filters;
-
     return ActivityService.query({
       filter: {
         ...DEFAULT_ACTIVITY_FILTERS,
@@ -138,6 +144,13 @@ export default {
                   period.value - 1,
                   period.granularity,
                 )
+                .toISOString(),
+            },
+          },
+          {
+            timestamp: {
+              lte: moment()
+                .utc()
                 .toISOString(),
             },
           },
@@ -187,7 +200,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
-    })
+    }, true)
       .then(({ count }) => {
         state.activities.total = count;
         return Promise.resolve(count);

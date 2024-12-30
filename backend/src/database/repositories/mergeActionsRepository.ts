@@ -1,4 +1,5 @@
 import { QueryTypes } from 'sequelize'
+
 import {
   IMemberIdentity,
   IMemberUnmergeBackup,
@@ -12,6 +13,7 @@ import {
   MergeActionType,
   OrganizationIdentityType,
 } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

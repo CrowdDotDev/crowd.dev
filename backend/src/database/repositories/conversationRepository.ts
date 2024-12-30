@@ -1,23 +1,25 @@
-import { distinct, Error404 } from '@crowd/common'
+import lodash from 'lodash'
+
+import { Error404, distinct, single } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
+  IQueryActivityResult,
   deleteConversations,
   getConversationById,
   insertConversation,
-  IQueryActivityResult,
   queryActivities,
   queryMembersAdvanced,
   updateConversation,
 } from '@crowd/data-access-layer'
 import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { PageData, PlatformType } from '@crowd/types'
-import lodash from 'lodash'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { PageData, PlatformType } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import SequelizeRepository from './sequelizeRepository'
 import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class ConversationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -262,9 +264,21 @@ class ConversationRepository {
         }
       }
 
-      output.activities = [...results.rows].sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      // find the conversation starter
+      const firstActivity = single(
+        results.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
       )
+
+      const remainingActivities = results.rows
+        .filter((a) => a.parentId !== null)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+
+      output.activities = [firstActivity, ...remainingActivities]
 
       output.memberCount = results.rows
         .map((row) => row.memberId)

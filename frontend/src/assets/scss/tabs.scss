@@ -11,6 +11,7 @@
   &__item {
     @apply font-normal text-gray-900 px-4;
     transition: all 0.2s ease;
+
     &.is-active {
       @apply font-medium text-primary-900 #{!important};
     }

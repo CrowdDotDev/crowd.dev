@@ -1,5 +1,6 @@
-import OpensearchModelBase from './models/base'
 import { OpenSearchIndex, OpensearchField, OpensearchFieldType } from '@crowd/types'
+
+import OpensearchModelBase from './models/base'
 
 export default abstract class FieldTranslator {
   index: OpenSearchIndex

@@ -1,13 +1,17 @@
+import { Sender } from '@questdb/nodejs-client'
+
 import { generateUUIDv4 } from '@crowd/common'
 import { getClientILP } from '@crowd/questdb'
+import telemetry from '@crowd/telemetry'
 
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
 
-import { Sender } from '@questdb/nodejs-client'
-
 const ilp: Sender = getClientILP()
 
-export async function insertActivities(activities: IDbActivityCreateData[]): Promise<string[]> {
+export async function insertActivities(
+  activities: IDbActivityCreateData[],
+  update = false,
+): Promise<string[]> {
   const ids: string[] = []
   const now = Date.now()
 
@@ -16,23 +20,32 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       const id = activity.id || generateUUIDv4()
       ids.push(id)
 
+      let createdAt
+      if (activity.createdAt) {
+        const res = new Date(activity.createdAt)
+        // log.info({ createdAt: res }, 'insertActivities.createdAt')
+        createdAt = res.getTime()
+      } else {
+        createdAt = now
+      }
+
+      let updatedAt
+      if (update || !activity.updatedAt) {
+        updatedAt = now
+      } else {
+        const res = new Date(activity.updatedAt)
+        updatedAt = res.getTime()
+      }
+
       const row = ilp
         .table('activities')
         .symbol('tenantId', activity.tenantId)
         .symbol('segmentId', activity.segmentId)
         .symbol('platform', activity.platform)
         .stringColumn('id', id)
-        .timestampColumn(
-          'createdAt',
-          activity.createdAt ? new Date(activity.createdAt).getTime() : now,
-          'ms',
-        )
-        .timestampColumn(
-          'updatedAt',
-          activity.updatedAt ? new Date(activity.updatedAt).getTime() : now,
-          'ms',
-        )
-        .stringColumn('attributes', objectToBytes(activity.attributes))
+        .timestampColumn('createdAt', createdAt, 'ms')
+        .timestampColumn('updatedAt', updatedAt, 'ms')
+        .stringColumn('attributes', objectToBytes(tryToUnwrapAttributes(activity.attributes)))
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
         .booleanColumn('member_isBot', activity.isBotActivity || false)
 
@@ -109,7 +122,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       }
 
       if (activity.body) {
-        row.stringColumn('body', activity.body)
+        row.stringColumn('body', activity.body.slice(0, 2000))
       }
 
       if (activity.title) {
@@ -174,7 +187,17 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         row.stringColumn('updatedById', activity.updatedById)
       }
 
-      await row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
+      let timestamp
+      if (activity.timestamp) {
+        const res = new Date(activity.timestamp)
+        // log.info({ timestamp: res }, 'insertActivities.timestamp')
+        timestamp = res.getTime()
+      } else {
+        timestamp = now
+      }
+
+      await row.at(timestamp, 'ms')
+      telemetry.increment('questdb.insert_activity', 1)
     }
   }
 
@@ -182,9 +205,23 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
 }
 
 function objectToBytes(input: object): string {
+  if (typeof input !== 'object') {
+    return input
+  }
+
   if (!input) {
     input = {}
   }
 
   return JSON.stringify(input)
+}
+
+function tryToUnwrapAttributes(attributes: string | object): object {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (typeof attributes === 'object') {
+      return attributes
+    }
+    attributes = JSON.parse(attributes)
+  }
 }

@@ -1,27 +1,31 @@
-import { Error400, groupBy, RawQueryParser } from '@crowd/common'
+import { uniq } from 'lodash'
+
+import { Error400, RawQueryParser, groupBy } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
-  ActivityDisplayVariant,
   ALL_PLATFORM_TYPES,
+  ActivityDisplayVariant,
   MemberAttributeType,
   MemberIdentityType,
   PageData,
   SegmentType,
 } from '@crowd/types'
-import { uniq } from 'lodash'
-import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
+
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
+import { findMaintainerRoles } from '../maintainers'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
+
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
-import { findMaintainerRoles } from '../maintainers'
+
+import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -45,10 +49,6 @@ export enum MemberField {
   TENANT_ID = 'tenantId',
   CREATED_BY_ID = 'createdById',
   UPDATED_BY_ID = 'updatedById',
-
-  ENRICHED_BY = 'enrichedBy',
-  LAST_ENRICHED_AT = 'lastEnrichedAt',
-  SEARCH_SYNCED_AT = 'searchSyncedAt',
 
   MANUALLY_CREATED = 'manuallyCreated',
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
@@ -78,13 +78,12 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 
   // member agg fields
   ['lastActive', { name: 'msa."lastActive"' }],
-  ['identityPlatforms', { name: 'msa."activeOn"' }],
-  ['lastEnriched', { name: 'm."lastEnriched"' }],
+  ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['score', { name: 'm.score' }],
-  ['averageSentiment', { name: 'msa."averageSentiment"' }],
-  ['activityTypes', { name: 'msa."activityTypes"' }],
-  ['activeOn', { name: 'msa."activeOn"' }],
-  ['activityCount', { name: 'msa."activityCount"' }],
+  ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
+  ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],
+  ['activeOn', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
+  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
 
   // others
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
@@ -231,7 +230,7 @@ export async function queryMembersAdvanced(
       FROM members m
       ${
         withAggregates
-          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
@@ -403,7 +402,9 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds)
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, tenantId, [
+      segmentId,
+    ])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {

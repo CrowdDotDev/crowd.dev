@@ -1,7 +1,10 @@
+import EventEmitter from 'events'
+import { createClient } from 'redis'
+
 import { IS_DEV_ENV, IS_TEST_ENV, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { IRedisConfiguration, RedisClient, IRedisPubSubPair } from './types'
-import { createClient } from 'redis'
+
+import { IRedisConfiguration, IRedisPubSubPair, RedisClient } from './types'
 
 const log = getServiceChildLogger('redis')
 
@@ -22,7 +25,7 @@ export const getRedisClient = async (
     }) as RedisClient
 
     if (exitOnError) {
-      client.on('error', async (err) => {
+      ;(client as unknown as EventEmitter).on('error', async (err) => {
         log.error(err, { host, port }, 'Redis client error!')
 
         if (

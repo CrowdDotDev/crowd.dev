@@ -862,6 +862,20 @@ while test $# -gt 0; do
         service_start
         exit
         ;;
+    service-restart-fe-dev)
+        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        DEV=1
+        kill_all_containers
+        service_start
+        exit
+        ;;
+    clean-start-fe-dev)
+        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        CLEAN_START=1
+        DEV=1
+        start
+        exit
+        ;;
     deploy-staging)
         select_services
         deploy_staging
@@ -926,6 +940,14 @@ while test $# -gt 0; do
         ;;
     db-restore)
         restore_db_backup $2
+        exit
+        ;;
+    lint-backend)
+        (cd $CLI_HOME/../backend && pnpm run lint && pnpm run format-check && pnpm run tsc-check)
+        exit
+        ;;
+    lint-services)
+        (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
         exit
         ;;
     *)

@@ -1,33 +1,34 @@
 // processStream.ts content
 import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+
+import { getActivityLogs } from './api/getActivityLogs'
+import { getGroupMembers } from './api/getGroupMembers'
+import { getMessagesFromTopic } from './api/getMessagesFromTopic'
+import { getPastGroupMembers } from './api/getPastGroupMembers'
+import { getTopicsFromGroup } from './api/getTopicsFromGroup'
 import {
-  GroupsioStreamType,
-  GroupsioGroupStreamMetadata,
-  GroupsioGroupMembersStreamMetadata,
-  GroupsioPastGroupMembersStreamMetadata,
-  GroupsioIntegrationSettings,
-  GroupsioTopicStreamMetadata,
-  GroupsioActivityLogsStreamMetadata,
-  GroupsioPublishData,
-  GroupsioPublishDataType,
-  MemberInfo,
   ActivityLog,
-  MemberInfoMinimal,
-  ListMembers,
-  ListPastMembers,
-  ListMessages,
-  ListTopics,
-  ListActivityLogs,
-  GroupsioMessageData,
+  GroupsioActivityLogsStreamMetadata,
+  GroupsioGroupMembersStreamMetadata,
+  GroupsioGroupStreamMetadata,
+  GroupsioIntegrationSettings,
   GroupsioMemberJoinData,
   GroupsioMemberLeftData,
+  GroupsioMessageData,
+  GroupsioPastGroupMembersStreamMetadata,
+  GroupsioPublishData,
+  GroupsioPublishDataType,
+  GroupsioStreamType,
+  GroupsioTopicStreamMetadata,
+  ListActivityLogs,
+  ListMembers,
+  ListMessages,
+  ListPastMembers,
+  ListTopics,
+  MemberInfo,
+  MemberInfoMinimal,
   PastMemberInfo,
 } from './types'
-import { getTopicsFromGroup } from './api/getTopicsFromGroup'
-import { getPastGroupMembers } from './api/getPastGroupMembers'
-import { getMessagesFromTopic } from './api/getMessagesFromTopic'
-import { getGroupMembers } from './api/getGroupMembers'
-import { getActivityLogs } from './api/getActivityLogs'
 
 const cacheMember = async (ctx: IProcessStreamContext, member: MemberInfo): Promise<void> => {
   const cacheKey = `${GroupsioStreamType.GROUP_MEMBERS}:${member.user_id}`
@@ -254,7 +255,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
         group_id: message.group_id,
       } as MemberInfoMinimal
 
-      ctx.log.warn(
+      ctx.log.debug(
         { userId, messageId: message.id },
         'Member not found in cache, using anonymous member!',
       )

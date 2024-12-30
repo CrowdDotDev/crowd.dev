@@ -1,5 +1,6 @@
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
+
 import getFeatureFlagTenantContext from './getFeatureFlagTenantContext'
 
 export default async (featureFlag: FeatureFlag, req: any): Promise<boolean> =>

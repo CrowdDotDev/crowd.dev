@@ -137,8 +137,3 @@ export interface IQueryNumberOfActiveOrganizations {
   before: Date
   platform?: string
 }
-
-export interface IActiveOrganizationsTimeseriesResult {
-  date: string
-  count: number
-}

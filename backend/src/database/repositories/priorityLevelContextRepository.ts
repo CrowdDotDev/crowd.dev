@@ -1,5 +1,7 @@
-import { IQueuePriorityCalculationContext } from '@crowd/types'
 import { QueryTypes } from 'sequelize'
+
+import { IQueuePriorityCalculationContext } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

@@ -1,5 +1,6 @@
 import { GenerateStreamsHandler } from '../../types'
-import { GitLabSettings, GitlabStreamType, GitlabRootStream } from './types'
+
+import { GitLabSettings, GitlabRootStream, GitlabStreamType } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GitLabSettings

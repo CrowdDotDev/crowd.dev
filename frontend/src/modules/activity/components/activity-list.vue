@@ -34,7 +34,7 @@
       <div v-else>
         <!-- Sorter -->
         <div class="mb-4">
-          <app-pagination-sorter
+          <!-- <app-pagination-sorter
             v-model="sorterFilter"
             :page-size="Number(pagination.perPage)"
             :total="totalActivities"
@@ -43,7 +43,7 @@
             :sorter="false"
             module="activity"
             position="top"
-          />
+          /> -->
         </div>
 
         <!-- Activity item list -->
@@ -82,14 +82,15 @@ import {
 } from 'vue';
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
-import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+// import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
+import moment from 'moment/moment';
 
-const sorterFilter = ref('trending');
+// const sorterFilter = ref('trending');
 const conversationId = ref(null);
 
 defineProps({
@@ -104,7 +105,7 @@ const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {
-  filters, activities, totalActivities, savedFilterBody, pagination,
+  filters, activities, totalActivities, savedFilterBody, limit, timestamp,
 } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
@@ -117,6 +118,10 @@ filters.value = {
     prop: 'timestamp',
     order: 'descending',
   },
+  date: {
+    include: true,
+    value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+  },
 };
 
 const emptyState = computed(() => ({
@@ -125,38 +130,63 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const isLoadMoreVisible = computed(() => (
-  pagination.value.page
-      * pagination.value.perPage
-    < totalActivities.value
-));
+const isLoadMoreVisible = computed(() => activities.value.length < totalActivities.value);
 
 const onLoadMore = () => {
-  pagination.value.page += 1;
+  timestamp.value = activities.value.at(-1).timestamp;
+
+  if (savedFilterBody.value.and) {
+    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.timestamp) {
+        newFilter.timestamp = {
+          ...newFilter.timestamp,
+          lte: timestamp.value,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
+  } else {
+    savedFilterBody.value.and = [
+      {
+        timestamp: {
+          lte: timestamp.value,
+        },
+      },
+    ];
+  }
 
   fetch({
     ...savedFilterBody.value,
-    offset: (pagination.value.page - 1) * pagination.value.perPage,
-    limit: pagination.value.perPage,
+    limit: limit.value,
     append: true,
   });
 };
 
 const fetch = ({
-  filter, offset = 0, limit = 20, orderBy, body, append,
+  filter, limit = 50, orderBy, body, append,
 }) => {
   loading.value = true;
+
+  const payloadFilter = { ...filter };
+  if (!payloadFilter.and) {
+    payloadFilter.and = [];
+  }
+
+  payloadFilter.and.push({
+    timestamp: {
+      lte: timestamp.value,
+    },
+  });
+
   fetchActivities({
     body: {
       ...body,
-      filter: {
-        ...filter,
-        member: {
-          isTeamMember: { not: true },
-          isBot: { not: true },
-        },
-      },
-      offset,
+      filter: payloadFilter,
       limit,
       orderBy,
     },

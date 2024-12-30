@@ -1,11 +1,14 @@
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { FeatureFlag, SyncMode } from '@crowd/types'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { getSearchSyncApiClient } from '../utils/apiClients'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/queueService'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+
 import { IS_TEST_ENV } from '@/conf'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/queueService'
+
+import { getSearchSyncApiClient } from '../utils/apiClients'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export type SearchSyncClient = SearchSyncApiClient | SearchSyncWorkerEmitter

@@ -1,7 +1,9 @@
-import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
-import { IntegrationRunState } from '@crowd/types'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
+
+import { Logger, getChildLogger, getServiceChildLogger } from '@crowd/logging'
+import { IntegrationRunState } from '@crowd/types'
+
 import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'

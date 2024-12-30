@@ -1,11 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { RateLimitError } from '@crowd/types'
+
+import { IProcessStreamContext } from '../../../types'
 import {
   DiscourseConnectionParams,
-  DiscoursePostsByIdsResponse,
   DiscoursePostsByIdsInput,
+  DiscoursePostsByIdsResponse,
 } from '../types'
-import { IProcessStreamContext } from '../../../types'
 
 const serializeArrayToQueryString = (params: object) =>
   Object.entries(params)

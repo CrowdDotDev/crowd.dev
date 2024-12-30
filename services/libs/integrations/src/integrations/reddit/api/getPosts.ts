@@ -1,9 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from '../../nango'
-import { IProcessStreamContext } from '../../../types'
-import { PlatformType } from '@crowd/types'
-import { RedditGetPostsInput, RedditPostsResponse, REDDIT_MAX_RETROSPECT_IN_HOURS } from '../types'
+
 import { timeout } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IProcessStreamContext } from '../../../types'
+import { getNangoToken } from '../../nango'
+import { REDDIT_MAX_RETROSPECT_IN_HOURS, RedditGetPostsInput, RedditPostsResponse } from '../types'
+
 import { handleRedditError } from './errorHandler'
 
 /**
@@ -48,9 +51,9 @@ async function getPosts(
     // If ctx.onboarding is false, check the last post's date
     if (!ctx.onboarding) {
       const fiveHoursAgo = Date.now() / 1000 - 5 * 60 * 60 // in seconds
-      const lastPost = response.data.children[response.data.children.length - 1]
+      const lastPost = response?.data?.children?.[response?.data?.children?.length - 1]
 
-      if (lastPost && lastPost.data.created < fiveHoursAgo) {
+      if (lastPost && lastPost?.data?.created < fiveHoursAgo) {
         // If the last post is older than 5 hours, set 'after' to null so the next API call won't go deeper
         ctx.log.info(
           lastPost,

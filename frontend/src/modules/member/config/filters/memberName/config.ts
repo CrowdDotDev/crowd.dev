@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const memberName: StringFilterConfig = {
   id: 'memberName',
   label: 'Person name',
-  iconClass: 'ri-account-circle-line',
+  iconClass: 'circle-user',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(

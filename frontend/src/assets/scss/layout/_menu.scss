@@ -5,7 +5,7 @@
     @apply w-65 flex flex-nowrap items-center border-l-3 h-9 px-5 border-transparent text-gray-900 text-medium;
 
     .c-icon{
-      @apply text-gray-400 mr-3 font-normal;
+      @apply text-gray-400 mr-3;
     }
 
     &:hover:not(.is-disabled, .is-active){

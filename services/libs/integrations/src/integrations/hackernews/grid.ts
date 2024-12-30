@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { HackerNewsActivityType } from './types'
 
 export const HACKERNEWS_GRID: Record<HackerNewsActivityType, IActivityScoringGrid> = {

@@ -12,9 +12,6 @@ import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 
 export default {
   init() {
-    if (window.location.pathname === '/auth/callback') {
-      return;
-    }
     Auth0Service.isAuthenticated()
       .then((isAuthenticated: boolean) => {
         if (!isAuthenticated) {
@@ -37,7 +34,7 @@ export default {
 
     Auth0Service.getUser().then((user) => {
       if (user) {
-        setRumUser(user.nickname);
+        setRumUser(user);
         lfxHeader.authuser = user;
       }
     });

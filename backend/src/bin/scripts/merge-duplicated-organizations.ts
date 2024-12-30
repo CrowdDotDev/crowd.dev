@@ -1,8 +1,11 @@
 import { QueryTypes } from 'sequelize'
+
 import { getServiceLogger } from '@crowd/logging'
+
+import SegmentRepository from '@/database/repositories/segmentRepository'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import OrganizationService from '../../services/organizationService'
-import SegmentRepository from '@/database/repositories/segmentRepository'
 
 /* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-loop-func */

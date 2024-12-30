@@ -1,6 +1,8 @@
+import assert from 'assert'
+
 import { Error400 } from '@crowd/common'
 import { TenantPlans } from '@crowd/types'
-import assert from 'assert'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import UserRepository from '../../database/repositories/userRepository'

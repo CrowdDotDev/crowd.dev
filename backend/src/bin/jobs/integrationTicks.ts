@@ -1,5 +1,7 @@
 import cronGenerator from 'cron-time-generator'
+
 import { getServiceLogger } from '@crowd/logging'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
 import { IServiceOptions } from '../../services/IServiceOptions'

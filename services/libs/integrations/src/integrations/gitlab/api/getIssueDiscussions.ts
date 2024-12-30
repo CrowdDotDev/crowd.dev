@@ -1,8 +1,10 @@
-import { Gitlab, DiscussionSchema, DiscussionNoteSchema, OffsetPagination } from '@gitbeaker/rest'
-import { GitlabDisccusionCommentData, GitlabApiResult } from '../types'
-import { getUser } from './getUser'
+import { DiscussionNoteSchema, DiscussionSchema, Gitlab, OffsetPagination } from '@gitbeaker/rest'
+
 import { IProcessStreamContext } from '../../../types'
+import { GitlabApiResult, GitlabDisccusionCommentData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
+
+import { getUser } from './getUser'
 
 export const getIssueDiscussions = async ({
   api,

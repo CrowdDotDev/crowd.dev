@@ -1,5 +1,6 @@
 import { OpensearchField } from '@crowd/types'
 import { OpensearchFieldType } from '@crowd/types'
+
 import OpensearchModelBase from './base'
 
 export class MembersOpensearch extends OpensearchModelBase {
@@ -25,9 +26,6 @@ export class MembersOpensearch extends OpensearchModelBase {
     },
     score: {
       type: OpensearchFieldType.INT,
-    },
-    lastEnriched: {
-      type: OpensearchFieldType.DATE,
     },
     joinedAt: {
       type: OpensearchFieldType.DATE,

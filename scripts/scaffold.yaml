@@ -17,7 +17,7 @@ services:
       - crowd-bridge
 
   questdb:
-    image: questdb/questdb:8.1.1
+    image: questdb/questdb:8.1.2
     restart: unless-stopped
     ports:
       - 8812:8812
@@ -153,6 +153,7 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_CFG_LOG_DIRS=/opt/bitnami/kafka/data
       - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_KRAFT_CLUSTER_ID=OTMwNzFhYTY1ODNiNGE5OT
     ports:
       - '9092:9092'
       - '9093:9093'

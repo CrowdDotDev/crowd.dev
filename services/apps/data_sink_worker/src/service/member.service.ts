@@ -1,42 +1,45 @@
-import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
+import uniqby from 'lodash.uniqby'
+
+import {
+  EDITION,
+  getEarliestValidDate,
+  getProperDisplayName,
+  isDomainExcluded,
+  isEmail,
+  isObjectEmpty,
+  singleOrDefault,
+} from '@crowd/common'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { DbStore } from '@crowd/data-access-layer/src/database'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   IDbMember,
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import {
-  isObjectEmpty,
-  singleOrDefault,
-  isDomainExcluded,
-  isEmail,
-  EDITION,
-  getProperDisplayName,
-  getEarliestValidDate,
-} from '@crowd/common'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
+  Edition,
   IMemberData,
   IMemberIdentity,
-  PlatformType,
-  OrganizationSource,
   IOrganizationIdSource,
-  TemporalWorkflowId,
   MemberIdentityType,
-  Edition,
-  OrganizationIdentityType,
   OrganizationAttributeSource,
+  OrganizationIdentityType,
+  OrganizationSource,
+  PlatformType,
+  TemporalWorkflowId,
 } from '@crowd/types'
-import mergeWith from 'lodash.mergewith'
-import isEqual from 'lodash.isequal'
+
+import { TEMPORAL_CONFIG } from '../conf'
+
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { OrganizationService } from './organization.service'
-import uniqby from 'lodash.uniqby'
-import { TEMPORAL_CONFIG } from '../conf'
-import { RedisClient } from '@crowd/redis'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class MemberService extends LoggerBase {
   constructor(

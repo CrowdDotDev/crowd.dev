@@ -7,13 +7,15 @@
         placeholder="Search project groups..."
         @on-change="onSearchProjectGroup"
       />
-      <el-button
+      <lf-button
         v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
-        class="btn btn--md btn--primary"
+        size="medium"
+        type="secondary-ghost"
         @click="onAddProjectGroup"
       >
+        <lf-icon name="folder-plus" type="regular" />
         Add project group
-      </el-button>
+      </lf-button>
     </div>
 
     <div
@@ -26,7 +28,7 @@
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups yet"
         :description="`${!hasPermission(LfPermission.projectGroupCreate)
           ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
@@ -36,14 +38,15 @@
 
       <app-empty-state-cta
         v-else-if="!pagination.count"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
       <!-- Table -->
-      <div v-else class="mt-6">
+      <div v-else class="mt-8">
         <app-lf-project-groups-table
+          :search="searchQuery"
           @on-edit-project-group="onEditProjectGroup"
           @on-add-project="onAddProject"
         />
@@ -80,6 +83,8 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -93,6 +98,7 @@ const { hasPermission } = usePermissions();
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
+const searchQuery = ref('');
 
 const projectGroupForm = reactive({
   id: null,
@@ -132,6 +138,7 @@ const onSearchProjectGroup = (val) => {
     type: EventType.FEATURE,
   });
 
+  searchQuery.value = val;
   searchProjectGroup(val);
 };
 </script>

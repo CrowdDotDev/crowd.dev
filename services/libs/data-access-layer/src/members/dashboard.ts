@@ -1,7 +1,10 @@
 import { getEnv } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { IMember } from '@crowd/types'
-import { IQueryNumberOfNewMembers, IQueryTimeseriesOfNewMembers } from './types'
+import { IMember, IQueryTimeseriesParams, ITimeseriesDatapoint } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
+
+import { IQueryNumberOfNewMembers } from './types'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -9,11 +12,11 @@ const s3Url = `https://${
 
 export async function getMemberById(db: DbStore, id: string): Promise<IMember> {
   const query = `
-    SELECT 
+    SELECT
       "id", "tenantId",
       "attributes", "displayName",
       "score",
-      "lastEnriched", "enrichedBy",
+      "enrichedBy",
       "joinedAt", "createdAt"
     FROM members
     WHERE "id" = $(id)
@@ -39,14 +42,10 @@ export async function getNumberOfNewMembers(
   db: DbStore,
   arg: IQueryNumberOfNewMembers,
 ): Promise<number> {
-  let query = 'SELECT DISTINCT COUNT(id) FROM members m'
+  let query = 'SELECT DISTINCT COUNT(m.id) FROM members m'
 
   if (arg.segmentIds) {
-    query += ' INNER JOIN "memberSegments" ms on ms."memberId" = m.id'
-  }
-
-  if (arg.platform) {
-    query += ' INNER JOIN "memberIdentities" mi ON mi."memberId" = m.id'
+    query += ' INNER JOIN "memberSegmentsAgg" msa on msa."memberId" = m.id'
   }
 
   query += ` WHERE m."tenantId" = $(tenantId)
@@ -57,11 +56,11 @@ export async function getNumberOfNewMembers(
     AND m."deletedAt" IS NULL`
 
   if (arg.segmentIds) {
-    query += ' AND ms."segmentId" IN ($(segmentIds:csv))'
+    query += ' AND msa."segmentId" IN ($(segmentIds:csv))'
   }
 
   if (arg.platform) {
-    query += ' AND mi.platform = $(platform)'
+    query += ' AND $(platform) = ANY(msa."activeOn")'
   }
 
   query += ';'
@@ -82,43 +81,51 @@ export interface IActiveMembersTimeseriesResult {
   count: number
 }
 
-export async function getTimeseriesOfActiveMembers(
-  db: DbStore,
-  arg: IQueryTimeseriesOfNewMembers,
-): Promise<IActiveMembersTimeseriesResult[]> {
-  let query = `
-    SELECT COUNT_DISTINCT("memberId") AS count, timestamp
-    FROM activities
-    WHERE tenantId = $(tenantId)
-    AND "memberId" IS NOT NULL
-    AND timestamp BETWEEN $(after) AND $(before)
+export async function getTimeseriesOfNewMembers(
+  qx: QueryExecutor,
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  const query = `
+    SELECT
+      COUNT(DISTINCT m.id) AS count,
+      TO_CHAR(m."joinedAt", 'YYYY-MM-DD') AS "date"
+    FROM members AS m
+    ${params.segmentIds ? 'INNER JOIN "memberSegmentsAgg" msa on msa."memberId" = m.id' : ''} -- if segments
+    WHERE m."tenantId" = $(tenantId)
+      AND m."joinedAt" >= $(startDate)
+      AND m."joinedAt" < $(endDate)
+      AND (COALESCE((((m.attributes -> 'isBot'::text) -> 'default'::text))::boolean, false)) IS FALSE
+      AND (COALESCE((((m.attributes -> 'isTeamMember'::text) -> 'default'::text))::boolean, false)) IS FALSE
+      AND (COALESCE((((m.attributes -> 'isOrganization'::text) -> 'default'::text))::boolean, false)) IS FALSE
+      AND m."deletedAt" IS NULL
+      ${params.segmentIds ? 'AND msa."segmentId" IN ($(segmentIds:csv))' : ''}
+      ${params.platform ? 'AND $(platform) = ANY(msa."activeOn")' : ''}
+    GROUP BY 2
+    ORDER BY 2
   `
 
-  if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
-  }
+  return qx.select(query, params)
+}
 
-  if (arg.platform) {
-    query += ` AND "platform" = $(platform)`
-  }
+export async function getTimeseriesOfActiveMembers(
+  qx: QueryExecutor,
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  const query = `
+    SELECT
+      COUNT_DISTINCT("memberId") AS count,
+      DATE_TRUNC('day', timestamp) AS "date"
+    FROM activities
+    WHERE tenantId = $(tenantId)
+      AND "deletedAt" IS NULL
+      AND "memberId" IS NOT NULL
+      ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
+      AND timestamp >= $(startDate)
+      AND timestamp < $(endDate)
+      ${params.platform ? 'AND "platform" = $(platform)' : ''}
+    GROUP BY 2
+    ORDER BY 2
+  `
 
-  query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR ORDER BY timestamp DESC;'
-
-  const rows = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-    before: arg.before,
-    platform: arg.platform,
-  })
-
-  const results: IActiveMembersTimeseriesResult[] = []
-  rows.forEach((row) => {
-    results.push({
-      date: row.timestamp,
-      count: Number(row.count),
-    })
-  })
-
-  return results
+  return qx.select(query, params)
 }

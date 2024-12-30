@@ -12,7 +12,7 @@ import {
 const annualRevenue: NumberFilterConfig = {
   id: 'annualRevenue',
   label: 'Annual revenue',
-  iconClass: 'ri-money-dollar-circle-line',
+  iconClass: 'circle-dollar',
   type: FilterConfigType.CUSTOM,
   component: AnnualRevenueFilter,
   options: {},

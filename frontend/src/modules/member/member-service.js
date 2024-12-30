@@ -134,13 +134,19 @@ export class MemberService {
     segments,
   }) {
     const payload = {
-      filter: query ? {
-        displayName: {
-          textContains: query,
-        },
-      } : {},
+      filter: {
+        and: [
+          { isBot: { not: true } },
+          { isOrganization: { not: true } },
+          ...(query ? [{
+            displayName: {
+              textContains: query,
+            },
+          }] : []),
+        ],
+      },
       offset: 0,
-      orderBy: 'displayName_ASC',
+      orderBy: 'activityCount_DESC',
       limit,
       ...(segments && {
         segments,

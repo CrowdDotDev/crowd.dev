@@ -43,40 +43,6 @@ export type IOrganizationFilter =
   | IRangeFilterCreatedAt
   | IExistsFilter
 
-export interface IMemberQueryBody {
-  from: number
-  size: number
-  query: {
-    bool: {
-      filter: IMemberFilter[]
-    }
-  }
-  sort: {
-    [key: string]: string
-  }
-  collapse: {
-    field: string
-  }
-  _source: string[]
-}
-
-export interface IOrganizationQueryBody {
-  from: number
-  size: number
-  query: {
-    bool: {
-      filter: IOrganizationFilter[]
-    }
-  }
-  sort: {
-    [key: string]: string
-  }
-  collapse: {
-    field: string
-  }
-  _source: string[]
-}
-
 export interface ILLMResult {
   body: ILLMBody
   prompt: string

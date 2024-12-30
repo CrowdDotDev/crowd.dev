@@ -1,24 +1,25 @@
+import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+
+import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import {
+  cleanupMember,
+  deleteMemberSegments,
+  findMemberById,
+  getIdentitiesWithActivity,
+  moveActivitiesToNewMember,
+  moveIdentityActivitiesToNewMember,
+} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { SearchSyncApiClient } from '@crowd/opensearch'
+import { RedisPubSubEmitter } from '@crowd/redis'
 import {
   ApiWebsocketMessage,
   IMemberIdentity,
   MemberIdentityType,
   TemporalWorkflowId,
 } from '@crowd/types'
-import { svc } from '../main'
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
-import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RedisPubSubEmitter } from '@crowd/redis'
 
-import {
-  deleteMemberSegments,
-  cleanupMember,
-  findMemberById,
-  moveActivitiesToNewMember,
-  moveIdentityActivitiesToNewMember,
-  getIdentitiesWithActivity,
-} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { svc } from '../main'
 
 export async function deleteMember(memberId: string): Promise<void> {
   await deleteMemberSegments(svc.postgres.writer, memberId)
@@ -37,7 +38,7 @@ export async function moveActivitiesBetweenMembers(
   if (!memberExists) {
     return
   }
-  await moveActivitiesToNewMember(svc.postgres.writer, primaryId, secondaryId, tenantId)
+  await moveActivitiesToNewMember(svc.questdbSQL, primaryId, secondaryId, tenantId)
 }
 
 export async function moveActivitiesWithIdentityToAnotherMember(
@@ -65,7 +66,7 @@ export async function moveActivitiesWithIdentityToAnotherMember(
       identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
   )) {
     await moveIdentityActivitiesToNewMember(
-      svc.postgres.writer,
+      svc.questdbSQL,
       tenantId,
       fromId,
       toId,

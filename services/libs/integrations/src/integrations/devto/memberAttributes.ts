@@ -1,13 +1,14 @@
+import { distinctBy } from '@crowd/common'
 import {
   IMemberAttribute,
   MemberAttributeName,
   MemberAttributeType,
   MemberAttributes,
 } from '@crowd/types'
-import { pickAttributes } from '../utils'
+
+import { GITHUB_MEMBER_ATTRIBUTES } from '../github-old/memberAttributes'
 import { TWITTER_MEMBER_ATTRIBUTES } from '../twitter/memberAttributes'
-import { GITHUB_MEMBER_ATTRIBUTES } from '../github/memberAttributes'
-import { distinctBy } from '@crowd/common'
+import { pickAttributes } from '../utils'
 
 export const DEVTO_MEMBER_ATTRIBUTES: IMemberAttribute[] = distinctBy(
   [

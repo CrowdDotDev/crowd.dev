@@ -1,16 +1,19 @@
-import sanitizeHtml from 'sanitize-html'
-import { REDDIT_GRID } from './grid'
-import { RedditPost, RedditActivityType, RedditComment, IRedditPublishData } from './types'
-import he from 'he'
-import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { randomUUID } from 'crypto'
+import he from 'he'
+import sanitizeHtml from 'sanitize-html'
+
 import {
+  IActivityData,
   IMemberData,
   MemberAttributeName,
-  PlatformType,
-  IActivityData,
   MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
+
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
+import { REDDIT_GRID } from './grid'
+import { IRedditPublishData, RedditActivityType, RedditComment, RedditPost } from './types'
 
 interface IParsePostInput {
   channel: string

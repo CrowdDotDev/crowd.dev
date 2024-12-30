@@ -1,4 +1,5 @@
 import { Error401 } from '@crowd/common'
+
 import AuthService from '../services/auth/authService'
 
 /**

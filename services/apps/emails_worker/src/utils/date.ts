@@ -1,9 +1,9 @@
 import moment from 'moment'
 
 import {
-  EagleEyePublishedDates,
   EagleEyeEmailDigestFrequency,
   EagleEyeEmailDigestSettings,
+  EagleEyePublishedDates,
 } from '@crowd/types'
 
 export function switchDate(date: string, offset = 0) {

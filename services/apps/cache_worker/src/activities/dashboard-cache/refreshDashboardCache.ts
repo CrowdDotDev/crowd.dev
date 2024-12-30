@@ -1,37 +1,32 @@
-import { svc } from '../../main'
 import {
-  IGraphQueryParams,
-  IDashboardData,
-  INewMembersTimeseriesResult,
-  INewOrganizationsTimeseriesResult,
-} from '../../types'
-import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
-import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
-import { RedisCache } from '@crowd/redis'
-import { DashboardTimeframe } from '@crowd/types'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
-import {
-  IActiveMembersTimeseriesResult,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
-  IActivityTimeseriesResult,
   activitiesBySentiment,
   activitiesByTypeAndPlatform,
   activitiesTimeseries,
-  countMembersWithActivities,
-  countOrganizationsWithActivities,
-  getNumberOfNewMembers,
   getTimeseriesOfActiveMembers,
+  getTimeseriesOfNewMembers,
   queryActivities,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
+import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
+import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 import {
-  getNumberOfActiveOrganizations,
-  getNumberOfNewOrganizations,
   getTimeseriesOfActiveOrganizations,
-  IActiveOrganizationsTimeseriesResult,
+  getTimeseriesOfNewOrganizations,
 } from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { RedisCache } from '@crowd/redis'
+import {
+  DashboardTimeframe,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
+  IDashboardData,
+  IQueryTimeseriesParams,
+  ITimeseriesDatapoint,
+} from '@crowd/types'
+
+import { svc } from '../../main'
 
 const qdb = new DbStore(svc.log, svc.questdbSQL)
 
@@ -65,187 +60,31 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(
   await segmentRepo.updateDashboardCacheLastRefreshedAt(segmentId)
 }
 
-export async function getNewMembersNumber(params: IGraphQueryParams): Promise<number> {
-  let result = 0
-  try {
-    result = await getNumberOfNewMembers(svc.postgres.reader, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-
 export async function getNewMembersTimeseries(
-  params: IGraphQueryParams,
-): Promise<INewMembersTimeseriesResult[]> {
-  let result: INewMembersTimeseriesResult[]
-
-  try {
-    const rows = await countMembersWithActivities(svc.questdbSQL, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      timestampFrom: params.startDate,
-      timestampTo: params.endDate,
-      platform: params.platform,
-      groupBy: 'day',
-    })
-
-    const mapped: Record<string, INewMembersTimeseriesResult> = {}
-    rows.forEach((row) => {
-      if (!mapped[row.date]) {
-        mapped[row.date] = {
-          date: row.date,
-          count: Number(row.count),
-        }
-      } else {
-        mapped[row.date]['count'] = Number(mapped[row.date]['count']) + Number(row.count)
-      }
-    })
-
-    result = Object.values(mapped)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-
-export async function getActiveMembersNumber(params: IGraphQueryParams): Promise<number> {
-  let result = 0
-  try {
-    const rows = await countMembersWithActivities(svc.questdbSQL, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      timestampFrom: params.startDate,
-      timestampTo: params.endDate,
-      platform: params.platform,
-      groupBy: 'day',
-    })
-
-    rows.forEach((row) => {
-      result += Number(row.count)
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  return getTimeseriesOfNewMembers(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getActiveMembersTimeseries(
-  params: IGraphQueryParams,
-): Promise<IActiveMembersTimeseriesResult[]> {
-  let result: IActiveMembersTimeseriesResult[]
-  try {
-    result = await getTimeseriesOfActiveMembers(qdb, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-
-export async function getNewOrganizationsNumber(params: IGraphQueryParams): Promise<number> {
-  let result = 0
-  try {
-    result = await getNumberOfNewOrganizations(svc.postgres.reader, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  return getTimeseriesOfActiveMembers(dbStoreQx(qdb), params)
 }
 
 export async function getNewOrganizationsTimeseries(
-  params: IGraphQueryParams,
-): Promise<INewOrganizationsTimeseriesResult[]> {
-  let result: INewOrganizationsTimeseriesResult[]
-
-  try {
-    const rows = await countOrganizationsWithActivities(svc.questdbSQL, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      timestampFrom: params.startDate,
-      timestampTo: params.endDate,
-      platform: params.platform,
-    })
-
-    const mapped: Record<string, INewOrganizationsTimeseriesResult> = {}
-    rows.forEach((row) => {
-      if (!mapped[row.date]) {
-        mapped[row.date] = {
-          date: row.date,
-          count: Number(row.count),
-        }
-      } else {
-        mapped[row.date]['count'] = Number(mapped[row.date]['count']) + Number(row.count)
-      }
-    })
-
-    result = Object.values(mapped)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-
-export async function getActiveOrganizationsNumber(params: IGraphQueryParams): Promise<number> {
-  let result = 0
-  try {
-    result = await getNumberOfActiveOrganizations(qdb, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  return getTimeseriesOfNewOrganizations(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getActiveOrganizationsTimeseries(
-  params: IGraphQueryParams,
-): Promise<IActiveOrganizationsTimeseriesResult[]> {
-  let result: IActiveOrganizationsTimeseriesResult[]
-  try {
-    result = await getTimeseriesOfActiveOrganizations(qdb, {
-      tenantId: params.tenantId,
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  return getTimeseriesOfActiveOrganizations(dbStoreQx(qdb), params)
 }
 
-export async function getActivitiesNumber(params: IGraphQueryParams): Promise<number> {
+export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promise<number> {
   let result = 0
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -288,9 +127,9 @@ export async function getActivitiesNumber(params: IGraphQueryParams): Promise<nu
 }
 
 export async function getActivitiesTimeseries(
-  params: IGraphQueryParams,
-): Promise<IActivityTimeseriesResult[]> {
-  let result: IActivityTimeseriesResult[]
+  params: IQueryTimeseriesParams,
+): Promise<ITimeseriesDatapoint[]> {
+  let result: ITimeseriesDatapoint[]
 
   try {
     result = await activitiesTimeseries(svc.questdbSQL, {
@@ -307,7 +146,7 @@ export async function getActivitiesTimeseries(
   return result
 }
 export async function getActivitiesBySentiment(
-  params: IGraphQueryParams,
+  params: IQueryTimeseriesParams,
 ): Promise<IActivityBySentimentMoodResult[]> {
   let result: IActivityBySentimentMoodResult[]
 
@@ -326,7 +165,7 @@ export async function getActivitiesBySentiment(
   return result
 }
 export async function getActivitiesByType(
-  params: IGraphQueryParams,
+  params: IQueryTimeseriesParams,
 ): Promise<IActivityByTypeAndPlatformResult[]> {
   let result: IActivityByTypeAndPlatformResult[]
 

@@ -1,5 +1,6 @@
-import { IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+
+import { IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 
 export interface IEmittersRequest {
   emitters: {

@@ -5,7 +5,7 @@
       :maintainer-roles="maintainer"
     >
       <span>Maintainer</span>
-      <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
+      <lf-icon-old name="git-repository-line" :size="14" class="text-gray-400" />
       <span class="text-gray-400">{{ maintainer.length }}</span>
     </lf-contributor-details-projects-maintainer-item>
     <lf-contributor-details-projects-maintainer-item
@@ -13,7 +13,7 @@
       :maintainer-roles="contributor"
     >
       <span>Contributor</span>
-      <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
+      <lf-icon-old name="git-repository-line" :size="14" class="text-gray-400" />
       <span class="text-gray-400">{{ contributor.length }}</span>
     </lf-contributor-details-projects-maintainer-item>
     <div v-if="!maintainer.length && !contributor.length">
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { ContributorMaintainerRole } from '@/modules/contributor/types/Contributor';
 import { computed } from 'vue';
 import LfContributorDetailsProjectsMaintainerItem

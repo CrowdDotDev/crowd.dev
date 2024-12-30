@@ -5,11 +5,13 @@ import { router } from '@/router';
 const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
 
 export class IntegrationService {
-  static async update(id, data) {
+  static async update(id, data, segments = []) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
@@ -36,11 +38,13 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async create(data) {
+  static async create(data, segments = []) {
     const body = {
-      data,
+      ...data,
       ...getSegments(),
     };
+
+    body.segments = segments.length ? segments : body.segments;
 
     const tenantId = AuthService.getTenantId();
 
@@ -84,7 +88,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async devtoConnect(users, organizations, apiKey) {
+  static async devtoConnect(users, organizations, apiKey, segments) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
 
@@ -94,6 +98,7 @@ export class IntegrationService {
       organizations,
       apiKey,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
@@ -112,7 +117,7 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async hackerNewsConnect(keywords, urls) {
+  static async hackerNewsConnect(keywords, urls, segments) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
 
@@ -123,6 +128,7 @@ export class IntegrationService {
         keywords,
         urls,
         ...getSegments(),
+        segments,
       },
     );
 
@@ -147,13 +153,14 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async githubMapRepos(integrationId, mapping, segments) {
+  static async githubMapRepos(integrationId, mapping, segments, isUpdateTransaction = false) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
       {
         mapping,
         segments,
+        isUpdateTransaction,
       },
     );
     return response.data;
@@ -185,12 +192,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async redditOnboard(subreddits) {
+  static async redditOnboard(subreddits, segmentId) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
     const body = {
       subreddits,
-      ...getSegments(),
+      segments: [segmentId],
     };
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
@@ -199,20 +206,20 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async linkedinConnect() {
+  static async linkedinConnect(segmentId) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/linkedin-connect/${tenantId}`,
-      getSegments(),
+      { segments: [segmentId] },
     );
 
     return response.data;
   }
 
-  static async linkedinOnboard(organizationId) {
+  static async linkedinOnboard(organizationId, segmentId) {
     const body = {
       organizationId,
-      ...getSegments(),
+      segments: [segmentId],
     };
 
     const tenantId = AuthService.getTenantId();
@@ -312,7 +319,7 @@ export class IntegrationService {
     return response.data.total;
   }
 
-  static async stackOverflowOnboard(tags, keywords) {
+  static async stackOverflowOnboard(segmentId, tags, keywords) {
     // Getting the tenant_id
     const tenantId = AuthService.getTenantId();
     // Calling the authenticate function in the backend.
@@ -321,7 +328,7 @@ export class IntegrationService {
       {
         tags,
         keywords,
-        ...getSegments(),
+        segments: [segmentId],
       },
     );
 
@@ -340,35 +347,37 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async gitConnect(remotes) {
+  static async gitConnect(remotes, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(`/tenant/${tenantId}/git-connect`, {
       remotes,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
   }
 
-  static async confluenceConnect(settings) {
+  static async confluenceConnect(settings, segmentId) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
       `/tenant/${tenantId}/confluence-connect`,
       {
         settings,
-        ...getSegments(),
+        segments: [segmentId],
       },
     );
 
     return response.data;
   }
 
-  static async gerritConnect(remote) {
+  static async gerritConnect(remote, segments = []) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(`/tenant/${tenantId}/gerrit-connect`, {
       remote,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
@@ -390,7 +399,7 @@ export class IntegrationService {
     return response.status === 200;
   }
 
-  static async discourseConnect(forumHostname, apiKey, webhookSecret) {
+  static async discourseConnect(forumHostname, apiKey, webhookSecret, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -401,6 +410,7 @@ export class IntegrationService {
         apiUsername: 'system',
         webhookSecret,
         ...getSegments(),
+        segments,
       },
     );
 
@@ -436,7 +446,7 @@ export class IntegrationService {
     return response.data.isWebhooksReceived;
   }
 
-  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports) {
+  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -449,13 +459,14 @@ export class IntegrationService {
         groups,
         autoImports,
         ...getSegments(),
+        segments,
       },
     );
 
     return response.data;
   }
 
-  static async groupsioGetToken(email, password, twoFactorCode = null) {
+  static async groupsioGetToken(email, password, twoFactorCode = null, segments = []) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -465,6 +476,7 @@ export class IntegrationService {
         password,
         twoFactorCode,
         ...getSegments(),
+        segments,
       },
     );
 
@@ -506,6 +518,7 @@ export class IntegrationService {
     personalAccessToken,
     apiToken,
     projects,
+    segments = [],
   ) {
     const tenantId = AuthService.getTenantId();
 
@@ -516,6 +529,7 @@ export class IntegrationService {
       apiToken,
       projects,
       ...getSegments(),
+      segments,
     });
 
     return response.data;
@@ -553,18 +567,22 @@ export class IntegrationService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/github-installations`,
+      {
+        params: getSegments(),
+      },
     );
 
     return response.data;
   }
 
-  static async gitlabConnect(code, state) {
+  static async gitlabConnect(code, state, segments = []) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.get(`/gitlab/${tenantId}/callback`, {
       params: {
         code,
         state,
         ...getSegments(),
+        segments,
       },
     });
     return response.data;

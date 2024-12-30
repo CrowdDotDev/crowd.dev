@@ -1,16 +1,17 @@
-import { Octokit } from '@octokit/core'
-import { request } from '@octokit/request'
-import { createAppAuth } from '@octokit/auth-app'
-import { LoggerBase } from '@crowd/logging'
-import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import axios from 'axios'
+
+import { createHeading, createParagraph } from '@crowd/common'
 import { createDataIssue } from '@crowd/data-access-layer/src/data_issues'
-import { findOrgById, OrganizationField } from '@crowd/data-access-layer/src/orgs'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
+import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'
-import { InstallationAccessTokenData } from '@octokit/auth-app/dist-types/types'
-import { IServiceOptions } from './IServiceOptions'
+
+import { JIRA_ISSUE_REPORTER_CONFIG } from '@/conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import { GITHUB_ISSUE_REPORTER_CONFIG } from '@/conf'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export interface IDataIssueCreatePayload {
   entity: DataIssueEntity
@@ -22,12 +23,21 @@ export interface IDataIssueCreatePayload {
   createdById: string
 }
 
+interface IJiraCreateIssueResponse {
+  id: string
+  key: string
+  self: string
+  transitions: {
+    status: string
+    errorCollection: {
+      errorMessages: string[]
+      errors: object
+    }
+  }
+}
+
 export default class DataIssueService extends LoggerBase {
   private readonly qx: PgPromiseQueryExecutor
-
-  private readonly DATA_ISSUES_GITHUB_REPO: string = 'linux-foundation-support'
-
-  private readonly DATA_ISSUES_GITHUB_OWNER: string = 'CrowdDotDev'
 
   options: IServiceOptions
 
@@ -62,29 +72,51 @@ export default class DataIssueService extends LoggerBase {
       reportedBy = `${user.email}`
     }
 
-    const appToken = await DataIssueService.getGitHubAppToken(
-      GITHUB_ISSUE_REPORTER_CONFIG.appId,
-      GITHUB_ISSUE_REPORTER_CONFIG.privateKey,
-      GITHUB_ISSUE_REPORTER_CONFIG.installationId,
-    )
-
     try {
-      const result = await request(
-        `POST /repos/${this.DATA_ISSUES_GITHUB_OWNER}/${this.DATA_ISSUES_GITHUB_REPO}/issues`,
+      const result = await axios.post<IJiraCreateIssueResponse>(
+        `${JIRA_ISSUE_REPORTER_CONFIG.apiUrl}/issue`,
+        {
+          fields: {
+            project: {
+              key: JIRA_ISSUE_REPORTER_CONFIG.projectKey,
+            },
+            summary: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
+              .slice(1)
+              .toLowerCase()})`,
+            description: {
+              version: 1,
+              type: 'doc',
+              content: [
+                createHeading('Entity'),
+                createParagraph(entityName),
+                createHeading('Profile'),
+                createParagraph(data.profileUrl, true),
+                createHeading('Data Issue'),
+                createParagraph(data.dataIssue),
+                createHeading('Description'),
+                createParagraph(data.description),
+                createHeading('Reported by'),
+                createParagraph(reportedBy),
+              ],
+            },
+            issuetype: {
+              name: 'Task',
+            },
+            labels: ['data-issue'],
+          },
+        },
         {
           headers: {
-            authorization: `token ${appToken}`,
+            Authorization: `Basic ${Buffer.from(
+              `${JIRA_ISSUE_REPORTER_CONFIG.apiTokenEmail}:${JIRA_ISSUE_REPORTER_CONFIG.token}`,
+            ).toString('base64')}`,
           },
-          title: `[Data Issue] ${entityName} (${data.entity[0].toUpperCase()}${data.entity
-            .slice(1)
-            .toLowerCase()})`,
-          body: `**Entity**\n${entityName}\n\n**Profile**\n[${data.profileUrl}](${data.profileUrl})\n\n**Data Issue**\n${data.dataIssue}\n\n**Description**\n${data.description}\n\n**Reported by**\n${reportedBy}`,
-          labels: ['Data issue'],
         },
       )
+
       const res = await createDataIssue(qx, {
         ...data,
-        githubIssueUrl: result.data.html_url,
+        issueUrl: result.data.self,
         createdById: user.id,
       })
 
@@ -93,27 +125,5 @@ export default class DataIssueService extends LoggerBase {
       this.log.info(error)
       throw new Error('Error during session create!')
     }
-  }
-
-  public static async getGitHubAppToken(
-    appId: string,
-    privateKey: string,
-    installationId: string,
-  ): Promise<string> {
-    const octokit = new Octokit({
-      authStrategy: createAppAuth,
-      auth: {
-        appId,
-        privateKey,
-        installationId,
-      },
-    })
-
-    const authResponse = await octokit.auth({
-      type: 'installation',
-      installationId,
-    })
-
-    return (authResponse as InstallationAccessTokenData).token
   }
 }

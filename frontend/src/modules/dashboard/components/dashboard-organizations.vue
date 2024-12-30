@@ -35,10 +35,11 @@
               v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="chartData?.newOrganizations.timeseries"
-              :datasets="datasets('new organizations')"
+            <lf-chart
+              v-else-if="chartData?.newOrganizations.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.newOrganizations.timeseries)"
+              :params="{ label: 'new organizations' }"
             />
           </div>
         </div>
@@ -66,7 +67,7 @@
             />
             <app-dashboard-empty-state
               v-if="recentOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No new organizations during this period
@@ -109,7 +110,7 @@
                   content="Organizations whose people engaged in at least one activity during the selected time period."
                   popper-class="max-w-[260px]"
                 >
-                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                  <lf-icon name="circle-info" :size="14" class="ml-1" />
                 </el-tooltip>
               </h6>
             </div>
@@ -127,10 +128,11 @@
               v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="chartData?.activeOrganizations.timeseries"
-              :datasets="datasets('active organizations')"
+            <lf-chart
+              v-else-if="chartData?.activeOrganizations.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.activeOrganizations.timeseries)"
+              :params="{ label: 'active organizations' }"
             />
           </div>
         </div>
@@ -157,7 +159,7 @@
             />
             <app-dashboard-empty-state
               v-if="activeOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No active organizations during this period
@@ -196,15 +198,22 @@ import AppDashboardOrganizationItem from '@/modules/dashboard/components/organiz
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const {
   chartData, organizations, period, activeOrganizations, recentOrganizations,
 } = mapGetters('dashboard');
+
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const periodRange = computed(() => [
   moment()
@@ -215,14 +224,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Organizations.count',
-  granularity: 'day',
-}];
-
 </script>
 
 <script lang="ts">

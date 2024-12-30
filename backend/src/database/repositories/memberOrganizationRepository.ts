@@ -1,5 +1,7 @@
 import { QueryTypes } from 'sequelize'
+
 import { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

@@ -1,9 +1,11 @@
 import { Gitlab, ProjectSchema } from '@gitbeaker/rest'
-import { GitlabForkData } from '../types'
-import { getUser } from './getUser'
-import { GitlabApiResult } from '../types'
+
 import { IProcessStreamContext } from '../../../types'
+import { GitlabForkData } from '../types'
+import { GitlabApiResult } from '../types'
 import { RedisSemaphore } from '../utils/lock'
+
+import { getUser } from './getUser'
 
 export const getForks = async ({
   api,

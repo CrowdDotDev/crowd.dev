@@ -1,7 +1,7 @@
 <template>
   <lf-tooltip v-if="data" :content="`Score: ${props.contributor.averageSentiment}`">
     <div class="flex items-center gap-1.5" :class="data.class">
-      <lf-icon
+      <lf-icon-old
         :size="16"
         :name="data.icon"
       />
@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 

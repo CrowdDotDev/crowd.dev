@@ -1,9 +1,7 @@
 <template>
   <div class="grid grid-cols-12 gap-4 mx-6 h-screen">
     <div class="col-span-8 col-start-3 h-fit self-center">
-      <i
-        class="ri-aspect-ratio-line text-gray-200 text-8xl mb-8"
-      />
+      <lf-icon name="expand" :size="128" class="text-gray-200 mb-8" />
       <h2 class="text-gray-900 mb-2">
         Resize window
       </h2>
@@ -15,3 +13,6 @@
     </div>
   </div>
 </template>
+<script setup lang="ts">
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+</script>

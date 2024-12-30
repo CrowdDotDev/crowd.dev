@@ -93,6 +93,8 @@ const apply = () => {
     key = FeatureEventKey.FILTER_MEMBERS_MERGE_SUGGESTIONS;
   } else if (routeName === 'organizationMergeSuggestions') {
     key = FeatureEventKey.FILTER_ORGANIZATIONS_MERGE_SUGGESTIONS;
+  } else {
+    key = FeatureEventKey.FILTER;
   }
 
   if (key) {

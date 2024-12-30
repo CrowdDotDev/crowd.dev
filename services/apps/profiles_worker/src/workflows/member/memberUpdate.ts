@@ -7,7 +7,7 @@ import { MemberUpdateInput } from '../../types/member'
 const { updateMemberAffiliations, syncOrganization, syncMember } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '60 seconds',
+  startToCloseTimeout: '60 minutes',
 })
 
 /*

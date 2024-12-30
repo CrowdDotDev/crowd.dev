@@ -1,8 +1,10 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
 import { PageData, SearchCriteria } from '@crowd/types'
-import { IServiceOptions } from './IServiceOptions'
+
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export abstract class ServiceBase<TData, TId, TCreate, TUpdate, TCriteria extends SearchCriteria> {
   protected constructor(public readonly options: IServiceOptions) {}

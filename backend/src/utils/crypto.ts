@@ -1,5 +1,6 @@
-import * as crypto from 'crypto'
 import * as buffer from 'buffer'
+import * as crypto from 'crypto'
+
 import { ENCRYPTION_CONFIG } from '../conf'
 
 export function generateWebhookSecret(length: number = 32): string {

@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 import { API_CONFIG, GITLAB_CONFIG } from '@/conf'
 
 interface WebhookSetupResult {

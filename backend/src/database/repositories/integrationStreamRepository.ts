@@ -1,14 +1,17 @@
-import { QueryTypes } from 'sequelize'
 import lodash from 'lodash'
+import { QueryTypes } from 'sequelize'
+
 import { generateUUIDv1 } from '@crowd/common'
+
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 import {
   DbIntegrationStreamCreateData,
   IntegrationStream,
   IntegrationStreamState,
 } from '../../types/integrationStreamTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 
 export default class IntegrationStreamRepository extends RepositoryBase<
   IntegrationStream,

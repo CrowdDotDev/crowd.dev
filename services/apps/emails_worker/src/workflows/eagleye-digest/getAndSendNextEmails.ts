@@ -1,12 +1,13 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
   workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities/eagleeye-digest/getNextEmails'
+
 import { eagleeyeSendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
 
 // Configure timeouts and retry policies to fetch emails to send.
