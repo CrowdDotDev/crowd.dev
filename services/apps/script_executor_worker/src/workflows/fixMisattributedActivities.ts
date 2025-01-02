@@ -15,19 +15,29 @@ export async function fixMisattributedActivities(restartIndex = 0): Promise<void
     return
   }
 
+  // Convert to number to ensure proper arithmetic
+  const startIndex = Number(restartIndex)
+
   // Skip records that were already processed
-  const remainingRecords = records.slice(restartIndex)
+  const remainingRecords = records.slice(startIndex)
 
   if (!remainingRecords.length) {
-    console.log(`No remaining records to process after skipping ${restartIndex} records!`)
+    console.log(`No remaining records to process after skipping ${startIndex} records!`)
     return
   }
 
-  let processedMemberCount = restartIndex
+  let processedMemberCount = startIndex
   const totalRecords = records.length
+
+  console.log(`Found ${totalRecords} records to process`)
+  console.log(`Starting at record ${startIndex + 1}`)
 
   // Process each record from CSV
   for (const record of remainingRecords) {
+    console.log(
+      `Fixing activities with wrong member ${record.wrongMemberId} -> ${record.correctMemberId}`,
+    )
+
     await activity.batchUpdateActivitiesWithWrongMember(
       record.wrongMemberId,
       record.correctMemberId,
@@ -35,8 +45,10 @@ export async function fixMisattributedActivities(restartIndex = 0): Promise<void
 
     processedMemberCount++
 
-    // Log progress
-    console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file!`)
+    // Log progress with explicit number conversion
+    console.log(
+      `Processed ${Number(processedMemberCount)}/${Number(totalRecords)} members in the CSV file!`,
+    )
   }
 
   console.log('Completed processing all members!')
