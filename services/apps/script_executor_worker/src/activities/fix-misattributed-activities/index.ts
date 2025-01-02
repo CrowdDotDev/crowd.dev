@@ -67,6 +67,19 @@ export async function batchUpdateActivitiesWithWrongMember(
   }
 }
 
+export async function updateMemberActivitiesUpdatedAt(memberId: string) {
+  try {
+    const activityRepo = new ActivityRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+      svc.questdbSQL,
+    )
+    await activityRepo.updateMemberActivitiesUpdatedAt(memberId)
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
 export async function findActivitiesWithWrongMembers(): Promise<
   Array<{
     wrongMemberId: string

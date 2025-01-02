@@ -15,6 +15,7 @@ import {
   findActivitiesWithWrongMembers,
   findMemberIdentity,
   updateActivityWithWrongMember,
+  updateMemberActivitiesUpdatedAt,
 } from './activities/fix-misattributed-activities'
 import {
   deleteOrganizationIdentity,
@@ -48,4 +49,5 @@ export {
   findMemberIdentity,
   updateActivityWithWrongMember,
   batchUpdateActivitiesWithWrongMember,
+  updateMemberActivitiesUpdatedAt,
 }

@@ -6,7 +6,7 @@ const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 minutes',
 })
 
-export async function fixMisattributedActivities(): Promise<void> {
+export async function fixMisattributedActivities(restartIndex = 0): Promise<void> {
   // Read CSV file
   const records = await activity.findActivitiesWithWrongMembers()
 
@@ -15,11 +15,19 @@ export async function fixMisattributedActivities(): Promise<void> {
     return
   }
 
-  let processedMemberCount = 0
+  // Skip records that were already processed
+  const remainingRecords = records.slice(restartIndex)
+
+  if (!remainingRecords.length) {
+    console.log(`No remaining records to process after skipping ${restartIndex} records!`)
+    return
+  }
+
+  let processedMemberCount = restartIndex
   const totalRecords = records.length
 
   // Process each record from CSV
-  for (const record of records) {
+  for (const record of remainingRecords) {
     await activity.batchUpdateActivitiesWithWrongMember(
       record.wrongMemberId,
       record.correctMemberId,
@@ -30,4 +38,6 @@ export async function fixMisattributedActivities(): Promise<void> {
     // Log progress
     console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file!`)
   }
+
+  console.log('Completed processing all members!')
 }

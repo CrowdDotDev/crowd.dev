@@ -89,4 +89,18 @@ export class ActivityRepository {
       throw new Error(err)
     }
   }
+
+  async updateMemberActivitiesUpdatedAt(memberId: string): Promise<void> {
+    try {
+      await this.questdbSQL.none(
+        'UPDATE "activities" SET "updatedAt" = now() WHERE "memberId" = $(memberId)',
+        {
+          memberId,
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while updating activities!', err)
+      throw new Error(err)
+    }
+  }
 }
