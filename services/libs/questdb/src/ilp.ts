@@ -21,7 +21,7 @@ export const getClientILP = (): Sender => {
 
   let conn = `http::addr=${host}:${port};${autoflush}`
   if (getEnv() === 'prod') {
-    conn = `https::addr=${host}:${port};token=${token};${autoflush};max_buf_size=209715200`
+    conn = `https::addr=${host}:${port};token=${token};max_buf_size=209715200;${autoflush}`
   }
 
   client = Sender.fromConfig(conn)
