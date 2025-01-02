@@ -18,40 +18,22 @@ export async function fixMisattributedActivities(
     return
   }
 
-  const startIndex = Number(args.restartIndex)
-
-  if (!startIndex) {
-    console.log('something wrong with startIndex')
-    return
-  }
-
-  console.log(`Starting at record ${startIndex}`)
-
-  // Skip records that were already processed
-  const remainingRecords = records.slice(startIndex)
-
-  if (!remainingRecords.length) {
-    console.log(`No remaining records to process after skipping ${startIndex} records!`)
-    return
-  }
-
   let processedMemberCount = 0
-  const totalRecords = remainingRecords.length
+  const totalRecords = records.length
 
   // Process each record from CSV
-  for (const record of remainingRecords) {
-    console.log(
-      `Fixing activities with wrong member ${record.wrongMemberId} -> ${record.correctMemberId}`,
-    )
+  for (const record of records) {
+    console.log(`Updating ${record.correctMemberId} member activities updatedAt`)
 
-    await activity.batchUpdateActivitiesWithWrongMember(
-      record.wrongMemberId,
-      record.correctMemberId,
-    )
+    await activity.updateMemberActivitiesUpdatedAt(record.correctMemberId)
 
     processedMemberCount++
 
-    // Log progress with explicit number conversion
+    if (args.testRun && processedMemberCount >= 10) {
+      console.log('Test run complete!')
+      break
+    }
+
     console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file!`)
   }
 
