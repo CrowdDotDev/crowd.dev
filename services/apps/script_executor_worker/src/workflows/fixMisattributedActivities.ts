@@ -1,12 +1,15 @@
 import { proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
+import { IFixMisattributedActivitiesArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 minutes',
 })
 
-export async function fixMisattributedActivities(restartIndex = 0): Promise<void> {
+export async function fixMisattributedActivities(
+  args: IFixMisattributedActivitiesArgs,
+): Promise<void> {
   // Read CSV file
   const records = await activity.findActivitiesWithWrongMembers()
 
@@ -15,8 +18,14 @@ export async function fixMisattributedActivities(restartIndex = 0): Promise<void
     return
   }
 
-  // Convert to number to ensure proper arithmetic
-  const startIndex = Number(restartIndex)
+  const startIndex = Number(args.restartIndex)
+
+  if (!startIndex) {
+    console.log('something wrong with startIndex')
+    return
+  }
+
+  console.log(`Starting at record ${startIndex}`)
 
   // Skip records that were already processed
   const remainingRecords = records.slice(startIndex)
@@ -26,11 +35,8 @@ export async function fixMisattributedActivities(restartIndex = 0): Promise<void
     return
   }
 
-  let processedMemberCount = startIndex
-  const totalRecords = records.length
-
-  console.log(`Found ${totalRecords} records to process`)
-  console.log(`Starting at record ${startIndex + 1}`)
+  let processedMemberCount = 0
+  const totalRecords = remainingRecords.length
 
   // Process each record from CSV
   for (const record of remainingRecords) {
@@ -46,9 +52,7 @@ export async function fixMisattributedActivities(restartIndex = 0): Promise<void
     processedMemberCount++
 
     // Log progress with explicit number conversion
-    console.log(
-      `Processed ${Number(processedMemberCount)}/${Number(totalRecords)} members in the CSV file!`,
-    )
+    console.log(`Processed ${processedMemberCount}/${totalRecords} members in the CSV file!`)
   }
 
   console.log('Completed processing all members!')
