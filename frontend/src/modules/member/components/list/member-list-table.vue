@@ -238,6 +238,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
