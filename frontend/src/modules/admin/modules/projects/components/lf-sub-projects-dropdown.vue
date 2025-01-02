@@ -1,27 +1,16 @@
 <template>
   <div v-if="hasPermission(LfPermission.subProjectEdit) && hasAccessToSegmentId(id)">
-    <el-dropdown
-      trigger="click"
-      placement="bottom-end"
-      @command="$event()"
-    >
-      <button
-        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
-        type="button"
-        @click.prevent.stop
-      >
-        <lf-icon name="ellipsis" :size="24" />
-      </button>
-      <template #dropdown>
-        <el-dropdown-item
-          class="h-10"
-          :command="editSubProject"
-        >
-          <lf-icon name="pen" :size="16" class="mr-2" />
-          <span class="text-xs">Edit sub-project</span>
-        </el-dropdown-item>
+    <lf-dropdown placement="bottom-end" width="12rem">
+      <template #trigger>
+        <lf-button type="secondary-ghost-light" icon-only>
+          <lf-icon name="ellipsis" type="regular" />
+        </lf-button>
       </template>
-    </el-dropdown>
+      <lf-dropdown-item @click="editSubProject()">
+        <lf-icon name="pen" />
+        Edit sub-project
+      </lf-dropdown-item>
+    </lf-dropdown>
   </div>
 </template>
 
@@ -29,6 +18,9 @@
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 
 defineProps({
   id: {

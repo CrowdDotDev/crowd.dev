@@ -1,10 +1,8 @@
 <template>
   <span
-    class="lf-pill"
+    class="c-pill"
     :class="[
-      `lf-pill--${props.color}`,
-      `lf-pill--${props.type}`,
-      props.class,
+      `c-pill--${props.type}`,
     ]"
   >
     <slot />
@@ -12,16 +10,12 @@
 </template>
 
 <script lang="ts" setup>
-import { PillColor } from '@/ui-kit/pill/types/PillColor';
-import { PillType } from './types/PillType';
+import { PillType } from '@/ui-kit/pill/types/PillType';
 
 const props = withDefaults(defineProps<{
   type: PillType;
-  color: PillColor;
-  class?: string;
 }>(), {
-  type: 'solid',
-  class: '',
+  type: 'primary',
 });
 </script>
 
@@ -30,5 +24,3 @@ export default {
   name: 'LfPill',
 };
 </script>
-
-<style lang="scss" src="./pill.scss"></style>

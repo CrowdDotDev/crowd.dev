@@ -1,8 +1,7 @@
 .c-dropdown {
-  @apply relative inline-block cursor-pointer;
+  @apply border border-gray-100 shadow-md p-2 flex flex-col gap-1 rounded-xl bg-white;
 
   &__menu{
-    @apply absolute z-10 w-max transition-all overflow-visible invisible opacity-0;
     @apply border border-gray-100 shadow-md p-2 flex flex-col gap-1 rounded-xl bg-white;
 
     &.is-open {

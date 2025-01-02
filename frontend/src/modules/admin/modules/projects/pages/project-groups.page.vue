@@ -73,10 +73,10 @@ import {
   computed, onMounted, reactive, ref,
 } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-project-group-form.vue';
-import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
-import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-project-groups-table.vue';
-import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
+import AppLfProjectGroupForm from '@/modules/admin/modules/projects/components/form/lf-project-group-form.vue';
+import AppLfProjectForm from '@/modules/admin/modules/projects/components/form/lf-project-form.vue';
+import AppLfProjectGroupsTable from '@/modules/admin/modules/projects/components/view/lf-project-groups-table.vue';
+import AppLfSearchInput from '@/modules/admin/modules/projects/components/view/lf-search-input.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
