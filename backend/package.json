@@ -28,6 +28,7 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "tsc-check": "tsc --noEmit",
+    "script": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx",
     "script:continue-run": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/continue-run.ts",
     "script:change-tenant-plan": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/change-tenant-plan.ts",
     "script:trigger-webhook": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/trigger-webhook.ts",

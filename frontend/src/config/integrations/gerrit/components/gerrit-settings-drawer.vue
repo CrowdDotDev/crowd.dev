@@ -92,10 +92,10 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
 import {
-  computed, onMounted, reactive, ref,
+  computed, defineProps, onMounted, reactive, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
@@ -106,16 +106,12 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const emit = defineEmits(['update:modelValue']);
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: null,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  integration: any,
+  modelValue: boolean;
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const { trackEvent } = useProductTracking();
 
@@ -179,6 +175,8 @@ const connect = async () => {
     repoNames: form.repoNames,
     enableAllRepos: form.enableAllRepos,
     enableGit: form.enableGit,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       trackEvent({
@@ -197,7 +195,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfGerritSettingsDrawer',
 };

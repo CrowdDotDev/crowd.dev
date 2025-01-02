@@ -6,16 +6,16 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="connect()">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import config from '@/config';
 
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
@@ -28,13 +28,19 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();
+const router = useRouter();
+const props = defineProps<{
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
 
-const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
-  console.log(redirectUrl);
+const connectUrl = computed<string>(() => {
+  const redirectUrl = props.grandparentId && props.segmentId
+    ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?slack-success=true`
+    : `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
 
   trackEvent({
     key: FeatureEventKey.CONNECT_INTEGRATION,
@@ -44,7 +50,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`;
 });
 
 const connect = () => {
@@ -72,7 +78,7 @@ const finallizeSlackConnect = () => {
       hideCloseButton: true,
     }).then(() => {
       window.open('https://docs.linuxfoundation.org/lfx/community-management/integrations/slack#add-slack-bots-to-channels', '_blank');
-      this.$router.replace({ query: null });
+      router.replace({ query: null });
     });
   }
 };
@@ -82,7 +88,7 @@ onMounted(() => {
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfSlackConnect',
 };

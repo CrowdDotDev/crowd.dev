@@ -325,6 +325,7 @@ const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
       changedFiles: data.payload.pull_request.changed_files,
       authorAssociation: data.payload.pull_request.author_association,
       labels: data.payload.pull_request.labels?.map((l) => (l as any)?.name),
+      sha: data.payload.pull_request.head.sha,
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
@@ -543,10 +544,6 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
   const data = apiData.data as IGetRepoPushesResult
   const memberData = apiData.member
 
-  if (!data.pullRequestNodeId) {
-    throw new Error('Pull request node id is required!')
-  }
-
   for (const commit of data.payload.commits.filter((c) => c.distinct)) {
     const activity: IActivityData = {
       channel: apiData.repo.url,
@@ -554,8 +551,10 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
       body: commit.message,
       type: 'authored-commit',
       sourceId: commit.sha,
-      sourceParentId: data.pullRequestNodeId,
       timestamp: new Date(data.timestamp).toISOString(),
+      attributes: {
+        prSha: data.payloadHead,
+      },
       // attributes: {
       //   insertions: 'additions' in data.commit ? data.commit.additions : 0,
       //   deletions: 'deletions' in data.commit ? data.commit.deletions : 0,
@@ -586,7 +585,7 @@ const handler: ProcessDataHandler = async (ctx) => {
 
   // this is for old events that don't have pullRequestNodeId
   // generated during webhooks for pull requests
-  if (event === GithubActivityType.AUTHORED_COMMIT && (isOld || !data?.data?.pullRequestNodeId)) {
+  if (event === GithubActivityType.AUTHORED_COMMIT && (isOld || 'sourceParentId' in data)) {
     await oldHandler(ctx)
     return
   }

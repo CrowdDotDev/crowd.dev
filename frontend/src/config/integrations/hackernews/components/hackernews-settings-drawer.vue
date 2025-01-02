@@ -139,6 +139,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    segmentId: {
+      type: String,
+      default: null,
+    },
+    grandparentId: {
+      type: String,
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -286,6 +294,8 @@ export default {
       await this.doHackerNewsConnect({
         urls: relevantUrls.map((u) => u.url),
         keywords: relevantKeywords,
+        segmentId: this.segmentId,
+        grandparentId: this.grandparentId,
       });
 
       const { trackEvent } = useProductTracking();

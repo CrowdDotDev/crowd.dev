@@ -185,7 +185,7 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
   reactive,
@@ -211,16 +211,12 @@ const { doDevtoConnect } = mapActions('integration');
 
 const { trackEvent } = useProductTracking();
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: null,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  integration: any;
+  modelValue: boolean;
+  segmentId: string;
+  grandparentId: string;
+}>();
 
 const logoUrl = ref(CrowdIntegrations.getConfig('devto').image);
 const users = ref([]);
@@ -424,6 +420,8 @@ const save = async () => {
     users: relevantUsers.map((u) => u.username),
     organizations: relevantOrganizations.map((o) => o.username),
     apiKey: form.apiKey,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   });
 
   const isUpdate = !!props.integration?.settings;
@@ -495,7 +493,7 @@ const isVisible = computed({
 onMounted(syncData);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfDevtoConnectDrawer',
 };

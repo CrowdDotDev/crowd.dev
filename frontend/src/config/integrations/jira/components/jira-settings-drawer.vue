@@ -145,10 +145,10 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
 import {
-  computed, onMounted, reactive, ref,
+  computed, defineProps, onMounted, reactive, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
@@ -161,16 +161,12 @@ import AppFormItem from '@/shared/form/form-item.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 
 const emit = defineEmits(['update:modelValue']);
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: null,
-  },
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  integration: any,
+  modelValue: boolean,
+  segmentId: string | null;
+  grandparentId: string | null;
+}>();
 
 const loading = ref(false);
 const form = reactive({
@@ -253,6 +249,8 @@ const connect = async () => {
     apiToken: form.apiToken,
     projects: form.projects,
     isUpdate: props.integration?.settings,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       isVisible.value = false;
@@ -263,7 +261,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfJiraSettingsDrawer',
 };

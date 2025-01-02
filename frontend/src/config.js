@@ -74,6 +74,9 @@ const defaultConfig = {
       clientToken: import.meta.env.VUE_APP_DATADOG_RUM_CLIENT_TOKEN,
     },
   },
+  permissions: {
+    teamUserIds: import.meta.env.VUE_APP_TEAM_USER_IDS,
+  },
 };
 
 const composedConfig = {
@@ -139,6 +142,9 @@ const composedConfig = {
       applicationId: 'CROWD_VUE_APP_DATADOG_RUM_APPLICATION_ID',
       clientToken: 'CROWD_VUE_APP_DATADOG_RUM_CLIENT_TOKEN',
     },
+  },
+  permissions: {
+    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS',
   },
 };
 
