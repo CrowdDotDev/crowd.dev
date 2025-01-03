@@ -1,5 +1,5 @@
 import { getRedisClient } from '@crowd/redis'
-import { MemberAttributeName, TenantPlans } from '@crowd/types'
+import { MemberAttributeName } from '@crowd/types'
 
 import { REDIS_CONFIG } from '../../conf'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
@@ -77,12 +77,8 @@ describe('TenantService tests', () => {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: TenantPlans.Essential,
-        isTrialPlan: false,
-        trialEndsAt: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
-        hasSampleData: false,
         communitySize: '>25000',
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -91,8 +87,6 @@ describe('TenantService tests', () => {
         updatedById: options.currentUser.id,
         settings: [],
         conversationSettings: [],
-        planSubscriptionEndsAt: null,
-        stripeSubscriptionId: null,
         reasonForUsingCrowd: null,
       }
 

@@ -29,7 +29,6 @@ import {
   NangoConfiguration,
   NetlifyConfiguration,
   OrganizationEnrichmentConfiguration,
-  PlansConfiguration,
   S3Configuration,
   SSOConfiguration,
   SampleDataConfiguration,
@@ -43,7 +42,6 @@ import {
   StackExchangeConfiguration,
   TenantMode,
   TwitterConfiguration,
-  UnleashConfiguration,
   WeeklyEmailsConfiguration,
 } from './configTypes'
 
@@ -102,8 +100,6 @@ export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('
 
 export const SSO_CONFIG: SSOConfiguration = config.get<SSOConfiguration>('sso')
 
-export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
-
 export const TWITTER_CONFIG: TwitterConfiguration = config.get<TwitterConfiguration>('twitter')
 
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
@@ -139,8 +135,6 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfig
 
 export const GITHUB_TOKEN_CONFIG: GithubTokenConfiguration =
   config.get<GithubTokenConfiguration>('githubToken')
-
-export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
 
 export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
 

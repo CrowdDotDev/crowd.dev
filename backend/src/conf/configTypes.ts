@@ -76,16 +76,6 @@ export interface SSOConfiguration {
   crowdTenantId: string
   lfTenantId: string
 }
-
-export interface PlansConfiguration {
-  stripePricePremium: string
-  stripePriceEnterprise: string
-  stripeSecretKey: string
-  stripWebhookSigningSecret: string
-  stripeEagleEyePlanProductId: string
-  stripeGrowthPlanProductId: string
-}
-
 export interface DevtoConfiguration {
   globalLimit?: number
 }
@@ -182,21 +172,6 @@ export interface EagleEyeConfiguration {
 
 export interface GithubTokenConfiguration {
   token: string
-}
-
-export interface UnleashConfiguration {
-  url: string
-  adminApiKey: string
-  frontendApiKey: string
-  backendApiKey: string
-
-  db: {
-    host: string
-    port: number
-    username: string
-    password: string
-    database: string
-  }
 }
 
 export interface StackExchangeConfiguration {

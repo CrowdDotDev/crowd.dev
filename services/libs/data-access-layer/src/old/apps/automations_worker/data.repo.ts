@@ -285,20 +285,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         }),
       )
 
-      // load notes
-      promises.push(
-        this.getMemberNotes(memberIds).then((notes) => {
-          for (const member of results) {
-            member.notes = notes
-              .filter((n) => n.memberId === member.id)
-              .map((n) => {
-                delete n.memberId
-                return n
-              })
-          }
-        }),
-      )
-
       // load no merge
       promises.push(
         this.getMemberNoMerge(memberIds).then((noMerges) => {
@@ -424,23 +410,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       select "memberId", "noMergeId"
       from "memberNoMerge"
       where "memberId" in ($(memberIds:csv));
-      `,
-      {
-        memberIds,
-      },
-    )
-
-    return results
-  }
-
-  async getMemberNotes(memberIds: string[]): Promise<any[]> {
-    const results = await this.db().any(
-      `
-      select mn."memberId", n.*
-      from "memberNotes" mn
-              inner join notes n on mn."noteId" = n.id
-      where mn."memberId" in ($(memberIds:csv))
-        and n."deletedAt" is null;
       `,
       {
         memberIds,

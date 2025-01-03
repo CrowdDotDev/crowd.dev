@@ -84,7 +84,6 @@ export interface IDbMemberSyncData {
   tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
-  notes: IDbMemberNoteData[]
   tasks: IDbMemberTaskData[]
 }
 

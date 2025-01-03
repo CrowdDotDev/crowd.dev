@@ -16,13 +16,6 @@ export interface IMemberTag {
   tagId: string
 }
 
-export interface IMemberNote {
-  createdAt: string
-  updatedAt: string
-  memberId: string
-  noteId: string
-}
-
 export async function findMemberTasks(qx: QueryExecutor, memberId: string): Promise<IMemberTask[]> {
   return qx.select(
     `
@@ -43,20 +36,6 @@ export async function findMemberTags(qx: QueryExecutor, memberId: string): Promi
       SELECT
         *
       FROM "memberTags"
-      WHERE "memberId" = $(memberId)
-    `,
-    {
-      memberId,
-    },
-  )
-}
-
-export async function findMemberNotes(qx: QueryExecutor, memberId: string): Promise<IMemberNote[]> {
-  return qx.select(
-    `
-      SELECT
-        *
-      FROM "memberNotes"
       WHERE "memberId" = $(memberId)
     `,
     {
@@ -103,25 +82,6 @@ export async function addMemberTasks(
   )
 }
 
-export async function addMemberNotes(
-  qx: QueryExecutor,
-  memberId: string,
-  noteIds: string[],
-): Promise<IMemberNote[]> {
-  return qx.result(
-    `
-      INSERT INTO "memberNotes" ("createdAt", "updatedAt", "memberId", "noteId")
-      SELECT NOW(), NOW(), $(memberId), id
-      FROM unnest($(noteIds)::UUID[]) id
-      RETURNING *
-    `,
-    {
-      memberId,
-      noteIds,
-    },
-  )
-}
-
 export async function removeMemberTags(
   qx: QueryExecutor,
   memberId: string,
@@ -154,24 +114,6 @@ export async function removeMemberTasks(
     {
       memberId,
       taskIds,
-    },
-  )
-}
-
-export async function removeMemberNotes(
-  qx: QueryExecutor,
-  memberId: string,
-  noteIds: string[],
-): Promise<void> {
-  await qx.result(
-    `
-      DELETE FROM "memberNotes"
-      WHERE "memberId" = $(memberId)
-      AND "noteId" = ANY($(noteIds)::UUID[])
-    `,
-    {
-      memberId,
-      noteIds,
     },
   )
 }

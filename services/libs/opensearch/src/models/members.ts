@@ -116,13 +116,6 @@ export class MembersOpensearch extends OpensearchModelBase {
         fromOpensearch: 'nested_organizations',
       },
     },
-    notes: {
-      type: OpensearchFieldType.NESTED,
-      customTranslation: {
-        toOpensearch: 'nested_notes.uuid_id',
-        fromOpensearch: 'nested_notes',
-      },
-    },
     tasks: {
       type: OpensearchFieldType.NESTED,
       customTranslation: {

@@ -202,10 +202,6 @@ class MemberRepository {
       transaction,
     })
 
-    await record.setNotes(data.notes || [], {
-      transaction,
-    })
-
     await record.setNoMerge(data.noMerge || [], {
       transaction,
     })
@@ -1007,12 +1003,6 @@ class MemberRepository {
 
     if (data.tasks) {
       await record.setTasks(data.tasks || [], {
-        transaction,
-      })
-    }
-
-    if (data.notes) {
-      await record.setNotes(data.notes || [], {
         transaction,
       })
     }
@@ -2579,11 +2569,6 @@ class MemberRepository {
           joinTableAttributes: [],
         })
 
-        if (exportMode) {
-          plainRecord.notes = await record.getNotes({
-            joinTableAttributes: [],
-          })
-        }
         return plainRecord
       }),
     )
@@ -2673,11 +2658,6 @@ class MemberRepository {
     output.tasks = await record.getTasks({
       transaction,
       order: [['createdAt', 'ASC']],
-      joinTableAttributes: [],
-    })
-
-    output.notes = await record.getNotes({
-      transaction,
       joinTableAttributes: [],
     })
 
@@ -3102,44 +3082,6 @@ class MemberRepository {
         return 1
       }
       return a.name > b.name ? 1 : -1
-    })
-  }
-
-  static async moveNotesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      fromMemberId,
-      toMemberId,
-    }
-
-    const deleteQuery = `
-      delete from "memberNotes" using "memberNotes" as mn2
-      where "memberNotes"."memberId" = :fromMemberId
-      and "memberNotes"."noteId" = mn2."noteId"
-      and mn2."memberId" = :toMemberId;
-    `
-
-    await seq.query(deleteQuery, {
-      replacements: params,
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-
-    const updateQuery = `
-      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
-    `
-
-    await seq.query(updateQuery, {
-      replacements: params,
-      type: QueryTypes.UPDATE,
-      transaction,
     })
   }
 

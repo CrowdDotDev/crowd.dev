@@ -1,7 +1,6 @@
 import assert from 'assert'
 
 import { Error400 } from '@crowd/common'
-import { TenantPlans } from '@crowd/types'
 
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
@@ -87,10 +86,6 @@ export default class UserEditor {
     }
 
     const { currentTenant } = this.options
-
-    if (currentTenant.plan === TenantPlans.Essential) {
-      return false
-    }
 
     if (!currentTenant.planUserId) {
       return false

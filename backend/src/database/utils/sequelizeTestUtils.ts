@@ -8,7 +8,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
 import { getTemporalClient } from '@crowd/temporal'
-import { SegmentStatus, TenantPlans } from '@crowd/types'
+import { SegmentStatus } from '@crowd/types'
 
 import { API_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import Roles from '../../security/roles'
@@ -36,8 +36,6 @@ export default class SequelizeTestUtils {
       '"activities"',
       '"files"',
       '"memberNoMerge"',
-      '"memberNotes"',
-      '"notes"',
       '"memberTags"',
       '"memberTasks"',
       '"microservices"',
@@ -97,7 +95,6 @@ export default class SequelizeTestUtils {
 
   static async getTestIServiceOptions(
     db,
-    plan: TenantPlans = TenantPlans.Essential,
     tenantName?,
     tenantUrl?,
   ) {
@@ -105,8 +102,8 @@ export default class SequelizeTestUtils {
 
     const randomTenant =
       tenantName && tenantUrl
-        ? this.getTenant(tenantName, tenantUrl, plan)
-        : this.getRandomTestTenant(plan)
+        ? this.getTenant(tenantName, tenantUrl)
+        : this.getRandomTestTenant()
 
     const randomUser = await this.getRandomUser()
 
@@ -235,15 +232,14 @@ export default class SequelizeTestUtils {
     } as IRepositoryOptions
   }
 
-  static getRandomTestTenant(plan = TenantPlans.Essential) {
-    return this.getTenant(this.getRandomString('test-tenant'), this.getRandomString('url#'), plan)
+  static getRandomTestTenant() {
+    return this.getTenant(this.getRandomString('test-tenant'), this.getRandomString('url#'))
   }
 
-  static getTenant(name, url, plan = TenantPlans.Essential) {
+  static getTenant(name, url) {
     return {
       name,
       url,
-      plan,
     }
   }
 
