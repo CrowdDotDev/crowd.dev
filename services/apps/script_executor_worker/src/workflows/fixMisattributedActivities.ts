@@ -18,8 +18,25 @@ export async function fixMisattributedActivities(
     return
   }
 
+  const startIndex = Number(args.startIndex)
+
+  if (!startIndex) {
+    console.log('something wrong with startIndex')
+    return
+  }
+
+  console.log(`Starting at record ${startIndex}`)
+
+  // Skip records that were already processed
+  const remainingRecords = records.slice(startIndex)
+
+  if (!remainingRecords.length) {
+    console.log(`No remaining records to process after skipping ${startIndex} records!`)
+    return
+  }
+
   let processedMemberCount = 0
-  const totalRecords = records.length
+  const totalRecords = remainingRecords.length
 
   // Process each record from CSV
   for (const record of records) {

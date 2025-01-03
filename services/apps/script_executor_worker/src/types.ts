@@ -30,5 +30,6 @@ export interface tenantIdAndTestRun {
 export type IFixOrgIdentitiesWithWrongUrlsArgs = tenantIdAndTestRun
 
 export interface IFixMisattributedActivitiesArgs {
+  startIndex?: number
   testRun?: boolean
 }
