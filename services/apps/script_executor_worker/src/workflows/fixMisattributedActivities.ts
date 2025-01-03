@@ -39,7 +39,7 @@ export async function fixMisattributedActivities(
   const totalRecords = remainingRecords.length
 
   // Process each record from CSV
-  for (const record of records) {
+  for (const record of remainingRecords) {
     console.log(`Updating ${record.correctMemberId} member activities updatedAt`)
 
     await activity.updateMemberActivitiesUpdatedAt(record.correctMemberId)
