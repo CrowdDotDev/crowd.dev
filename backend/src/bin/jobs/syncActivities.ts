@@ -114,7 +114,7 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
             FROM activities
             WHERE "updatedAt" > $(updatedAt)
             ORDER BY "updatedAt"
-            LIMIT 1000;
+            LIMIT 500;
           `,
             { updatedAt },
           ),
