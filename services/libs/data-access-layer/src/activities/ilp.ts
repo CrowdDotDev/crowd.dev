@@ -216,7 +216,7 @@ function objectToBytes(input: object): string {
   const stringified = JSON.stringify(input)
 
   // check size
-  if (new TextEncoder().encode(stringified).length > 512) {
+  if (new TextEncoder().encode(stringified).length > 2000) {
     return JSON.stringify({})
   }
 
