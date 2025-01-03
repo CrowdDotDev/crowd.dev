@@ -1,5 +1,3 @@
-import { TenantPlans } from '@crowd/types'
-
 export default (sequelize, DataTypes) => {
   const tenant = sequelize.define(
     'tenant',
@@ -37,23 +35,6 @@ export default (sequelize, DataTypes) => {
       reasonForUsingCrowd: {
         type: DataTypes.STRING(50),
       },
-      plan: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-          isIn: [
-            [
-              TenantPlans.Essential,
-              TenantPlans.Growth,
-              TenantPlans.EagleEye,
-              TenantPlans.Enterprise,
-              TenantPlans.Scale,
-            ],
-          ],
-        },
-        defaultValue: TenantPlans.Essential,
-      },
 
       onboardedAt: {
         type: DataTypes.DATE,
@@ -69,14 +50,6 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
       },
       trialEndsAt: {
-        type: DataTypes.DATE,
-        defaultValue: null,
-      },
-      stripeSubscriptionId: {
-        type: DataTypes.TEXT,
-        defaultValue: null,
-      },
-      planSubscriptionEndsAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },

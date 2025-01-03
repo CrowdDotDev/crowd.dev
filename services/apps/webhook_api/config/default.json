@@ -2,7 +2,6 @@
   "service": {
     "port": 8082
   },
-  "unleash": {},
   "redis": {},
   "db": {},
   "queue": {}

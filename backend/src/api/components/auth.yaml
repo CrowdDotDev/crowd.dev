@@ -1,5 +1,0 @@
-components:
-  securitySchemes:
-    Bearer:
-      type: http
-      scheme: bearer

@@ -1,7 +1,7 @@
 import { Error400, Error404 } from '@crowd/common'
 import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
-import { SegmentData, SegmentStatus, TenantPlans } from '@crowd/types'
+import { SegmentData, SegmentStatus } from '@crowd/types'
 
 import CustomViewRepository from '@/database/repositories/customViewRepository'
 import { defaultCustomViews } from '@/types/customView'
@@ -15,7 +15,6 @@ import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
 import Permissions from '../security/permissions'
-import Plans from '../security/plans'
 import Roles from '../security/roles'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -316,45 +315,6 @@ export default class TenantService {
     return SettingsService.save({ contactsViewed: true }, this.options)
   }
 
-  async updatePlanUser(id, planStripeCustomerId, planUserId) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      await TenantRepository.updatePlanUser(id, planStripeCustomerId, planUserId, {
-        ...this.options,
-        transaction,
-        currentTenant: { id },
-        bypassPermissionValidation: true,
-      })
-
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
-    }
-  }
-
-  async updatePlanToFree(planStripeCustomerId) {
-    return this.updatePlanStatus(planStripeCustomerId, TenantPlans.Essential, 'active')
-  }
-
-  async updatePlanStatus(planStripeCustomerId, plan, planStatus) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      await TenantRepository.updatePlanStatus(planStripeCustomerId, plan, planStatus, {
-        ...this.options,
-        transaction,
-        bypassPermissionValidation: true,
-      })
-
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
-    }
-  }
-
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
@@ -370,10 +330,6 @@ export default class TenantService {
           ...this.options,
           currentTenant: tenant,
         }).validateHas(Permissions.values.tenantDestroy)
-
-        if (!Plans.allowTenantDestroy(tenant.plan, tenant.planStatus)) {
-          throw new Error400(this.options.language, 'tenant.planActive')
-        }
 
         await TenantRepository.destroy(id, {
           ...this.options,

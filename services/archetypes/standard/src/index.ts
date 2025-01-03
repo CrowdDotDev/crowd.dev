@@ -3,7 +3,6 @@ import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import pgpromise from 'pg-promise'
 
 import { DbConnection } from '@crowd/database'
-import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, getServiceLogger } from '@crowd/logging'
 import { getClientILP, getClientSQL } from '@crowd/questdb'
@@ -73,8 +72,6 @@ export class Service {
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
 
-  protected _unleash?: UnleashClient
-
   protected _kafka: Kafka | null
   protected _temporal: TemporalClient | null
 
@@ -99,10 +96,6 @@ export class Service {
         // ssl
       })
     }
-  }
-
-  get unleash(): UnleashClient | undefined {
-    return this._unleash
   }
 
   get producer(): KafkaProducer | null {
@@ -233,18 +226,6 @@ export class Service {
       await this.stop()
     })
 
-    if (
-      process.env['CROWD_EDITION'] === 'crowd-hosted' &&
-      process.env['CROWD_UNLEASH_URL'] &&
-      process.env['CROWD_UNLEASH_BACKEND_API_KEY']
-    ) {
-      this._unleash = await getUnleashClient({
-        url: process.env['CROWD_UNLEASH_URL'],
-        appName: this.name,
-        apiKey: process.env['CROWD_UNLEASH_BACKEND_API_KEY'],
-      })
-    }
-
     if (this.config.producer.enabled) {
       try {
         await this.producer.connect()
@@ -306,10 +287,6 @@ export class Service {
     if (this.config.questdb.enabled) {
       await this._questdbILP.flush()
       await this._questdbILP.close()
-    }
-
-    if (this._unleash) {
-      this._unleash.destroy()
     }
   }
 }

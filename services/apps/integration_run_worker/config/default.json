@@ -2,7 +2,6 @@
   "db": {},
   "queue": {},
   "redis": {},
-  "unleash": {},
   "nango": {},
   "worker": {
     "maxRetries": 5,

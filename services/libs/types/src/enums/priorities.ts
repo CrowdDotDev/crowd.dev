@@ -1,5 +1,3 @@
-import { TenantPlans } from './tenants'
-
 export enum QueuePriorityLevel {
   SYSTEM = 'system',
   NORMAL = 'normal',
@@ -9,5 +7,4 @@ export enum QueuePriorityLevel {
 export interface IQueuePriorityCalculationContext {
   onboarding?: boolean
   dbPriority?: QueuePriorityLevel | null
-  plan: TenantPlans
 }

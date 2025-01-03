@@ -78,10 +78,6 @@ const en = {
     invitation: {
       notSameEmail: `This invitation was sent to {0} but you're signed in as {1}.`,
     },
-    planActive: `There is a plan active for this workspace. Please cancel the plan first.`,
-    stripeNotConfigured: 'Please configure stripe first',
-    sampleDataCreationStarted: 'Sample data generation started.',
-    sampleDataDeletionCompleted: 'Sample data deletion completed.',
     errors: {
       publishedConversationExists: 'Update failed. Tenant already has published conversations.',
       nameRequiredOnCreate: 'Name is required on tenant creation.',

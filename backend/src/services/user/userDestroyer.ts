@@ -1,7 +1,6 @@
 import assert from 'assert'
 
 import { Error400 } from '@crowd/common'
-import { TenantPlans } from '@crowd/types'
 
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
@@ -61,22 +60,6 @@ export default class UserDestroyer {
     await TenantUserRepository.destroy(this.options.currentTenant.id, user.id, this.options)
   }
 
-  /**
-   * Checks if the user is removing the responsable for the plan
-   */
-  async _isRemovingPlanUser() {
-    const { currentTenant } = this.options
-
-    if (currentTenant.plan === TenantPlans.Essential) {
-      return false
-    }
-
-    if (!currentTenant.planUserId) {
-      return false
-    }
-
-    return this._ids.includes(String(currentTenant.planUserId))
-  }
 
   /**
    * Checks if the user is removing himself
@@ -91,10 +74,6 @@ export default class UserDestroyer {
     assert(this.options.currentUser.id, 'currentUser.id is required')
     assert(this.options.currentUser.email, 'currentUser.email is required')
     assert(this._ids && this._ids.length, 'ids is required')
-
-    if (await this._isRemovingPlanUser()) {
-      throw new Error400(this.options.language, 'user.errors.destroyingPlanUser')
-    }
 
     if (this._isRemovingHimself()) {
       throw new Error400(this.options.language, 'user.errors.destroyingHimself')
