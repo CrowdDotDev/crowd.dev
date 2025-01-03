@@ -22,7 +22,14 @@ export interface IDissectMemberArgs {
   forceSplitAllIdentities?: boolean
 }
 
-export interface IFixOrgIdentitiesWithWrongUrlsArgs {
+export interface tenantIdAndTestRun {
   tenantId: string
+  testRun?: boolean
+}
+
+export type IFixOrgIdentitiesWithWrongUrlsArgs = tenantIdAndTestRun
+
+export interface IFixMisattributedActivitiesArgs {
+  startIndex?: number
   testRun?: boolean
 }
