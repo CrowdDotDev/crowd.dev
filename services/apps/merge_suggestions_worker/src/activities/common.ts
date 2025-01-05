@@ -131,7 +131,7 @@ export async function mergeMembers(
   try {
     await axios(url, requestOptions)
   } catch (error) {
-    console.log(`Failed merging member wit status [${error.response.status}]. Skipping!`)
+    console.log(`Failed merging member wit status [${error.response?.status}]. Skipping!`)
   }
 }
 
@@ -156,6 +156,6 @@ export async function mergeOrganizations(
   try {
     await axios(url, requestOptions)
   } catch (error) {
-    console.log(`Failed merging organization with status [${error.response.status}]. Skipping!`)
+    console.log(`Failed merging organization with status [${error.response?.status}]. Skipping!`)
   }
 }

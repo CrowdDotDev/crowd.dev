@@ -98,6 +98,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
+  grandparentId: {
+    type: String,
+    required: true,
+  },
 });
 
 const { trackEvent } = useProductTracking();
@@ -149,6 +157,8 @@ const connect = async () => {
       space: form.space,
     },
     isUpdate,
+    segmentId: props.segmentId,
+    grandparentId: props.grandparentId,
   })
     .then(() => {
       trackEvent({

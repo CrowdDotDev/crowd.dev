@@ -6,32 +6,33 @@
     <!--      </lf-button>-->
     <lf-button type="secondary" @click="isRedditSettingsDrawerOpen = true">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
   <lf-reddit-settings-drawer
     v-if="isRedditSettingsDrawerOpen"
     v-model="isRedditSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref } from 'vue';
 import LfRedditSettingsDrawer from '@/config/integrations/reddit/components/reddit-settings-drawer.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+  segmentId: string,
+  grandparentId: string,
+}>();
 const isRedditSettingsDrawerOpen = ref(false);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppRedditConnect',
 };

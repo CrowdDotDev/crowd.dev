@@ -110,7 +110,8 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
              platform as type,
              status as state,
              "integrationIdentifier" as identifier,
-             "tenantId"
+             "tenantId",
+             "updatedAt"
       from integrations where id = $(integrationId) and "deletedAt" is null
     `,
       {
@@ -124,7 +125,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
 
     if (
       results.type === IntegrationType.GITHUB &&
-      moment(results.updatedAt).isBefore(moment('2024-12-10'))
+      moment(results.updatedAt).isBefore(moment('2024-12-19'))
     ) {
       return null
     }

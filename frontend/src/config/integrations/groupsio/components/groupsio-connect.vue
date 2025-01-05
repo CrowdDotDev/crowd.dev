@@ -6,31 +6,34 @@
     <!--    </lf-button>-->
     <lf-button type="secondary" @click="isSettingsDrawerOpen = true">
       <lf-icon name="link-simple" />
-      Connect
+      <slot>Connect</slot>
     </lf-button>
   </div>
   <lf-groupsio-settings-drawer
     v-if="isSettingsDrawerOpen"
     v-model="isSettingsDrawerOpen"
     :integration="props.integration"
+    :segment-id="props.segmentId"
+    :grandparent-id="props.grandparentId"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfGroupsioSettingsDrawer from '@/config/integrations/groupsio/components/groupsio-settings-drawer.vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  integration: any,
+  segmentId?: string,
+  grandparentId?: string,
+}>();
+
 const isSettingsDrawerOpen = ref(false);
 </script>
-<script>
+
+<script lang="ts">
 export default {
   name: 'LfGroupsioConnect',
 };

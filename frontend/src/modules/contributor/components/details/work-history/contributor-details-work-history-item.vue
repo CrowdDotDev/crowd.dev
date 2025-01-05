@@ -4,39 +4,10 @@
     @mouseleave="hovered = false"
   >
     <div class="flex">
-      <lf-avatar
-        :name="props.organization.displayName"
-        :src="props.organization.logo"
-        :size="24"
-        class="!rounded-md border border-gray-200 min-w-6"
-        img-class="!object-contain"
-      >
-        <template #placeholder>
-          <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-            <lf-icon-old name="community-line" :size="16" class="text-gray-400" />
-          </div>
-        </template>
-      </lf-avatar>
-
-      <div class="pl-3 flex flex-auto flex-col overflow-hidden">
-        <router-link
-          :to="{
-            name: 'organizationView',
-            params: {
-              id: props.organization.id,
-            },
-            query: {
-              projectGroup: selectedProjectGroup?.id,
-            },
-          }"
-          class="font-semibold text-medium leading-6 mb-1 truncate text-black hover:text-primary-500 transition block w-full overflow-hidden"
-        >
-          {{ props.organization.displayName }}
-        </router-link>
-
-        <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-500 mb-1.5 flex items-center gap-1.5">
+      <div class="flex flex-auto flex-col overflow-hidden">
+        <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
-          <p class="truncate" style="max-width: 30ch">
+          <p class="truncate" style="max-width: 26ch">
             {{ props.organization?.memberOrganizations?.title }}
           </p>
         </div>
@@ -46,7 +17,7 @@
         </p>
       </div>
 
-      <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-if="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />
@@ -80,11 +51,8 @@
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import moment from 'moment';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -103,12 +71,12 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   organization: Organization,
-  contributor: Contributor
+  contributor: Contributor,
+  isGroupHover: boolean,
 }>();
 
 const emit = defineEmits<{(e:'edit'): void}>();
 
-const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const { deleteContributorOrganization } = useContributorStore();
 const { trackEvent } = useProductTracking();
 
