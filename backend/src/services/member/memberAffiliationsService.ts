@@ -5,12 +5,13 @@ import { groupBy } from '@crowd/common'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberAffiliation } from '@crowd/types'
+import { IChangeAffiliationOverrideData, IMemberAffiliation, IMemberOrganizationAffiliationOverride } from '@crowd/types'
 
 import MemberAffiliationsRepository from '@/database/repositories/member/memberAffiliationsRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
+import MemberOrganizationAffiliationOverridesRepository from '@/database/repositories/member/memberOrganizationAffiliationOverridesRepository'
 
 export default class MemberAffiliationsService extends LoggerBase {
   options: IServiceOptions
@@ -55,5 +56,11 @@ export default class MemberAffiliationsService extends LoggerBase {
     data: Partial<IMemberAffiliation>[],
   ): Promise<IMemberAffiliation[]> {
     return MemberAffiliationsRepository.upsertMultiple(tenantId, memberId, data, this.options)
+  }
+
+  async changeAffiliationOverride(
+    data: IChangeAffiliationOverrideData,
+  ): Promise<IMemberOrganizationAffiliationOverride> {
+    return MemberOrganizationAffiliationOverridesRepository.changeOverride(data, this.options)
   }
 }
