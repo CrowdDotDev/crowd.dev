@@ -12,6 +12,7 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
 import MemberOrganizationAffiliationOverridesRepository from '@/database/repositories/member/memberOrganizationAffiliationOverridesRepository'
+import MemberAffiliationService from '../memberAffiliationService'
 
 export default class MemberAffiliationsService extends LoggerBase {
   options: IServiceOptions
@@ -61,6 +62,12 @@ export default class MemberAffiliationsService extends LoggerBase {
   async changeAffiliationOverride(
     data: IChangeAffiliationOverrideData,
   ): Promise<IMemberOrganizationAffiliationOverride> {
-    return MemberOrganizationAffiliationOverridesRepository.changeOverride(data, this.options)
+    const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(data, this.options)
+    await MemberAffiliationService.startAffiliationRecalculation(
+      data.memberId,
+      [data.organizationId],
+      this.options,
+    )
+    return override
   }
 }
