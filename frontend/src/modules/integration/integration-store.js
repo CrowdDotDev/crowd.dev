@@ -293,12 +293,12 @@ export default {
       }
     },
 
-    async doRedditOnboard({ commit }, { subreddits }) {
+    async doRedditOnboard({ commit }, { subreddits, segmentId, grandparentId }) {
       // Function to trigger Oauth performance.
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.redditOnboard(subreddits);
+        const integration = await IntegrationService.redditOnboard(subreddits, segmentId);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -306,7 +306,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -315,11 +316,11 @@ export default {
       }
     },
 
-    async doLinkedinConnect({ commit }) {
+    async doLinkedinConnect({ commit }, { segmentId, grandparentId }) {
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.linkedinConnect();
+        const integration = await IntegrationService.linkedinConnect(segmentId);
 
         commit('CREATE_SUCCESS', integration);
         if (integration.settings?.organizations.length === 1) {
@@ -332,6 +333,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -340,12 +342,13 @@ export default {
       }
     },
 
-    async doLinkedinOnboard({ commit }, organizationId) {
+    async doLinkedinOnboard({ commit }, { organizationId, segmentId, grandparentId }) {
       try {
         commit('UPDATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
         const integration = await IntegrationService.linkedinOnboard(
           organizationId,
+          segmentId,
         );
 
         commit('UPDATE_SUCCESS', integration);
@@ -356,6 +359,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -387,7 +391,9 @@ export default {
       }
     },
 
-    async doDevtoConnect({ commit }, { users, organizations, apiKey }) {
+    async doDevtoConnect({ commit }, {
+      users, organizations, apiKey, segmentId, grandparentId,
+    }) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -398,6 +404,7 @@ export default {
           users,
           organizations,
           apiKey,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -408,6 +415,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -416,7 +424,9 @@ export default {
       }
     },
 
-    async doHackerNewsConnect({ commit }, { keywords, urls }) {
+    async doHackerNewsConnect({ commit }, {
+      keywords, urls, segmentId, grandparentId,
+    }) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -426,6 +436,7 @@ export default {
         const integration = await IntegrationService.hackerNewsConnect(
           keywords,
           urls,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -439,6 +450,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -447,13 +459,16 @@ export default {
       }
     },
 
-    async doStackOverflowOnboard({ commit }, { tags, keywords }) {
+    async doStackOverflowOnboard({ commit }, {
+      tags, keywords, segmentId, grandparentId,
+    }) {
       // Function to connect to StackOverflow.
 
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.stackOverflowOnboard(
+          segmentId,
           tags,
           keywords,
         );
@@ -462,13 +477,14 @@ export default {
 
         showIntegrationProgressNotification(
           'stackoverflow',
-          integration.segmentId,
+          segmentId,
         );
 
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -492,11 +508,13 @@ export default {
       }
     },
 
-    async doGitConnect({ commit }, { remotes, isUpdate }) {
+    async doGitConnect({ commit }, {
+      remotes, isUpdate, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.gitConnect(remotes);
+        const integration = await IntegrationService.gitConnect(remotes, [segmentId]);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -513,7 +531,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -522,12 +541,15 @@ export default {
       }
     },
 
-    async doConfluenceConnect({ commit }, { settings, isUpdate }) {
+    async doConfluenceConnect({ commit }, {
+      settings, isUpdate, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
           settings,
+          segmentId,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -545,7 +567,8 @@ export default {
         router.push({
           name: 'integration',
           params: {
-            id: integration.segmentId,
+            id: segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -557,7 +580,7 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit,
+        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit, segmentId, grandparentId,
       },
     ) {
       try {
@@ -570,7 +593,7 @@ export default {
           repoNames,
           enableAllRepos,
           enableGit,
-        });
+        }, [segmentId]);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -588,6 +611,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -599,7 +623,7 @@ export default {
     async doDiscourseConnect(
       { commit },
       {
-        forumHostname, apiKey, webhookSecret, isUpdate,
+        forumHostname, apiKey, webhookSecret, isUpdate, segmentId, grandparentId,
       },
     ) {
       try {
@@ -609,6 +633,7 @@ export default {
           forumHostname,
           apiKey,
           webhookSecret,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -627,6 +652,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -639,6 +665,7 @@ export default {
       { commit },
       {
         email, token, tokenExpiry, password, groups, isUpdate, autoImports,
+        segmentId, grandparentId,
       },
     ) {
       console.log('doGroupsioConnect', email, token, groups, isUpdate);
@@ -653,6 +680,7 @@ export default {
           password,
           groups,
           autoImports,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -672,6 +700,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -685,6 +714,7 @@ export default {
       { commit },
       {
         url, username, personalAccessToken, apiToken, projects, isUpdate,
+        segmentId, grandparentId,
       },
     ) {
       try {
@@ -696,6 +726,7 @@ export default {
           personalAccessToken,
           apiToken,
           projects,
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -715,6 +746,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
       } catch (error) {
@@ -724,10 +756,12 @@ export default {
       }
     },
 
-    async doGitlabConnect({ commit, dispatch }, { code, state }) {
+    async doGitlabConnect({ commit, dispatch }, {
+      code, state, segmentId, grandparentId,
+    }) {
       try {
         commit('CREATE_STARTED');
-        const integration = await IntegrationService.gitlabConnect(code, state);
+        const integration = await IntegrationService.gitlabConnect(code, state, [segmentId]);
         commit('CREATE_SUCCESS', integration);
         dispatch('doFetch');
 
@@ -735,6 +769,7 @@ export default {
           name: 'integration',
           params: {
             id: integration.segmentId,
+            grandparentId,
           },
         });
 

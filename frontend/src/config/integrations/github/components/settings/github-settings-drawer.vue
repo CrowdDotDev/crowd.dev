@@ -46,11 +46,12 @@
           content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
       Please contact support if you need to onboard new data or update settings."
           placement="top"
+          :disabled="isTeam"
         >
           <span>
             <lf-button
               type="primary"
-              :disabled="true || $v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+              :disabled="!isTeam || $v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
               @click="connect()"
             >
               {{ props.integration ? "Update settings" : "Connect" }}
@@ -79,7 +80,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import { useRoute } from 'vue-router';
 import useVuelidate from '@vuelidate/core';
 import { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import {
@@ -100,18 +100,22 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import { isTeamUser } from '@/config/permissions';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps<{
   modelValue: boolean;
   integration?: Integration<GitHubSettings>;
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
-
-const route = useRoute();
+const { user } = storeToRefs(useAuthStore());
 
 const isAddRepositoryModalOpen = ref(false);
 
@@ -132,12 +136,14 @@ const isDrawerVisible = computed({
 });
 
 const fetchSubProjects = () => {
-  LfService.findSegment(route.params.grandparentId).then((segment) => {
+  LfService.findSegment(props.grandparentId).then((segment) => {
     subprojects.value = segment.projects.map((p) => p.subprojects).flat();
   });
 };
 
 const $v = useVuelidate();
+
+const isTeam = computed(() => isTeamUser(user.value));
 
 const allOrganizations = computed<any[]>(() => {
   const owners = new Set();
@@ -178,12 +184,12 @@ const connect = () => {
   (props.integration?.id
     ? IntegrationService.update(props.integration.id, {
       settings,
-    })
+    }, [props.segmentId])
     : IntegrationService.create({
       settings,
       platform: 'github',
       status: 'in-progress',
-    })
+    }, [props.segmentId])
   )
     .then((res) => {
       integration = res;

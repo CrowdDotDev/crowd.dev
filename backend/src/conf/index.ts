@@ -4,7 +4,7 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import { IGithubIssueReporterConfiguration } from '@crowd/types'
+import { IGithubIssueReporterConfiguration, IJiraIssueReporterConfiguration } from '@crowd/types'
 
 import {
   ApiConfiguration,
@@ -119,6 +119,9 @@ export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration
 
 export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
   config.get<IGithubIssueReporterConfiguration>('githubIssueReporter')
+
+export const JIRA_ISSUE_REPORTER_CONFIG: IJiraIssueReporterConfiguration =
+  config.get<IJiraIssueReporterConfiguration>('jiraIssueReporter')
 
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 

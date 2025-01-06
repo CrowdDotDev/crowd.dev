@@ -196,7 +196,7 @@ import {
 import Message from '@/shared/message/message';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
@@ -209,11 +209,12 @@ import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 const props = defineProps<{
   modelValue: boolean;
   integration: any;
+  segmentId: string | null;
+  grandparentId: string | null;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
-const route = useRoute();
 const router = useRouter();
 
 // Store
@@ -414,7 +415,7 @@ const bulkApply = (data: Record<string, string>) => {
 const subprojects = ref([]);
 
 const fetchSubProjects = () => {
-  LfService.findSegment(route.params.grandparentId).then((segment: any) => {
+  LfService.findSegment(props.grandparentId).then((segment: any) => {
     subprojects.value = segment.projects.map((p: any) => p.subprojects).flat();
   });
 };

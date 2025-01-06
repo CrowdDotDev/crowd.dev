@@ -199,6 +199,14 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  segmentId: {
+    type: String,
+    required: true,
+  },
+  grandparentId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -370,6 +378,8 @@ const callOnboard = useThrottleFn(async () => {
       {
         tags: [],
         keywords: modelKeywords.value,
+        segmentId: props.segmentId,
+        grandparentId: props.grandparentId,
       },
     );
   } else {
@@ -378,6 +388,8 @@ const callOnboard = useThrottleFn(async () => {
       {
         tags: model.value.map((i) => i.value),
         keywords: modelKeywords.value,
+        segmentId: props.segmentId,
+        grandparentId: props.grandparentId,
       },
     );
 

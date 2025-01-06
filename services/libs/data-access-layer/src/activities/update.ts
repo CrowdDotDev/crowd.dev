@@ -14,7 +14,7 @@ export async function streamActivities(
   qdb: DbConnOrTx,
   onActivity: (activity: IDbActivityCreateData) => Promise<void>,
   where: string,
-  params?: Record<string, string>,
+  params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
   const whereClause = formatQuery(where, params)
   const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`)
@@ -36,7 +36,7 @@ export async function updateActivities(
   qdb: DbConnOrTx,
   mapActivity: (activity: IDbActivityCreateData) => Promise<Partial<IDbActivityCreateData>>,
   where: string,
-  params?: Record<string, string>,
+  params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
   return streamActivities(
     qdb,

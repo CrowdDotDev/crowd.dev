@@ -11,7 +11,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, defineProps, ref } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -20,23 +20,21 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import { useRoute } from 'vue-router';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
-});
-
-const route = useRoute();
+const props = defineProps<{
+  integration: any;
+  grandparentId: string | null;
+  segmentId: string | null;
+}>();
 
 const isTwitterConnectDrawerOpen = ref(false);
 
 const hashtags = computed(() => props.integration.settings?.hashtags || []);
 
 const connectUrl = computed(() => {
-  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
+  const redirectUrl = props.grandparentId && props.segmentId
+    ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?success=true`
+    : `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
   const authStore = useAuthStore();
   const { tenant } = storeToRefs(authStore);
@@ -44,12 +42,12 @@ const connectUrl = computed(() => {
   return `${config.backendUrl}/twitter/${
     tenant.value.id
   }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
-    route.params.id
+    props.segmentId
   }`;
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfGitDropdown',
 };
