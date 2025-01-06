@@ -27,7 +27,6 @@ export default class SequelizeTestUtils {
 
     const tables = [
       '"organizationIdentities"',
-      '"activityTasks"',
       '"automationExecutions"',
       '"conversationSettings"',
       '"auditLogs"',
@@ -37,14 +36,11 @@ export default class SequelizeTestUtils {
       '"files"',
       '"memberNoMerge"',
       '"memberTags"',
-      '"memberTasks"',
       '"microservices"',
       '"memberToMerge"',
-      '"taskAssignees"',
       '"integrations"',
       '"eagleEyeContents"',
       '"eagleEyeActions"',
-      '"tasks"',
       '"tags"',
 
       '"memberAttributeSettings"',

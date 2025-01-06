@@ -10,7 +10,6 @@ import {
   IMemberUsername,
   IOrganization,
   ITag,
-  ITask,
   LLMSuggestionVerdictType,
   MergeActionState,
   MergeActionStep,
@@ -45,7 +44,6 @@ export interface IMemberUnmergeBackup {
   id: string
   tags: ITag[]
   reach: IMemberReach
-  tasks: ITask[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername
@@ -63,7 +61,6 @@ export interface IMemberUnmergePreviewResult {
   id: string
   tags: ITag[]
   reach: IMemberReach
-  tasks: ITask[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername

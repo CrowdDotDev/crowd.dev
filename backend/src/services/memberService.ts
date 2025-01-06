@@ -15,16 +15,13 @@ import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segm
 import {
   MemberField,
   addMemberTags,
-  addMemberTasks,
   fetchMemberIdentities,
   findMemberById,
   findMemberIdentityById,
   findMemberTags,
-  findMemberTasks,
   insertMemberSegments,
   queryMembersAdvanced,
   removeMemberTags,
-  removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
@@ -687,8 +684,7 @@ export default class MemberService extends LoggerBase {
             MemberField.ID,
             MemberField.DISPLAY_NAME,
           ])
-          const [memberTasks, memberTags] = await Promise.all([
-            (await findMemberTasks(qx, memberId)).map((t) => ({ id: t.taskId })),
+          const [memberTags] = await Promise.all([
             (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
           ])
 
@@ -781,26 +777,6 @@ export default class MemberService extends LoggerBase {
             }
           }
 
-          // move tasks
-          if (payload.secondary.tasks.length > 0) {
-            await addMemberTasks(
-              txqx,
-              secondaryMember.id,
-              payload.secondary.tasks.map((t) => t.id),
-            )
-            // check if anything to delete in primary
-            const tasksToDelete = memberTasks.filter(
-              (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
-            )
-            if (tasksToDelete.length > 0) {
-              await removeMemberTasks(
-                txqx,
-                memberId,
-                tasksToDelete.map((t) => t.id),
-              )
-            }
-          }
-
           // move memberOrganizations
           if (payload.secondary.memberOrganizations.length > 0) {
             const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
@@ -844,7 +820,6 @@ export default class MemberService extends LoggerBase {
           delete payload.primary.memberOrganizations
           delete payload.primary.organizations
           delete payload.primary.tags
-          delete payload.primary.tasks
           delete payload.primary.affiliations
 
           captureNewState({
@@ -938,12 +913,11 @@ export default class MemberService extends LoggerBase {
         '[0] Getting member information (identities, tags, tasks, affiliations)... ',
       )
 
-      const [memberOrganizations, identities, tags, tasks, affiliations] = await Promise.all(
+      const [memberOrganizations, identities, tags, affiliations] = await Promise.all(
         [
           MemberOrganizationRepository.findMemberRoles(memberId, this.options),
           fetchMemberIdentities(qx, memberId),
           findMemberTags(qx, memberId),
-          findMemberTasks(qx, memberId),
           findMemberAffiliations(qx, memberId),
         ],
       )
@@ -956,7 +930,6 @@ export default class MemberService extends LoggerBase {
         identities,
         affiliations,
         tags: tags.map((t) => ({ id: t.tagId })),
-        tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
       const identity = await findMemberIdentityById(qx, memberId, identityId)
@@ -1101,15 +1074,6 @@ export default class MemberService extends LoggerBase {
               ),
           )
 
-          // tasks: Remove tasks that exist in secondary backup, but not in primary backup
-          member.tasks = member.tasks.filter(
-            (task) =>
-              !(
-                secondaryBackup.tasks.some((t) => t.id === task.id) &&
-                !primaryBackup.tasks.some((t) => t.id === task.id)
-              ),
-          )
-
           // identities: Remove identities coming from secondary backup
           member.identities = member.identities.filter(
             (i) =>
@@ -1223,7 +1187,6 @@ export default class MemberService extends LoggerBase {
           memberOrganizations: [],
           organizations: [],
           tags: [],
-          tasks: [],
           attributes: {},
           joinedAt: new Date().toISOString(),
           tenantId: member.tenantId,
@@ -1294,16 +1257,14 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      const [tags, tasks, affiliations] = await Promise.all([
+      const [tags, affiliations] = await Promise.all([
         findMemberTags(qx, memberId),
-        findMemberTasks(qx, memberId),
         findMemberAffiliations(qx, memberId),
       ])
 
       return {
         ...member,
         tags: tags.map((t) => ({ id: t.tagId })),
-        tasks: tasks.map((t) => ({ id: t.taskId })),
         affiliations,
       }
     }
@@ -1388,9 +1349,6 @@ export default class MemberService extends LoggerBase {
             identitiesToUpdate,
             repoOptions,
           )
-
-          // Update tasks to belong to the originalId member
-          await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Update member affiliations
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)

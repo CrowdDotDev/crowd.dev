@@ -306,37 +306,6 @@ class Permissions {
         id: 'eagleEyeContentEdit',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
-      taskImport: {
-        id: 'taskImport',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      taskCreate: {
-        id: 'taskCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      taskEdit: {
-        id: 'taskEdit',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      taskDestroy: {
-        id: 'taskDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      taskRead: {
-        id: 'taskRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      taskAutocomplete: {
-        id: 'taskAutocomplete',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      taskBatch: {
-        id: 'taskBatch',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
       noteImport: {
         id: 'noteImport',
         allowedRoles: [roles.admin, roles.projectAdmin],

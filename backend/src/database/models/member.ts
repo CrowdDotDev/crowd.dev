@@ -109,11 +109,6 @@ export default (sequelize) => {
       through: 'memberSegments',
       timestamps: false,
     })
-    
-    models.member.belongsToMany(models.task, {
-      as: 'tasks',
-      through: 'memberTasks',
-    })
 
     models.member.belongsToMany(models.tag, {
       as: 'tags',

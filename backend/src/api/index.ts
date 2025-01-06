@@ -194,7 +194,6 @@ setImmediate(async () => {
   require('./conversation').default(routes)
   require('./eagleEyeContent').default(routes)
   require('./automation').default(routes)
-  require('./task').default(routes)
   require('./organization').default(routes)
   require('./quickstart-guide').default(routes)
   require('./slack').default(routes)

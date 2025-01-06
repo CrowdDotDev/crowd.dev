@@ -64,12 +64,6 @@ const en = {
     },
   },
 
-  task: {
-    errors: {
-      unknownBatchOperation: 'Sent batch operation {0} is unknown.',
-    },
-  },
-
   tenant: {
     exists: 'There is already a workspace on this application.',
     url: {

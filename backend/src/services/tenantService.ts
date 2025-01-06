@@ -10,7 +10,6 @@ import { TenantMode } from '../conf/configTypes'
 import { TENANT_MODE } from '../conf/index'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import TaskRepository from '../database/repositories/taskRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
@@ -220,13 +219,6 @@ export default class TenantService {
         { type: microserviceTypes.membersScore },
         { ...this.options, transaction, currentTenant: record },
       )
-
-      // create suggested tasks
-      await TaskRepository.createSuggestedTasks({
-        ...this.options,
-        transaction,
-        currentTenant: record,
-      })
 
       // create default custom views
       for (const entity of Object.values(defaultCustomViews)) {

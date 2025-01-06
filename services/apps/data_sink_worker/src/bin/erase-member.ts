@@ -339,7 +339,6 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     ['memberTags', ['memberId']],
     ['memberSegments', ['memberId']],
     ['memberSegmentsAgg', ['memberId']],
-    ['memberTasks', ['memberId']],
     ['memberEnrichmentCache', ['memberId']],
     ['memberIdentities', ['memberId']],
     ['memberSegmentAffiliations', ['memberId']],

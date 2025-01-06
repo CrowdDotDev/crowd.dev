@@ -31,8 +31,6 @@ export * from './graphql'
 
 export * from './tags'
 
-export * from './tasks'
-
 export * from './attributes'
 
 export * from './automations'

@@ -6,7 +6,6 @@ import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import { IServiceOptions } from '../IServiceOptions'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import MicroserviceService from '../microserviceService'
-import TaskService from '../taskService'
 import TenantService from '../tenantService'
 
 const db = null
@@ -47,7 +46,7 @@ describe('TenantService tests', () => {
   })
 
   describe('create method', () => {
-    it('Should succesfully create the tenant, related default microservices, settings and suggested tasks', async () => {
+    it('Should succesfully create the tenant, related default microservices, and settings', async () => {
       const randomUser = await SequelizeTestUtils.getRandomUser()
       let db = null
       db = await SequelizeTestUtils.getDatabase(db)
@@ -114,17 +113,6 @@ describe('TenantService tests', () => {
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
         MemberAttributeName.URL,
-      ])
-
-      const taskService = new TaskService({ ...options, currentTenant: tenantCreated })
-      const suggestedTasks = await taskService.findAndCountAll({ filter: {} })
-      expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
-        'Check for negative reactions',
-        'Engage with relevant content',
-        'Reach out to influential contacts',
-        'Reach out to poorly engaged contacts',
-        'Set up your team',
-        'Set up your workspace integrations',
       ])
     })
   })
