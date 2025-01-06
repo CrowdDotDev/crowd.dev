@@ -5,7 +5,7 @@
         Identities
       </h6>
       <lf-contributor-details-identity-add-dropdown
-        v-if="!masked && hasPermission(LfPermission.memberEdit)"
+        v-if="!isMasked(props.contributor) && hasPermission(LfPermission.memberEdit)"
         placement="bottom-end"
         @add="addIdentity = true; addIdentityTemplate = $event"
       >
@@ -22,7 +22,7 @@
       </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div v-if="!masked && identityList.length > 0" class="flex flex-col gap-3">
+    <div v-if="!isMasked(props.contributor) && identityList.length > 0" class="flex flex-col gap-3">
       <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
@@ -34,7 +34,7 @@
       />
     </div>
 
-    <div v-else-if="!masked" class="pt-2 flex flex-col items-center">
+    <div v-else-if="!isMasked(props.contributor)" class="pt-2 flex flex-col items-center">
       <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No identities
@@ -50,7 +50,7 @@
     </div>
 
     <lf-button
-      v-if="!masked && identityList.length > 10"
+      v-if="!isMasked(props.contributor) && identityList.length > 10"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -60,18 +60,18 @@
     </lf-button>
   </section>
   <lf-contributor-identity-add
-    v-if="!masked && addIdentity && addIdentityTemplate !== null"
+    v-if="!isMasked(props.contributor) && addIdentity && addIdentityTemplate !== null"
     v-model="addIdentity"
     :identities="[addIdentityTemplate]"
     :contributor="props.contributor"
   />
   <lf-contributor-identity-edit
-    v-if="!masked && editIdentity !== null"
+    v-if="!isMasked(props.contributor) && editIdentity !== null"
     v-model="editIdentity"
     :contributor="props.contributor"
   />
   <app-member-unmerge-dialog
-    v-if="!masked && isUnmergeDialogOpen"
+    v-if="!isMasked(props.contributor) && isUnmergeDialogOpen"
     v-model="isUnmergeDialogOpen"
     :selected-identity="selectedIdentity"
   />
@@ -124,8 +124,6 @@ const unmerge = (identityId: string) => {
   }
   isUnmergeDialogOpen.value = props.contributor as any;
 };
-
-const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">
