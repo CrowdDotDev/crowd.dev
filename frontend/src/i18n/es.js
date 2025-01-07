@@ -350,7 +350,6 @@ const es = {
       tenantName: 'Nombre del espacio de trabajo',
       tenantId: 'Espacio de trabajo',
       tenantUrl: 'URL del espacio de trabajo',
-      plan: 'Plan',
     },
     enumerators: {},
     new: {
@@ -453,34 +452,6 @@ const es = {
       revokingOwnPermission:
         'No puede revocar su propio permiso de administrador',
     },
-  },
-  plan: {
-    menu: 'Planes',
-    title: 'Planes',
-    free: {
-      label: 'Gratis',
-      price: '$0',
-    },
-    premium: {
-      label: 'Crecimiento',
-      price: '$10',
-    },
-    enterprise: {
-      label: 'Empresa',
-      price: '$50',
-    },
-    pricingPeriod: '/mes',
-    current: 'Plan Actual',
-    subscribe: 'Suscribir',
-    manage: 'Administrar Suscripción',
-    cancelAtPeriodEnd:
-      'Este plan se cancelará al final del período.',
-    somethingWrong:
-      'Hay algo mal con su suscripción. Vaya a administrar la suscripción para obtener más detalles.',
-    notPlanUser:
-      'No eres el administrador de esta suscripción.',
-    demoHintHtml:
-      'Sugerencia: Use esas <a href="https://stripe.com/docs/testing#cards" target="_blank" rel="noopener noreferrer">tarjetas de prueba</a> para la demostración.',
   },
   auditLog: {
     menu: 'Registros de auditoría',

@@ -543,7 +543,6 @@ const en = {
       tenantPlatforms: 'Community platforms',
       tenantSize: 'Community size',
       tenantId: 'Community',
-      plan: 'Plan',
     },
     enumerators: {},
     new: {
