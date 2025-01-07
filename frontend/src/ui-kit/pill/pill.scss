@@ -1,20 +1,26 @@
-.lf-pill {
-  @apply text-xs font-semibold rounded-full px-2.5 py-0.5 min-w-[60px] text-center max-h-[27px] inline-block;
-  &--bordered {
-    @apply border border-gray-200 border-solid font-normal;
-  }
-  &--green {
-    @apply bg-green-100 text-green-900;
-  }
+.c-pill {
+  @apply text-tiny font-semibold rounded-full px-2.5 text-center h-5 flex items-center justify-center;
+
   &--primary {
     @apply bg-primary-100 text-primary-900;
   }
-  &--yellow {
-    @apply bg-yellow-100 text-yellow-900;
-  }
-  &--gray {
+
+  &--secondary {
     @apply bg-gray-200 text-gray-900;
   }
+
+  &--tertiary {
+    @apply border border-gray-200 border-solid font-normal;
+  }
+
+  &--success {
+    @apply bg-green-100 text-green-900;
+  }
+
+  &--warning {
+    @apply bg-yellow-100 text-yellow-900;
+  }
+
   &--transparent {
     @apply bg-transparent text-gray-900;
   }

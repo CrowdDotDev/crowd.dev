@@ -153,11 +153,11 @@ import { useRoute } from 'vue-router';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
-import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-project-group-form.vue';
-import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
-import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-project-form.vue';
-import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
-import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
+import AppLfProjectGroupForm from '@/modules/admin/modules/projects/components/form/lf-project-group-form.vue';
+import AppLfProjectForm from '@/modules/admin/modules/projects/components/form/lf-project-form.vue';
+import AppLfSubProjectForm from '@/modules/admin/modules/projects/components/form/lf-sub-project-form.vue';
+import AppLfProjectsTable from '@/modules/admin/modules/projects/components/view/lf-projects-table.vue';
+import AppLfSearchInput from '@/modules/admin/modules/projects/components/view/lf-search-input.vue';
 import { storeToRefs } from 'pinia';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -166,9 +166,9 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
-import AppLfStatusPill from '../components/fragments/lf-status-pill.vue';
-import AppLfProjectCount from '../components/fragments/lf-project-count.vue';
+import AppLfProjectGroupsDropdown from '@/modules/admin/modules/projects/components/lf-project-groups-dropdown.vue';
+import AppLfStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
+import AppLfProjectCount from '@/modules/admin/modules/projects/components/fragments/lf-project-count.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();

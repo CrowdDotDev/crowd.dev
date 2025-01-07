@@ -1,6 +1,6 @@
 export default [
   {
-    class: 'green',
+    class: 'success',
     color: 'bg-green-500',
     label: 'Active',
     value: 'active',
@@ -12,13 +12,13 @@ export default [
     value: 'formation',
   },
   {
-    class: 'yellow',
+    class: 'warning',
     color: 'bg-yellow-500',
     label: 'Prospect',
     value: 'prospect',
   },
   {
-    class: 'gray',
+    class: 'secondary',
     color: 'bg-gray-400',
     label: 'Archived',
     value: 'archived',

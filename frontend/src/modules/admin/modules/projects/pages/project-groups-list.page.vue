@@ -122,7 +122,7 @@ import {
   computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
+import AppLfSearchInput from '@/modules/admin/modules/projects/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store/auth.store';

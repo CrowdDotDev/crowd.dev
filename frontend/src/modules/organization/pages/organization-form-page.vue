@@ -154,7 +154,6 @@ import AppOrganizationFormDetails from '@/modules/organization/components/form/o
 import AppOrganizationFormAttributes from '@/modules/organization/components/form/organization-form-attributes.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
@@ -164,6 +163,7 @@ import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 import { useOrganizationStore } from '../store/pinia';
 
 const LoaderIcon = h(

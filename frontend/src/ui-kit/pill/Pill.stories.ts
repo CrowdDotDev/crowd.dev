@@ -1,4 +1,3 @@
-import { pillColor } from '@/ui-kit/pill/types/PillColor';
 import { pillType } from '@/ui-kit/pill/types/PillType';
 import LfPill from './Pill.vue';
 
@@ -8,15 +7,9 @@ export default {
   tags: ['autodocs'],
   argTypes: {
     // Props
-    color: {
-      description: 'Specifies pill color',
-      defaultValue: 'green',
-      control: 'select',
-      options: pillColor,
-    },
     type: {
       description: 'Specifies pill type',
-      defaultValue: 'default',
+      defaultValue: 'primary',
       control: 'select',
       options: pillType,
     },
@@ -31,50 +24,44 @@ export default {
   },
 };
 
-export const Regular = {
-  args: {
-    color: 'green',
-    type: 'solid',
-    default: 'Pill',
-  },
-};
-
-export const Green = {
-  args: {
-    color: 'green',
-    type: 'solid',
-    default: 'Pill',
-  },
-};
-
 export const Primary = {
   args: {
-    color: 'primary',
-    type: 'solid',
+    type: 'primary',
     default: 'Pill',
   },
 };
 
-export const Yellow = {
+export const Secondary = {
   args: {
-    color: 'yellow',
-    type: 'solid',
+    type: 'secondary',
     default: 'Pill',
   },
 };
 
-export const Gray = {
+export const Tertiary = {
   args: {
-    color: 'gray',
-    type: 'solid',
+    type: 'tertiary',
     default: 'Pill',
   },
 };
 
-export const BorderedTransparent = {
+export const Success = {
   args: {
-    color: 'transparent',
-    type: 'bordered',
+    type: 'success',
+    default: 'Pill',
+  },
+};
+
+export const Warning = {
+  args: {
+    type: 'warning',
+    default: 'Pill',
+  },
+};
+
+export const Transparent = {
+  args: {
+    type: 'transparent',
     default: 'Pill',
   },
 };
