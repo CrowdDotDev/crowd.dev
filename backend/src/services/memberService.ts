@@ -913,14 +913,12 @@ export default class MemberService extends LoggerBase {
         '[0] Getting member information (identities, tags, tasks, affiliations)... ',
       )
 
-      const [memberOrganizations, identities, tags, affiliations] = await Promise.all(
-        [
-          MemberOrganizationRepository.findMemberRoles(memberId, this.options),
-          fetchMemberIdentities(qx, memberId),
-          findMemberTags(qx, memberId),
-          findMemberAffiliations(qx, memberId),
-        ],
-      )
+      const [memberOrganizations, identities, tags, affiliations] = await Promise.all([
+        MemberOrganizationRepository.findMemberRoles(memberId, this.options),
+        fetchMemberIdentities(qx, memberId),
+        findMemberTags(qx, memberId),
+        findMemberAffiliations(qx, memberId),
+      ])
 
       this.options.log.info('[0] Done!')
 

@@ -1,6 +1,5 @@
 import config from 'config'
 
-import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'

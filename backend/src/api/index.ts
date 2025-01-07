@@ -18,12 +18,7 @@ import { ApiWebsocketMessage } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
-import {
-  OPENSEARCH_CONFIG,
-  PRODUCT_DB_CONFIG,
-  REDIS_CONFIG,
-  TEMPORAL_CONFIG,
-} from '../conf'
+import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'

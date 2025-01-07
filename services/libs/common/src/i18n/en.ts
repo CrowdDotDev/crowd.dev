@@ -134,9 +134,6 @@ const en = {
     csvExport: {
       planLimitExceeded: 'You have exceeded # of csv exports you can have per month in your plan.',
     },
-    featureFlag: {
-      notEnabled: 'This feature is not enabled for your account',
-    },
     noNangoToken: {
       message: 'No Nango token found!',
     },

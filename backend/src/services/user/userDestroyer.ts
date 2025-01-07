@@ -60,7 +60,6 @@ export default class UserDestroyer {
     await TenantUserRepository.destroy(this.options.currentTenant.id, user.id, this.options)
   }
 
-
   /**
    * Checks if the user is removing himself
    */

@@ -89,17 +89,11 @@ export default class SequelizeTestUtils {
     return db
   }
 
-  static async getTestIServiceOptions(
-    db,
-    tenantName?,
-    tenantUrl?,
-  ) {
+  static async getTestIServiceOptions(db, tenantName?, tenantUrl?) {
     db = await this.getDatabase(db)
 
     const randomTenant =
-      tenantName && tenantUrl
-        ? this.getTenant(tenantName, tenantUrl)
-        : this.getRandomTestTenant()
+      tenantName && tenantUrl ? this.getTenant(tenantName, tenantUrl) : this.getRandomTestTenant()
 
     const randomUser = await this.getRandomUser()
 
