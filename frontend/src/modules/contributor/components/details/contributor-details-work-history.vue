@@ -30,17 +30,49 @@
       </lf-tooltip>
     </div>
 
-    <div v-if="!masked" class="flex flex-col gap-4">
-      <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
-        <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
-          <lf-contributor-details-work-history-item
-            :contributor="props.contributor"
-            :organization="item"
-            :is-group-hover="hoveredGroup?.id === group.id"
-            @edit="isEditModalOpen = true; editOrganization = item"
-          />
+    <div v-if="!masked" class="flex flex-col">
+      <lf-timeline v-for="group in shownGroups" :key="group.id" width="1.5rem">
+        <lf-timeline-item v-for="(item, ii) in group.items" :key="item.id">
+          <template v-if="ii === 0 || item.memberOrganizations.affiliationOverride.allowAffiliation" #dot>
+            <div class="relative flex justify-center">
+              <lf-avatar
+                v-if="ii === 0"
+                :src="item.logo"
+                :name="item.displayName"
+                :size="24"
+                class="!rounded-md border border-gray-200 mb-1.5"
+              />
+              <div v-if="item.memberOrganizations.affiliationOverride.allowAffiliation" :class="ii === 0 ? 'absolute -top-2 -right-2' : '-mt-0.5'">
+                <lf-tooltip content="Affiliated organization/job title" placement="top-start">
+                  <div
+                    class=" border-2 border-white bg-secondary-500 rounded-full w-4.5 h-4.5 flex items-center justify-center"
+                  >
+                    <lf-icon
+                      name="link"
+                      :size="8"
+                      class="text-white font-bold"
+                    />
+                  </div>
+                </lf-tooltip>
+              </div>
+            </div>
+          </template>
+          <div class="pb-4 pl-3 w-full">
+            <lf-contributor-details-work-history-item
+              :contributor="props.contributor"
+              :organization="item"
+              @edit="isEditModalOpen = true; editOrganization = item"
+            >
+              <template v-if="ii === 0" #above>
+                <p class="font-semibold text-medium pt-0.5 pb-1.5">
+                  {{ item.displayName }}
+                </p>
+              </template>
+            </lf-contributor-details-work-history-item>
+          </div>
         </lf-timeline-item>
       </lf-timeline>
+
       <div v-if="orgGrouped.length === 0" class="pt-2 flex flex-col items-center">
         <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
@@ -97,6 +129,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
 import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -109,7 +142,6 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
-const hoveredGroup = ref<TimelineGroup | null>(null);
 
 const orgGrouped = computed(() => {
   const grouped = groupBy(props.contributor.organizations, 'id');
@@ -133,10 +165,6 @@ const minimumShownGroups = 3;
 const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups));
 
 const masked = computed(() => isMasked(props.contributor));
-
-const onGroupHover = (index: TimelineGroup | null) => {
-  hoveredGroup.value = index;
-};
 </script>
 
 <script lang="ts">
