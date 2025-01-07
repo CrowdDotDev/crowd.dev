@@ -5,7 +5,6 @@ import { router } from '@/router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { formatNumber } from '@/utils/number';
 import Message from '@/shared/message/message';
-import { FeatureFlag, FEATURE_FLAGS } from '@/utils/featureFlag';
 
 const scaleEnrichmentMax = 10000;
 const growthEnrichmentMax = 1000;
@@ -33,43 +32,6 @@ export const getEnrichmentMax = (plan) => {
   }
 
   return essentialEnrichmentMax;
-};
-
-/**
- * @param {*} planEnrichmentCountMax maximum plan enrichment count
- * @returns if enrichment has reached limit
- */
-export const checkEnrichmentLimit = (
-  planEnrichmentCountMax,
-) => {
-  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FEATURE_FLAGS.memberEnrichment,
-  );
-
-  if (planEnrichmentCountMax === 'unlimited') {
-    return false;
-  }
-
-  if (!isFeatureEnabled) {
-    ConfirmDialog({
-      vertical: true,
-      type: 'danger',
-      title: `You have reached the limit of ${formatNumber(
-        planEnrichmentCountMax,
-      )} enrichments per month on your current plan`,
-      message:
-        'Upgrade your plan in order to increase your quota of available profile enrichments.',
-      icon: 'ri-error-warning-line',
-      confirmButtonText: 'Upgrade plan',
-      showCancelButton: false,
-    }).then(() => {
-      router.push('/settings?activeTab=plans');
-    });
-
-    return true;
-  }
-
-  return false;
 };
 
 export const checkEnrichmentPlan = ({

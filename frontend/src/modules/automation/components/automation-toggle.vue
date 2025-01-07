@@ -4,7 +4,7 @@
       :model-value="props.automation.state === 'active'"
       class="!grow-0 !ml-0"
       :disabled="!canEnable || !hasPermission(LfPermission.automationEdit)"
-      :before-change="beforeChange"
+      :before-change="true"
       @change="handleChange"
     />
     <span class="ml-2 text-gray-900 text-sm">
@@ -17,10 +17,6 @@
 import { computed, defineProps } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { useStore } from 'vuex';
-import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
-import { FeatureFlag } from '@/utils/featureFlag';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { automationTypes } from '../config/automation-types';
@@ -38,9 +34,6 @@ const { hasPermission } = usePermissions();
 
 const { changePublishState } = useAutomationStore();
 
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
-
 const canEnable = computed(() => {
   const { type } = props.automation;
 
@@ -50,26 +43,6 @@ const canEnable = computed(() => {
 
   return true;
 });
-
-const beforeChange = () => {
-  if (props.automation.state === 'active') {
-    return true;
-  }
-
-  const isFeatureEnabled = FeatureFlag.isFlagEnabled(
-    FeatureFlag.flags.automations,
-  );
-
-  if (!isFeatureEnabled) {
-    const planWorkflowCountMax = getWorkflowMax(
-      tenant.value.plan,
-    );
-
-    showWorkflowLimitDialog({ planWorkflowCountMax });
-  }
-
-  return isFeatureEnabled;
-};
 
 const handleChange = (value) => {
   changePublishState(props.automation.id, value);

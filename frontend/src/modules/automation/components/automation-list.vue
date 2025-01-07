@@ -57,9 +57,6 @@
                 <div class="pl-2">
                   <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                     {{ automationType.name }}
-                    <sup v-if="plan(automationType)" class="text-primary-500">
-                      {{ plan(automationType) }}
-                    </sup>
                   </h6>
                   <p class="text-2xs leading-4.5 text-gray-500 text-left break-normal">
                     {{ automationType.description }}
@@ -131,9 +128,7 @@ import pluralize from 'pluralize';
 import AppAutomationForm from '@/modules/automation/components/automation-form.vue';
 import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table.vue';
 import AppAutomationExecutions from '@/modules/automation/components/automation-executions.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 import { useStore } from 'vuex';
-import config from '@/config';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -180,16 +175,6 @@ const updateAutomation = (automation) => {
   openAutomationForm.value = true;
   automationFormType.value = automation.type;
   editAutomation.value = automation;
-};
-
-const plan = (type) => {
-  if (type.plan && type.featureFlag && !FeatureFlag.isFlagEnabled(type.featureFlag)) {
-    if (config.isCommunityVersion) {
-      return 'Premium';
-    }
-    return type.plan;
-  }
-  return null;
 };
 
 onMounted(async () => {
