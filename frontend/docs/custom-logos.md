@@ -87,7 +87,7 @@ To test if the new custom logo is properly set, add a custom activity with a cus
       2. `type` represents the activity type, and `platform` needs to match the platform key configured for the custom logo
 
 ```
-URL: http://localhost:8081/api/tenant/${tenantId}/activity/with-member
+URL: http://localhost:8081/api/activity/with-member
 METHOD: POST
 HEADERS: {
     "Authorization": "{token}"",

@@ -131,7 +131,6 @@ import { ReportDataEntity } from '@/shared/modules/report-issue/constants/report
 import { ReportDataConfig, reportDataConfig, reportDataTypeDisplay } from '@/shared/modules/report-issue/config';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import authAxios from '@/shared/axios/auth-axios';
 import Message from '@/shared/message/message';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
@@ -201,10 +200,9 @@ const submit = () => {
     description,
   };
 
-  const tenantId = AuthService.getTenantId();
   loading.value = true;
   return authAxios.post(
-    `/tenant/${tenantId}${getConfig.value.url(entity.value.id)}`,
+    `${getConfig.value.url(entity.value.id)}`,
     data,
   )
     .then(() => {

@@ -17,28 +17,6 @@
       class="col-span-2 api-keys-form flex flex-col gap-2"
       label-position="top"
     >
-      <el-form-item label="Tenant ID">
-        <div
-          class="text-2xs text-gray-500 leading-normal mb-1"
-        >
-          Workspace identifier
-        </div>
-        <el-input :value="tenantId" :readonly="true">
-          <template #append>
-            <el-tooltip
-              content="Copy to clipboard"
-              placement="top"
-            >
-              <el-button
-                class="append-icon"
-                @click="copyToClipboard('tenantId')"
-              >
-                <lf-icon name="copy" :size="16" class="!text-large" />
-              </el-button>
-            </el-tooltip>
-          </template>
-        </el-input>
-      </el-form-item>
       <el-form-item label="Auth Token">
         <el-input
           ref="inputRef"
@@ -64,7 +42,7 @@
               content="Copy to clipboard"
               placement="top"
             >
-              <el-button @click="copyToClipboard('token')">
+              <el-button @click="copyToClipboard()">
                 <lf-icon name="copy" :size="16" class="!text-large" />
               </el-button>
             </el-tooltip>
@@ -86,25 +64,22 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 const inputRef = ref();
 const showToken = ref(false);
 
-const tenantId = computed(() => AuthService.getTenantId());
 const jwtToken = computed(() => AuthService.getToken());
 
 const { trackEvent } = useProductTracking();
 
-const copyToClipboard = async (type) => {
-  const toCopy = type === 'token' ? jwtToken.value : tenantId.value;
+const copyToClipboard = async () => {
+  const toCopy = jwtToken.value;
 
   trackEvent({
-    key: type === 'token' ? FeatureEventKey.COPY_AUTH_TOKEN : FeatureEventKey.COPY_TENANT_ID,
+    key: FeatureEventKey.COPY_AUTH_TOKEN,
     type: EventType.FEATURE,
   });
 
   await navigator.clipboard.writeText(toCopy);
 
   Message.success(
-    `${
-      type === 'token' ? 'Auth Token' : 'Tenant ID'
-    } successfully copied to your clipboard`,
+    'Tenant ID successfully copied to your clipboard',
   );
 };
 

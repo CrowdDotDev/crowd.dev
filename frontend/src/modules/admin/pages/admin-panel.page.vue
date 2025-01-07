@@ -29,9 +29,6 @@
           Users
         </lf-tab>
       </template>
-      <lf-tab v-if="isDevMode" v-model="activeTab" name="dev">
-        Dev
-      </lf-tab>
     </lf-tabs>
     <div class="mt-6 border-t border-gray-100">
       <div class="tab-content">
@@ -55,9 +52,6 @@
         />
         <lf-admin-users v-else-if="activeTab === 'users'" />
       </div>
-      <div v-if="isDevMode" class="tab-content" label="Dev" name="dev">
-        <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
-      </div>
     </div>
   </app-page-wrapper>
 </template>
@@ -73,7 +67,6 @@ import AppAutomationList from '@/modules/automation/components/automation-list.v
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
-import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 import LfAdminIntegrationStatus from '@/modules/admin/modules/integration/pages/integration-status.page.vue';
@@ -97,8 +90,6 @@ const changeView = (view: string) => {
 };
 
 const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
-
-const isDevMode = !!localStorage.getItem('devmode');
 
 onMounted(() => {
   const initialActiveTab = route.hash.substring(1) as string;
