@@ -92,7 +92,7 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getExportMax } from '@/modules/member/member-export-limit';
+import { showExportDialog } from '@/modules/member/member-export-limit';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -194,14 +194,7 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      tenant.value.plan,
-    );
-
     await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
       badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
     });
 

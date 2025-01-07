@@ -94,7 +94,7 @@ import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
-import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
@@ -201,14 +201,7 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      tenant.value.plan,
-    );
-
     await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
       badgeContent: pluralize('person', selectedMembers.value.length, true),
     });
 
@@ -236,13 +229,7 @@ const handleDoExport = async () => {
   } catch (error) {
     console.error(error);
 
-    if (error.response?.status === 403) {
-      const planExportCountMax = getExportMax(
-        tenant.value.plan,
-      );
-
-      showExportLimitDialog({ planExportCountMax });
-    } else if (error !== 'cancel') {
+    if (error !== 'cancel') {
       Message.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {

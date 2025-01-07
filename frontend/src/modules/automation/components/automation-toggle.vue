@@ -17,7 +17,7 @@
 import { computed, defineProps } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { useStore } from 'vuex';
-import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
+import { showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
 import { FeatureFlag } from '@/utils/featureFlag';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
@@ -61,11 +61,7 @@ const beforeChange = () => {
   );
 
   if (!isFeatureEnabled) {
-    const planWorkflowCountMax = getWorkflowMax(
-      tenant.value.plan,
-    );
-
-    showWorkflowLimitDialog({ planWorkflowCountMax });
+    showWorkflowLimitDialog();
   }
 
   return isFeatureEnabled;
