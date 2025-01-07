@@ -31,10 +31,6 @@ const defaultConfig = {
   env: import.meta.env.VUE_APP_ENV,
   hotjarKey: import.meta.env.VUE_APP_HOTJAR_KEY,
   nangoUrl: import.meta.env.VUE_APP_NANGO_URL,
-  unleash: {
-    apiKey: import.meta.env.VUE_APP_UNLEASH_API_KEY,
-    url: import.meta.env.VUE_APP_UNLEASH_URL,
-  },
   formbricks: {
     url: import.meta.env.VUE_APP_FORMBRICKS_URL,
     environmentId: import.meta.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
@@ -101,10 +97,6 @@ const composedConfig = {
   nangoUrl: 'CROWD_VUE_APP_NANGO_URL',
   typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
   typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
-  unleash: {
-    apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
-    url: 'CROWD_VUE_APP_UNLEASH_URL',
-  },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',
     environmentId: 'CROWD_VUE_APP_FORMBRICKS_ENVIRONMENT_ID',

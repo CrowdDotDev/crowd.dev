@@ -1,5 +1,3 @@
-import { UnleashClient } from 'unleash-proxy-client';
-import { useLogRocket } from '@/utils/logRocket';
 import config from '@/config';
 import { store } from '@/store';
 

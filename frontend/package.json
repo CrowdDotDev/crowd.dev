@@ -63,7 +63,6 @@
     "pluralize": "^8.0.0",
     "qs": "^6.11.1",
     "socket.io-client": "^4.6.1",
-    "unleash-proxy-client": "^2.4.3",
     "uuid": "8.3.0",
     "vite": "^4.4.7",
     "vue": "^3.3.1",
