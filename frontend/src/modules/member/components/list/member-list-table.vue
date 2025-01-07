@@ -505,7 +505,7 @@
                     @mouseleave="closeEnrichmentPopover"
                   >
                     <div class="inline-flex items-center ml-1 gap-2">
-                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <el-tooltip placement="top">
@@ -532,17 +532,11 @@
                     class="block h-full !text-gray-500"
                   >
                     <app-member-reach
-                      v-if="isEnrichEnabled"
                       :member="{
                         ...scope.row,
                         reach: scope.row.reach,
                       }"
                     />
-                    <div v-else class="flex items-center h-full w-full pl-3">
-                      <div class="blur-[6px] text-gray-900 select-none">
-                        150
-                      </div>
-                    </div>
                   </router-link>
                 </template>
               </el-table-column>
@@ -564,7 +558,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -584,7 +577,7 @@
                     class="block h-full"
                   >
                     <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                      <div>
                         <div
                           v-if="scope.row.attributes?.seniorityLevel?.default"
                           class="text-gray-900 text-sm"
@@ -592,11 +585,6 @@
                           {{ scope.row.attributes.seniorityLevel.default }}
                         </div>
                         <span v-else class="text-gray-900">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Senior
-                        </div>
                       </div>
                     </div>
                     <el-tooltip
@@ -627,7 +615,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -646,7 +633,7 @@
                     class="block h-full"
                   >
                     <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                      <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.programmingLanguages?.default?.length"
                           :list="scope.row.attributes.programmingLanguages.default"
@@ -659,11 +646,6 @@
                           </template>
                         </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Javascript, Java
-                        </div>
                       </div>
                     </div>
                     <el-tooltip
@@ -694,7 +676,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -713,7 +694,7 @@
                     class="block h-full"
                   >
                     <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                      <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.skills?.default?.length"
                           :list="scope.row.attributes.skills.default"
@@ -726,11 +707,6 @@
                           </template>
                         </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Web development
-                        </div>
                       </div>
                     </div>
                     <el-tooltip
@@ -844,19 +820,6 @@
       </div>
     </el-popover>
 
-    <!-- Enrichment popover -->
-    <el-popover
-      v-if="!isEnrichEnabled"
-      placement="top"
-      popper-class="!p-0 !mb-[-12px] !w-60"
-      :virtual-ref="enrichmentRefs[selectedEnrichmentAttribute]"
-      trigger="hover"
-      :visible="showEnrichmentPopover"
-      virtual-triggering
-      @hide="onHide"
-    >
-      <lf-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
-    </el-popover>
 
     <app-member-find-github-drawer
       v-if="isFindGithubDrawerOpen"
@@ -889,8 +852,6 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import LfSvg from '@/shared/svg/svg.vue';
-import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
@@ -984,7 +945,7 @@ const hasPermissions = computed(() => [LfPermission.memberEdit,
   LfPermission.mergeMembers]
   .some((permission) => hasPermission(permission)));
 
-const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
+const isEnrichEnabled = true;
 
 const defaultSort = computed(() => ({
   prop: filters.value.order.prop,
