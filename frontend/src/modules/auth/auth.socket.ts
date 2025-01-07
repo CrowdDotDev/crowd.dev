@@ -1,12 +1,12 @@
 import io from 'socket.io-client';
+import { storeToRefs } from 'pinia';
+import { h } from 'vue';
 import config from '@/config';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
-import { h } from 'vue';
 
 let socketIoClient: any;
 
@@ -25,7 +25,6 @@ export const isSocketConnected = () => socketIoClient && socketIoClient.connecte
 export const connectSocket = (token) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
-  const { getUser } = authStore;
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
@@ -224,7 +223,6 @@ export const connectSocket = (token) => {
       title: 'Organizations unmerged successfully',
     });
   });
-
 
   socketIoClient.on(SocketEvents.orgMerge, (payload) => {
     const {

@@ -810,20 +810,19 @@ import {
   onUnmounted,
 } from 'vue';
 import { useRouter } from 'vue-router';
+import { ClickOutside as vClickOutside } from 'element-plus';
+import { storeToRefs } from 'pinia';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
-import { ClickOutside as vClickOutside } from 'element-plus';
 import LfSvg from '@/shared/svg/svg.vue';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -894,10 +893,6 @@ const selectedActionOrganization = ref(null);
 const showEnrichmentPopover = ref(false);
 const enrichmentRefs = ref({});
 const selectedEnrichmentAttribute = ref(null);
-
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
-
 
 const pagination = computed({
   get() {

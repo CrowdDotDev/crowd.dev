@@ -88,12 +88,13 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
+import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import pluralize from 'pluralize';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import pluralize from 'pluralize';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
@@ -103,14 +104,12 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { useRoute } from 'vue-router';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 
 const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { getUser } = authStore;
 
 const memberStore = useMemberStore();

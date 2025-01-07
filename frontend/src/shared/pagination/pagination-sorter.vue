@@ -45,13 +45,12 @@
 <script setup>
 import { computed } from 'vue';
 import pluralize from 'pluralize';
+import { useRoute } from 'vue-router';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { useRoute } from 'vue-router';
 
 const emit = defineEmits([
   'changeSorter',
@@ -102,7 +101,6 @@ const { trackEvent } = useProductTracking();
 const route = useRoute();
 
 const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { getUser } = authStore;
 
 const model = computed({

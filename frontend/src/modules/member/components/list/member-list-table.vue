@@ -820,7 +820,6 @@
       </div>
     </el-popover>
 
-
     <app-member-find-github-drawer
       v-if="isFindGithubDrawerOpen"
       v-model="isFindGithubDrawerOpen"
@@ -853,7 +852,6 @@ import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-g
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
@@ -933,8 +931,6 @@ const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 
 const { hasPermission } = usePermissions();
 
@@ -944,8 +940,6 @@ const hasPermissions = computed(() => [LfPermission.memberEdit,
   LfPermission.memberDestroy,
   LfPermission.mergeMembers]
   .some((permission) => hasPermission(permission)));
-
-const isEnrichEnabled = true;
 
 const defaultSort = computed(() => ({
   prop: filters.value.order.prop,
