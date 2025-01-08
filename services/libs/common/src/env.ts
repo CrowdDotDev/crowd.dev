@@ -85,5 +85,4 @@ export function getEnv() {
   return 'local'
 }
 
-
 export const getDefaultTenantId = () => '875c38bd-2b1b-4e91-ad07-0cfbabb4c49f'

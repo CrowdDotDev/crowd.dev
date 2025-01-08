@@ -50,11 +50,7 @@ export async function refreshDashboardCache(
 
     // for each platform also cache dashboard values
     for (const platform of activePlatforms) {
-      await refreshDashboardCacheForAllTimeranges(
-        args.segmentId,
-        args.leafSegmentIds,
-        platform,
-      )
+      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
     }
   } else {
     // first check if there's a new activity between dashboardLastRefreshedAt and now()
@@ -66,17 +62,10 @@ export async function refreshDashboardCache(
     // only refresh the main view and returned platform views if there are new activities
     if (platforms && platforms.length > 0) {
       // refresh the main view
-      await refreshDashboardCacheForAllTimeranges(
-        args.segmentId,
-        args.leafSegmentIds,
-      )
+      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds)
 
       for (const platform of platforms) {
-        await refreshDashboardCacheForAllTimeranges(
-          args.segmentId,
-          args.leafSegmentIds,
-          platform,
-        )
+        await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
       }
     }
   }

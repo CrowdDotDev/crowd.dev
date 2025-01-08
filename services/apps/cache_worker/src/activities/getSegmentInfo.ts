@@ -5,24 +5,17 @@ import { FeatureFlag } from '@crowd/types'
 
 import { svc } from '../main'
 
-export async function getAllSegments(
-  limit: number,
-  offset: number,
-): Promise<ISegment[]> {
+export async function getAllSegments(limit: number, offset: number): Promise<ISegment[]> {
   const segmentRepository = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
   return segmentRepository.getAllSegments(limit, offset)
 }
 
-export async function getProjectLeafSegments(
-  parentSlug: string,
-): Promise<ISegment[]> {
+export async function getProjectLeafSegments(parentSlug: string): Promise<ISegment[]> {
   const segmentRepository = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
   return segmentRepository.getProjectLeafSegments(parentSlug)
 }
 
-export async function getProjectGroupLeafSegments(
-  grandparentSlug: string,
-): Promise<ISegment[]> {
+export async function getProjectGroupLeafSegments(grandparentSlug: string): Promise<ISegment[]> {
   const segmentRepository = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
   return segmentRepository.getProjectGroupLeafSegments(grandparentSlug)
 }
