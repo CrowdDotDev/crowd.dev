@@ -1,16 +1,16 @@
 <template>
   <div>
-    <lf-pill color="transparent" type="bordered" class="!flex items-center gap-1 w-full">
+    <lf-badge type="secondary" class="!flex items-center gap-1 w-full !rounded-full !px-2.5">
       <lf-icon-old name="stack-line" />
       {{ pluralize('project', props.count, true) }}
-    </lf-pill>
+    </lf-badge>
   </div>
 </template>
 
 <script lang="ts" setup>
 import pluralize from 'pluralize';
-import LfPill from '@/ui-kit/pill/Pill.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfBadge from '@/ui-kit/badge/Badge.vue';
 
 const props = defineProps<{
   count: number;
