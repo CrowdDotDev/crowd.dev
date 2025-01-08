@@ -38,7 +38,7 @@ export default class DashboardService {
       params.segment = this.options.currentSegments[0].id
     }
 
-    let key = `${this.options.currentTenant.id}:${params.segment}:${params.timeframe}`
+    let key = `${params.segment}:${params.timeframe}`
     if (params.platform) {
       key += `:${params.platform}`
     }
