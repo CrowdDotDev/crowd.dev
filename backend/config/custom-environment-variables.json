@@ -63,23 +63,13 @@
   "clearbit": {
     "apiKey": "CROWD_CLEARBIT_API_KEY"
   },
-  "netlify": {
-    "apiKey": "CROWD_NETLIFY_API_KEY",
-    "siteDomain": "CROWD_NETLIFY_SITE_DOMAIN"
-  },
   "sendgrid": {
     "key": "CROWD_SENDGRID_KEY",
     "webhookSigningSecret": "CROWD_SENDGRID_WEBHOOK_SIGNING_SECRET",
     "emailFrom": "CROWD_SENDGRID_EMAIL_FROM",
     "nameFrom": "CROWD_SENDGRID_NAME_FROM",
-    "templateEmailAddressVerification": "CROWD_SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION",
-    "templateInvitation": "CROWD_SENDGRID_TEMPLATE_INVITATION",
-    "templatePasswordReset": "CROWD_SENDGRID_TEMPLATE_PASSWORD_RESET",
-    "templateWeeklyAnalytics": "CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS",
-    "templateIntegrationDone": "CROWD_SENDGRID_TEMPLATE_INTEGRATION_DONE",
     "templateCsvExport": "CROWD_SENDGRID_TEMPLATE_CSV_EXPORT",
-    "templateEagleEyeDigest": "CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST",
-    "weeklyAnalyticsUnsubscribeGroupId": "CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID"
+    "templateEagleEyeDigest": "CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST"
   },
   "twitter": {
     "clientId": "CROWD_TWITTER_CLIENT_ID",

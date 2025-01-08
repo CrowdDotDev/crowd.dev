@@ -112,14 +112,6 @@ export interface GoogleConfiguration {
   callbackUrl: string
 }
 
-export interface DiscordConfiguration {
-  token: string
-  token2: string
-  maxRetrospectInSeconds: number
-  globalLimit?: number
-  limitResetFrequencyDays?: number
-}
-
 export interface GithubConfiguration {
   appId: string
   clientId: string
@@ -129,26 +121,6 @@ export interface GithubConfiguration {
   isCommitDataEnabled: string
   globalLimit?: number
   callbackUrl: string
-}
-
-export interface SendgridConfiguration {
-  key: string
-  webhookSigningSecret: string
-  emailFrom: string
-  nameFrom: string
-  templateEmailAddressVerification: string
-  templateInvitation: string
-  templatePasswordReset: string
-  templateWeeklyAnalytics: string
-  templateIntegrationDone: string
-  templateCsvExport: string
-  templateEagleEyeDigest: string
-  weeklyAnalyticsUnsubscribeGroupId: string
-}
-
-export interface NetlifyConfiguration {
-  apiKey: string
-  siteDomain: string
 }
 
 export interface NangoConfiguration {

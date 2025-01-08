@@ -15,22 +15,6 @@ class Permissions {
         id: 'tenantDestroy',
         allowedRoles: [roles.admin, roles.projectAdmin],
       },
-      userEdit: {
-        id: 'userEdit',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      userDestroy: {
-        id: 'userDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      userCreate: {
-        id: 'userCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      userImport: {
-        id: 'userImport',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
       userRead: {
         id: 'userRead',
         allowedRoles: [roles.admin, roles.projectAdmin],

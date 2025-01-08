@@ -7,15 +7,12 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 import { API_CONFIG, SSO_CONFIG } from '../../conf'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import TenantRepository from '../../database/repositories/tenantRepository'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import UserRepository from '../../database/repositories/userRepository'
 import Roles from '../../security/roles'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
-import EmailSender from '../emailSender'
 import TenantService from '../tenantService'
-import { tenantSubdomain } from '../tenantSubdomain'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -80,33 +77,6 @@ class AuthService {
           },
         )
 
-        // Email may have been alreadyverified using the invitation token
-        const isEmailVerified = Boolean(
-          await UserRepository.count(
-            {
-              emailVerified: true,
-              id: existingUser.id,
-            },
-            {
-              ...options,
-              transaction,
-            },
-          ),
-        )
-
-        if (!isEmailVerified && EmailSender.isConfigured) {
-          await this.sendEmailAddressVerificationEmail(
-            options.language,
-            existingUser.email,
-            tenantId,
-            {
-              ...options,
-              transaction,
-              bypassPermissionValidation: true,
-            },
-          )
-        }
-
         const token = jwt.sign({ id: existingUser.id }, API_CONFIG.jwtSecret, {
           expiresIn: API_CONFIG.jwtExpiresIn,
         })
@@ -157,27 +127,6 @@ class AuthService {
           transaction,
         },
       )
-
-      // Email may have been alreadyverified using the invitation token
-      const isEmailVerified = Boolean(
-        await UserRepository.count(
-          {
-            emailVerified: true,
-            id: newUser.id,
-          },
-          {
-            ...options,
-            transaction,
-          },
-        ),
-      )
-
-      if (!isEmailVerified && EmailSender.isConfigured) {
-        await this.sendEmailAddressVerificationEmail(options.language, newUser.email, tenantId, {
-          ...options,
-          transaction,
-        })
-      }
 
       // Identify in Segment
       identify(newUser)
@@ -355,9 +304,7 @@ class AuthService {
               return
             }
 
-            // If the email sender id not configured,
-            // removes the need for email verification.
-            if (user && !EmailSender.isConfigured) {
+            if (user) {
               user.emailVerified = true
             }
 
@@ -365,96 +312,6 @@ class AuthService {
           })
           .catch((error) => reject(error))
       })
-    })
-  }
-
-  static async sendEmailAddressVerificationEmail(language, email, tenantId, options) {
-    if (!EmailSender.isConfigured) {
-      throw new Error400(language, 'email.error')
-    }
-
-    let link
-    try {
-      let tenant
-
-      if (tenantId) {
-        tenant = await TenantRepository.findById(tenantId, {
-          ...options,
-        })
-      }
-
-      email = email.toLowerCase()
-      const token = await UserRepository.generateEmailVerificationToken(email, options)
-      link = `${tenantSubdomain.frontendUrl(tenant)}/auth/verify-email?token=${token}`
-    } catch (error) {
-      log.error(error, 'Error sending email address verification email!')
-      throw new Error400(language, 'auth.emailAddressVerificationEmail.error')
-    }
-
-    return new EmailSender(EmailSender.TEMPLATES.EMAIL_ADDRESS_VERIFICATION, { link }).sendTo(email)
-  }
-
-  static async sendPasswordResetEmail(language, email, tenantId, options) {
-    if (!EmailSender.isConfigured) {
-      throw new Error400(language, 'email.error')
-    }
-
-    let link
-
-    try {
-      let tenant
-
-      if (tenantId) {
-        tenant = await TenantRepository.findById(tenantId, {
-          ...options,
-        })
-      }
-
-      email = email.toLowerCase()
-      const token = await UserRepository.generatePasswordResetToken(email, options)
-
-      link = `${tenantSubdomain.frontendUrl(tenant)}/auth/password-reset?token=${token}`
-    } catch (error) {
-      log.error(error, 'Error sending password reset email')
-      throw new Error400(language, 'auth.passwordReset.error')
-    }
-
-    return new EmailSender(EmailSender.TEMPLATES.PASSWORD_RESET, { link }).sendTo(email)
-  }
-
-  static async verifyEmail(token, options) {
-    const { currentUser } = options
-
-    const user = await UserRepository.findByEmailVerificationToken(token, options)
-
-    if (!user) {
-      throw new Error400(options.language, 'auth.emailAddressVerificationEmail.invalidToken')
-    }
-
-    if (currentUser && currentUser.id && currentUser.id !== user.id) {
-      throw new Error400(
-        options.language,
-        'auth.emailAddressVerificationEmail.signedInAsWrongUser',
-        user.email,
-        currentUser.email,
-      )
-    }
-
-    return UserRepository.markEmailVerified(user.id, options)
-  }
-
-  static async passwordReset(token, password, options: any = {}) {
-    const user = await UserRepository.findByPasswordResetToken(token, options)
-
-    if (!user) {
-      throw new Error400(options.language, 'auth.passwordReset.invalidToken')
-    }
-
-    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
-
-    return UserRepository.updatePassword(user.id, hashedPassword, true, {
-      ...options,
-      bypassPermissionValidation: true,
     })
   }
 

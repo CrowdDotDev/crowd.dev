@@ -5,7 +5,6 @@ import { Error400, Error403 } from '@crowd/common'
 
 import Permissions from '../../security/permissions'
 import Roles from '../../security/roles'
-import EmailSender from '../emailSender'
 
 const roles = Roles.values
 
@@ -144,12 +143,6 @@ export default class PermissionChecker {
   }
 
   private get isEmailVerified() {
-    // Only checks if the email is verified
-    // if the email system is on
-    if (!EmailSender.isConfigured) {
-      return true
-    }
-
     return this.currentUser.emailVerified
   }
 

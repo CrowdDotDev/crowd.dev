@@ -675,67 +675,6 @@ importers:
         specifier: ^2.0.22
         version: 2.0.22
 
-  services/apps/emails_worker:
-    dependencies:
-      '@crowd/archetype-standard':
-        specifier: workspace:*
-        version: link:../../archetypes/standard
-      '@crowd/archetype-worker':
-        specifier: workspace:*
-        version: link:../../archetypes/worker
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../../libs/common
-      '@crowd/data-access-layer':
-        specifier: workspace:*
-        version: link:../../libs/data-access-layer
-      '@crowd/integrations':
-        specifier: workspace:*
-        version: link:../../libs/integrations
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../../libs/types
-      '@sendgrid/mail':
-        specifier: ~7.7.0
-        version: 7.7.0
-      '@temporalio/client':
-        specifier: ~1.11.1
-        version: 1.11.5
-      '@temporalio/workflow':
-        specifier: ~1.11.1
-        version: 1.11.5
-      axios:
-        specifier: ~1.5.1
-        version: 1.5.1
-      html-to-text:
-        specifier: ~9.0.5
-        version: 9.0.5
-      lodash:
-        specifier: ~4.17.21
-        version: 4.17.21
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-      tsx:
-        specifier: ^4.7.1
-        version: 4.19.2
-      typescript:
-        specifier: ^5.6.3
-        version: 5.7.2
-      uuid:
-        specifier: ~9.0.1
-        version: 9.0.1
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.17.12
-      '@types/uuid':
-        specifier: ~9.0.6
-        version: 9.0.8
-      nodemon:
-        specifier: ^3.0.1
-        version: 3.1.9
-
   services/apps/entity_merging_worker:
     dependencies:
       '@crowd/archetype-standard':
@@ -3597,25 +3536,13 @@ packages:
   '@selderee/plugin-htmlparser2@0.6.0':
     resolution: {integrity: sha512-J3jpy002TyBjd4N/p6s+s90eX42H2eRhK3SbsZuvTDv977/E8p2U3zikdiehyJja66do7FlxLomZLPlvl2/xaA==}
 
-  '@sendgrid/client@7.7.0':
-    resolution: {integrity: sha512-SxH+y8jeAQSnDavrTD0uGDXYIIkFylCo+eDofVmZLQ0f862nnqbC3Vd1ej6b7Le7lboyzQF6F7Fodv02rYspuA==}
-    engines: {node: 6.* || 8.* || >=10.*}
-
   '@sendgrid/client@8.1.4':
     resolution: {integrity: sha512-VxZoQ82MpxmjSXLR3ZAE2OWxvQIW2k2G24UeRPr/SYX8HqWLV/8UBN15T2WmjjnEb5XSmFImTJOKDzzSeKr9YQ==}
     engines: {node: '>=12.*'}
 
-  '@sendgrid/helpers@7.7.0':
-    resolution: {integrity: sha512-3AsAxfN3GDBcXoZ/y1mzAAbKzTtUZ5+ZrHOmWQ279AuaFXUNCh9bPnRpN504bgveTqoW+11IzPg3I0WVgDINpw==}
-    engines: {node: '>= 6.0.0'}
-
   '@sendgrid/helpers@8.0.0':
     resolution: {integrity: sha512-Ze7WuW2Xzy5GT5WRx+yEv89fsg/pgy3T1E3FS0QEx0/VvRmigMZ5qyVGhJz4SxomegDkzXv/i0aFPpHKN8qdAA==}
     engines: {node: '>= 12.0.0'}
-
-  '@sendgrid/mail@7.7.0':
-    resolution: {integrity: sha512-5+nApPE9wINBvHSUxwOxkkQqM/IAAaBYoP9hw7WwgDNQPxraruVqHizeTitVtKGiqWCKm2mnjh4XGN3fvFLqaw==}
-    engines: {node: 6.* || 8.* || >=10.*}
 
   '@sendgrid/mail@8.1.4':
     resolution: {integrity: sha512-MUpIZykD9ARie8LElYCqbcBhGGMaA/E6I7fEcG7Hc2An26QJyLtwOaKQ3taGp8xO8BICPJrSKuYV4bDeAJKFGQ==}
@@ -4661,14 +4588,8 @@ packages:
   axios-retry@3.2.0:
     resolution: {integrity: sha512-RK2cLMgIsAQBDhlIsJR5dOhODPigvel18XUv1dDXW+4k1FzebyfRk+C+orot6WPZOYFKSfhLwHPwVmTVOODQ5w==}
 
-  axios@0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-
   axios@0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
-
-  axios@1.5.1:
-    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
 
   axios@1.6.8:
     resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
@@ -11791,13 +11712,6 @@ snapshots:
       domhandler: 4.3.1
       selderee: 0.6.0
 
-  '@sendgrid/client@7.7.0':
-    dependencies:
-      '@sendgrid/helpers': 7.7.0
-      axios: 0.26.1
-    transitivePeerDependencies:
-      - debug
-
   '@sendgrid/client@8.1.4':
     dependencies:
       '@sendgrid/helpers': 8.0.0
@@ -11805,20 +11719,9 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@sendgrid/helpers@7.7.0':
-    dependencies:
-      deepmerge: 4.3.1
-
   '@sendgrid/helpers@8.0.0':
     dependencies:
       deepmerge: 4.3.1
-
-  '@sendgrid/mail@7.7.0':
-    dependencies:
-      '@sendgrid/client': 7.7.0
-      '@sendgrid/helpers': 7.7.0
-    transitivePeerDependencies:
-      - debug
 
   '@sendgrid/mail@8.1.4':
     dependencies:
@@ -13177,24 +13080,10 @@ snapshots:
     dependencies:
       is-retry-allowed: 1.2.0
 
-  axios@0.26.1:
-    dependencies:
-      follow-redirects: 1.15.9
-    transitivePeerDependencies:
-      - debug
-
   axios@0.27.2:
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.1
-    transitivePeerDependencies:
-      - debug
-
-  axios@1.5.1:
-    dependencies:
-      follow-redirects: 1.15.9
-      form-data: 4.0.1
-      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
 

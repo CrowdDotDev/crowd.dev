@@ -18,7 +18,6 @@
     "aws": {}
   },
   "clearbit": {},
-  "netlify": {},
   "sendgrid": {},
   "twitter": {
     "maxRetrospectInSeconds": 7380,
@@ -41,12 +40,6 @@
   "githubToken": {},
   "slackAlerting": {
     "url": ""
-  },
-  "sampleData": {
-    "tenantId": ""
-  },
-  "weeklyEmails": {
-    "enabled": "true"
   },
   "auth0": {},
   "sso": {},

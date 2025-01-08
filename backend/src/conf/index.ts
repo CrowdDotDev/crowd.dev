@@ -13,7 +13,6 @@ import {
   ComprehendConfiguration,
   CrowdAnalyticsConfiguration,
   DbConfiguration,
-  DiscordConfiguration,
   EagleEyeConfiguration,
   EncryptionConfiguration,
   EnrichmentConfiguration,
@@ -27,13 +26,11 @@ import {
   IRedditConfig,
   IntegrationProcessingConfiguration,
   NangoConfiguration,
-  NetlifyConfiguration,
   OrganizationEnrichmentConfiguration,
   S3Configuration,
   SSOConfiguration,
   SampleDataConfiguration,
   SegmentConfiguration,
-  SendgridConfiguration,
   ServiceType,
   SlackAlertingConfiguration,
   SlackConfiguration,
@@ -109,8 +106,6 @@ export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration =
 
 export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration>('google')
 
-export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
-
 export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration>('github')
 
 export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
@@ -118,10 +113,6 @@ export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
 
 export const JIRA_ISSUE_REPORTER_CONFIG: IJiraIssueReporterConfiguration =
   config.get<IJiraIssueReporterConfiguration>('jiraIssueReporter')
-
-export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
-
-export const NETLIFY_CONFIG: NetlifyConfiguration = config.get<NetlifyConfiguration>('netlify')
 
 export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
 
