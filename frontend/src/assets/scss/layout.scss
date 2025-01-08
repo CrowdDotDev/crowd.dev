@@ -2,6 +2,10 @@
   background: #003778 !important;
 }
 
+html{
+  @apply overflow-hidden;
+}
+
 body {
   @apply bg-primary-25;
 }

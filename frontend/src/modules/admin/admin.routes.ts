@@ -4,15 +4,15 @@ import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionG
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const ProjectGroupsListPage = () => import(
-  '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
+  '@/modules/admin/modules/projects/pages/project-groups-list.page.vue'
 );
 
 const ProjectsPage = () => import(
-  '@/modules/lf/segments/pages/lf-projects-page.vue'
+  '@/modules/admin/modules/projects/pages/projects.page.vue'
 );
 
 const AdminPanelPage = () => import(
-  '@/modules/lf/segments/pages/lf-admin-panel-page.vue'
+  '@/modules/admin/pages/admin-panel.page.vue'
 );
 
 export default [

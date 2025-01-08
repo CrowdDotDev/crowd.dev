@@ -47,10 +47,6 @@ const defaultConfig = {
     customerPortalLink:
       import.meta.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
   },
-  sampleTenant: {
-    id: import.meta.env.VUE_APP_SAMPLE_TENANT_ID,
-    token: import.meta.env.VUE_APP_SAMPLE_TENANT_TOKEN,
-  },
   auth0: {
     domain: import.meta.env.VUE_APP_AUTH0_DOMAIN,
     clientId: import.meta.env.VUE_APP_AUTH0_CLIENT_ID,
@@ -111,10 +107,6 @@ const composedConfig = {
       || '',
     customerPortalLink:
       'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || '',
-  },
-  sampleTenant: {
-    id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
-    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
   auth0: {
     domain: 'CROWD_VUE_APP_AUTH0_DOMAIN',
