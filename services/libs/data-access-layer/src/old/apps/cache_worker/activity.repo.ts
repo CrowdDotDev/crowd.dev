@@ -22,7 +22,7 @@ class ActivityRepository {
         after: new Date(Date.parse(dashboardLastRefreshedAt)),
       })
     } catch (err) {
-      this.log.error('Error while getting all tenants', err)
+      this.log.error('Error while finding new activity platforms', err)
 
       throw new Error(err)
     }

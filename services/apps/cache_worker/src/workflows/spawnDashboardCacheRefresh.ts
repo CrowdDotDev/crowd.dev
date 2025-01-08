@@ -9,30 +9,26 @@ import {
 
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 
-import * as activities from '../activities/getTenantSegmentInfo'
+import * as activities from '../activities/getSegmentInfo'
 
 import { refreshDashboardCache } from './refreshDashboardCache'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
-export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
-  const tenants = await activity.getAllTenants()
+export async function spawnDashboardCacheRefresh(): Promise<void> {
   const segmentsEnabled = await activity.isSegmentsEnabled()
   const info = workflowInfo()
 
   if (segmentsEnabled) {
-    // we should spawn refreshDashboardCache for each tenant-segment couples
-
     const SEGMENT_PAGE_SIZE = 250
 
-    for (const tenant of tenants) {
-      // get all segments in tenant
+      // get all segments
       let offset = 0
       let segments: ISegment[]
       const segmentLeafIdMap = new Map<string, string[]>()
 
       do {
-        segments = await activity.getAllSegments(tenant.tenantId, SEGMENT_PAGE_SIZE, offset)
+        segments = await activity.getAllSegments(SEGMENT_PAGE_SIZE, offset)
 
         // find each segment's associated leaf segment
         for (const segment of segments) {
@@ -41,7 +37,7 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
             segmentLeafIdMap.set(segment.segmentId, [segment.segmentId])
           } else if (segment.slug && segment.parentSlug && !segment.grandparentSlug) {
             // it's a parent segment, find its leafs
-            const leafs = await activity.getProjectLeafSegments(segment.slug, tenant.tenantId)
+            const leafs = await activity.getProjectLeafSegments(segment.slug)
             if (leafs && leafs.length > 0) {
               segmentLeafIdMap.set(
                 segment.segmentId,
@@ -50,7 +46,7 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
             }
           } else if (segment.slug && !segment.parentSlug && !segment.grandparentSlug) {
             // it's a grandparent segment, find its leafs
-            const leafs = await activity.getProjectGroupLeafSegments(segment.slug, tenant.tenantId)
+            const leafs = await activity.getProjectGroupLeafSegments(segment.slug)
             if (leafs && leafs.length > 0) {
               segmentLeafIdMap.set(
                 segment.segmentId,
@@ -74,11 +70,11 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
       }
 
       for (const chunk of chunked) {
-        // create a workflow for each tenantId-segmentId couple
+        // create a workflow for each segmentId
         await Promise.all(
           Array.from(chunk).map(([segmentId, leafSegmentIds]) => {
             return executeChild(refreshDashboardCache, {
-              workflowId: `${info.workflowId}/${tenant.tenantId}/${segmentId}`,
+              workflowId: `${info.workflowId}/${segmentId}`,
               cancellationType: ChildWorkflowCancellationType.ABANDON,
               parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
               retry: {
@@ -88,24 +84,18 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
               },
               args: [
                 {
-                  tenantId: tenant.tenantId,
                   segmentId,
                   leafSegmentIds,
                 },
               ],
-              searchAttributes: {
-                TenantId: [tenant.tenantId],
-              },
+              searchAttributes: {},
             })
           }),
         )
       }
-    }
   } else {
-    await Promise.all(
-      tenants.map((tenant) => {
-        return startChild(refreshDashboardCache, {
-          workflowId: `${info.workflowId}/${tenant.tenantId}`,
+        startChild(refreshDashboardCache, {
+          workflowId: `${info.workflowId}`,
           cancellationType: ChildWorkflowCancellationType.ABANDON,
           parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
           retry: {
@@ -113,16 +103,8 @@ export async function spawnDashboardCacheRefreshForAllTenants(): Promise<void> {
             initialInterval: 2 * 1000,
             maximumInterval: 30 * 1000,
           },
-          args: [
-            {
-              tenantId: tenant.tenantId,
-            },
-          ],
-          searchAttributes: {
-            TenantId: [tenant.tenantId],
-          },
+          args: [{}],
+          searchAttributes: {},
         })
-      }),
-    )
   }
 }
