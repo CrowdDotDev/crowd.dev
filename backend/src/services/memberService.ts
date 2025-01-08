@@ -909,9 +909,7 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      this.options.log.info(
-        '[0] Getting member information (identities, tags, affiliations)... ',
-      )
+      this.options.log.info('[0] Getting member information (identities, tags, affiliations)... ')
 
       const [memberOrganizations, identities, tags, affiliations] = await Promise.all([
         MemberOrganizationRepository.findMemberRoles(memberId, this.options),

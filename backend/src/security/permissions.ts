@@ -317,14 +317,6 @@ class Permissions {
         id: 'noteAutocomplete',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
-      quickstartGuideRead: {
-        id: 'quickstartGuideRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      quickstartGuideSettingsUpdate: {
-        id: 'quickstartGuideSettingsUpdate',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
       segmentRead: {
         id: 'segmentRead',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
