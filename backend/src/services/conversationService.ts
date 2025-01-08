@@ -152,10 +152,6 @@ export default class ConversationService extends LoggerBase {
     }
 
     if (data.customUrl || data.logoUrl || data.faviconUrl || data.theme || data.autoPublish) {
-      if (data.customUrl) {
-        await ConversationSettingsService.updateCustomDomainNetlify(data.customUrl)
-      }
-
       conversationSettings = await ConversationSettingsService.save(
         {
           enabled: data.enabled,

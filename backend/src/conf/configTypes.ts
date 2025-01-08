@@ -112,6 +112,14 @@ export interface GoogleConfiguration {
   callbackUrl: string
 }
 
+export interface DiscordConfiguration {
+  token: string
+  token2: string
+  maxRetrospectInSeconds: number
+  globalLimit?: number
+  limitResetFrequencyDays?: number
+}
+
 export interface GithubConfiguration {
   appId: string
   clientId: string

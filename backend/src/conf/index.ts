@@ -13,6 +13,7 @@ import {
   ComprehendConfiguration,
   CrowdAnalyticsConfiguration,
   DbConfiguration,
+  DiscordConfiguration,
   EagleEyeConfiguration,
   EncryptionConfiguration,
   EnrichmentConfiguration,
@@ -105,6 +106,8 @@ export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration =
   config.get<SlackNotifierConfiguration>('slackNotifier')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration>('google')
+
+export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
 
 export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration>('github')
 
