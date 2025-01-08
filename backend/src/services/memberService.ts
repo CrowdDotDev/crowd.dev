@@ -895,7 +895,7 @@ export default class MemberService extends LoggerBase {
     memberId: string,
     identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
-    const relationships = ['tags', 'tasks', 'identities', 'affiliations']
+    const relationships = ['tags', 'identities', 'affiliations']
 
     try {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
@@ -910,7 +910,7 @@ export default class MemberService extends LoggerBase {
       ])
 
       this.options.log.info(
-        '[0] Getting member information (identities, tags, tasks, affiliations)... ',
+        '[0] Getting member information (identities, tags, affiliations)... ',
       )
 
       const [memberOrganizations, identities, tags, affiliations] = await Promise.all([

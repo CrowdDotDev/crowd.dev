@@ -58,10 +58,6 @@ export default class AutomationRepository extends RepositoryBase<
 
     const transaction = this.transaction
 
-    if (data.state === AutomationState.ACTIVE) {
-      throw new Error(`Maximum number of active automations reached for the plan!`)
-    }
-
     let record = await this.database.automation.findOne({
       where: {
         id,

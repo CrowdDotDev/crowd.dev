@@ -125,7 +125,7 @@ export default class ConversationService extends LoggerBase {
     const integrationService = new IntegrationService(this.options)
     let tenant
     let settings
-    let conversationSettings = await ConversationSettingsService.findOrCreateDefault(this.options)
+    const conversationSettings = await ConversationSettingsService.findOrCreateDefault(this.options)
 
     if (data.tenant) {
       tenant = await tenantService.update(this.options.currentTenant.id, data.tenant)
@@ -149,20 +149,6 @@ export default class ConversationService extends LoggerBase {
 
     if (data.website) {
       settings = await SettingsService.save({ website: data.website }, this.options)
-    }
-
-    if (data.customUrl || data.logoUrl || data.faviconUrl || data.theme || data.autoPublish) {
-      conversationSettings = await ConversationSettingsService.save(
-        {
-          enabled: data.enabled,
-          customUrl: data.customUrl,
-          logoUrl: data.logoUrl,
-          faviconUrl: data.faviconUrl,
-          theme: data.theme,
-          autoPublish: data.autoPublish,
-        },
-        this.options,
-      )
     }
 
     const activeIntegrations = await integrationService.getAllActiveIntegrations()
