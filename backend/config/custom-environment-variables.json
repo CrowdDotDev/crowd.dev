@@ -65,7 +65,6 @@
   },
   "sendgrid": {
     "key": "CROWD_SENDGRID_KEY",
-    "webhookSigningSecret": "CROWD_SENDGRID_WEBHOOK_SIGNING_SECRET",
     "emailFrom": "CROWD_SENDGRID_EMAIL_FROM",
     "nameFrom": "CROWD_SENDGRID_NAME_FROM",
     "templateCsvExport": "CROWD_SENDGRID_TEMPLATE_CSV_EXPORT",
