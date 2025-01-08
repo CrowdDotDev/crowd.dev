@@ -52,6 +52,9 @@ export const getClientSQL = async (
     max: 4,
   })
 
+  const profile = profileQueries || process.env['CROWD_QUESTDB_PROFILE_QUERIES'] !== undefined
+  const minQueryDuration = Number(process.env['CROWD_QUESTDB_PROFILE_QUERIES_MIN_DURATION'] || 0)
+
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(client as any).query = async (query, options, ...args) => {
@@ -61,8 +64,8 @@ export const getClientSQL = async (
       return oldQuery.apply(client, [query, options, ...args])
     } finally {
       const duration = timer.stop()
-      if (profileQueries) {
-        log.info({ duration, query, replacements }, 'QuestDB query')
+      if (profile && duration >= minQueryDuration) {
+        log.warn({ duration, query, replacements }, 'QuestDB query duration profiling!')
       }
     }
   }

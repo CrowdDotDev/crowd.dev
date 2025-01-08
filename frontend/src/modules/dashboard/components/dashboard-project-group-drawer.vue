@@ -155,7 +155,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
+import AppLfSearchInput from '@/modules/admin/modules/projects/components/view/lf-search-input.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
