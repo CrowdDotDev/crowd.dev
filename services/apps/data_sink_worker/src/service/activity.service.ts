@@ -1137,6 +1137,7 @@ export default class ActivityService extends LoggerBase {
                         tenantId,
                         segmentId,
                         activity,
+                        platform,
                         attributes: activity.attributes || {},
                       })
                     : activity.attributes || {},
@@ -1289,15 +1290,17 @@ export default class ActivityService extends LoggerBase {
     tenantId,
     segmentId,
     activity,
+    platform,
     attributes,
   }: {
     tenantId: string
     segmentId: string
     activity: IActivityData
+    platform: PlatformType
     attributes: Record<string, unknown>
   }): Promise<Record<string, unknown>> {
     if (
-      activity.platform !== PlatformType.GITHUB ||
+      platform !== PlatformType.GITHUB ||
       activity.type !== GithubActivityType.AUTHORED_COMMIT
     ) {
       this.log.error(

@@ -302,7 +302,7 @@ export class GithubSnowflakeClient {
         FROM github_events_ingest.cybersyn.github_events p
         WHERE repo_id = ?
         AND type = 'PushEvent'
-        AND payload_ref NOT IN ('refs/heads/master', 'refs/heads/main')
+        AND payload_ref IN ('refs/heads/master', 'refs/heads/main')
         ${since_days_ago ? 'AND CREATED_AT_TIMESTAMP >= DATEADD(day, -?, CURRENT_TIMESTAMP())' : ''}
         ORDER BY CREATED_AT_TIMESTAMP DESC
         LIMIT ?
