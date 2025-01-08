@@ -9,10 +9,8 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/automation/${id}`,
+      `/automation/${id}`,
       body,
     );
 
@@ -20,10 +18,8 @@ export class AutomationService {
   }
 
   static async destroy(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/automation/${id}`,
+      `/automation/${id}`,
       {
         params: {
           excludeSegments: true,
@@ -40,10 +36,8 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/automation`,
+      '/automation',
       {
         params,
       },
@@ -53,8 +47,6 @@ export class AutomationService {
   }
 
   static publishAll(ids) {
-    const tenantId = AuthService.getTenantId();
-
     return Promise.all(ids.map((id) => {
       const body = {
         id,
@@ -64,15 +56,13 @@ export class AutomationService {
         excludeSegments: true,
       };
       return authAxios.put(
-        `/tenant/${tenantId}/automation/${id}`,
+        `/automation/${id}`,
         body,
       );
     }));
   }
 
   static unpublishAll(ids) {
-    const tenantId = AuthService.getTenantId();
-
     return Promise.all(ids.map((id) => {
       const body = {
         id,
@@ -82,7 +72,7 @@ export class AutomationService {
         excludeSegments: true,
       };
       return authAxios.put(
-        `/tenant/${tenantId}/automation/${id}`,
+        `/automation/${id}`,
         body,
       );
     }));
@@ -94,10 +84,8 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/automation`,
+      '/automation',
       body,
     );
 
@@ -105,10 +93,8 @@ export class AutomationService {
   }
 
   static async find(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/automation/${id}`,
+      `/automation/${id}`,
       {
         params: {
           excludeSegments: true,
@@ -128,10 +114,8 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/automation`,
+      '/automation',
       {
         params,
       },
@@ -153,10 +137,8 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/automation/${automationId}/executions`,
+      `/automation/${automationId}/executions`,
       {
         params,
       },

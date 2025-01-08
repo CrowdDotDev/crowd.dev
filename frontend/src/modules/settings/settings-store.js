@@ -53,7 +53,6 @@ export default {
     async doInit({ commit, rootGetters }) {
       if (
         !AuthService.getToken()
-        || !AuthService.getTenantId()
       ) {
         return;
       }

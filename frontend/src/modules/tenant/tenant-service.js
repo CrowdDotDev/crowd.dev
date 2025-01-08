@@ -31,14 +31,6 @@ export class TenantService {
       }
     }
 
-    const tenantId = AuthService.getTenantId();
-    if (tenantId && !tenantUrl) {
-      try {
-        tenant = await this.find(tenantId);
-      } catch (error) {
-        console.error(error);
-      }
-    }
     // eslint-disable-next-line consistent-return
     return tenant;
   }
@@ -78,15 +70,13 @@ export class TenantService {
   }
 
   static async viewOrganizations() {
-    const tenantId = AuthService.getTenantId();
-    const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
+    const response = await authAxios.post('/viewOrganizations');
 
     return response.data;
   }
 
   static async viewContacts() {
-    const tenantId = AuthService.getTenantId();
-    const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
+    const response = await authAxios.post('/viewContacts');
 
     return response.data;
   }
@@ -159,7 +149,7 @@ export class TenantService {
 
   static async populateSampleData(tenantId) {
     const response = await authAxios.post(
-      `/tenant/${tenantId}/sampleData`,
+      '/sampleData',
       {
         excludeSegments: true,
       },

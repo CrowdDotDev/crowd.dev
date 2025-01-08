@@ -13,10 +13,8 @@ const getSelectedProjectGroup = () => {
 
 export class ActivityService {
   static async update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/activity/${id}`,
+      `/activity/${id}`,
       {
         ...data,
         segments,
@@ -32,9 +30,7 @@ export class ActivityService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
-    const response = await authAxios.delete(`/tenant/${tenantId}/activity`, {
+    const response = await authAxios.delete('/activity', {
       params,
     });
 
@@ -42,10 +38,8 @@ export class ActivityService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/activity`,
+      '/activity',
       {
         ...data.data,
         segments,
@@ -56,8 +50,6 @@ export class ActivityService {
   }
 
   static async query(body, countOnly = false) {
-    const tenantId = AuthService.getTenantId();
-
     // const segments = [
     //   ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),
     //   getSelectedProjectGroup().id,
@@ -65,7 +57,7 @@ export class ActivityService {
     // If tenant is less than a month old, use old query
     // Else use new query
     const response = await authAxios.post(
-      `/tenant/${tenantId}/activity/query`,
+      '/activity/query',
       {
         ...body,
         countOnly,
@@ -82,10 +74,8 @@ export class ActivityService {
   }
 
   static async listActivityTypes(segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/activity/type`,
+      '/activity/type',
       {
         params: {
           segments,
@@ -97,10 +87,8 @@ export class ActivityService {
   }
 
   static async listActivityChannels(segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/activity/channel`,
+      '/activity/channel',
       {
         params: {
           segments,

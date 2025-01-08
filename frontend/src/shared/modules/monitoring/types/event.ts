@@ -126,7 +126,6 @@ export enum FeatureEventKey {
   DELETE_AUTOMATION = 'Delete automation',
   VIEW_AUTOMATION_EXECUTION = 'View automation execution',
   SORT_AUTOMATIONS = 'Sort automations',
-  COPY_TENANT_ID = 'Copy tenant ID',
   COPY_AUTH_TOKEN = 'Copy auth token',
   SHOW_AUTH_TOKEN = 'Show auth token',
   VIEW_AUDIT_LOG_DETAILS = 'View audit log details',

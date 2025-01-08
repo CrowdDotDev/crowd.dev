@@ -3,10 +3,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class NoteService {
   static create(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     return authAxios
-      .post(`/tenant/${tenantId}/note`, {
+      .post('/note', {
         ...data,
         segments,
       })
@@ -14,10 +12,8 @@ export class NoteService {
   }
 
   static update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     return authAxios
-      .put(`/tenant/${tenantId}/note/${id}`, {
+      .put(`/note/${id}`, {
         ...data,
         segments,
       })
@@ -30,10 +26,8 @@ export class NoteService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     return authAxios
-      .delete(`/tenant/${tenantId}/note`, {
+      .delete('/note', {
         params,
         segments,
       })
@@ -55,10 +49,8 @@ export class NoteService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     return authAxios
-      .post(`/tenant/${tenantId}/note/query`, body)
+      .post('/note/query', body)
       .then((response) => response.data);
   }
 }
