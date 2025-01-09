@@ -45,7 +45,6 @@ import {
 } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { FeatureFlag } from '@/utils/featureFlag';
 import EagleEyeBanner from '@/modules/eagle-eye/components/onboard/eagle-eye-banner.vue';
 import EagleEyeIntro from '@/modules/eagle-eye/components/onboard/eagle-eye-intro-step.vue';
 import EagleEyeKeywords from '@/modules/eagle-eye/components/onboard/eagle-eye-keywords-step.vue';
@@ -55,6 +54,7 @@ import publishedDateOptions from '@/modules/eagle-eye/constants/eagle-eye-date-p
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import config from '@/config';
 
 const store = useStore();
 const router = useRouter();
@@ -76,11 +76,18 @@ const form = reactive({
   }), {}),
 });
 
+const isPremiumFeatureCopy = () => {
+  if (config.isCommunityVersion) {
+    return 'Enterprise';
+  }
+  return 'Scale';
+};
+
 const headerContent = computed(() => {
   if (step.value === 1) {
     return {
       title: 'Community Lens',
-      preTitle: `${FeatureFlag.premiumFeatureCopy()} App`,
+      preTitle: `${isPremiumFeatureCopy()} App`,
       showImage: true,
     };
   }
