@@ -3,7 +3,7 @@ import { attributesAreDifferent } from '@/shared/filter/helpers/different-util';
 import { router } from '@/router';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
+import { actionsMessages } from './actions-messages';
 
 export default (moduleName, moduleService = null) => {
   const asyncActions = moduleService
@@ -62,7 +62,7 @@ export default (moduleName, moduleService = null) => {
           commit('DESTROY_SUCCESS');
 
           Message.success(
-            i18n(`entities.${moduleName}.destroy.success`),
+            actionsMessages[moduleName]?.destroy.success || '',
           );
 
           if (router.currentRoute.name === 'dashboard') {
@@ -91,9 +91,7 @@ export default (moduleName, moduleService = null) => {
           });
 
           Message.success(
-            i18n(
-              `entities.${moduleName}.destroyAll.success`,
-            ),
+            actionsMessages[moduleName]?.destroyAll.success || '',
           );
 
           if (router.currentRoute.name === 'dashboard') {
@@ -120,7 +118,7 @@ export default (moduleName, moduleService = null) => {
 
           if (moduleName === 'member') {
             const contactId = response.id;
-            const successMessageAction = i18n(`entities.${moduleName}.create.message`);
+            const successMessageAction = 'View profile';
             const message = h(
               'el-button',
               {
@@ -136,17 +134,17 @@ export default (moduleName, moduleService = null) => {
               successMessageAction,
             );
 
-            Message.success(i18n(`entities.${moduleName}.create.success`), {
+            Message.success('Profile successfully saved', {
               message,
             });
           } else {
-            Message.success(i18n(`entities.${moduleName}.create.success`));
+            Message.success(actionsMessages[moduleName]?.create.success || '');
           }
 
           return response;
         } catch (error) {
           Message.error(
-            i18n(`entities.${moduleName}.create.error`),
+            actionsMessages[moduleName]?.create.error || '',
           );
 
           Errors.handle(error);
@@ -170,14 +168,14 @@ export default (moduleName, moduleService = null) => {
 
           commit('UPDATE_SUCCESS', response);
           Message.success(
-            successMessage || i18n(`entities.${moduleName}.update.success`),
+            successMessage || actionsMessages[moduleName]?.update.success || '',
             messageOptions,
           );
 
           return response;
         } catch (error) {
           Message.error(
-            errorMessage || i18n(`entities.${moduleName}.update.error`),
+            errorMessage || actionsMessages[moduleName]?.update.error || '',
           );
 
           Errors.handle(error);
@@ -300,9 +298,7 @@ export default (moduleName, moduleService = null) => {
           });
         }
 
-        const translatedModuleName = i18n(
-          `entities.${moduleName}.menu`,
-        );
+        const translatedModuleName = actionsMessages[moduleName]?.menu || '';
         window.analytics.track(
           `${translatedModuleName} View Changed`,
           {
@@ -337,9 +333,7 @@ export default (moduleName, moduleService = null) => {
         });
       }
 
-      const translatedModuleName = i18n(
-        `entities.${moduleName}.menu`,
-      );
+      const translatedModuleName = actionsMessages[moduleName]?.menu || '';
       window.analytics.track(
         `${translatedModuleName} Filter Added`,
         {
@@ -379,9 +373,7 @@ export default (moduleName, moduleService = null) => {
         });
       }
 
-      const translatedModuleName = i18n(
-        `entities.${moduleName}.menu`,
-      );
+      const translatedModuleName = actionsMessages[moduleName]?.menu || '';
       window.analytics.track(
         `${translatedModuleName} Filter Updated`,
         {
