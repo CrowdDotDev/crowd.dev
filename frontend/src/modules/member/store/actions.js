@@ -3,7 +3,6 @@ import { MemberService } from '@/modules/member/member-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
 import {
@@ -58,7 +57,7 @@ export default {
         Errors.handle(error);
       }
 
-      Message.error(i18n('entities.member.attributes.error'));
+      Message.error('Custom Attributes could not be created');
     }
     return null;
   },
@@ -67,7 +66,7 @@ export default {
     try {
       await MemberService.merge(memberToKeep, memberToMerge);
 
-      Message.success(i18n('entities.member.merge.success'));
+      Message.success('Profiles merged successfully');
       router.push(`/people/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);

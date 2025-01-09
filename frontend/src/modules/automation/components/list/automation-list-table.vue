@@ -22,15 +22,13 @@
               </div>
               <div class="pl-4">
                 <h6 class="text-sm font-medium mb-0.5 leading-5 text-black">
-                  {{ scope.row.name && scope.row.name.length > 0 ? scope.row.name : translate(
-                    `entities.automation.triggers.${scope.row.trigger}`,
-                  ) }}
+                  {{
+                    scope.row.name && scope.row.name.length > 0 ? scope.row.name : getTriggerMessage(scope.row.trigger)
+                  }}
                 </h6>
                 <p class="text-2xs leading-4.5 text-gray-500">
                   {{
-                    translate(
-                      `entities.automation.triggers.${scope.row.trigger}`,
-                    )
+                    getTriggerMessage(scope.row.trigger)
                   }}
                 </p>
               </div>
@@ -114,14 +112,14 @@
 
 <script setup>
 import { defineEmits } from 'vue';
-import { useAutomationStore } from '@/modules/automation/store';
 import { storeToRefs } from 'pinia';
-import { formatDateToTimeAgo } from '@/utils/date';
 import moment from 'moment';
-import { i18n } from '@/i18n';
+import { useAutomationStore } from '@/modules/automation/store';
+import { formatDateToTimeAgo } from '@/utils/date';
 import AppAutomationToggle from '@/modules/automation/components/automation-toggle.vue';
 import AppAutomationDropdown from '@/modules/automation/components/automation-dropdown.vue';
 import { automationTypes } from '../../config/automation-types';
+import { getTriggerMessage } from '../index';
 
 const emit = defineEmits(['openEditAutomationDrawer', 'openExecutionsDrawer']);
 
@@ -130,7 +128,6 @@ const { automations } = storeToRefs(automationsStore);
 
 const timeAgo = (date) => formatDateToTimeAgo(date);
 const formattedDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss');
-const translate = (key) => i18n(key);
 
 </script>
 

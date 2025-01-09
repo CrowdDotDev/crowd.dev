@@ -1,22 +1,14 @@
 <template>
-  <app-drawer
-    v-model="isDrawerOpen"
-    :title="title"
-    size="600px"
-  >
+  <app-drawer v-model="isDrawerOpen" :title="title" size="600px">
     <template #content>
       <div v-if="automation" class="-mt-4">
         <div class="bg-gray-50 p-4 rounded-md mb-8">
           <h5 class="text-sm font-medium leading-5 mb-0.5">
-            {{ automation.name && automation.name.length > 0 ? automation.name : translate(
-              `entities.automation.triggers.${automation.trigger}`,
-            ) }}
+            {{ automation.name && automation.name.length > 0 ? automation.name : getTriggerMessage(automation.trigger) }}
           </h5>
           <p class="text-2xs text-gray-500">
             {{
-              translate(
-                `entities.automation.triggers.${automation.trigger}`,
-              )
+              getTriggerMessage(automation.trigger)
             }}
           </p>
         </div>
@@ -27,11 +19,11 @@
 </template>
 
 <script setup>
-import AppDrawer from '@/shared/drawer/drawer.vue';
 import { computed, defineProps } from 'vue';
-import { i18n } from '@/i18n';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppAutomationExecutionList from '@/modules/automation/components/executions/automation-execution-list.vue';
 import { automationTypes } from '../config/automation-types';
+import { getTriggerMessage } from './index';
 
 const props = defineProps({
   modelValue: {
@@ -70,7 +62,6 @@ const isDrawerOpen = computed({
   },
 });
 
-const translate = (key) => i18n(key);
 </script>
 
 <script>
