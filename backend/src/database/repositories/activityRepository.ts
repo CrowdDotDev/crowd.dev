@@ -87,11 +87,6 @@ class ActivityRepository {
       },
     ])
 
-    // TODO uros set tasks if any
-    // await record.setTasks(data.tasks || [], {
-    //   transaction,
-    // })
-
     if (ids.length !== 1) {
       throw new Error('Activity was not created!')
     }
@@ -205,10 +200,10 @@ class ActivityRepository {
     }
 
     if (loadChildren) {
-      return this._populateRelations(results.rows[0], true, options)
+      return this._populateRelations(results.rows[0], options)
     }
 
-    return this._populateRelations(results.rows[0], false, options)
+    return this._populateRelations(results.rows[0], options)
   }
 
   /**
@@ -235,7 +230,7 @@ class ActivityRepository {
       return null
     }
 
-    return this._populateRelations(results.rows[0], true, options)
+    return this._populateRelations(results.rows[0], options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -453,7 +448,7 @@ class ActivityRepository {
       order,
     })
 
-    rows = await this._populateRelationsForRows(rows, false, options)
+    rows = await this._populateRelationsForRows(rows, options)
 
     const organizationIds = uniq(rows.map((r) => r.organizationId))
     const qx = SequelizeRepository.getQueryExecutor(options)
@@ -850,7 +845,7 @@ class ActivityRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows, true, options)
+    rows = await this._populateRelationsForRows(rows, options)
 
     return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
@@ -935,19 +930,18 @@ class ActivityRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows, loadTasks: boolean, options: IRepositoryOptions) {
+  static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record, loadTasks, options)))
+    return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record, loadTasks: boolean, options: IRepositoryOptions) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
-    const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
 
@@ -961,13 +955,6 @@ class ActivityRepository {
         output.parent,
         SegmentRepository.getActivityTypes(options),
       )
-    }
-
-    if (loadTasks) {
-      output.tasks = await record.getTasks({
-        transaction,
-        joinTableAttributes: [],
-      })
     }
 
     return output

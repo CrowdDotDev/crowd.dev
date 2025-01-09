@@ -9,42 +9,8 @@ export enum WebhookState {
 
 export enum WebhookType {
   GITHUB = 'GITHUB',
-  DISCORD = 'DISCORD',
   DISCOURSE = 'DISCOURSE',
   GROUPSIO = 'GROUPSIO',
-}
-
-export enum DiscordWebsocketEvent {
-  MEMBER_ADDED = 'member_added',
-  MEMBER_UPDATED = 'member_updated',
-  MESSAGE_CREATED = 'message_created',
-  MESSAGE_UPDATED = 'message_updated',
-}
-
-export interface DiscordWebsocketPayload {
-  event: DiscordWebsocketEvent
-  data: any
-}
-
-export interface SendgridWebhookEvent {
-  email: string
-  url: string
-  event: SendgridWebhookEventType
-  ip: string
-  sg_content_type: string
-  sg_event_id: string
-  sg_machine_open: boolean
-  sg_message_id: string
-  sg_template_id: string
-  sg_template_name: string
-  tenantId: string
-  timestamp: number
-  useragent: string
-}
-
-export enum SendgridWebhookEventType {
-  DIGEST_OPENED = 'open',
-  POST_CLICKED = 'click',
 }
 
 export interface GithubWebhookPayload {

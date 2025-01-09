@@ -1,8 +1,6 @@
 import config from 'config'
 
-import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
-import { IUnleashConfig } from '@crowd/feature-flags'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
 import { QueuePriorityLevel } from '@crowd/types'
@@ -77,13 +75,4 @@ export const PLATFORM_CONFIG = (platform: string): unknown | undefined => {
     platformMap.set(platform, null)
     return undefined
   }
-}
-
-let unleashConfig: IUnleashConfig | undefined
-export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
-  if (unleashConfig) return unleashConfig
-
-  unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
-
-  return unleashConfig
 }
