@@ -12,7 +12,6 @@ module.exports = {
     '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx,yaml,yml}',
     '**/__tests__/**',
     '**/{ava,babel,nyc}.config.{js,cjs,mjs}',
-    '**/jest.config.{js,cjs,mjs,ts}',
     '**/{karma,rollup,webpack}.config.js',
     '**/.{eslint,mocha}rc.{js,cjs}',
     '**/.{travis,yarnrc}.yml',

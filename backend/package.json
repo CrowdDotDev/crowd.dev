@@ -12,7 +12,6 @@
     "start:discord-ws:dev": "nodemon --watch \"src/**/*.ts\" --watch ../services/libs -e ts,json --exec \"pnpm run start:discord-ws\"",
     "start:discord-ws:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && pnpm run start:discord-ws:dev",
     "build": "tsc && pnpm run build:documentation && cp package*json dist/ && cp .sequelizerc dist/.sequelizerc ",
-    "test": "../scripts/cli scaffold up-test && jest --clearCache && set -a && . ./.env.dist.local && . ./.env.test && set +a && NODE_ENV=test SERVICE=test jest --runInBand --verbose --forceExit",
     "build:documentation": "copyfiles --flat ./src/documentation/openapi.json ./dist/documentation/",
     "db:create:test": "tsx ./src/database/initializers/create test",
     "db:create:dev:source": "tsx ./src/database/initializers/create dev",
