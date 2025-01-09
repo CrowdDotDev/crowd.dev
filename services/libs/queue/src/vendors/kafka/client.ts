@@ -316,7 +316,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
           commitOffsetsIfNecessary,
           isRunning,
         }) => {
-          this.log.info(`Received a batch of ${batch.messages.length} messages!`)
+          this.log.debug(`Received a batch of ${batch.messages.length} messages!`)
 
           const promises = []
           for (const message of batch.messages) {
@@ -327,7 +327,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
             if (message && message.value) {
               while (!this.isAvailable(maxConcurrentMessageProcessing)) {
-                this.log.warn('Processor is busy, waiting...')
+                this.log.debug('Processor is busy, waiting...')
                 await heartbeat()
                 await timeout(100)
               }
@@ -342,16 +342,19 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
                   .then(async () => {
                     resolveOffset(message.offset)
                     this.removeJob()
+
                     const duration = performance.now() - now
-                    this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                    this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
 
                     await heartbeat()
                   })
                   .catch(async (err) => {
                     this.removeJob()
                     this.log.error(err, 'Error processing message!')
+
                     const duration = performance.now() - now
-                    this.log.info(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+                    this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+
                     await heartbeat()
                   }),
               )
