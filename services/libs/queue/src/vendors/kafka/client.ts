@@ -308,36 +308,58 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
       await consumer.run({
-        eachMessage: async ({ message, topic }: EachMessagePayload) => {
-          if (message && message.value && this.isAvailable(maxConcurrentMessageProcessing)) {
-            const now = performance.now()
+        eachBatchAutoResolve: false,
+        eachBatch: async ({
+          batch,
+          heartbeat,
+          resolveOffset,
+          commitOffsetsIfNecessary,
+          isRunning,
+        }) => {
+          this.log.info(`Received a batch of ${batch.messages.length} messages!`)
 
-            this.log.trace(
-              { message: message.value.toString() },
-              'Received message from Kafka topic!',
-            )
-            this.addJob()
-
-            try {
-              await processMessage(JSON.parse(message.value.toString()))
-
-              const duration = performance.now() - now
-              this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-            } catch (err) {
-              this.log.error(err, 'Error processing message!')
-              const duration = performance.now() - now
-              this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-            } finally {
-              this.removeJob()
+          const promises = []
+          for (const message of batch.messages) {
+            if (!isRunning()) {
+              // consumer is paused we should stop processing
+              break
             }
-          } else if (
-            this.isAvailable(maxConcurrentMessageProcessing) &&
-            (!message || !message.value)
-          ) {
-            this.log.warn({ message, topic }, 'Received empty message, skipping...')
-          } else {
-            this.log.debug('Processor is busy, skipping message...')
+
+            if (message && message.value) {
+              while (!this.isAvailable(maxConcurrentMessageProcessing)) {
+                this.log.warn('Processor is busy, waiting...')
+                await heartbeat()
+                await timeout(100)
+              }
+
+              this.addJob()
+              const data = JSON.parse(message.value.toString())
+              const now = performance.now()
+
+              this.log.debug({ message: data }, 'Received message from Kafka topic!')
+              promises.push(
+                processMessage(data)
+                  .then(async () => {
+                    resolveOffset(message.offset)
+                    this.removeJob()
+                    const duration = performance.now() - now
+                    this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+
+                    await heartbeat()
+                  })
+                  .catch(async (err) => {
+                    this.removeJob()
+                    this.log.error(err, 'Error processing message!')
+                    const duration = performance.now() - now
+                    this.log.info(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+                    await heartbeat()
+                  }),
+              )
+            }
           }
+
+          await Promise.all(promises)
+          await commitOffsetsIfNecessary()
         },
       })
     } catch (e) {

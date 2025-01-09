@@ -258,10 +258,11 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result.map((r) => r.id)
   }
 
-  public async delayResult(resultId: string, until: Date): Promise<void> {
+  public async delayResult(resultId: string, until: Date, error: unknown): Promise<void> {
     const result = await this.db().result(
       `update integration.results
        set  state = $(state),
+            error = $(error),
             "delayedUntil" = $(until),
             retries = coalesce(retries, 0) + 1,
             "updatedAt" = now()
@@ -269,6 +270,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       {
         resultId,
         until,
+        error: JSON.stringify(error),
         state: IntegrationResultState.DELAYED,
       },
     )

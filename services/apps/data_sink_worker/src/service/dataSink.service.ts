@@ -46,20 +46,22 @@ export default class DataSinkService extends LoggerBase {
     metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    await this.repo.markResultError(resultInfo.id, {
+    const errorData = {
       location,
       message,
       metadata,
       errorMessage: error?.message,
       errorStack: error?.stack,
       errorString: error ? JSON.stringify(error) : undefined,
-    })
+    }
 
     if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
       // delay for #retries * 2 minutes
       const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
       this.log.warn({ until: until.toISOString() }, 'Retrying result!')
-      await this.repo.delayResult(resultInfo.id, until)
+      await this.repo.delayResult(resultInfo.id, until, errorData)
+    } else {
+      await this.repo.markResultError(resultInfo.id, errorData)
     }
   }
 
@@ -128,16 +130,16 @@ export default class DataSinkService extends LoggerBase {
       platform: resultInfo.platform,
     })
 
-    if (resultInfo.state !== IntegrationResultState.PENDING) {
-      this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
-      if (resultInfo.state === IntegrationResultState.PROCESSED) {
-        this.log.warn('Result has already been processed. Skipping...')
-        return false
-      }
+    // if (resultInfo.state !== IntegrationResultState.PENDING) {
+    //   this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
+    //   if (resultInfo.state === IntegrationResultState.PROCESSED) {
+    //     this.log.warn('Result has already been processed. Skipping...')
+    //     return false
+    //   }
 
-      await this.repo.resetResults([resultId])
-      return false
-    }
+    //   await this.repo.resetResults([resultId])
+    //   return false
+    // }
 
     // this.log.debug('Marking result as in progress.')
     // await this.repo.markResultInProgress(resultId)
