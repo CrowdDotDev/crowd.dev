@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
+import { mapActions } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
@@ -46,12 +46,6 @@ export default {
     return {
       init, tenant, loaded, detachListeners, listProjectGroups,
     };
-  },
-
-  computed: {
-    ...mapState({
-      featureFlag: (state) => state.tenant.featureFlag,
-    }),
   },
 
   watch: {
