@@ -45,13 +45,12 @@
 <script setup>
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import { useRoute } from 'vue-router';
+import { showExportDialog } from '@/modules/member/member-export-limit';
 import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { useRoute } from 'vue-router';
 
 const emit = defineEmits([
   'changeSorter',
@@ -102,7 +101,6 @@ const { trackEvent } = useProductTracking();
 const route = useRoute();
 
 const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { getUser } = authStore;
 
 const model = computed({
@@ -191,13 +189,7 @@ const onChange = (value) => {
 
 const doExport = async () => {
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      tenant.value.plan,
-    );
     await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
       badgeContent: pluralize(props.module === 'member' ? 'person' : props.module, props.total, true),
     });
 
@@ -217,13 +209,7 @@ const doExport = async () => {
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
-    if (error.response?.status === 403) {
-      const planExportCountMax = getExportMax(
-        tenant.value.plan,
-      );
-
-      showExportLimitDialog({ planExportCountMax });
-    } else if (error !== 'cancel') {
+    if (error !== 'cancel') {
       Message.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {

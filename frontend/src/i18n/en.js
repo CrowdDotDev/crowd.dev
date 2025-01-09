@@ -543,7 +543,6 @@ const en = {
       tenantPlatforms: 'Community platforms',
       tenantSize: 'Community size',
       tenantId: 'Community',
-      plan: 'Plan',
     },
     enumerators: {},
     new: {
@@ -561,33 +560,6 @@ const en = {
     validation: {
       url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).',
     },
-  },
-
-  plan: {
-    menu: 'Plans',
-    title: 'Plans',
-
-    free: {
-      label: 'Free',
-      price: '$0',
-    },
-    premium: {
-      label: 'Premium',
-      price: '$10',
-    },
-    enterprise: {
-      label: 'Enterprise',
-      price: '$50',
-    },
-
-    pricingPeriod: '/month',
-    current: 'Current Plan',
-    subscribe: 'Subscribe',
-    manage: 'Manage Subscription',
-    cancelAtPeriodEnd: 'This plan will be canceled at the end of the period.',
-    somethingWrong:
-      'There is something wrong with your subscription. Please go to manage subscription for more details.',
-    notPlanUser: 'You are not the manager of this subscription.',
   },
 
   auditLog: {

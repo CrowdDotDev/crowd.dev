@@ -413,7 +413,6 @@ const ptBR = {
       tenantName: 'Nome da Área de Trabalho',
       tenantId: 'Área de Trabalho',
       tenantUrl: 'URL da Área de Trabalho',
-      plan: 'Plano',
     },
     enumerators: {},
     new: {
@@ -431,34 +430,6 @@ const ptBR = {
     url: {
       exists: 'Esta URL de área de trabalho já está em uso.',
     },
-  },
-
-  plan: {
-    menu: 'Planos',
-    title: 'Planos',
-
-    free: {
-      label: 'Gratuito',
-      price: '$0',
-    },
-    premium: {
-      label: 'Premium',
-      price: '$10',
-    },
-    enterprise: {
-      label: 'Enterprise',
-      price: '$50',
-    },
-
-    pricingPeriod: '/mês',
-    current: 'Plano Atual',
-    subscribe: 'Assinar',
-    manage: 'Gerenciar Assinatura',
-    somethingWrong:
-      'Há algo errado com sua assinatura. Por favor clique em Gerenciar Assinatura para mais informações.',
-    cancelAtPeriodEnd:
-      'O plano será cancelado no fim do período.',
-    notPlanUser: 'Esta assinatura não é controlada por você.',
   },
 
   auditLog: {

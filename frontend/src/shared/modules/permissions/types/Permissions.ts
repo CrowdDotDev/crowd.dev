@@ -88,11 +88,6 @@ export enum LfPermission {
   automationCustomize = 'automationCustomize',
   automationAutocomplete = 'automationAutocomplete',
 
-  // Notes
-  noteCreate = 'noteCreate',
-  noteEdit = 'noteEdit',
-  noteDestroy = 'noteDestroy',
-
   // Project groups
   projectGroupCreate = 'projectGroupCreate',
   projectGroupEdit = 'projectGroupEdit',

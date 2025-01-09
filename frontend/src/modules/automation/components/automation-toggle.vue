@@ -15,7 +15,6 @@
 
 <script setup>
 import { computed, defineProps } from 'vue';
-import { useAutomationStore } from '@/modules/automation/store';
 import { useStore } from 'vuex';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
