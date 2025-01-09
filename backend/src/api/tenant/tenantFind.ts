@@ -1,6 +1,4 @@
 import { Error404 } from '@crowd/common'
-import { RedisCache } from '@crowd/redis'
-import { FeatureFlagRedisKey } from '@crowd/types'
 
 import AutomationRepository from '@/database/repositories/automationRepository'
 
@@ -19,24 +17,10 @@ export default async (req, res) => {
     payload = await new TenantService(req).findByUrl(req.query.url)
   }
 
-  const csvExportCountCache = new RedisCache(
-    FeatureFlagRedisKey.CSV_EXPORT_COUNT,
-    req.redis,
-    req.log,
-  )
-
-  const memberEnrichmentCountCache = new RedisCache(
-    FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
-    req.redis,
-    req.log,
-  )
-
   payload.dataValues = {
     ...payload.dataValues,
-    csvExportCount: Number(await csvExportCountCache.get(payload.id)) || 0,
     automationCount:
       Number(await AutomationRepository.countAllActive(req.database, payload.id)) || 0,
-    memberEnrichmentCount: Number(await memberEnrichmentCountCache.get(payload.id)) || 0,
   }
 
   payload.dataValues.settings[0].dataValues = {

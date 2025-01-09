@@ -10,7 +10,6 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/database": "workspace:*",
-    "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/questdb": "workspace:*",
