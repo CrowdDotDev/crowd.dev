@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { ElNotification } from 'element-plus';
 import 'element-plus/es/components/notification/style/css';
 
@@ -44,7 +45,7 @@ export default class Message {
     let message = payload;
 
     if (!message) {
-      message = 'Ops, an error occurred';
+      message = i18n('errors.defaultErrorMessage');
     }
 
     ElNotification(

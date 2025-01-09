@@ -38,7 +38,7 @@
         </el-button>
         <div class="flex gap-4">
           <el-button class="btn btn--md btn--bordered" @click="isVisible = false">
-            Cancel
+            <app-i18n code="common.cancel" />
           </el-button>
           <a
             class="btn btn--md btn--primary"

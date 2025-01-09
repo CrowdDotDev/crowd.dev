@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class ArrayField extends GenericField {
   constructor(name, label, config = {}) {
@@ -11,7 +12,10 @@ export default class ArrayField extends GenericField {
     return {
       type: 'array',
       required: Boolean(this.required),
-      message: 'This field is required',
+      message: i18n('validation.mixed.required').replace(
+        '{path}',
+        this.label,
+      ),
     };
   }
 

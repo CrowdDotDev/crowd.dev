@@ -125,6 +125,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import attributeTypes from '@/jsons/member-custom-attributes.json';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
 import { onSelectMouseLeave } from '@/utils/select';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -263,10 +264,10 @@ async function onSubmit() {
   }
 
   if (hasErrorOccurred) {
-    Message.error('Ops, an error occurred');
+    Message.error(i18n('errors.defaultErrorMessage'));
   } else {
     Message.success(
-      'Custom Attributes successfully updated',
+      i18n('entities.member.attributes.success'),
     );
     isDrawerOpen.value = false;
   }

@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class RelationToManyField extends GenericField {
   constructor(
@@ -72,7 +73,10 @@ export default class RelationToManyField extends GenericField {
       output.push({
         type: 'array',
         required: Boolean(this.required),
-        message: 'This field is required',
+        message: i18n('validation.mixed.required').replace(
+          '{path}',
+          this.label,
+        ),
       });
     }
 
@@ -80,7 +84,9 @@ export default class RelationToManyField extends GenericField {
       output.push({
         type: 'array',
         min: this.min,
-        message: `${this.label} field must have at least ${this.min} items`,
+        message: i18n('validation.array.min')
+          .replace('{path}', this.label)
+          .replace('{min}', this.min),
       });
     }
 
@@ -88,7 +94,9 @@ export default class RelationToManyField extends GenericField {
       output.push({
         type: 'array',
         max: this.max,
-        message: `${this.label} field must have less than or equal to ${this.max} items`,
+        message: i18n('validation.array.max')
+          .replace('{path}', this.label)
+          .replace('{max}', this.max),
       });
     }
 

@@ -53,6 +53,7 @@ import AppLfActivityAffiliations from '@/modules/lf/activity/components/lf-activ
 import Errors from '@/shared/error/errors';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -110,7 +111,7 @@ const doDestroyWithConfirm = async () => {
         });
 
         Message.success(
-          'Activity successfully deleted',
+          i18n('entities.activity.destroy.success'),
         );
 
         emit('onUpdate');

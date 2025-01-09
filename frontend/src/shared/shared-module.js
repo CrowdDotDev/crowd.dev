@@ -1,3 +1,4 @@
+import I18n from '@/shared/i18n/i18n.vue';
 import StringArrayInput from '@/shared/form/string-array-input.vue';
 import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue';
@@ -24,6 +25,7 @@ import Image from '@/shared/image/image.vue';
  */
 export default {
   components: {
+    'app-i18n': I18n,
     'app-autocomplete-one-input': AutocompleteOneInput,
     'app-autocomplete-many-input': AutocompleteManyInput,
     'app-string-array-input': StringArrayInput,

@@ -2,6 +2,7 @@ import { TagService } from '@/modules/tag/tag-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 export default {
   namespaced: true,
@@ -49,7 +50,9 @@ export default {
 
         commit('DESTROY_SUCCESS');
 
-        Message.success('Tag successfully deleted');
+        Message.success(
+          i18n('entities.tag.destroy.success'),
+        );
 
         router.push('/tag');
 
@@ -81,7 +84,9 @@ export default {
           root: true,
         });
 
-        Message.success('Tag(s) successfully deleted');
+        Message.success(
+          i18n('entities.tag.destroyAll.success'),
+        );
 
         router.push('/tag');
 

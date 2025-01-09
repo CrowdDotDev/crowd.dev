@@ -2,6 +2,7 @@ import { TagService } from '@/modules/tag/tag-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 
 export default {
   namespaced: true,
@@ -101,7 +102,7 @@ export default {
         commit('CREATE_STARTED');
         await TagService.create(values);
         commit('CREATE_SUCCESS');
-        Message.success('Tag successfully saved');
+        Message.success(i18n('entities.tag.create.success'));
         router.push('/tag');
       } catch (error) {
         Errors.handle(error);
@@ -129,7 +130,7 @@ export default {
         await TagService.update(id, values);
 
         commit('UPDATE_SUCCESS');
-        Message.success('Tag successfully saved');
+        Message.success(i18n('entities.tag.update.success'));
         router.push('/tag');
       } catch (error) {
         Errors.handle(error);

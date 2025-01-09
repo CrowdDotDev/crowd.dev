@@ -105,12 +105,12 @@ import useVuelidate from '@vuelidate/core';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
+import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { automationTypes } from '../config/automation-types';
-import { getTriggerMessage } from './index';
 
 const props = defineProps({
   modelValue: {
@@ -198,7 +198,7 @@ const doSubmit = () => {
 
   const data = {
     name: form.name && form.name.length > 0
-      ? form.name : getTriggerMessage(form.trigger),
+      ? form.name : i18n(`entities.automation.triggers.${form.trigger}`),
     type: type.value,
     trigger: form.trigger,
     settings: {
