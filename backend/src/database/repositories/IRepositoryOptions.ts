@@ -1,5 +1,4 @@
 import { DbConnection } from '@crowd/data-access-layer/src/database'
-import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -17,7 +16,6 @@ export interface IRepositoryOptions {
   transaction?: any
   bypassPermissionValidation?: any
   opensearch?: any
-  unleash?: Unleash
   temporal: TemporalClient
   productDb: DbConnection
 }

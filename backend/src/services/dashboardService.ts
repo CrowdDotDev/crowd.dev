@@ -1,7 +1,5 @@
 import { RedisCache } from '@crowd/redis'
-import { DashboardTimeframe, FeatureFlag } from '@crowd/types'
-
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { DashboardTimeframe } from '@crowd/types'
 
 import { IServiceOptions } from './IServiceOptions'
 
@@ -27,15 +25,12 @@ export default class DashboardService {
       throw new Error(`Unsupported timeframe ${params.timeframe}!`)
     }
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)
-
-    if (segmentsEnabled && !params.segment) {
-      throw new Error(`SegmentId is required in segment enabled deployments!`)
+    if (!params.segment) {
+      params.segment = this.options.currentSegments[0]?.id
     }
 
-    // get default segment
-    if (!segmentsEnabled) {
-      params.segment = this.options.currentSegments[0].id
+    if (!params.segment) {
+      throw new Error('Valid segment ID is required')
     }
 
     let key = `${params.segment}:${params.timeframe}`

@@ -24,7 +24,6 @@ import {
   getAllSegments,
   getProjectGroupLeafSegments,
   getProjectLeafSegments,
-  isSegmentsEnabled,
 } from './activities/getSegmentInfo'
 
 export {
@@ -45,7 +44,6 @@ export {
   getActivePlatforms,
   findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
-  isSegmentsEnabled,
   getOrgIdsFromRedis,
   dropOrgIdFromRedis,
   checkOrganizationExists,

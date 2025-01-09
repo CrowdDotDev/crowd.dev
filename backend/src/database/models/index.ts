@@ -135,7 +135,6 @@ async function models(queryTimeoutMilliseconds: number, databaseHostnameOverride
     require('./automationExecution').default,
     require('./organization').default,
     require('./memberAttributeSettings').default,
-    require('./task').default,
     require('./note').default,
     require('./segment').default,
     require('./customView').default,
