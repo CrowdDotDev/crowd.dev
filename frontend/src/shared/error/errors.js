@@ -1,10 +1,9 @@
 import { useLogRocket } from '@/utils/logRocket';
-import { i18n, i18nExists } from '@/i18n';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
-const DEFAULT_ERROR_MESSAGE = i18n('errors.defaultErrorMessage');
+const DEFAULT_ERROR_MESSAGE = 'Ops, an error occurred';
 
 function selectErrorKeyOrMessage(error) {
   if (error && error.response && error.response.data) {
@@ -22,10 +21,6 @@ function selectErrorKeyOrMessage(error) {
 
 function selectErrorMessage(error) {
   const key = selectErrorKeyOrMessage(error);
-
-  if (i18nExists(key)) {
-    return i18n(key);
-  }
 
   return key;
 }
