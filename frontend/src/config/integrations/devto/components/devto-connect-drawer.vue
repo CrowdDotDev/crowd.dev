@@ -167,7 +167,7 @@
           :disabled="loading"
           @click="cancel"
         >
-          Cancel
+          <app-i18n code="common.cancel" />
         </el-button>
         <el-button
           id="devConnect"
@@ -178,7 +178,7 @@
           :loading="loading"
           @click="save"
         >
-          Connect
+          <app-i18n code="common.connect" />
         </el-button>
       </div>
     </template>

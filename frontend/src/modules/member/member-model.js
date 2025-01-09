@@ -1,3 +1,4 @@
+import { i18n, init as i18nInit } from '@/i18n';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
 import StringField from '@/shared/fields/string-field';
@@ -8,12 +9,18 @@ import StringArrayField from '@/shared/fields/string-array-field';
 import GenericField from '@/shared/fields/generic-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
+function label(name) {
+  return i18n(`entities.member.fields.${name}`);
+}
+
+i18nInit();
+
 const fields = {
-  tags: TagField.relationToMany('tags', 'Tags', {
+  tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true,
   }),
-  jobTitle: new StringField('jobTitle', 'Job title'),
-  username: new JsonField('username', 'Username', {
+  jobTitle: new StringField('jobTitle', label('jobTitle')),
+  username: new JsonField('username', label('username'), {
     nonEmpty: true,
     nonEmptyValues: true,
     requiredUnless: 'email',
@@ -21,11 +28,11 @@ const fields = {
   }),
   attributes: new JsonField(
     'attributes',
-    'attributes',
+    label('attributes'),
   ),
   identities: new JsonField(
     'identities',
-    'Identities',
+    label('identities'),
   ),
   name: new StringField(
     'name',
@@ -35,14 +42,14 @@ const fields = {
     'displayName',
     'Full name',
   ),
-  info: new JsonField('info', 'Custom Attributes'),
+  info: new JsonField('info', label('info')),
   emails: new StringArrayField('emails', 'Emails'),
   organizations: OrganizationField.relationToMany(
     'organizations',
     'Organizations',
   ),
   joinedAt: new DateTimeField('joinedAt', 'Joined date'),
-  bio: new StringField('bio', 'Bio'),
+  bio: new StringField('bio', label('bio')),
   location: new StringField(
     'location',
     'Location',

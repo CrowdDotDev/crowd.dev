@@ -2,6 +2,7 @@ import Axios from 'axios';
 import { stringify } from 'qs';
 import moment from 'moment';
 import config from '@/config';
+import { getLanguageCode } from '@/i18n';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
@@ -108,6 +109,8 @@ authAxios.interceptors.request.use(
     if (localStorage.getItem('profile-sql') === '1') {
       setOptions.headers['x-profile-sql'] = 'true';
     }
+
+    setOptions.headers['Accept-Language'] = getLanguageCode();
 
     return setOptions;
   },

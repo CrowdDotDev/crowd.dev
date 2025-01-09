@@ -67,7 +67,7 @@
               class="flex items-center text-red-500"
             >
               <i class="ri-lg ri-delete-bin-line mr-2" />
-              Delete
+              <app-i18n code="common.destroy" />
             </div>
           </el-dropdown-item>
         </template>

@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import GenericField from '@/shared/fields/generic-field';
+import { i18n } from '@/i18n';
 
 export default class RelationToOneField extends GenericField {
   constructor(
@@ -55,7 +56,10 @@ export default class RelationToOneField extends GenericField {
     if (this.required) {
       output.push({
         required: true,
-        message: 'This field is required',
+        message: i18n('validation.mixed.required').replace(
+          '{path}',
+          this.label,
+        ),
       });
     }
 

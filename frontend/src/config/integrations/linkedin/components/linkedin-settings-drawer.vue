@@ -83,7 +83,7 @@
             class="btn btn--md btn--secondary"
             @click="isVisible = false"
           >
-            Cancel
+            <app-i18n code="common.cancel" />
           </el-button>
           <el-button
             class="btn btn--md btn--primary"

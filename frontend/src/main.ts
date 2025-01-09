@@ -12,6 +12,8 @@ import { createStore } from '@/store';
 import modules from '@/modules';
 import config from '@/config';
 
+import { init as i18nInit } from '@/i18n';
+
 import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/shared/plugins/sanitize';
 import marked from '@/shared/plugins/marked';
@@ -24,6 +26,7 @@ declare module 'vue' {
   }
 }
 
+i18nInit();
 /**
  * We're using Immediately Invoked Function Expressions (IIFE) here because of the async/awaits
  * (We should probably revisit/refactor this later to be less confusing)

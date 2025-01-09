@@ -139,7 +139,7 @@
             class="btn btn--md btn--secondary"
             @click="doCancel"
           >
-            Cancel
+            <app-i18n code="common.cancel" />
           </el-button>
           <el-button
             :loading="isVolumeUpdating"

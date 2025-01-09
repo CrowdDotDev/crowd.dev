@@ -1,14 +1,21 @@
+import { i18n, init as i18nInit } from '@/i18n';
 import StringField from '@/shared/fields/string-field';
 import { GenericModel } from '@/shared/model/generic-model';
 import StringArrayField from '@/shared/fields/string-array-field';
 
+function label(name) {
+  return i18n(`tenant.fields.${name}`);
+}
+
+i18nInit();
+
 const fields = {
-  id: new StringField('id', 'Id'),
-  tenantUrl: new StringField('url', 'Community URL', {
+  id: new StringField('id', label('id')),
+  tenantUrl: new StringField('url', label('tenantUrl'), {
     required: true,
     max: 50,
   }),
-  tenantName: new StringField('name', 'Community name', {
+  tenantName: new StringField('name', label('tenantName'), {
     required: true,
     max: 50,
   }),
@@ -19,14 +26,14 @@ const fields = {
   ),
   tenantPlatforms: new StringArrayField(
     'integrationsRequired',
-    'Community platforms',
+    label('tenantPlatforms'),
     {
       required: true,
     },
   ),
   tenantSize: new StringField(
     'communitySize',
-    'Community size',
+    label('tenantSize'),
     {
       required: true,
     },
