@@ -11,7 +11,6 @@ import {
   IActivityData,
   IMemberData,
   IOrganization,
-  IntegrationResultState,
   IntegrationResultType,
   PlatformType,
 } from '@crowd/types'
