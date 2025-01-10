@@ -318,6 +318,10 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         }) => {
           this.log.debug(`Received a batch of ${batch.messages.length} messages!`)
 
+          const sendHeartbeat = () => {
+            heartbeat().catch((err) => this.log.error(err, 'Failed to send heartbeat'))
+          }
+
           const promises = []
           for (const message of batch.messages) {
             if (!isRunning()) {
@@ -328,7 +332,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             if (message && message.value) {
               while (!this.isAvailable(maxConcurrentMessageProcessing)) {
                 this.log.debug('Processor is busy, waiting...')
-                await heartbeat()
+                sendHeartbeat()
                 await timeout(100)
               }
 
@@ -340,7 +344,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
               promises.push(
                 processMessage(data)
                   .then(async () => {
-                    await heartbeat()
+                    sendHeartbeat()
 
                     resolveOffset(message.offset)
                     this.removeJob()
@@ -349,7 +353,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
                     this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
                   })
                   .catch(async (err) => {
-                    await heartbeat()
+                    sendHeartbeat()
                     this.removeJob()
                     this.log.error(err, 'Error processing message!')
 
@@ -361,7 +365,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
           }
 
           const interval = setInterval(() => {
-            heartbeat().catch((err) => this.log.error(err, 'Failed to send heartbeat'))
+            sendHeartbeat()
           }, 1000)
 
           try {
