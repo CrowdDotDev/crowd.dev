@@ -85,7 +85,7 @@
           :loading="loading"
           @click="connect"
         >
-          <app-i18n code="common.connect" />
+          Connect
         </el-button>
       </div>
     </template>

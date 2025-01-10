@@ -157,7 +157,6 @@ import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { i18n } from '@/i18n';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -264,7 +263,7 @@ const handleCommand = (command: {
 
       doManualAction({
         loadingMessage: 'Organization is being deleted',
-        successMessage: i18n('entities.organization.destroy.success'),
+        successMessage: 'Organization successfully deleted',
         errorMessage: 'Something went wrong',
         actionFn: OrganizationService.destroyAll([command.organization.id]),
       }).then(() => {
