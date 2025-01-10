@@ -1,6 +1,5 @@
 import {
   getAffiliationsLastCheckedAtOfTenant,
-  getAllTenants,
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAtOfTenant,
 } from './activities/common'
@@ -15,7 +14,6 @@ export {
   getAffiliationsLastCheckedAtOfTenant,
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAtOfTenant,
-  getAllTenants,
   syncMember,
   syncOrganization,
   findMembersInOrganization,
