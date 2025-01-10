@@ -4,6 +4,7 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ITemporalConfig } from '@crowd/temporal'
 import { QueuePriorityLevel } from '@crowd/types'
 
 export interface ISlackAlertingConfig {
@@ -53,6 +54,15 @@ export const SLACK_ALERTING_CONFIG = (): ISlackAlertingConfig => {
 
   slackAlertingConfig = config.get<ISlackAlertingConfig>('slackAlerting')
   return slackAlertingConfig
+}
+
+let temporalConfig: ITemporalConfig | undefined
+export const TEMPORAL_CONFIG = (): ITemporalConfig | undefined => {
+  if (temporalConfig) return temporalConfig
+
+  temporalConfig = config.get<ITemporalConfig>('temporal')
+
+  return temporalConfig
 }
 
 export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {

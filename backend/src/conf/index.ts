@@ -6,6 +6,7 @@ import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
 import { IGithubIssueReporterConfiguration, IJiraIssueReporterConfiguration } from '@crowd/types'
 
+import { ITemporalConfig } from '@crowd/temporal'
 import {
   ApiConfiguration,
   Auth0Configuration,
@@ -21,7 +22,6 @@ import {
   GithubTokenConfiguration,
   GitlabConfiguration,
   GoogleConfiguration,
-  IBackendTemporalConfig,
   IOpenSearchConfig,
   IOpenStatusApiConfig,
   IRedditConfig,
@@ -152,8 +152,8 @@ export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
 
-export const TEMPORAL_CONFIG: IBackendTemporalConfig =
-  config.get<IBackendTemporalConfig>('temporal')
+export const TEMPORAL_CONFIG: ITemporalConfig =
+  config.get<ITemporalConfig>('temporal')
 
 export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
   config.get<ISearchSyncApiConfig>('searchSyncApi')

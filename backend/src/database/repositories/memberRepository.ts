@@ -67,7 +67,6 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
-  SyncStatus,
 } from '@crowd/types'
 
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -85,7 +84,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
-import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import OrganizationRepository from './organizationRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -2697,20 +2695,6 @@ class MemberRepository {
     }
 
     output.affiliations = await this.getAffiliations(record.id, options)
-
-    const manualSyncRemote = await new MemberSyncRemoteRepository(options).findMemberManualSync(
-      record.id,
-    )
-
-    for (const syncRemote of manualSyncRemote) {
-      if (output.attributes?.syncRemote) {
-        output.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
-      } else {
-        output.attributes.syncRemote = {
-          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
-        }
-      }
-    }
 
     return output
   }

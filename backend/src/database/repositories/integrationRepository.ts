@@ -18,8 +18,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
@@ -169,14 +167,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    // delete syncRemote rows coming from integration
-    await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
-      record.id,
-    ])
-    await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
-      record.id,
-    ])
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
