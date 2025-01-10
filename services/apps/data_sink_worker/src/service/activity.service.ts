@@ -50,15 +50,9 @@ import {
 import { TEMPORAL_CONFIG } from '../conf'
 
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
+import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-
-export class SuppressedActivityError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'SuppressedActivityError'
-  }
-}
 
 export default class ActivityService extends LoggerBase {
   constructor(
@@ -459,18 +453,9 @@ export default class ActivityService extends LoggerBase {
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
         if (!identity) {
-          if (platform === PlatformType.JIRA) {
-            throw new SuppressedActivityError(
-              `Activity's member does not have an identity for the platform: ${platform}!`,
-            )
-          } else {
-            this.log.error(
-              "Activity's member does not have an identity for the platform. Suppressing it!",
-            )
-            throw new Error(
-              `Activity's member does not have an identity for the platform: ${platform}!`,
-            )
-          }
+          throw new UnrepeatableError(
+            `Activity's member does not have an identity for the platform: ${platform}!`,
+          )
         }
 
         username = identity.value
@@ -1187,9 +1172,7 @@ export default class ActivityService extends LoggerBase {
         await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
-      if (!(err instanceof SuppressedActivityError)) {
-        this.log.error(err, 'Error while processing an activity!')
-      }
+      this.log.error(err, 'Error while processing an activity!')
       throw err
     }
   }

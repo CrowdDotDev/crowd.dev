@@ -19,6 +19,7 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 
 import ActivityService from './activity.service'
+import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 
@@ -55,7 +56,10 @@ export default class DataSinkService extends LoggerBase {
       errorString: error ? JSON.stringify(error) : undefined,
     }
 
-    if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+    if (
+      !(error instanceof UnrepeatableError) &&
+      resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries
+    ) {
       // delay for #retries * 2 minutes
       const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
       this.log.warn({ until: until.toISOString() }, 'Retrying result!')
