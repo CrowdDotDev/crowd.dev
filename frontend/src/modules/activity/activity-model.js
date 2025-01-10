@@ -1,4 +1,3 @@
-import { i18n, init as i18nInit } from '@/i18n';
 import { GenericModel } from '@/shared/model/generic-model';
 import { MemberField } from '@/modules/member/member-field';
 import SearchField from '@/shared/fields/search-field';
@@ -8,37 +7,31 @@ import ActivityChannelsField from '@/shared/fields/activity-channels-field';
 import ActivityPlatformField from './activity-platform-field';
 import ActivityTypeField from './activity-type-field';
 
-function label(name) {
-  return i18n(`entities.activity.fields.${name}`);
-}
-
-i18nInit();
-
 const fields = {
-  search: new SearchField('search', label('search'), {
+  search: new SearchField('search', 'search', {
     fields: ['title', 'body'],
   }),
   member: MemberField.relationToOne(
     'memberId',
-    label('member'),
+    'Person',
     {
       required: true,
       filterable: true,
     },
   ),
-  date: new ActivityDateField('timestamp', label('date'), {
+  date: new ActivityDateField('timestamp', 'Date', {
     filterable: true,
   }),
   platform: new ActivityPlatformField(
     'platform',
-    label('platform'),
+    'Platform',
     {
       required: true,
       min: 2,
       filterable: true,
     },
   ),
-  type: new ActivityTypeField('type', label('type'), {
+  type: new ActivityTypeField('type', 'Activity type', {
     required: true,
     filterable: true,
   }),
