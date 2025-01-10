@@ -266,7 +266,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       })),
     })
 
-    this.log.info({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
+    this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
     await producer.disconnect()
     return result
