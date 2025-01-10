@@ -1,5 +1,4 @@
 import * as yup from 'yup';
-import { i18n } from '@/i18n';
 import GenericField from '@/shared/fields/generic-field';
 
 export default class BooleanField extends GenericField {
@@ -7,8 +6,8 @@ export default class BooleanField extends GenericField {
     super(name, label);
 
     this.hint = config.hint;
-    this.yesLabel = config.yesLabel || i18n('common.yes');
-    this.noLabel = config.noLabel || i18n('common.no');
+    this.yesLabel = config.yesLabel || 'Yes';
+    this.noLabel = config.noLabel || 'No';
     this.filterable = config.filterable || false;
     this.custom = config.custom || false;
   }

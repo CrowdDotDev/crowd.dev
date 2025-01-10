@@ -14,8 +14,4 @@ export default () => ({
     prop: 'createdAt',
     order: 'descending',
   },
-  featureFlag: {
-    isReady: false,
-    hasError: false,
-  },
 });

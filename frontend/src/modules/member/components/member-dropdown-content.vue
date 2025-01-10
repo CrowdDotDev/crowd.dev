@@ -31,7 +31,6 @@
     </button>
   </router-link>
   <button
-    v-if="isFindGitHubFeatureEnabled"
     class="h-10 el-dropdown-menu__item w-full mb-1"
     type="button"
     :disabled="isFindingGitHubDisabled"
@@ -188,7 +187,6 @@ import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -256,10 +254,6 @@ const { hasPermission } = usePermissions();
 
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
-));
-
-const isFindGitHubFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
-  FEATURE_FLAGS.findGitHub,
 ));
 
 const doManualAction = async ({
