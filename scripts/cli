@@ -751,17 +751,17 @@ while test $# -gt 0; do
         exit
         ;;
     start-e2e)
-        declare -a INGORED_SERVICES=("job-generator" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
+        declare -a INGORED_SERVICES=("job-generator" "discord-ws" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
         start
         exit
         ;;
     start-be)
-        declare -a INGORED_SERVICES=("frontend")
+        declare -a INGORED_SERVICES=("frontend" "discord-ws")
         start
         exit
         ;;
     start-dev)
-        INGORED_SERVICES=("python-worker" "job-generator" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         DEV=1
         start
         exit
@@ -772,7 +772,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        # INGORED_SERVICES=("python-worker" "job-generator" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         CLEAN_START=1
         DEV=1
         start
@@ -857,14 +857,14 @@ while test $# -gt 0; do
         exit
         ;;
     service-restart-fe-dev)
-        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         DEV=1
         kill_all_containers
         service_start
         exit
         ;;
     clean-start-fe-dev)
-        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         CLEAN_START=1
         DEV=1
         start
