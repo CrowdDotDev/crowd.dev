@@ -23,6 +23,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private readonly RECONNECT_DELAY = 5000
 
   private reconnectAttempts: Map<string, number>
+  private consumerStatus: Map<string, boolean>
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
@@ -38,6 +39,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.started = false
     this.consumers = new Map<string, Consumer>()
     this.reconnectAttempts = new Map<string, number>()
+    this.consumerStatus = new Map<string, boolean>()
   }
 
   public async send(
@@ -109,6 +111,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   }
 
   private async handleConsumerError(groupId: string, consumer: Consumer) {
+    if (this.consumerStatus.has(groupId)) {
+      // do nothing we are already rejoining
+      return
+    }
+
+    this.consumerStatus.set(groupId, true)
     const attempts = this.reconnectAttempts.get(groupId) || 0
 
     if (attempts < this.MAX_RECONNECT_ATTEMPTS) {
@@ -124,6 +132,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       } catch (error) {
         this.log.error({ error }, 'Failed to reconnect consumer')
         await this.handleConsumerError(groupId, consumer)
+      } finally {
+        this.consumerStatus.delete(groupId)
       }
     } else {
       this.log.error(
