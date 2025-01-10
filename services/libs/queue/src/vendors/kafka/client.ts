@@ -364,8 +364,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             heartbeat().catch((err) => this.log.error(err, 'Failed to send heartbeat'))
           }, 1000)
 
-          await Promise.all(promises)
-          clearInterval(interval)
+          try {
+            await Promise.all(promises)
+          } finally {
+            clearInterval(interval)
+          }
+
           await commitOffsetsIfNecessary()
         },
       })
