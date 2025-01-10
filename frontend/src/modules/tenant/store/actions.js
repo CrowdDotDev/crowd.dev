@@ -2,7 +2,6 @@ import sharedActions from '@/shared/store/actions';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 
 export default {
   ...sharedActions('tenant', TenantService),
@@ -35,7 +34,7 @@ export default {
 
       state.saveLoading = false;
       commit('UPDATE_SUCCESS', tenant);
-      Message.success(i18n('tenant.update.success'));
+      Message.success('Community has been updated');
       await dispatch('auth/doSelectTenant', { tenant }, {
         root: true,
       });
@@ -44,9 +43,5 @@ export default {
       Errors.handle(error);
       commit('UPDATE_ERROR');
     }
-  },
-
-  doUpdateFeatureFlag({ commit }, { isReady, hasError }) {
-    commit('UPDATE_FEATURE_FLAG', { isReady, hasError });
   },
 };

@@ -157,7 +157,6 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
@@ -444,7 +443,7 @@ async function onSubmit() {
 
     try {
       await OrganizationService.update(payload.id, payload.values);
-      Message.success(i18n('entities.organization.update.success'));
+      Message.success('Organization successfully saved');
     } catch (error) {
       if (error.response.status === 409) {
         Message.error(
@@ -488,9 +487,9 @@ async function onSubmit() {
     try {
       await OrganizationService.create(payload);
 
-      Message.success(i18n('entities.organization.create.success'));
+      Message.success('Organization successfully saved');
     } catch (error) {
-      Message.error(i18n('entities.organization.create.error'));
+      Message.error('There was an error creating the organization');
       Errors.handle(error);
     }
   }

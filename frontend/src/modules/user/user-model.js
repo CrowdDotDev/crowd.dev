@@ -1,56 +1,49 @@
-import { i18n, init as i18nInit } from '@/i18n';
 import StringField from '@/shared/fields/string-field';
 import BooleanField from '@/shared/fields/boolean-field';
 import { GenericModel } from '@/shared/model/generic-model';
 
-i18nInit();
-
-function label(name) {
-  return i18n(`user.fields.${name}`);
-}
-
 const fields = {
   firstName: new StringField(
     'firstName',
-    label('firstName'),
+    'First name',
     {
       max: 80,
       required: true,
     },
   ),
-  lastName: new StringField('lastName', label('lastName'), {
+  lastName: new StringField('lastName', 'Last name', {
     max: 175,
     required: true,
   }),
   oldPassword: new StringField(
     'oldPassword',
-    label('oldPassword'),
+    'Old password',
     {
       required: true,
     },
   ),
   newPassword: new StringField(
     'newPassword',
-    label('newPassword'),
+    'New password',
     {
       required: true,
     },
   ),
   newPasswordConfirmation: new StringField(
     'newPasswordConfirmation',
-    label('newPasswordConfirmation'),
+    'Confirm new password',
     {
       required: true,
     },
   ),
-  email: new StringField('email', label('email'), {
+  email: new StringField('email', 'E-mail', {
     required: true,
     email: true,
     max: 255,
   }),
   acceptedTermsAndPrivacy: new BooleanField(
     'acceptedTermsAndPrivacy',
-    label('acceptedTermsAndPrivacy'),
+    'Terms and privacy',
     {
       required: true,
     },
