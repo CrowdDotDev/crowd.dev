@@ -69,7 +69,7 @@ export class QueuePriorityService {
         )
       }
 
-      return this.emitter.sendMessages(
+      await this.emitter.sendMessages(
         grouped.get(tenantId).map((m) => {
           return { ...m, priorityLevel }
         }),
