@@ -100,7 +100,7 @@ export default class DataSinkService extends LoggerBase {
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+    this.log.info({ tenantId, segmentId }, 'Creating and processing activity result.')
 
     const payload = {
       type: IntegrationResultType.ACTIVITY,
@@ -142,7 +142,7 @@ export default class DataSinkService extends LoggerBase {
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
-      this.log.info('Result not found. Skipping...')
+      this.log.info({ resultId }, 'Result not found. Skipping...')
       return false
     }
 
