@@ -68,7 +68,6 @@ import {
   defineProps, ref,
 } from 'vue';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import { FeatureFlag } from '@/utils/featureFlag';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
@@ -90,10 +89,7 @@ const options = computed(() => Object.entries(props.config)
   .map(([key, configuration]: [string, FilterConfig]) => ({
     ...configuration,
     key,
-  }))
-  .filter((config) => (config.featureFlag ? FeatureFlag.isFlagEnabled(
-    config.featureFlag,
-  ) : true)));
+  })));
 
 const customOptions = computed(() => Object.entries(props.customConfig).map(([key, configuration]: [string, FilterConfig]) => ({
   ...configuration,
