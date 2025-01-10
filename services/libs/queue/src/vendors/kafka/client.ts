@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { throws } from 'assert'
 import { createHash } from 'crypto'
 import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
 
@@ -299,7 +300,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
 
       const consumer = await this.getConsumer(queueConf.name)
-      await consumer.subscribe({ topic: queueConf.name, fromBeginning: true })
+      await consumer.subscribe({ topic: queueConf.name })
 
       // Add periodic health check
       healthCheckInterval = setInterval(async () => {
@@ -319,82 +320,18 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
       await consumer.run({
-        eachBatchAutoResolve: false,
-        eachBatch: async ({
-          batch,
-          heartbeat,
-          resolveOffset,
-          commitOffsetsIfNecessary,
-          isRunning,
-        }) => {
-          this.log.debug(`Received a batch of ${batch.messages.length} messages!`)
-
-          const sendHeartbeat = async () => {
+        eachMessage: async ({ message }) => {
+          if (message && message.value) {
+            const data = JSON.parse(message.value.toString())
+            const now = performance.now()
             try {
-              await heartbeat()
+              await processMessage(data)
+              const duration = performance.now() - now
+              this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
             } catch (err) {
-              this.log.error(err, 'Failed to send heartbeat')
-              await this.handleConsumerError(queueConf.name, consumer)
+              const duration = performance.now() - now
+              this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
             }
-          }
-
-          const promises = []
-          for (const message of batch.messages) {
-            if (!isRunning()) {
-              // consumer is paused we should stop processing
-              break
-            }
-
-            if (message && message.value) {
-              while (!this.isAvailable(maxConcurrentMessageProcessing)) {
-                this.log.debug('Processor is busy, waiting...')
-                sendHeartbeat()
-                await timeout(100)
-              }
-
-              this.addJob()
-              const data = JSON.parse(message.value.toString())
-              const now = performance.now()
-
-              this.log.debug({ message: data }, 'Received message from Kafka topic!')
-              promises.push(
-                processMessage(data)
-                  .then(async () => {
-                    sendHeartbeat()
-
-                    resolveOffset(message.offset)
-                    this.removeJob()
-
-                    const duration = performance.now() - now
-                    this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-                  })
-                  .catch(async (err) => {
-                    sendHeartbeat()
-                    this.removeJob()
-                    this.log.error(err, 'Error processing message!')
-
-                    const duration = performance.now() - now
-                    this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-                  }),
-              )
-            }
-          }
-
-          const interval = setInterval(() => {
-            sendHeartbeat()
-          }, 3000)
-
-          try {
-            await Promise.all(promises)
-          } finally {
-            clearInterval(interval)
-          }
-
-          try {
-            await commitOffsetsIfNecessary()
-          } catch (err) {
-            this.log.error(err, 'Failed to commit offsets')
-            throw err
           }
         },
       })
