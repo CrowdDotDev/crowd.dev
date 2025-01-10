@@ -12,12 +12,14 @@ drop table recurringEmailsHistory;
 drop table member_identities_backup;
 drop table member_organizations_identities_backup;
 drop table members_backup;
+drop table membersSyncRemote;
 
 drop table old_organizationCacheLinks;
 drop table old_organizationCacheIdentities;
 drop table old_organizationCache;
 drop table organizationToMergeOld;
 drop table organization_identities_backup;
+drop table organizationsSyncRemote;
 
 alter table organizations drop column old_emails;
 alter table organizations drop column old_phonenumbers;
