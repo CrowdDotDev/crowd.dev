@@ -1,7 +1,6 @@
 import { TenantSettings } from '@/modules/auth/types/TenantSettings.type';
 
 export interface Tenant {
-  automationCount: number;
   communitySize: number | null;
   createdAt: string;
   createdById: string;

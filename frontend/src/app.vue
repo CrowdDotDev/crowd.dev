@@ -19,9 +19,8 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
+import { mapActions } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
-import { FeatureFlag } from '@/utils/featureFlag';
 import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
@@ -49,12 +48,6 @@ export default {
     };
   },
 
-  computed: {
-    ...mapState({
-      featureFlag: (state) => state.tenant.featureFlag,
-    }),
-  },
-
   watch: {
     tenant: {
       handler(tenant, oldTenant) {
@@ -67,8 +60,6 @@ export default {
   },
 
   async created() {
-    FeatureFlag.init(this.tenant);
-
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     const queryParameters = new URLSearchParams(window.location.search);
