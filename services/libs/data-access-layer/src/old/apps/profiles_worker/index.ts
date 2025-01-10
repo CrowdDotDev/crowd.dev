@@ -13,6 +13,7 @@ import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
+const tenantId = getDefaultTenantId()
 
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
@@ -181,8 +182,6 @@ export async function runMemberAffiliationsUpdate(
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore) {
-  const tenantId = getDefaultTenantId()
-
   try {
     const result: IAffiliationsLastCheckedAt = await db.connection().oneOrNone(
       `
@@ -252,7 +251,6 @@ export async function getMemberIdsWithRecentRoleChanges(
 }
 
 export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void> {
-  const tenantId = getDefaultTenantId()
   try {
     await db.connection().any(
       `
