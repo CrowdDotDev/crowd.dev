@@ -46,9 +46,7 @@
   "crowdAnalytics": {
     "isEnabled": "false"
   },
-  "temporal": {
-    "automationsTaskQueue": "automations"
-  },
+  "temporal": {},
   "searchSyncApi": {},
   "encryption": {},
   "openStatusApi": {},
