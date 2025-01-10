@@ -1,58 +1,60 @@
-drop table tasks;
-drop table taskAssignees;
-drop table memberTasks;
-drop table activityTasks;
-drop table notes;
-drop table memberNotes;
-drop table microservices;
-drop table automations;
-drop table automationExecutions;
-drop table recurringEmailsHistory;
+drop table if exists "activityTasks", "memberTasks", "taskAssignees", tasks;
+drop table if exists "memberNotes", notes;
+drop table if exists "automationExecutions", automations;
 
-drop table member_identities_backup;
-drop table member_organizations_identities_backup;
-drop table members_backup;
-drop table membersSyncRemote;
+alter table integration.runs drop column if exists "microserviceId";
+alter table integration.results drop column if exists "microserviceId";
+alter table integration.streams drop column if exists "microserviceId";
 
-drop table old_organizationCacheLinks;
-drop table old_organizationCacheIdentities;
-drop table old_organizationCache;
-drop table organizationToMergeOld;
-drop table organization_identities_backup;
-drop table organizationsSyncRemote;
+alter table "integrationRuns" drop column if exists "microserviceId";
+alter table "integrationStreams" drop column if exists "microserviceId";
 
-alter table organizations drop column old_emails;
-alter table organizations drop column old_phonenumbers;
-alter table organizations drop column old_twitter;
-alter table organizations drop column old_linkedin;
-alter table organizations drop column old_crunchbase;
-alter table organizations drop column old_employeecountbycountry;
-alter table organizations drop column old_geolocation;
-alter table organizations drop column old_ticker;
-alter table organizations drop column old_profiles;
-alter table organizations drop column old_address;
-alter table organizations drop column old_attributes;
-alter table organizations drop column old_affiliatedprofiles;
-alter table organizations drop column old_allsubsidiaries;
-alter table organizations drop column old_alternativedomains;
-alter table organizations drop column old_alternativenames;
-alter table organizations drop column old_averageemployeetenure;
-alter table organizations drop column old_averagetenurebylevel;
-alter table organizations drop column old_averagetenurebyrole;
-alter table organizations drop column old_directsubsidiaries;
-alter table organizations drop column old_employeecountbymonth;
-alter table organizations drop column old_employeecountbymonthbylevel;
-alter table organizations drop column old_employeecountbymonthbyrole;
-alter table organizations drop column old_gicssector;
-alter table organizations drop column old_grossadditionsbymonth;
-alter table organizations drop column old_grossdeparturesbymonth;
-alter table organizations drop column old_ultimateparent;
-alter table organizations drop column old_immediateparent;
-alter table organizations drop column old_weakidentities;
-alter table organizations drop column old_manuallychangedfields;
-alter table organizations drop column old_naics;
-alter table organizations drop column old_names;
+drop table if exists microservices;
 
-alter table integration.runs drop column "microserviceId";
-alter table integration.results drop column "microserviceId";
-alter table integration.streams drop column "microserviceId";
+drop table if exists "recurringEmailsHistory";
+
+drop table if exists member_organizations_backup_14_11_2024;
+drop table if exists member_identities_backup_14_11_2024;
+drop table if exists members_backup_14_11_2024;
+drop table if exists "membersSyncRemote";
+
+drop table if exists 
+    "old_organizationCacheLinks",
+    "old_organizationCacheIdentities",
+    "old_organizationCaches",
+    "organizationToMergeOld",
+    organization_identities_backup,
+    "organizationsSyncRemote";
+
+alter table organizations 
+    drop column if exists old_emails,
+    drop column if exists old_phonenumbers,
+    drop column if exists old_twitter,
+    drop column if exists old_linkedin,
+    drop column if exists old_crunchbase,
+    drop column if exists old_employeecountbycountry,
+    drop column if exists old_geolocation,
+    drop column if exists old_ticker,
+    drop column if exists old_profiles,
+    drop column if exists old_address,
+    drop column if exists old_attributes,
+    drop column if exists old_affiliatedprofiles,
+    drop column if exists old_allsubsidiaries,
+    drop column if exists old_alternativedomains,
+    drop column if exists old_alternativenames,
+    drop column if exists old_averageemployeetenure,
+    drop column if exists old_averagetenurebylevel,
+    drop column if exists old_averagetenurebyrole,
+    drop column if exists old_directsubsidiaries,
+    drop column if exists old_employeecountbymonth,
+    drop column if exists old_employeecountbymonthbylevel,
+    drop column if exists old_employeecountbymonthbyrole,
+    drop column if exists old_gicssector,
+    drop column if exists old_grossadditionsbymonth,
+    drop column if exists old_grossdeparturesbymonth,
+    drop column if exists old_ultimateparent,
+    drop column if exists old_immediateparent,
+    drop column if exists old_weakidentities,
+    drop column if exists old_manuallychangedfields,
+    drop column if exists old_naics,
+    drop column if exists old_names;
