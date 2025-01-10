@@ -18,7 +18,6 @@ export interface IResultData {
   integrationId: string
   platform: PlatformType
 
-  hasSampleData: boolean
   plan: string
   isTrialPlan: boolean
   name: string

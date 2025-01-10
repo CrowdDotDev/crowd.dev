@@ -593,13 +593,6 @@ function source_edition() {
     say "Crowd edition detected: $__CROWD_EDITION"
 }
 
-function check_init_premium() {
-    source_edition
-    if [ $__CROWD_EDITION == "crowd-hosted" ]; then
-        $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml up -d --build
-    fi
-}
-
 function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
@@ -618,12 +611,10 @@ function up_scaffold() {
 function post_up_scaffold() {
     migrate_local
     bash $CLI_HOME/nango-integrations.sh
-    check_init_premium
 }
 
 function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -688,7 +679,6 @@ function service_start() {
 function scaffold_destroy_confirmed() {
     kill_all_containers
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
