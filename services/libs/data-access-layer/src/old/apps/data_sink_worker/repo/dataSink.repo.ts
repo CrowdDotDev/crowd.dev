@@ -68,7 +68,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     try {
       const results = await this.db().any(
         `
-        select r.id, r."tenantId",
+        select r.id, r."tenantId"
         from integration.results r
         where r.state in ($(states:csv))
           ${lastId !== undefined ? 'and r.id > $(lastId)' : ''}
