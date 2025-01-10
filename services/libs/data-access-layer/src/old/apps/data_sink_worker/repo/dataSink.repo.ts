@@ -61,27 +61,22 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   }
 
   public async getOldResultsToProcessForTenant(
-    tenantId: string,
     limit: number,
+    states: IntegrationResultState[],
     lastId?: string,
-  ): Promise<string[]> {
+  ): Promise<{ id: string; tenantId: string }[]> {
     try {
       const results = await this.db().any(
         `
-        select r.id
+        select r.id, r."tenantId",
         from integration.results r
-        where r."tenantId" = $(tenantId) and (r.state = $(pendingState) 
-          or (r.state = $(delayedState) and r."delayedUntil" < now())
-          or (r.state = $(errorState) and r.retries <= 5))
+        where r.state in ($(states:csv))
           ${lastId !== undefined ? 'and r.id > $(lastId)' : ''}
         order by r.id
         limit ${limit};
         `,
         {
-          pendingState: IntegrationResultState.PENDING,
-          delayedState: IntegrationResultState.DELAYED,
-          errorState: IntegrationResultState.ERROR,
-          tenantId,
+          states,
           lastId,
         },
       )

@@ -56,14 +56,18 @@ export class QueuePriorityService {
       deduplicationId?: string
       id?: string
     }[],
+    priorityLevelOverride?: QueuePriorityLevel,
   ): Promise<void> {
     const grouped = groupBy(messages, (m) => m.tenantId)
 
     for (const tenantId of Array.from(grouped.keys())) {
-      const priorityLevel = await this.getPriorityLevel(
-        tenantId,
-        this.priorityLevelCalculationContextLoader,
-      )
+      let priorityLevel = priorityLevelOverride
+      if (!priorityLevel) {
+        priorityLevel = await this.getPriorityLevel(
+          tenantId,
+          this.priorityLevelCalculationContextLoader,
+        )
+      }
 
       return this.emitter.sendMessages(
         grouped.get(tenantId).map((m) => {
