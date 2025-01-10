@@ -8,9 +8,7 @@ export default async (req, res) => {
 
   const payload = req.currentUser
 
-  payload.tenants = await Promise.all(
-    payload.tenants.map(async (tenantUser) => tenantUser),
-  )
+  payload.tenants = await Promise.all(payload.tenants.map(async (tenantUser) => tenantUser))
 
   await req.responseHandler.success(req, res, payload)
 }

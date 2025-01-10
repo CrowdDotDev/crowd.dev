@@ -19,20 +19,13 @@ import {
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import {
-  IMemberIdentity,
-  IntegrationResultType,
-  PlatformType,
-  SegmentData,
-  TemporalWorkflowId,
-} from '@crowd/types'
+import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
-import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
+import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
