@@ -6,7 +6,6 @@ import { IUnleashConfig } from '@crowd/feature-flags'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ITemporalConfig } from '@crowd/temporal'
 import { QueuePriorityLevel } from '@crowd/types'
 
 export interface ISlackAlertingConfig {
@@ -65,19 +64,6 @@ export const UNLEASH_CONFIG = (): IUnleashConfig | undefined => {
   unleashConfig = Object.assign({ appName: SERVICE }, config.get<IUnleashConfig>('unleash'))
 
   return unleashConfig
-}
-
-export interface IDataSinkWorkerTemporalConfig extends ITemporalConfig {
-  automationsTaskQueue: string
-}
-
-let temporalConfig: IDataSinkWorkerTemporalConfig | undefined
-export const TEMPORAL_CONFIG = (): IDataSinkWorkerTemporalConfig | undefined => {
-  if (temporalConfig) return temporalConfig
-
-  temporalConfig = config.get<IDataSinkWorkerTemporalConfig>('temporal')
-
-  return temporalConfig
 }
 
 export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {

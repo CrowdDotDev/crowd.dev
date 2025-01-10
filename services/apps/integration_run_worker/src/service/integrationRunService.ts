@@ -2,36 +2,28 @@ import { singleOrDefault } from '@crowd/common'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
 import SampleDataRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/sampleData.repo'
-import {
-  IGenerateStreamsContext,
-  IIntegrationStartRemoteSyncContext,
-  INTEGRATION_SERVICES,
-} from '@crowd/integrations'
+import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState } from '@crowd/types'
 
-import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
+import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
   private readonly sampleDataRepo: SampleDataRepository
-  private readonly automationRepo: AutomationRepository
 
   constructor(
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -40,167 +32,6 @@ export default class IntegrationRunService extends LoggerBase {
 
     this.repo = new IntegrationRunRepository(store, this.log)
     this.sampleDataRepo = new SampleDataRepository(store, this.log)
-    this.automationRepo = new AutomationRepository(store, this.log)
-  }
-
-  public async handleStreamProcessed(runId: string): Promise<void> {
-    this.log = getChildLogger('stream-processed', this.log, {
-      runId,
-    })
-
-    this.log.debug('Checking whether run is processed or not!')
-
-    const counts = await this.repo.getStreamCountsByState(runId)
-
-    let count = 0
-    let finishedCount = 0
-    let error = false
-    for (const [state, stateCount] of counts.entries()) {
-      count += stateCount
-
-      if (state === IntegrationStreamState.ERROR) {
-        finishedCount += stateCount
-        error = true
-      } else if (state === IntegrationStreamState.PROCESSED) {
-        finishedCount += stateCount
-      }
-    }
-
-    if (count === finishedCount) {
-      const runInfo = await this.repo.getGenerateStreamData(runId)
-
-      if (error) {
-        this.log.warn('Some streams have resulted in error!')
-
-        const pendingRetry = await this.repo.getErrorStreamsPendingRetry(
-          runId,
-          WORKER_CONFIG().maxRetries,
-        )
-        if (pendingRetry === 0) {
-          this.log.error('No streams pending retry and all are in final state - run failed!')
-          await this.repo.markRunError(runId, {
-            location: 'all-streams-processed',
-            message: 'Some streams failed!',
-          })
-
-          if (runInfo.onboarding) {
-            this.log.warn('Onboarding - marking integration as failed!')
-            await this.repo.markIntegration(runId, 'error')
-
-            this.apiPubSubEmitter.emitIntegrationCompleted(
-              runInfo.tenantId,
-              runInfo.integrationId,
-              'error',
-            )
-          } else {
-            const last5RunStates = await this.repo.getLastRuns(runId, 3)
-            if (
-              last5RunStates.length === 3 &&
-              last5RunStates.find((s) => s !== IntegrationRunState.ERROR) === undefined
-            ) {
-              this.log.warn(
-                'Last 3 runs have all failed and now this one has failed - marking integration as failed!',
-              )
-              await this.repo.markIntegration(runId, 'error')
-            }
-          }
-        } else {
-          this.log.debug('Some streams are pending retry - run is not finished yet!')
-        }
-      } else {
-        this.log.info('Run finished successfully!')
-
-        try {
-          this.log.info('Trying to post process integration settings!')
-
-          const service = singleOrDefault(
-            INTEGRATION_SERVICES,
-            (s) => s.type === runInfo.integrationType,
-          )
-
-          if (service.postProcess) {
-            let settings = runInfo.integrationSettings as object
-            const newSettings = service.postProcess(settings)
-
-            if (newSettings) {
-              settings = { ...settings, ...newSettings }
-              await this.updateIntegrationSettings(runId, settings)
-            }
-
-            this.log.info('Finished post processing integration settings!')
-          } else {
-            this.log.info('Integration does not have post processing!')
-          }
-        } catch (err) {
-          this.log.error({ err }, 'Error while post processing integration settings!')
-        }
-
-        try {
-          this.log.info('Trying to process startSyncRemote!')
-
-          const service = singleOrDefault(
-            INTEGRATION_SERVICES,
-            (s) => s.type === runInfo.integrationType,
-          )
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const settings = runInfo.integrationSettings as any
-
-          if (
-            service.startSyncRemote &&
-            settings.syncRemoteEnabled &&
-            settings.blockSyncRemote !== true
-          ) {
-            const syncAutomations = await this.automationRepo.findSyncAutomations(
-              runInfo.tenantId,
-              runInfo.integrationType,
-            )
-
-            const syncRemoteContext: IIntegrationStartRemoteSyncContext = {
-              integrationSyncWorkerEmitter: this.integrationSyncWorkerEmitter,
-              integration: {
-                id: runInfo.integrationId,
-                identifier: runInfo.integrationIdentifier,
-                platform: runInfo.integrationType,
-                status: runInfo.integrationState,
-                settings: runInfo.integrationSettings,
-                token: runInfo.integrationToken,
-                refreshToken: runInfo.integrationRefreshToken,
-              },
-              automations: syncAutomations,
-              tenantId: runInfo.tenantId,
-              log: this.log,
-            }
-
-            await service.startSyncRemote(syncRemoteContext)
-
-            this.log.info('Finished processing startSyncRemote!')
-          } else {
-            this.log.info(
-              {
-                syncRemoteEnabled: settings.syncRemoteEnabled,
-                blockSyncRemote: settings.blockSyncRemote,
-              },
-              `Integration does not have a startSyncRemote function or settings disable sync remote!`,
-            )
-          }
-        } catch (err) {
-          this.log.error({ err }, 'Error while starting integration sync remote!')
-        }
-
-        this.log.info('Marking run and integration as successfully processed!')
-        await this.repo.markRunProcessed(runId)
-        await this.repo.markIntegration(runId, 'done')
-
-        if (runInfo.onboarding) {
-          this.apiPubSubEmitter.emitIntegrationCompleted(
-            runInfo.tenantId,
-            runInfo.integrationId,
-            'done',
-          )
-        }
-      }
-    }
   }
 
   public async checkRuns(): Promise<void> {

@@ -139,11 +139,6 @@
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"
   },
-  "hubspot": {
-    "appId": "CROWD_HUBSPOT_APP_ID",
-    "clientId": "CROWD_HUBSPOT_CLIENT_ID",
-    "clientSecret": "CROWD_HUBSPOT_CLIENT_SECRET"
-  },
   "reddit": {
     "clientId": "CROWD_REDDIT_CLIENT_ID",
     "clientSecret": "CROWD_REDDIT_CLIENT_SECRET"

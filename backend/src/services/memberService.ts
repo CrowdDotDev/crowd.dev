@@ -33,7 +33,6 @@ import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExec
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   IMemberIdentity,
   IMemberRoleWithOrganization,
@@ -49,10 +48,8 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
-  TemporalWorkflowId,
 } from '@crowd/types'
 
-import { TEMPORAL_CONFIG } from '@/conf'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -543,35 +540,6 @@ export default class MemberService extends LoggerBase {
 
       if (syncToOpensearch) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
-      }
-
-      if (!existing && fireCrowdWebhooks) {
-        try {
-          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
-            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 100,
-            },
-
-            args: [
-              {
-                tenantId: this.options.currentTenant.id,
-                memberId: record.id,
-              },
-            ],
-            searchAttributes: {
-              TenantId: [this.options.currentTenant.id],
-            },
-          })
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new member automation!',
-          )
-        } catch (err) {
-          logger.error(err, `Error triggering new member automation - ${record.id}!`)
-        }
       }
 
       if (!fireCrowdWebhooks) {

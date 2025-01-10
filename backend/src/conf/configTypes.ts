@@ -1,5 +1,3 @@
-import { ITemporalConfig } from '@crowd/temporal'
-
 export enum ServiceType {
   API = 'api',
   JOB_GENERATOR = 'job-generator',
@@ -230,10 +228,6 @@ export interface CrowdAnalyticsConfiguration {
   tenantId: string
   baseUrl: string
   apiToken: string
-}
-
-export interface IBackendTemporalConfig extends ITemporalConfig {
-  automationsTaskQueue: string
 }
 
 export interface EncryptionConfiguration {

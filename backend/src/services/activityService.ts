@@ -251,42 +251,6 @@ export default class ActivityService extends LoggerBase {
         })
       }
 
-      if (!existing && fireCrowdWebhooks) {
-        try {
-          const handle = await this.options.temporal.workflow.start(
-            'processNewActivityAutomation',
-            {
-              workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
-              taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-              workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-              retry: {
-                maximumAttempts: 100,
-              },
-              args: [
-                {
-                  tenantId: this.options.currentTenant.id,
-                  activityId: record.id,
-                },
-              ],
-              searchAttributes: {
-                TenantId: [this.options.currentTenant.id],
-              },
-            },
-          )
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new activity automation!',
-          )
-        } catch (err) {
-          this.log.error(
-            err,
-            { activityId: record.id },
-            'Error triggering new activity automation!',
-          )
-        }
-      }
-
       if (!fireCrowdWebhooks) {
         this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
       }

@@ -3,9 +3,7 @@
   "queue": {},
   "redis": {},
   "unleash": {},
-  "temporal": {
-    "automationsTaskQueue": "automations"
-  },
+  "temporal": {},
   "worker": {
     "maxStreamRetries": 5,
     "queuePriorityLevel": "normal"

@@ -156,9 +156,6 @@ const en = {
         'Can not trigger nboarding because integration is not in state pending-action!',
       noOrganizationFound: 'No organization found for given id!',
     },
-    hubspot: {
-      notInPlan: 'Hubspot integration requires Scale plan.',
-    },
     members: {
       activeList: {
         activityTimestampFrom: 'activityTimestampFrom is required query parameter!',
@@ -213,11 +210,6 @@ const en = {
         slack: 'Slack',
         hackernews: 'Hacker News',
         discourse: 'Discourse',
-      },
-    },
-    automation: {
-      errors: {
-        planLimitExceeded: 'You have exceeded # of automations you can have in your plan.',
       },
     },
     eagleEye: {

@@ -1,7 +1,6 @@
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
@@ -14,7 +13,6 @@ import {
   IntegrationRunWorkerQueueMessageType,
   QueuePriorityLevel,
   StartIntegrationRunQueueMessage,
-  StreamProcessedQueueMessage,
 } from '@crowd/types'
 
 import IntegrationRunService from '../service/integrationRunService'
@@ -30,7 +28,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -53,7 +50,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
         this.streamWorkerEmitter,
         this.runWorkerEmitter,
         this.searchSyncWorkerEmitter,
-        this.integrationSyncWorkerEmitter,
         this.apiPubSubEmitter,
         new DbStore(this.log, this.dbConn),
         this.log,
@@ -81,9 +77,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
             msg2.manualSettings,
             msg2.additionalInfo,
           )
-          break
-        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
-          await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)

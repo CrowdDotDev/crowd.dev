@@ -2,7 +2,6 @@ import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
@@ -91,20 +90,6 @@ export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmit
   )
   await searchSyncWorkerEmitter.init()
   return searchSyncWorkerEmitter
-}
-
-let integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter
-export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSyncWorkerEmitter> => {
-  if (integrationSyncWorkerEmitter) return integrationSyncWorkerEmitter
-
-  integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
-    QUEUE_CLIENT(),
-    await REDIS_CLIENT(),
-    await QUEUE_PRIORITY_LOADER(),
-    log,
-  )
-  await integrationSyncWorkerEmitter.init()
-  return integrationSyncWorkerEmitter
 }
 
 let dataSinkWorkerEmitter: DataSinkWorkerEmitter

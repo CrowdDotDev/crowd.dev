@@ -5,7 +5,6 @@ export * from './queue/integration_run_worker'
 export * from './queue/integration_stream_worker'
 export * from './queue/data_sink_worker'
 export * from './queue/search_sync_worker'
-export * from './queue/integration_sync_worker'
 
 export * from './dashboard'
 
@@ -36,8 +35,6 @@ export * from './tasks'
 export * from './notes'
 
 export * from './attributes'
-
-export * from './automations'
 
 export * from './query'
 

@@ -340,50 +340,6 @@ class Permissions {
           TenantPlans.Scale,
         ],
       },
-      automationCreate: {
-        id: 'automationCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedPlans: [
-          TenantPlans.Essential,
-          TenantPlans.Growth,
-          TenantPlans.EagleEye,
-          TenantPlans.Enterprise,
-          TenantPlans.Scale,
-        ],
-      },
-      automationUpdate: {
-        id: 'automationUpdate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedPlans: [
-          TenantPlans.Essential,
-          TenantPlans.Growth,
-          TenantPlans.EagleEye,
-          TenantPlans.Enterprise,
-          TenantPlans.Scale,
-        ],
-      },
-      automationDestroy: {
-        id: 'automationDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedPlans: [
-          TenantPlans.Essential,
-          TenantPlans.Growth,
-          TenantPlans.EagleEye,
-          TenantPlans.Enterprise,
-          TenantPlans.Scale,
-        ],
-      },
-      automationRead: {
-        id: 'automationRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-        allowedPlans: [
-          TenantPlans.Essential,
-          TenantPlans.Growth,
-          TenantPlans.EagleEye,
-          TenantPlans.Enterprise,
-          TenantPlans.Scale,
-        ],
-      },
       tagImport: {
         id: 'tagImport',
         allowedRoles: [roles.admin, roles.projectAdmin],

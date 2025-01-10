@@ -3,7 +3,7 @@ import SlackStrategy from 'passport-slack'
 
 import { PlatformType } from '@crowd/types'
 
-import { API_CONFIG, SLACK_CONFIG, SLACK_NOTIFIER_CONFIG } from '../../../conf'
+import { API_CONFIG, SLACK_CONFIG } from '../../../conf'
 
 export function getSlackStrategy(): SlackStrategy {
   return new SlackStrategy.Strategy(
@@ -41,27 +41,4 @@ export function getSlackStrategy(): SlackStrategy {
     },
   )
 }
-export function getSlackNotifierStrategy(): SlackStrategy {
-  return new SlackStrategy.Strategy(
-    {
-      clientID: SLACK_NOTIFIER_CONFIG.clientId,
-      clientSecret: SLACK_NOTIFIER_CONFIG.clientSecret,
-      callbackURL: `${API_CONFIG.url}/tenant/automation/slack/callback`,
-      skipUserProfile: true,
-    },
-    (req, accessToken, webhookData, profile, done) => {
-      if (!done) {
-        throw new TypeError(
-          'Missing req in verifyCallback; did you enable passReqToCallback in your strategy?',
-        )
-      }
-      return done(null, {
-        accessToken: webhookData.access_token,
-        url: webhookData.incoming_webhook.url,
-        configurationUrl: webhookData.incoming_webhook.url,
-        channelId: webhookData.incoming_webhook.url,
-        channelName: webhookData.incoming_webhook.channel,
-      })
-    },
-  )
-}
+
