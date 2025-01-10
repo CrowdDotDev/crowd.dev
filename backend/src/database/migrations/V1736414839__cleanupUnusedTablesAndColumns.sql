@@ -52,3 +52,7 @@ alter table organizations drop column old_weakidentities;
 alter table organizations drop column old_manuallychangedfields;
 alter table organizations drop column old_naics;
 alter table organizations drop column old_names;
+
+alter table integration.runs drop column "microserviceId";
+alter table integration.results drop column "microserviceId";
+alter table integration.streams drop column "microserviceId";
