@@ -142,7 +142,7 @@ export default class DataSinkService extends LoggerBase {
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
-      this.log.info({ resultId }, 'Result not found. Skipping...')
+      this.log.info(`Result not found by id "${resultId}". Skipping...`)
       return false
     }
 
