@@ -21,7 +21,7 @@ const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
-if (processArguments.length !== 2) {
+if (processArguments.length !== 1) {
   log.error('Expected 1 argument: <n> how many pending results to process')
   process.exit(1)
 }
@@ -43,7 +43,7 @@ setImmediate(async () => {
 
   const repo = new DataSinkRepository(store, log)
   let count = 0
-  const batchSize = 100
+  const batchSize = Math.min(numResults, 100)
   let resultIds = await repo.getOldResultsToProcessForTenant(batchSize, [
     IntegrationResultState.PENDING,
   ])
