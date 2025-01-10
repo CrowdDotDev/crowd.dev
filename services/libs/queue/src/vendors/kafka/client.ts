@@ -82,7 +82,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     if (!this.consumers.get(groupId)) {
       const consumer = this.client.consumer({
         groupId,
-        sessionTimeout: 60000,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
         heartbeatInterval: 3000,
       })
       consumer.on(consumer.events.GROUP_JOIN, () => {
@@ -277,7 +278,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     queueConf: IKafkaChannelConfig,
     options?: IKafkaQueueStartOptions,
   ): Promise<void> {
-    const MAX_RETRY_FOR_CONNECTING_CONSUMER = 5
+    const MAX_RETRY_FOR_CONNECTING_CONSUMER = 10
     const RETRY_DELAY = 2000
     let retries = options?.retry || 0
 
@@ -318,8 +319,13 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         }) => {
           this.log.debug(`Received a batch of ${batch.messages.length} messages!`)
 
-          const sendHeartbeat = () => {
-            heartbeat().catch((err) => this.log.error(err, 'Failed to send heartbeat'))
+          const sendHeartbeat = async () => {
+            try {
+              await heartbeat()
+            } catch (err) {
+              this.log.error(err, 'Failed to send heartbeat')
+              await this.handleConsumerError(queueConf.name, consumer)
+            }
           }
 
           const promises = []
@@ -366,7 +372,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
           const interval = setInterval(() => {
             sendHeartbeat()
-          }, 1000)
+          }, 3000)
 
           try {
             await Promise.all(promises)
@@ -374,7 +380,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             clearInterval(interval)
           }
 
-          await commitOffsetsIfNecessary()
+          try {
+            await commitOffsetsIfNecessary()
+          } catch (err) {
+            this.log.error(err, 'Failed to commit offsets')
+            throw err
+          }
         },
       })
     } catch (e) {
