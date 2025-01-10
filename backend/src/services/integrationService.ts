@@ -652,49 +652,49 @@ export default class IntegrationService {
     }
   }
 
-    /**
+  /**
    * Adds discord integration to a tenant
    * @param guildId Guild id of the discord server
    * @returns integration object
    */
-    async discordConnect(guildId) {
-      const transaction = await SequelizeRepository.createTransaction(this.options)
-  
-      let integration
-  
-      try {
-        this.options.log.info('Creating Discord integration!')
-        integration = await this.createOrUpdate(
-          {
-            platform: PlatformType.DISCORD,
-            integrationIdentifier: guildId,
-            token: discordToken,
-            settings: { channels: [], updateMemberAttributes: true },
-            status: 'in-progress',
-          },
-          transaction,
-        )
-  
-        await SequelizeRepository.commitTransaction(transaction)
-      } catch (err) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-        throw err
-      }
-  
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending Discord message to int-run-worker!',
+  async discordConnect(guildId) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    let integration
+
+    try {
+      this.options.log.info('Creating Discord integration!')
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.DISCORD,
+          integrationIdentifier: guildId,
+          token: discordToken,
+          settings: { channels: [], updateMemberAttributes: true },
+          status: 'in-progress',
+        },
+        transaction,
       )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
-  
-      return integration
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
     }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Discord message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
+
+    return integration
+  }
 
   async linkedinOnboard(organizationId) {
     let integration
