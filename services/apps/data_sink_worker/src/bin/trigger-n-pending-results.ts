@@ -44,13 +44,13 @@ setImmediate(async () => {
   const repo = new DataSinkRepository(store, log)
   let count = 0
   const batchSize = Math.min(numResults, 100)
-  let resultIds = await repo.getOldResultsToProcessForTenant(batchSize, [
+  let results = await repo.getOldResultsToProcessForTenant(batchSize, [
     IntegrationResultState.PENDING,
   ])
 
-  while (resultIds.length > 0) {
-    const lastResultId = resultIds[resultIds.length - 1].id
-    const batches = partition(resultIds, 10)
+  while (results.length > 0) {
+    const lastResultId = results[results.length - 1].id
+    const batches = partition(results, 10)
 
     for (const batch of batches) {
       const messages = batch.map((r) => {
@@ -75,7 +75,7 @@ setImmediate(async () => {
       break
     }
 
-    resultIds = await repo.getOldResultsToProcessForTenant(
+    results = await repo.getOldResultsToProcessForTenant(
       batchSize,
       [IntegrationResultState.PENDING],
       lastResultId,

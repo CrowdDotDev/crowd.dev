@@ -81,7 +81,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         },
       )
 
-      return results.map((s) => s.id)
+      return results
     } catch (err) {
       this.log.error(err, 'Failed to get old results to process!')
       throw err
