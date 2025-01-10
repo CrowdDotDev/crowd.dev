@@ -21,14 +21,6 @@ const { exportSendEmail } = proxyActivities<typeof activities>({
   },
 })
 
-// Configure timeouts and retry policies related to Redis for usage count.
-const { decrementUsage } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 seconds',
-  retry: {
-    maximumAttempts: 5,
-  },
-})
-
 /*
 exportOrganizationsToCSV is a Temporal workflow:
   - [Activity]: Build and upload the CSV to S3 containing all organizations returned
@@ -58,10 +50,6 @@ export async function exportOrganizationsToCSV(input: ITriggerCSVExport): Promis
     } catch (err) {
       hasFailed = true
     }
-  }
-
-  if (hasFailed) {
-    await decrementUsage(input)
   }
 
   try {
