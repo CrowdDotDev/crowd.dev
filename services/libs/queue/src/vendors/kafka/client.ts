@@ -327,7 +327,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             try {
               await processMessage(data)
               const duration = performance.now() - now
-              this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+              this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
             } catch (err) {
               const duration = performance.now() - now
               this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
