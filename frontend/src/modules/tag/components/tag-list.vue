@@ -54,8 +54,8 @@ export default {
   emits: ['tags-updated', 'edit'],
   setup() {
     const authStore = useAuthStore();
-    const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+    const { user } = storeToRefs(authStore);
+    return { user };
   },
   data() {
     return {

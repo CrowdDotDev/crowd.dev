@@ -24,7 +24,7 @@ export const isSocketConnected = () => socketIoClient && socketIoClient.connecte
 
 export const connectSocket = (token) => {
   const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+  const { user } = storeToRefs(authStore);
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
@@ -71,11 +71,10 @@ export const connectSocket = (token) => {
       secondaryDisplayName,
       primaryId,
       secondaryId,
-      tenantId,
       userId,
     } = parsedData;
 
-    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
+    if (user.value?.id !== userId) {
       return;
     }
 
@@ -128,11 +127,10 @@ export const connectSocket = (token) => {
       secondaryDisplayName,
       primaryId,
       secondaryId,
-      tenantId,
       userId,
     } = parsedData;
 
-    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
+    if (user.value?.id !== userId) {
       return;
     }
 
@@ -181,10 +179,10 @@ export const connectSocket = (token) => {
     const lsSegmentsStore = useLfSegmentsStore();
     const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const {
-      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, userId,
     } = parsedData;
 
-    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
+    if (user.value?.id !== userId) {
       return;
     }
 
@@ -227,14 +225,13 @@ export const connectSocket = (token) => {
   socketIoClient.on(SocketEvents.orgMerge, (payload) => {
     const {
       success,
-      tenantId,
       userId,
       primaryOrgId,
       original,
       toMerge,
     } = JSON.parse(payload);
 
-    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+    if (user.value.id !== userId) {
       return;
     }
 

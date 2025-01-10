@@ -40,9 +40,9 @@ import { pageContent } from '@/modules/layout/layout-page-content';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const emit = defineEmits(['onStepChange']);
 
 const { hasPermission } = usePermissions();
-
 </script>
