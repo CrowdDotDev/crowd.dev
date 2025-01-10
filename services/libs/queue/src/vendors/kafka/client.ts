@@ -82,7 +82,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     if (!this.consumers.get(groupId)) {
       const consumer = this.client.consumer({
         groupId,
-        sessionTimeout: 30000,
+        sessionTimeout: 60000,
         heartbeatInterval: 3000,
       })
       consumer.on(consumer.events.GROUP_JOIN, () => {
@@ -266,7 +266,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       })),
     })
 
-    this.log.info({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
+    this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
     await producer.disconnect()
     return result
@@ -340,28 +340,32 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
               promises.push(
                 processMessage(data)
                   .then(async () => {
+                    await heartbeat()
+
                     resolveOffset(message.offset)
                     this.removeJob()
 
                     const duration = performance.now() - now
                     this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-
-                    await heartbeat()
                   })
                   .catch(async (err) => {
+                    await heartbeat()
                     this.removeJob()
                     this.log.error(err, 'Error processing message!')
 
                     const duration = performance.now() - now
                     this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-
-                    await heartbeat()
                   }),
               )
             }
           }
 
+          const interval = setInterval(() => {
+            heartbeat().catch((err) => this.log.error(err, 'Failed to send heartbeat'))
+          }, 1000)
+
           await Promise.all(promises)
+          clearInterval(interval)
           await commitOffsetsIfNecessary()
         },
       })
