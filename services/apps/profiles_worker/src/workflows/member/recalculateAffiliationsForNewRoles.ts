@@ -6,7 +6,6 @@ import {
   proxyActivities,
 } from '@temporalio/workflow'
 
-import { getDefaultTenantId } from '@crowd/common'
 import { TemporalWorkflowId } from '@crowd/types'
 
 import * as activities from '../../activities'
@@ -15,9 +14,9 @@ import { IRecalculateAffiliationsForNewRolesInput } from '../../types/member'
 import { memberUpdate } from './memberUpdate'
 
 const {
-  getAffiliationsLastCheckedAtOfTenant,
+  getAffiliationsLastCheckedAt,
   getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAtOfTenant,
+  updateAffiliationsLastCheckedAt,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 seconds',
 })
@@ -30,13 +29,10 @@ const {
 export async function recalculateAffiliationsForNewRoles(
   input: IRecalculateAffiliationsForNewRolesInput,
 ): Promise<void> {
-  const tenantId = getDefaultTenantId()
-  const affiliationsLastChecked = await getAffiliationsLastCheckedAtOfTenant(tenantId)
+  const affiliationsLastChecked = await getAffiliationsLastCheckedAt()
 
   console.log(
-    `Recalculating affiliations for tenant ${
-      tenantId
-    } with affiliationsLastChecked: ${affiliationsLastChecked} and offset ${input.offset || 0}`,
+    `Recalculating affiliations with affiliationsLastChecked: ${affiliationsLastChecked} and offset ${input.offset || 0}`,
   )
 
   const MEMBER_PAGE_SIZE = 100
@@ -49,7 +45,7 @@ export async function recalculateAffiliationsForNewRoles(
   )
 
   if (memberIds.length === 0) {
-    await updateAffiliationsLastCheckedAtOfTenant(tenantId)
+    await updateAffiliationsLastCheckedAt()
     return
   }
 

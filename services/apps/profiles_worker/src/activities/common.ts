@@ -1,14 +1,16 @@
+import { getDefaultTenantId } from '@crowd/common'
 import {
-  getAffiliationsLastCheckedAt,
+  getAffiliationsLastCheckedAt as getAffiliationsLastCheckedAtOfTenant,
   getAllMemberIdsPaginated,
   getMemberIdsWithRecentRoleChanges,
-  updateAffiliationsLastCheckedAt,
+  updateAffiliationsLastCheckedAt as updateAffiliationsLastCheckedAtOfTenant,
 } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 
 import { svc } from '../main'
 
-export async function getAffiliationsLastCheckedAtOfTenant(tenantId: string): Promise<string> {
-  return getAffiliationsLastCheckedAt(svc.postgres.writer, tenantId)
+export async function getAffiliationsLastCheckedAt(): Promise<string> {
+  const tenantId = getDefaultTenantId()
+  return getAffiliationsLastCheckedAtOfTenant(svc.postgres.writer, tenantId)
 }
 
 export async function getMemberIdsForAffiliationUpdates(
@@ -28,6 +30,7 @@ export async function getMemberIdsForAffiliationUpdates(
   )
 }
 
-export async function updateAffiliationsLastCheckedAtOfTenant(tenantId: string): Promise<void> {
-  await updateAffiliationsLastCheckedAt(svc.postgres.writer, tenantId)
+export async function updateAffiliationsLastCheckedAt(): Promise<void> {
+  const tenantId = getDefaultTenantId()
+  await updateAffiliationsLastCheckedAtOfTenant(svc.postgres.writer, tenantId)
 }

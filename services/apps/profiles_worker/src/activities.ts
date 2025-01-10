@@ -1,7 +1,7 @@
 import {
-  getAffiliationsLastCheckedAtOfTenant,
+  getAffiliationsLastCheckedAt,
   getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAtOfTenant,
+  updateAffiliationsLastCheckedAt,
 } from './activities/common'
 import { syncMember, updateMemberAffiliations } from './activities/member/memberUpdate'
 import {
@@ -11,9 +11,9 @@ import {
 
 export {
   updateMemberAffiliations,
-  getAffiliationsLastCheckedAtOfTenant,
+  getAffiliationsLastCheckedAt,
   getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAtOfTenant,
+  updateAffiliationsLastCheckedAt,
   syncMember,
   syncOrganization,
   findMembersInOrganization,
