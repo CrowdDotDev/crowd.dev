@@ -19,7 +19,6 @@ export interface Project {
   sourceParentId: string;
   customActivityTypes: string;
   activityChannels: object;
-  tenantId: string;
   createdAt: string;
   updatedAt: string;
   subproject_count: number;
@@ -41,7 +40,6 @@ export interface ProjectGroup {
   sourceParentId: string;
   customActivityTypes: object;
   activityChannels: object;
-  tenantId: string;
   createdAt: string;
   updatedAt: string;
   projects: Project[];

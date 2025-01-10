@@ -79,8 +79,6 @@ export class IntegrationService {
   }
 
   static async devtoConnect(users, organizations, apiKey, segments) {
-    // Getting the tenant_id
-
     // Calling connect devto function in the backend.
     const response = await authAxios.post('/devto-connect', {
       users,
@@ -105,8 +103,6 @@ export class IntegrationService {
   }
 
   static async hackerNewsConnect(keywords, urls, segments) {
-    // Getting the tenant_id
-
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
       '/hackernews-connect',
@@ -129,8 +125,6 @@ export class IntegrationService {
       setupAction,
       ...getSegments(),
     };
-    // Getting the tenant_id
-
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/authenticate/${code}`,
@@ -182,8 +176,6 @@ export class IntegrationService {
       subreddits,
       segments: [segmentId],
     };
-    // Getting the tenant_id
-
     // Calling the authenticate function in the backend.
     const response = await authAxios.put('/reddit-onboard', body);
     return response.data;
@@ -213,8 +205,6 @@ export class IntegrationService {
   }
 
   static async discordConnect(guildId) {
-    // Getting the tenant_id
-
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/discord-authenticate/${guildId}`,
@@ -290,8 +280,6 @@ export class IntegrationService {
   }
 
   static async stackOverflowOnboard(segmentId, tags, keywords) {
-    // Getting the tenant_id
-
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       '/stackoverflow-connect',
@@ -306,8 +294,6 @@ export class IntegrationService {
   }
 
   static async hubspotConnect() {
-    // Getting the tenant_id
-
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       '/hubspot-connect',
