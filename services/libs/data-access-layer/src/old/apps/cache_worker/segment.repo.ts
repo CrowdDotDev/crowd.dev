@@ -69,9 +69,7 @@ class SegmentRepository {
     return rows || []
   }
 
-  async getProjectGroupLeafSegments(
-    grandparentSlug: string,
-  ): Promise<ISegment[]> {
+  async getProjectGroupLeafSegments(grandparentSlug: string): Promise<ISegment[]> {
     let rows: ISegment[] = []
     try {
       rows = await this.connection.query(
@@ -115,7 +113,7 @@ class SegmentRepository {
     and "parentSlug" is not null
     and "grandparentSlug" is not null;
           
-      `
+      `,
       )
     } catch (err) {
       this.log.error(`Error while getting the default segment!`, err)
