@@ -4,9 +4,9 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ITemporalConfig } from '@crowd/temporal'
 import { IGithubIssueReporterConfiguration, IJiraIssueReporterConfiguration } from '@crowd/types'
 
-import { ITemporalConfig } from '@crowd/temporal'
 import {
   ApiConfiguration,
   Auth0Configuration,
@@ -152,8 +152,7 @@ export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
 
-export const TEMPORAL_CONFIG: ITemporalConfig =
-  config.get<ITemporalConfig>('temporal')
+export const TEMPORAL_CONFIG: ITemporalConfig = config.get<ITemporalConfig>('temporal')
 
 export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
   config.get<ISearchSyncApiConfig>('searchSyncApi')
