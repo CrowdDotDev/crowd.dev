@@ -125,7 +125,6 @@ import { computed } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { i18n } from '@/i18n';
 import pluralize from 'pluralize';
 import { getSegmentName } from '@/utils/segments';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
@@ -178,7 +177,7 @@ const deleteOrganization = (organization: any) => {
     OrganizationService.destroyAll([organization.id], organization.segments)
       .then(() => {
         Message.closeAll();
-        Message.success(i18n('entities.organization.destroy.success'));
+        Message.success('Organization successfully deleted');
         emit('reload');
       })
       .catch(() => {
