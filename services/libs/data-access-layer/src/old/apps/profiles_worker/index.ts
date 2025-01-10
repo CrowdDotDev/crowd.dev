@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import QueryStream from 'pg-query-stream'
 
+import { getDefaultTenantId } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 
@@ -179,7 +180,9 @@ export async function runMemberAffiliationsUpdate(
   logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
-export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {
+export async function getAffiliationsLastCheckedAt(db: DbStore) {
+  const tenantId = getDefaultTenantId()
+
   try {
     const result: IAffiliationsLastCheckedAt = await db.connection().oneOrNone(
       `
@@ -248,10 +251,8 @@ export async function getMemberIdsWithRecentRoleChanges(
   }
 }
 
-export async function updateAffiliationsLastCheckedAt(
-  db: DbStore,
-  tenantId: string,
-): Promise<void> {
+export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void> {
+  const tenantId = getDefaultTenantId()
   try {
     await db.connection().any(
       `

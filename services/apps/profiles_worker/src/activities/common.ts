@@ -1,6 +1,5 @@
-import { getDefaultTenantId } from '@crowd/common'
 import {
-  getAffiliationsLastCheckedAt as getAffiliationsLastCheckedAtOfTenant,
+  getAffiliationsLastCheckedAt as getAffiliationsLastCheckedAtDAL,
   getAllMemberIdsPaginated,
   getMemberIdsWithRecentRoleChanges,
   updateAffiliationsLastCheckedAt as updateAffiliationsLastCheckedAtOfTenant,
@@ -9,8 +8,7 @@ import {
 import { svc } from '../main'
 
 export async function getAffiliationsLastCheckedAt(): Promise<string> {
-  const tenantId = getDefaultTenantId()
-  return getAffiliationsLastCheckedAtOfTenant(svc.postgres.writer, tenantId)
+  return getAffiliationsLastCheckedAtDAL(svc.postgres.writer)
 }
 
 export async function getMemberIdsForAffiliationUpdates(
@@ -31,6 +29,5 @@ export async function getMemberIdsForAffiliationUpdates(
 }
 
 export async function updateAffiliationsLastCheckedAt(): Promise<void> {
-  const tenantId = getDefaultTenantId()
-  await updateAffiliationsLastCheckedAtOfTenant(svc.postgres.writer, tenantId)
+  await updateAffiliationsLastCheckedAtOfTenant(svc.postgres.writer)
 }
