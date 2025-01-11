@@ -319,19 +319,30 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       }, 10 * 60000) // Check every 10 minutes
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
+
       await consumer.run({
         eachMessage: async ({ message }) => {
           if (message && message.value) {
-            const data = JSON.parse(message.value.toString())
-            const now = performance.now()
-            try {
-              await processMessage(data)
-              const duration = performance.now() - now
-              this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-            } catch (err) {
-              const duration = performance.now() - now
-              this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+            while (!this.isAvailable(maxConcurrentMessageProcessing)) {
+              await timeout(10)
             }
+            const now = performance.now()
+
+            this.addJob()
+            const data = JSON.parse(message.value.toString())
+
+            processMessage(data)
+              .then(() => {
+                const duration = performance.now() - now
+                this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+              })
+              .catch((err) => {
+                const duration = performance.now() - now
+                this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+              })
+              .finally(() => {
+                this.removeJob()
+              })
           }
         },
       })
