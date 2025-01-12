@@ -30,7 +30,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       level,
       client,
       client.getQueueChannelConfig(CrowdQueue.DATA_SINK_WORKER),
-      5,
+      Number(process.env.DATA_SINK_WORKER_MAX_CONCURRENCY || 1),
       parentLog,
       undefined,
       undefined,
