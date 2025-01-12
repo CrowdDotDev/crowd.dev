@@ -46,28 +46,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result
   }
 
-  public async createResult(
-    tenantId: string,
-    integrationId: string,
-    result: IIntegrationResult,
-  ): Promise<string> {
-    const results = await this.db().one(
-      `
-    insert into integration.results(state, data, "tenantId", "integrationId")
-    values($(state), $(data), $(tenantId), $(integrationId))
-    returning id;
-    `,
-      {
-        tenantId,
-        integrationId,
-        state: IntegrationResultState.PENDING,
-        data: JSON.stringify(result),
-      },
-    )
-
-    return results.id
-  }
-
   public async getOldResultsToProcessForTenant(
     tenantId: string,
     limit: number,
@@ -147,22 +125,44 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     }
   }
 
-  public async markResultError(resultId: string, error: unknown): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-         set state = $(state),
-             "processedAt" = now(),
-             error = $(error),
-             "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        state: IntegrationResultState.ERROR,
-        error: JSON.stringify(error),
-      },
-    )
+  public async markResultError(
+    resultId: string,
+    error: unknown,
+    resultToCreate?: IResultData,
+  ): Promise<void> {
+    if (resultToCreate) {
+      const result = await this.db().result(
+        `
+      insert into integration.results(state, data, "tenantId", "integrationId", error)
+      values($(state), $(data), $(tenantId), $(integrationId), $(error))
+      `,
+        {
+          tenantId: resultToCreate.tenantId,
+          integrationId: resultToCreate.integrationId,
+          state: IntegrationResultState.ERROR,
+          data: JSON.stringify(resultToCreate.data),
+          error: JSON.stringify(error),
+        },
+      )
 
-    this.checkUpdateRowCount(result.rowCount, 1)
+      this.checkUpdateRowCount(result.rowCount, 1)
+    } else {
+      const result = await this.db().result(
+        `update integration.results
+           set state = $(state),
+               "processedAt" = now(),
+               error = $(error),
+               "updatedAt" = now()
+         where id = $(resultId)`,
+        {
+          resultId,
+          state: IntegrationResultState.ERROR,
+          error: JSON.stringify(error),
+        },
+      )
+
+      this.checkUpdateRowCount(result.rowCount, 1)
+    }
   }
 
   public async deleteResult(resultId: string): Promise<void> {
@@ -266,24 +266,48 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result.map((r) => r.id)
   }
 
-  public async delayResult(resultId: string, until: Date, error: unknown): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-       set  state = $(state),
-            error = $(error),
-            "delayedUntil" = $(until),
-            retries = coalesce(retries, 0) + 1,
-            "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        until,
-        error: JSON.stringify(error),
-        state: IntegrationResultState.DELAYED,
-      },
-    )
+  public async delayResult(
+    resultId: string,
+    until: Date,
+    error: unknown,
+    resultToCreate?: IResultData,
+  ): Promise<void> {
+    if (resultToCreate) {
+      const result = await this.db().result(
+        `
+          insert into integration.results(state, data, "tenantId", "integrationId", error, retries, "delayedUntil")
+          values($(state), $(data), $(tenantId), $(integrationId), $(error), $(retries), $(until))
+        `,
+        {
+          tenantId: resultToCreate.tenantId,
+          integrationId: resultToCreate.integrationId,
+          state: IntegrationResultState.DELAYED,
+          data: JSON.stringify(resultToCreate.data),
+          retries: 1,
+          error: JSON.stringify(error),
+          until: until,
+        },
+      )
+      this.checkUpdateRowCount(result.rowCount, 1)
+    } else {
+      const result = await this.db().result(
+        `update integration.results
+         set  state = $(state),
+              error = $(error),
+              "delayedUntil" = $(until),
+              retries = coalesce(retries, 0) + 1,
+              "updatedAt" = now()
+         where id = $(resultId)`,
+        {
+          resultId,
+          until,
+          error: JSON.stringify(error),
+          state: IntegrationResultState.DELAYED,
+        },
+      )
 
-    this.checkUpdateRowCount(result.rowCount, 1)
+      this.checkUpdateRowCount(result.rowCount, 1)
+    }
   }
 
   public async getDelayedResults(limit: number): Promise<IDelayedResults[]> {

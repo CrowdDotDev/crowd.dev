@@ -58,7 +58,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
           break
         case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
           const msg = message as CreateAndProcessActivityResultQueueMessage
-          await service.createAndProcessActivityResult(
+          await service.processActivityInMemoryResult(
             msg.tenantId,
             msg.segmentId,
             msg.integrationId,
