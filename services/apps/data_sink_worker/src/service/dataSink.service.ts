@@ -111,7 +111,7 @@ export default class DataSinkService extends LoggerBase {
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.info({ tenantId, segmentId }, 'Creating and processing activity result.')
+    this.log.info({ tenantId, segmentId }, 'Processing in memory activity result.')
 
     const payload = {
       type: IntegrationResultType.ACTIVITY,
