@@ -54,9 +54,6 @@ export default class GithubReposRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
-    console.log('Old mapping:', oldMapping)
-    console.log('New mapping:', newMapping)
-
     // Create maps for efficient lookup
     const oldMappingMap = new Map(oldMapping.map((m) => [m.url, m.segment.id]))
     const newMappingEntries = Object.entries(newMapping)
@@ -67,10 +64,8 @@ export default class GithubReposRepository {
       return !oldSegmentId || oldSegmentId !== segmentId
     })
 
-    console.log('Repos to upsert:', reposToUpsert)
-
     if (reposToUpsert.length > 0) {
-      const result = await GithubReposRepository.bulkInsert(
+      await GithubReposRepository.bulkInsert(
         'githubRepos',
         ['tenantId', 'integrationId', 'segmentId', 'url'],
         (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
@@ -82,17 +77,14 @@ export default class GithubReposRepository {
         })),
         options,
       )
-      console.log('Bulk insert result:', result)
     }
 
     // Find repos that were removed (exist in old but not in new)
     const newUrlSet = new Set(Object.keys(newMapping))
     const urlsToRemove = oldMapping.filter((m) => !newUrlSet.has(m.url)).map((m) => m.url)
 
-    console.log('URLs to remove:', urlsToRemove)
-
     if (urlsToRemove.length > 0) {
-      const result = await seq.query(
+      await seq.query(
         `
         UPDATE "githubRepos"
         SET "deletedAt" = NOW()
@@ -110,7 +102,6 @@ export default class GithubReposRepository {
           transaction,
         },
       )
-      console.log('Delete result:', result)
     }
   }
 

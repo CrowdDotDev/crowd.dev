@@ -1,14 +1,7 @@
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { Error404 } from '@crowd/common'
-import {
-  AutomationState,
-  AutomationSyncTrigger,
-  FeatureFlag,
-  IAutomationData,
-  PLAN_LIMITS,
-  PageData,
-} from '@crowd/types'
+import { AutomationState, AutomationSyncTrigger, IAutomationData, PageData } from '@crowd/types'
 
 import { AutomationCriteria } from '../../types/automationTypes'
 
@@ -37,20 +30,13 @@ export default class AutomationRepository extends RepositoryBase<
 
     const transaction = this.transaction
 
-    const existingActiveAutomations = await this.findAndCountAll({
-      state: AutomationState.ACTIVE,
-    })
-
     const record = await this.database.automation.create(
       {
         name: data.name,
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
-        state:
-          existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
-            ? AutomationState.DISABLED
-            : data.state,
+        state: data.state,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -71,17 +57,6 @@ export default class AutomationRepository extends RepositoryBase<
     const currentTenant = this.currentTenant
 
     const transaction = this.transaction
-
-    const existingActiveAutomations = await this.findAndCountAll({
-      state: AutomationState.ACTIVE,
-    })
-
-    if (
-      data.state === AutomationState.ACTIVE &&
-      existingActiveAutomations.count >= PLAN_LIMITS[currentTenant.plan][FeatureFlag.AUTOMATIONS]
-    ) {
-      throw new Error(`Maximum number of active automations reached for the plan!`)
-    }
 
     let record = await this.database.automation.findOne({
       where: {
