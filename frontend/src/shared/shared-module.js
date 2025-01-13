@@ -1,10 +1,7 @@
-import StringArrayInput from '@/shared/form/string-array-input.vue'
 import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
 import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue'
 import KeywordsInput from '@/shared/form/keywords-input.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
-import SquaredAvatar from '@/shared/avatar/squared-avatar.vue'
-import Teleport from '@/shared/teleport/teleport.vue'
 import Pagination from '@/shared/pagination/pagination.vue'
 import InfinitePagination from '@/shared/pagination/infinite-pagination.vue'
 import PaginationSorter from '@/shared/pagination/pagination-sorter.vue'
@@ -24,11 +21,8 @@ export default {
   components: {
     'app-autocomplete-one-input': AutocompleteOneInput,
     'app-autocomplete-many-input': AutocompleteManyInput,
-    'app-string-array-input': StringArrayInput,
     'app-avatar': Avatar,
-    'app-squared-avatar': SquaredAvatar,
     'app-keywords-input': KeywordsInput,
-    'app-teleport': Teleport,
     'app-pagination': Pagination,
     'app-infinite-pagination': InfinitePagination,
     'app-pagination-sorter': PaginationSorter,
