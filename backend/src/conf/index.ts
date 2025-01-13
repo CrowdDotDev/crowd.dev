@@ -27,14 +27,10 @@ import {
   IRedditConfig,
   IntegrationProcessingConfiguration,
   NangoConfiguration,
-  NetlifyConfiguration,
   OrganizationEnrichmentConfiguration,
-  PlansConfiguration,
   S3Configuration,
   SSOConfiguration,
-  SampleDataConfiguration,
   SegmentConfiguration,
-  SendgridConfiguration,
   ServiceType,
   SlackAlertingConfiguration,
   SlackConfiguration,
@@ -43,8 +39,6 @@ import {
   StackExchangeConfiguration,
   TenantMode,
   TwitterConfiguration,
-  UnleashConfiguration,
-  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -102,8 +96,6 @@ export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('
 
 export const SSO_CONFIG: SSOConfiguration = config.get<SSOConfiguration>('sso')
 
-export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
-
 export const TWITTER_CONFIG: TwitterConfiguration = config.get<TwitterConfiguration>('twitter')
 
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
@@ -123,10 +115,6 @@ export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
 export const JIRA_ISSUE_REPORTER_CONFIG: IJiraIssueReporterConfiguration =
   config.get<IJiraIssueReporterConfiguration>('jiraIssueReporter')
 
-export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
-
-export const NETLIFY_CONFIG: NetlifyConfiguration = config.get<NetlifyConfiguration>('netlify')
-
 export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
 
 export const ENRICHMENT_CONFIG: EnrichmentConfiguration =
@@ -140,8 +128,6 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = config.get<EagleEyeConfig
 export const GITHUB_TOKEN_CONFIG: GithubTokenConfiguration =
   config.get<GithubTokenConfiguration>('githubToken')
 
-export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
-
 export const OPENSEARCH_CONFIG: IOpenSearchConfig = config.get<IOpenSearchConfig>('opensearch')
 
 export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
@@ -152,14 +138,8 @@ export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
   config.get<SlackAlertingConfiguration>('slackAlerting')
 
-export const SAMPLE_DATA_CONFIG: SampleDataConfiguration =
-  config.get<SampleDataConfiguration>('sampleData')
-
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
-
-export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
-  config.get<WeeklyEmailsConfiguration>('weeklyEmails')
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')

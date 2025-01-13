@@ -111,20 +111,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         )
       }
 
-      // load activity tasks
-      promises.push(
-        this.getActivityTasks(activityIds).then((allTasks) => {
-          for (const activity of results) {
-            activity.tasks = allTasks
-              .filter((t) => t.activityId === activity.id)
-              .map((t) => {
-                delete t.activityId
-                return t
-              })
-          }
-        }),
-      )
-
       await Promise.all(promises)
     }
 
@@ -134,23 +120,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         activity.engagement = activity.member.score || 0
       }
     }
-
-    return results
-  }
-
-  public async getActivityTasks(activityIds: string[]): Promise<any[]> {
-    const results = await this.db().any(
-      `
-      select at."activityId", t.*
-      from "activityTasks" at
-              inner join tasks t on t.id = at."taskId"
-      where at."activityId" in ($(activityIds:csv))
-        and t."deletedAt" is null;
-      `,
-      {
-        activityIds,
-      },
-    )
 
     return results
   }
@@ -285,20 +254,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         }),
       )
 
-      // load notes
-      promises.push(
-        this.getMemberNotes(memberIds).then((notes) => {
-          for (const member of results) {
-            member.notes = notes
-              .filter((n) => n.memberId === member.id)
-              .map((n) => {
-                delete n.memberId
-                return n
-              })
-          }
-        }),
-      )
-
       // load no merge
       promises.push(
         this.getMemberNoMerge(memberIds).then((noMerges) => {
@@ -424,23 +379,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       select "memberId", "noMergeId"
       from "memberNoMerge"
       where "memberId" in ($(memberIds:csv));
-      `,
-      {
-        memberIds,
-      },
-    )
-
-    return results
-  }
-
-  async getMemberNotes(memberIds: string[]): Promise<any[]> {
-    const results = await this.db().any(
-      `
-      select mn."memberId", n.*
-      from "memberNotes" mn
-              inner join notes n on mn."noteId" = n.id
-      where mn."memberId" in ($(memberIds:csv))
-        and n."deletedAt" is null;
       `,
       {
         memberIds,

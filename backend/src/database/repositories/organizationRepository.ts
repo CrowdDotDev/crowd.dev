@@ -43,7 +43,6 @@ import {
 } from '@crowd/data-access-layer/src/segments'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
-  FeatureFlag,
   IMemberRenderFriendlyRole,
   IMemberRoleWithOrganization,
   IOrganizationIdentity,
@@ -56,7 +55,6 @@ import {
   SegmentProjectNestedData,
 } from '@crowd/types'
 
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -1350,8 +1348,6 @@ class OrganizationRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
-
     const segment = segments[0]
 
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
@@ -1386,7 +1382,7 @@ class OrganizationRepository {
       },
     })
 
-    if (segmentsEnabled && segment) {
+    if (segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {

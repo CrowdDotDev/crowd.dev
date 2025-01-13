@@ -10,17 +10,13 @@
     "noUnusedParameters": false,
     "sourceMap": true,
     "target": "es2018",
-    "types": ["node", "jest"],
+    "types": ["node"],
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
     },
     "skipLibCheck": true
   },
-  "include": [
-    "src",
-    "src/database/initializers/sample-data.json",
-    "src/database/initializers/suggested-tasks.json"
-  ],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }
