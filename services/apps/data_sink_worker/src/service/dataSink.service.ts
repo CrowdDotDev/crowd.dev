@@ -1,4 +1,4 @@
-import { addSeconds } from '@crowd/common'
+import { addSeconds, generateUUIDv1 } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
@@ -42,6 +42,7 @@ export default class DataSinkService extends LoggerBase {
 
   private async triggerResultError(
     resultInfo: IResultData,
+    isCreated: boolean,
     location: string,
     message: string,
     metadata?: unknown,
@@ -63,9 +64,15 @@ export default class DataSinkService extends LoggerBase {
       // delay for #retries * 2 minutes
       const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
       this.log.warn({ until: until.toISOString() }, 'Retrying result!')
-      await this.repo.delayResult(resultInfo.id, until, errorData)
+
+      await this.repo.delayResult(
+        resultInfo.id,
+        until,
+        errorData,
+        isCreated ? undefined : resultInfo,
+      )
     } else {
-      await this.repo.markResultError(resultInfo.id, errorData)
+      await this.repo.markResultError(resultInfo.id, errorData, isCreated ? undefined : resultInfo)
     }
   }
 
@@ -98,13 +105,13 @@ export default class DataSinkService extends LoggerBase {
     }
   }
 
-  public async createAndProcessActivityResult(
+  public async processActivityInMemoryResult(
     tenantId: string,
     segmentId: string,
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.info({ tenantId, segmentId }, 'Creating and processing activity result.')
+    this.log.info({ tenantId, segmentId }, 'Processing in memory activity result.')
 
     const payload = {
       type: IntegrationResultType.ACTIVITY,
@@ -112,13 +119,15 @@ export default class DataSinkService extends LoggerBase {
       segmentId,
     }
 
-    const [integration, resultId] = await Promise.all([
-      integrationId ? this.repo.getIntegrationInfo(integrationId) : Promise.resolve(null),
-      this.repo.createResult(tenantId, integrationId, payload),
-    ])
+    let integration
 
+    if (integrationId) {
+      integration = await this.repo.getIntegrationInfo(integrationId)
+    }
+
+    const id = generateUUIDv1()
     const result: IResultData = {
-      id: resultId,
+      id,
       tenantId,
       integrationId,
       data: payload,
@@ -132,7 +141,7 @@ export default class DataSinkService extends LoggerBase {
       onboarding: false,
     }
 
-    await this.processResult(resultId, result)
+    await this.processResult(id, result)
   }
 
   public async processResult(resultId: string, result?: IResultData): Promise<boolean> {
@@ -263,13 +272,18 @@ export default class DataSinkService extends LoggerBase {
           type: data.type,
         },
       )
-      await this.repo.deleteResult(resultId)
+
+      if (!result) {
+        await this.repo.deleteResult(resultId)
+      }
+
       return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')
       try {
         await this.triggerResultError(
           resultInfo,
+          result === undefined,
           'process-result',
           'Error processing result.',
           undefined,
