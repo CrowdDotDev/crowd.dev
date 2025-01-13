@@ -8,10 +8,8 @@ import {
   IMemberRenderFriendlyRole,
   IMemberRoleWithOrganization,
   IMemberUsername,
-  INote,
   IOrganization,
   ITag,
-  ITask,
   LLMSuggestionVerdictType,
   MergeActionState,
   MergeActionStep,
@@ -46,8 +44,6 @@ export interface IMemberUnmergeBackup {
   id: string
   tags: ITag[]
   reach: IMemberReach
-  tasks: ITask[]
-  notes: INote[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername
@@ -64,9 +60,7 @@ export interface IMemberUnmergeBackup {
 export interface IMemberUnmergePreviewResult {
   id: string
   tags: ITag[]
-  notes: INote[]
   reach: IMemberReach
-  tasks: ITask[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername

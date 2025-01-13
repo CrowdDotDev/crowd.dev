@@ -593,21 +593,8 @@ function source_edition() {
     say "Crowd edition detected: $__CROWD_EDITION"
 }
 
-function check_init_premium() {
-    source_edition
-    if [ $__CROWD_EDITION == "crowd-hosted" ]; then
-        $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml up -d --build
-        init_unleash
-    fi
-}
-
 function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
-}
-
-function init_unleash() {
-    install_libs
-    (cd $CLI_HOME/../backend && source source-local.sh && pnpm run script:unleash-init)
 }
 
 function up_scaffold() {
@@ -624,12 +611,10 @@ function up_scaffold() {
 function post_up_scaffold() {
     migrate_local
     bash $CLI_HOME/nango-integrations.sh
-    check_init_premium
 }
 
 function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -694,7 +679,6 @@ function service_start() {
 function scaffold_destroy_confirmed() {
     kill_all_containers
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/premium-scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
@@ -767,7 +751,7 @@ while test $# -gt 0; do
         exit
         ;;
     start-dev)
-        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         DEV=1
         start
         exit
@@ -778,7 +762,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         CLEAN_START=1
         DEV=1
         start
@@ -863,14 +847,14 @@ while test $# -gt 0; do
         exit
         ;;
     service-restart-fe-dev)
-        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         DEV=1
         kill_all_containers
         service_start
         exit
         ;;
     clean-start-fe-dev)
-        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
         CLEAN_START=1
         DEV=1
         start
