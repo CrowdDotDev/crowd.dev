@@ -358,8 +358,12 @@ async function prepareOrg(
     findOrgAttributes(qx, organizationId),
   ])
 
+  if (!base) {
+    return null
+  }
+
   return {
-    displayName: base.displayName,
+    displayName: base?.displayName || '',
     description: base.description,
     phoneNumbers: attributes.filter((a) => a.name === 'phoneNumber').map((a) => a.value),
     logo: base.logo,
@@ -390,7 +394,7 @@ export async function getOrganizationsForLLMConsumption(
     }),
   )
 
-  return result
+  return result.filter((r) => r !== null)
 }
 
 export async function getRawOrganizationMergeSuggestions(
