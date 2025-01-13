@@ -23,11 +23,13 @@ async function getKey(header, callback) {
 export default async (req, res) => {
   const { idToken, invitationToken, tenantId } = req.body
 
+  console.log('idToken', idToken)
+
   try {
     const verifyToken = new Promise((resolve, reject) => {
       jwt.verify(idToken, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
         if (err) {
-          req.log.error('Error verifying token', err)
+          req.log.error('Error verifying token inside jwt.verify', err)
           reject(new Error401())
         }
 
