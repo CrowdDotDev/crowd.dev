@@ -21,6 +21,7 @@ async function getKey(header, callback) {
 }
 
 export default async (req, res) => {
+  console.log('req.body', req.body)
   const { idToken, invitationToken, tenantId } = req.body
 
   console.log('idToken', idToken)
