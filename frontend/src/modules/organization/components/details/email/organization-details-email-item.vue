@@ -39,7 +39,7 @@
     </div>
 
     <!-- Dropdown -->
-    <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
+    <lf-dropdown v-show="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
           <lf-icon-old name="more-fill" />
