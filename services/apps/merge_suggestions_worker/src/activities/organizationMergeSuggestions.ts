@@ -1,6 +1,7 @@
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
+import { addOrgNoMerge } from '@crowd/data-access-layer/src/org_merge'
 import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
@@ -428,10 +429,23 @@ export async function getRawOrganizationMergeSuggestions(
   return suggestions
 }
 
-export async function removeRawOrganizationMergeSuggestions(suggestion: string[]): Promise<void> {
+export async function removeOrganizationMergeSuggestions(
+  suggestion: string[],
+  table: OrganizationMergeSuggestionTable,
+): Promise<void> {
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  await organizationMergeSuggestionsRepo.removeRawOrganizationMergeSuggestions(suggestion)
+  await organizationMergeSuggestionsRepo.removeOrganizationMergeSuggestions(suggestion, table)
+}
+
+export async function addOrganizationSuggestionToNoMerge(suggestion: string[]): Promise<void> {
+  if (suggestion.length !== 2) {
+    svc.log.debug(`Suggestions array must have two ids!`)
+    return
+  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  await addOrgNoMerge(qx, suggestion[0], suggestion[1])
 }
