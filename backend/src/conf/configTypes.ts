@@ -99,11 +99,6 @@ export interface SlackConfiguration {
   appToken?: string
 }
 
-export interface SlackNotifierConfiguration {
-  clientId: string
-  clientSecret: string
-}
-
 export interface GoogleConfiguration {
   clientId: string
   clientSecret: string

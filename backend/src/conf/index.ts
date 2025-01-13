@@ -34,7 +34,6 @@ import {
   ServiceType,
   SlackAlertingConfiguration,
   SlackConfiguration,
-  SlackNotifierConfiguration,
   SnowflakeConfiguration,
   StackExchangeConfiguration,
   TenantMode,
@@ -99,9 +98,6 @@ export const SSO_CONFIG: SSOConfiguration = config.get<SSOConfiguration>('sso')
 export const TWITTER_CONFIG: TwitterConfiguration = config.get<TwitterConfiguration>('twitter')
 
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
-
-export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration =
-  config.get<SlackNotifierConfiguration>('slackNotifier')
 
 export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration>('google')
 
