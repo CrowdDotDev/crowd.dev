@@ -11,8 +11,6 @@ const useContributorHelpers = () => {
 
   const isBot = (contributor: Contributor) => !!contributor.attributes?.isBot?.default;
 
-  const isMasked = (contributor: Contributor) => !!contributor.attributes?.gdprDeleteRequest?.default;
-
   const isNew = (contributor: Contributor) => {
     if (!contributor.joinedAt) {
       return false;
@@ -74,7 +72,6 @@ const useContributorHelpers = () => {
     avatar,
     isTeamMember,
     isBot,
-    isMasked,
     isNew,
     identities,
     emails,
