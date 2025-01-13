@@ -42,6 +42,38 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.reconnectAttempts = new Map<string, number>()
     this.consumerStatus = new Map<string, boolean>()
   }
+  async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
+    const groupId = conf.name
+    const topic = conf.name
+
+    const admin = this.client.admin()
+    await admin.connect()
+
+    try {
+      const topicOffsets = await admin.fetchTopicOffsets(topic)
+      const offsetsResponse = await admin.fetchOffsets({
+        groupId: groupId,
+        topics: [topic],
+      })
+
+      const offsets = offsetsResponse[0].partitions
+
+      let totalLeft = 0
+      for (const offset of offsets) {
+        const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
+        if (topicOffset.offset !== offset.offset) {
+          totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+        }
+      }
+
+      return totalLeft
+    } catch (err) {
+      this.log.error(err, 'Failed to get message count!')
+      throw err
+    } finally {
+      await admin.disconnect()
+    }
+  }
 
   public async send(
     channel: IQueueChannel,
@@ -294,6 +326,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     let retries = options?.retry || 0
 
     let healthCheckInterval
+    let statisticsInterval
 
     try {
       this.started = true
@@ -318,6 +351,33 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         }
       }, 10 * 60000) // Check every 10 minutes
 
+      let timings = []
+
+      statisticsInterval = setInterval(async () => {
+        if (!this.started) {
+          clearInterval(statisticsInterval)
+          return
+        }
+
+        try {
+          // Reset the timings array and calculate the average processing time
+          const durations = [...timings]
+          timings = []
+
+          // Get the number of messages left in the queue
+          const count = await this.getQueueMessageCount(queueConf)
+
+          let message = `Topic has ${count} messages left!`
+          if (durations.length > 0) {
+            const average = durations.reduce((a, b) => a + b, 0) / durations.length
+            message += ` In the last minute ${durations.length} messages were processed (${(durations.length / 60.0).toFixed(2)} msg/s) - average processing time: ${average.toFixed(2)}ms!`
+          }
+          this.log.info({ topic: queueConf.name }, message)
+        } catch (err) {
+          // do nothing
+        }
+      }, 60000) // check every minute
+
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
 
       await consumer.run({
@@ -334,10 +394,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             processMessage(data)
               .then(() => {
                 const duration = performance.now() - now
-                this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                timings.push(duration)
+                this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
               })
               .catch((err) => {
                 const duration = performance.now() - now
+                timings.push(duration)
                 this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
               })
               .finally(() => {
@@ -349,6 +411,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     } catch (e) {
       this.log.trace({ topic: queueConf.name, error: e }, 'Failed to start the queue!')
       clearInterval(healthCheckInterval)
+      clearInterval(statisticsInterval)
       if (retries < MAX_RETRY_FOR_CONNECTING_CONSUMER) {
         retries++
         this.log.trace({ topic: queueConf.name, retries }, 'Retrying to start the queue...')
