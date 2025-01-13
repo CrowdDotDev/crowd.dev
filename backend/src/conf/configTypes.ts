@@ -160,16 +160,8 @@ export interface SlackAlertingConfiguration {
   url: string
 }
 
-export interface SampleDataConfiguration {
-  tenantId: string
-}
-
 export interface IntegrationProcessingConfiguration {
   maxRetries: number
-}
-
-export interface WeeklyEmailsConfiguration {
-  enabled: string // true - enabled, anything else - disabled
 }
 
 export interface IOpenSearchConfig {

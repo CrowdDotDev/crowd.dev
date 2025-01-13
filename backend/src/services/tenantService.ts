@@ -250,10 +250,6 @@ export default class TenantService {
         currentTenant: { id },
       })
 
-      if (data.hasSampleData === undefined) {
-        data.hasSampleData = record.hasSampleData
-      }
-
       if (!force) {
         new PermissionChecker({
           ...this.options,

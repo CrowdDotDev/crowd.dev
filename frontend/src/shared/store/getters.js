@@ -1,4 +1,4 @@
-import { filtersAreDifferent } from '@/shared/filter/helpers/different-util';
+import { filtersAreDifferent } from '@/shared/helpers/different-util';
 import { INITIAL_PAGE_SIZE } from './constants';
 
 export default () => ({
