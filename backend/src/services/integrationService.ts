@@ -46,13 +46,10 @@ import {
 } from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
-import {
-  getIntegrationRunWorkerEmitter,
-} from '../serverless/utils/queueService'
+import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
-
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
