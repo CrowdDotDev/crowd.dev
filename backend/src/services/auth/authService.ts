@@ -338,6 +338,9 @@ class AuthService {
         }
 
         const { id } = decoded
+
+        console.log('decoded id', id)
+
         const jwtTokenIat = decoded.iat
 
         UserRepository.findById(id, {
