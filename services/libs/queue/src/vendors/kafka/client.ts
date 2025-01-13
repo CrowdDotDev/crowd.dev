@@ -370,7 +370,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
           let message = `Topic has ${count} messages left!`
           if (durations.length > 0) {
             const average = durations.reduce((a, b) => a + b, 0) / durations.length
-            message += ` In the last minute ${durations.length} messages were processed - average processing time: ${average.toFixed(2)}ms!`
+            message += ` In the last minute ${durations.length} messages were processed (${(durations.length / 60.0).toFixed(2)} msg/s) - average processing time: ${average.toFixed(2)}ms!`
           }
           this.log.info({ topic: queueConf.name }, message)
         } catch (err) {
