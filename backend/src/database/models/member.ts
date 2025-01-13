@@ -110,16 +110,6 @@ export default (sequelize) => {
       timestamps: false,
     })
 
-    models.member.belongsToMany(models.note, {
-      as: 'notes',
-      through: 'memberNotes',
-    })
-
-    models.member.belongsToMany(models.task, {
-      as: 'tasks',
-      through: 'memberTasks',
-    })
-
     models.member.belongsToMany(models.tag, {
       as: 'tags',
       through: 'memberTags',

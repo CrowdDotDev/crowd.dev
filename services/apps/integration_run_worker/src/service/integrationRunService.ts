@@ -9,7 +9,6 @@ import { DbStore } from '@crowd/data-access-layer/src/database'
 import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
-import SampleDataRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/sampleData.repo'
 import {
   IGenerateStreamsContext,
   IIntegrationStartRemoteSyncContext,
@@ -23,7 +22,6 @@ import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
-  private readonly sampleDataRepo: SampleDataRepository
   private readonly automationRepo: AutomationRepository
 
   constructor(
@@ -39,7 +37,6 @@ export default class IntegrationRunService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationRunRepository(store, this.log)
-    this.sampleDataRepo = new SampleDataRepository(store, this.log)
     this.automationRepo = new AutomationRepository(store, this.log)
   }
 
@@ -338,27 +335,6 @@ export default class IntegrationRunService extends LoggerBase {
         },
       )
       return
-    }
-
-    if (runInfo.onboarding && runInfo.hasSampleData) {
-      this.log.warn('Tenant still has sample data - deleting it now!')
-      try {
-        await this.sampleDataRepo.transactionally(async (txRepo) => {
-          await txRepo.deleteSampleData(runInfo.tenantId)
-        })
-
-        await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
-      } catch (err) {
-        this.log.error({ err }, 'Error while deleting sample data!')
-        await this.triggerRunError(
-          runId,
-          'run-delete-sample-data',
-          'Error while deleting sample data!',
-          undefined,
-          err,
-        )
-        return
-      }
     }
 
     if (

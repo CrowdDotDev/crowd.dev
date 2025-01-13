@@ -20,15 +20,6 @@ export interface IDbMemberNoteData {
   body: string
 }
 
-export interface IDbMemberTaskData {
-  id: string
-  name: string
-  body: string
-  status: string
-  dueDate: string
-  type: string
-}
-
 export interface IDbMemberOrganization {
   id: string
   logo: string | null
@@ -84,8 +75,6 @@ export interface IDbMemberSyncData {
   tags: IDbMemberTagData[]
   toMergeIds: string[]
   noMergeIds: string[]
-  notes: IDbMemberNoteData[]
-  tasks: IDbMemberTaskData[]
 }
 
 export interface IMemberSegmentMatrixItem {

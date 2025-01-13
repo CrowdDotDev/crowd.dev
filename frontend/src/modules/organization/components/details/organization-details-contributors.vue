@@ -59,27 +59,15 @@
           }"
           class="flex items-center gap-2 group"
         >
-          <template v-if="!isMasked(contributor)">
-            <div
-              class="border-2 rounded-full p-0.5"
-              :class="isNew(contributor) ? 'border-primary-500' : 'border-transparent'"
-            >
-              <lf-avatar :src="avatar(contributor)" :name="contributor.displayName" :size="32" />
-            </div>
-            <p class="text-medium font-semibold text-black group-hover:text-primary-500 transition">
-              {{ contributor.displayName }}
-            </p>
-          </template>
-          <template v-else>
-            <lf-tooltip
-              content="This person's data is not shown because of the GDPR."
-              class="flex items-center gap-2"
-              placement="top-start"
-            >
-              <div class="w-8 h-8 bg-gray-200 rounded-full" />
-              <div class="w-16 h-4 bg-gray-200" />
-            </lf-tooltip>
-          </template>
+          <div
+            class="border-2 rounded-full p-0.5"
+            :class="isNew(contributor) ? 'border-primary-500' : 'border-transparent'"
+          >
+            <lf-avatar :src="avatar(contributor)" :name="contributor.displayName" :size="32" />
+          </div>
+          <p class="text-medium font-semibold text-black group-hover:text-primary-500 transition">
+            {{ contributor.displayName }}
+          </p>
         </router-link>
         <div class="flex items-center gap-4">
           <p class="text-small text-gray-500 whitespace-nowrap">
@@ -90,7 +78,6 @@
           </lf-tooltip>
 
           <app-identities-horizontal-list-members
-            v-if="!isMasked(contributor)"
             :member="contributor"
             :limit="0"
             placement="top-end"
@@ -106,9 +93,6 @@
               </div>
             </template>
           </app-identities-horizontal-list-members>
-          <lf-tooltip v-else placement="top-end" content="This person's data is not shown because of the GDPR.">
-            <div class="h-6 w-21 rounded-md bg-gray-200" />
-          </lf-tooltip>
         </div>
       </article>
     </div>
@@ -184,7 +168,7 @@ const savedBody = ref<any>({});
 const searchStr = ref<string>('');
 
 const {
-  avatar, isNew, identities, isMasked,
+  avatar, isNew, identities,
 } = useContributorHelpers();
 
 const sorters = {

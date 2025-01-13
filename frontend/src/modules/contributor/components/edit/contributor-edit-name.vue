@@ -1,9 +1,5 @@
 <template>
-  <div
-    v-if="isMasked(props.contributor)"
-    class="w-40 h-6 mb-1 bg-gray-200 rounded-md"
-  />
-  <div v-else ref="nameEdit">
+  <div ref="nameEdit">
     <lf-conteneditable
       ref="editor"
       v-model="form.name"
@@ -27,14 +23,12 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { Contributor } from '@/modules/contributor/types/Contributor';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const { updateContributor } = useContributorStore();
-const { isMasked } = useContributorHelpers();
 
 const nameEdit = ref(null);
 

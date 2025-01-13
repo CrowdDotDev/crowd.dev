@@ -1,17 +1,11 @@
-import { FeatureFlag } from '@crowd/types'
-
 import SegmentRepository from '../database/repositories/segmentRepository'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 
 export async function segmentMiddleware(req, res, next) {
   try {
     let segments: any = null
     const segmentRepository = new SegmentRepository(req)
 
-    if (!(await isFeatureEnabled(FeatureFlag.SEGMENTS, req))) {
-      // return default segment
-      segments = await segmentRepository.querySubprojects({ limit: 1, offset: 0 })
-    } else if (req.params.segmentId) {
+    if (req.params.segmentId) {
       // for param requests, segments will be in the url
       segments = { rows: await segmentRepository.findInIds([req.params.segmentId]) }
     } else if (req.query.segments) {

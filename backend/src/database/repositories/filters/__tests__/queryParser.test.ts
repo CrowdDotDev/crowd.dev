@@ -331,91 +331,7 @@ describe('QueryParser tests', () => {
       }
       expect(parsed).toStrictEqual(expected)
     })
-    it('With many to many relations', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const parser = new QueryParser(
-        {
-          manyToMany: {
-            members: {
-              table: 'tasks',
-              model: 'task',
-              relationTable: {
-                name: 'memberTasks',
-                from: 'taskId',
-                to: 'memberId',
-              },
-            },
-            activities: {
-              table: 'tasks',
-              model: 'task',
-              relationTable: {
-                name: 'activityTasks',
-                from: 'taskId',
-                to: 'activityId',
-              },
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      const aid1 = uuid()
-      const aid2 = uuid()
-      const mid1 = uuid()
-
-      const parsed = parser.parse({
-        filter: {
-          or: [
-            {
-              members: [mid1],
-              activities: [aid1, aid2],
-            },
-            {
-              status: {
-                eq: 'some-task-name',
-              },
-            },
-          ],
-        },
-        orderBy: [],
-      })
-      const expected = {
-        where: {
-          tenantId: mockIRepositoryOptions.currentTenant.id,
-          segmentId: mockIRepositoryOptions.currentSegments.map((s) => s.id),
-          [Op.or]: [
-            {
-              [Op.and]: [
-                Sequelize.where(
-                  Sequelize.literal(`"task"."id"`),
-                  Op.in,
-                  Sequelize.literal(
-                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "memberTasks" ON "memberTasks"."taskId" = "tasks"."id" WHERE  "memberTasks"."memberId"  = '${mid1}')`,
-                  ),
-                ),
-                Sequelize.where(
-                  Sequelize.literal(`"task"."id"`),
-                  Op.in,
-                  Sequelize.literal(
-                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks"."id" WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
-                  ),
-                ),
-              ],
-            },
-            {
-              status: {
-                [Op.eq]: 'some-task-name',
-              },
-            },
-          ],
-        },
-        limit: 10,
-        offset: 0,
-        order: [],
-      }
-      expect(parsed).toStrictEqual(expected)
-    })
-    it('With nested fields, complex operators, aggregators and many to many', async () => {
+    it('With nested fields, complex operators and aggregators', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const parser = new QueryParser(
         {
@@ -430,32 +346,9 @@ describe('QueryParser tests', () => {
             ),
             platform: Sequelize.literal(`"activities"."platform"`),
           },
-          manyToMany: {
-            members: {
-              table: 'tasks',
-              model: 'task',
-              relationTable: {
-                name: 'memberTasks',
-                from: 'taskId',
-                to: 'memberId',
-              },
-            },
-            activities: {
-              table: 'tasks',
-              model: 'task',
-              relationTable: {
-                name: 'activityTasks',
-                from: 'taskId',
-                to: 'activityId',
-              },
-            },
-          },
         },
         mockIRepositoryOptions,
       )
-
-      const aid1 = uuid()
-      const aid2 = uuid()
 
       const parsed = parser.parse({
         filter: {
@@ -481,9 +374,6 @@ describe('QueryParser tests', () => {
                   },
                 },
               ],
-            },
-            {
-              activities: [aid1, aid2],
             },
           ],
         },
@@ -529,17 +419,6 @@ describe('QueryParser tests', () => {
                     ),
                   ],
                 },
-              ],
-            },
-            {
-              [Op.and]: [
-                Sequelize.where(
-                  Sequelize.literal(`"task"."id"`),
-                  Op.in,
-                  Sequelize.literal(
-                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks"."id" WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
-                  ),
-                ),
               ],
             },
           ],

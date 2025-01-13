@@ -1,13 +1,11 @@
 import merge from 'lodash.merge'
 
 import { DbConnection, DbStore } from '@crowd/database'
-import { isFeatureEnabled } from '@crowd/feature-flags'
 import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   ActivityDisplayVariant,
-  FeatureFlag,
   IMemberAttributeData,
   OpenSearchIndex,
   PageData,
@@ -88,12 +86,7 @@ export class MemberSearchService {
       },
     })
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, async () => {
-      return {
-        tenantId,
-      }
-    })
-    if (segmentsEnabled && segments) {
+    if (segments) {
       // add segment filter
       parsed.query.bool.must.push({
         terms: {

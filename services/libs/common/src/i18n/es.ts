@@ -40,9 +40,6 @@ const es = {
     invitation: {
       notSameEmail: 'Esta invitación se envió a {0} pero has iniciado sesión como {1}.',
     },
-    planActive:
-      'Hay un plan activo para este espacio de trabajo. Por favor, cancele el plan primero.',
-    stripeNotConfigured: 'Stripe no está configurado.',
   },
   importer: {
     errors: {

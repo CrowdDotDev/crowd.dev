@@ -1,6 +1,3 @@
-import { TenantPlans } from '@crowd/types'
-
-import Plans from '../../../security/plans'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import TenantRepository from '../tenantRepository'
 
@@ -15,28 +12,6 @@ describe('TenantRepository tests', () => {
     // Closing the DB connection allows Jest to exit successfully.
     SequelizeTestUtils.closeConnection(db)
     done()
-  })
-
-  describe('getPayingTenantIds method', () => {
-    it('should return tenants not using the essential plan', async () => {
-      const ToCreatePLanForEssentialPlanTenantOnTrial = {
-        name: 'essential tenant name',
-        url: 'an-essential-tenant-name',
-        plan: TenantPlans.Essential,
-      }
-      const ToCreatPlanForGrowthTenantOnTrial = {
-        name: 'growth tenant name',
-        url: 'a-growth-tenant-name',
-        plan: TenantPlans.Growth,
-      }
-      const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      await options.database.tenant.create(ToCreatePLanForEssentialPlanTenantOnTrial)
-      const growthTenant = await options.database.tenant.create(ToCreatPlanForGrowthTenantOnTrial)
-      const tenantIds = await TenantRepository.getPayingTenantIds(options)
-
-      expect(tenantIds).toHaveLength(1)
-      expect(growthTenant.id).toStrictEqual(tenantIds[0].id)
-    })
   })
 
   describe('generateTenantUrl method', () => {
@@ -58,7 +33,6 @@ describe('TenantRepository tests', () => {
       await options.database.tenant.create({
         name: tenantName,
         url: 'a-tenant-name',
-        plan: TenantPlans.Essential,
       })
 
       // now generate function should return 'a-tenant-name-1' because it already exists

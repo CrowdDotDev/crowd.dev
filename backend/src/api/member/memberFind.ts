@@ -1,6 +1,3 @@
-import { FeatureFlag } from '@crowd/types'
-
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
@@ -25,14 +22,11 @@ export default async (req, res) => {
 
   const segmentId = req.query.segments?.length > 0 ? req.query.segments[0] : null
   if (!segmentId) {
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
-    if (segmentsEnabled) {
-      await req.responseHandler.error(req, res, {
-        code: 400,
-        message: 'Segment ID is required',
-      })
-      return
-    }
+    await req.responseHandler.error(req, res, {
+      code: 400,
+      message: 'Segment ID is required',
+    })
+    return
   }
 
   const payload = await new MemberService(req).findById(req.params.id, segmentId, req.query.include)

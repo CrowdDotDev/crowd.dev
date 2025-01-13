@@ -15,7 +15,7 @@
         </div>
       </div>
       <lf-tooltip
-        v-if="!masked && hasPermission(LfPermission.memberEdit)"
+        v-if="hasPermission(LfPermission.memberEdit)"
         content="Add work experience"
         content-class="-ml-5"
       >
@@ -30,7 +30,7 @@
       </lf-tooltip>
     </div>
 
-    <div v-if="!masked" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4">
       <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
         <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
           <lf-contributor-details-work-history-item
@@ -49,16 +49,8 @@
       </div>
     </div>
 
-    <div v-else>
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="h-6 mb-2 bg-gray-200 rounded-md"
-      />
-    </div>
-
     <lf-button
-      v-if="!masked && orgGrouped.length > minimumShownGroups"
+      v-if="orgGrouped.length > minimumShownGroups"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -69,7 +61,7 @@
   </section>
 
   <lf-contributor-edit-work-history
-    v-if="!masked && isEditModalOpen"
+    v-if="isEditModalOpen"
     v-model="isEditModalOpen"
     :organization="editOrganization"
     :contributor="props.contributor"
@@ -89,7 +81,6 @@ import LfContributorEditWorkHistory
 import { Organization } from '@/modules/organization/types/Organization';
 import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { TimelineGroup } from '@/ui-kit/timeline/types/TimelineTypes';
 import { groupBy } from 'lodash';
@@ -103,7 +94,6 @@ const props = defineProps<{
 }>();
 
 const { hasPermission } = usePermissions();
-const { isMasked } = useContributorHelpers();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const showMore = ref<boolean>(false);
@@ -131,8 +121,6 @@ const orgGrouped = computed(() => {
 });
 const minimumShownGroups = 3;
 const shownGroups = computed(() => orgGrouped.value.slice(0, showMore.value ? orgGrouped.value.length : minimumShownGroups));
-
-const masked = computed(() => isMasked(props.contributor));
 
 const onGroupHover = (index: TimelineGroup | null) => {
   hoveredGroup.value = index;

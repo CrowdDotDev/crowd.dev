@@ -26,27 +26,6 @@ export interface DiscordWebsocketPayload {
   data: any
 }
 
-export interface SendgridWebhookEvent {
-  email: string
-  url: string
-  event: SendgridWebhookEventType
-  ip: string
-  sg_content_type: string
-  sg_event_id: string
-  sg_machine_open: boolean
-  sg_message_id: string
-  sg_template_id: string
-  sg_template_name: string
-  tenantId: string
-  timestamp: number
-  useragent: string
-}
-
-export enum SendgridWebhookEventType {
-  DIGEST_OPENED = 'open',
-  POST_CLICKED = 'click',
-}
-
 export interface GithubWebhookPayload {
   signature: string
   event: string

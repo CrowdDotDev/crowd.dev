@@ -1,12 +1,11 @@
 import { getRedisClient } from '@crowd/redis'
-import { MemberAttributeName, TenantPlans } from '@crowd/types'
+import { MemberAttributeName } from '@crowd/types'
 
 import { REDIS_CONFIG } from '../../conf'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import { IServiceOptions } from '../IServiceOptions'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import MicroserviceService from '../microserviceService'
-import TaskService from '../taskService'
 import TenantService from '../tenantService'
 
 const db = null
@@ -47,7 +46,7 @@ describe('TenantService tests', () => {
   })
 
   describe('create method', () => {
-    it('Should succesfully create the tenant, related default microservices, settings and suggested tasks', async () => {
+    it('Should succesfully create the tenant, related default microservices, and settings', async () => {
       const randomUser = await SequelizeTestUtils.getRandomUser()
       let db = null
       db = await SequelizeTestUtils.getDatabase(db)
@@ -77,12 +76,8 @@ describe('TenantService tests', () => {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: TenantPlans.Essential,
-        isTrialPlan: false,
-        trialEndsAt: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
-        hasSampleData: false,
         communitySize: '>25000',
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -91,8 +86,6 @@ describe('TenantService tests', () => {
         updatedById: options.currentUser.id,
         settings: [],
         conversationSettings: [],
-        planSubscriptionEndsAt: null,
-        stripeSubscriptionId: null,
         reasonForUsingCrowd: null,
       }
 
@@ -120,17 +113,6 @@ describe('TenantService tests', () => {
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
         MemberAttributeName.URL,
-      ])
-
-      const taskService = new TaskService({ ...options, currentTenant: tenantCreated })
-      const suggestedTasks = await taskService.findAndCountAll({ filter: {} })
-      expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
-        'Check for negative reactions',
-        'Engage with relevant content',
-        'Reach out to influential contacts',
-        'Reach out to poorly engaged contacts',
-        'Set up your team',
-        'Set up your workspace integrations',
       ])
     })
   })

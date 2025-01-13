@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { throws } from 'assert'
 import { createHash } from 'crypto'
 import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
 
@@ -23,6 +24,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private readonly RECONNECT_DELAY = 5000
 
   private reconnectAttempts: Map<string, number>
+  private consumerStatus: Map<string, boolean>
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
@@ -38,6 +40,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.started = false
     this.consumers = new Map<string, Consumer>()
     this.reconnectAttempts = new Map<string, number>()
+    this.consumerStatus = new Map<string, boolean>()
   }
 
   public async send(
@@ -83,6 +86,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       const consumer = this.client.consumer({
         groupId,
         sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
         heartbeatInterval: 3000,
       })
       consumer.on(consumer.events.GROUP_JOIN, () => {
@@ -108,6 +112,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   }
 
   private async handleConsumerError(groupId: string, consumer: Consumer) {
+    if (this.consumerStatus.has(groupId)) {
+      // do nothing we are already rejoining
+      return
+    }
+
+    this.consumerStatus.set(groupId, true)
     const attempts = this.reconnectAttempts.get(groupId) || 0
 
     if (attempts < this.MAX_RECONNECT_ATTEMPTS) {
@@ -123,6 +133,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       } catch (error) {
         this.log.error({ error }, 'Failed to reconnect consumer')
         await this.handleConsumerError(groupId, consumer)
+      } finally {
+        this.consumerStatus.delete(groupId)
       }
     } else {
       this.log.error(
@@ -266,7 +278,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       })),
     })
 
-    this.log.info({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
+    this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
     await producer.disconnect()
     return result
@@ -277,7 +289,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     queueConf: IKafkaChannelConfig,
     options?: IKafkaQueueStartOptions,
   ): Promise<void> {
-    const MAX_RETRY_FOR_CONNECTING_CONSUMER = 5
+    const MAX_RETRY_FOR_CONNECTING_CONSUMER = 10
     const RETRY_DELAY = 2000
     let retries = options?.retry || 0
 
@@ -288,7 +300,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
 
       const consumer = await this.getConsumer(queueConf.name)
-      await consumer.subscribe({ topic: queueConf.name, fromBeginning: true })
+      await consumer.subscribe({ topic: queueConf.name })
 
       // Add periodic health check
       healthCheckInterval = setInterval(async () => {
@@ -307,62 +319,31 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       }, 10 * 60000) // Check every 10 minutes
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
+
       await consumer.run({
-        eachBatchAutoResolve: false,
-        eachBatch: async ({
-          batch,
-          heartbeat,
-          resolveOffset,
-          commitOffsetsIfNecessary,
-          isRunning,
-        }) => {
-          this.log.debug(`Received a batch of ${batch.messages.length} messages!`)
-
-          const promises = []
-          for (const message of batch.messages) {
-            if (!isRunning()) {
-              // consumer is paused we should stop processing
-              break
+        eachMessage: async ({ message }) => {
+          if (message && message.value) {
+            while (!this.isAvailable(maxConcurrentMessageProcessing)) {
+              await timeout(10)
             }
+            const now = performance.now()
 
-            if (message && message.value) {
-              while (!this.isAvailable(maxConcurrentMessageProcessing)) {
-                this.log.debug('Processor is busy, waiting...')
-                await heartbeat()
-                await timeout(100)
-              }
+            this.addJob()
+            const data = JSON.parse(message.value.toString())
 
-              this.addJob()
-              const data = JSON.parse(message.value.toString())
-              const now = performance.now()
-
-              this.log.debug({ message: data }, 'Received message from Kafka topic!')
-              promises.push(
-                processMessage(data)
-                  .then(async () => {
-                    resolveOffset(message.offset)
-                    this.removeJob()
-
-                    const duration = performance.now() - now
-                    this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-
-                    await heartbeat()
-                  })
-                  .catch(async (err) => {
-                    this.removeJob()
-                    this.log.error(err, 'Error processing message!')
-
-                    const duration = performance.now() - now
-                    this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-
-                    await heartbeat()
-                  }),
-              )
-            }
+            processMessage(data)
+              .then(() => {
+                const duration = performance.now() - now
+                this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+              })
+              .catch((err) => {
+                const duration = performance.now() - now
+                this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+              })
+              .finally(() => {
+                this.removeJob()
+              })
           }
-
-          await Promise.all(promises)
-          await commitOffsetsIfNecessary()
         },
       })
     } catch (e) {

@@ -11,6 +11,7 @@ import {
   IActivityData,
   IMemberData,
   IOrganization,
+  IntegrationResultState,
   IntegrationResultType,
   PlatformType,
 } from '@crowd/types'
@@ -18,6 +19,7 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 
 import ActivityService from './activity.service'
+import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 
@@ -54,7 +56,10 @@ export default class DataSinkService extends LoggerBase {
       errorString: error ? JSON.stringify(error) : undefined,
     }
 
-    if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+    if (
+      !(error instanceof UnrepeatableError) &&
+      resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries
+    ) {
       // delay for #retries * 2 minutes
       const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
       this.log.warn({ until: until.toISOString() }, 'Retrying result!')
@@ -99,24 +104,49 @@ export default class DataSinkService extends LoggerBase {
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+    this.log.info({ tenantId, segmentId }, 'Creating and processing activity result.')
 
-    const resultId = await this.repo.createResult(tenantId, integrationId, {
+    const payload = {
       type: IntegrationResultType.ACTIVITY,
       data,
       segmentId,
-    })
+    }
 
-    await this.processResult(resultId)
+    const [integration, resultId] = await Promise.all([
+      integrationId ? this.repo.getIntegrationInfo(integrationId) : Promise.resolve(null),
+      this.repo.createResult(tenantId, integrationId, payload),
+    ])
+
+    const result: IResultData = {
+      id: resultId,
+      tenantId,
+      integrationId,
+      data: payload,
+      state: IntegrationResultState.PENDING,
+      runId: null,
+      streamId: null,
+      webhookId: null,
+      platform: integration ? integration.platform : null,
+      retries: 0,
+      delayedUntil: null,
+      onboarding: false,
+    }
+
+    await this.processResult(resultId, result)
   }
 
-  public async processResult(resultId: string): Promise<boolean> {
+  public async processResult(resultId: string, result?: IResultData): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
-    const resultInfo = await this.repo.getResultInfo(resultId)
+    let resultInfo = result
+
+    if (!resultInfo) {
+      resultInfo = await this.repo.getResultInfo(resultId)
+    }
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
+      this.log.info(`Result not found by id "${resultId}". Skipping...`)
       return false
     }
 

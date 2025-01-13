@@ -8,8 +8,6 @@
 **/.idea
 **/.vscode
 **/dist
-backend/server-config/
-backend/util/
 backend/src/serverless/microservices/python
 .vscode/
 .github/

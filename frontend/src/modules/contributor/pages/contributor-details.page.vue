@@ -64,12 +64,6 @@
           <div class="w-full h-5 bg-gradient-to-b from-white to-transparent pl-10" />
         </div>
         <div class="pl-10">
-          <div
-            v-if="isMasked(contributor) && tabs === 'overview'"
-            class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600"
-          >
-            <lf-icon-old name="error-warning-line" class="mr-2" /> This person's data is not shown because of the GDPR.
-          </div>
           <lf-contributor-details-overview
             v-if="tabs === 'overview'"
             :contributor="contributor"
@@ -109,15 +103,12 @@ import LfContributorLastEnrichment from '@/modules/contributor/components/shared
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import LfContributorSyncingActivities from '@/modules/contributor/components/shared/contributor-syncing-activities.vue';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const { getMemberCustomAttributes } = useMemberStore();
 
 const contributorStore = useContributorStore();
 const { getContributor } = contributorStore;
 const { contributor } = storeToRefs(contributorStore);
-
-const { isMasked } = useContributorHelpers();
 
 const route = useRoute();
 

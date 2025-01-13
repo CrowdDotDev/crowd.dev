@@ -126,7 +126,7 @@
                     class="block"
                   >
                     <div class="flex items-center">
-                      <div v-if="!isMasked(scope.row)" class="inline-flex flex-wrap overflow-wrap items-center">
+                      <div class="inline-flex flex-wrap overflow-wrap items-center">
                         <app-avatar :entity="scope.row" size="xs" class="mr-3" />
 
                         <span
@@ -137,16 +137,6 @@
                         <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
                         <app-member-badge :member="scope.row" />
                       </div>
-                      <el-tooltip
-                        v-else
-                        placement="top"
-                        content="This person's data is not shown because of the GDPR."
-                      >
-                        <div class="flex items-center">
-                          <div class="h-8 w-8 bg-gray-200 rounded-full mr-3" />
-                          <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                        </div>
-                      </el-tooltip>
                     </div>
                   </router-link>
                 </template>
@@ -207,14 +197,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-job-title v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
+                    <app-member-job-title :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -243,17 +226,9 @@
                     class="block"
                   >
                     <app-identities-horizontal-list-members
-                      v-if="!isMasked(scope.row)"
                       :member="scope.row"
                       :limit="5"
                     />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -272,14 +247,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-list-emails v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
+                    <app-member-list-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -401,19 +369,12 @@
                     }"
                     class="block !text-gray-500"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <app-member-last-activity
                         v-if="scope.row.lastActivity"
                         :member="scope.row"
                       />
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -469,7 +430,7 @@
                     }"
                     class="block"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <div
                         v-if="scope.row.attributes?.location?.default"
                         class="text-gray-900 text-sm"
@@ -478,13 +439,6 @@
                       </div>
                       <span v-else class="text-gray-900">-</span>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -576,7 +530,7 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <div>
                         <div
                           v-if="scope.row.attributes?.seniorityLevel?.default"
@@ -587,13 +541,6 @@
                         <span v-else class="text-gray-900">-</span>
                       </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -632,7 +579,7 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.programmingLanguages?.default?.length"
@@ -648,13 +595,6 @@
                         <span v-else class="text-gray-500">-</span>
                       </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -693,7 +633,7 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.skills?.default?.length"
@@ -709,13 +649,6 @@
                         <span v-else class="text-gray-500">-</span>
                       </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -859,7 +792,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
@@ -933,8 +865,6 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { hasPermission } = usePermissions();
-
-const { isMasked } = useContributorHelpers();
 
 const hasPermissions = computed(() => [LfPermission.memberEdit,
   LfPermission.memberDestroy,

@@ -10,10 +10,6 @@
     "brokers": "CROWD_KAFKA_BROKERS",
     "extra": "CROWD_KAFKA_EXTRA"
   },
-  "unleash": {
-    "url": "CROWD_UNLEASH_URL",
-    "apiKey": "CROWD_UNLEASH_BACKEND_API_KEY"
-  },
   "redis": {
     "username": "CROWD_REDIS_USERNAME",
     "password": "CROWD_REDIS_PASSWORD",

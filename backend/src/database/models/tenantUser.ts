@@ -48,7 +48,6 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: {
           isEagleEyeGuideDismissed: false,
-          isQuickstartGuideDismissed: false,
           eagleEye: {
             onboarded: false,
           },

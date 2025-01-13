@@ -64,12 +64,6 @@ const en = {
     },
   },
 
-  task: {
-    errors: {
-      unknownBatchOperation: 'Sent batch operation {0} is unknown.',
-    },
-  },
-
   tenant: {
     exists: 'There is already a workspace on this application.',
     url: {
@@ -78,10 +72,6 @@ const en = {
     invitation: {
       notSameEmail: `This invitation was sent to {0} but you're signed in as {1}.`,
     },
-    planActive: `There is a plan active for this workspace. Please cancel the plan first.`,
-    stripeNotConfigured: 'Please configure stripe first',
-    sampleDataCreationStarted: 'Sample data generation started.',
-    sampleDataDeletionCompleted: 'Sample data deletion completed.',
     errors: {
       publishedConversationExists: 'Update failed. Tenant already has published conversations.',
       nameRequiredOnCreate: 'Name is required on tenant creation.',
@@ -143,9 +133,6 @@ const en = {
     },
     csvExport: {
       planLimitExceeded: 'You have exceeded # of csv exports you can have per month in your plan.',
-    },
-    featureFlag: {
-      notEnabled: 'This feature is not enabled for your account',
     },
     noNangoToken: {
       message: 'No Nango token found!',

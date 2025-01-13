@@ -47,7 +47,6 @@ export async function buildAndUploadMembersCSV(input: ITriggerCSVExport): Promis
 
   const relations = [
     { relation: 'organizations', attributes: ['displayName', 'website', 'logo'] },
-    { relation: 'notes', attributes: ['body'] },
     { relation: 'tags', attributes: ['name'] },
   ]
   for (const relation of relations) {
@@ -74,7 +73,6 @@ export async function buildAndUploadMembersCSV(input: ITriggerCSVExport): Promis
       'activeOn',
       'identities',
       'tags',
-      'notes',
       'organizations',
       'activityCount',
       'lastActive',

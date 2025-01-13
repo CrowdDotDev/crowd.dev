@@ -1,7 +1,6 @@
 import { DbStore } from '@crowd/database'
-import { isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { FeatureFlag, OpenSearchIndex } from '@crowd/types'
+import { OpenSearchIndex } from '@crowd/types'
 
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'
@@ -55,12 +54,7 @@ export class OrganizationSearchService {
       },
     })
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, async () => {
-      return {
-        tenantId,
-      }
-    })
-    if (segmentsEnabled && segments) {
+    if (segments) {
       // add segment filter
       parsed.query.bool.must.push({
         terms: {

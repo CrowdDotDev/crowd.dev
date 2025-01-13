@@ -5,7 +5,7 @@
         Identities
       </h6>
       <lf-contributor-details-identity-add-dropdown
-        v-if="!masked && hasPermission(LfPermission.memberEdit)"
+        v-if="hasPermission(LfPermission.memberEdit)"
         placement="bottom-end"
         @add="addIdentity = true; addIdentityTemplate = $event"
       >
@@ -22,7 +22,7 @@
       </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div v-if="!masked" class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3">
       <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
@@ -41,16 +41,8 @@
       </div>
     </div>
 
-    <div v-else>
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="h-6 mb-2 bg-gray-200 rounded-md"
-      />
-    </div>
-
     <lf-button
-      v-if="!masked && identityList.length > 10"
+      v-if="identityList.length > 10"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -60,18 +52,18 @@
     </lf-button>
   </section>
   <lf-contributor-identity-add
-    v-if="!masked && addIdentity && addIdentityTemplate !== null"
+    v-if="addIdentity && addIdentityTemplate !== null"
     v-model="addIdentity"
     :identities="[addIdentityTemplate]"
     :contributor="props.contributor"
   />
   <lf-contributor-identity-edit
-    v-if="!masked && editIdentity !== null"
+    v-if="editIdentity !== null"
     v-model="editIdentity"
     :contributor="props.contributor"
   />
   <app-member-unmerge-dialog
-    v-if="!masked && isUnmergeDialogOpen"
+    v-if="isUnmergeDialogOpen"
     v-model="isUnmergeDialogOpen"
     :selected-identity="selectedIdentity"
   />
@@ -102,7 +94,7 @@ const props = defineProps<{
 
 const { hasPermission } = usePermissions();
 
-const { identities, emails, isMasked } = useContributorHelpers();
+const { identities, emails } = useContributorHelpers();
 
 const identityList = computed(() => [
   ...identities(props.contributor),
@@ -125,7 +117,6 @@ const unmerge = (identityId: string) => {
   isUnmergeDialogOpen.value = props.contributor as any;
 };
 
-const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">
