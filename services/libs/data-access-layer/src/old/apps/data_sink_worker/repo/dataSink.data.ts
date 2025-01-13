@@ -5,7 +5,12 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-export interface IResultData {
+export interface IIntegrationData {
+  integrationId: string
+  platform: PlatformType
+}
+
+export interface IResultData extends IIntegrationData {
   id: string
   state: IntegrationResultState
   data: IIntegrationResult
@@ -15,12 +20,6 @@ export interface IResultData {
   webhookId: string | null
   streamId: string
   tenantId: string
-  integrationId: string
-  platform: PlatformType
-
-  plan: string
-  isTrialPlan: boolean
-  name: string
 
   retries: number
   delayedUntil: string | null
