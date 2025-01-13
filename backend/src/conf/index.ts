@@ -30,7 +30,6 @@ import {
   OrganizationEnrichmentConfiguration,
   S3Configuration,
   SSOConfiguration,
-  SampleDataConfiguration,
   SegmentConfiguration,
   ServiceType,
   SlackAlertingConfiguration,
@@ -40,7 +39,6 @@ import {
   StackExchangeConfiguration,
   TenantMode,
   TwitterConfiguration,
-  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -140,14 +138,8 @@ export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
   config.get<SlackAlertingConfiguration>('slackAlerting')
 
-export const SAMPLE_DATA_CONFIG: SampleDataConfiguration =
-  config.get<SampleDataConfiguration>('sampleData')
-
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
-
-export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
-  config.get<WeeklyEmailsConfiguration>('weeklyEmails')
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')

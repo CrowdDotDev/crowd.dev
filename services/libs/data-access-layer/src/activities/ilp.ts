@@ -213,6 +213,13 @@ function objectToBytes(input: object): string {
     input = {}
   }
 
+  const stringified = JSON.stringify(input)
+
+  // check size
+  if (new TextEncoder().encode(stringified).length > 2000) {
+    return JSON.stringify({})
+  }
+
   return JSON.stringify(input)
 }
 
