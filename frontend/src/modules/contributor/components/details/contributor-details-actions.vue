@@ -51,6 +51,7 @@
           :contributor="props.contributor"
           @reload="emit('reload')"
           @find-github="isFindGithubDrawerOpen = props.contributor"
+          @unmerge="isUnmergeDialogOpen = props.contributor"
         />
       </lf-dropdown>
     </lf-button-group>
@@ -73,6 +74,10 @@
     v-if="isFindGithubDrawerOpen"
     v-model="isFindGithubDrawerOpen"
   />
+  <app-member-unmerge-dialog
+    v-if="isUnmergeDialogOpen !== null"
+    v-model="isUnmergeDialogOpen"
+  />
 </template>
 
 <script setup lang="ts">
@@ -94,6 +99,7 @@ import LfContributorDropdown from '@/modules/contributor/components/shared/contr
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useSharedStore } from '@/shared/pinia/shared.store';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -107,6 +113,7 @@ const { setReportDataModal } = useSharedStore();
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);
+const isUnmergeDialogOpen = ref<Contributor | null>(null);
 const isFindGithubDrawerOpen = ref<Contributor | null>(null);
 const mergeSuggestionsCount = ref<number>(0);
 

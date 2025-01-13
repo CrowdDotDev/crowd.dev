@@ -17,7 +17,7 @@
         </p>
       </div>
 
-      <lf-dropdown v-if="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-show="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />
