@@ -67,7 +67,7 @@
               class="flex items-center text-red-500"
             >
               <i class="ri-lg ri-delete-bin-line mr-2" />
-              <app-i18n code="common.destroy" />
+              Delete
             </div>
           </el-dropdown-item>
         </template>
@@ -88,13 +88,14 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
+import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import pluralize from 'pluralize';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import pluralize from 'pluralize';
-import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
@@ -103,14 +104,12 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { useRoute } from 'vue-router';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 
 const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { getUser } = authStore;
 
 const memberStore = useMemberStore();
@@ -201,14 +200,7 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      tenant.value.plan,
-    );
-
     await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
       badgeContent: pluralize('person', selectedMembers.value.length, true),
     });
 
@@ -236,13 +228,7 @@ const handleDoExport = async () => {
   } catch (error) {
     console.error(error);
 
-    if (error.response?.status === 403) {
-      const planExportCountMax = getExportMax(
-        tenant.value.plan,
-      );
-
-      showExportLimitDialog({ planExportCountMax });
-    } else if (error !== 'cancel') {
+    if (error !== 'cancel') {
       Message.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {

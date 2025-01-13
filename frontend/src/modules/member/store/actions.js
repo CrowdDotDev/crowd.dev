@@ -3,16 +3,8 @@ import { MemberService } from '@/modules/member/member-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
-import {
-  getEnrichmentMax,
-  showEnrichmentSuccessMessage,
-  showEnrichmentLoadingMessage,
-} from '@/modules/member/member-enrichment';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { MemberModel } from '../member-model';
 
 export default {
@@ -58,7 +50,7 @@ export default {
         Errors.handle(error);
       }
 
-      Message.error(i18n('entities.member.attributes.error'));
+      Message.error('Custom Attributes could not be created');
     }
     return null;
   },
@@ -67,7 +59,7 @@ export default {
     try {
       await MemberService.merge(memberToKeep, memberToMerge);
 
-      Message.success(i18n('entities.member.merge.success'));
+      Message.success('Profiles merged successfully');
       router.push(`/people/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
@@ -183,51 +175,4 @@ export default {
     }
   },
 
-  async doEnrich({ commit, dispatch, rootGetters }, id, segments) {
-    try {
-      const authStore = useAuthStore();
-      const { tenant } = storeToRefs(authStore);
-      const { getUser } = authStore;
-
-      const planEnrichmentCountMax = getEnrichmentMax(tenant.value.plan);
-
-      // Start member enrichment
-      commit('UPDATE_STARTED');
-
-      // Show enrichment loading message
-      showEnrichmentLoadingMessage({ isBulk: false });
-
-      const response = await MemberService.enrichMember(id, segments);
-
-      commit('UPDATE_SUCCESS', response);
-
-      await getUser();
-
-      const updatedTenant = tenant.value;
-
-      // Show enrichment success message
-      showEnrichmentSuccessMessage({
-        memberEnrichmentCount: updatedTenant.memberEnrichmentCount,
-        planEnrichmentCountMax,
-        plan: tenant.value.plan,
-        isBulk: false,
-      });
-
-      if (router.currentRoute.value.name !== 'memberView') {
-        router.push({
-          name: 'memberView',
-          params: {
-            id,
-          },
-        });
-      } else {
-        await dispatch('doFind', { id });
-      }
-    } catch (error) {
-      Message.closeAll();
-      Errors.handle(error);
-
-      commit('UPDATE_ERROR');
-    }
-  },
 };

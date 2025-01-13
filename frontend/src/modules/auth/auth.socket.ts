@@ -1,18 +1,12 @@
 import io from 'socket.io-client';
-import pluralize from 'pluralize';
+import { storeToRefs } from 'pinia';
+import { h } from 'vue';
 import config from '@/config';
 import Message from '@/shared/message/message';
-import {
-  showEnrichmentSuccessMessage,
-  getEnrichmentMax,
-} from '@/modules/member/member-enrichment';
-import { useMemberStore } from '@/modules/member/store/pinia';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
-import { h } from 'vue';
 
 let socketIoClient: any;
 
@@ -20,8 +14,6 @@ const SocketEvents = {
   connect: 'connect',
   disconnect: 'disconnect',
   integrationCompleted: 'integration-completed',
-  tenantPlanUpgraded: 'tenant-plan-upgraded',
-  bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
   memberMerge: 'member-merge',
   memberUnmerge: 'member-unmerge',
@@ -33,7 +25,6 @@ export const isSocketConnected = () => socketIoClient && socketIoClient.connecte
 export const connectSocket = (token) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
-  const { getUser } = authStore;
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
@@ -231,71 +222,6 @@ export const connectSocket = (token) => {
     ), {
       title: 'Organizations unmerged successfully',
     });
-  });
-
-  socketIoClient.on(
-    SocketEvents.tenantPlanUpgraded,
-    async (data) => {
-      console.info(
-        'Tenant plan is upgraded. Force a hard refresh!',
-        data,
-      );
-      let parsed = data;
-      if (typeof data === 'string') {
-        parsed = JSON.parse(data);
-      }
-
-      await getUser();
-
-      Message.success(
-        `Successfully upgraded to ${parsed.plan} plan`,
-      );
-    },
-  );
-
-  socketIoClient.on(SocketEvents.bulkEnrichment, async (data) => {
-    let parsed = data;
-    if (typeof data === 'string') {
-      parsed = JSON.parse(parsed);
-    }
-
-    await getUser();
-
-    const updatedTenant = user.value.tenants.find(
-      (tenant) => tenant.tenantId === parsed.tenantId,
-    );
-
-    if (!parsed.success) {
-      Message.closeAll();
-      Message.error(
-        `Failed to enrich ${pluralize(
-          'person',
-          parsed.failedEnrichedMembers,
-          true,
-        )}.`,
-      );
-    } else {
-      const planEnrichmentCountMax = getEnrichmentMax(
-        updatedTenant.tenant.plan,
-      );
-
-      // Show enrichment success message
-      showEnrichmentSuccessMessage({
-        enrichedMembers: parsed.enrichedMembers,
-        memberEnrichmentCount:
-          updatedTenant.tenant.memberEnrichmentCount,
-        planEnrichmentCountMax,
-        plan: updatedTenant.tenant.plan,
-        isBulk: true,
-      });
-
-      // Update members list if tenant hasn't changed
-      if (tenant.value.id === parsed.tenantId) {
-        // Refresh list page
-        const { fetchMembers } = useMemberStore();
-        await fetchMembers({ reload: true });
-      }
-    }
   });
 
   socketIoClient.on(SocketEvents.orgMerge, (payload) => {

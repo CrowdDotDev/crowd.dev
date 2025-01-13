@@ -1,4 +1,3 @@
-import { i18n, init as i18nInit } from '@/i18n';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
 import StringField from '@/shared/fields/string-field';
@@ -14,30 +13,24 @@ import OrganizationEmployeesField from './organization-employees-field';
 import OrganizationTypeField from './organization-type-field';
 import OrganizationPlatformField from './organization-platform-field';
 
-function label(name) {
-  return i18n(`entities.organization.fields.${name}`);
-}
-
-i18nInit();
-
 const fields = {
-  id: new StringField('id', label('id')),
-  name: new StringField('name', label('name')),
-  displayName: new StringField('displayName', label('name'), {
+  id: new StringField('id', 'id'),
+  name: new StringField('name', 'Name'),
+  displayName: new StringField('displayName', 'Name', {
     required: true,
   }),
   description: new StringField(
     'description',
-    label('description'),
+    'Description',
   ),
-  location: new StringField('location', label('location'), { filterable: true }),
+  location: new StringField('location', 'Location', { filterable: true }),
   createdAt: new DateTimeField(
     'createdAt',
-    label('createdAt'),
+    'createdAt',
   ),
   updatedAt: new DateTimeField(
     'updatedAt',
-    label('updatedAt'),
+    'updatedAt',
   ),
   members: new OrganizationMemberCountField(
     'memberCount',
@@ -84,7 +77,7 @@ const fields = {
     'Phone number',
   ),
 
-  search: new SearchField('search', label('search'), {
+  search: new SearchField('search', 'search', {
     fields: ['name'],
   }),
   headline: new StringField('headline', 'Headline', { filterable: true }),

@@ -3,7 +3,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
-import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
+import { IDelayedResults, IFailedResultData, IIntegrationData, IResultData } from './dataSink.data'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -22,19 +22,27 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r.retries,
            r."delayedUntil",
            i.platform,
-           t."hasSampleData", 
-           t."plan",
-           t."isTrialPlan",
-           t."name",
            run.onboarding
     from integration.results r
         left join integrations i on r."integrationId" = i.id
-        inner join tenants t on t.id = r."tenantId"
         left join integration.runs run on run.id = r."runId"
     where r.id = $(resultId)
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
     const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
+    return result
+  }
+
+  public async getIntegrationInfo(integrationId: string): Promise<IIntegrationData | null> {
+    const result = await this.db().oneOrNone(
+      `select id as "integrationId",
+              platform
+       from integrations where id = $(integrationId)`,
+      {
+        integrationId,
+      },
+    )
+
     return result
   }
 
@@ -258,10 +266,11 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result.map((r) => r.id)
   }
 
-  public async delayResult(resultId: string, until: Date): Promise<void> {
+  public async delayResult(resultId: string, until: Date, error: unknown): Promise<void> {
     const result = await this.db().result(
       `update integration.results
        set  state = $(state),
+            error = $(error),
             "delayedUntil" = $(until),
             retries = coalesce(retries, 0) + 1,
             "updatedAt" = now()
@@ -269,6 +278,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       {
         resultId,
         until,
+        error: JSON.stringify(error),
         state: IntegrationResultState.DELAYED,
       },
     )

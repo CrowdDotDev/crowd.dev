@@ -84,29 +84,25 @@
 <script setup>
 import pluralize from 'pluralize';
 import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getExportMax } from '@/modules/member/member-export-limit';
+import { showExportDialog } from '@/modules/member/member-export-limit';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { useRoute } from 'vue-router';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
-
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -194,14 +190,7 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
-    const planExportCountMax = getExportMax(
-      tenant.value.plan,
-    );
-
     await showExportDialog({
-      tenantCsvExportCount,
-      planExportCountMax,
       badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
     });
 
