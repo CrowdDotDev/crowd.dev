@@ -1,5 +1,5 @@
 import { h } from 'vue';
-import { attributesAreDifferent } from '@/shared/filter/helpers/different-util';
+import { attributesAreDifferent } from '@/shared/helpers/different-util';
 import { router } from '@/router';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
