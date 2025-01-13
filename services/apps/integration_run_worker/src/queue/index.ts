@@ -13,6 +13,7 @@ import {
   IntegrationRunWorkerQueueMessageType,
   QueuePriorityLevel,
   StartIntegrationRunQueueMessage,
+  StreamProcessedQueueMessage,
 } from '@crowd/types'
 
 import IntegrationRunService from '../service/integrationRunService'
@@ -77,6 +78,9 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
             msg2.manualSettings,
             msg2.additionalInfo,
           )
+          break
+        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
+          await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
           break
         default:
           throw new Error(`Unknown message type: ${message.type}`)

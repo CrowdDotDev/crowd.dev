@@ -741,12 +741,12 @@ while test $# -gt 0; do
         exit
         ;;
     start-e2e)
-        declare -a INGORED_SERVICES=("job-generator" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
+        declare -a INGORED_SERVICES=("job-generator" "discord-ws" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
         start
         exit
         ;;
     start-be)
-        declare -a INGORED_SERVICES=("frontend")
+        declare -a INGORED_SERVICES=("frontend" "discord-ws")
         start
         exit
         ;;
