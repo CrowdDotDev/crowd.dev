@@ -3,8 +3,9 @@ import { createAppAuth } from '@octokit/auth-app'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { request } from '@octokit/request'
 
-import { EDITION, Error400, Error404 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 import {
   HubspotEndpoint,
@@ -41,6 +42,8 @@ import {
   GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 
 import {
   DISCORD_CONFIG,
@@ -410,7 +413,169 @@ export default class IntegrationService {
     return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
   }
 
-  async mapGithubRepos(integrationId, mapping, fireOnboarding = true, isUpdateTransaction = false) {
+  async connectGithub(code, installId, setupAction = 'install') {
+    if (setupAction === 'request') {
+      return this.createOrUpdate(
+        {
+          platform: PlatformType.GITHUB,
+          status: 'waiting-approval',
+        },
+        await SequelizeRepository.createTransaction(this.options),
+      )
+    }
+
+    const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
+    const CLIENT_ID = GITHUB_CONFIG.clientId
+    const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
+
+    const tokenResponse = await axios({
+      method: 'post',
+      url: GITHUB_AUTH_ACCESSTOKEN_URL,
+      data: {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code,
+      },
+    })
+
+    let token = tokenResponse.data
+    token = token.slice(token.search('=') + 1, token.search('&'))
+
+    try {
+      const requestWithAuth = request.defaults({
+        headers: {
+          authorization: `token ${token}`,
+        },
+      })
+      await requestWithAuth('GET /user')
+    } catch {
+      throw new Error542(
+        `Invalid token for GitHub integration. Code: ${code}, setupAction: ${setupAction}. Token: ${token}`,
+      )
+    }
+
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
+
+    return integration
+  }
+
+  async connectGithubInstallation(installId: string) {
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token: installToken,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
+
+    return integration
+  }
+
+  async getGithubInstallations() {
+    return GithubInstallationsRepository.getInstallations(this.options)
+  }
+
+  /**
+   * Creates or updates a GitHub integration, handling large repos data
+   * @param integrationData The integration data to create or update
+   * @param repos The repositories data
+   */
+  private async createOrUpdateGithubIntegration(integrationData, repos) {
+    let integration
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    this.options.log.error(repos.length)
+
+    try {
+      // First, create or update the integration without the repos data
+      integration = await this.createOrUpdate(integrationData, transaction)
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    // Then, update the repos data in chunks to avoid query timeout
+    const chunkSize = 100 // Adjust this value based on your specific needs
+    for (let i = 0; i < repos.length; i += chunkSize) {
+      const reposChunk = repos.slice(i, i + chunkSize)
+      await this.upsertGitHubRepos(integration.id, reposChunk)
+    }
+
+    return integration
+  }
+
+  private async upsertGitHubRepos(integrationId, repos) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const sequelize = SequelizeRepository.getSequelize(this.options)
+
+    try {
+      const query = `
+        UPDATE integrations
+        SET settings = jsonb_set(
+          COALESCE(settings, '{}'::jsonb),
+          '{repos}',
+          COALESCE(settings->'repos', '[]'::jsonb) || ?::jsonb
+        )
+        WHERE id = ?
+      `
+
+      const values = [JSON.stringify(repos), integrationId]
+
+      await sequelize.query(query, {
+        replacements: values,
+        transaction,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  async mapGithubReposSnowflake(integrationId, mapping, fireOnboarding = true, isUpdateTransaction = false) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {

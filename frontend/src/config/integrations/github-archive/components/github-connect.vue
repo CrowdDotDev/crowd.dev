@@ -44,9 +44,7 @@ const props = defineProps<{
 
 const isSettingsDrawerOpen = ref(false);
 
-const { user } = storeToRefs(useAuthStore());
-
-const isTeam = computed(() => isTeamUser(user.value));
+const isTeam = true;
 </script>
 
 <script lang="ts">
