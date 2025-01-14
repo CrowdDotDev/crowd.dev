@@ -3,7 +3,7 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/activity/with-member
+ * POST /activity/with-member
  * @summary Create or update an activity with a member
  * @tag Activities
  * @security Bearer

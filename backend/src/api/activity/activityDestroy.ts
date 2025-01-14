@@ -3,7 +3,7 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/activity/{id}
+ * DELETE /activity/{id}
  * @summary Delete an activity
  * @tag Activities
  * @security Bearer

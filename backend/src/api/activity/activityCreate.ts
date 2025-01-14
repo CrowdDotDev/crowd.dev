@@ -4,7 +4,7 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/activity
+ * POST /activity
  * @summary Create or update an activity
  * @tag Activities
  * @security Bearer
