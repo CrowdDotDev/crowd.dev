@@ -6,7 +6,7 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error400, websiteNormalizer } from '@crowd/common'
+import { websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
@@ -1126,33 +1126,5 @@ export default class OrganizationService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
-  }
-
-  async import(data, importHash) {
-    if (!importHash) {
-      throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-    }
-
-    if (await this._isImportHashExistent(importHash)) {
-      throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-    }
-
-    const dataToCreate = {
-      ...data,
-      importHash,
-    }
-
-    return this.createOrUpdate(dataToCreate)
-  }
-
-  async _isImportHashExistent(importHash) {
-    const count = await OrganizationRepository.count(
-      {
-        importHash,
-      },
-      this.options,
-    )
-
-    return count > 0
   }
 }
