@@ -13,8 +13,16 @@ const useIdentitiesHelpers = () => {
       return lfIdentities[platform]?.name || platform;
     }).join(', ');
 
+  const uniqueKeys = () => [...new Set(Object.values(lfIdentities).map((identity) => identity.key))];
+
+  const memberIdentities = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => identity.showInMembers);
+
+  const organizationIdentities = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => identity.showInOrganizations);
+
   return {
     getPlatformsLabel,
+    memberIdentities,
+    organizationIdentities,
   };
 };
 

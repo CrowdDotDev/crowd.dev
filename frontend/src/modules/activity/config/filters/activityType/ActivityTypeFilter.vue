@@ -17,6 +17,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: string,
@@ -24,7 +25,7 @@ const props = defineProps<{
   data: any,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void, (e: 'update:data', value: any): void}>();
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
@@ -52,18 +53,18 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
+      label: lfIdentities[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
+        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,
       })),
     }));
 
   const customOptions = Object.entries(typesValue.custom)
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
+      label: lfIdentities[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
+        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,
       })),
     }));

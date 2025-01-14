@@ -15,7 +15,7 @@
             class="flex items-center gap-1"
           >
             <p class="!text-white">
-              {{ platformData(platform)?.name }} profile
+              {{ lfIdentities[platform]?.name }} profile
             </p>
             <lf-icon-old name="external-link-line" :size="14" class="text-gray-400" />
           </a>
@@ -57,7 +57,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
           <div class="flex items-center text-gray-900">
             <img
               :alt="platform"
-              :src="platformData(platform)?.image"
+              :src="lfIdentities[platform]?.image"
               class="h-4 w-4"
             />
             <p class="pl-2 text-small">
@@ -79,6 +79,7 @@ import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   contributor: Contributor,
