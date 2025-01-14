@@ -1,5 +1,3 @@
-import { Error400 } from '@crowd/common'
-
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
@@ -129,33 +127,5 @@ export default class TagService {
     const limit = data.limit
     const offset = data.offset
     return TagRepository.findAndCountAll({ advancedFilter, orderBy, limit, offset }, this.options)
-  }
-
-  async import(data, importHash) {
-    if (!importHash) {
-      throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-    }
-
-    if (await this._isImportHashExistent(importHash)) {
-      throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-    }
-
-    const dataToCreate = {
-      ...data,
-      importHash,
-    }
-
-    return this.create(dataToCreate)
-  }
-
-  async _isImportHashExistent(importHash) {
-    const count = await TagRepository.count(
-      {
-        importHash,
-      },
-      this.options,
-    )
-
-    return count > 0
   }
 }
