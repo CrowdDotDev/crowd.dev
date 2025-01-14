@@ -2,10 +2,10 @@
 import { LoggerBase } from '@crowd/logging'
 
 import DataQualityRepository from '@/database/repositories/dataQualityRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IDataQualityParams, IDataQualityType } from '@/types/data-quality/data-quality-filters'
 
 import { IServiceOptions } from './IServiceOptions'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 export default class DataQualityService extends LoggerBase {
   options: IServiceOptions

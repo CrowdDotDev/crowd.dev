@@ -1787,7 +1787,6 @@ export default class MemberService extends LoggerBase {
     return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
   }
 
-
   /**
    *
    * @param oldReach The old reach object

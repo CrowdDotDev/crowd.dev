@@ -8,29 +8,17 @@ export default (app) => {
   app.post(`/member`, safeWrap(require('./memberCreate').default))
   app.put(`/member/:id`, safeWrap(require('./memberUpdate').default))
   app.delete(`/member`, safeWrap(require('./memberDestroy').default))
-  app.post(
-    `/member/autocomplete`,
-    safeWrap(require('./memberAutocomplete').default),
-  )
+  app.post(`/member/autocomplete`, safeWrap(require('./memberAutocomplete').default))
   app.get(`/member/active`, safeWrap(require('./memberActiveList').default))
   app.get(`/member/:id`, safeWrap(require('./memberFind').default))
   app.get(`/member/github/:id`, safeWrap(require('./memberFindGithub').default))
   app.put(`/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
 
-  app.post(
-    `/member/:memberId/unmerge/preview`,
-    safeWrap(require('./memberUnmergePreview').default),
-  )
+  app.post(`/member/:memberId/unmerge/preview`, safeWrap(require('./memberUnmergePreview').default))
 
-  app.post(
-    `/member/:memberId/unmerge`,
-    safeWrap(require('./memberUnmerge').default),
-  )
+  app.post(`/member/:memberId/unmerge`, safeWrap(require('./memberUnmerge').default))
 
-  app.put(
-    `/member/:memberId/no-merge`,
-    safeWrap(require('./memberNotMerge').default),
-  )
+  app.put(`/member/:memberId/no-merge`, safeWrap(require('./memberNotMerge').default))
   app.patch(`/member`, safeWrap(require('./memberUpdateBulk').default))
 
   require('./identity').default(app)
@@ -38,8 +26,5 @@ export default (app) => {
   require('./attributes').default(app)
   require('./affiliation').default(app)
 
-  app.post(
-    `/member/:id/data-issue`,
-    safeWrap(require('./memberDataIssueCreate').default),
-  )
+  app.post(`/member/:id/data-issue`, safeWrap(require('./memberDataIssueCreate').default))
 }

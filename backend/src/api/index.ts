@@ -138,6 +138,7 @@ setImmediate(async () => {
   // Configures the authentication middleware
   // to set the currentUser to the requests
   app.use(authMiddleware)
+
   app.use(tenantMiddleware)
   app.use(segmentMiddleware)
 

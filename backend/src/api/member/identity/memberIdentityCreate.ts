@@ -21,10 +21,7 @@ export default async (req, res) => {
 
   const memberIdentityService = new MemberIdentityService(req)
 
-  const payload = await memberIdentityService.create(
-    req.params.memberId,
-    req.body,
-  )
+  const payload = await memberIdentityService.create(req.params.memberId, req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

@@ -27,10 +27,7 @@ export default async (req, res) => {
     return
   }
 
-  const payload = await new DataQualityService(req).findMemberIssues(
-    req.query,
-    segmentId,
-  )
+  const payload = await new DataQualityService(req).findMemberIssues(req.query, segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }

@@ -2,10 +2,7 @@ import { safeWrap } from '@/middlewares/errorMiddleware'
 
 export default (app) => {
   // Member Organiaztion List
-  app.get(
-    `/member/:memberId/organization`,
-    safeWrap(require('./memberOrganizationList').default),
-  )
+  app.get(`/member/:memberId/organization`, safeWrap(require('./memberOrganizationList').default))
 
   // Member Organiaztion Create
   app.post(

@@ -7,8 +7,5 @@ export default (app) => {
   app.delete(`/activity`, safeWrap(require('./activityDestroy').default))
   app.get(`/activity/type`, safeWrap(require('./activityTypes').default))
   app.get(`/activity/channel`, safeWrap(require('./activityChannels').default))
-  app.post(
-    '/activity/with-member',
-    safeWrap(require('./activityAddWithMember').default),
-  )
+  app.post('/activity/with-member', safeWrap(require('./activityAddWithMember').default))
 }
