@@ -6,7 +6,8 @@ const done: IntegrationStatusConfig = {
   statuses: ['done'],
   status: {
     text: 'Connected',
-    icon: 'checkbox-circle-fill',
+    icon: 'circle-check',
+    iconType: 'solid',
     color: 'text-green-600',
   },
   actionBar: {
