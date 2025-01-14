@@ -54,8 +54,6 @@ export class ActivityService {
     //   ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),
     //   getSelectedProjectGroup().id,
     // ];
-    // If tenant is less than a month old, use old query
-    // Else use new query
     const response = await authAxios.post(
       '/activity/query',
       {

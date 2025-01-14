@@ -9,7 +9,7 @@ class SegmentRepository {
     private readonly log: Logger,
   ) {}
 
-  async getAllSegments(tenantId: string, limit: number, offset: number): Promise<ISegment[]> {
+  async getAllSegments(limit: number, offset: number): Promise<ISegment[]> {
     let rows: ISegment[] = []
     try {
       rows = await this.connection.query(
@@ -20,14 +20,12 @@ class SegmentRepository {
             "parentSlug",
             "grandparentSlug"
         from segments
-        where "tenantId" = $(tenantId)
         order by id asc
         limit $(limit)
         offset $(offset)
           
       `,
         {
-          tenantId,
           limit,
           offset,
         },
@@ -42,7 +40,7 @@ class SegmentRepository {
   }
 
   // getProjectLeafSegments
-  async getProjectLeafSegments(parentSlug: string, tenantId: string): Promise<ISegment[]> {
+  async getProjectLeafSegments(parentSlug: string): Promise<ISegment[]> {
     let rows: ISegment[] = []
     try {
       rows = await this.connection.query(
@@ -54,13 +52,11 @@ class SegmentRepository {
         "grandparentSlug"
     from segments
     where "parentSlug" = $(parentSlug)
-    and "tenantId" = $(tenantId)
     and slug is not null 
     and "grandparentSlug" is not null;
           
       `,
         {
-          tenantId,
           parentSlug,
         },
       )
@@ -73,10 +69,7 @@ class SegmentRepository {
     return rows || []
   }
 
-  async getProjectGroupLeafSegments(
-    grandparentSlug: string,
-    tenantId: string,
-  ): Promise<ISegment[]> {
+  async getProjectGroupLeafSegments(grandparentSlug: string): Promise<ISegment[]> {
     let rows: ISegment[] = []
     try {
       rows = await this.connection.query(
@@ -88,13 +81,11 @@ class SegmentRepository {
         "grandparentSlug"
     from segments
     where "grandparentSlug" = $(grandparentSlug)
-    and "tenantId" = $(tenantId)
     and slug is not null 
     and "parentSlug" is not null;
           
       `,
         {
-          tenantId,
           grandparentSlug,
         },
       )
@@ -107,7 +98,7 @@ class SegmentRepository {
     return rows || []
   }
 
-  async getDefaultSegment(tenantId: string): Promise<ISegment> {
+  async getDefaultSegment(): Promise<ISegment> {
     let result: ISegment
     try {
       result = await this.connection.oneOrNone(
@@ -118,18 +109,14 @@ class SegmentRepository {
         "parentSlug", 
         "grandparentSlug"
     from segments
-    where "tenantId" = $(tenantId)
-    and slug is not null 
+    where slug is not null 
     and "parentSlug" is not null
     and "grandparentSlug" is not null;
           
       `,
-        {
-          tenantId,
-        },
       )
     } catch (err) {
-      this.log.error(`Error while getting the default segment of tenant ${tenantId}`, err)
+      this.log.error(`Error while getting the default segment!`, err)
 
       throw new Error(err)
     }

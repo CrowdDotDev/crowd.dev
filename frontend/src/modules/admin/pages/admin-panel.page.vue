@@ -16,9 +16,6 @@
         <lf-tab v-model="activeTab" name="organizations">
           Organizations
         </lf-tab>
-        <lf-tab v-model="activeTab" name="automations">
-          Automations
-        </lf-tab>
         <lf-tab v-model="activeTab" name="api-keys">
           API Keys
         </lf-tab>
@@ -41,9 +38,6 @@
         <app-organization-common-page
           v-else-if="activeTab === 'organizations'"
         />
-        <app-automation-list
-          v-else-if="activeTab === 'automations'"
-        />
         <app-api-keys-page
           v-else-if="activeTab === 'api-keys'"
         />
@@ -63,7 +57,6 @@ import {
 import { useRoute, useRouter } from 'vue-router';
 import AppLfProjectGroupsPage from '@/modules/admin/modules/projects/pages/project-groups.page.vue';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
-import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
@@ -94,7 +87,7 @@ const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 onMounted(() => {
   const initialActiveTab = route.hash.substring(1) as string;
 
-  if ((initialActiveTab === 'automations' || initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
+  if ((initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
     activeTab.value = 'project-groups';
   } else {
     activeTab.value = route.hash.substring(1) as string || 'project-groups';

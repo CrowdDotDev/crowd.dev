@@ -62,7 +62,6 @@ export interface IQueryActivitiesParameters {
 }
 
 export interface IQueryGroupedActivitiesParameters {
-  tenantId: string
   segmentIds?: string[]
   after?: Date
   before?: Date
