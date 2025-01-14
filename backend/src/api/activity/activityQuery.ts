@@ -4,12 +4,11 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/activity/query
+ * POST /tenant/activity/query
  * @summary Query activities
  * @tag Activities
  * @security Bearer
  * @description Query activities. It accepts filters, sorting options and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityQuery} application/json
  * @response 200 - Ok
  * @responseContent {ActivityList} 200.application/json

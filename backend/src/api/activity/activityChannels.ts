@@ -3,12 +3,11 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/activity/channel
+ * GET /tenant/activity/channel
  * @summary List activity channels
  * @tag Activities
  * @security Bearer
- * @description Find all activity channels of a given tenant
- * @pathParam {string} tenantId - Your workspace/tenant ID
+ * @description Find all activity channels
  * @response 200 - Ok
  * @responseContent {ActivityResponse} 200.application/json
  * @responseExample {ActivityFind} 200.application/json.Activity

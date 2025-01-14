@@ -3,12 +3,11 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/activity/{id}
+ * DELETE /tenant/activity/{id}
  * @summary Delete an activity
  * @tag Activities
  * @security Bearer
  * @description Delete a activity given an ID
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the activity
  * @response 200 - Ok
  * @response 401 - Unauthorized

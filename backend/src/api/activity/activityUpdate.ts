@@ -3,12 +3,11 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/activity/{id}
+ * PUT /tenant/activity/{id}
  * @summary Update an activity
  * @tag Activities
  * @security Bearer
  * @description Update an activity given an ID.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the activity
  * @bodyContent {ActivityUpsertInput} application/json
  * @response 200 - Ok
