@@ -1,7 +1,7 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-import { scheduleRecalculateAffiliationsOfNewRolesForEachTenant } from './schedules/triggerRecalculateAffiliationsOfNewRolesForEachTenant'
+import { scheduleRecalculateAffiliationsOfNewRoles } from './schedules/triggerRecalculateAffiliationsOfNewRoles'
 
 const config: Config = {
   producer: {
@@ -32,7 +32,7 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
-  await scheduleRecalculateAffiliationsOfNewRolesForEachTenant()
+  await scheduleRecalculateAffiliationsOfNewRoles()
 
   await svc.start()
 })
