@@ -912,7 +912,17 @@ export default class ActivityService extends LoggerBase {
                 username,
                 objectMemberId,
                 objectMemberUsername,
-                attributes: activity.attributes || {},
+                attributes:
+                  platform === PlatformType.GITHUB &&
+                  activity.type === GithubActivityType.AUTHORED_COMMIT
+                    ? await this.findMatchingGitActivityAttributes({
+                        tenantId,
+                        segmentId,
+                        activity,
+                        platform,
+                        attributes: activity.attributes || {},
+                      })
+                    : activity.attributes || {},
                 body: activity.body,
                 title: activity.title,
                 channel: activity.channel,
@@ -1115,6 +1125,7 @@ export default class ActivityService extends LoggerBase {
                       tenantId,
                       segmentId,
                       activity,
+                      platform,
                       attributes: activity.attributes || {},
                     })
                   : activity.attributes || {},
@@ -1132,12 +1143,12 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-          await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+          await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, platform, activity })
         } else if (
           platform === PlatformType.GITHUB &&
           activity.type === GithubActivityType.PULL_REQUEST_OPENED
         ) {
-          await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+          await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, platform, activity })
         }
       } finally {
         // release locks matter what
@@ -1261,15 +1272,17 @@ export default class ActivityService extends LoggerBase {
     tenantId,
     segmentId,
     activity,
+    platform,
     attributes,
   }: {
     tenantId: string
     segmentId: string
     activity: IActivityData
+    platform: PlatformType
     attributes: Record<string, unknown>
   }): Promise<Record<string, unknown>> {
     if (
-      activity.platform !== PlatformType.GITHUB ||
+      platform !== PlatformType.GITHUB ||
       activity.type !== GithubActivityType.AUTHORED_COMMIT
     ) {
       this.log.error(
@@ -1298,14 +1311,16 @@ export default class ActivityService extends LoggerBase {
   private async pushAttributesToMatchingGithubActivity({
     tenantId,
     segmentId,
+    platform,
     activity,
   }: {
     tenantId: string
     segmentId: string
+    platform: string
     activity: IActivityData
   }) {
     if (
-      activity.platform !== PlatformType.GIT ||
+      platform !== PlatformType.GIT ||
       activity.type !== GitActivityType.AUTHORED_COMMIT
     ) {
       this.log.error(
@@ -1355,13 +1370,15 @@ export default class ActivityService extends LoggerBase {
 
   private async pushPRSourceIdToMatchingGithubCommits({
     tenantId,
+    platform,
     activity,
   }: {
     tenantId: string
+    platform: string
     activity: IActivityData
   }) {
     if (
-      activity.platform !== PlatformType.GITHUB ||
+      platform !== PlatformType.GITHUB ||
       activity.type !== GithubActivityType.PULL_REQUEST_OPENED
     ) {
       return
