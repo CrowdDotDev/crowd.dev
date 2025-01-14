@@ -1,14 +1,10 @@
 import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
-  app.post(`/tenant/:tenantId/conversation`, safeWrap(require('./conversationCreate').default))
-  app.put(`/tenant/:tenantId/conversation/:id`, safeWrap(require('./conversationUpdate').default))
-  app.delete(`/tenant/:tenantId/conversation`, safeWrap(require('./conversationDestroy').default))
-  app.post(`/tenant/:tenantId/conversation/query`, safeWrap(require('./conversationQuery').default))
-  app.get(`/tenant/:tenantId/conversation`, safeWrap(require('./conversationList').default))
-  app.get(`/tenant/:tenantId/conversation/:id`, safeWrap(require('./conversationFind').default))
-  app.post(
-    `/tenant/:tenantId/conversation/settings`,
-    safeWrap(require('./conversationSettingsUpdate').default),
-  )
+  app.post(`/conversation`, safeWrap(require('./conversationCreate').default))
+  app.put(`/conversation/:id`, safeWrap(require('./conversationUpdate').default))
+  app.delete(`/conversation`, safeWrap(require('./conversationDestroy').default))
+  app.post(`/conversation/query`, safeWrap(require('./conversationQuery').default))
+  app.get(`/conversation`, safeWrap(require('./conversationList').default))
+  app.get(`/conversation/:id`, safeWrap(require('./conversationFind').default))
 }
