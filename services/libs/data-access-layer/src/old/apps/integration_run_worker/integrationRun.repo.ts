@@ -123,13 +123,6 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
       return null
     }
 
-    if (
-      results.type === IntegrationType.GITHUB &&
-      moment(results.updatedAt).isBefore(moment('2024-12-19'))
-    ) {
-      return null
-    }
-
     return results
   }
 
