@@ -4,8 +4,10 @@ const devto: IdentityConfig = {
   key: 'devto',
   name: 'DEV',
   image: '/images/identities/devto.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    urlPrefix: 'dev.to/',
+    url: ({ identity }) => (identity.value ? `https://dev.to/${identity.value}` : null),
+  },
 };
 
 export default devto;

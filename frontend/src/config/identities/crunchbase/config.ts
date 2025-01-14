@@ -4,8 +4,9 @@ const crunchbase: IdentityConfig = {
   key: 'crunchbase',
   name: 'Crunchbase',
   image: '/images/identities/crunchbase.png',
-  showInMembers: false,
-  showInOrganizations: true,
+  organization: {
+    urlPrefix: 'https://www.crunchbase.com/organization/',
+  },
 };
 
 export default crunchbase;

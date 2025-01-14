@@ -4,8 +4,10 @@ const gitlab: IdentityConfig = {
   key: 'gitlab',
   name: 'GitLab',
   image: '/images/identities/gitlab.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    urlPrefix: 'gitlab.com/',
+    url: ({ identity }) => (identity.value ? `https://gitlab.com/${identity.value}` : null),
+  }
 };
 
 export default gitlab;

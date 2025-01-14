@@ -4,8 +4,9 @@ const git: IdentityConfig = {
   key: 'git',
   name: 'Git',
   image: '/images/identities/git.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Git email address',
+  },
 };
 
 export default git;

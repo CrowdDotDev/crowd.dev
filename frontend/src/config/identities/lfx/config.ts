@@ -4,8 +4,9 @@ const lfx: IdentityConfig = {
   key: 'lfx',
   name: 'Linux Foundation ID',
   image: '/images/identities/lfx.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Linux Foundation ID',
+  },
 };
 
 export default lfx;

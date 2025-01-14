@@ -4,8 +4,9 @@ const cvent: IdentityConfig = {
   key: 'cvent',
   name: 'Cvent',
   image: '/images/identities/cvent.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Cvent username or email address',
+  },
 };
 
 export default cvent;

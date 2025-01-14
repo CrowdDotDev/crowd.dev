@@ -4,8 +4,10 @@ const stackoverflow: IdentityConfig = {
   key: 'stackoverflow',
   name: 'Stack Overflow',
   image: '/images/identities/stackoverflow.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    urlPrefix: 'stackoverflow.com/users/',
+    url: ({ attributes }) => attributes?.url?.stackoverflow || null,
+  },
 };
 
 export default stackoverflow;

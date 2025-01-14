@@ -4,8 +4,9 @@ const confluence: IdentityConfig = {
   key: 'confluence',
   name: 'Confluence',
   image: '/images/identities/confluence.svg',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Confluence username or email address',
+  },
 };
 
 export default confluence;

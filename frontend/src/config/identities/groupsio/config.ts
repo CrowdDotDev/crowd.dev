@@ -4,8 +4,9 @@ const groupsio: IdentityConfig = {
   key: 'groupsio',
   name: 'Groups.io',
   image: '/images/identities/groupsio.svg',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Groups.io email address',
+  },
 };
 
 export default groupsio;

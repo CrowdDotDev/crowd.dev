@@ -4,8 +4,9 @@ const jira: IdentityConfig = {
   key: 'jira',
   name: 'Jira',
   image: '/images/identities/jira.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Jira username or email address',
+  },
 };
 
 export default jira;

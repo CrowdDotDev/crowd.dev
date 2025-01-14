@@ -1,4 +1,4 @@
-import { lfIdentities } from '@/config/identities/index';
+import { IdentityConfig, lfIdentities } from '@/config/identities/index';
 
 const useIdentitiesHelpers = () => {
   const getPlatformsLabel = (platforms: string[]) => platforms
@@ -15,9 +15,9 @@ const useIdentitiesHelpers = () => {
 
   const uniqueKeys = () => [...new Set(Object.values(lfIdentities).map((identity) => identity.key))];
 
-  const memberIdentities = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => identity.showInMembers);
+  const memberIdentities: IdentityConfig[] = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => !!identity.member);
 
-  const organizationIdentities = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => identity.showInOrganizations);
+  const organizationIdentities: IdentityConfig[] = uniqueKeys().map((key) => lfIdentities[key]).filter((identity) => !!identity.organization);
 
   return {
     getPlatformsLabel,

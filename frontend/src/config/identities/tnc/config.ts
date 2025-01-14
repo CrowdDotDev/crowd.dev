@@ -4,8 +4,9 @@ const tnc: IdentityConfig = {
   key: 'tnc',
   name: 'Training & Certification',
   image: '/images/identities/tnc.png',
-  showInMembers: true,
-  showInOrganizations: false,
+  member: {
+    placeholder: 'Linux Foundation ID',
+  },
 };
 
 export default tnc;

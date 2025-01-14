@@ -30,9 +30,9 @@
           @click="idents.length > 1 ? $event.preventDefault() : null"
         >
           <lf-icon-old
-            :name="platformData(platform)?.icon"
+            :name="lfIdentities[platform]?.icon || 'radar-line'"
             :size="20"
-            :style="{ color: platformData(platform)?.brandColor }"
+            :style="{ color: lfIdentities[platform]?.color }"
             class="platform-icon"
           />
         </a>
@@ -73,7 +73,6 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
@@ -102,8 +101,6 @@ const platformIdentities = computed(() => {
   });
   return data;
 });
-
-const platformData = (name: string) => CrowdIntegrations.getConfig(name);
 </script>
 
 <script lang="ts">
