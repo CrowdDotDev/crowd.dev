@@ -13,7 +13,7 @@
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--secondary btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line" />
+        <i class="ri-xl ri-chevron-down" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="{ action: 'export' }">

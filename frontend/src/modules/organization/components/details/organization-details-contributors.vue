@@ -23,7 +23,7 @@
             <span class="font-semibold"> Sort: </span>
             {{ sorters[sort] }}
           </p>
-          <lf-icon-old name="arrow-down-s-line" :size="16" />
+          <lf-icon name="chevron-down" :size="16" />
         </div>
       </template>
 
@@ -35,7 +35,7 @@
         @click="onSortChange(key)"
       >
         <span>{{ label }}</span>
-        <lf-icon-old v-if="sort === key" name="check-line" :size="16" class="text-primary-500" />
+        <lf-icon v-if="sort === key" name="check" :size="16" class="text-primary-500" />
       </lf-dropdown-item>
     </lf-dropdown>
   </div>
@@ -85,7 +85,7 @@
             <template #badge>
               <div>
                 <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
-                  <lf-icon-old name="fingerprint-line" :size="16" />
+                  <lf-icon name="fingerprint" :size="16" />
                   <p class="text-small text-gray-600 whitespace-nowrap">
                     {{ pluralize('identity', identities(contributor).length, true) }}
                   </p>
@@ -136,6 +136,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { Member } from '@/modules/member/types/Member';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';

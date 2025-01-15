@@ -31,7 +31,8 @@
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
     >
-      <i class="ri-pencil-line text-base mr-2" /><span class="text-xs">Edit organization</span>
+    <lf-icon name="pen fa-sharp" class="text-base mr-2" />
+      <span class="text-xs">Edit organization</span>
     </button>
   </router-link>
 
@@ -164,6 +165,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '../organization-service';
 import { Organization } from '../types/Organization';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',

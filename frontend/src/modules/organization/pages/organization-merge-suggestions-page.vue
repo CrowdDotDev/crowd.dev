@@ -133,7 +133,7 @@
                       :loading="sending === `${suggestion.organizations[0].id}:${suggestion.organizations[1].id}`"
                       :icon-only="true"
                     >
-                      <i class="ri-more-fill" />
+                      <i class="ri-ellipsis" type="regular" />
                     </lf-button>
                   </template>
 
@@ -142,7 +142,7 @@
                   </lf-dropdown-item>
 
                   <lf-dropdown-item @click="ignore(suggestion)">
-                    <i class="ri-close-circle-line" />Ignore suggestion
+                    <i class="ri-circle-xmark" />Ignore suggestion
                   </lf-dropdown-item>
                 </lf-dropdown>
               </div>

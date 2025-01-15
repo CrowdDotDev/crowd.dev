@@ -106,7 +106,7 @@
                               :label="i.displayValue"
                               @click="fetchPreview(i)"
                             >
-                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-envelope" />
                               <i
                                 v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
                                 class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
@@ -117,9 +117,9 @@
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <lf-icon-old
+                              <lf-icon
                                 v-else
-                                name="fingerprint-fill"
+                                name="fingerprint"
                                 :size="20"
                                 class="text-gray-600 mr-2"
                               />
@@ -136,7 +136,7 @@
             <!-- Identity selection -->
             <div v-else class="pt-14">
               <div class="flex justify-center pb-5">
-                <div class="ri-fingerprint-line text-5xl text-gray-200" />
+                <lf-icon name="fingerprint" :size="64" class="text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
                 Select the organization identity you want to unmerge
@@ -154,7 +154,7 @@
                     :value="i"
                     :label="i.displayValue"
                   >
-                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-envelope" />
                     <i
                       v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
                       class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
@@ -165,9 +165,9 @@
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    <lf-icon-old
+                    <lf-icon
                       v-else
-                      name="fingerprint-fill"
+                      name="fingerprint"
                       :size="20"
                       class="text-gray-600 mr-2"
                     />
@@ -195,7 +195,7 @@ import AppOrganizationMergeSuggestionsDetails
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps({

@@ -34,7 +34,7 @@
               <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start" width="264px">
                 <template #reference>
                   <div class="border border-gray-200 h-6 px-1.5 rounded-md bg-white text-small gap-1 flex items-center whitespace-nowrap text-black">
-                    <lf-icon-old name="folders-line" :size="14" />
+                    <lf-icon name="folders" :size="14" />
                     {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
@@ -48,7 +48,7 @@
                       :key="segment.id"
                       class="flex items-center gap-2"
                     >
-                      <lf-icon-old name="folder-line" :size="16" class="text-gray-400" />
+                      <lf-icon name="folder" :size="16" class="text-gray-400" />
                       <span class="text-small text-black">{{ segment.name }}</span>
                     </div>
                   </div>
@@ -83,7 +83,7 @@
                 </lf-dropdown-item>
                 <lf-dropdown-separator />
                 <lf-dropdown-item type="danger" @click="deleteOrganization(org)">
-                  <i class="ri-delete-bin-6-line" />
+                  <lf-icon name="trash-can" />
                   Delete organization
                 </lf-dropdown-item>
               </lf-dropdown>
@@ -104,7 +104,7 @@
   </div>
   <app-empty-state-cta
     v-else
-    icon="ri-community-line"
+    icon="ri-house-building"
     title="No organizations found"
     description="We couldn't find any results that match your search criteria, please try a different query."
   />
@@ -127,7 +127,7 @@ import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import pluralize from 'pluralize';
 import { getSegmentName } from '@/utils/segments';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   sorting: string,

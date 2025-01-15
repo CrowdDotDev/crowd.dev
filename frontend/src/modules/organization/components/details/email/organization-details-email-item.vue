@@ -5,7 +5,7 @@
     @mouseleave="hovered = false"
   >
     <div class="flex items-start">
-      <lf-icon-old name="mail-line" :size="20" class="text-gray-500" />
+      <lf-icon name="envelope" :size="20" class="text-gray-500" />
       <div class="pl-2">
         <div class="flex items-center">
           <lf-tooltip
@@ -24,8 +24,8 @@
             </a>
           </lf-tooltip>
           <lf-tooltip v-if="props.email.verified" content="Verified email">
-            <lf-icon-old
-              name="verified-badge-line"
+            <lf-icon
+              name="badge-check"
               :size="16"
               class="ml-1 text-primary-500"
             />
@@ -42,7 +42,7 @@
     <lf-dropdown v-show="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon-old name="more-fill" />
+          <lf-icon name="ellipsis" type="regular" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -51,7 +51,7 @@
         class="w-full"
         @click="emit('edit')"
       >
-        <lf-icon-old name="pencil-line" />Edit email
+        <lf-icon name="pen fa-sharp" />Edit email
       </lf-dropdown-item>
       <!-- Unmerge -->
       <lf-dropdown-item
@@ -68,7 +68,7 @@
           attribute: props.organization,
         })"
       >
-        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+        <lf-icon name="message-exclamation" class="!text-red-500" />Report issue
       </lf-dropdown-item>
 
       <lf-dropdown-separator
@@ -80,7 +80,7 @@
         class="w-full"
         @click="removeEmail"
       >
-        <lf-icon-old name="delete-bin-6-line" />Delete email
+        <lf-icon name="trash-can" />Delete email
       </lf-dropdown-item>
     </lf-dropdown>
   </article>
@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';

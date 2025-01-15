@@ -10,14 +10,14 @@
     v-if="hasPermission(LfPermission.organizationEdit)"
     @click="markTeamOrganization(!props.organization.isTeamOrganization)"
   >
-    <lf-icon-old name="team-line" />
+    <lf-icon name="people-group" />
     {{ props.organization.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
   </lf-dropdown-item>
 
   <template v-if="hasPermission(LfPermission.organizationDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteOrganization()">
-      <lf-icon-old name="delete-bin-6-line" />
+      <lf-icon name="trash-can" />
       Delete organization
     </lf-dropdown-item>
   </template>
@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

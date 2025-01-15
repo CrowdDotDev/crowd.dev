@@ -7,7 +7,7 @@
           organization: props.organization,
         })"
       >
-        <lf-icon-old name="feedback-line" class="text-red-500" /> Report data issue
+        <lf-icon name="message-exclamation" class="text-red-500" /> Report data issue
       </lf-button>
       <template v-if="hasSegments">
         <!-- Merge suggestions -->
@@ -41,7 +41,7 @@
             :icon-only="true"
             :class="hasSegments && hasPermission(LfPermission.mergeOrganizations) ? '!rounded-l-none -ml-px' : ''"
           >
-            <lf-icon-old name="more-fill" />
+            <lf-icon name="ellipsis" type="regular" />
           </lf-button>
         </template>
 
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';

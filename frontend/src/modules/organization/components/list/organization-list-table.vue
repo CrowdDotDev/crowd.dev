@@ -13,7 +13,7 @@
         <!-- Empty State -->
         <app-empty-state-cta
           v-if="!hasOrganizations"
-          icon="ri-community-line"
+          icon="ri-house-building"
           title="No organizations yet"
           :description="`We couldn't track any organizations related to all the people who interacted with ${selectedProjectGroup.name} projects.`"
           cta-btn="Add organization"
@@ -22,7 +22,7 @@
 
         <app-empty-state-cta
           v-else-if="hasOrganizations && !totalOrganizations"
-          icon="ri-community-line"
+          icon="ri-house-building"
           title="No organizations found"
           description="We couldn't find any results that match your search criteria, please try a different query."
         />
@@ -736,7 +736,7 @@
                       >
                         <i
                           :id="`buttonRefIcon-${scope.row.id}`"
-                          class="text-xl ri-more-fill"
+                          class="text-xl ri-ellipsis" type="regular"
                         />
                       </button>
                     </router-link>

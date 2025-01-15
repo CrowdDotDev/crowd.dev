@@ -17,8 +17,8 @@
         />
       </lf-tooltip>
       <lf-tooltip v-else content="Custom identity" placement="top-start">
-        <lf-icon-old
-          name="fingerprint-fill"
+        <lf-icon
+          name="fingerprint"
           :size="20"
           class="text-gray-600"
         />
@@ -50,7 +50,7 @@
     <lf-dropdown v-show="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon-old name="more-fill" />
+          <lf-icon name="ellipsis" type="regular" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -59,7 +59,7 @@
         class="w-full"
         @click="emit('edit')"
       >
-        <lf-icon-old name="pencil-line" />Edit identity
+        <lf-icon name="pen fa-sharp" />Edit identity
       </lf-dropdown-item>
 
       <!-- Unmerge -->
@@ -77,7 +77,7 @@
           attribute: props.identity,
         })"
       >
-        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+        <lf-icon name="message-exclamation" class="!text-red-500" />Report issue
       </lf-dropdown-item>
 
       <lf-dropdown-separator
@@ -89,7 +89,7 @@
         class="w-full"
         @click="removeIdentity"
       >
-        <lf-icon-old name="delete-bin-6-line" />Delete identity
+        <lf-icon name="trash-can" />Delete identity
       </lf-dropdown-item>
     </lf-dropdown>
   </article>
@@ -97,6 +97,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
