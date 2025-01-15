@@ -418,6 +418,8 @@ export class OrganizationSyncService {
         if (base) {
           const data = await buildFullOrgForMergeSuggestions(qx, base)
           const prefixed = OrganizationSyncService.prefixData(data)
+          console.log('indexing doc: ')
+          console.log(prefixed)
           await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
         }
       }
