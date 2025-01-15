@@ -739,7 +739,7 @@ export default class OrganizationService extends LoggerBase {
 
   async createOrUpdate(
     data: IOrganization,
-    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
+    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.ASYNCHRONOUS },
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = { ...this.options, transaction }
