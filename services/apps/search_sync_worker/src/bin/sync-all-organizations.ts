@@ -45,6 +45,12 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
   }
 
+  let withAggs = true
+
+  if (processArguments.includes('--no-aggs')) {
+    withAggs = false
+  }
+
   const readStore = new DbStore(log, readHost)
   const repo = new OrganizationRepository(readStore, log)
 
@@ -69,7 +75,7 @@ setImmediate(async () => {
     log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
     current += 1
     service
-      .syncTenantOrganizations(tenantId, 500)
+      .syncTenantOrganizations(tenantId, 500, { withAggs })
       .then(() => {
         current--
         log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
