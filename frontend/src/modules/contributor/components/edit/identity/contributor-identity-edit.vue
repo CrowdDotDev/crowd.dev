@@ -24,7 +24,6 @@
                   <lf-icon
                     v-else
                     name="fingerprint"
-                    type="solid"
                     :size="20"
                     class="text-gray-600"
                   />

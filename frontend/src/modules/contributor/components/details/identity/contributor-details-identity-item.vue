@@ -18,7 +18,6 @@
       <lf-tooltip v-else content="Custom identity" placement="top-start">
         <lf-icon
           name="fingerprint"
-          type="solid"
           :size="20"
           class="text-gray-600"
         />
