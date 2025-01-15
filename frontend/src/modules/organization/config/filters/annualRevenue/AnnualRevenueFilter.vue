@@ -47,7 +47,7 @@
       </div>
       <app-form-errors
         :validation="$v"
-        error-icon="ri-circle-exclamation"
+        error-icon="ri-error-warning-line"
         error-class="relative pt-0"
         :error-messages="{
           'valueTo-minValue': `Number should be higher than “From” field`,

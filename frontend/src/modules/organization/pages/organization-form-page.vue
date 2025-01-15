@@ -168,7 +168,7 @@ import { useOrganizationStore } from '../store/pinia';
 const LoaderIcon = h(
   'i',
   {
-    class: 'ri-circle-notch text-sm text-white',
+    class: 'ri-loader-4-fill text-sm text-white',
   },
   [],
 );

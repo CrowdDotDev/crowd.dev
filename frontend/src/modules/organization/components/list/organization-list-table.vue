@@ -13,7 +13,7 @@
         <!-- Empty State -->
         <app-empty-state-cta
           v-if="!hasOrganizations"
-          icon="ri-house-building"
+          icon="ri-community-line"
           title="No organizations yet"
           :description="`We couldn't track any organizations related to all the people who interacted with ${selectedProjectGroup.name} projects.`"
           cta-btn="Add organization"
@@ -22,7 +22,7 @@
 
         <app-empty-state-cta
           v-else-if="hasOrganizations && !totalOrganizations"
-          icon="ri-house-building"
+          icon="ri-community-line"
           title="No organizations found"
           description="We couldn't find any results that match your search criteria, please try a different query."
         />
@@ -734,10 +734,7 @@
                         type="button"
                         @click.prevent.stop="() => onActionBtnClick(scope.row)"
                       >
-                        <i
-                          :id="`buttonRefIcon-${scope.row.id}`"
-                          class="text-xl ri-ellipsis" type="regular"
-                        />
+                        <lf-icon :id="`buttonRefIcon-${scope.row.id}`" name="ellipsis" type="regular" :size="24"  />
                       </button>
                     </router-link>
                   </template>
@@ -834,6 +831,7 @@ import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
 import { organizationSavedViews } from '../../config/saved-views/main';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { trackEvent } = useProductTracking();
 const router = useRouter();

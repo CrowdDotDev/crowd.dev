@@ -104,7 +104,7 @@
   </div>
   <app-empty-state-cta
     v-else
-    icon="ri-house-building"
+    icon="ri-community-line"
     title="No organizations found"
     description="We couldn't find any results that match your search criteria, please try a different query."
   />
