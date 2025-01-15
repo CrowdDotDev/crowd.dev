@@ -259,26 +259,6 @@ class MemberRepository {
     })
   }
 
-  static async findSampleDataMemberIds(options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const sampleMemberIds = await options.database.sequelize.query(
-      `select m.id from members m
-      where (m.attributes->'sample'->'default')::boolean is true
-      and m."tenantId" = :tenantId;
-    `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return sampleMemberIds.map((i) => i.id)
-  }
-
   static async countMemberMergeSuggestions(
     memberFilter: string,
     similarityFilter: string,

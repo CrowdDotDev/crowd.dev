@@ -34,6 +34,7 @@ const initClient = (ctx: IProcessStreamContext) => {
     database: settings.sfDatabase,
     warehouse: settings.sfWarehouse,
     role: settings.sfRole,
+    parentLog: ctx.log,
   })
   gh = new GithubSnowflakeClient(sf)
 }
@@ -47,6 +48,7 @@ const initIncrementalClient = (ctx: IProcessStreamContext) => {
     database: settings.sfDatabase,
     warehouse: settings.sfIncrementalWarehouse,
     role: settings.sfRole,
+    parentLog: ctx.log,
   })
   ghIncremental = new GithubSnowflakeClient(sfIncremental)
 }
@@ -295,9 +297,12 @@ const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
+  const since_days_ago = ctx.onboarding ? undefined : '2'
+
   const result = await gh.getRepoPushes({
     sf_repo_id: data.sf_repo_id,
     page: data.page,
+    since_days_ago,
   })
 
   for (const record of result.data) {
@@ -318,9 +323,12 @@ const processPullReviewsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GithubBasicStream
   const { gh } = getClient(ctx)
 
+  const since_days_ago = ctx.onboarding ? undefined : '2'
+
   const result = await gh.getRepoPullRequestReviews({
     sf_repo_id: data.sf_repo_id,
     page: data.page,
+    since_days_ago,
   })
 
   for (const record of result.data) {

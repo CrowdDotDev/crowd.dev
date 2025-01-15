@@ -39,7 +39,6 @@ import {
   StackExchangeConfiguration,
   TenantMode,
   TwitterConfiguration,
-  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -141,9 +140,6 @@ export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
 
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
-
-export const WEEKLY_EMAILS_CONFIG: WeeklyEmailsConfiguration =
-  config.get<WeeklyEmailsConfiguration>('weeklyEmails')
 
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
