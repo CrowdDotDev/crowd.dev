@@ -139,9 +139,6 @@ setImmediate(async () => {
   // to set the currentUser to the requests
   app.use(authMiddleware)
 
-  app.use(tenantMiddleware)
-  app.use(segmentMiddleware)
-
   // Default rate limiter
   const defaultRateLimiter = createRateLimiter({
     max: 200,
@@ -178,8 +175,12 @@ setImmediate(async () => {
     require('./product').default(routes)
   }
 
-  require('./auditLog').default(routes)
   require('./auth').default(routes)
+
+  app.use(tenantMiddleware)
+  app.use(segmentMiddleware)
+
+  require('./auditLog').default(routes)
   require('./tenant').default(routes)
   require('./user').default(routes)
   require('./settings').default(routes)
