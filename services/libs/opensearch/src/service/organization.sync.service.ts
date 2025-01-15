@@ -263,7 +263,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
-            { withAggs: true },
+            { withAggs: false },
           )
 
           organizationCount += organizationsSynced
