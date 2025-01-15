@@ -6,7 +6,7 @@
   >
     <div class="mt-0.5">
       <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
-        <lf-icon-old name="mail-line" :size="20" />
+        <lf-icon name="envelope" type="regular" :size="20" />
       </lf-tooltip>
       <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
         <img
@@ -16,8 +16,9 @@
         />
       </lf-tooltip>
       <lf-tooltip v-else content="Custom identity" placement="top-start">
-        <lf-icon-old
-          name="fingerprint-fill"
+        <lf-icon
+          name="fingerprint"
+          type="solid"
           :size="20"
           class="text-gray-600"
         />
@@ -62,7 +63,7 @@
     <lf-dropdown v-show="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon-old name="more-fill" />
+          <lf-icon name="ellipsis" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -81,7 +82,7 @@
           class="w-full"
           @click="emit('edit')"
         >
-          <lf-icon-old name="pencil-line" />Edit identity
+          <lf-icon name="pen fa-sharp" />Edit identity
         </lf-dropdown-item>
       </lf-tooltip>
 
@@ -100,7 +101,7 @@
           attribute: props.identity,
         })"
       >
-        <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
+        <lf-icon name="message-exclamation fa-sharp" class="!text-red-500" />Report issue
       </lf-dropdown-item>
 
       <template
@@ -122,7 +123,7 @@
             class="w-full"
             @click="removeIdentity"
           >
-            <lf-icon-old name="delete-bin-6-line" />Delete identity
+            <lf-icon name="trash-can" />Delete identity
           </lf-dropdown-item>
         </lf-tooltip>
       </template>
@@ -132,6 +133,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';

@@ -10,7 +10,7 @@
       <template #overlay>
         <div class="absolute top-0 left-0 w-full h-full bg-secondary-500 opacity-50" />
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <lf-icon-old name="pencil-line" :size="24" class="text-white" />
+          <lf-icon name="pen fa-sharp"  :size="24" class="text-white" />
         </div>
       </template>
     </lf-avatar>
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ref } from 'vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';

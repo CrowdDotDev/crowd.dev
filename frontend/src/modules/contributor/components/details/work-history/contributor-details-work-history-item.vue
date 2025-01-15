@@ -25,7 +25,7 @@
         </template>
 
         <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="emit('edit')">
-          <lf-icon-old name="pencil-line" />Edit work experience
+          <lf-icon name="pen fa-sharp" />Edit work experience
         </lf-dropdown-item>
         <lf-dropdown-item
           @click="setReportDataModal({
@@ -34,12 +34,12 @@
             attribute: props.organization,
           })"
         >
-          <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
+          <lf-icon name="message-exclamation fa-sharp" class="!text-red-500" />Report issue
         </lf-dropdown-item>
         <template v-if="hasPermission(LfPermission.memberEdit)">
           <lf-dropdown-separator />
           <lf-dropdown-item type="danger" @click="removeWorkHistory">
-            <lf-icon-old name="delete-bin-6-line" />Delete work experience
+            <lf-icon name="trash-can" />Delete work experience
           </lf-dropdown-item>
         </template>
       </lf-dropdown>
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/IconOld.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import { Organization } from '@/modules/organization/types/Organization';
@@ -67,7 +67,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   organization: Organization,

@@ -12,21 +12,21 @@
     :disabled="!!props.contributor.username?.github"
     @click="emit('findGithub')"
   >
-    <lf-icon-old name="github-fill" />
+    <lf-icon name="github" type="brands" />
     Find GitHub
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markTeamMember(!isTeamMember(props.contributor))">
-    <lf-icon-old name="team-line" />
+    <lf-icon name="people-group" />
     {{ isTeamMember(props.contributor) ? 'Unmark' : 'Mark' }} as team member
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markBot(!isBot(props.contributor))">
-    <lf-icon-old name="robot-line" />
+    <lf-icon name="robot" />
     {{ isBot(props.contributor) ? 'Unmark' : 'Mark' }} as bot
   </lf-dropdown-item>
   <template v-if="hasPermission(LfPermission.memberDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteContributor()">
-      <lf-icon-old name="delete-bin-6-line" />
+      <lf-icon name="trash-can" />
       Delete profile
     </lf-dropdown-item>
   </template>
@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -44,7 +45,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';

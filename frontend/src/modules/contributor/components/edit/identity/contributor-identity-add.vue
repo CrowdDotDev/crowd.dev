@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Add identity</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon-old name="close-line" />
+            <lf-icon name="xmark" />
           </lf-button>
         </div>
 
@@ -23,16 +23,17 @@
                   <template #prefix>
                     <div class="flex items-center flex-nowrap whitespace-nowrap">
                       <div class="min-w-5">
-                        <lf-icon-old v-if="identity.type === 'email'" name="mail-line" class="text-black" :size="20" />
+                        <lf-icon v-if="identity.type === 'email'" name="envelope" type="regular" class="text-black" :size="20" />
                         <img
                           v-else-if="platform(identity.platform)"
                           :src="platform(identity.platform)?.image"
                           class="h-5 w-5 object-contain"
                           :alt="identity.value"
                         />
-                        <lf-icon-old
+                        <lf-icon
                           v-else
-                          name="fingerprint-fill"
+                          name="fingerprint"
+                          type="solid"
                           :size="20"
                           class="text-gray-600"
                         />
@@ -54,7 +55,7 @@
                   :icon-only="true"
                   @click="form.splice(ii, 1)"
                 >
-                  <lf-icon-old name="delete-bin-6-line" />
+                  <lf-icon name="trash-can" />
                 </lf-button>
               </div>
               <lf-field-messages
@@ -74,7 +75,7 @@
             })"
           >
             <lf-button type="primary-link" size="small">
-              <lf-icon-old name="add-line" />
+              <lf-icon name="plus" />
               Add identity
             </lf-button>
           </lf-contributor-details-identity-add-dropdown>
@@ -104,7 +105,7 @@ import {
 } from 'vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
