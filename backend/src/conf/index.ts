@@ -30,7 +30,6 @@ import {
   OrganizationEnrichmentConfiguration,
   S3Configuration,
   SSOConfiguration,
-  SampleDataConfiguration,
   SegmentConfiguration,
   ServiceType,
   SlackAlertingConfiguration,
@@ -139,9 +138,6 @@ export const STACKEXCHANGE_CONFIG: StackExchangeConfiguration =
 
 export const SLACK_ALERTING_CONFIG: SlackAlertingConfiguration =
   config.get<SlackAlertingConfiguration>('slackAlerting')
-
-export const SAMPLE_DATA_CONFIG: SampleDataConfiguration =
-  config.get<SampleDataConfiguration>('sampleData')
 
 export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
   config.get<IntegrationProcessingConfiguration>('integrationProcessing')
