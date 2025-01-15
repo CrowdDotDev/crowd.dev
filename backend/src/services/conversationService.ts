@@ -27,11 +27,8 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import { s3 } from './aws'
-import ConversationSettingsService from './conversationSettingsService'
 import getStage from './helpers/getStage'
 import IntegrationService from './integrationService'
-import SettingsService from './settingsService'
-import TenantService from './tenantService'
 
 export default class ConversationService extends LoggerBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
