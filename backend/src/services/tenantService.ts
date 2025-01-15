@@ -1,4 +1,4 @@
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, getDefaultTenantId } from '@crowd/common'
 import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
@@ -65,7 +65,7 @@ export default class TenantService {
       })
     }
 
-    const record = await this.create({ name: 'default', url: 'default', integrationsRequired: [] })
+    const record = await this.create({ id: getDefaultTenantId(), name: 'default', url: 'default', integrationsRequired: [] })
 
     await SettingsService.findOrCreateDefault({
       ...this.options,
