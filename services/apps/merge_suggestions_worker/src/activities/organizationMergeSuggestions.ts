@@ -280,8 +280,8 @@ export async function getOrganizationMergeSuggestions(
     throw e
   }
 
-  svc.log.debug(`Found ${organizationsToMerge.length} similar organizations!`)
-  svc.log.debug({ organizationsToMerge })
+  svc.log.info(`Found ${organizationsToMerge.length} similar organizations!`)
+  svc.log.info({ organizationsToMerge })
 
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
