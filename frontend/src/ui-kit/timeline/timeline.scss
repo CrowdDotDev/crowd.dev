@@ -3,9 +3,16 @@
   &__group-label {
     @apply flex items-center font-semibold text-medium leading-6 mb-1 truncate text-black hover:text-primary-500 transition block w-full overflow-hidden;
   }
-  // &__border {
-  //   @apply w-px h-full bg-gray-200;
-  // }
+
+  &.c-single-item {
+    ::v-deep .c-timeline__item {
+      .c-timeline__item-content {
+        &::before {
+          @apply invisible;
+        }
+      }
+    }
+  }
 
   ::v-deep .c-timeline__item {
     @apply relative mb-4;
@@ -36,5 +43,3 @@
     }
   }
 }
-
-
