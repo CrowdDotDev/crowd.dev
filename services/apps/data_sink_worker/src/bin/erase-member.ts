@@ -335,12 +335,10 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
   const tablesToDelete: Map<string, string[]> = new Map([
     ['activities', ['memberId']],
     ['memberNoMerge', ['memberId', 'noMergeId']],
-    ['memberNotes', ['memberId']],
     ['memberOrganizations', ['memberId']],
     ['memberTags', ['memberId']],
     ['memberSegments', ['memberId']],
     ['memberSegmentsAgg', ['memberId']],
-    ['memberTasks', ['memberId']],
     ['memberEnrichmentCache', ['memberId']],
     ['memberIdentities', ['memberId']],
     ['memberSegmentAffiliations', ['memberId']],

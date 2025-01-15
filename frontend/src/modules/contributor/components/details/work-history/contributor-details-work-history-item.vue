@@ -3,7 +3,7 @@
     @mouseover="hovered = true"
     @mouseleave="hovered = false"
   >
-    <div class="flex">
+    <div class="flex min-h-7">
       <div class="flex flex-auto flex-col overflow-hidden">
         <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
@@ -17,7 +17,7 @@
         </p>
       </div>
 
-      <lf-dropdown v-if="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-show="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />

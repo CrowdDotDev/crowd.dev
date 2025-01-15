@@ -30,7 +30,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       level,
       client,
       client.getQueueChannelConfig(CrowdQueue.DATA_SINK_WORKER),
-      3,
+      Number(process.env.WORKER_MAX_CONCURRENCY || 1),
       parentLog,
       undefined,
       undefined,
@@ -58,7 +58,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
           break
         case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
           const msg = message as CreateAndProcessActivityResultQueueMessage
-          await service.createAndProcessActivityResult(
+          await service.processActivityInMemoryResult(
             msg.tenantId,
             msg.segmentId,
             msg.integrationId,

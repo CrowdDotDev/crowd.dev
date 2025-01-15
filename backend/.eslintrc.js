@@ -3,7 +3,7 @@ module.exports = {
     node: true,
     es2021: true,
   },
-  extends: ['airbnb-base', 'prettier', 'plugin:openapi/recommended'],
+  extends: ['airbnb-base', 'prettier'],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist/*', '**/*.test.ts'],

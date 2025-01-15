@@ -2,9 +2,7 @@ import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { Error400, Error404, getCleanString } from '@crowd/common'
-import { Edition, TenantPlans } from '@crowd/types'
 
-import { API_CONFIG } from '../../conf'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { isUserInTenant } from '../utils/userTenantUtils'
 
@@ -17,26 +15,6 @@ const { Op } = Sequelize
 const forbiddenTenantUrls = ['www']
 
 class TenantRepository {
-  static async getPayingTenantIds(options: IRepositoryOptions): Promise<({ id: string } & {})[]> {
-    const database = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const query = `
-      SELECT "id"
-      FROM "tenants"
-      WHERE tenants."plan" IN (:growth)
-        OR (tenants."isTrialPlan" is true AND tenants."plan" = :growth)
-      ;
-    `
-    return database.query(query, {
-      type: QueryTypes.SELECT,
-      transaction,
-      replacements: {
-        growth: TenantPlans.Growth,
-      },
-    })
-  }
-
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -71,7 +49,6 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
-        plan: API_CONFIG.edition === Edition.LFX ? TenantPlans.Enterprise : TenantPlans.Essential,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -181,60 +158,6 @@ class TenantRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
-    return this.findById(record.id, options)
-  }
-
-  static async updatePlanUser(id, planStripeCustomerId, planUserId, options: IRepositoryOptions) {
-    const currentUser = SequelizeRepository.getCurrentUser(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let record = await options.database.tenant.findByPk(id, {
-      transaction,
-    })
-
-    const data = {
-      planStripeCustomerId,
-      planUserId,
-      updatedById: currentUser.id,
-    }
-
-    record = await record.update(data, {
-      transaction,
-    })
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
-    return this.findById(record.id, options)
-  }
-
-  static async updatePlanStatus(
-    planStripeCustomerId,
-    plan,
-    planStatus,
-    options: IRepositoryOptions,
-  ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let record = await options.database.tenant.findOne({
-      where: {
-        planStripeCustomerId,
-      },
-      transaction,
-    })
-
-    const data = {
-      plan,
-      planStatus,
-      updatedById: null,
-    }
-
-    record = await record.update(data, {
-      transaction,
-    })
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
