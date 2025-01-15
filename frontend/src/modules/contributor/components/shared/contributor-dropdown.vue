@@ -1,8 +1,8 @@
 <template>
   <lf-dropdown-item
-    v-if="!isMasked(props.contributor) && (props.contributor.identities || []).length > 1
+    v-if="(props.contributor.identities || []).length > 1
       && hasPermission(LfPermission.memberEdit)"
-    @click="unmerge = props.contributor"
+    @click="emit('unmerge')"
   >
     <lf-icon-old name="link-unlink" />
     Unmerge profile
@@ -30,11 +30,6 @@
       Delete profile
     </lf-dropdown-item>
   </template>
-
-  <app-member-unmerge-dialog
-    v-if="unmerge"
-    v-model="unmerge"
-  />
 </template>
 
 <script setup lang="ts">
@@ -49,8 +44,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
@@ -59,16 +53,15 @@ const props = defineProps<{
   contributor: Contributor,
 }>();
 
-const emit = defineEmits<{(e: 'reload'): any, (e: 'findGithub'): any}>();
+const emit = defineEmits<{(e: 'reload'): any, (e: 'findGithub'): any, (e: 'unmerge'): any}>();
 
 const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-const { isTeamMember, isBot, isMasked } = useContributorHelpers();
+const { isTeamMember, isBot } = useContributorHelpers();
 const { updateContributorAttributes } = useContributorStore();
 
-const unmerge = ref<Contributor | null>(null);
 const hasGithubIdentity = computed(() => (props.contributor.identities?.some((identity) => identity.platform === 'github')));
 
 const markTeamMember = (teamMember: boolean) => {

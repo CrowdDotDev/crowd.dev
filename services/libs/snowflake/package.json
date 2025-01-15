@@ -13,6 +13,7 @@
     "tsx": "^4.7.1"
   },
   "dependencies": {
+    "@crowd/logging": "workspace:*",
     "snowflake-sdk": "^1.14.0"
   }
 }

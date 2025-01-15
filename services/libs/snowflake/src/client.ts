@@ -2,8 +2,11 @@
 import crypto from 'crypto'
 import Snowflake from 'snowflake-sdk'
 
+import { Logger, getChildLogger } from '@crowd/logging'
+
 export class SnowflakeClient {
   private pool: Snowflake.Pool<Snowflake.Connection>
+  private log: Logger
 
   constructor({
     privateKeyString,
@@ -15,6 +18,7 @@ export class SnowflakeClient {
     role,
     maxConnections = 5,
     minConnections = 1,
+    parentLog,
   }: {
     privateKeyString: string | Buffer
     account: string
@@ -25,7 +29,10 @@ export class SnowflakeClient {
     role?: string
     maxConnections?: number
     minConnections?: number
+    parentLog: Logger
   }) {
+    this.log = getChildLogger('SnowflakeClient', parentLog)
+
     let privateKey: string | Buffer
     try {
       const formattedKey = privateKeyString.includes('BEGIN PRIVATE KEY')
@@ -46,6 +53,17 @@ export class SnowflakeClient {
       throw new Error('Invalid private key format')
     }
 
+    this.log.info(
+      {
+        account,
+        database,
+        warehouse,
+        username,
+        maxConnections,
+        minConnections,
+      },
+      'Initializing Snowflake connection pool',
+    )
     this.pool = Snowflake.createPool(
       {
         account,
@@ -89,7 +107,23 @@ export class SnowflakeClient {
     return new Promise((resolve, reject) => {
       this.pool.use(async (connection) => {
         try {
+          this.log.info(
+            {
+              query,
+              binds,
+              hasBinds: !!binds,
+            },
+            'Executing Snowflake query',
+          )
           const results = await this.executeQuery(connection, query, binds)
+
+          this.log.info(
+            {
+              query,
+              resultCount: results.length,
+            },
+            'Successfully executed Snowflake query',
+          )
           resolve(results)
         } catch (err) {
           reject(err)

@@ -50,15 +50,9 @@ import {
 import { TEMPORAL_CONFIG } from '../conf'
 
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
+import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-
-export class SuppressedActivityError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'SuppressedActivityError'
-  }
-}
 
 export default class ActivityService extends LoggerBase {
   constructor(
@@ -441,616 +435,397 @@ export default class ActivityService extends LoggerBase {
       sourceId: activity.sourceId,
     })
 
-    try {
-      this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
+    this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
 
-      if (!activity.username && !activity.member) {
-        this.log.error(
-          { integrationId, platform, activity },
-          'Activity does not have a username or member.',
+    if (!activity.username && !activity.member) {
+      this.log.error(
+        { integrationId, platform, activity },
+        'Activity does not have a username or member.',
+      )
+      throw new Error('Activity does not have a username or member.')
+    }
+
+    let username = activity.username
+    if (!username) {
+      const identity = singleOrDefault(
+        activity.member.identities,
+        (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+      )
+      if (!identity) {
+        throw new UnrepeatableError(
+          `Activity's member does not have an identity for the platform: ${platform}!`,
         )
-        throw new Error('Activity does not have a username or member.')
       }
 
-      let username = activity.username
-      if (!username) {
-        const identity = singleOrDefault(
-          activity.member.identities,
-          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+      username = identity.value
+    }
+
+    let member = activity.member
+    if (!member) {
+      member = {
+        identities: [
+          {
+            platform,
+            value: username,
+            type: MemberIdentityType.USERNAME,
+            verified: true,
+          },
+        ],
+      }
+    }
+
+    if (!member.attributes) {
+      member.attributes = {}
+    }
+
+    let objectMemberUsername = activity.objectMemberUsername
+    let objectMember = activity.objectMember
+
+    if (objectMember && !objectMemberUsername) {
+      const identity = singleOrDefault(
+        objectMember.identities,
+        (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+      )
+      if (!identity) {
+        this.log.error("Activity's object member does not have an identity for the platform.")
+        throw new Error(
+          `Activity's object member does not have an identity for the platform: ${platform}!`,
         )
-        if (!identity) {
-          if (platform === PlatformType.JIRA) {
-            throw new SuppressedActivityError(
-              `Activity's member does not have an identity for the platform: ${platform}!`,
-            )
-          } else {
-            this.log.error(
-              "Activity's member does not have an identity for the platform. Suppressing it!",
-            )
-            throw new Error(
-              `Activity's member does not have an identity for the platform: ${platform}!`,
-            )
-          }
-        }
-
-        username = identity.value
       }
 
-      let member = activity.member
-      if (!member) {
-        member = {
-          identities: [
-            {
-              platform,
-              value: username,
-              type: MemberIdentityType.USERNAME,
-              verified: true,
-            },
-          ],
-        }
+      objectMemberUsername = identity.value
+    } else if (objectMemberUsername && !objectMember) {
+      objectMember = {
+        identities: [
+          {
+            platform,
+            value: objectMemberUsername,
+            type: MemberIdentityType.USERNAME,
+            verified: true,
+          },
+        ],
       }
+    }
 
-      if (!member.attributes) {
-        member.attributes = {}
-      }
+    const repo = new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
 
-      let objectMemberUsername = activity.objectMemberUsername
-      let objectMember = activity.objectMember
-
-      if (objectMember && !objectMemberUsername) {
-        const identity = singleOrDefault(
-          objectMember.identities,
-          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
-        )
-        if (!identity) {
-          this.log.error("Activity's object member does not have an identity for the platform.")
-          throw new Error(
-            `Activity's object member does not have an identity for the platform: ${platform}!`,
+    // check if member or object member have identities that were requested to be erased by the user
+    if (member && member.identities.length > 0) {
+      const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+      if (toErase.length > 0) {
+        // prevent member/activity creation of one of the identities that are marked to be erased are verified
+        if (toErase.some((i) => i.verified)) {
+          this.log.warn(
+            { memberIdentities: member.identities },
+            'Member has identities that were requested to be erased by the user! Skipping activity processing!',
           )
-        }
+          return
+        } else {
+          // we just remove the unverified identities that were marked to be erased and prevent them from being created
+          member.identities = member.identities.filter((i) => {
+            if (i.verified) return true
 
-        objectMemberUsername = identity.value
-      } else if (objectMemberUsername && !objectMember) {
-        objectMember = {
-          identities: [
-            {
-              platform,
-              value: objectMemberUsername,
-              type: MemberIdentityType.USERNAME,
-              verified: true,
-            },
-          ],
-        }
-      }
-
-      const repo = new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
-
-      // check if member or object member have identities that were requested to be erased by the user
-      if (member && member.identities.length > 0) {
-        const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
-        if (toErase.length > 0) {
-          // prevent member/activity creation of one of the identities that are marked to be erased are verified
-          if (toErase.some((i) => i.verified)) {
-            this.log.warn(
-              { memberIdentities: member.identities },
-              'Member has identities that were requested to be erased by the user! Skipping activity processing!',
-            )
-            return
-          } else {
-            // we just remove the unverified identities that were marked to be erased and prevent them from being created
-            member.identities = member.identities.filter((i) => {
-              if (i.verified) return true
-
-              const maybeToErase = toErase.find(
-                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-              )
-
-              if (maybeToErase) return false
-              return true
-            })
-
-            if (member.identities.filter((i) => i.value).length === 0) {
-              this.log.warn(
-                'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
-              )
-              return
-            }
-          }
-        }
-      }
-
-      if (objectMember && objectMember.identities.length > 0) {
-        const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
-        if (toErase.length > 0) {
-          // prevent member/activity creation of one of the identities that are marked to be erased are verified
-          if (toErase.some((i) => i.verified)) {
-            this.log.warn(
-              { objectMemberIdentities: objectMember.identities },
-              'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
-            )
-            return
-          } else {
-            // we just remove the unverified identities that were marked to be erased and prevent them from being created
-            objectMember.identities = objectMember.identities.filter((i) => {
-              if (i.verified) return true
-
-              const maybeToErase = toErase.find(
-                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-              )
-
-              if (maybeToErase) return false
-              return true
-            })
-
-            if (objectMember.identities.filter((i) => i.value).length === 0) {
-              this.log.warn(
-                'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
-              )
-              return
-            }
-          }
-        }
-      }
-
-      let memberId: string
-      let objectMemberId: string | undefined
-      let memberIsBot = false
-      let memberIsTeamMember = false
-      let segmentId: string
-      let organizationId: string
-
-      const memberAttValue = (attName: MemberAttributeName, dbMember?: IDbMember): unknown => {
-        let result: unknown
-        if (dbMember && dbMember.attributes[attName]) {
-          // db member already has this attribute
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const att = dbMember.attributes[attName] as any
-          // if it's manually set we use that
-          if (att.custom) {
-            // manually set
-            result = att.custom
-          } else {
-            // if it's not manually set we check if incoming member data has the attribute set for the platform
-            if (member.attributes[attName] && member.attributes[attName][platform]) {
-              result = member.attributes[attName][platform]
-            } else {
-              // if none of those work we just use db member attribute default value
-              result = att.default
-            }
-          }
-        } else if (member.attributes[attName] && member.attributes[attName][platform]) {
-          result = member.attributes[attName][platform]
-        }
-
-        return result
-      }
-
-      await this.pgStore.transactionally(async (txStore) => {
-        try {
-          const txMemberRepo = new MemberRepository(txStore, this.log)
-          const txMemberService = new MemberService(
-            txStore,
-            this.searchSyncWorkerEmitter,
-            this.temporal,
-            this.redisClient,
-            this.log,
-          )
-          const txActivityService = new ActivityService(
-            txStore,
-            this.qdbStore,
-            this.searchSyncWorkerEmitter,
-            this.redisClient,
-            this.temporal,
-            this.log,
-          )
-          const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-          const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
-          const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
-          const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
-
-          segmentId = providedSegmentId
-          if (!segmentId) {
-            const dbIntegration = await txIntegrationRepo.findById(integrationId)
-            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
-              tenantId,
-              activity.channel,
-            )
-            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
-              tenantId,
-              activity.channel,
+            const maybeToErase = toErase.find(
+              (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
             )
 
-            if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
-              segmentId = gitlabRepoSegmentId
-            } else if (platform === PlatformType.GITHUB && repoSegmentId) {
-              segmentId = repoSegmentId
-            } else {
-              segmentId = dbIntegration.segmentId
-            }
-          }
-
-          // find existing activity
-          const {
-            rows: [dbActivity],
-          } = await queryActivities(this.qdbStore.connection(), {
-            tenantId,
-            segmentIds: [segmentId],
-            filter: {
-              and: [
-                { timestamp: { eq: activity.timestamp } },
-                { sourceId: { eq: activity.sourceId } },
-                { platform: { eq: platform } },
-                { type: { eq: activity.type } },
-                { channel: { eq: activity.channel } },
-              ],
-            },
-            limit: 1,
+            if (maybeToErase) return false
+            return true
           })
 
-          if (dbActivity && dbActivity?.deletedAt) {
-            // we found an existing activity but it's deleted - nothing to do here
-            this.log.trace(
-              { activityId: dbActivity.id },
-              'Found existing activity but it is deleted, nothing to do here.',
+          if (member.identities.filter((i) => i.value).length === 0) {
+            this.log.warn(
+              'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
             )
             return
           }
+        }
+      }
+    }
 
-          let createActivity = false
+    if (objectMember && objectMember.identities.length > 0) {
+      const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+      if (toErase.length > 0) {
+        // prevent member/activity creation of one of the identities that are marked to be erased are verified
+        if (toErase.some((i) => i.verified)) {
+          this.log.warn(
+            { objectMemberIdentities: objectMember.identities },
+            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+          )
+          return
+        } else {
+          // we just remove the unverified identities that were marked to be erased and prevent them from being created
+          objectMember.identities = objectMember.identities.filter((i) => {
+            if (i.verified) return true
 
-          if (dbActivity) {
-            this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
-            // process member data
-
-            let dbMember = await txMemberRepo.findMemberByUsername(
-              tenantId,
-              segmentId,
-              platform,
-              username,
+            const maybeToErase = toErase.find(
+              (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
             )
-            if (dbMember) {
-              // we found a member for the identity from the activity
-              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
-              // lets check if it's a match from what we have in the database activity that we got through sourceId
-              if (dbActivity.memberId !== dbMember.id) {
-                // the memberId from the dbActivity does not match the one we found from the identity
-                // we should remove the activity and let it recreate itself with the correct member
-                // this is probably a legacy problem before we had weak identities
-                this.log.warn(
-                  {
-                    activityMemberId: dbActivity.memberId,
-                    memberId: dbMember.id,
-                    activityType: activity.type,
-                  },
-                  'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
-                )
+            if (maybeToErase) return false
+            return true
+          })
 
-                createActivity = true
-              }
+          if (objectMember.identities.filter((i) => i.value).length === 0) {
+            this.log.warn(
+              'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+            )
+            return
+          }
+        }
+      }
+    }
 
-              // update the member
-              await txMemberService.update(
-                dbMember.id,
-                tenantId,
-                onboarding,
-                segmentId,
-                integrationId,
+    let memberId: string
+    let objectMemberId: string | undefined
+    let memberIsBot = false
+    let memberIsTeamMember = false
+    let segmentId: string
+    let organizationId: string
+
+    const memberAttValue = (attName: MemberAttributeName, dbMember?: IDbMember): unknown => {
+      let result: unknown
+      if (dbMember && dbMember.attributes[attName]) {
+        // db member already has this attribute
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const att = dbMember.attributes[attName] as any
+        // if it's manually set we use that
+        if (att.custom) {
+          // manually set
+          result = att.custom
+        } else {
+          // if it's not manually set we check if incoming member data has the attribute set for the platform
+          if (member.attributes[attName] && member.attributes[attName][platform]) {
+            result = member.attributes[attName][platform]
+          } else {
+            // if none of those work we just use db member attribute default value
+            result = att.default
+          }
+        }
+      } else if (member.attributes[attName] && member.attributes[attName][platform]) {
+        result = member.attributes[attName][platform]
+      }
+
+      return result
+    }
+
+    await this.pgStore.transactionally(async (txStore) => {
+      try {
+        const txMemberRepo = new MemberRepository(txStore, this.log)
+        const txMemberService = new MemberService(
+          txStore,
+          this.searchSyncWorkerEmitter,
+          this.temporal,
+          this.redisClient,
+          this.log,
+        )
+        const txActivityService = new ActivityService(
+          txStore,
+          this.qdbStore,
+          this.searchSyncWorkerEmitter,
+          this.redisClient,
+          this.temporal,
+          this.log,
+        )
+        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
+        const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
+        const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
+        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
+
+        segmentId = providedSegmentId
+        if (!segmentId) {
+          const dbIntegration = await txIntegrationRepo.findById(integrationId)
+          const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+            tenantId,
+            activity.channel,
+          )
+          const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+            tenantId,
+            activity.channel,
+          )
+
+          if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
+            segmentId = gitlabRepoSegmentId
+          } else if (platform === PlatformType.GITHUB && repoSegmentId) {
+            segmentId = repoSegmentId
+          } else {
+            segmentId = dbIntegration.segmentId
+          }
+        }
+
+        // find existing activity
+        const {
+          rows: [dbActivity],
+        } = await queryActivities(this.qdbStore.connection(), {
+          tenantId,
+          segmentIds: [segmentId],
+          filter: {
+            and: [
+              { timestamp: { eq: activity.timestamp } },
+              { sourceId: { eq: activity.sourceId } },
+              { platform: { eq: platform } },
+              { type: { eq: activity.type } },
+              { channel: { eq: activity.channel } },
+            ],
+          },
+          limit: 1,
+        })
+
+        if (dbActivity && dbActivity?.deletedAt) {
+          // we found an existing activity but it's deleted - nothing to do here
+          this.log.trace(
+            { activityId: dbActivity.id },
+            'Found existing activity but it is deleted, nothing to do here.',
+          )
+          return
+        }
+
+        let createActivity = false
+
+        if (dbActivity) {
+          this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
+          // process member data
+
+          let dbMember = await txMemberRepo.findMemberByUsername(
+            tenantId,
+            segmentId,
+            platform,
+            username,
+          )
+          if (dbMember) {
+            // we found a member for the identity from the activity
+            this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+            // lets check if it's a match from what we have in the database activity that we got through sourceId
+            if (dbActivity.memberId !== dbMember.id) {
+              // the memberId from the dbActivity does not match the one we found from the identity
+              // we should remove the activity and let it recreate itself with the correct member
+              // this is probably a legacy problem before we had weak identities
+              this.log.warn(
                 {
-                  attributes: member.attributes,
-                  joinedAt: member.joinedAt
-                    ? new Date(member.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: member.identities,
-                  organizations: member.organizations,
-                  reach: member.reach,
+                  activityMemberId: dbActivity.memberId,
+                  memberId: dbMember.id,
+                  activityType: activity.type,
                 },
-                dbMember,
-                platform,
-                false,
+                'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
               )
 
-              if (!createActivity) {
-                // and use it's member id for the new activity
-                dbActivity.memberId = dbMember.id
-              }
-
-              memberId = dbMember.id
-              // determine isBot and isTeamMember
-              memberIsBot =
-                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-              memberIsTeamMember =
-                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
-            } else {
-              this.log.trace(
-                'We did not find a member for the identity provided! Updating the one from db activity.',
-              )
-              // we did not find a member for the identity from the activity
-              // which is weird since the memberId from the activity points to some member
-              // that does not have the identity from the new activity
-              // we should add the activity to the member
-              // merge member data with the one from the activity and the one from the database
-              // leave activity.memberId as is
-
-              dbMember = await txMemberRepo.findById(dbActivity.memberId)
-              await txMemberService.update(
-                dbMember.id,
-                tenantId,
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  attributes: member.attributes,
-                  joinedAt: member.joinedAt
-                    ? new Date(member.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: member.identities,
-                  organizations: member.organizations,
-                  reach: member.reach,
-                },
-                dbMember,
-                platform,
-                false,
-              )
-
-              memberId = dbActivity.memberId
-              // determine isBot and isTeamMember
-              memberIsBot =
-                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-              memberIsTeamMember =
-                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
+              createActivity = true
             }
 
-            // process object member data
-            // existing activity has it but now we don't anymore
-            if (dbActivity.objectMemberId && !objectMember) {
-              // TODO what to do here?
-              throw new Error(
-                `Activity ${dbActivity.id} has an object member but newly generated one does not!`,
-              )
-            }
-
-            if (objectMember) {
-              if (dbActivity.objectMemberId) {
-                let dbObjectMember = await txMemberRepo.findMemberByUsername(
-                  tenantId,
-                  segmentId,
-                  platform,
-                  objectMemberUsername,
-                )
-
-                if (dbObjectMember) {
-                  // we found an existing object member for the identity from the activity
-                  this.log.trace(
-                    { objectMemberId: dbObjectMember.id },
-                    'Found existing object member.',
-                  )
-
-                  // lets check if it's a match from what we have in the database activity that we got through sourceId
-                  if (dbActivity.objectMemberId !== dbObjectMember.id) {
-                    // the memberId from the dbActivity does not match the one we found from the identity
-                    // we should remove the activity and let it recreate itself with the correct member
-                    // this is probably a legacy problem before we had weak identities
-                    this.log.warn(
-                      {
-                        activityObjectMemberId: dbActivity.objectMemberId,
-                        objectMemberId: dbObjectMember.id,
-                        activityType: activity.type,
-                      },
-                      'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
-                    )
-
-                    createActivity = true
-                  }
-
-                  // update the member
-                  await txMemberService.update(
-                    dbObjectMember.id,
-                    tenantId,
-                    onboarding,
-                    segmentId,
-                    integrationId,
-                    {
-                      attributes: objectMember.attributes,
-                      joinedAt: objectMember.joinedAt
-                        ? new Date(objectMember.joinedAt)
-                        : new Date(activity.timestamp),
-                      identities: objectMember.identities,
-                      organizations: objectMember.organizations,
-                      reach: member.reach,
-                    },
-                    dbObjectMember,
-                    platform,
-                    false,
-                  )
-
-                  if (!createActivity) {
-                    // and use it's member id for the new activity
-                    dbActivity.objectMemberId = dbObjectMember.id
-                  }
-
-                  objectMemberId = dbObjectMember.id
-                } else {
-                  this.log.trace(
-                    'We did not find a object member for the identity provided! Updating the one from db activity.',
-                  )
-                  // we did not find a member for the identity from the activity
-                  // which is weird since the memberId from the activity points to some member
-                  // that does not have the identity from the new activity
-                  // we should add the activity to the member
-                  // merge member data with the one from the activity and the one from the database
-                  // leave activity.memberId as is
-
-                  dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
-                  await txMemberService.update(
-                    dbObjectMember.id,
-                    tenantId,
-                    onboarding,
-                    segmentId,
-                    integrationId,
-                    {
-                      attributes: objectMember.attributes,
-                      joinedAt: objectMember.joinedAt
-                        ? new Date(objectMember.joinedAt)
-                        : new Date(activity.timestamp),
-                      identities: objectMember.identities,
-                      organizations: objectMember.organizations,
-                      reach: member.reach,
-                    },
-                    dbObjectMember,
-                    platform,
-                    false,
-                  )
-
-                  objectMemberId = dbActivity.objectMemberId
-                }
-              }
-            }
+            // update the member
+            await txMemberService.update(
+              dbMember.id,
+              tenantId,
+              onboarding,
+              segmentId,
+              integrationId,
+              {
+                attributes: member.attributes,
+                joinedAt: member.joinedAt
+                  ? new Date(member.joinedAt)
+                  : new Date(activity.timestamp),
+                identities: member.identities,
+                organizations: member.organizations,
+                reach: member.reach,
+              },
+              dbMember,
+              platform,
+              false,
+            )
 
             if (!createActivity) {
-              organizationId = await txMemberAffiliationService.findAffiliation(
-                dbActivity.memberId,
-                segmentId,
-                dbActivity.timestamp,
-              )
-
-              // just update the activity now
-              await txActivityService.update(
-                dbActivity.id,
-                tenantId,
-                onboarding,
-                segmentId,
-                {
-                  type: activity.type,
-                  isContribution: activity.isContribution,
-                  score: activity.score,
-                  sourceId: activity.sourceId,
-                  sourceParentId: activity.sourceParentId,
-                  memberId: dbActivity.memberId,
-                  username,
-                  objectMemberId,
-                  objectMemberUsername,
-                  attributes: activity.attributes || {},
-                  body: activity.body,
-                  title: activity.title,
-                  channel: activity.channel,
-                  url: activity.url,
-                  organizationId,
-                  platform:
-                    platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
-                      ? PlatformType.GITHUB
-                      : (dbActivity.platform as PlatformType),
-                },
-                dbActivity,
-                {
-                  isBot: memberIsBot ?? false,
-                  isTeamMember: memberIsTeamMember ?? false,
-                },
-                false,
-              )
+              // and use it's member id for the new activity
+              dbActivity.memberId = dbMember.id
             }
 
-            // release lock for member inside activity exists - this migth be redundant, but just in case
+            memberId = dbMember.id
+            // determine isBot and isTeamMember
+            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
+            memberIsTeamMember =
+              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
           } else {
-            this.log.trace('We did not find an existing activity. Creating a new one.')
-            createActivity = true
+            this.log.trace(
+              'We did not find a member for the identity provided! Updating the one from db activity.',
+            )
+            // we did not find a member for the identity from the activity
+            // which is weird since the memberId from the activity points to some member
+            // that does not have the identity from the new activity
+            // we should add the activity to the member
+            // merge member data with the one from the activity and the one from the database
+            // leave activity.memberId as is
 
-            // we don't have the activity yet in the database
-            // check if we have a member for the identity from the activity
-            let dbMember = await txMemberRepo.findMemberByUsername(
+            dbMember = await txMemberRepo.findById(dbActivity.memberId)
+            await txMemberService.update(
+              dbMember.id,
               tenantId,
+              onboarding,
               segmentId,
+              integrationId,
+              {
+                attributes: member.attributes,
+                joinedAt: member.joinedAt
+                  ? new Date(member.joinedAt)
+                  : new Date(activity.timestamp),
+                identities: member.identities,
+                organizations: member.organizations,
+                reach: member.reach,
+              },
+              dbMember,
               platform,
-              username,
+              false,
             )
 
-            // try to find a member by email if verified one is available
-            if (!dbMember) {
-              const emails = member.identities
-                .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-                .map((i) => i.value)
-
-              if (emails.length > 0) {
-                for (const email of emails) {
-                  dbMember = await txMemberRepo.findMemberByEmail(tenantId, email)
-
-                  if (dbMember) {
-                    break
-                  }
-                }
-              }
-            }
-
-            if (dbMember) {
-              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
-              await txMemberService.update(
-                dbMember.id,
-                tenantId,
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  attributes: member.attributes,
-                  joinedAt: member.joinedAt
-                    ? new Date(member.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: member.identities,
-                  organizations: member.organizations,
-                  reach: member.reach,
-                },
-                dbMember,
-                platform,
-                false,
-              )
-              memberId = dbMember.id
-              // determine isBot and isTeamMember
-              memberIsBot =
-                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-              memberIsTeamMember =
-                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
-            } else {
-              this.log.trace(
-                'We did not find a member for the identity provided! Creating a new one.',
-              )
-              memberId = await txMemberService.create(
-                tenantId,
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  displayName: member.displayName || username,
-                  attributes: member.attributes,
-                  joinedAt: member.joinedAt
-                    ? new Date(member.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: member.identities,
-                  organizations: member.organizations,
-                  reach: member.reach,
-                },
-                platform,
-                false,
-              )
-            }
+            memberId = dbActivity.memberId
             // determine isBot and isTeamMember
-            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT) as boolean) ?? false
+            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
             memberIsTeamMember =
-              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER) as boolean) ?? false
+              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
+          }
 
-            if (objectMember) {
-              // we don't have the activity yet in the database
-              // check if we have an object member for the identity from the activity
+          // process object member data
+          // existing activity has it but now we don't anymore
+          if (dbActivity.objectMemberId && !objectMember) {
+            // TODO what to do here?
+            throw new Error(
+              `Activity ${dbActivity.id} has an object member but newly generated one does not!`,
+            )
+          }
 
-              const dbObjectMember = await txMemberRepo.findMemberByUsername(
+          if (objectMember) {
+            if (dbActivity.objectMemberId) {
+              let dbObjectMember = await txMemberRepo.findMemberByUsername(
                 tenantId,
                 segmentId,
                 platform,
                 objectMemberUsername,
               )
+
               if (dbObjectMember) {
+                // we found an existing object member for the identity from the activity
                 this.log.trace(
                   { objectMemberId: dbObjectMember.id },
                   'Found existing object member.',
                 )
+
+                // lets check if it's a match from what we have in the database activity that we got through sourceId
+                if (dbActivity.objectMemberId !== dbObjectMember.id) {
+                  // the memberId from the dbActivity does not match the one we found from the identity
+                  // we should remove the activity and let it recreate itself with the correct member
+                  // this is probably a legacy problem before we had weak identities
+                  this.log.warn(
+                    {
+                      activityObjectMemberId: dbActivity.objectMemberId,
+                      objectMemberId: dbObjectMember.id,
+                      activityType: activity.type,
+                    },
+                    'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
+                  )
+
+                  createActivity = true
+                }
+
+                // update the member
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
@@ -1070,18 +845,32 @@ export default class ActivityService extends LoggerBase {
                   platform,
                   false,
                 )
+
+                if (!createActivity) {
+                  // and use it's member id for the new activity
+                  dbActivity.objectMemberId = dbObjectMember.id
+                }
+
                 objectMemberId = dbObjectMember.id
               } else {
                 this.log.trace(
-                  'We did not find a member for the identity provided! Creating a new one.',
+                  'We did not find a object member for the identity provided! Updating the one from db activity.',
                 )
-                objectMemberId = await txMemberService.create(
+                // we did not find a member for the identity from the activity
+                // which is weird since the memberId from the activity points to some member
+                // that does not have the identity from the new activity
+                // we should add the activity to the member
+                // merge member data with the one from the activity and the one from the database
+                // leave activity.memberId as is
+
+                dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
+                await txMemberService.update(
+                  dbObjectMember.id,
                   tenantId,
                   onboarding,
                   segmentId,
                   integrationId,
                   {
-                    displayName: objectMember.displayName || username,
                     attributes: objectMember.attributes,
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
@@ -1090,107 +879,290 @@ export default class ActivityService extends LoggerBase {
                     organizations: objectMember.organizations,
                     reach: member.reach,
                   },
+                  dbObjectMember,
                   platform,
                   false,
                 )
+
+                objectMemberId = dbActivity.objectMemberId
               }
             }
           }
 
-          const activityId = dbActivity?.id ?? generateUUIDv4()
-          if (createActivity) {
+          if (!createActivity) {
             organizationId = await txMemberAffiliationService.findAffiliation(
-              memberId,
+              dbActivity.memberId,
               segmentId,
-              activity.timestamp,
+              dbActivity.timestamp,
             )
 
-            await txActivityService.create(
+            // just update the activity now
+            await txActivityService.update(
+              dbActivity.id,
               tenantId,
+              onboarding,
               segmentId,
               {
-                id: activityId,
                 type: activity.type,
-                platform,
-                timestamp: new Date(activity.timestamp),
-                sourceId: activity.sourceId,
                 isContribution: activity.isContribution,
                 score: activity.score,
-                sourceParentId:
-                  platform === PlatformType.GITHUB &&
-                  activity.type === GithubActivityType.AUTHORED_COMMIT &&
-                  activity.sourceParentId
-                    ? await findMatchingPullRequestNodeId(
-                        this.qdbStore.connection(),
-                        tenantId,
-                        activity,
-                      )
-                    : activity.sourceParentId,
-                memberId,
+                sourceId: activity.sourceId,
+                sourceParentId: activity.sourceParentId,
+                memberId: dbActivity.memberId,
                 username,
                 objectMemberId,
                 objectMemberUsername,
-                attributes:
-                  platform === PlatformType.GITHUB &&
-                  activity.type === GithubActivityType.AUTHORED_COMMIT
-                    ? await this.findMatchingGitActivityAttributes({
-                        tenantId,
-                        segmentId,
-                        activity,
-                        attributes: activity.attributes || {},
-                      })
-                    : activity.attributes || {},
+                attributes: activity.attributes || {},
                 body: activity.body,
                 title: activity.title,
                 channel: activity.channel,
                 url: activity.url,
                 organizationId,
+                platform:
+                  platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
+                    ? PlatformType.GITHUB
+                    : (dbActivity.platform as PlatformType),
               },
+              dbActivity,
               {
                 isBot: memberIsBot ?? false,
                 isTeamMember: memberIsTeamMember ?? false,
               },
+              false,
             )
           }
 
-          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-            await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
-          } else if (
-            platform === PlatformType.GITHUB &&
-            activity.type === GithubActivityType.PULL_REQUEST_OPENED
-          ) {
-            await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+          // release lock for member inside activity exists - this migth be redundant, but just in case
+        } else {
+          this.log.trace('We did not find an existing activity. Creating a new one.')
+          createActivity = true
+
+          // we don't have the activity yet in the database
+          // check if we have a member for the identity from the activity
+          let dbMember = await txMemberRepo.findMemberByUsername(
+            tenantId,
+            segmentId,
+            platform,
+            username,
+          )
+
+          // try to find a member by email if verified one is available
+          if (!dbMember) {
+            const emails = member.identities
+              .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+              .map((i) => i.value)
+
+            if (emails.length > 0) {
+              for (const email of emails) {
+                dbMember = await txMemberRepo.findMemberByEmail(tenantId, email)
+
+                if (dbMember) {
+                  break
+                }
+              }
+            }
           }
-        } finally {
-          // release locks matter what
+
+          if (dbMember) {
+            this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+            await txMemberService.update(
+              dbMember.id,
+              tenantId,
+              onboarding,
+              segmentId,
+              integrationId,
+              {
+                attributes: member.attributes,
+                joinedAt: member.joinedAt
+                  ? new Date(member.joinedAt)
+                  : new Date(activity.timestamp),
+                identities: member.identities,
+                organizations: member.organizations,
+                reach: member.reach,
+              },
+              dbMember,
+              platform,
+              false,
+            )
+            memberId = dbMember.id
+            // determine isBot and isTeamMember
+            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
+            memberIsTeamMember =
+              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
+          } else {
+            this.log.trace(
+              'We did not find a member for the identity provided! Creating a new one.',
+            )
+            memberId = await txMemberService.create(
+              tenantId,
+              onboarding,
+              segmentId,
+              integrationId,
+              {
+                displayName: member.displayName || username,
+                attributes: member.attributes,
+                joinedAt: member.joinedAt
+                  ? new Date(member.joinedAt)
+                  : new Date(activity.timestamp),
+                identities: member.identities,
+                organizations: member.organizations,
+                reach: member.reach,
+              },
+              platform,
+              false,
+            )
+          }
+          // determine isBot and isTeamMember
+          memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT) as boolean) ?? false
+          memberIsTeamMember =
+            (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER) as boolean) ?? false
+
+          if (objectMember) {
+            // we don't have the activity yet in the database
+            // check if we have an object member for the identity from the activity
+
+            const dbObjectMember = await txMemberRepo.findMemberByUsername(
+              tenantId,
+              segmentId,
+              platform,
+              objectMemberUsername,
+            )
+            if (dbObjectMember) {
+              this.log.trace({ objectMemberId: dbObjectMember.id }, 'Found existing object member.')
+              await txMemberService.update(
+                dbObjectMember.id,
+                tenantId,
+                onboarding,
+                segmentId,
+                integrationId,
+                {
+                  attributes: objectMember.attributes,
+                  joinedAt: objectMember.joinedAt
+                    ? new Date(objectMember.joinedAt)
+                    : new Date(activity.timestamp),
+                  identities: objectMember.identities,
+                  organizations: objectMember.organizations,
+                  reach: member.reach,
+                },
+                dbObjectMember,
+                platform,
+                false,
+              )
+              objectMemberId = dbObjectMember.id
+            } else {
+              this.log.trace(
+                'We did not find a member for the identity provided! Creating a new one.',
+              )
+              objectMemberId = await txMemberService.create(
+                tenantId,
+                onboarding,
+                segmentId,
+                integrationId,
+                {
+                  displayName: objectMember.displayName || username,
+                  attributes: objectMember.attributes,
+                  joinedAt: objectMember.joinedAt
+                    ? new Date(objectMember.joinedAt)
+                    : new Date(activity.timestamp),
+                  identities: objectMember.identities,
+                  organizations: objectMember.organizations,
+                  reach: member.reach,
+                },
+                platform,
+                false,
+              )
+            }
+          }
         }
-      })
 
-      if (memberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(
-          tenantId,
-          memberId,
-          onboarding,
-          segmentId,
-        )
-      }
-      if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(
-          tenantId,
-          objectMemberId,
-          onboarding,
-          segmentId,
-        )
-      }
+        const activityId = dbActivity?.id ?? generateUUIDv4()
+        if (createActivity) {
+          organizationId = await txMemberAffiliationService.findAffiliation(
+            memberId,
+            segmentId,
+            activity.timestamp,
+          )
 
-      if (organizationId) {
-        await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
+          await txActivityService.create(
+            tenantId,
+            segmentId,
+            {
+              id: activityId,
+              type: activity.type,
+              platform,
+              timestamp: new Date(activity.timestamp),
+              sourceId: activity.sourceId,
+              isContribution: activity.isContribution,
+              score: activity.score,
+              sourceParentId:
+                platform === PlatformType.GITHUB &&
+                activity.type === GithubActivityType.AUTHORED_COMMIT &&
+                activity.sourceParentId
+                  ? await findMatchingPullRequestNodeId(
+                      this.qdbStore.connection(),
+                      tenantId,
+                      activity,
+                    )
+                  : activity.sourceParentId,
+              memberId,
+              username,
+              objectMemberId,
+              objectMemberUsername,
+              attributes:
+                platform === PlatformType.GITHUB &&
+                activity.type === GithubActivityType.AUTHORED_COMMIT
+                  ? await this.findMatchingGitActivityAttributes({
+                      tenantId,
+                      segmentId,
+                      activity,
+                      attributes: activity.attributes || {},
+                    })
+                  : activity.attributes || {},
+              body: activity.body,
+              title: activity.title,
+              channel: activity.channel,
+              url: activity.url,
+              organizationId,
+            },
+            {
+              isBot: memberIsBot ?? false,
+              isTeamMember: memberIsTeamMember ?? false,
+            },
+          )
+        }
+
+        if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
+          await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+        } else if (
+          platform === PlatformType.GITHUB &&
+          activity.type === GithubActivityType.PULL_REQUEST_OPENED
+        ) {
+          await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+        }
+      } finally {
+        // release locks matter what
       }
-    } catch (err) {
-      if (!(err instanceof SuppressedActivityError)) {
-        this.log.error(err, 'Error while processing an activity!')
-      }
-      throw err
+    })
+
+    if (memberId) {
+      await this.searchSyncWorkerEmitter.triggerMemberSync(
+        tenantId,
+        memberId,
+        onboarding,
+        segmentId,
+      )
+    }
+    if (objectMemberId) {
+      await this.searchSyncWorkerEmitter.triggerMemberSync(
+        tenantId,
+        objectMemberId,
+        onboarding,
+        segmentId,
+      )
+    }
+
+    if (organizationId) {
+      await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
     }
   }
 
