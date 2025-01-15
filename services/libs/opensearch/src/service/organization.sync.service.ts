@@ -473,9 +473,7 @@ export class OrganizationSyncService {
     }
   }
 
-  public static async prefixData(
-    data: IOrganizationFullAggregatesOpensearch,
-  ): Promise<IOrganizationOpensearch> {
+  public static prefixData(data: IOrganizationFullAggregatesOpensearch): IOrganizationOpensearch {
     return {
       uuid_organizationId: data.id,
       uuid_tenantId: data.tenantId,
