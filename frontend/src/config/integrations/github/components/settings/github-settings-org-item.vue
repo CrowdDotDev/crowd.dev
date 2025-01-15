@@ -6,7 +6,7 @@
         <lf-avatar :name="props.organization.name" :src="props.organization.logo" :size="24" class="!rounded border border-gray-200">
           <template #placeholder>
             <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-              <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
+              <lf-icon name="house-building" :size="12" class="text-gray-400" />
             </div>
           </template>
         </lf-avatar>
@@ -17,7 +17,7 @@
 
       <div class="flex items-center gap-2">
         <lf-badge v-if="isSynced" type="primary" class="!flex items-center gap-1 !rounded-full !px-2">
-          <lf-icon-old name="loop-right-line" />
+          <lf-icon name="arrows-rotate" />
           Synced
         </lf-badge>
         <lf-dropdown placement="bottom-end" width="11.125rem">
@@ -70,7 +70,6 @@ import {
   GitHubSettingsRepository,
 } from '@/config/integrations/github/types/GithubSettings';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';

@@ -7,7 +7,7 @@
     <!-- header -->
     <section class="px-6 pt-4 pb-6 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <lf-icon-old name="feedback-line" class="text-red-500" :size="24" />
+        <lf-icon name="circle-exclamation" class="text-red-500" :size="24" />
         <h5>Report data issue</h5>
       </div>
       <lf-button
@@ -15,7 +15,7 @@
         :icon-only="true"
         @click="isModalOpen = false;reset()"
       >
-        <lf-icon-old name="close-line" />
+        <lf-icon name="xmark" />
       </lf-button>
     </section>
 
@@ -134,7 +134,7 @@ import { ReportDataType } from '@/shared/modules/report-issue/constants/report-d
 import { AuthService } from '@/modules/auth/services/auth.service';
 import authAxios from '@/shared/axios/auth-axios';
 import Message from '@/shared/message/message';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: boolean,
