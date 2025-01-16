@@ -1,8 +1,8 @@
 <template>
   <article
+    :class="`${props.index === 0 ? 'first-item' : ''}`"
     @mouseover="hovered = true"
     @mouseleave="hovered = false"
-    :class="`${props.index === 0 ? 'first-item' : ''}`"
   >
     <div class="flex min-h-7 relative">
       <div class="flex flex-auto flex-col overflow-hidden">
@@ -133,7 +133,6 @@ export default {
   name: 'LfContributorDetailsWorkHistoryItem',
 };
 </script>
-
 
 <style scoped>
 .first-item .work-history-item-dropdown {
