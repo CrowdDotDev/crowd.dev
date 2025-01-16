@@ -1,6 +1,6 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { LLMSuggestionVerdictType } from '@crowd/types'
+import { LLMSuggestionVerdictType, OrganizationMergeSuggestionTable } from '@crowd/types'
 
 import * as commonActivities from '../activities/common'
 import * as organizationActivities from '../activities/organizationMergeSuggestions'
@@ -51,7 +51,14 @@ export async function mergeOrganizationsWithLLM(
       console.log(
         `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
       )
-      await organizationActivitiesProxy.removeRawOrganizationMergeSuggestions(suggestion)
+      await organizationActivitiesProxy.removeOrganizationMergeSuggestions(
+        suggestion,
+        OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_FILTERED,
+      )
+      await organizationActivitiesProxy.removeOrganizationMergeSuggestions(
+        suggestion,
+        OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_RAW,
+      )
       continue
     }
 
@@ -80,6 +87,19 @@ export async function mergeOrganizationsWithLLM(
         `LLM verdict says these two orgs are the same. Merging organizations: ${suggestion[0]} and ${suggestion[1]}!`,
       )
       await commonActivitiesProxy.mergeOrganizations(suggestion[0], suggestion[1], args.tenantId)
+    } else {
+      console.log(
+        `LLM doesn't think these orgs are the same. Removing from suggestions and adding to no merge: ${suggestion[0]} and ${suggestion[1]}!`,
+      )
+      await organizationActivitiesProxy.removeOrganizationMergeSuggestions(
+        suggestion,
+        OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_FILTERED,
+      )
+      await organizationActivitiesProxy.removeOrganizationMergeSuggestions(
+        suggestion,
+        OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_RAW,
+      )
+      await organizationActivitiesProxy.addOrganizationSuggestionToNoMerge(suggestion)
     }
   }
 

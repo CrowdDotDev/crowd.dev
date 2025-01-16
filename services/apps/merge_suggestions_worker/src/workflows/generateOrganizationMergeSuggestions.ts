@@ -17,7 +17,7 @@ export async function generateOrganizationMergeSuggestions(
 ): Promise<void> {
   const PAGE_SIZE = 25
   const PARALLEL_SUGGESTION_PROCESSING = 50
-  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.75
 
   let lastUuid: string = args.lastUuid || null
 
