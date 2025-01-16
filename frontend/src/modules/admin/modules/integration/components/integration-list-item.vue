@@ -47,16 +47,15 @@
           <div v-else-if="hasError">
             {{ props.config.name }} integration failed to connect due to an API error.
           </div>
-          <div v-else-if="isComplete && props.config.connectedParamsComponent">
-            <div v-if="loadingFetch" v-loading="true" class="min-w-8 min-h-6" />
-            <component
-              :is="props.config.connectedParamsComponent"
-              v-else
-              :integration="integration"
-              :segment-id="route.params.id"
-              :grandparent-id="route.params.grandparentId"
-            />
-          </div>
+
+          <component
+            :is="props.config.connectedParamsComponent"
+            v-else-if="isComplete && props.config.connectedParamsComponent"
+            :integration="integration"
+            :segment-id="route.params.id"
+            :grandparent-id="route.params.grandparentId"
+          />
+
           <component
             :is="props.config.statusComponent"
             v-else-if="!isComplete && props.config.statusComponent"
@@ -128,7 +127,7 @@ const props = defineProps<{
 const route = useRoute();
 
 const { doDestroy } = mapActions('integration');
-const { findByPlatform, loadingFetch } = mapGetters('integration');
+const { findByPlatform } = mapGetters('integration');
 
 const { trackEvent } = useProductTracking();
 
