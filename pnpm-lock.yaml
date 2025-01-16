@@ -1785,6 +1785,9 @@ importers:
       snowflake-sdk:
         specifier: ^1.14.0
         version: 1.15.0(asn1.js@5.4.1)
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
