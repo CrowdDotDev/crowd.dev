@@ -205,6 +205,7 @@ const getGithubInstallations = () => {
   IntegrationService.getGithubInstallations()
     .then((res: GithubInstallation[]) => {
       installations.value = res;
+      console.log(res);
     });
 };
 

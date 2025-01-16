@@ -127,6 +127,7 @@ export interface GithubConfiguration {
   privateKey: string
   webhookSecret: string
   isCommitDataEnabled: string
+  isSnowflakeEnabled: string
   globalLimit?: number
   callbackUrl: string
 }

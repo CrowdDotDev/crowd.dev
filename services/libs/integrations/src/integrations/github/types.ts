@@ -172,7 +172,14 @@ export interface GithubPlatformSettings {
 }
 
 export interface GithubIntegrationSettings {
-  repos: Repos
+  orgs: Array<{
+    name: string
+    logo: string
+    url: string
+    fullSync: boolean
+    updatedAt: string
+    repos: Array<Repo>
+  }>
   unavailableRepos: Repos
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import verifyGithubWebhook from 'verify./processWebhookStream
+import verifyGithubWebhook from 'verify-github-webhook'
 
 import {
   IProcessStreamContext,

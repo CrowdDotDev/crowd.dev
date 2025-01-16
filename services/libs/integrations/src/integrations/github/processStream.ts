@@ -284,13 +284,16 @@ export const prepareMemberFromOrg = (orgFromApi: any): GithubPrepareOrgMemberOut
  */
 function getRepoByName(name: string, ctx: IProcessStreamContext): Repo | null {
   const settings = ctx.integration.settings as GithubIntegrationSettings
-  const availableRepo: Repo | undefined = singleOrDefault(settings.repos, (r) => r.name === name)
+  const availableRepo: Repo | undefined = singleOrDefault(
+    settings?.orgs?.flatMap((o) => o.repos),
+    (r) => r.name === name,
+  )
   if (availableRepo) {
     return { ...availableRepo, available: true }
   }
 
   const unavailableRepo: Repo | undefined = singleOrDefault(
-    settings.unavailableRepos,
+    settings?.unavailableRepos,
     (r) => r.name === name,
   )
   if (unavailableRepo) {

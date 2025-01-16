@@ -24,7 +24,7 @@ import {
   GithubIssue,
   GithubIssueTimelineItem,
   GithubPrepareMemberOutput,
-  GithubPrepareOrgMemberOutput,./processData
+  GithubPrepareOrgMemberOutput,
   GithubPullRequest,
   GithubPullRequestTimelineItem,
   GithubWebhookData,

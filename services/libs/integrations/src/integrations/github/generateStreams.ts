@@ -35,7 +35,10 @@ const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> =>
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GithubIntegrationSettings
-  const reposToCheck = [...(settings.repos || []), ...(settings.unavailableRepos || [])]
+  const reposToCheck = [
+    ...(settings?.orgs?.flatMap((o) => o.repos) || []),
+    ...(settings?.unavailableRepos || []),
+  ]
 
   const isManualRun = ctx.isManualRun
 
@@ -45,8 +48,8 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       ctx.abortRunWithError('isManualRun is true but manualSettings is not set!')
     }
 
-    if (manualSettings.repos && manualSettings.manualSettingsType === 'default') {
-      for (const repo of manualSettings.repos) {
+    if (manualSettings.orgs && manualSettings.manualSettingsType === 'default') {
+      for (const repo of manualSettings.orgs.flatMap((o) => o.repos)) {
         for (const endpoint of [
           GithubStreamType.STARGAZERS,
           GithubStreamType.FORKS,
@@ -65,7 +68,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           }
         }
       }
-    } else if (manualSettings.repos && manualSettings.manualSettingsType === 'detailed_map') {
+    } else if (manualSettings.orgs && manualSettings.manualSettingsType === 'detailed_map') {
       const map = objectToMap(manualSettings.map)
       for (const [repoUrl, streams] of map) {
         for (const stream of streams) {
@@ -73,7 +76,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           if (!endpoint) {
             ctx.abortRunWithError(`Invalid stream type: ${stream}`)
           }
-          const repo = manualSettings.repos.find((r) => r.url === repoUrl)
+          const repo = manualSettings.orgs.flatMap((o) => o.repos).find((r) => r.url === repoUrl)
           await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
             repo,
             page: '',

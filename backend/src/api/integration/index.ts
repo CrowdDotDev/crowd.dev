@@ -34,6 +34,16 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
+  app.get(
+    '/tenant/:tenantId/github-installations',
+    safeWrap(require('./helpers/githubGetInstallations').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/github-connect-installation',
+    safeWrap(require('./helpers/githubConnectInstallation').default),
+  )
+
   app.put(
     `/tenant/:tenantId/integration/:id/github/repos`,
     safeWrap(require('./helpers/githubMapRepos').default),

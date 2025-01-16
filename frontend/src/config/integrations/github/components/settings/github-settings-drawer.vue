@@ -222,11 +222,11 @@ const bulkApply = (data: Record<string, string>) => {
 };
 
 // Display data
-const repos = computed(() => props.integration?.settings?.repos || []);
+const repos = computed(() => props.integration?.settings?.orgs[0]?.repos || []);
 
 const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.length > 0 ? {
-  name: repos.value[0].owner,
-  logo: props.integration?.settings?.orgAvatar,
+  name: props.integration?.settings?.orgs[0]?.name,
+  logo: props.integration?.settings?.orgs[0]?.logo,
 } : null));
 
 // Static github details
