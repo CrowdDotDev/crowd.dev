@@ -124,13 +124,13 @@ import { useThrottleFn } from '@vueuse/core';
 import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import reddit from '@/config/integrations/reddit/config';
 
 const store = useStore();
 
@@ -155,7 +155,7 @@ const { trackEvent } = useProductTracking();
 
 const model = ref(JSON.parse(JSON.stringify(subreddits)));
 
-const logoUrl = CrowdIntegrations.getConfig('reddit').image;
+const logoUrl = reddit.image;
 
 const hasFormChanged = computed(
   () => !isEqual(

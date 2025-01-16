@@ -229,25 +229,6 @@ const memberStore = useMemberStore();
 
 const { hasPermission } = usePermissions();
 
-// const isSyncingWithHubspot = computed(
-//   () => props.member.attributes?.syncRemote?.hubspot || false,
-// );
-
-// const isHubspotConnected = computed(() => {
-//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-//   const enabledFor = hubspot.settings?.enabledFor || [];
-//
-//   return (
-//     hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
-//   );
-// });
-//
-// const isHubspotDisabledForMember = computed(
-//   () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
-// );
-
-// const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
-
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));

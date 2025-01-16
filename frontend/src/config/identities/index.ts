@@ -21,6 +21,8 @@ import slack from './slack/config';
 import stackoverflow from './stackoverflow/config';
 import tnc from './tnc/config';
 import twitter from './twitter/config';
+import zapier from './zapier/config';
+import { OrganizationIdentity } from '@/modules/organization/types/Organization';
 
 export interface IdentityConfig {
   key: string; // Unique key for the identity
@@ -35,6 +37,9 @@ export interface IdentityConfig {
   },
   organization?: {
     urlPrefix?: string;
+    placeholder?: string;
+    handle?: (identity: OrganizationIdentity) => string;
+    url?: (identity: OrganizationIdentity) => string;
   }
 }
 
@@ -63,4 +68,5 @@ export const lfIdentities: Record<string, IdentityConfig> = {
   lfid: lfx,
   n8n,
   training_cert: tnc,
+  zapier,
 };

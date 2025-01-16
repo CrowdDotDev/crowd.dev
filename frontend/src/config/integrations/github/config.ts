@@ -11,6 +11,7 @@ const github: IntegrationConfig = {
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
   connectedParamsComponent: GithubParams,
+  showProgress: true,
 };
 
 export default github;

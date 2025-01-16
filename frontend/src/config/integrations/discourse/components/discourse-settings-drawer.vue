@@ -198,7 +198,7 @@
 import {
   computed, defineEmits, defineProps, onMounted, reactive, ref,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import discourse from '@/config/integrations/discourse/config';
 import { helpers, required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -329,7 +329,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const logoUrl = CrowdIntegrations.getConfig('discourse').image;
+const logoUrl = discourse.image;
 
 const isVisible = computed({
   get() {

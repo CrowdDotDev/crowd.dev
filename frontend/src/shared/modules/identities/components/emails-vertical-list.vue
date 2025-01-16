@@ -32,10 +32,10 @@
               >
                 {{ identity.handle }}
               </a>
-              <div v-if="getPlatformLabel(identity.platforms)" class="ml-2 flex items-center">
+              <div v-if="getPlatformsLabel(identity.platforms)" class="ml-2 flex items-center">
                 <el-tooltip placement="top">
                   <template #content>
-                    <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(identity.platforms) }}
+                    <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformsLabel(identity.platforms) }}
                   </template>
                   <i class="ri-shining-fill text-sm" :class="isEnrichment(identity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
                 </el-tooltip>
@@ -51,9 +51,9 @@
 
 <script setup lang="ts">
 import AppPlatform from '@/shared/modules/platform/components/platform.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
   emails: {
@@ -63,6 +63,8 @@ const props = defineProps<{
   }[];
   xPadding?: number;
 }>();
+
+const {getPlatformsLabel} = useIdentitiesHelpers()
 
 const distinctEmails = computed(() => props.emails.reduce((obj: Record<string, any>, identity: any) => {
   const emailObject = { ...obj };
@@ -79,21 +81,6 @@ const distinctEmails = computed(() => props.emails.reduce((obj: Record<string, a
 }, {}));
 
 const isEnrichment = (platforms:string[]) => platforms.includes('enrichment');
-
-const getPlatformLabel = (platforms: string[]) => platforms
-  .filter((platform) => !['integration_or_enrichment'].includes(platform))
-  .map((platform) => {
-    if (platform === 'lfid') {
-      return 'LFID';
-    }
-    if (platform === 'integration') {
-      return 'Integration';
-    }
-    if (platform === 'enrichment') {
-      return 'Enrichment';
-    }
-    return CrowdIntegrations.getConfig(platform)?.name || platform;
-  }).join(', ');
 
 </script>
 

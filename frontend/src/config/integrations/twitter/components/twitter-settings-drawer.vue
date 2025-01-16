@@ -68,7 +68,7 @@ import {
 import isEqual from 'lodash/isEqual';
 import { FormSchema } from '@/shared/form/form-schema';
 import StringField from '@/shared/fields/string-field';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import twitter from '@/config/integrations/twitter/config';
 
 const props = defineProps({
   modelValue: {
@@ -101,7 +101,7 @@ const model = ref(
   }),
 );
 
-const logoUrl = CrowdIntegrations.getConfig('twitter').image;
+const logoUrl = twitter.image;
 
 const hasFormChanged = computed(
   () => !isEqual(

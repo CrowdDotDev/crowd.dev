@@ -11,6 +11,7 @@ const git: IntegrationConfig = {
   connectComponent: GitConnect,
   dropdownComponent: GitDropdown,
   connectedParamsComponent: GitParams,
+  showProgress: false,
 };
 
 export default git;

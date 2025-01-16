@@ -191,17 +191,6 @@ const organizationStore = useOrganizationStore();
 
 const { hasPermission } = usePermissions();
 
-// const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
-//
-// const isHubspotConnected = computed(() => {
-//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-//   const enabledFor = hubspot.settings?.enabledFor || [];
-//   return (
-//     hubspot.status === 'done'
-//     && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
-//   );
-// });
-
 const doManualAction = async ({
   loadingMessage,
   actionFn,

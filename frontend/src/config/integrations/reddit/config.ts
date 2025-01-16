@@ -11,6 +11,7 @@ const reddit: IntegrationConfig = {
   connectComponent: RedditConnect,
   connectedParamsComponent: RedditParams,
   dropdownComponent: RedditDropdown,
+  showProgress: false,
 };
 
 export default reddit;

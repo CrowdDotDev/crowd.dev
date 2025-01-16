@@ -6,6 +6,8 @@ const crunchbase: IdentityConfig = {
   image: '/images/identities/crunchbase.png',
   organization: {
     urlPrefix: 'https://www.crunchbase.com/organization/',
+    handle: (identity) => identity.value,
+    url: (identity) => `https://www.crunchbase.com/organization/${identity.value}`,
   },
 };
 

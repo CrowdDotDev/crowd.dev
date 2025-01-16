@@ -114,7 +114,7 @@ import {
   watch,
 } from 'vue';
 import { useStore } from 'vuex';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import linkedin from '@/config/integrations/linkedin/config';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
@@ -141,7 +141,7 @@ const model = ref(
 );
 const loading = ref(false);
 
-const logoUrl = CrowdIntegrations.getConfig('linkedin').image;
+const logoUrl = linkedin.image;
 
 const isVisible = computed({
   get() {

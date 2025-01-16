@@ -5,11 +5,11 @@
       :key="key"
       class="border-b border-gray-200 last:border-none pt-5 pb-6"
     >
-      <div v-if="findPlatform(key)" class="flex">
+      <div v-if="lfIdentities[key]" class="flex">
         <div class="w-6 pt-2 mr-4">
           <img
-            :src="findPlatform(key).image"
-            :alt="findPlatform(key).name"
+            :src="lfIdentities[key].image"
+            :alt="lfIdentities[key].name"
             class="w-6"
           />
         </div>
@@ -66,8 +66,8 @@
 import {
   computed, ref, watch, reactive,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationIdentityType } from '../../types/Organization';
+import { lfIdentities } from '@/config/identities';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
@@ -144,10 +144,6 @@ watch(
   },
   { deep: true },
 );
-
-function findPlatform(platform) {
-  return CrowdIntegrations.getConfig(platform);
-}
 
 function editingDisabled(platform) {
   return model.value.filter((i) => i.platform === platform).length < 2;

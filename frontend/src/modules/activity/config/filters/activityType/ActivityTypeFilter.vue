@@ -14,10 +14,10 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
+import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
 
 const props = defineProps<{
   modelValue: string,
@@ -30,10 +30,9 @@ const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
 const store = useStore();
+const { getActiveIntegrations } = useIntegrationsHelpers();
 
-const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
-  store,
-).filter((integration) => integration.status).map((integration) => integration.platform));
+const activeIntegrations = computed<string[]>(() => getActiveIntegrations().map((integration) => integration.key));
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
