@@ -10,7 +10,7 @@
         @open="open = $event"
       />
       <el-button
-        v-if="isDeveloperModeActive && developerModeEnabled()"
+        v-if="isDeveloperModeActive"
         class="btn btn-primary--secondary !bg-purple-100 !text-purple-600"
         @click="copyToClipboard"
       >
@@ -69,7 +69,6 @@ import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsC
 import { useUserStore } from '@/modules/user/store/pinia';
 import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
-import { FeatureFlag } from '@/utils/featureFlag';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
@@ -234,8 +233,6 @@ const copyToClipboard = async () => {
 
   Message.success('Filters payload successfully copied to your clipboard');
 };
-
-const developerModeEnabled = () => FeatureFlag.isFlagEnabled(FeatureFlag.flags.developerMode);
 </script>
 
 <script lang="ts">

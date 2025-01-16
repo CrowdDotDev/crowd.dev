@@ -1,5 +1,5 @@
 <template>
-  <template v-if="!isMasked(props.member as Contributor) && identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
+  <template v-if="identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
@@ -31,7 +31,6 @@
     </button>
   </router-link>
   <button
-    v-if="isFindGitHubFeatureEnabled"
     class="h-10 el-dropdown-menu__item w-full mb-1"
     type="button"
     :disabled="isFindingGitHubDisabled"
@@ -48,7 +47,7 @@
   </button>
 
   <button
-    v-if="!isMasked(props.member as Contributor) && !props.hideMerge && hasPermission(LfPermission.mergeMembers)"
+    v-if="!props.hideMerge && hasPermission(LfPermission.mergeMembers)"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="!hasPermission(LfPermission.mergeMembers)"
     type="button"
@@ -188,7 +187,6 @@ import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -197,8 +195,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -227,8 +223,6 @@ const { doFind } = mapActions('member');
 
 const { trackEvent } = useProductTracking();
 
-const { isMasked } = useContributorHelpers();
-
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const memberStore = useMemberStore();
@@ -256,10 +250,6 @@ const { hasPermission } = usePermissions();
 
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
-));
-
-const isFindGitHubFeatureEnabled = computed(() => FeatureFlag.isFlagEnabled(
-  FEATURE_FLAGS.findGitHub,
 ));
 
 const doManualAction = async ({

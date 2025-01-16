@@ -5,11 +5,6 @@
         Manage workspace
       </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
-        <el-tab-pane label="Automations" name="automations">
-          <app-automation-list
-            v-if="activeTab === 'automations'"
-          />
-        </el-tab-pane>
         <el-tab-pane label="API Keys" name="api-keys">
           <app-api-keys-page
             v-if="activeTab === 'api-keys'"
@@ -23,14 +18,12 @@
 <script>
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 
 export default {
   name: 'AppSettingsPage',
 
   components: {
     AppApiKeysPage,
-    AppAutomationList,
   },
 
   data() {
@@ -75,7 +68,7 @@ export default {
       urlSearchParams.entries(),
     );
 
-    this.activeTab = params.activeTab || 'automations';
+    this.activeTab = params.activeTab || 'api-keys';
   },
 };
 </script>

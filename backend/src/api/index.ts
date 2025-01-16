@@ -7,27 +7,18 @@ import * as http from 'http'
 import os from 'os'
 import { QueryTypes } from 'sequelize'
 
-import { SERVICE } from '@crowd/common'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { RedisPubSubReceiver, getRedisClient, getRedisPubSubPair } from '@crowd/redis'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { ApiWebsocketMessage, Edition } from '@crowd/types'
+import { ApiWebsocketMessage } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
-import {
-  API_CONFIG,
-  OPENSEARCH_CONFIG,
-  PRODUCT_DB_CONFIG,
-  REDIS_CONFIG,
-  TEMPORAL_CONFIG,
-  UNLEASH_CONFIG,
-} from '../conf'
+import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
@@ -39,7 +30,6 @@ import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddlew
 import { segmentMiddleware } from '../middlewares/segmentMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 
-import setupSwaggerUI from './apiDocumentation'
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
@@ -126,20 +116,6 @@ setImmediate(async () => {
   // bind opensearch
   app.use(opensearchMiddleware(opensearch))
 
-  // Bind unleash to request
-  if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
-    const unleash = await getUnleashClient({
-      url: UNLEASH_CONFIG.url,
-      apiKey: UNLEASH_CONFIG.backendApiKey,
-      appName: SERVICE,
-    })
-
-    app.use((req: any, res, next) => {
-      req.unleash = unleash
-      next()
-    })
-  }
-
   // temp check for production
   if (TEMPORAL_CONFIG.serverUrl) {
     // Bind temporal to request
@@ -163,9 +139,6 @@ setImmediate(async () => {
   // to set the currentUser to the requests
   app.use(authMiddleware)
 
-  // Setup the Documentation
-  setupSwaggerUI(app)
-
   // Default rate limiter
   const defaultRateLimiter = createRateLimiter({
     max: 200,
@@ -181,19 +154,6 @@ setImmediate(async () => {
   app.use(
     bodyParser.json({
       limit: '5mb',
-      verify(req: any, res, buf) {
-        try {
-          const url = req.originalUrl
-          if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
-            // Stripe and sendgrid webhooks needs the body raw
-            // for verifying the webhook with signing secret
-            req.rawBody = buf.toString()
-          }
-        } catch (err) {
-          serviceLogger.error(err, 'Error while verifying request body for strip/sendgrid webhook!')
-          throw err
-        }
-      },
     }),
   )
 
@@ -223,7 +183,6 @@ setImmediate(async () => {
 
   require('./auditLog').default(routes)
   require('./auth').default(routes)
-  require('./plan').default(routes)
   require('./tenant').default(routes)
   require('./user').default(routes)
   require('./settings').default(routes)
@@ -234,15 +193,10 @@ setImmediate(async () => {
   require('./microservice').default(routes)
   require('./conversation').default(routes)
   require('./eagleEyeContent').default(routes)
-  require('./automation').default(routes)
-  require('./task').default(routes)
-  require('./note').default(routes)
   require('./organization').default(routes)
-  require('./quickstart-guide').default(routes)
   require('./slack').default(routes)
   require('./segment').default(routes)
   require('./systemStatus').default(routes)
-  require('./eventTracking').default(routes)
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
   require('./mergeAction').default(routes)
@@ -252,9 +206,6 @@ setImmediate(async () => {
   routes.param('tenantId', segmentMiddleware)
 
   app.use('/', routes)
-
-  const webhookRoutes = express.Router()
-  require('./webhooks').default(webhookRoutes)
 
   app.use('/health', async (req: any, res) => {
     try {
@@ -287,8 +238,6 @@ setImmediate(async () => {
       res.status(500).json({ error: err.message, stack: err.stack })
     }
   })
-
-  app.use('/webhooks', webhookRoutes)
 
   app.use(errorMiddleware)
 })

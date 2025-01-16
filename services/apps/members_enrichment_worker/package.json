@@ -19,7 +19,6 @@
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/common_services": "workspace:*",
-    "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",

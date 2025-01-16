@@ -14,26 +14,19 @@ import {
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
-  addMemberNotes,
   addMemberTags,
-  addMemberTasks,
   fetchMemberIdentities,
   findMemberById,
   findMemberIdentityById,
-  findMemberNotes,
   findMemberTags,
-  findMemberTasks,
   insertMemberSegments,
   queryMembersAdvanced,
-  removeMemberNotes,
   removeMemberTags,
-  removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   IMemberIdentity,
   IMemberRoleWithOrganization,
@@ -49,10 +42,8 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
-  TemporalWorkflowId,
 } from '@crowd/types'
 
-import { TEMPORAL_CONFIG } from '@/conf'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -545,35 +536,6 @@ export default class MemberService extends LoggerBase {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
       }
 
-      if (!existing && fireCrowdWebhooks) {
-        try {
-          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
-            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 100,
-            },
-
-            args: [
-              {
-                tenantId: this.options.currentTenant.id,
-                memberId: record.id,
-              },
-            ],
-            searchAttributes: {
-              TenantId: [this.options.currentTenant.id],
-            },
-          })
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new member automation!',
-          )
-        } catch (err) {
-          logger.error(err, `Error triggering new member automation - ${record.id}!`)
-        }
-      }
-
       if (!fireCrowdWebhooks) {
         this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
       }
@@ -690,10 +652,8 @@ export default class MemberService extends LoggerBase {
             MemberField.ID,
             MemberField.DISPLAY_NAME,
           ])
-          const [memberTasks, memberTags, memberNotes] = await Promise.all([
-            (await findMemberTasks(qx, memberId)).map((t) => ({ id: t.taskId })),
+          const [memberTags] = await Promise.all([
             (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
-            (await findMemberNotes(qx, memberId)).map((t) => ({ id: t.noteId })),
           ])
 
           captureOldState({
@@ -785,46 +745,6 @@ export default class MemberService extends LoggerBase {
             }
           }
 
-          // move tasks
-          if (payload.secondary.tasks.length > 0) {
-            await addMemberTasks(
-              txqx,
-              secondaryMember.id,
-              payload.secondary.tasks.map((t) => t.id),
-            )
-            // check if anything to delete in primary
-            const tasksToDelete = memberTasks.filter(
-              (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
-            )
-            if (tasksToDelete.length > 0) {
-              await removeMemberTasks(
-                txqx,
-                memberId,
-                tasksToDelete.map((t) => t.id),
-              )
-            }
-          }
-
-          // move notes
-          if (payload.secondary.notes.length > 0) {
-            await addMemberNotes(
-              txqx,
-              secondaryMember.id,
-              payload.secondary.notes.map((n) => n.id),
-            )
-            // check if anything to delete in primary
-            const notesToDelete = memberNotes.filter(
-              (n) => !payload.primary.notes.some((pn) => pn.id === n.id),
-            )
-            if (notesToDelete.length > 0) {
-              await removeMemberNotes(
-                txqx,
-                memberId,
-                notesToDelete.map((n) => n.id),
-              )
-            }
-          }
-
           // move memberOrganizations
           if (payload.secondary.memberOrganizations.length > 0) {
             const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
@@ -868,8 +788,6 @@ export default class MemberService extends LoggerBase {
           delete payload.primary.memberOrganizations
           delete payload.primary.organizations
           delete payload.primary.tags
-          delete payload.primary.notes
-          delete payload.primary.tasks
           delete payload.primary.affiliations
 
           captureNewState({
@@ -945,7 +863,7 @@ export default class MemberService extends LoggerBase {
     memberId: string,
     identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
-    const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
+    const relationships = ['tags', 'identities', 'affiliations']
 
     try {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
@@ -959,20 +877,14 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      this.options.log.info(
-        '[0] Getting member information (identities, tags, notes, tasks, affiliations)... ',
-      )
+      this.options.log.info('[0] Getting member information (identities, tags, affiliations)... ')
 
-      const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
-        [
-          MemberOrganizationRepository.findMemberRoles(memberId, this.options),
-          fetchMemberIdentities(qx, memberId),
-          findMemberTags(qx, memberId),
-          findMemberNotes(qx, memberId),
-          findMemberTasks(qx, memberId),
-          findMemberAffiliations(qx, memberId),
-        ],
-      )
+      const [memberOrganizations, identities, tags, affiliations] = await Promise.all([
+        MemberOrganizationRepository.findMemberRoles(memberId, this.options),
+        fetchMemberIdentities(qx, memberId),
+        findMemberTags(qx, memberId),
+        findMemberAffiliations(qx, memberId),
+      ])
 
       this.options.log.info('[0] Done!')
 
@@ -982,8 +894,6 @@ export default class MemberService extends LoggerBase {
         identities,
         affiliations,
         tags: tags.map((t) => ({ id: t.tagId })),
-        notes: notes.map((n) => ({ id: n.noteId })),
-        tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
       const identity = await findMemberIdentityById(qx, memberId, identityId)
@@ -1128,24 +1038,6 @@ export default class MemberService extends LoggerBase {
               ),
           )
 
-          // notes: Remove notes that exist in secondary backup, but not in primary backup
-          member.notes = member.notes.filter(
-            (note) =>
-              !(
-                secondaryBackup.notes.some((n) => n.id === note.id) &&
-                !primaryBackup.notes.some((n) => n.id === note.id)
-              ),
-          )
-
-          // tasks: Remove tasks that exist in secondary backup, but not in primary backup
-          member.tasks = member.tasks.filter(
-            (task) =>
-              !(
-                secondaryBackup.tasks.some((t) => t.id === task.id) &&
-                !primaryBackup.tasks.some((t) => t.id === task.id)
-              ),
-          )
-
           // identities: Remove identities coming from secondary backup
           member.identities = member.identities.filter(
             (i) =>
@@ -1259,8 +1151,6 @@ export default class MemberService extends LoggerBase {
           memberOrganizations: [],
           organizations: [],
           tags: [],
-          notes: [],
-          tasks: [],
           attributes: {},
           joinedAt: new Date().toISOString(),
           tenantId: member.tenantId,
@@ -1281,7 +1171,6 @@ export default class MemberService extends LoggerBase {
   static MEMBER_MERGE_FIELDS = [
     'id',
     'tags',
-    'notes',
     'reach',
     'tasks',
     'joinedAt',
@@ -1332,18 +1221,14 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      const [tags, notes, tasks, affiliations] = await Promise.all([
+      const [tags, affiliations] = await Promise.all([
         findMemberTags(qx, memberId),
-        findMemberNotes(qx, memberId),
-        findMemberTasks(qx, memberId),
         findMemberAffiliations(qx, memberId),
       ])
 
       return {
         ...member,
         tags: tags.map((t) => ({ id: t.tagId })),
-        notes: notes.map((n) => ({ id: n.noteId })),
-        tasks: tasks.map((t) => ({ id: t.taskId })),
         affiliations,
       }
     }
@@ -1428,11 +1313,6 @@ export default class MemberService extends LoggerBase {
             identitiesToUpdate,
             repoOptions,
           )
-          // Update notes to belong to the originalId member
-          await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
-
-          // Update tasks to belong to the originalId member
-          await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Update member affiliations
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
@@ -1857,7 +1737,6 @@ export default class MemberService extends LoggerBase {
 
     const relations = [
       { relation: 'organizations', attributes: ['name'] },
-      { relation: 'notes', attributes: ['body'] },
       { relation: 'tags', attributes: ['name'] },
     ]
     for (const relation of relations) {

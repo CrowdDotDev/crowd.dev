@@ -29,7 +29,6 @@
 <script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -70,7 +69,7 @@ const onDeleteConversation = async () => {
 
     await ConversationService.destroyAll([props.conversation.id]);
 
-    Message.success(i18n('entities.conversation.destroy.success'));
+    Message.success('Conversation successfully deleted');
 
     emit('conversation-destroyed');
   } catch (error) {

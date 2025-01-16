@@ -1,6 +1,5 @@
 import * as yup from 'yup';
 import GenericField from '@/shared/fields/generic-field';
-import { i18n } from '@/i18n';
 
 export default class StringField extends GenericField {
   constructor(name, label, config = {}) {
@@ -57,38 +56,28 @@ export default class StringField extends GenericField {
     if (this.required) {
       output.push({
         required: Boolean(this.required),
-        message: i18n('validation.mixed.required').replace(
-          '{path}',
-          this.label,
-        ),
+        message: 'This field is required',
       });
     }
 
     if (this.min || this.min === 0) {
       output.push({
         min: this.min,
-        message: i18n('validation.string.min')
-          .replace('{path}', this.label)
-          .replace('{min}', this.min),
+        message: `${this.label} must be at least ${this.min} characters`,
       });
     }
 
     if (this.max || this.max === 0) {
       output.push({
         max: this.max,
-        message: i18n('validation.string.max')
-          .replace('{path}', this.label)
-          .replace('{max}', this.max),
+        message: `${this.label} must be at most ${this.max} characters`,
       });
     }
 
     if (this.matches) {
       output.push({
         pattern: this.matches,
-        message: i18n('validation.mixed.default').replace(
-          '{path}',
-          this.label,
-        ),
+        message: `${this.label} is invalid`,
       });
     }
 

@@ -2,11 +2,9 @@ import assert from 'assert'
 import lodash from 'lodash'
 
 import { Error400, Error403 } from '@crowd/common'
-import { TenantPlans } from '@crowd/types'
 
 import Permissions from '../../security/permissions'
 import Roles from '../../security/roles'
-import EmailSender from '../emailSender'
 
 const roles = Roles.values
 
@@ -98,10 +96,6 @@ export default class PermissionChecker {
       throw new Error403(this.language, 'email not verified')
     }
 
-    if (!this.hasPlanPermission(permission)) {
-      throw new Error403(this.language, 'not allowed on this plan')
-    }
-
     const allowedRoles = this.findAllowedRoles(permission)
     if (lodash.isEqual(allowedRoles, [roles.projectAdmin])) {
       this.validateSegmentPermission()
@@ -148,22 +142,7 @@ export default class PermissionChecker {
     }
   }
 
-  /**
-   * Checks if the current company plan allows the permission.
-   */
-  private hasPlanPermission(permission) {
-    assert(permission, 'permission is required')
-
-    return permission.allowedPlans.includes(this.currentTenantPlan)
-  }
-
   private get isEmailVerified() {
-    // Only checks if the email is verified
-    // if the email system is on
-    if (!EmailSender.isConfigured) {
-      return true
-    }
-
     return this.currentUser.emailVerified
   }
 
@@ -189,18 +168,6 @@ export default class PermissionChecker {
     }
 
     return userRoles
-  }
-
-  /**
-   * Return the current tenant plan,
-   * check also if it's not expired.
-   */
-  private get currentTenantPlan() {
-    if (!this.currentTenant || !this.currentTenant.plan) {
-      return TenantPlans.Essential
-    }
-
-    return this.currentTenant.plan
   }
 
   /**
