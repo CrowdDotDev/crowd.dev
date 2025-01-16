@@ -193,7 +193,6 @@ setImmediate(async () => {
   require('./microservice').default(routes)
   require('./conversation').default(routes)
   require('./eagleEyeContent').default(routes)
-  require('./automation').default(routes)
   require('./organization').default(routes)
   require('./slack').default(routes)
   require('./segment').default(routes)

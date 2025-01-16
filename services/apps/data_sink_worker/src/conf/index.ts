@@ -56,15 +56,11 @@ export const SLACK_ALERTING_CONFIG = (): ISlackAlertingConfig => {
   return slackAlertingConfig
 }
 
-export interface IDataSinkWorkerTemporalConfig extends ITemporalConfig {
-  automationsTaskQueue: string
-}
-
-let temporalConfig: IDataSinkWorkerTemporalConfig | undefined
-export const TEMPORAL_CONFIG = (): IDataSinkWorkerTemporalConfig | undefined => {
+let temporalConfig: ITemporalConfig | undefined
+export const TEMPORAL_CONFIG = (): ITemporalConfig | undefined => {
   if (temporalConfig) return temporalConfig
 
-  temporalConfig = config.get<IDataSinkWorkerTemporalConfig>('temporal')
+  temporalConfig = config.get<ITemporalConfig>('temporal')
 
   return temporalConfig
 }

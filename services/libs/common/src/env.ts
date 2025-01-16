@@ -43,18 +43,6 @@ export const SEARCH_SYNC_WORKER_PARTITIONS: Record<QueuePriorityLevel, number> =
     : undefined,
 }
 
-export const INTEGRATION_SYNC_WORKER_PARTITIONS: Record<QueuePriorityLevel, number> = {
-  [QueuePriorityLevel.HIGH]: process.env.INTEGRATION_SYNC_WORKER_HIGH_PARTITIONS
-    ? Number(process.env.INTEGRATION_SYNC_WORKER_HIGH_PARTITIONS)
-    : undefined,
-  [QueuePriorityLevel.NORMAL]: process.env.INTEGRATION_SYNC_WORKER_NORMAL_PARTITIONS
-    ? Number(process.env.INTEGRATION_SYNC_WORKER_NORMAL_PARTITIONS)
-    : undefined,
-  [QueuePriorityLevel.SYSTEM]: process.env.INTEGRATION_SYNC_WORKER_SYSTEM_PARTITIONS
-    ? Number(process.env.INTEGRATION_SYNC_WORKER_SYSTEM_PARTITIONS)
-    : undefined,
-}
-
 export const INTEGRATION_RUN_WORKER_PARTITIONS: Record<QueuePriorityLevel, number> = {
   [QueuePriorityLevel.HIGH]: process.env.INTEGRATION_RUN_WORKER_HIGH_PARTITIONS
     ? Number(process.env.INTEGRATION_RUN_WORKER_HIGH_PARTITIONS)

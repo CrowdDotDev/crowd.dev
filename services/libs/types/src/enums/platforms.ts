@@ -19,7 +19,6 @@ export enum PlatformType {
   DISCOURSE = 'discourse',
   GIT = 'git',
   CRUNCHBASE = 'crunchbase',
-  HUBSPOT = 'hubspot',
   GROUPSIO = 'groupsio',
   CONFLUENCE = 'confluence',
   GERRIT = 'gerrit',
@@ -48,7 +47,6 @@ export enum IntegrationType {
   STACKOVERFLOW = 'stackoverflow',
   DISCOURSE = 'discourse',
   GIT = 'git',
-  HUBSPOT = 'hubspot',
 }
 
 export const integrationLabel: Record<IntegrationType, string> = {
@@ -65,7 +63,6 @@ export const integrationLabel: Record<IntegrationType, string> = {
   [IntegrationType.STACKOVERFLOW]: 'Stack Overflow',
   [IntegrationType.DISCOURSE]: 'Discourse',
   [IntegrationType.GIT]: 'Git',
-  [IntegrationType.HUBSPOT]: 'HubSpot',
 }
 
 // Backup url from username if profile url not present in member.attributes.url
@@ -84,5 +81,4 @@ export const integrationProfileUrl: Record<IntegrationType, (username: string) =
   [IntegrationType.STACKOVERFLOW]: (username) => `https://stackoverflow.com/users/${username}`,
   [IntegrationType.DISCOURSE]: () => null,
   [IntegrationType.GIT]: () => null,
-  [IntegrationType.HUBSPOT]: () => null,
 }

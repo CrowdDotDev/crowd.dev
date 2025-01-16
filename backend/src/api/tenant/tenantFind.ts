@@ -1,7 +1,5 @@
 import { Error404 } from '@crowd/common'
 
-import AutomationRepository from '@/database/repositories/automationRepository'
-
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
@@ -15,12 +13,6 @@ export default async (req, res) => {
     payload = await new TenantService(req).findById(req.params.tenantId)
   } else {
     payload = await new TenantService(req).findByUrl(req.query.url)
-  }
-
-  payload.dataValues = {
-    ...payload.dataValues,
-    automationCount:
-      Number(await AutomationRepository.countAllActive(req.database, payload.id)) || 0,
   }
 
   payload.dataValues.settings[0].dataValues = {
