@@ -1,9 +1,9 @@
 import JSONField from '@/shared/fields/json-field';
 import { toSentenceCase } from '@/utils/string';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { storeToRefs } from 'pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import appConfig from '@/config';
+import { lfIdentities } from '@/config/identities';
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -24,7 +24,7 @@ export default class ActivityTypeField extends JSONField {
       // (temporary fix for default activity types stored in custom ones)
       .filter(([k, v]) => (!!Object.keys(v || {}).length) && (!appConfig.isGitIntegrationEnabled ? k !== 'git' : true))
       .map(([key, value]) => {
-        let platformName = CrowdIntegrations.getConfig(key)?.name;
+        let platformName = lfIdentities[key]?.name;
 
         if (!platformName) {
           platformName = key === 'other' ? 'Custom' : key;

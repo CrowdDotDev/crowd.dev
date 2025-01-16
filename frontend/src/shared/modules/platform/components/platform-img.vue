@@ -8,14 +8,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
     platform: string;
     size: string;
 }>();
 
-const platformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
+const platformConfig = computed(() => lfIdentities[props.platform]);
 
 const imgClass = computed(() => {
   if (props.size === 'large') {

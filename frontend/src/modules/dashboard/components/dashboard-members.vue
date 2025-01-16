@@ -74,7 +74,7 @@
                 {{ formatDateToTimeAgo(member.joinedAt) }}
                 on
                 {{
-                  getPlatformDetails(member.lastActivity.platform)?.name
+                  lfIdentities[member.lastActivity.platform]?.name
                     ?? member.lastActivity.platform
                 }}</span>
             </app-dashboard-member-item>
@@ -227,11 +227,11 @@ import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashbo
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { lfIdentities } from '@/config/identities';
 
 const {
   chartData, members, period, activeMembers, recentMembers,
@@ -251,8 +251,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-
-const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 </script>
 

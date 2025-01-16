@@ -1,8 +1,8 @@
 import moment from 'moment';
 import { MemberIdentity } from '@/modules/member/types/Member';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import { lfIdentities } from '@/config/identities';
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
@@ -29,15 +29,15 @@ const useContributorHelpers = () => {
       return aOrder - bOrder;
     })
     .map((i) => {
-      const config = CrowdIntegrations.getConfig(i.platform);
+      const config = lfIdentities[i.platform];
 
-      const link = config?.url ? config?.url({
-        username: i.value,
+      const link = config?.member?.url?.({
+        identity: i,
         attributes: contributor.attributes,
-      }) : null;
+      });
       return {
         ...i,
-        url: config?.showProfileLink ? link : null,
+        url: link || null,
       };
     }) || [];
 

@@ -15,13 +15,13 @@ import crunchbase from './crunchbase';
 import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
-import lfx from './custom/lfx';
+import lfx from './lfx';
 import groupsio from './groupsio';
 import confluence from './confluence';
 import gerrit from './gerrit';
 import jira from './jira';
-import cvent from './custom/cvent';
-import tnc from './custom/tnc';
+import cvent from './cvent';
+import tnc from './tnc';
 import gitlab from './gitlab';
 
 class IntegrationsConfig {

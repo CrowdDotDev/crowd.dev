@@ -16,7 +16,7 @@
                 <lf-input
                   v-model="identity.value"
                   class="h-10 flex-grow"
-                  :placeholder="`${platform(identity.platform)?.placeholder || ''}...`"
+                  :placeholder="`${lfIdentities[identity.platform]?.member?.placeholder || ''}...`"
                   :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
                   @blur="$v.form[ii].value.$touch()"
                 >
@@ -25,8 +25,8 @@
                       <div class="min-w-5">
                         <lf-icon-old v-if="identity.type === 'email'" name="mail-line" class="text-black" :size="20" />
                         <img
-                          v-else-if="platform(identity.platform)"
-                          :src="platform(identity.platform)?.image"
+                          v-else-if="lfIdentities[identity.platform]"
+                          :src="lfIdentities[identity.platform]?.image"
                           class="h-5 w-5 object-contain"
                           :alt="identity.value"
                         />
@@ -38,11 +38,11 @@
                         />
                       </div>
                       <p
-                        v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix"
+                        v-if="identity.type !== 'email' && lfIdentities[identity.platform]?.member?.urlPrefix"
                         class="-mr-2 pl-2"
                         :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
                       >
-                        {{ platform(identity.platform)?.urlPrefix }}
+                        {{ lfIdentities[identity.platform]?.member?.urlPrefix }}
                       </p>
                     </div>
                   </template>
@@ -106,7 +106,6 @@ import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Co
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
 import LfContributorDetailsIdentityAddDropdown
@@ -117,6 +116,7 @@ import useVuelidate from '@vuelidate/core';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -161,8 +161,6 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', value);
   },
 });
-
-const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;

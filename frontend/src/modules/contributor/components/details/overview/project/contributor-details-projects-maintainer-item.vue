@@ -16,7 +16,7 @@
         <div class="flex flex-col gap-4">
           <article v-for="repo of currentRepos" :key="repo.id" class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="getPlatform(repo.repoType)?.image" :alt="repo.repoType" class="w-4 h-4" />
+              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="w-4 h-4" />
               <a
                 :href="repo.url"
                 target="_blank"
@@ -41,7 +41,7 @@
         <div v-for="repo of previousRepos" :key="repo.id" class="flex flex-col gap-4">
           <article class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="getPlatform(repo.repoType)?.image" :alt="repo.repoType" class="w-4 h-4" />
+              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="w-4 h-4" />
               <a
                 :href="repo.url"
                 target="_blank"
@@ -65,16 +65,14 @@
 
 <script setup lang="ts">
 import LfBadge from '@/ui-kit/badge/Badge.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { ContributorMaintainerRole } from '@/modules/contributor/types/Contributor';
 import { computed } from 'vue';
 import moment from 'moment';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   maintainerRoles: ContributorMaintainerRole[],
 }>();
-
-const getPlatform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const currentRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !role.dateEnd));
 const previousRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !!role.dateEnd));

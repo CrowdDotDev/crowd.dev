@@ -51,9 +51,7 @@
           <template v-if="integration.type === 'mapped'">
             <p class="text-xs text-black leading-5">
               Syncing
-              {{
-                CrowdIntegrations.getConfig(integration.platform)?.name
-              }}
+              {{ lfIntegrations[integration.platform]?.name }}
               data since this sub-project is mapped with
               <b>{{ (integration as any).mappedWith }}</b> sub-project
             </p>
@@ -67,9 +65,7 @@
             >
               <h6 class="text-xs text-black leading-5 pb-3">
                 Connecting
-                {{
-                  CrowdIntegrations.getConfig(integration.platform)?.name
-                }}
+                {{ lfIntegrations[integration.platform]?.name }}
                 integration
               </h6>
             </app-integration-progress>
@@ -88,11 +84,11 @@
 <script lang="ts" setup>
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 import { SubProject } from '@/modules/lf/segments/types/Segments';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
+import { lfIntegrations } from '@/config/integrations';
 
 type Integrations = SubProject & IntegrationProgress;
 

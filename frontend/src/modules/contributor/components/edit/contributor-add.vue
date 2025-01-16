@@ -74,20 +74,20 @@
             <lf-field label-text="Identities">
               <div class="flex flex-col gap-3">
                 <div v-for="(identity) of form.identities" :key="identity.platform">
-                  <lf-input v-model="identity.value" :placeholder="`${identity.placeholder || ''}...`" class="h-10">
+                  <lf-input v-model="identity.value" :placeholder="`${lfIdentities[identity.platform]?.member?.placeholder || ''}...`" class="h-10">
                     <template #prefix>
                       <div class="flex items-center flex-nowrap whitespace-nowrap">
                         <div class="min-w-5">
                           <lf-tooltip :content="identity.platform">
-                            <img :src="identity.image" class="h-5 w-5" :alt="identity.platform" />
+                            <img :src="lfIdentities[identity.platform]?.image" class="h-5 w-5" :alt="identity.platform" />
                           </lf-tooltip>
                         </div>
                         <p
-                          v-if="identity.prefix"
+                          v-if="lfIdentities[identity.platform]?.member?.urlPrefix"
                           class="-mr-2 pl-2"
                           :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
                         >
-                          {{ identity.prefix }}
+                          {{ lfIdentities[identity.platform]?.member?.urlPrefix }}
                         </p>
                       </div>
                     </template>
@@ -125,7 +125,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useVuelidate from '@vuelidate/core';
@@ -140,6 +139,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import Message from '@/shared/message/message';
 import Errors from '@/shared/error/errors';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
+import { IdentityConfig, lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -154,20 +155,19 @@ const isModalOpen = computed({
 
 const router = useRouter();
 
+const { memberIdentities } = useIdentitiesHelpers();
+
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 type ContributorAddIdentity = ContributorIdentity & {
-  image: string,
-  prefix: string,
-  placeholder: string,
+  // image: string,
+  // prefix: string,
+  // placeholder: string,
 }
 
-const platformList: ContributorAddIdentity[] = Object.entries(CrowdIntegrations.memberIdentities)
-  .map(([key, config]) => ({
-    prefix: config.urlPrefix,
-    placeholder: config.placeholder,
-    image: config.image,
-    platform: key,
+const platformList: ContributorAddIdentity[] = memberIdentities
+  .map((config: IdentityConfig) => ({
+    platform: config.key,
     type: 'username',
     value: '',
     verified: true,

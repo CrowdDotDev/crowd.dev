@@ -30,7 +30,7 @@
           </div>
           <article v-for="integration of segment.integrations" :key="`${segment.id}:${integration.platform}`" class="pb-4 flex w-full">
             <div class="w-4 !min-w-4 mr-2 basis-4">
-              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="w-4 h-4 min-w-4">
+              <img :alt="integration.platform" :src="lfIdentities[integration.platform]?.image" class="w-4 h-4 min-w-4">
             </div>
             <div class="-mt-px flex-grow">
               <app-integration-progress-bar :progress="integration" />
@@ -43,9 +43,7 @@
 </template>
 
 <script lang="ts" setup>
-
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
@@ -53,6 +51,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { lfIdentities } from '@/config/identities';
 
 interface SegmentIntegrations {
   id: string;

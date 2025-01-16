@@ -130,7 +130,6 @@
 </template>
 
 <script>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
@@ -143,6 +142,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppDashboardActivityItem',
@@ -177,9 +177,7 @@ export default {
   },
   computed: {
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.activity.platform,
-      );
+      return lfIdentities[this.activity.platform];
     },
     selectedProjectGroup() {
       const lsSegmentsStore = useLfSegmentsStore();

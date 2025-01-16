@@ -39,6 +39,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppPlatformIcon from '@/shared/modules/platform/components/platform-icon.vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 import AppPlatformImg from '@/shared/modules/platform/components/platform-img.vue';
+import { lfIdentities } from '@/config/identities';
 
 const props = withDefaults(
   defineProps<{
@@ -61,7 +62,7 @@ const props = withDefaults(
   },
 );
 
-const defaultPlatformConfig = computed(() => CrowdIntegrations.getConfig(props.platform));
+const defaultPlatformConfig = computed(() => lfIdentities[props.platform]);
 
 const platformConfig = computed(
   () => CrowdIntegrations.getConfig(props.platform) || {},
