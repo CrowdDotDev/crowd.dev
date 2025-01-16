@@ -50,5 +50,7 @@
   "searchSyncApi": {},
   "encryption": {},
   "openStatusApi": {},
-  "gitlab": {}
+  "gitlab": {},
+  "jiraIssueReporter": {},
+  "snowflake": {}
 }
