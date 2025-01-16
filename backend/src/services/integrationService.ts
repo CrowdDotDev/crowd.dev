@@ -28,7 +28,7 @@ import GitlabReposRepository from '@/database/repositories/gitlabReposRepository
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
-import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
 import {
   fetchAllGitlabGroups,
   fetchGitlabGroupProjects,
@@ -520,43 +520,68 @@ export default class IntegrationService {
    * @param integrationData The integration data to create or update
    * @param repos The repositories data
    */
-  private async createOrUpdateGithubIntegration(integrationData, repos) {
+  private async createOrUpdateGithubIntegration(integrationData, repos: Repos) {
     let integration
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    this.options.log.error(repos.length)
-
     try {
-      // First, create or update the integration without the repos data
-      integration = await this.createOrUpdate(integrationData, transaction)
+      // Get the first repo's owner since we know all repos are from same installation
+      const orgName = repos[0]?.owner
+
+      // Create initial integration with org structure but empty repos
+      const initialOrg = {
+        name: orgName,
+        logo: integrationData.settings.orgAvatar,
+        url: `https://github.com/${orgName}`,
+        fullSync: true,
+        updatedAt: new Date().toISOString(),
+        repos: []
+      }
+
+      integration = await this.createOrUpdate({
+        ...integrationData,
+        settings: {
+          ...integrationData.settings,
+          orgs: [initialOrg]
+        }
+      }, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Transform repos into the new format
+      const transformedRepos = repos.map(repo => ({
+        name: repo.name,
+        url: repo.url,
+        updatedAt: repo.createdAt || new Date().toISOString()
+      }))
+
+      // Add repos in chunks
+      const chunkSize = 100 // Process 100 repos at a time
+      for (let i = 0; i < transformedRepos.length; i += chunkSize) {
+        const reposChunk = transformedRepos.slice(i, i + chunkSize)
+        await this.appendGitHubReposToOrg(integration.id, reposChunk)
+      }
+
+      return integration
+
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
-
-    // Then, update the repos data in chunks to avoid query timeout
-    const chunkSize = 100 // Adjust this value based on your specific needs
-    for (let i = 0; i < repos.length; i += chunkSize) {
-      const reposChunk = repos.slice(i, i + chunkSize)
-      await this.upsertGitHubRepos(integration.id, reposChunk)
-    }
-
-    return integration
   }
 
-  private async upsertGitHubRepos(integrationId, repos) {
+  private async appendGitHubReposToOrg(integrationId: string, repos: any[]) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const sequelize = SequelizeRepository.getSequelize(this.options)
 
     try {
+      // Append repos to the first (and only) org's repos array
       const query = `
         UPDATE integrations
         SET settings = jsonb_set(
-          COALESCE(settings, '{}'::jsonb),
-          '{repos}',
-          COALESCE(settings->'repos', '[]'::jsonb) || ?::jsonb
+          settings,
+          '{orgs,0,repos}',
+          COALESCE(settings->'orgs'->0->'repos', '[]'::jsonb) || ?::jsonb
         )
         WHERE id = ?
       `
@@ -589,7 +614,7 @@ export default class IntegrationService {
 
     try {
       const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-      await GithubReposRepository.updateMapping(integrationId, mapping, oldMapping, txOptions)
+      await GithubReposRepository.updateMappingSnowflake(integrationId, mapping, oldMapping, txOptions)
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
@@ -788,6 +813,96 @@ export default class IntegrationService {
       } else if (hasAddedRepos || hasChangedSegments) {
         this.options.log.debug(
           'No onboarding message sent because no repos to add or change segments for!',
+        )
+      }
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
+      if (fireOnboarding) {
+        const integration = await IntegrationRepository.update(
+          integrationId,
+          { status: 'in-progress' },
+          txOptions,
+        )
+
+        this.options.log.info(
+          { tenantId: integration.tenantId },
+          'Sending GitHub message to int-run-worker!',
+        )
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
         )
       }
 
