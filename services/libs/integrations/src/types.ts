@@ -1,20 +1,15 @@
 import { DbConnection, DbTransaction } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import {
-  Entity,
   IActivityData,
-  IAutomationData,
   ICache,
   IConcurrentRequestLimiter,
   IIntegration,
   IIntegrationStream,
-  IIntegrationSyncWorkerEmitter,
   IMemberAttribute,
   IRateLimiter,
   IntegrationResultType,
 } from '@crowd/types'
-
-import { IBatchOperationResult } from './integrations/hubspot/api/types'
 
 export interface IIntegrationContext {
   onboarding?: boolean
@@ -33,20 +28,11 @@ export interface IIntegrationContext {
   abortRunWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 }
 
-export interface IIntegrationStartRemoteSyncContext {
-  integrationSyncWorkerEmitter: IIntegrationSyncWorkerEmitter
-  integration: IIntegration
-  automations: IAutomationData[]
-  tenantId: string
-  log: Logger
-}
-
 export interface IIntegrationProcessRemoteSyncContext {
   tenantId: string
   integration: IIntegration
   log: Logger
   serviceSettings: IIntegrationServiceSettings
-  automation?: IAutomationData
 }
 
 export interface IGenerateStreamsContext extends IIntegrationContext {
@@ -134,13 +120,6 @@ export type GenerateStreamsHandler = (ctx: IGenerateStreamsContext) => Promise<v
 export type ProcessStreamHandler = (ctx: IProcessStreamContext) => Promise<void>
 export type ProcessWebhookStreamHandler = (ctx: IProcessWebhookStreamContext) => Promise<void>
 export type ProcessDataHandler = (ctx: IProcessDataContext) => Promise<void>
-export type StartIntegrationSyncHandler = (ctx: IIntegrationStartRemoteSyncContext) => Promise<void>
-export type ProcessIntegrationSyncHandler = <T>(
-  toCreate: T[],
-  toUpdate: T[],
-  entity: Entity,
-  ctx: IIntegrationProcessRemoteSyncContext,
-) => Promise<IBatchOperationResult>
 
 export interface IIntegrationDescriptor {
   /**
@@ -205,19 +184,6 @@ export interface IIntegrationDescriptor {
   // if undefined it will never check
   // if 0 it will check the same as if it was 1 - every minute
   checkEvery?: number
-
-  /**
-   * Function that will be called if defined, after an integration goes into done state.
-   * Mainly responsible for sending queue messages to integration-sync-worker
-   */
-  startSyncRemote?: StartIntegrationSyncHandler
-
-  /**
-   * Function that will be called from integration sync worker for outgoing integrations.
-   * Gets two arrays, entities to create and entities to update.
-   * Logic for calling the required api endpoints per integration lives here.
-   */
-  processSyncRemote?: ProcessIntegrationSyncHandler
 }
 
 export interface IIntegrationServiceSettings {

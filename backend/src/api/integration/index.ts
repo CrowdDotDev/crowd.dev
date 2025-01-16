@@ -129,51 +129,6 @@ export default (app) => {
   )
 
   app.post(
-    '/tenant/:tenantId/hubspot-connect',
-    safeWrap(require('./helpers/hubspotConnect').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-onboard',
-    safeWrap(require('./helpers/hubspotOnboard').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-update-properties',
-    safeWrap(require('./helpers/hubspotUpdateProperties').default),
-  )
-
-  app.get(
-    '/tenant/:tenantId/hubspot-mappable-fields',
-    safeWrap(require('./helpers/hubspotGetMappableFields').default),
-  )
-
-  app.get(
-    '/tenant/:tenantId/hubspot-get-lists',
-    safeWrap(require('./helpers/hubspotGetLists').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-sync-member',
-    safeWrap(require('./helpers/hubspotSyncMember').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-stop-sync-member',
-    safeWrap(require('./helpers/hubspotStopSyncMember').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-sync-organization',
-    safeWrap(require('./helpers/hubspotSyncOrganization').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-stop-sync-organization',
-    safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
-  )
-
-  app.post(
     '/tenant/:tenantId/groupsio-connect',
     safeWrap(require('./helpers/groupsioConnectOrUpdate').default),
   )

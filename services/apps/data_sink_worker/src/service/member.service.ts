@@ -3,7 +3,6 @@ import mergeWith from 'lodash.mergewith'
 import uniqby from 'lodash.uniqby'
 
 import {
-  EDITION,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -21,9 +20,8 @@ import {
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
-  Edition,
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
@@ -32,10 +30,7 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
-  TemporalWorkflowId,
 } from '@crowd/types'
-
-import { TEMPORAL_CONFIG } from '../conf'
 
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
@@ -161,40 +156,6 @@ export default class MemberService extends LoggerBase {
           organizations,
         }
       })
-
-      if (EDITION !== Edition.LFX) {
-        try {
-          const handle = await this.temporal.workflow.start('processNewMemberAutomation', {
-            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${id}`,
-            taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 100,
-            },
-
-            args: [
-              {
-                tenantId,
-                memberId: id,
-              },
-            ],
-            searchAttributes: {
-              TenantId: [tenantId],
-            },
-          })
-
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new member automation!',
-          )
-        } catch (err) {
-          this.log.error(
-            err,
-            'Error while starting temporal workflow to process new member automation!',
-          )
-          throw err
-        }
-      }
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
