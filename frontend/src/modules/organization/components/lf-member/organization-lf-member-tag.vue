@@ -1,7 +1,7 @@
 <template>
   <el-tooltip v-if="!!organization.lfxMembership" content="Active member organization of the LF or one of its projects" placement="top">
     <div class="text-primary-500 flex items-center gap-1 flex-nowrap">
-      <i :class="`ri-bookmark-3-fill ${iconFontSize}`" />
+      <lf-icon name="circle-bookmark" :class="iconFontSize" />
       <span v-if="!onlyShowIcon" class="font-semibold text-xs whitespace-nowrap">Member</span>
     </div>
   </el-tooltip>
@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import { Organization } from '../../types/Organization';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 withDefaults(
   defineProps<{

@@ -126,7 +126,7 @@
         })
       "
     >
-      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
+    <lf-icon name="bookmark-slash" class="mr-2" /><span class="text-xs">Unmark as team organization</span>
     </button>
   </template>
 

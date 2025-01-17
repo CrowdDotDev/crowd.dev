@@ -98,7 +98,7 @@
     </div>
     <div v-if="!loading && !contributors.length">
       <div class="flex justify-center pb-8">
-        <lf-icon-old name="group-2-line" :size="80" class="text-gray-200" />
+        <lf-icon name="people-group" :size="80" class="text-gray-200" />
       </div>
       <h5 class="text-center text-h5">
         No people found
