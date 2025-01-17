@@ -4,7 +4,7 @@
       && hasPermission(LfPermission.memberEdit)"
     @click="emit('unmerge')"
   >
-    <lf-icon-old name="link-unlink" />
+    <lf-icon name="link-simple-slash" />
     Unmerge profile
   </lf-dropdown-item>
   <lf-dropdown-item
@@ -33,7 +33,6 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';

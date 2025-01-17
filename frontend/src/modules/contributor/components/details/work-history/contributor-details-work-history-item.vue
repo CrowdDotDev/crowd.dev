@@ -20,7 +20,7 @@
       <lf-dropdown v-show="hovered || isGroupHover" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
-            <lf-icon name="ellipsis" />
+            <lf-icon name="ellipsis" type="regular" />
           </lf-button>
         </template>
 
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import { Organization } from '@/modules/organization/types/Organization';

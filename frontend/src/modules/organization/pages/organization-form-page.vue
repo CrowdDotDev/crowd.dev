@@ -35,7 +35,7 @@
                 :disabled="isFormSubmitting"
                 @click="onReset"
               >
-                <i class="ri-arrow-go-back-line" />
+              <lf-icon name="arrow-turn-left" />
                 <span>Reset changes</span>
               </el-button>
               <div
@@ -164,6 +164,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 import { useOrganizationStore } from '../store/pinia';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const LoaderIcon = h(
   'i',

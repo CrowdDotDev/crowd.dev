@@ -144,9 +144,8 @@
         })
       "
     >
-      <i
-        class="ri-delete-bin-line text-base mr-2 text-red-500"
-      /><span
+    <lf-icon name="trash-can" :size="16" class="mr-2 text-red-500" />
+      <span
         class="text-xs text-red-500"
       >Delete organization</span>
     </button>

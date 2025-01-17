@@ -8,7 +8,8 @@
         member,
       })"
     >
-      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+    <lf-icon name="link-simple-slash" class="mr-2" />
+      <span class="text-xs">Unmerge identity</span>
     </button>
     <el-divider class="border-gray-200" />
   </template>
@@ -26,7 +27,7 @@
       class="h-10 el-dropdown-menu__item w-full mb-1"
       type="button"
     >
-      <i class="ri-pencil-line text-base mr-2" />
+      <lf-icon name="pen fa-sharp" class="mr-2" />
       <span class="text-xs">Edit profile</span>
     </button>
   </router-link>
@@ -42,7 +43,8 @@
     <span
       class="max-w-[16px]"
       color="#9CA3AF"
-    ><i class="ri-github-fill" /></span>
+    >
+    <lf-icon name="github" type="brands" /></span>
     <span class="ml-2 text-xs"> Find GitHub </span>
   </button>
 
@@ -58,7 +60,8 @@
       })
     "
   >
-    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge profile</span>
+  <lf-icon name="user-group" class="mr-2" />
+  <span class="text-xs">Merge profile</span>
   </button>
 
   <!-- Hubspot -->
@@ -114,7 +117,8 @@
             })
           "
         >
-          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team member</span>
+        <lf-icon name="bookmark" class="mr-2" />
+        <span class="text-xs">Mark as team member</span>
         </button>
       </span>
     </el-tooltip>
@@ -130,7 +134,8 @@
         })
       "
     >
-      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team member</span>
+        <lf-icon name="bookmark-slash" class="mr-2" />
+        <span class="text-xs">Unmark as team member</span>
     </button>
     <button
       v-if="!member.attributes.isBot?.default"
@@ -143,7 +148,8 @@
         })
       "
     >
-      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
+    <lf-icon name="robot" class="mr-2" />
+    <span class="text-xs">Mark as bot</span>
     </button>
     <button
       v-if="member.attributes.isBot?.default"
@@ -156,7 +162,8 @@
         })
       "
     >
-      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
+    <lf-icon name="robot" class="mr-2" />
+    <span class="text-xs">Unmark as bot</span>
     </button>
   </template>
   <template v-if="hasPermission(LfPermission.memberDestroy)">
@@ -171,11 +178,8 @@
         })
       "
     >
-      <i
-        class="ri-delete-bin-line text-base mr-2 text-red-500"
-      /><span
-        class="text-xs text-red-500"
-      >Delete profile</span>
+    <lf-icon name="trash-can" class="mr-2 text-red-500" />
+    <span class="text-xs text-red-500">Delete profile</span>
     </button>
   </template>
 </template>
@@ -196,6 +200,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Member } from '../types/Member';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 enum Actions {
   DELETE_CONTACT = 'deleteContact',

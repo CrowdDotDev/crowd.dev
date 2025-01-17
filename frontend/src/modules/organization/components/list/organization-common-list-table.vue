@@ -72,13 +72,13 @@
               <lf-dropdown placement="bottom-end" @click.stop.prevent>
                 <template #trigger>
                   <lf-button type="secondary-ghost-light" :icon-only="true" size="small" @click.prevent>
-                    <i class="ri-more-fill !text-lg" />
+                    <lf-icon name="ellipsis" :size="20" />
                   </lf-button>
                 </template>
                 <lf-dropdown-item
                   @click="markAsTeamOrganization(org)"
                 >
-                  <i class="ri-team-line" />
+                  <lf-icon name="people-group" />
                   {{ org.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
                 </lf-dropdown-item>
                 <lf-dropdown-separator />

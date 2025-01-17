@@ -50,7 +50,7 @@
           v-if="hasPermission(LfPermission.memberEdit)"
           @click="emit('unmerge')"
         >
-          <lf-icon-old name="link-unlink" />Unmerge domain
+          <lf-icon name="link-simple-slash" />Unmerge domain
         </lf-dropdown-item>
 
         <lf-dropdown-item
@@ -91,7 +91,6 @@ import {
   OrganizationIdentity,
   OrganizationIdentityType,
 } from '@/modules/organization/types/Organization';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { withHttp } from '@/utils/string';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';

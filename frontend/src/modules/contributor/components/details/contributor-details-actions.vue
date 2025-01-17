@@ -27,7 +27,7 @@
         type="secondary"
         @click="isMergeDialogOpen = props.contributor"
       >
-        <lf-icon-old name="p2p-line" />
+        <lf-icon name="merge" />
         Merge profile
       </lf-button>
 
@@ -81,7 +81,6 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';

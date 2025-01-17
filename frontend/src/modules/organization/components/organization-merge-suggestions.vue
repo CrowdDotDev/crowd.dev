@@ -11,7 +11,7 @@
             :icon-only="true"
             @click="fetch(offset - 1)"
           >
-            <i class="ri-arrow-left-s-line" />
+          <lf-icon name="chevron-left" />
           </lf-button>
           <lf-button
             type="secondary"
@@ -20,7 +20,7 @@
             :icon-only="true"
             @click="fetch(offset + 1)"
           >
-            <i class="ri-arrow-right-s-line" />
+          <lf-icon name="chevron-right" />
           </lf-button>
         </div>
 
@@ -153,7 +153,7 @@ import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/me
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '../organization-service';
-
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 const props = defineProps({
   query: {
     type: Object,

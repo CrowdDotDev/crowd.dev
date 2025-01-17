@@ -52,7 +52,8 @@
                 class="btn btn--md btn--transparent w-8 !h-8"
                 @click="removeUsername(ii)"
               >
-                <i class="ri-delete-bin-line text-lg" />
+                <lf-icon name="trash-can" :size="20" />
+
               </el-button>
             </article>
           </template>
@@ -68,7 +69,7 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationIdentityType } from '../../types/Organization';
-
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const props = defineProps({

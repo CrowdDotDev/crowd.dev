@@ -67,7 +67,7 @@
         v-if="hasPermission(LfPermission.organizationEdit)"
         @click="emit('unmerge')"
       >
-        <lf-icon-old name="link-unlink" />Unmerge identity
+        <lf-icon name="link-simple-slash" />Unmerge identity
       </lf-dropdown-item>
 
       <lf-dropdown-item
@@ -96,7 +96,6 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
