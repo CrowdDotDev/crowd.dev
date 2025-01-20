@@ -93,8 +93,8 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
-import { OrganizationService } from '../../organization-service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();
 

@@ -25,7 +25,8 @@
           </p>
           <article class="flex items-center flex-nowrap mb-4 last:mb-0">
             <lf-icon
-              name="house-building" class="mr-1 h-4 flex items-center"
+              name="house-building"
+              class="mr-1 h-4 flex items-center"
             />
 
             <span class="text-gray-900 text-sm max-w-3xs truncate">{{
@@ -38,7 +39,7 @@
           </p>
 
           <article class="flex items-center flex-nowrap mb-4 last:mb-0">
-            <lf-icon name="folder" class="mr-1 h-4 flex items-center"/>
+            <lf-icon name="folder" class="mr-1 h-4 flex items-center" />
 
             <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               space?.name || space?.key || "Unnamed space"

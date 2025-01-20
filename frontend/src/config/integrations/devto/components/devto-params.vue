@@ -7,7 +7,7 @@
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
-             <lf-icon  name="house-building" class="!text-gray-600 mr-1 h-4 flex items-center" />
+              <lf-icon name="house-building" class="!text-gray-600 mr-1 h-4 flex items-center" />
               {{ pluralize("organization", organizations.length, true) }}
             </div>
             •
@@ -29,7 +29,7 @@
               :key="organization"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <lf-icon  name="house-building" class="mr-1 h-4 flex items-center" />
+              <lf-icon name="house-building" class="mr-1 h-4 flex items-center" />
               <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 organization
               }}</span>
@@ -65,7 +65,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import LfIcon from '@/ui-kit/icon/icon.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 const props = defineProps({
   integration: {
     type: Object,

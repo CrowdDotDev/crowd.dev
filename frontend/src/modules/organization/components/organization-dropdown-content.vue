@@ -31,7 +31,7 @@
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
     >
-    <lf-icon name="pen fa-sharp" class="text-base mr-2" />
+      <lf-icon name="pen fa-sharp" class="text-base mr-2" />
       <span class="text-xs">Edit organization</span>
     </button>
   </router-link>
@@ -126,7 +126,7 @@
         })
       "
     >
-    <lf-icon name="bookmark-slash" class="mr-2" /><span class="text-xs">Unmark as team organization</span>
+      <lf-icon name="bookmark-slash" class="mr-2" /><span class="text-xs">Unmark as team organization</span>
     </button>
   </template>
 
@@ -144,7 +144,7 @@
         })
       "
     >
-    <lf-icon name="trash-can" :size="16" class="mr-2 text-red-500" />
+      <lf-icon name="trash-can" :size="16" class="mr-2 text-red-500" />
       <span
         class="text-xs text-red-500"
       >Delete organization</span>
@@ -162,9 +162,9 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { OrganizationService } from '../organization-service';
 import { Organization } from '../types/Organization';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',

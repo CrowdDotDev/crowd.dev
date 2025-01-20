@@ -8,8 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { Organization } from '../../types/Organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { Organization } from '../../types/Organization';
 
 withDefaults(
   defineProps<{

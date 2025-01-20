@@ -13,7 +13,7 @@
             class="btn btn--md btn--transparent w-10 h-10"
             @click="removeEmail(ei)"
           >
-          <lf-icon name="trash-can" :size="20" />
+            <lf-icon name="trash-can" :size="20" />
           </el-button>
         </template>
       </app-organization-form-emails-item>
@@ -32,8 +32,9 @@ import {
 } from 'vue';
 import AppOrganizationFormEmailsItem from '@/modules/organization/components/form/organization-form-emails-item.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import { Organization, OrganizationIdentityType, OrganizationIdentity } from '../../types/Organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { Organization, OrganizationIdentityType, OrganizationIdentity } from '../../types/Organization';
+
 const emit = defineEmits<{(e: 'update:modelValue', value: Organization): void }>();
 
 const props = defineProps<{

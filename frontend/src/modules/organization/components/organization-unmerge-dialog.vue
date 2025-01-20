@@ -106,10 +106,13 @@
                               :label="i.displayValue"
                               @click="fetchPreview(i)"
                             >
-                            <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
-                            <lf-icon 
-                            v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)" 
-                              name="window" size="20" class="text-gray-900 text-lg leading-5 mr-2" />  
+                              <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
+                              <lf-icon
+                                v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                                name="window"
+                                :size="20"
+                                class="text-gray-900 text-lg leading-5 mr-2"
+                              />
                               <img
                                 v-else-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
@@ -154,9 +157,12 @@
                     :label="i.displayValue"
                   >
                     <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
-                    <lf-icon 
-                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)" 
-                      name="window" size="20" class="text-gray-900 text-lg leading-5 mr-2" />  
+                    <lf-icon
+                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                      name="window"
+                      size="20"
+                      class="text-gray-900 text-lg leading-5 mr-2"
+                    />
                     <img
                       v-else-if="platformDetails(i.platform)"
                       class="h-5 w-5 mr-2"

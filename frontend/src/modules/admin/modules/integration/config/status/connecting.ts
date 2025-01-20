@@ -7,7 +7,7 @@ const connecting: IntegrationStatusConfig = {
   status: {
     text: 'Connecting',
     icon: 'circle-notch animate-spin',
-    iconType:'solid',
+    iconType: 'solid',
     color: 'text-secondary-500',
   },
   actionBar: {

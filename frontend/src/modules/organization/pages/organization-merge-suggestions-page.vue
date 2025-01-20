@@ -20,7 +20,7 @@
           placement="top"
           content="LFX is constantly checking your community for duplicate organizations. Here you can check all the merging suggestions."
         >
-        <lf-icon name="circle-question" :size="20" class="text-gray-500 flex items-center ml-2 h-5" />
+          <lf-icon name="circle-question" :size="20" class="text-gray-500 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
 
@@ -133,7 +133,7 @@
                       :loading="sending === `${suggestion.organizations[0].id}:${suggestion.organizations[1].id}`"
                       :icon-only="true"
                     >
-                      <lf-icon name="ellipsis" type="regular" /> 
+                      <lf-icon name="ellipsis" type="regular" />
                     </lf-button>
                   </template>
 

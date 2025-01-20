@@ -85,7 +85,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeOrganization(org.id)"
               >
-              <lf-icon name="trash-can" :size="20" class="text-black" />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
@@ -142,7 +142,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeUser(user.id)"
               >
-              <lf-icon name="trash-can" :size="20" class="text-black" />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
@@ -201,11 +201,11 @@ import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
-import LfIcon from '@/ui-kit/icon/icon.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { doDevtoConnect } = mapActions('integration');
 

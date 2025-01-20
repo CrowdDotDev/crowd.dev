@@ -53,7 +53,6 @@
                 @click="removeUsername(ii)"
               >
                 <lf-icon name="trash-can" :size="20" />
-
               </el-button>
             </article>
           </template>
@@ -68,8 +67,9 @@ import {
   computed, ref, watch, reactive,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { OrganizationIdentityType } from '../../types/Organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { OrganizationIdentityType } from '../../types/Organization';
+
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const props = defineProps({

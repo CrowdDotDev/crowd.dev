@@ -33,6 +33,7 @@ import {
 import AppOrganizationFormPhoneNumberItem
   from '@/modules/organization/components/form/organization-form-phone-number-item.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 const emit = defineEmits(['update:modelValue']);
 
 const props = defineProps({

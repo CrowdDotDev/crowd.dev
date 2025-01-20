@@ -11,7 +11,7 @@
         type="button"
         @click.prevent.stop
       >
-      <lf-icon name="ellipsis" type="regular" :size="24" />
+        <lf-icon name="ellipsis" type="regular" :size="24" />
       </button>
     </slot>
     <template #dropdown>
@@ -31,8 +31,8 @@
 import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 
 defineProps({
   organization: {

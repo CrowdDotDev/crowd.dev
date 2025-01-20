@@ -20,7 +20,7 @@
             :key="project"
             class="flex items-center flex-nowrap mb-4 last:mb-0"
           >
-          <lf-icon name="folder" class="mr-1 h-4 flex items-center" />
+            <lf-icon name="folder" class="mr-1 h-4 flex items-center" />
             <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               project
             }}</span>
@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import LfIcon from '@/ui-kit/icon/icon.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   integration: {

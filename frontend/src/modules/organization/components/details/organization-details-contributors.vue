@@ -135,7 +135,6 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { Pagination } from '@/shared/types/Pagination';
 import { Member } from '@/modules/member/types/Member';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
