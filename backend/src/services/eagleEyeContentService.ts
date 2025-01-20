@@ -175,6 +175,9 @@ export default class EagleEyeContentService extends LoggerBase {
       },
     }
 
+    console.log('Eagle Eye search config')
+    console.log(config)
+
     const response = await axios(config)
 
     const interacted = (
