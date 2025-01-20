@@ -1,11 +1,11 @@
 <template>
   <article
-    :class="`${props.index === 0 ? 'first-item' : ''}`"
     @mouseover="hovered = true"
     @mouseleave="hovered = false"
   >
     <div class="flex min-h-7 relative">
       <div class="flex flex-auto flex-col overflow-hidden">
+        <slot name="above" />
         <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
           <p class="truncate" style="max-width: 26ch">
@@ -18,16 +18,33 @@
         </p>
       </div>
 
-      <lf-dropdown v-show="hovered || isGroupHover" class="work-history-item-dropdown self-start" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />
           </lf-button>
         </template>
 
-        <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="emit('edit')">
-          <lf-icon-old name="pencil-line" />Edit work experience
-        </lf-dropdown-item>
+        <template v-if="hasPermission(LfPermission.memberEdit)">
+          <lf-dropdown-item @click="emit('edit')">
+            <lf-icon-old name="pencil-line" />Edit work experience
+          </lf-dropdown-item>
+          <lf-dropdown-separator />
+
+          <lf-dropdown-item
+            v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
+            @click="setAffiliation(false)"
+          >
+            <lf-icon-old name="close-circle-line" />Remove affiliation
+          </lf-dropdown-item>
+          <lf-dropdown-item
+            v-else
+            @click="setAffiliation(true)"
+          >
+            <lf-icon name="link" />Mark as affiliated
+          </lf-dropdown-item>
+        </template>
+
         <lf-dropdown-item
           @click="setReportDataModal({
             contributor: props.contributor,
@@ -69,17 +86,16 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
 
 const props = defineProps<{
   organization: Organization,
   contributor: Contributor,
-  isGroupHover: boolean,
-  index: number,
 }>();
 
 const emit = defineEmits<{(e:'edit'): void}>();
 
-const { deleteContributorOrganization } = useContributorStore();
+const { deleteContributorOrganization, getContributorOrganizations } = useContributorStore();
 const { trackEvent } = useProductTracking();
 
 const { hasPermission } = usePermissions();
@@ -99,6 +115,23 @@ const getDateRange = (dateStart?: string, dateEnd?: string) => {
     return start;
   }
   return `${start} → ${end}`;
+};
+
+const setAffiliation = (affiliation: boolean) => {
+  ContributorAffiliationsApiService.updateAffiliationOverride(props.contributor.id, {
+    isPrimaryOrganization: affiliation,
+    allowAffiliation: affiliation,
+    organizationId: props.organization.id,
+    memberId: props.contributor.id,
+  })
+    .then(() => {
+      if (affiliation) {
+        Message.success('Organization/job title successfully affiliated');
+      } else {
+        Message.success('Organization/job title affiliation successfully removed');
+      }
+      getContributorOrganizations(props.contributor.id);
+    });
 };
 
 const removeWorkHistory = () => {
@@ -133,9 +166,3 @@ export default {
   name: 'LfContributorDetailsWorkHistoryItem',
 };
 </script>
-
-<style scoped>
-.first-item .work-history-item-dropdown {
-  margin-top: -28px;
-}
-</style>

@@ -1,4 +1,5 @@
 import { OrganizationIdentityType, OrganizationSource } from './enums/organizations'
+import { IMemberOrganizationAffiliationOverride } from './members'
 
 export interface IOrganization {
   // db fields
@@ -59,6 +60,7 @@ export interface IMemberOrganization {
   source?: string
   deletedAt?: string
   displayName?: string
+  affiliationOverride?: IMemberOrganizationAffiliationOverride
 }
 
 export interface IRenderFriendlyMemberOrganization {

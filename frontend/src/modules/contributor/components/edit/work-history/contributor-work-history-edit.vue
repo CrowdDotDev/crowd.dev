@@ -207,7 +207,7 @@ const updateWorkExperience = () => {
     });
   }
 
-  let orgs: Organization[] = [...props.contributor.organizations];
+  let orgs: Organization[] = [...(props.contributor.organizations || [])];
   if (isEdit.value) {
     orgs = orgs.map((o: Organization) => {
       if (o.id === props.organization?.id
@@ -248,10 +248,10 @@ const isModalOpen = computed<boolean>({
   },
 });
 
-const hasSameOrganization = computed(() => props.contributor.organizations.some((o: Organization) => o.id === form.organization?.id)
+const hasSameOrganization = computed(() => (props.contributor.organizations || []).some((o: Organization) => o.id === form.organization?.id)
     && (!isEdit.value || form.organization?.id !== props.organization?.id));
 
-const hasSameOrgDetails = computed(() => props.contributor.organizations
+const hasSameOrgDetails = computed(() => (props.contributor.organizations || [])
   .some((o: Organization) => {
     // Check for the same organization
     if (o.id !== form.organization?.id) {
