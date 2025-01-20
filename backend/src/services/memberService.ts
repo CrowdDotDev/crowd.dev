@@ -1705,9 +1705,6 @@ export default class MemberService extends LoggerBase {
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
 
-    console.log("Found attribute settings: ")
-    console.log(memberAttributeSettings)
-
     const segmentId = (data.segments || [])[0]
 
     if (!segmentId) {
