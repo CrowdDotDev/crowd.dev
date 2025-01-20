@@ -1,6 +1,6 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 
-import { generateUUIDv4, getCleanString, partition } from '@crowd/common'
+import { generateUUIDv4, getCleanString, getDefaultTenantId, partition } from '@crowd/common'
 import {
   ALL_COLUMNS_TO_SELECT,
   doesConversationWithSlugExists,
@@ -98,7 +98,6 @@ export async function createConversations(): Promise<ICreateConversationsResult>
         // if not then create a new conversation
         conversationId = generateUUIDv4()
         const conversationTitle = await generateTitle(
-          row.parent.tenantId,
           row.parent.egmentId,
           row.parent.title || row.parent.body,
           hasHtmlActivities(row.parent.platform),
@@ -108,10 +107,10 @@ export async function createConversations(): Promise<ICreateConversationsResult>
         conversationsToCreate[row.parent.sourceId] = {
           id: conversationId,
           title: conversationTitle,
-          slug: await generateSlug(row.parent.tenantId, row.parent.segmentId, conversationTitle),
+          slug: await generateSlug(row.parent.segmentId, conversationTitle),
           published: true,
           timestamp: row.parent.timestamp || row.child.timestamp,
-          tenantId: row.parent.tenantId,
+          tenantId: getDefaultTenantId(),
           segmentId: row.parent.segmentId,
           createdById: null,
           updatedById: null,
@@ -252,15 +251,9 @@ async function getMinActivityTimestamp(qdbConn: DbConnOrTx): Promise<string | nu
   return result.minTimestamp
 }
 
-async function generateTitle(
-  tenantId: string,
-  segmentId: string,
-  title: string,
-  isHtml = false,
-): Promise<string> {
+async function generateTitle(segmentId: string, title: string, isHtml = false): Promise<string> {
   if (!title && getCleanString(title).length === 0) {
     const results = await queryConversations(this.qdbStore, {
-      tenantId,
       segmentIds: [segmentId],
       countOnly: true,
     })
@@ -288,7 +281,7 @@ function hasHtmlActivities(platform: PlatformType): boolean {
 }
 
 const MAX_SLUG_WORD_LENGTH = 10
-async function generateSlug(tenantId: string, segmentId: string, title: string): Promise<string> {
+async function generateSlug(segmentId: string, title: string): Promise<string> {
   // Remove non-standart characters and extra whitespaces
   const cleanedTitle = getCleanString(title)
 
@@ -305,15 +298,10 @@ async function generateSlug(tenantId: string, segmentId: string, title: string):
   // remove trailing dash
   cleanedSlug = cleanedSlug.replace(/-$/gi, '')
 
-  // check generated slug already exists in tenant
-  let slugExists = await doesConversationWithSlugExists(
-    this.qdbStore,
-    cleanedSlug,
-    tenantId,
-    segmentId,
-  )
+  // check generated slug already exists in segment
+  let slugExists = await doesConversationWithSlugExists(this.qdbStore, cleanedSlug, segmentId)
 
-  // generated slug already exists in the tenant, start adding suffixes and re-check
+  // generated slug already exists in the segment, start adding suffixes and re-check
   if (slugExists) {
     let suffix = 1
 
@@ -321,12 +309,7 @@ async function generateSlug(tenantId: string, segmentId: string, title: string):
 
     while (slugExists) {
       const suffixedSlug = `${slugCopy}-${suffix}`
-      slugExists = await doesConversationWithSlugExists(
-        this.qdbStore,
-        cleanedSlug,
-        tenantId,
-        segmentId,
-      )
+      slugExists = await doesConversationWithSlugExists(this.qdbStore, cleanedSlug, segmentId)
       suffix += 1
       cleanedSlug = suffixedSlug
     }

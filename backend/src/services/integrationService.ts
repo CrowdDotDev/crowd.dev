@@ -275,23 +275,21 @@ export default class IntegrationService {
   /**
    * Retrieves global integrations for the specified tenant.
    *
-   * @param {string} tenantId - The unique identifier of the tenant.
    * @param {any} args - Additional arguments that define search criteria or constraints.
    * @return {Promise<any>} A promise that resolves to the list of global integrations matching the criteria.
    */
-  async findGlobalIntegrations(tenantId: string, args: any) {
-    return IntegrationRepository.findGlobalIntegrations(tenantId, args, this.options)
+  async findGlobalIntegrations(args: any) {
+    return IntegrationRepository.findGlobalIntegrations(args, this.options)
   }
 
   /**
    * Fetches the global count of integration statuses for a given tenant.
    *
-   * @param {string} tenantId - The ID of the tenant for which to fetch the count.
    * @param {Object} args - Additional arguments to refine the query.
    * @return {Promise<number>} A promise that resolves to the count of global integration statuses.
    */
-  async findGlobalIntegrationsStatusCount(tenantId: string, args: any) {
-    return IntegrationRepository.findGlobalIntegrationsStatusCount(tenantId, args, this.options)
+  async findGlobalIntegrationsStatusCount(args: any) {
+    return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
   }
 
   async query(data) {

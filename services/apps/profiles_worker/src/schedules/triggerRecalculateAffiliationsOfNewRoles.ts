@@ -3,12 +3,12 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 import { svc } from '../main'
-import { triggerRecalculateAffiliationsForEachTenant } from '../workflows/member/triggerRecalculateAffiliationsForEachTenant'
+import { triggerRecalculateAffiliations } from '../workflows/member/triggerRecalculateAffiliations'
 
-export const scheduleRecalculateAffiliationsOfNewRolesForEachTenant = async () => {
+export const scheduleRecalculateAffiliationsOfNewRoles = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'recalculate-affiliations-of-new-roles-for-each-tenant',
+      scheduleId: 'recalculate-affiliations-of-new-roles',
       spec:
         IS_DEV_ENV || IS_TEST_ENV
           ? {
@@ -27,7 +27,7 @@ export const scheduleRecalculateAffiliationsOfNewRolesForEachTenant = async () =
       },
       action: {
         type: 'startWorkflow',
-        workflowType: triggerRecalculateAffiliationsForEachTenant,
+        workflowType: triggerRecalculateAffiliations,
         taskQueue: 'profiles',
         workflowExecutionTimeout: '5 minutes',
       },

@@ -4,12 +4,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/member
+ * POST /member
  * @summary Create or update a member
  * @tag Members
  * @security Bearer
  * @description Create or update a member. Existence is checked by platform and username.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {MemberUpsertInput} application/json
  * @response 200 - Ok
  * @responseContent {Member} 200.application/json

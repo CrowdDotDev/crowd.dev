@@ -4,12 +4,12 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/member/:memberId/organization/:memberOrganizationId
+ * DELETE /member/:memberId/organization/:memberOrganizationId
  * @summary Remove member organization
  * @tag Members
  * @security Bearer
  * @description Remove member organization.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID | {string} memberOrganizationId - member organization ID
+ * @pathParam {string} memberId - member ID | {string} memberOrganizationId - member organization ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.Organization

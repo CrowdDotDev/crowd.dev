@@ -1,7 +1,6 @@
 import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 
 export interface IQueryNumberOfNewMembers {
-  tenantId: string
   segmentIds?: string[]
   after?: Date
   before?: Date

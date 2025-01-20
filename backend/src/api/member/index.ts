@@ -1,46 +1,30 @@
 import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
-  app.post(`/tenant/:tenantId/member/query`, safeWrap(require('./memberQuery').default))
+  app.post(`/member/query`, safeWrap(require('./memberQuery').default))
 
-  app.post(`/tenant/:tenantId/member/export`, safeWrap(require('./memberExport').default))
+  app.post(`/member/export`, safeWrap(require('./memberExport').default))
 
-  app.post(`/tenant/:tenantId/member`, safeWrap(require('./memberCreate').default))
-  app.put(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberUpdate').default))
-  app.post(`/tenant/:tenantId/member/import`, safeWrap(require('./memberImport').default))
-  app.delete(`/tenant/:tenantId/member`, safeWrap(require('./memberDestroy').default))
-  app.post(
-    `/tenant/:tenantId/member/autocomplete`,
-    safeWrap(require('./memberAutocomplete').default),
-  )
-  app.get(`/tenant/:tenantId/member/active`, safeWrap(require('./memberActiveList').default))
-  app.get(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberFind').default))
-  app.get(`/tenant/:tenantId/member/github/:id`, safeWrap(require('./memberFindGithub').default))
-  app.put(`/tenant/:tenantId/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
+  app.post(`/member`, safeWrap(require('./memberCreate').default))
+  app.put(`/member/:id`, safeWrap(require('./memberUpdate').default))
+  app.delete(`/member`, safeWrap(require('./memberDestroy').default))
+  app.post(`/member/autocomplete`, safeWrap(require('./memberAutocomplete').default))
+  app.get(`/member/active`, safeWrap(require('./memberActiveList').default))
+  app.get(`/member/:id`, safeWrap(require('./memberFind').default))
+  app.get(`/member/github/:id`, safeWrap(require('./memberFindGithub').default))
+  app.put(`/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
 
-  app.post(
-    `/tenant/:tenantId/member/:memberId/unmerge/preview`,
-    safeWrap(require('./memberUnmergePreview').default),
-  )
+  app.post(`/member/:memberId/unmerge/preview`, safeWrap(require('./memberUnmergePreview').default))
 
-  app.post(
-    `/tenant/:tenantId/member/:memberId/unmerge`,
-    safeWrap(require('./memberUnmerge').default),
-  )
+  app.post(`/member/:memberId/unmerge`, safeWrap(require('./memberUnmerge').default))
 
-  app.put(
-    `/tenant/:tenantId/member/:memberId/no-merge`,
-    safeWrap(require('./memberNotMerge').default),
-  )
-  app.patch(`/tenant/:tenantId/member`, safeWrap(require('./memberUpdateBulk').default))
+  app.put(`/member/:memberId/no-merge`, safeWrap(require('./memberNotMerge').default))
+  app.patch(`/member`, safeWrap(require('./memberUpdateBulk').default))
 
   require('./identity').default(app)
   require('./organization').default(app)
   require('./attributes').default(app)
   require('./affiliation').default(app)
 
-  app.post(
-    `/tenant/:tenantId/member/:id/data-issue`,
-    safeWrap(require('./memberDataIssueCreate').default),
-  )
+  app.post(`/member/:id/data-issue`, safeWrap(require('./memberDataIssueCreate').default))
 }

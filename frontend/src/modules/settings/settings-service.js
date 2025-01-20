@@ -3,10 +3,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class SettingsService {
   static async find() {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings`,
+      '/settings',
       {
         params: {
           excludeSegments: true,
@@ -23,9 +21,8 @@ export class SettingsService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
     const response = await authAxios.put(
-      `/tenant/${tenantId}/settings`,
+      '/settings',
       body,
     );
     return response.data;

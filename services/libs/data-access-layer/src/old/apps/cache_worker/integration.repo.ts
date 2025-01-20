@@ -26,7 +26,7 @@ class IntegrationRepository {
         },
       )
     } catch (err) {
-      this.log.error('Error while getting all tenants', err)
+      this.log.error('Error while finding active platforms', err)
 
       throw new Error(err)
     }
