@@ -1,7 +1,7 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 
 import { svc } from '../main'
-import { spawnDashboardCacheRefreshForAllTenants } from '../workflows'
+import { spawnDashboardCacheRefresh } from '../workflows'
 
 export const scheduleRefreshDashboardCacheDaily = async () => {
   try {
@@ -16,7 +16,7 @@ export const scheduleRefreshDashboardCacheDaily = async () => {
       },
       action: {
         type: 'startWorkflow',
-        workflowType: spawnDashboardCacheRefreshForAllTenants,
+        workflowType: spawnDashboardCacheRefresh,
         taskQueue: 'cache',
       },
     })

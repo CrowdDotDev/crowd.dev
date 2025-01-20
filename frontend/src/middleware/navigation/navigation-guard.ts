@@ -35,8 +35,6 @@ export default async function ({ to }: { to: RouteLocationNormalized }) {
     } else if (eventKey === PageEventKey.ADMIN_PANEL) {
       if (to.hash === '#project-groups') {
         eventKey = PageEventKey.ADMIN_PANEL_PROJECT_GROUPS;
-      } else if (to.hash === '#automations') {
-        eventKey = PageEventKey.ADMIN_PANEL_AUTOMATIONS;
       } else if (to.hash === '#api-keys') {
         eventKey = PageEventKey.ADMIN_PANEL_API_KEYS;
       } else if (to.hash === '#audit-logs') {

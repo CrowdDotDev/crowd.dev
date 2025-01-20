@@ -57,8 +57,8 @@
       </section>
     </div>
 
-    <section>
-      <app-integration-progress-wrapper :segments="[route.params.id]">
+    <section v-loading="loadingFetch">
+      <app-integration-progress-wrapper v-if="!loadingFetch" :segments="[route.params.id]">
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
             <lf-integration-list-item
@@ -100,7 +100,7 @@ const route = useRoute();
 
 const { findSubProject } = useLfSegmentsStore();
 const { doFetch } = mapActions('integration');
-const { array } = mapGetters('integration');
+const { array, loadingFetch } = mapGetters('integration');
 
 const { id, grandparentId } = route.params;
 

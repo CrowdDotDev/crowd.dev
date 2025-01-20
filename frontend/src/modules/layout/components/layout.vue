@@ -1,5 +1,5 @@
 <template>
-  <el-container v-if="tenant" class="flex-col">
+  <el-container class="flex-col">
     <el-container style="height: calc(100vh - 60px); margin-top: 60px;">
       <!-- App menu -->
       <lf-menu />
@@ -19,15 +19,11 @@
 
 <script setup lang="ts">
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import LfMenu from '@/modules/layout/components/menu/menu.vue';
 import '@linuxfoundation/lfx-ui-core';
 import { useFooterStore } from '@/modules/layout/pinia';
 
-const authStore = useAuthStore();
 const footerStore = useFooterStore();
-const { tenant } = storeToRefs(authStore);
 </script>
 
 <script lang="ts">

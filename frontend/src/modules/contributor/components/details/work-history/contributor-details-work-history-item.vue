@@ -3,7 +3,7 @@
     @mouseover="hovered = true"
     @mouseleave="hovered = false"
   >
-    <div class="flex">
+    <div class="flex min-h-7 relative">
       <div class="flex flex-auto flex-col overflow-hidden">
         <slot name="above" />
         <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-900 mb-1.5 flex items-center gap-1.5">

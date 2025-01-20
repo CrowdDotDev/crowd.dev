@@ -3,12 +3,11 @@ import TagService from '../../services/tagService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/tag/{id}
+ * PUT /tag/{id}
  * @summary Update an tag
  * @tag Tags
  * @security Bearer
  * @description Update a tag
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the tag
  * @bodyContent {TagNoId} application/json
  * @response 200 - Ok

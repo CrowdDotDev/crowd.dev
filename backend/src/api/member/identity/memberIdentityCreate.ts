@@ -4,12 +4,12 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/member/:memberId/identity
+ * POST /member/:memberId/identity
  * @summary Create member identity
  * @tag Members
  * @security Bearer
  * @description Create one member identity.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
+ * @pathParam {string} memberId - member ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.MemberIdentity
@@ -21,11 +21,7 @@ export default async (req, res) => {
 
   const memberIdentityService = new MemberIdentityService(req)
 
-  const payload = await memberIdentityService.create(
-    req.params.tenantId,
-    req.params.memberId,
-    req.body,
-  )
+  const payload = await memberIdentityService.create(req.params.memberId, req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

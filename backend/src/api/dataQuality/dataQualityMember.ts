@@ -1,18 +1,14 @@
-import { FeatureFlag } from '@crowd/types'
-
 import DataQualityService from '@/services/dataQualityService'
 
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/data-quality/member
+ * GET /data-quality/member
  * @summary Find a member data issues
  * @tag Data Quality
  * @security Bearer
  * @description Find a data quality issues for members
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @response 200 - Ok
  * @responseContent {DataQualityResponse} 200.application/json
  * @response 401 - Unauthorized
@@ -24,21 +20,14 @@ export default async (req, res) => {
 
   const segmentId = req.query.segments?.length > 0 ? req.query.segments[0] : null
   if (!segmentId) {
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
-    if (segmentsEnabled) {
-      await req.responseHandler.error(req, res, {
-        code: 400,
-        message: 'Segment ID is required',
-      })
-      return
-    }
+    await req.responseHandler.error(req, res, {
+      code: 400,
+      message: 'Segment ID is required',
+    })
+    return
   }
 
-  const payload = await new DataQualityService(req).findMemberIssues(
-    req.params.tenantId,
-    req.query,
-    segmentId,
-  )
+  const payload = await new DataQualityService(req).findMemberIssues(req.query, segmentId)
 
   await req.responseHandler.success(req, res, payload)
 }

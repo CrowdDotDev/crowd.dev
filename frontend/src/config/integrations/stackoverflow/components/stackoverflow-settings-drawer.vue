@@ -139,7 +139,7 @@
             class="btn btn--md btn--secondary"
             @click="doCancel"
           >
-            <app-i18n code="common.cancel" />
+            Cancel
           </el-button>
           <el-button
             :loading="isVolumeUpdating"
@@ -174,7 +174,6 @@ import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -187,8 +186,6 @@ const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
 const { trackEvent } = useProductTracking();
 
 const store = useStore();
-
-const tenantId = computed(() => AuthService.getTenantId());
 
 const props = defineProps({
   modelValue: {
@@ -408,7 +405,7 @@ const connect = async () => {
   try {
     await nango.auth(
       'stackexchange',
-      `${tenantId.value}-stackoverflow`,
+      `${props.segmentId}-stackoverflow`,
     );
     await callOnboard();
     isVisible.value = false;

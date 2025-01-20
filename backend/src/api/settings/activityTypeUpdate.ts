@@ -3,12 +3,11 @@ import SegmentService from '../../services/segmentService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/settings/activity/types/{key}
+ * PUT /settings/activity/types/{key}
  * @summary Update an activity type
  * @tag Activities
  * @security Bearer
  * @description Update a custom activity type
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} key - The key of the activity type
  * @bodyContent {ActivityTypesUpdateInput} application/json
  * @response 200 - Ok

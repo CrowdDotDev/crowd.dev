@@ -59,32 +59,18 @@
                   />
                 </div>
               </lf-tab>
-              <lf-tab v-model="tabs" name="notes">
-                Notes
-              </lf-tab>
             </lf-tabs>
           </div>
           <div class="w-full h-5 bg-gradient-to-b from-white to-transparent pl-10" />
         </div>
         <div class="pl-10">
-          <div
-            v-if="isMasked(contributor) && tabs === 'overview'"
-            class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600"
-          >
-            <lf-icon-old name="error-warning-line" class="mr-2" /> This person's data is not shown because of the GDPR.
-          </div>
           <lf-contributor-details-overview
             v-if="tabs === 'overview'"
             :contributor="contributor"
           />
           <lf-contributor-details-activities
-            v-else-if="tabs === 'activities'"
+            v-else
             ref="activities"
-            :contributor="contributor"
-          />
-          <lf-contributor-details-notes
-            v-else-if="tabs === 'notes'"
-            ref="notes"
             :contributor="contributor"
           />
         </div>
@@ -107,7 +93,6 @@ import { storeToRefs } from 'pinia';
 import LfContributorDetailsOverview from '@/modules/contributor/components/details/contributor-details-overview.vue';
 import LfContributorDetailsActivities
   from '@/modules/contributor/components/details/contributor-details-activities.vue';
-import LfContributorDetailsNotes from '@/modules/contributor/components/details/contributor-details-notes.vue';
 import LfContributorDetailsWorkHistory
   from '@/modules/contributor/components/details/contributor-details-work-history.vue';
 import LfContributorDetailsIdentities
@@ -118,7 +103,6 @@ import LfContributorLastEnrichment from '@/modules/contributor/components/shared
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import LfContributorSyncingActivities from '@/modules/contributor/components/shared/contributor-syncing-activities.vue';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const { getMemberCustomAttributes } = useMemberStore();
 
@@ -126,13 +110,10 @@ const contributorStore = useContributorStore();
 const { getContributor } = contributorStore;
 const { contributor } = storeToRefs(contributorStore);
 
-const { isMasked } = useContributorHelpers();
-
 const route = useRoute();
 
 const tabs = ref('overview');
 
-const notes = ref<any>(null);
 const activities = ref<any>(null);
 
 const { id } = route.params;
@@ -153,9 +134,7 @@ const fetchContributor = () => {
 
 const controlScroll = (e) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
-    if (tabs.value === 'notes') {
-      notes.value.loadMore();
-    } else if (tabs.value === 'activities') {
+    if (tabs.value === 'activities') {
       activities.value.loadMore();
     }
   }

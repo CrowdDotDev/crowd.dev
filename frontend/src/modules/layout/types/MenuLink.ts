@@ -1,6 +1,5 @@
 interface MenuLinkParams {
   user: any,
-  tenant: any,
 }
 
 export interface MenuLink {

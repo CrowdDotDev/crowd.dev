@@ -1,29 +1,26 @@
 import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
 
-import { Error400, SERVICE } from '@crowd/common'
+import { Error400 } from '@crowd/common'
 import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   QueryExecutor,
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { Unleash, getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { Edition, SegmentData } from '@crowd/types'
+import { SegmentData } from '@crowd/types'
 
 import {
-  API_CONFIG,
   IS_TEST_ENV,
   OPENSEARCH_CONFIG,
   PRODUCT_DB_CONFIG,
   REDIS_CONFIG,
   TEMPORAL_CONFIG,
-  UNLEASH_CONFIG,
 } from '../../conf'
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { databaseInit } from '../databaseConnection'
@@ -51,16 +48,6 @@ export default class SequelizeRepository {
     tenant?,
     segments?,
   ): Promise<IRepositoryOptions> {
-    let unleash: Unleash | undefined
-
-    if (UNLEASH_CONFIG.url && API_CONFIG.edition === Edition.CROWD_HOSTED) {
-      unleash = await getUnleashClient({
-        url: UNLEASH_CONFIG.url,
-        apiKey: UNLEASH_CONFIG.backendApiKey,
-        appName: SERVICE,
-      })
-    }
-
     let temporal: TemporalClient | undefined
     if (TEMPORAL_CONFIG.serverUrl) {
       temporal = await getTemporalClient(TEMPORAL_CONFIG)
@@ -84,7 +71,6 @@ export default class SequelizeRepository {
       bypassPermissionValidation: true,
       language: 'en',
       redis: await getRedisClient(REDIS_CONFIG, true),
-      unleash,
       temporal,
       productDb,
       qdb,

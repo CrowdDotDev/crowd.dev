@@ -47,6 +47,7 @@
           <div v-else-if="hasError">
             {{ props.config.name }} integration failed to connect due to an API error.
           </div>
+
           <component
             :is="props.config.connectedParamsComponent"
             v-else-if="isComplete && props.config.connectedParamsComponent"
@@ -54,6 +55,7 @@
             :segment-id="route.params.id"
             :grandparent-id="route.params.grandparentId"
           />
+
           <component
             :is="props.config.statusComponent"
             v-else-if="!isComplete && props.config.statusComponent"

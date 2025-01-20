@@ -92,7 +92,6 @@ export interface Contributor {
   reach:ContributorReach;
   score: number;
   tags: ContributorTag[];
-  tenantId: string;
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>

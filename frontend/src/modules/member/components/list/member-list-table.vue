@@ -126,7 +126,7 @@
                     class="block"
                   >
                     <div class="flex items-center">
-                      <div v-if="!isMasked(scope.row)" class="inline-flex flex-wrap overflow-wrap items-center">
+                      <div class="inline-flex flex-wrap overflow-wrap items-center">
                         <app-avatar :entity="scope.row" size="xs" class="mr-3" />
 
                         <span
@@ -137,16 +137,6 @@
                         <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
                         <app-member-badge :member="scope.row" />
                       </div>
-                      <el-tooltip
-                        v-else
-                        placement="top"
-                        content="This person's data is not shown because of the GDPR."
-                      >
-                        <div class="flex items-center">
-                          <div class="h-8 w-8 bg-gray-200 rounded-full mr-3" />
-                          <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                        </div>
-                      </el-tooltip>
                     </div>
                   </router-link>
                 </template>
@@ -207,14 +197,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-job-title v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
+                    <app-member-job-title :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -238,21 +221,14 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
                     <app-identities-horizontal-list-members
-                      v-if="!isMasked(scope.row)"
                       :member="scope.row"
                       :limit="5"
                     />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -271,14 +247,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-list-emails v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
+                    <app-member-list-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -400,19 +369,12 @@
                     }"
                     class="block !text-gray-500"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <app-member-last-activity
                         v-if="scope.row.lastActivity"
                         :member="scope.row"
                       />
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -468,7 +430,7 @@
                     }"
                     class="block"
                   >
-                    <div v-if="!isMasked(scope.row)">
+                    <div>
                       <div
                         v-if="scope.row.attributes?.location?.default"
                         class="text-gray-900 text-sm"
@@ -477,13 +439,6 @@
                       </div>
                       <span v-else class="text-gray-900">-</span>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -504,7 +459,7 @@
                     @mouseleave="closeEnrichmentPopover"
                   >
                     <div class="inline-flex items-center ml-1 gap-2">
-                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <el-tooltip placement="top">
@@ -531,17 +486,11 @@
                     class="block h-full !text-gray-500"
                   >
                     <app-member-reach
-                      v-if="isEnrichEnabled"
                       :member="{
                         ...scope.row,
                         reach: scope.row.reach,
                       }"
                     />
-                    <div v-else class="flex items-center h-full w-full pl-3">
-                      <div class="blur-[6px] text-gray-900 select-none">
-                        150
-                      </div>
-                    </div>
                   </router-link>
                 </template>
               </el-table-column>
@@ -563,7 +512,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -582,8 +530,8 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                    <div>
+                      <div>
                         <div
                           v-if="scope.row.attributes?.seniorityLevel?.default"
                           class="text-gray-900 text-sm"
@@ -592,19 +540,7 @@
                         </div>
                         <span v-else class="text-gray-900">-</span>
                       </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Senior
-                        </div>
-                      </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -626,7 +562,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -644,8 +579,8 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                    <div>
+                      <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.programmingLanguages?.default?.length"
                           :list="scope.row.attributes.programmingLanguages.default"
@@ -659,19 +594,7 @@
                         </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
                       </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Javascript, Java
-                        </div>
-                      </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -693,7 +616,6 @@
                       content="Source: Enrichment"
                       placement="top"
                       trigger="hover"
-                      :disabled="!isEnrichEnabled"
                     >
                       <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
@@ -711,8 +633,8 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="!isMasked(scope.row)">
-                      <div v-if="isEnrichEnabled">
+                    <div>
+                      <div>
                         <app-shared-tag-list
                           v-if="scope.row.attributes.skills?.default?.length"
                           :list="scope.row.attributes.skills.default"
@@ -726,19 +648,7 @@
                         </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
                       </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Web development
-                        </div>
-                      </div>
                     </div>
-                    <el-tooltip
-                      v-else
-                      placement="top"
-                      content="This person's data is not shown because of the GDPR."
-                    >
-                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -843,20 +753,6 @@
       </div>
     </el-popover>
 
-    <!-- Enrichment popover -->
-    <el-popover
-      v-if="!isEnrichEnabled"
-      placement="top"
-      popper-class="!p-0 !mb-[-12px] !w-60"
-      :virtual-ref="enrichmentRefs[selectedEnrichmentAttribute]"
-      trigger="hover"
-      :visible="showEnrichmentPopover"
-      virtual-triggering
-      @hide="onHide"
-    >
-      <lf-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
-    </el-popover>
-
     <app-member-find-github-drawer
       v-if="isFindGithubDrawerOpen"
       v-model="isFindGithubDrawerOpen"
@@ -888,10 +784,7 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import LfSvg from '@/shared/svg/svg.vue';
-import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
@@ -899,7 +792,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
@@ -971,19 +863,13 @@ const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 
 const { hasPermission } = usePermissions();
-
-const { isMasked } = useContributorHelpers();
 
 const hasPermissions = computed(() => [LfPermission.memberEdit,
   LfPermission.memberDestroy,
   LfPermission.mergeMembers]
   .some((permission) => hasPermission(permission)));
-
-const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
 const defaultSort = computed(() => ({
   prop: filters.value.order.prop,

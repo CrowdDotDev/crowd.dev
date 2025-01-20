@@ -1,4 +1,4 @@
-import { generateUUIDv1, websiteNormalizer } from '@crowd/common'
+import { generateUUIDv1, getDefaultTenantId, websiteNormalizer } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
@@ -24,6 +24,7 @@ import {
 import { prepareOrganizationData } from './utils'
 
 const log = getServiceChildLogger('data-access-layer/organizations')
+const tenantId = getDefaultTenantId()
 
 const ORG_SELECT_COLUMNS = [
   'id',
@@ -481,7 +482,7 @@ export async function getTimeseriesOfNewOrganizations(
     ORDER BY 2
   `
 
-  return qx.select(query, params)
+  return qx.select(query, { ...params, tenantId })
 }
 
 export async function getTimeseriesOfActiveOrganizations(
@@ -504,7 +505,7 @@ export async function getTimeseriesOfActiveOrganizations(
     ORDER BY 2
   `
 
-  return qx.select(query, params)
+  return qx.select(query, { ...params, tenantId })
 }
 
 export async function findOrCreateOrganization(

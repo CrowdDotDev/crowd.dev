@@ -22,14 +22,11 @@ import {
 } from './activities/dashboard-cache/refreshDashboardCache'
 import {
   getAllSegments,
-  getAllTenants,
   getProjectGroupLeafSegments,
   getProjectLeafSegments,
-  isSegmentsEnabled,
-} from './activities/getTenantSegmentInfo'
+} from './activities/getSegmentInfo'
 
 export {
-  getAllTenants,
   getAllSegments,
   getProjectLeafSegments,
   getProjectGroupLeafSegments,
@@ -47,7 +44,6 @@ export {
   getActivePlatforms,
   findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
-  isSegmentsEnabled,
   getOrgIdsFromRedis,
   dropOrgIdFromRedis,
   checkOrganizationExists,

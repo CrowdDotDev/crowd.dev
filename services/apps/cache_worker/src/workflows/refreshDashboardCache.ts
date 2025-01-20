@@ -25,7 +25,7 @@ export async function refreshDashboardCache(
 
   // if no segments were sent, set current segment as default one
   if (!args.segmentId) {
-    const defaultSegment = await activity.getDefaultSegment(args.tenantId)
+    const defaultSegment = await activity.getDefaultSegment()
     args.segmentId = defaultSegment.segmentId
     args.leafSegmentIds = [defaultSegment.segmentId]
   }
@@ -46,16 +46,11 @@ export async function refreshDashboardCache(
     currentDate.getUTCDate() !== new Date(dashboardLastRefreshedAt).getUTCDate()
   ) {
     // main view with no platform filter
-    await refreshDashboardCacheForAllTimeranges(args.tenantId, args.segmentId, args.leafSegmentIds)
+    await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds)
 
     // for each platform also cache dashboard values
     for (const platform of activePlatforms) {
-      await refreshDashboardCacheForAllTimeranges(
-        args.tenantId,
-        args.segmentId,
-        args.leafSegmentIds,
-        platform,
-      )
+      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
     }
   } else {
     // first check if there's a new activity between dashboardLastRefreshedAt and now()
@@ -67,19 +62,10 @@ export async function refreshDashboardCache(
     // only refresh the main view and returned platform views if there are new activities
     if (platforms && platforms.length > 0) {
       // refresh the main view
-      await refreshDashboardCacheForAllTimeranges(
-        args.tenantId,
-        args.segmentId,
-        args.leafSegmentIds,
-      )
+      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds)
 
       for (const platform of platforms) {
-        await refreshDashboardCacheForAllTimeranges(
-          args.tenantId,
-          args.segmentId,
-          args.leafSegmentIds,
-          platform,
-        )
+        await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
       }
     }
   }
@@ -89,21 +75,19 @@ export async function refreshDashboardCache(
 }
 
 async function refreshDashboardCacheForAllTimeranges(
-  tenantId: string,
   segmentId: string,
   leafSegmentIds: string[],
   platform?: string,
 ) {
   for (const timeframe in DashboardTimeframe) {
     const data = await getDashboardCacheData(
-      tenantId,
       leafSegmentIds,
       DashboardTimeframe[timeframe],
       platform,
     )
 
     // try saving it to cache
-    await activity.saveToCache(tenantId, segmentId, DashboardTimeframe[timeframe], data, platform)
+    await activity.saveToCache(segmentId, DashboardTimeframe[timeframe], data, platform)
   }
 }
 
@@ -161,7 +145,6 @@ function convertFullTimeseriesToWidget(
 }
 
 async function getDashboardCacheData(
-  tenantId: string,
   segmentIds: string[],
   dashboardTimeframe: DashboardTimeframe,
   platform?: string,
@@ -170,7 +153,6 @@ async function getDashboardCacheData(
   const timeframe = buildTimeframe(dashboardTimeframe)
 
   const params: IQueryTimeseriesParams = {
-    tenantId,
     segmentIds,
     startDate: timeframe.previous.startDate, // it's intended to use previous period start date here ...
     endDate: timeframe.current.endDate, // ... and current period end date here
@@ -196,7 +178,6 @@ async function getDashboardCacheData(
 
   // activities total
   const activitiesTotal = await activity.getActivitiesNumber({
-    tenantId,
     segmentIds,
     ...timeframe.current,
     platform,
@@ -204,7 +185,6 @@ async function getDashboardCacheData(
 
   // activities previous period total
   const activitiesPreviousPeriodTotal = await activity.getActivitiesNumber({
-    tenantId,
     segmentIds,
     ...timeframe.previous,
     platform,
@@ -212,7 +192,6 @@ async function getDashboardCacheData(
 
   // activities timeseries
   const activitiesTimeseries = await activity.getActivitiesTimeseries({
-    tenantId,
     segmentIds,
     ...timeframe.previous,
     platform,
@@ -220,7 +199,6 @@ async function getDashboardCacheData(
 
   // activities by sentiment mood
   const activitiesBySentimentMood = await activity.getActivitiesBySentiment({
-    tenantId,
     segmentIds,
     ...timeframe.previous,
     platform,
@@ -228,7 +206,6 @@ async function getDashboardCacheData(
 
   // activities by type and platform
   const activitiesByTypeAndPlatform = await activity.getActivitiesByType({
-    tenantId,
     segmentIds,
     ...timeframe.previous,
     platform,

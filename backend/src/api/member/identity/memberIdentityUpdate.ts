@@ -4,12 +4,12 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * PATCH /tenant/{tenantId}/member/:memberId/identity/:identityId
+ * PATCH /member/:memberId/identity/:identityId
  * @summary Update member identity
  * @tag Members
  * @security Bearer
  * @description Update member identity.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID | {string} identityId - member identity ID
+ * @pathParam {string} memberId - member ID | {string} identityId - member identity ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.MemberIdentity

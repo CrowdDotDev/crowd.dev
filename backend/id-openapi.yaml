@@ -103,7 +103,7 @@ paths:
                   description: Organization ID
                 source:
                   type: string
-                  enum: ['ui', 'email-domain', 'enrichment', 'hubspot', 'github']
+                  enum: ['ui', 'email-domain', 'enrichment', 'github']
                   example: 'ui'
                   description: Data source. For manual updates, always use 'ui'
                 title:
@@ -188,7 +188,7 @@ paths:
                   description: Organization ID
                 source:
                   type: string
-                  enum: ['ui', 'email-domain', 'enrichment', 'hubspot', 'github']
+                  enum: ['ui', 'email-domain', 'enrichment', 'github']
                   example: 'ui'
                   description: Data source. For manual updates, always use 'ui'
                 title:

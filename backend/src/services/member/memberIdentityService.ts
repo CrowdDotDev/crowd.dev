@@ -35,12 +35,10 @@ export default class MemberIdentityService extends LoggerBase {
   }
 
   // Member identity creation
-  async create(
-    tenantId: string,
-    memberId: string,
-    data: Partial<IMemberIdentity>,
-  ): Promise<IMemberIdentity[]> {
+  async create(memberId: string, data: Partial<IMemberIdentity>): Promise<IMemberIdentity[]> {
     let tx
+
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
 
     try {
       const list = await captureApiChange(
@@ -103,11 +101,11 @@ export default class MemberIdentityService extends LoggerBase {
 
   // Member multiple identity creation
   async createMultiple(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberIdentity>[],
   ): Promise<IMemberIdentity[]> {
     let tx
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
 
     try {
       const list = await captureApiChange(

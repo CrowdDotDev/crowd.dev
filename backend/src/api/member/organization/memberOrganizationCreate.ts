@@ -4,12 +4,11 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/member/:memberId/organization
+ * POST /member/:memberId/organization
  * @summary Create member organization
  * @tag Members
  * @security Bearer
  * @description Create one member organization.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.Organization
