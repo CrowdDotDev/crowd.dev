@@ -19,20 +19,13 @@ import {
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import {
-  IMemberIdentity,
-  IntegrationResultType,
-  PlatformType,
-  SegmentData,
-  TemporalWorkflowId,
-} from '@crowd/types'
+import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
-import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
+import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
@@ -249,42 +242,6 @@ export default class ActivityService extends LoggerBase {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
           withAggs: true,
         })
-      }
-
-      if (!existing && fireCrowdWebhooks) {
-        try {
-          const handle = await this.options.temporal.workflow.start(
-            'processNewActivityAutomation',
-            {
-              workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${record.id}`,
-              taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-              workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-              retry: {
-                maximumAttempts: 100,
-              },
-              args: [
-                {
-                  tenantId: this.options.currentTenant.id,
-                  activityId: record.id,
-                },
-              ],
-              searchAttributes: {
-                TenantId: [this.options.currentTenant.id],
-              },
-            },
-          )
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new activity automation!',
-          )
-        } catch (err) {
-          this.log.error(
-            err,
-            { activityId: record.id },
-            'Error triggering new activity automation!',
-          )
-        }
       }
 
       if (!fireCrowdWebhooks) {

@@ -1,7 +1,6 @@
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
@@ -32,12 +31,6 @@ setImmediate(async () => {
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(queueClient, redis, loader, log)
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, redis, loader, log)
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
-  const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
-    queueClient,
-    redis,
-    loader,
-    log,
-  )
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redis, log)
 
@@ -49,7 +42,6 @@ setImmediate(async () => {
     streamWorkerEmitter,
     runWorkerEmitter,
     searchSyncWorkerEmitter,
-    integrationSyncWorkerEmitter,
     apiPubSubEmitter,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -59,7 +51,6 @@ setImmediate(async () => {
     await streamWorkerEmitter.init()
     await runWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
-    await integrationSyncWorkerEmitter.init()
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

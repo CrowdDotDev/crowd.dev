@@ -4,7 +4,6 @@ import mergeWith from 'lodash.mergewith'
 import moment from 'moment-timezone'
 
 import {
-  EDITION,
   escapeNullByte,
   generateUUIDv4,
   isObjectEmpty,
@@ -36,18 +35,14 @@ import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integ
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
-  Edition,
   IActivityData,
   ISentimentAnalysisResult,
   MemberAttributeName,
   MemberIdentityType,
   PlatformType,
-  TemporalWorkflowId,
 } from '@crowd/types'
-
-import { TEMPORAL_CONFIG } from '../conf'
 
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import { UnrepeatableError } from './common'
@@ -138,38 +133,6 @@ export default class ActivityService extends LoggerBase {
 
         return activity.id
       })
-
-      if (EDITION !== Edition.LFX) {
-        try {
-          const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-            workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
-            taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 100,
-            },
-            args: [
-              {
-                tenantId,
-                activityId: id,
-              },
-            ],
-            searchAttributes: {
-              TenantId: [tenantId],
-            },
-          })
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new activity automation!',
-          )
-        } catch (err) {
-          this.log.error(
-            err,
-            'Error while starting temporal workflow to process new activity automation!',
-          )
-          throw err
-        }
-      }
 
       return id
     } catch (err) {

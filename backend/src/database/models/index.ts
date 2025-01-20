@@ -131,8 +131,6 @@ async function models(queryTimeoutMilliseconds: number, databaseHostnameOverride
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
     require('./eagleEyeAction').default,
-    require('./automation').default,
-    require('./automationExecution').default,
     require('./organization').default,
     require('./memberAttributeSettings').default,
     require('./segment').default,

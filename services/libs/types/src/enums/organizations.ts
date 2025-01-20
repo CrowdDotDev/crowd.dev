@@ -10,7 +10,6 @@ export enum OrganizationSource {
   ENRICHMENT_PROGAI = 'enrichment-progai',
   ENRICHMENT_CLEARBIT = 'enrichment-clearbit',
   ENRICHMENT_CRUSTDATA = 'enrichment-crustdata',
-  HUBSPOT = 'hubspot',
   GITHUB = 'github',
   UI = 'ui',
 }
