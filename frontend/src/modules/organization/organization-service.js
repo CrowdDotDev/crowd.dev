@@ -189,7 +189,7 @@ export class OrganizationService {
         and: [
           {
             displayName: {
-              matchPhrasePrefix: query,
+              textContains: query,
             },
           },
           // ...(excludeLfMember ? [{
