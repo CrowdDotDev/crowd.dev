@@ -32,11 +32,12 @@
 
     <div class="flex flex-col gap-4">
       <lf-timeline v-slot="{ group }" :groups="shownGroups" @on-group-hover="onGroupHover">
-        <lf-timeline-item v-for="item in group.items" :key="item.id" :data="item">
+        <lf-timeline-item v-for="(item, index) in group.items" :key="item.id" :data="item">
           <lf-contributor-details-work-history-item
             :contributor="props.contributor"
             :organization="item"
             :is-group-hover="hoveredGroup?.id === group.id"
+            :index="index"
             @edit="isEditModalOpen = true; editOrganization = item"
           />
         </lf-timeline-item>

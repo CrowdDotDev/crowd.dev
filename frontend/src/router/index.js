@@ -112,7 +112,7 @@ export const createRouter = () => {
             return;
           }
 
-          if (!selectedProjectGroup.value && AuthService.getTenantId()) {
+          if (!selectedProjectGroup.value) {
             try {
               await listProjectGroups({
                 limit: null,

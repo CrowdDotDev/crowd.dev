@@ -181,19 +181,21 @@ setImmediate(async () => {
     require('./product').default(routes)
   }
 
-  require('./auditLog').default(routes)
   require('./auth').default(routes)
-  require('./tenant').default(routes)
+
+  app.use(tenantMiddleware)
+  app.use(segmentMiddleware)
+
+  require('./auditLog').default(routes)
+  require('./merge-suggestions').default(routes)
   require('./user').default(routes)
   require('./settings').default(routes)
   require('./member').default(routes)
   require('./activity').default(routes)
   require('./tag').default(routes)
   require('./integration').default(routes)
-  require('./microservice').default(routes)
   require('./conversation').default(routes)
   require('./eagleEyeContent').default(routes)
-  require('./automation').default(routes)
   require('./organization').default(routes)
   require('./slack').default(routes)
   require('./segment').default(routes)
@@ -202,9 +204,6 @@ setImmediate(async () => {
   require('./dashboard').default(routes)
   require('./mergeAction').default(routes)
   require('./dataQuality').default(routes)
-  // Loads the Tenant if the :tenantId param is passed
-  routes.param('tenantId', tenantMiddleware)
-  routes.param('tenantId', segmentMiddleware)
 
   app.use('/', routes)
 

@@ -125,7 +125,6 @@ import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -133,8 +132,6 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const store = useStore();
-
-const tenantId = computed(() => AuthService.getTenantId());
 
 const props = defineProps<{
   modelValue: boolean,
@@ -233,7 +230,7 @@ const callOnboard = useThrottleFn(async () => {
 const connect = async () => {
   const nango = new Nango({ host: config.nangoUrl });
   try {
-    await nango.auth('reddit', `${tenantId.value}-reddit`);
+    await nango.auth('reddit', `${props.segmentId}-reddit`);
     await callOnboard();
     emit('update:modelValue', false);
   } catch (e) {

@@ -3,12 +3,11 @@ import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/organization/{id}
+ * PUT /organization/{id}
  * @summary Update an organization
  * @tag Organizations
  * @security Bearer
  * @description Update a organization
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the organization
  * @bodyContent {OrganizationInput} application/json
  * @response 200 - Ok

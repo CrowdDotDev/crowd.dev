@@ -4,12 +4,11 @@ import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/organization
+ * POST /organization
  * @summary Create a organization
  * @tag Organizations
  * @security Bearer
  * @description Create a organization
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {OrganizationInput} application/json
  * @response 200 - Ok
  * @responseContent {Organization} 200.application/json

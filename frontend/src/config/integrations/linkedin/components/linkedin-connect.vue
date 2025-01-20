@@ -15,7 +15,6 @@
 import Nango from '@nangohq/frontend';
 import { useThrottleFn } from '@vueuse/core';
 import config from '@/config';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -40,7 +39,7 @@ const connect = async () => {
   try {
     await nango.auth(
       'linkedin',
-      `${AuthService.getTenantId()}-linkedin`,
+      `${props.segmentId}-linkedin`,
     );
     await callOnboard();
   } catch (e) {

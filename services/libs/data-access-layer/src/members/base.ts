@@ -124,7 +124,7 @@ export async function queryMembersAdvanced(
   },
   qdbConn?: DbConnOrTx,
 ): Promise<PageData<IDbMemberData>> {
-  if (!attributeSettings) {
+  if (!attributeSettings || attributeSettings.length === 0) {
     attributeSettings = await getMemberAttributeSettings(qx, redis, tenantId)
   }
 

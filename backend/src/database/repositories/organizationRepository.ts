@@ -1672,7 +1672,7 @@ class OrganizationRepository {
       const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
       return `${orderField} ${orderDirection}`
-    })(orderBy)
+    })(orderBy ?? 'id_DESC')
 
     const createQuery = (fields) => `
       SELECT

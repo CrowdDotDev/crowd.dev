@@ -1,4 +1,4 @@
-import { getEnv } from '@crowd/common'
+import { getDefaultTenantId, getEnv } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IMember, IQueryTimeseriesParams, ITimeseriesDatapoint } from '@crowd/types'
 
@@ -9,6 +9,8 @@ import { IQueryNumberOfNewMembers } from './types'
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
+
+const tenantId = getDefaultTenantId()
 
 export async function getMemberById(db: DbStore, id: string): Promise<IMember> {
   const query = `
@@ -66,7 +68,7 @@ export async function getNumberOfNewMembers(
   query += ';'
 
   const rows: { count: number }[] = await db.connection().query(query, {
-    tenantId: arg.tenantId,
+    tenantId,
     segmentIds: arg.segmentIds,
     after: arg.after,
     before: arg.before,
@@ -104,7 +106,7 @@ export async function getTimeseriesOfNewMembers(
     ORDER BY 2
   `
 
-  return qx.select(query, params)
+  return qx.select(query, { ...params, tenantId })
 }
 
 export async function getTimeseriesOfActiveMembers(
@@ -127,5 +129,5 @@ export async function getTimeseriesOfActiveMembers(
     ORDER BY 2
   `
 
-  return qx.select(query, params)
+  return qx.select(query, { ...params, tenantId })
 }

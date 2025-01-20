@@ -97,12 +97,12 @@ export default {
     return Promise.resolve();
   },
   ensureLoaded(): Promise<void> {
-    if (!this.user || !this.tenant) {
+    if (!this.user) {
       return new Promise((resolve) => {
         const stopWatcher = watch(
-          () => [this.user, this.tenant],
-          async ([newUser, newTenant]) => {
-            if (newUser && newTenant) {
+          () => this.user,
+          async (newUser) => {
+            if (newUser) {
               this.setLfxHeader();
 
               resolve();
@@ -117,16 +117,6 @@ export default {
     }
     // Both are already loaded
     return Promise.resolve();
-  },
-  setTenant() {
-    const tenants = this.user.tenants.map((t) => t.tenant);
-    const currentTenantId = AuthService.isDevmode() ? AuthService.getTenantId() : config.lf.tenantId;
-    let selectedTenant = tenants.find((t) => t.id === currentTenantId);
-    if (!currentTenantId || !selectedTenant) {
-      [selectedTenant] = tenants;
-    }
-    this.tenant = selectedTenant;
-    AuthService.setTenant(selectedTenant.id);
   },
   getUser(token?: string) {
     const t = token || AuthService.getToken();
@@ -143,9 +133,6 @@ export default {
         identify(user);
         this.setLfxHeader();
 
-        if (user.tenants.length > 0) {
-          this.setTenant(user);
-        }
         return Promise.resolve(user);
       })
       .catch((error) => {
@@ -169,7 +156,6 @@ export default {
   logout() {
     disconnectSocket();
     this.user = null;
-    this.tenant = null;
     return Auth0Service.logout();
   },
 };

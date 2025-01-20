@@ -5,10 +5,8 @@ export class LfService {
   // Segments
 
   static async findSegment(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/segment/${id}`,
+      `/segment/${id}`,
       {
         params: {
           segments: [id],
@@ -20,10 +18,8 @@ export class LfService {
   }
 
   static async listSegmentsByIds(ids) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/id`,
+      '/segment/id',
       {
         ids,
       },
@@ -33,10 +29,8 @@ export class LfService {
   }
 
   static async updateSegment(id, data) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/segment/${id}`,
+      `/segment/${id}`,
       {
         ...data,
         segments: [id],
@@ -49,14 +43,8 @@ export class LfService {
   // Project Groups
 
   static async queryProjectGroups(body) {
-    const tenantId = AuthService.getTenantId();
-
-    if (!tenantId) {
-      return { rows: [], count: 0 };
-    }
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/projectGroup/query`,
+      '/segment/projectGroup/query',
       {
         ...body,
         excludeSegments: true,
@@ -67,10 +55,8 @@ export class LfService {
   }
 
   static async createProjectGroup(body) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/projectGroup`,
+      '/segment/projectGroup',
       {
         ...body,
         excludeSegments: true,
@@ -83,10 +69,8 @@ export class LfService {
   // Projects
 
   static async queryProjects(body) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/project/query`,
+      '/segment/project/query',
       {
         ...body,
         ...(body.segments ? { segments: body.segments } : { excludeSegments: true }),
@@ -97,10 +81,8 @@ export class LfService {
   }
 
   static async createProject(body) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/project`,
+      '/segment/project',
       body,
     );
 
@@ -110,10 +92,8 @@ export class LfService {
   // Sub-projects
 
   static async createSubProject(body) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/segment/subproject`,
+      '/segment/subproject',
       body,
     );
 
@@ -128,10 +108,8 @@ export class LfService {
       limit,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/user/autocomplete`,
+      '/user/autocomplete',
       {
         params,
       },
@@ -141,10 +119,8 @@ export class LfService {
   }
 
   static async getUser(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/user/${id}`,
+      `/user/${id}`,
     );
 
     return response.data;
@@ -153,10 +129,8 @@ export class LfService {
   // AuditLogs
 
   static async fetchAuditLogs(data) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/audit-logs/query`,
+      '/audit-logs/query',
       data,
     );
 

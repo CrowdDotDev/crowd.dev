@@ -46,11 +46,11 @@
   "crowdAnalytics": {
     "isEnabled": "false"
   },
-  "temporal": {
-    "automationsTaskQueue": "automations"
-  },
+  "temporal": {},
   "searchSyncApi": {},
   "encryption": {},
   "openStatusApi": {},
-  "gitlab": {}
+  "gitlab": {},
+  "jiraIssueReporter": {},
+  "snowflake": {}
 }

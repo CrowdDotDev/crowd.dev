@@ -10,7 +10,7 @@ export default class GithubIntegrationService {
   constructor(private readonly options: IServiceOptions) {}
 
   public async getGithubRepositories(org: string) {
-    const client = SnowflakeClient.fromEnv()
+    const client = SnowflakeClient.fromEnv({ parentLog: this.options.log })
     this.options.log.info(`Getting GitHub repositories for org: ${org}`)
     const githubClient = new GithubSnowflakeClient(client)
     return githubClient.getOrgRepositories({ org, perPage: 10000 })

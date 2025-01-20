@@ -7,12 +7,11 @@ import track from '../../segment/track'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/organization/export
+ * POST /organization/export
  * @summary Export organizations as CSV
  * @tag Organizations
  * @security Bearer
  * @description Export organizations. It accepts filters, sorting options and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {OrganizationQuery} application/json
  * @response 200 - Ok
  * @response 401 - Unauthorized
