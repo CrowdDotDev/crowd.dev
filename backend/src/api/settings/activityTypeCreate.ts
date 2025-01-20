@@ -3,12 +3,11 @@ import SegmentService from '../../services/segmentService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/settings/activity/types
+ * POST /settings/activity/types
  * @summary Create an activity type
  * @tag Activities
  * @security Bearer
  * @description Create a custom activity type
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityTypesCreateInput} application/json
  * @response 200 - Ok
  * @responseContent {ActivityTypes} 200.application/json

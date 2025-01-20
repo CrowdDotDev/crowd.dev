@@ -2,9 +2,7 @@
   "db": {},
   "queue": {},
   "redis": {},
-  "temporal": {
-    "automationsTaskQueue": "automations"
-  },
+  "temporal": {},
   "worker": {
     "maxStreamRetries": 5,
     "queuePriorityLevel": "normal"

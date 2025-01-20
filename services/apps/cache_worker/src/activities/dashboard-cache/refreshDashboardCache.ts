@@ -35,9 +35,9 @@ export async function getDashboardCacheLastRefreshedAt(segmentId: string): Promi
   return segmentRepo.getDashboardCacheLastRefreshedAt(segmentId)
 }
 
-export async function getDefaultSegment(tenantId: string): Promise<ISegment> {
+export async function getDefaultSegment(): Promise<ISegment> {
   const segmentRepo = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
-  return segmentRepo.getDefaultSegment(tenantId)
+  return segmentRepo.getDefaultSegment()
 }
 
 export async function getActivePlatforms(leafSegmentIds: string[]): Promise<string[]> {
@@ -110,7 +110,6 @@ export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promi
     }
 
     const res = await queryActivities(svc.questdbSQL, {
-      tenantId: params.tenantId,
       segmentIds: params.segmentIds,
       countOnly: true,
       filter: {
@@ -133,7 +132,6 @@ export async function getActivitiesTimeseries(
 
   try {
     result = await activitiesTimeseries(svc.questdbSQL, {
-      tenantId: params.tenantId,
       segmentIds: params.segmentIds,
       after: params.startDate,
       before: params.endDate,
@@ -152,7 +150,6 @@ export async function getActivitiesBySentiment(
 
   try {
     result = await activitiesBySentiment(svc.questdbSQL, {
-      tenantId: params.tenantId,
       segmentIds: params.segmentIds,
       after: params.startDate,
       before: params.endDate,
@@ -171,7 +168,6 @@ export async function getActivitiesByType(
 
   try {
     result = await activitiesByTypeAndPlatform(svc.questdbSQL, {
-      tenantId: params.tenantId,
       segmentIds: params.segmentIds,
       after: params.startDate,
       before: params.endDate,
@@ -185,14 +181,13 @@ export async function getActivitiesByType(
 }
 
 export async function saveToCache(
-  tenantId: string,
   segmentId: string,
   timeframe: DashboardTimeframe,
   cacheData: IDashboardData,
   platform?: string,
 ): Promise<void> {
   const redisCache = new RedisCache(`dashboard-cache`, svc.redis, svc.log)
-  let key = `${tenantId}:${segmentId}:${timeframe}`
+  let key = `${segmentId}:${timeframe}`
   if (platform) {
     key += `:${platform}`
   }

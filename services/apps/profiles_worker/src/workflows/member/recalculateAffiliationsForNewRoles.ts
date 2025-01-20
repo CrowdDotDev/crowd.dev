@@ -14,9 +14,9 @@ import { IRecalculateAffiliationsForNewRolesInput } from '../../types/member'
 import { memberUpdate } from './memberUpdate'
 
 const {
-  getAffiliationsLastCheckedAtOfTenant,
+  getAffiliationsLastCheckedAt,
   getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAtOfTenant,
+  updateAffiliationsLastCheckedAt,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 seconds',
 })
@@ -29,26 +29,23 @@ const {
 export async function recalculateAffiliationsForNewRoles(
   input: IRecalculateAffiliationsForNewRolesInput,
 ): Promise<void> {
-  const affiliationsLastChecked = await getAffiliationsLastCheckedAtOfTenant(input.tenant.id)
+  const affiliationsLastChecked = await getAffiliationsLastCheckedAt()
 
   console.log(
-    `Recalculating affiliations for tenant ${
-      input.tenant.id
-    } with affiliationsLastChecked: ${affiliationsLastChecked} and offset ${input.offset || 0}`,
+    `Recalculating affiliations with affiliationsLastChecked: ${affiliationsLastChecked} and offset ${input.offset || 0}`,
   )
 
   const MEMBER_PAGE_SIZE = 100
   const offset = input.offset || 0
 
   const memberIds = await getMemberIdsForAffiliationUpdates(
-    input.tenant.id,
     affiliationsLastChecked,
     MEMBER_PAGE_SIZE,
     offset,
   )
 
   if (memberIds.length === 0) {
-    await updateAffiliationsLastCheckedAtOfTenant(input.tenant.id)
+    await updateAffiliationsLastCheckedAt()
     return
   }
 
@@ -57,7 +54,7 @@ export async function recalculateAffiliationsForNewRoles(
   await Promise.all(
     memberIds.map((id) => {
       return executeChild(memberUpdate, {
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${input.tenant.id}/${id}`,
+        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${id}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         retry: {
@@ -72,15 +69,12 @@ export async function recalculateAffiliationsForNewRoles(
             },
           },
         ],
-        searchAttributes: {
-          TenantId: [input.tenant.id],
-        },
+        searchAttributes: {},
       })
     }),
   )
 
   await continueAsNew<typeof recalculateAffiliationsForNewRoles>({
-    tenant: input.tenant,
     offset: offset + MEMBER_PAGE_SIZE,
   })
 }

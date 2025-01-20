@@ -12,10 +12,8 @@ const getSelectedProjectGroup = () => {
 
 export class OrganizationService {
   static async update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/organization/${id}`,
+      `/organization/${id}`,
       {
         ...data,
         segments,
@@ -31,10 +29,8 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/organization`,
+      '/organization',
       {
         params,
       },
@@ -44,10 +40,8 @@ export class OrganizationService {
   }
 
   static async mergeOrganizations(organizationToKeepId, organizationToMergeId) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
+      `/organization/${organizationToKeepId}/merge`,
       {
         organizationToMerge: organizationToMergeId,
         segments: [getSelectedProjectGroup().id],
@@ -58,10 +52,8 @@ export class OrganizationService {
   }
 
   static async unmerge(orgId, preview) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/${orgId}/unmerge`,
+      `/organization/${orgId}/unmerge`,
       preview,
     );
 
@@ -69,10 +61,8 @@ export class OrganizationService {
   }
 
   static async unmergePreview(orgId, identity) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
+      `/organization/${orgId}/unmerge/preview`,
       {
         ...identity,
       },
@@ -82,10 +72,8 @@ export class OrganizationService {
   }
 
   static async addToNoMerge(organizationA, organizationB) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/organization/${organizationA.id}/no-merge`,
+      `/organization/${organizationA.id}/no-merge`,
       {
         organizationToNotMerge: organizationB.id,
       },
@@ -95,10 +83,8 @@ export class OrganizationService {
   }
 
   static async noMergeOrganizations(organizationAId, organizationBId) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/organization/${organizationAId}/no-merge`,
+      `/organization/${organizationAId}/no-merge`,
       {
         organizationToNotMerge: organizationBId,
       },
@@ -108,10 +94,8 @@ export class OrganizationService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization`,
+      '/organization',
       {
         ...data,
         segments,
@@ -122,10 +106,8 @@ export class OrganizationService {
   }
 
   static async find(id, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/organization/${id}`,
+      `/organization/${id}`,
       {
         params: {
           segmentId: segments[0],
@@ -141,9 +123,8 @@ export class OrganizationService {
   static async query(
     body,
   ) {
-    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/query`,
+      '/organization/query',
       body,
     );
 
@@ -153,9 +134,8 @@ export class OrganizationService {
   static async organizationsList(
     body,
   ) {
-    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/list`,
+      '/organization/list',
       body,
     );
 
@@ -165,10 +145,8 @@ export class OrganizationService {
   static async listByIds(
     ids,
   ) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/id`,
+      '/organization/id',
       {
         ids,
       },
@@ -210,10 +188,8 @@ export class OrganizationService {
       }),
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/autocomplete`,
+      '/organization/autocomplete',
       payload,
     );
 
@@ -226,8 +202,6 @@ export class OrganizationService {
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
-    const tenantId = AuthService.getTenantId();
-
     const segments = [
       ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
       getSelectedProjectGroup().id,
@@ -242,7 +216,7 @@ export class OrganizationService {
     };
 
     return authAxios.post(
-      `/tenant/${tenantId}/organizationsToMerge`,
+      '/organizationsToMerge',
       data,
     )
       .then(({ data }) => Promise.resolve(data));
@@ -276,10 +250,8 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/organization/active`,
+      '/organization/active',
       {
         params,
       },
@@ -303,10 +275,8 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/export`,
+      '/organization/export',
       body,
     );
 

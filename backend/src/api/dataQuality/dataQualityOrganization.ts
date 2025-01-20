@@ -4,12 +4,11 @@ import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/data-quality/organization
+ * GET /data-quality/organization
  * @summary Find a organization data issues
  * @tag Data Quality
  * @security Bearer
  * @description Find a data quality issues for organizations
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @response 200 - Ok
  * @responseContent {DataQualityResponse} 200.application/json
  * @response 401 - Unauthorized

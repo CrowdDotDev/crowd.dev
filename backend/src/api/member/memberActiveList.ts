@@ -6,12 +6,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/member/active
+ * GET /member/active
  * @summary List active members
  * @tag Members
  * @security Bearer
  * @description List active members. It accepts filters, sorting options and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} [filter[platforms]] - Filter by activity platforms (comma separated list without spaces)
  * @queryParam {string} [filter[isTeamMember]] - If true we will return just team members, if false we will return just non-team members, if undefined we will return both.
  * @queryParam {string} [filter[isBot]] - If true we will return just members who are bots, if false we will return just non-bot members, if undefined we will return both.

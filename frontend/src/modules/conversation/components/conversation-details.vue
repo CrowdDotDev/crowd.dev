@@ -204,11 +204,11 @@ export default {
   emits: ['edit-title'],
   setup() {
     const authStore = useAuthStore();
-    const { user, tenant } = storeToRefs(authStore);
+    const { user } = storeToRefs(authStore);
 
     const { hasPermission } = usePermissions();
 
-    return { user, tenant, hasPermission };
+    return { user, hasPermission };
   },
   data() {
     return {
