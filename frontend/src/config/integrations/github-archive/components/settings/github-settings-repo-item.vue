@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { GitHubRepository } from '@/config/integrations/github/types/GithubSettings';
+import { GitHubRepository } from '@/config/integrations/github-archive/types/GithubSettings';
 import { computed, watch } from 'vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppFormItem from '@/shared/form/form-item.vue';

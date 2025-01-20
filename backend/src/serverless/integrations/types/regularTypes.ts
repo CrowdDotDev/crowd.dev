@@ -3,7 +3,13 @@ import { PlatformType } from '@crowd/types'
 export type Repo = {
   url: string
   name: string
-  updatedAt: string
+  updatedAt?: string
+  createdAt?: string
+  owner?: string
+  available?: boolean
+  fork?: boolean
+  private?: boolean
+  cloneUrl?: string
 }
 
 export type Repos = Array<Repo>

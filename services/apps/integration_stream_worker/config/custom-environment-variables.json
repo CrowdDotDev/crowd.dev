@@ -44,7 +44,8 @@
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED",
     "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS",
     "tgNotifierToken": "CROWD_TG_NOTIFIER_TOKEN",
-    "tgNotifierChatId": "CROWD_TG_NOTIFIER_CHAT_ID"
+    "tgNotifierChatId": "CROWD_TG_NOTIFIER_CHAT_ID",
+    "isSnowflakeEnabled": "CROWD_GITHUB_IS_SNOWFLAKE_ENABLED"
   },
   "gitlab": {
     "clientId": "CROWD_GITLAB_CLIENT_ID",

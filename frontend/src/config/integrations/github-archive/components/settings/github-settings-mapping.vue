@@ -73,14 +73,14 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { computed, ref } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfGithubSettingsRepositoriesBulkSelect
-  from '@/config/integrations/github/components/settings/github-settings-repositories-bulk-select.vue';
+  from '@/config/integrations/github-archive/components/settings/github-settings-repositories-bulk-select.vue';
 import {
   GitHubOrganization,
   GitHubSettingsRepository,
-} from '@/config/integrations/github/types/GithubSettings';
-import LfGithubSettingsOrgItem from '@/config/integrations/github/components/settings/github-settings-org-item.vue';
+} from '@/config/integrations/github-archive/types/GithubSettings';
+import LfGithubSettingsOrgItem from '@/config/integrations/github-archive/components/settings/github-settings-org-item.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
-import LfGithubSettingsRepoItem from '@/config/integrations/github/components/settings/github-settings-repo-item.vue';
+import LfGithubSettingsRepoItem from '@/config/integrations/github-archive/components/settings/github-settings-repo-item.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{

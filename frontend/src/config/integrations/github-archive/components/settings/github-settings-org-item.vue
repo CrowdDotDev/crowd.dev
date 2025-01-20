@@ -68,7 +68,7 @@ import {
   GitHubOrganization,
   GitHubRepository,
   GitHubSettingsRepository,
-} from '@/config/integrations/github/types/GithubSettings';
+} from '@/config/integrations/github-archive/types/GithubSettings';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -78,7 +78,7 @@ import { computed } from 'vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import dayjs from 'dayjs';
-import { GithubApiService } from '@/config/integrations/github/services/github.api.service';
+import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
 
 const props = defineProps<{
   organizations: GitHubOrganization[];
