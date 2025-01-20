@@ -7,7 +7,6 @@ import activeOn from './activeOn/config';
 import activityType from './activityType/config';
 import avgSentiment from './avgSentiment/config';
 import engagementLevel from './engagementLevel/config';
-import enrichedMember from './enrichedMember/config';
 import identities from './identities/config';
 import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
@@ -28,7 +27,6 @@ export const memberFilters: Record<string, FilterConfig> = {
   activityType,
   avgSentiment,
   engagementLevel,
-  enrichedMember,
   identities,
   joinedDate,
   lastActivityDate,
