@@ -17,7 +17,7 @@ export default class SearchSyncService extends LoggerBase {
 
   mode: SyncMode
 
-  constructor(options: IServiceOptions, mode: SyncMode = SyncMode.USE_FEATURE_FLAG) {
+  constructor(options: IServiceOptions, mode: SyncMode = SyncMode.ASYNCHRONOUS) {
     super(options.log)
     this.options = options
     this.mode = mode

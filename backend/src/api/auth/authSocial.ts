@@ -1,5 +1,6 @@
 import passport from 'passport'
 
+import { getDefaultTenantId } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { API_CONFIG, GITHUB_CONFIG, GOOGLE_CONFIG } from '../../conf'
@@ -21,7 +22,7 @@ export default (app, routes) => {
   routes.post('/auth/social/onboard', async (req, res) => {
     const payload = await AuthService.handleOnboard(
       req.currentUser,
-      { invitationToken: req.body.invitationToken, tenantId: req.body.tenantId },
+      { invitationToken: req.body.invitationToken, tenantId: getDefaultTenantId() },
       req,
     )
 

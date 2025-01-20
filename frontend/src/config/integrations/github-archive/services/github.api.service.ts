@@ -4,10 +4,8 @@ import { GitHubOrganization, GitHubRepository } from '@/config/integrations/gith
 
 export class GithubApiService {
   static async searchRepositories(query: string): Promise<GitHubRepository[]> {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/github/search/repos`,
+      '/integration/github/search/repos',
       {
         params: {
           query,
@@ -19,10 +17,8 @@ export class GithubApiService {
   }
 
   static async searchOrganizations(query: string): Promise<GitHubOrganization[]> {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/github/search/orgs`,
+      '/integration/github/search/orgs',
       {
         params: {
           query,
@@ -34,10 +30,8 @@ export class GithubApiService {
   }
 
   static async getOrganizationRepositories(name: string): Promise<GitHubRepository[]> {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/github/orgs/${name}/repos`,
+      `/integration/github/orgs/${name}/repos`,
     );
 
     return response.data;

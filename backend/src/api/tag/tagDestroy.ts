@@ -3,12 +3,11 @@ import TagService from '../../services/tagService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/tag/{id}
+ * DELETE /tag/{id}
  * @summary Delete a tag
  * @tag Tags
  * @security Bearer
  * @description Delete a tag.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the tag
  * @response 200 - Ok
  * @response 401 - Unauthorized

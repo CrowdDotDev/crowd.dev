@@ -3,12 +3,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/member/{id}
+ * GET /member/{id}
  * @summary Find a member
  * @tag Members
  * @security Bearer
  * @description Find a single member by ID.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @response 200 - Ok
  * @responseContent {MemberResponse} 200.application/json

@@ -4,12 +4,11 @@ import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/organization/query
+ * POST /organization/query
  * @summary Query organizations
  * @tag Organizations
  * @security Bearer
  * @description Query organizations. It accepts filters, sorting options and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {OrganizationQuery} application/json
  * @response 200 - Ok
  * @responseContent {OrganizationList} 200.application/json

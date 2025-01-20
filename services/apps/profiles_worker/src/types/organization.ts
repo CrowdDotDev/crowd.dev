@@ -1,5 +1,4 @@
 export interface IOrganizationProfileSyncInput {
-  tenantId: string
   organization: {
     id: string
   }

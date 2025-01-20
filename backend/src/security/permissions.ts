@@ -111,22 +111,6 @@ class Permissions {
         id: 'activityAutocomplete',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
-      automationCreate: {
-        id: 'automationCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      automationUpdate: {
-        id: 'automationUpdate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      automationDestroy: {
-        id: 'automationDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      automationRead: {
-        id: 'automationRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
       tagImport: {
         id: 'tagImport',
         allowedRoles: [roles.admin, roles.projectAdmin],

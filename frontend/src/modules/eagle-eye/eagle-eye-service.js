@@ -10,10 +10,8 @@ export class EagleEyeService {
       offset,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/eagleEyeContent/query`,
+      '/eagleEyeContent/query',
       body,
     );
 
@@ -21,20 +19,16 @@ export class EagleEyeService {
   }
 
   static async search() {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/eagleEyeContent/search`,
+      '/eagleEyeContent/search',
     );
 
     return response.data;
   }
 
   static async createContent({ post }) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/eagleEyeContent`,
+      '/eagleEyeContent',
       post,
     );
 
@@ -42,9 +36,8 @@ export class EagleEyeService {
   }
 
   static async track({ event, params }) {
-    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(
-      `/tenant/${tenantId}/eagleEyeContent/track`,
+      '/eagleEyeContent/track',
       {
         event,
         params,
@@ -54,9 +47,8 @@ export class EagleEyeService {
   }
 
   static async generateReply({ title, description }) {
-    const tenantId = AuthService.getTenantId();
     const response = await authAxios.get(
-      `/tenant/${tenantId}/eagleEyeContent/reply`,
+      '/eagleEyeContent/reply',
       {
         params: {
           title,
@@ -68,10 +60,8 @@ export class EagleEyeService {
   }
 
   static async addAction({ postId, action }) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/eagleEyeContent/${postId}/action`,
+      `/eagleEyeContent/${postId}/action`,
       action,
     );
 
@@ -79,20 +69,16 @@ export class EagleEyeService {
   }
 
   static async deleteAction({ postId, actionId }) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/eagleEyeContent/${postId}/action/${actionId}`,
+      `/eagleEyeContent/${postId}/action/${actionId}`,
     );
 
     return response.data;
   }
 
   static async updateSettings(data) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/eagleEyeContent/settings`,
+      '/eagleEyeContent/settings',
       data,
     );
 

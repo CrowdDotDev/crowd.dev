@@ -33,7 +33,7 @@ export default class DashboardService {
       throw new Error('Valid segment ID is required')
     }
 
-    let key = `${this.options.currentTenant.id}:${params.segment}:${params.timeframe}`
+    let key = `${params.segment}:${params.timeframe}`
     if (params.platform) {
       key += `:${params.platform}`
     }

@@ -28,13 +28,6 @@ export * from './linkedin/grid'
 export * from './linkedin/types'
 export * from './linkedin/memberAttributes'
 
-export * from './hubspot/types'
-export * from './hubspot/api/types'
-export * from './hubspot/field-mapper/mapperFactory'
-export { getProperties as getHubspotProperties } from './hubspot/api/properties'
-export { getTokenInfo as getHubspotTokenInfo } from './hubspot/api/tokenInfo'
-export { getLists as getHubspotLists } from './hubspot/api/lists'
-
 export * from './reddit/grid'
 export * from './reddit/types'
 export * from './reddit/memberAttributes'

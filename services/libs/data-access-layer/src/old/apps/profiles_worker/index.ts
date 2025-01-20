@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import QueryStream from 'pg-query-stream'
 
+import { getDefaultTenantId } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
-import { ITenant } from '@crowd/types'
 
 import { insertActivities } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
@@ -13,6 +13,7 @@ import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
+const tenantId = getDefaultTenantId()
 
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
@@ -180,7 +181,7 @@ export async function runMemberAffiliationsUpdate(
   logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
-export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {
+export async function getAffiliationsLastCheckedAt(db: DbStore) {
   try {
     const result: IAffiliationsLastCheckedAt = await db.connection().oneOrNone(
       `
@@ -197,22 +198,15 @@ export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string
   }
 }
 
-export async function getAllMemberIdsPaginated(
-  db: DbStore,
-  tenantId: string,
-  limit: number,
-  offset: number,
-) {
+export async function getAllMemberIdsPaginated(db: DbStore, limit: number, offset: number) {
   try {
     const results: IMemberId[] = await db.connection().any(
       `
       select id from members
-      where "tenantId" = $(tenantId)
       order by id asc
       limit $(limit)
       offset $(offset);`,
       {
-        tenantId,
         limit,
         offset,
       },
@@ -225,7 +219,6 @@ export async function getAllMemberIdsPaginated(
 
 export async function getMemberIdsWithRecentRoleChanges(
   db: DbStore,
-  tenantId: string,
   affiliationsLastChecked: string,
   limit: number,
   offset: number,
@@ -236,8 +229,7 @@ export async function getMemberIdsWithRecentRoleChanges(
       select distinct mo."memberId" as id from "memberOrganizations" mo
       join "members" m on mo."memberId" = m."id"
       where
-            m."tenantId" = $(tenantId)
-            and (
+            (
             mo."createdAt" > $(affiliationsLastChecked) or
             mo."updatedAt" > $(affiliationsLastChecked) or
             mo."deletedAt" > $(affiliationsLastChecked)
@@ -247,7 +239,6 @@ export async function getMemberIdsWithRecentRoleChanges(
       offset $(offset);`,
 
       {
-        tenantId,
         affiliationsLastChecked,
         limit,
         offset,
@@ -259,10 +250,7 @@ export async function getMemberIdsWithRecentRoleChanges(
   }
 }
 
-export async function updateAffiliationsLastCheckedAt(
-  db: DbStore,
-  tenantId: string,
-): Promise<void> {
+export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void> {
   try {
     await db.connection().any(
       `
@@ -276,25 +264,4 @@ export async function updateAffiliationsLastCheckedAt(
   } catch (err) {
     throw new Error(err)
   }
-}
-
-export async function getAllTenants(db: DbStore): Promise<ITenant[]> {
-  let rows: ITenant[] = []
-  try {
-    rows = await db.connection().query(`
-      select
-        id as "tenantId",
-        plan
-      from tenants
-      where "deletedAt" is null
-        and plan IN ('Scale', 'Growth', 'Essential', 'Enterprise')
-        and ("trialEndsAt" > NOW() or "trialEndsAt" is null);
-    `)
-  } catch (err) {
-    this.log.error('Error while getting all tenants', err)
-
-    throw new Error(err)
-  }
-
-  return rows
 }

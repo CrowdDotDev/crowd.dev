@@ -4,6 +4,7 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
+import { ITemporalConfig } from '@crowd/temporal'
 import { IGithubIssueReporterConfiguration, IJiraIssueReporterConfiguration } from '@crowd/types'
 
 import {
@@ -21,7 +22,6 @@ import {
   GithubTokenConfiguration,
   GitlabConfiguration,
   GoogleConfiguration,
-  IBackendTemporalConfig,
   IOpenSearchConfig,
   IOpenStatusApiConfig,
   IRedditConfig,
@@ -34,7 +34,6 @@ import {
   ServiceType,
   SlackAlertingConfiguration,
   SlackConfiguration,
-  SlackNotifierConfiguration,
   SnowflakeConfiguration,
   StackExchangeConfiguration,
   TenantMode,
@@ -100,9 +99,6 @@ export const TWITTER_CONFIG: TwitterConfiguration = config.get<TwitterConfigurat
 
 export const SLACK_CONFIG: SlackConfiguration = config.get<SlackConfiguration>('slack')
 
-export const SLACK_NOTIFIER_CONFIG: SlackNotifierConfiguration =
-  config.get<SlackNotifierConfiguration>('slackNotifier')
-
 export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration>('google')
 
 export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
@@ -144,8 +140,7 @@ export const INTEGRATION_PROCESSING_CONFIG: IntegrationProcessingConfiguration =
 export const CROWD_ANALYTICS_CONFIG: CrowdAnalyticsConfiguration =
   config.get<CrowdAnalyticsConfiguration>('crowdAnalytics')
 
-export const TEMPORAL_CONFIG: IBackendTemporalConfig =
-  config.get<IBackendTemporalConfig>('temporal')
+export const TEMPORAL_CONFIG: ITemporalConfig = config.get<ITemporalConfig>('temporal')
 
 export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
   config.get<ISearchSyncApiConfig>('searchSyncApi')

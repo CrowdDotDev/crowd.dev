@@ -719,7 +719,7 @@ function start() {
     service_start
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0; do
@@ -741,17 +741,17 @@ while test $# -gt 0; do
         exit
         ;;
     start-e2e)
-        declare -a INGORED_SERVICES=("job-generator" "discord-ws" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
+        declare -a INGORED_SERVICES=("job-generator" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
         start
         exit
         ;;
     start-be)
-        declare -a INGORED_SERVICES=("frontend" "discord-ws")
+        declare -a INGORED_SERVICES=("frontend")
         start
         exit
         ;;
     start-dev)
-        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         DEV=1
         start
         exit
@@ -762,7 +762,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         CLEAN_START=1
         DEV=1
         start
@@ -792,43 +792,6 @@ while test $# -gt 0; do
         start
         exit
         ;;
-    start-premium)
-        start
-        exit
-        ;;
-    start-premium-dev)
-        DEV=1
-        start
-        exit
-        ;;
-    clean-start-premium)
-        CLEAN_START=1
-        start
-        exit
-        ;;
-    clean-start-premium-dev)
-        CLEAN_START=1
-        DEV=1
-        start
-        exit
-        ;;
-    start-premium)
-        start
-        exit
-        ;;
-    start-premium-dev)
-        DEV=1
-        exit
-        ;;
-    clean-start-premium)
-        CLEAN_START=1
-        exit
-        ;;
-    clean-start-premium-dev)
-        CLEAN_START=1
-        DEV=1
-        exit
-        ;;
     service-restart)
         kill_all_containers
         service_start
@@ -847,14 +810,14 @@ while test $# -gt 0; do
         exit
         ;;
     service-restart-fe-dev)
-        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        IGNORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         DEV=1
         kill_all_containers
         service_start
         exit
         ;;
     clean-start-fe-dev)
-        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker" "automations-worker")
+        INGORED_SERVICES=("frontend" "python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         CLEAN_START=1
         DEV=1
         start

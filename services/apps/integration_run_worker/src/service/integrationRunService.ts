@@ -2,18 +2,12 @@ import { singleOrDefault } from '@crowd/common'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
-import {
-  IGenerateStreamsContext,
-  IIntegrationStartRemoteSyncContext,
-  INTEGRATION_SERVICES,
-} from '@crowd/integrations'
+import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationRunState, IntegrationStreamState, PlatformType } from '@crowd/types'
@@ -24,14 +18,12 @@ const isSnowflakeEnabled = (PLATFORM_CONFIG('github') as any)?.isSnowflakeEnable
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
-  private readonly automationRepo: AutomationRepository
 
   constructor(
     private readonly redisClient: RedisClient,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
     private readonly store: DbStore,
     parentLog: Logger,
@@ -39,7 +31,6 @@ export default class IntegrationRunService extends LoggerBase {
     super(parentLog)
 
     this.repo = new IntegrationRunRepository(store, this.log)
-    this.automationRepo = new AutomationRepository(store, this.log)
   }
 
   public async handleStreamProcessed(runId: string): Promise<void> {
@@ -132,59 +123,6 @@ export default class IntegrationRunService extends LoggerBase {
           }
         } catch (err) {
           this.log.error({ err }, 'Error while post processing integration settings!')
-        }
-
-        try {
-          this.log.info('Trying to process startSyncRemote!')
-
-          const service = singleOrDefault(
-            INTEGRATION_SERVICES,
-            (s) => s.type === runInfo.integrationType,
-          )
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const settings = runInfo.integrationSettings as any
-
-          if (
-            service.startSyncRemote &&
-            settings.syncRemoteEnabled &&
-            settings.blockSyncRemote !== true
-          ) {
-            const syncAutomations = await this.automationRepo.findSyncAutomations(
-              runInfo.tenantId,
-              runInfo.integrationType,
-            )
-
-            const syncRemoteContext: IIntegrationStartRemoteSyncContext = {
-              integrationSyncWorkerEmitter: this.integrationSyncWorkerEmitter,
-              integration: {
-                id: runInfo.integrationId,
-                identifier: runInfo.integrationIdentifier,
-                platform: runInfo.integrationType,
-                status: runInfo.integrationState,
-                settings: runInfo.integrationSettings,
-                token: runInfo.integrationToken,
-                refreshToken: runInfo.integrationRefreshToken,
-              },
-              automations: syncAutomations,
-              tenantId: runInfo.tenantId,
-              log: this.log,
-            }
-
-            await service.startSyncRemote(syncRemoteContext)
-
-            this.log.info('Finished processing startSyncRemote!')
-          } else {
-            this.log.info(
-              {
-                syncRemoteEnabled: settings.syncRemoteEnabled,
-                blockSyncRemote: settings.blockSyncRemote,
-              },
-              `Integration does not have a startSyncRemote function or settings disable sync remote!`,
-            )
-          }
-        } catch (err) {
-          this.log.error({ err }, 'Error while starting integration sync remote!')
         }
 
         this.log.info('Marking run and integration as successfully processed!')
