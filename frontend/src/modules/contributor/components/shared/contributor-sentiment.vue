@@ -1,7 +1,7 @@
 <template>
   <lf-tooltip v-if="data" :content="`Score: ${props.contributor.averageSentiment}`">
     <div class="flex items-center gap-1.5" :class="data.class">
-      <lf-icon-old
+      <lf-icon
         :size="16"
         :name="data.icon"
       />
@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
@@ -32,20 +32,20 @@ const data = computed<{
   }
   if (props.contributor.averageSentiment >= 67) {
     return {
-      icon: 'emotion-happy-line',
+      icon: 'face-smile',
       label: 'Positive',
       class: 'text-green-600',
     };
   }
   if (props.contributor.averageSentiment <= 33) {
     return {
-      icon: 'emotion-unhappy-line',
+      icon: 'face-frown',
       label: 'Negative',
       class: 'text-red-500',
     };
   }
   return {
-    icon: 'emotion-normal-line',
+    icon: 'face-meh',
     label: 'Neutral',
     class: 'text-gray-400',
   };

@@ -6,7 +6,8 @@ const connecting: IntegrationStatusConfig = {
   statuses: ['in-progress'],
   status: {
     text: 'Connecting',
-    icon: 'loader-4-line animate-spin',
+    icon: 'circle-notch animate-spin',
+    iconType: 'solid',
     color: 'text-secondary-500',
   },
   actionBar: {

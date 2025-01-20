@@ -1,6 +1,6 @@
 <template>
   <div v-if="props.contributor.activitySycning?.state === MergeActionState.IN_PROGRESS" class="pt-12 flex flex-col items-center">
-    <lf-icon-old name="loader-4-line" :size="40" class="text-gray-300 animate-spin" />
+    <lf-icon name="circle-notch" type="solid" :size="40" class="text-gray-300 animate-spin" />
     <h6 class="text-center py-3">
       Syncing activities...
     </h6>
@@ -11,7 +11,7 @@
     </p>
   </div>
   <div v-else-if="props.contributor.activitySycning?.state === MergeActionState.ERROR" class="pt-12 flex flex-col items-center">
-    <lf-icon-old name="error-warning-line" :size="40" class="text-gray-300" />
+    <lf-icon name="circle-exclamation" :size="40" class="text-gray-300" />
     <h6 class="text-center py-3">
       Error syncing activities
     </h6>
@@ -37,6 +37,7 @@ import AppActivityTimeline from '@/modules/activity/components/activity-timeline
 import { useRoute } from 'vue-router';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import { ref } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

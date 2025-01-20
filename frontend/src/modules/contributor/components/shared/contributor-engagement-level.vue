@@ -2,7 +2,7 @@
   <div class="flex items-center gap-1.5 font-semibold text-small">
     <div v-if="!data" class="flex items-center text-secondary-400">
       <div class="animate-spin mr-1.5">
-        <lf-icon-old name="loader-4-fill" :size="16" class="text-secondary-400" />
+        <lf-icon name="circle-notch" type="solid" :size="16" class="text-secondary-400" />
       </div>
       Calculating
     </div>
@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{

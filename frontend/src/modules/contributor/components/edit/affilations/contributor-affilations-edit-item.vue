@@ -17,7 +17,7 @@
             >
               <template #placeholder>
                 <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                  <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
+                  <lf-icon name="house-building" :size="12" class="text-gray-400" />
                 </div>
               </template>
             </lf-avatar>
@@ -40,7 +40,7 @@
             >
               <template #placeholder>
                 <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                  <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
+                  <lf-icon name="house-building" :size="12" class="text-gray-400" />
                 </div>
               </template>
             </lf-avatar>
@@ -108,7 +108,7 @@ import moment from 'moment';
 import useVuelidate from '@vuelidate/core';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';

@@ -7,7 +7,8 @@ export default {
   description:
     "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   image: '/images/integrations/linkedin.png',
-  icon: 'linkedin-box-fill',
+  icon: 'linkedin',
+  iconType: 'brands',
   reactions: {
     like: 'Like',
     praise: 'Celebrate',

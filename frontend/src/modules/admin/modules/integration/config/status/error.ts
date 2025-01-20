@@ -6,7 +6,8 @@ const error: IntegrationStatusConfig = {
   statuses: ['error'],
   status: {
     text: 'Connection failed',
-    icon: 'error-warning-fill',
+    icon: 'circle-exclamation',
+    iconType: 'solid',
     color: 'text-red-500',
   },
   actionBar: {

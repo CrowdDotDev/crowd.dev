@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>{{ isEdit ? 'Edit' : 'Add' }} work experience</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon-old name="close-line" />
+            <lf-icon name="xmark" />
           </lf-button>
         </div>
 
@@ -74,7 +74,7 @@
       </div>
       <div class="px-6 pb-10 flex">
         <div class="mt-0.5">
-          <lf-icon-old name="information-line" :size="16" class="text-gray-600" />
+          <lf-icon name="circle-info" :size="16" class="text-gray-600" />
         </div>
         <div class="flex-grow pl-2 text-xs text-gray-500">
           <span class="font-semibold">Activities affiliation</span> with a certain organization is automatically defined
@@ -111,7 +111,7 @@ import {
 } from 'vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';

@@ -6,7 +6,7 @@
         type="secondary-ghost"
         :icon-only="true"
       >
-        <lf-icon-old name="more-fill" />
+        <lf-icon name="ellipsis" />
       </lf-button>
     </template>
 
@@ -29,7 +29,7 @@ import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeM
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { ref } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 
 const props = defineProps<{

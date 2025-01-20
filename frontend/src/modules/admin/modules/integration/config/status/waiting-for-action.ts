@@ -6,7 +6,8 @@ const waitingForAction: IntegrationStatusConfig = {
   statuses: ['pending-action', 'mapping'],
   status: {
     text: 'Action required',
-    icon: 'alert-fill',
+    icon: 'triangle-exclamation',
+    iconType: 'solid',
     color: 'text-yellow-600',
   },
   actionBar: {

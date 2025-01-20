@@ -16,7 +16,7 @@
         >
           <template #actions>
             <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-              <i class="ri-close-line" />
+              <lf-icon name="xmark" />
             </lf-button>
           </template>
         </app-organization-merge-suggestions>
@@ -30,6 +30,7 @@ import { computed } from 'vue';
 import AppOrganizationMergeSuggestions from '@/modules/organization/components/organization-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = withDefaults(defineProps<{
   modelValue: boolean,

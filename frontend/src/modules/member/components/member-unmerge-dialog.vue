@@ -163,9 +163,9 @@
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <lf-icon-old
+                              <lf-icon
                                 v-else
-                                name="fingerprint-fill"
+                                name="fingerprint"
                                 :size="20"
                                 class="text-gray-600 mr-2"
                               />
@@ -237,9 +237,9 @@
                       :alt="platformDetails(i.platform)?.name"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    <lf-icon-old
+                    <lf-icon
                       v-else
-                      name="fingerprint-fill"
+                      name="fingerprint"
                       :size="20"
                       class="text-gray-600 mr-2"
                     />
@@ -266,7 +266,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { useRouter } from 'vue-router';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';

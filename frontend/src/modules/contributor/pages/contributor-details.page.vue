@@ -13,7 +13,7 @@
         <div class="flex items-center">
           <lf-back :to="{ path: '/people' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
-              <lf-icon-old name="arrow-left-s-line" />
+              <lf-icon name="chevron-left" />
             </lf-button>
           </lf-back>
           <lf-contributor-details-header :contributor="contributor" />
@@ -51,9 +51,9 @@
               <lf-tab v-model="tabs" name="activities">
                 <div class="flex items-center gap-1">
                   Activities
-                  <lf-icon-old
+                  <lf-icon
                     v-if="contributor.activitySycning?.state === MergeActionState.ERROR"
-                    name="error-warning-line"
+                    name="circle-exclamation"
                     :size="16"
                     class="text-red-500"
                   />
@@ -85,7 +85,7 @@ import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { onMounted, ref } from 'vue';
 import LfBack from '@/ui-kit/back/Back.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';

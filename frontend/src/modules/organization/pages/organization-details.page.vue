@@ -13,7 +13,7 @@
         <div class="flex items-center flex-grow">
           <lf-back :to="{ path: hasSegments ? '/organizations' : '/admin' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
-              <lf-icon-old name="arrow-left-s-line" />
+              <lf-icon name="chevron-left" />
             </lf-button>
           </lf-back>
           <lf-organization-details-header :organization="organization" />
@@ -67,9 +67,9 @@
               <lf-tab v-model="tabs" name="activities">
                 <div class="flex items-center gap-1">
                   Activities
-                  <lf-icon-old
+                  <lf-icon
                     v-if="organization.activitySycning?.state === MergeActionState.ERROR"
-                    name="error-warning-line"
+                    name="circle-exclamation"
                     :size="16"
                     class="text-red-500"
                   />
@@ -106,7 +106,7 @@ import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { computed, onMounted, ref } from 'vue';
 import LfBack from '@/ui-kit/back/Back.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';

@@ -6,7 +6,7 @@
           Activities affiliation
         </h5>
         <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-          <lf-icon-old name="close-line" />
+          <lf-icon name="xmark" />
         </lf-button>
       </div>
       <p class="text-gray-500 text-medium">
@@ -61,19 +61,19 @@
                             class="ml-2 my-1"
                             :icon-only="true"
                           >
-                            <lf-icon-old name="more-fill" />
+                            <lf-icon name="ellipsis" type="regular" />
                           </lf-button>
                         </template>
                         <lf-dropdown-item
                           @click="copyToOtherProjects(ai)"
                         >
-                          <lf-icon-old name="file-copy-line" /> Apply to all projects
+                          <lf-icon name="copy" type="regular" /> Apply to all projects
                         </lf-dropdown-item>
                         <lf-dropdown-item
                           type="danger"
                           @click="form.splice(ai, 1)"
                         >
-                          <lf-icon-old name="delete-bin-6-line" /> Delete affiliation
+                          <lf-icon name="trash-can" /> Delete affiliation
                         </lf-dropdown-item>
                       </lf-dropdown>
                     </lf-contributor-edit-affilations-item>
@@ -87,7 +87,7 @@
                   class="mt-1"
                   @click="addAffiliation(subproject.id)"
                 >
-                  <lf-icon-old name="add-line" />
+                  <lf-icon name="plus" />
                   Add affiliation
                 </lf-button>
               </div>
@@ -113,7 +113,7 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import { Contributor, ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import { computed, onMounted, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorEditAffilationsItem
 , { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
 import useVuelidate from '@vuelidate/core';

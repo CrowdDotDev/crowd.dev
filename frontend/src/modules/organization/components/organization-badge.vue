@@ -8,7 +8,7 @@
       content="Your own organization"
     >
       <div class="px-2 py-0.5 flex items-center text-2xs font-medium bg-gray-200 text-gray-600 rounded-md gap-1">
-        <i class="ri-team-line text-2xs" />Team
+        <lf-icon name="people-group" :size="12" />Team
       </div>
     </el-tooltip>
   </div>
@@ -16,6 +16,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   organization: {
