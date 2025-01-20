@@ -2,7 +2,7 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
 
-import { Error400, distinct, singleOrDefault } from '@crowd/common'
+import { distinct, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   addActivityToConversation,
@@ -595,15 +595,6 @@ export default class ActivityService extends LoggerBase {
         })
       }
 
-      // TODO:: Make a proper GDPR prevention
-      if (
-        data.member.identities &&
-        data.member.identities.length > 0 &&
-        data.member.identities.some((i) => i.value.toLowerCase() === 'lf_disabled@oesterle.dev')
-      ) {
-        return
-      }
-
       const resultId = await ActivityRepository.createResults(
         {
           type: IntegrationResultType.ACTIVITY,
@@ -846,36 +837,6 @@ export default class ActivityService extends LoggerBase {
     await Promise.all(promises)
 
     return page
-  }
-
-  async import(data, importHash) {
-    if (!importHash) {
-      throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-    }
-
-    if (await this._isImportHashExistent(importHash)) {
-      throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-    }
-
-    const dataToCreate = {
-      ...data,
-      importHash,
-    }
-
-    return this.upsert(dataToCreate)
-  }
-
-  async _isImportHashExistent(importHash: string) {
-    const count = await ActivityRepository.findOne(
-      {
-        filter: {
-          and: [{ importHash: { eq: importHash } }],
-        },
-      },
-      this.options,
-    )
-
-    return count > 0
   }
 
   static hasHtmlActivities(platform: PlatformType): boolean {

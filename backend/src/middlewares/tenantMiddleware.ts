@@ -1,8 +1,11 @@
+import { getDefaultTenantId } from '@crowd/common'
+
 import TenantService from '../services/tenantService'
 
-export async function tenantMiddleware(req, res, next, value) {
+export async function tenantMiddleware(req, res, next) {
   try {
-    const tenant = await new TenantService(req).findById(value)
+    const tenantId = getDefaultTenantId()
+    const tenant = await new TenantService(req).findById(tenantId)
     req.currentTenant = tenant
     next()
   } catch (error) {

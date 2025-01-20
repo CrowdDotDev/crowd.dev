@@ -4,12 +4,11 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/member/:memberId/organization
+ * GET /member/:memberId/organization
  * @summary Query member organizations
  * @tag Members
  * @security Bearer
  * @description Query member organization.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.Organization

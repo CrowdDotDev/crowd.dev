@@ -3,12 +3,11 @@ import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/conversation/{id}
+ * PUT /conversation/{id}
  * @summary Update an conversation
  * @tag Conversations
  * @security Bearer
  * @description Update a conversation given an ID.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the conversation
  * @bodyContent {ConversationNoId} application/json
  * @response 200 - Ok

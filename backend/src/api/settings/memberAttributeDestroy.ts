@@ -3,12 +3,11 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/settings/members/attributes
+ * DELETE /settings/members/attributes
  * @summary Attribute settings: delete
  * @tag Members
  * @security Bearer
  * @description Delete a members' attribute setting
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} id - Id to destroy
  * @response 200 - Ok
  * @response 401 - Unauthorized

@@ -3,12 +3,11 @@ import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/conversation
+ * POST /conversation
  * @summary Create a conversation
  * @tag Conversations
  * @security Bearer
  * @description Create a conversation.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ConversationNoId} application/json
  * @response 200 - Ok
  * @responseContent {Conversation} 200.application/json
