@@ -7,9 +7,7 @@
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
-              <i
-                class="ri-folders-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-              />
+              <lf-icon name="folders" class="!text-gray-600 mr-1 h-4 flex items-center" />
               1 organization
             </div>
             •
@@ -26,8 +24,8 @@
             Confluence organizations
           </p>
           <article class="flex items-center flex-nowrap mb-4 last:mb-0">
-            <i
-              class="ri-community-line text-[16px] mr-1 h-4 flex items-center"
+            <lf-icon
+              name="house-building" class="mr-1 h-4 flex items-center"
             />
 
             <span class="text-gray-900 text-sm max-w-3xs truncate">{{
@@ -40,9 +38,7 @@
           </p>
 
           <article class="flex items-center flex-nowrap mb-4 last:mb-0">
-            <div
-              class="ri-folder-line text-[16px] mr-1 h-4 flex items-center"
-            />
+            <lf-icon name="folder" class="mr-1 h-4 flex items-center"/>
 
             <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               space?.name || space?.key || "Unnamed space"
@@ -56,6 +52,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   integration: {
