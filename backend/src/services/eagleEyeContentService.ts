@@ -175,10 +175,14 @@ export default class EagleEyeContentService extends LoggerBase {
       },
     }
 
-    console.log('Eagle Eye search config')
-    console.log(config)
+    let response
 
-    const response = await axios(config)
+    try {
+      response = await axios(config)
+    } catch (error) {
+      this.log.error("Error while fetching eagle eye content", error, config)
+      return []
+    }
 
     const interacted = (
       await this.query({
