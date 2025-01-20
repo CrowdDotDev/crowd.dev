@@ -44,8 +44,7 @@ export const Regular = {
           </p>
         </div>
         <p class="text-small text-gray-500 mb-1.5 flex items-center">
-        <i class="fa-sharp fa-light fa-calendar"></i>
-        <lf-icon name="calendar" :size="16" class="mr-1.5 text-gray-400" />
+        <lf-icon name="calendar fa-sharp" :size="16" class="mr-1.5 text-gray-400" />
           {{ item.date }}
         </p>
       </lf-timeline-item>
