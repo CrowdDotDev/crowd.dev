@@ -180,7 +180,7 @@ export default class EagleEyeContentService extends LoggerBase {
     try {
       response = await axios(config)
     } catch (error) {
-      this.log.error("Error while fetching eagle eye content", error, config)
+      this.log.error('Error while fetching eagle eye content', error, config)
       return []
     }
 
