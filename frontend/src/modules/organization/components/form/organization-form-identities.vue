@@ -66,8 +66,8 @@
 import {
   computed, ref, watch, reactive,
 } from 'vue';
-import { OrganizationIdentityType } from '../../types/Organization';
 import { lfIdentities } from '@/config/identities';
+import { OrganizationIdentityType } from '../../types/Organization';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 

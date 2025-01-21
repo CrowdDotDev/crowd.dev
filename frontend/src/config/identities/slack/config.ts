@@ -8,6 +8,16 @@ const slack: IdentityConfig = {
     placeholder: 'Slack username or email address',
     url: ({ identity }) => (identity.value ? `https://slack.com/${identity.value}` : null),
   },
+  activity: {
+    showLink: true,
+  },
+  conversation: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };
 
 export default slack;

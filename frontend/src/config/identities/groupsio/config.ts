@@ -7,6 +7,9 @@ const groupsio: IdentityConfig = {
   member: {
     placeholder: 'Groups.io email address',
   },
+  activity: {
+    showLink: true,
+  },
 };
 
 export default groupsio;

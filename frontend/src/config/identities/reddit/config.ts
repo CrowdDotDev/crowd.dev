@@ -7,7 +7,17 @@ const reddit: IdentityConfig = {
   member: {
     urlPrefix: 'reddit.com/user/',
     url: ({ identity }) => (identity.value ? `https://reddit.com/user/${identity.value}` : null),
-  }
+  },
+  activity: {
+    showLink: true,
+  },
+  conversation: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };
 
 export default reddit;

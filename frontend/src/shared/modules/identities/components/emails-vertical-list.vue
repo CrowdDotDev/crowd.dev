@@ -64,7 +64,7 @@ const props = defineProps<{
   xPadding?: number;
 }>();
 
-const {getPlatformsLabel} = useIdentitiesHelpers()
+const { getPlatformsLabel } = useIdentitiesHelpers();
 
 const distinctEmails = computed(() => props.emails.reduce((obj: Record<string, any>, identity: any) => {
   const emailObject = { ...obj };

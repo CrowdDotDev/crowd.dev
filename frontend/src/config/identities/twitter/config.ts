@@ -11,6 +11,16 @@ const twitter: IdentityConfig = {
   organization: {
     urlPrefix: 'twitter.com/',
   },
+  activity: {
+    showLink: true,
+  },
+  conversation: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };
 
 export default twitter;

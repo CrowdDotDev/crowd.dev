@@ -1,6 +1,6 @@
 import { ReportDataTypeConfig } from '@/shared/modules/report-issue/config';
-import Identity from './type-identity.vue';
 import { lfIdentities } from '@/config/identities';
+import Identity from './type-identity.vue';
 
 const identity: ReportDataTypeConfig = {
   description: (identity: any) => {

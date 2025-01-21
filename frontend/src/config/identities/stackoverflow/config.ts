@@ -8,6 +8,16 @@ const stackoverflow: IdentityConfig = {
     urlPrefix: 'stackoverflow.com/users/',
     url: ({ attributes }) => attributes?.url?.stackoverflow || null,
   },
+  activity: {
+    showLink: true,
+  },
+  conversation: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };
 
 export default stackoverflow;

@@ -3,8 +3,8 @@ import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
-import Message from '../../shared/message/message';
 import { lfIntegrations } from '@/config/integrations';
+import Message from '../../shared/message/message';
 
 export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 

@@ -8,6 +8,9 @@ const discourse: IdentityConfig = {
     urlPrefix: 'https://meta.discourse.org/u/',
     url: ({ attributes }) => attributes?.url?.discourse,
   },
+  activity: {
+    showLink: true,
+  },
 };
 
 export default discourse;

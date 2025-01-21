@@ -1,4 +1,6 @@
 import { ContributorAttribute, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { OrganizationIdentity } from '@/modules/organization/types/Organization';
+import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import confluence from './confluence/config';
 import crunchbase from './crunchbase/config';
 import cvent from './cvent/config';
@@ -22,7 +24,6 @@ import stackoverflow from './stackoverflow/config';
 import tnc from './tnc/config';
 import twitter from './twitter/config';
 import zapier from './zapier/config';
-import { OrganizationIdentity } from '@/modules/organization/types/Organization';
 
 export interface IdentityConfig {
   key: string; // Unique key for the identity
@@ -40,6 +41,22 @@ export interface IdentityConfig {
     placeholder?: string;
     handle?: (identity: OrganizationIdentity) => string;
     url?: (identity: OrganizationIdentity) => string;
+  },
+  activity?: {
+    showLink?: boolean;
+    showContentDetails?: boolean;
+    showSourceId?: boolean;
+    typeIcon?: string;
+  },
+  conversation?: {
+    separatorContent?: string;
+    showLabels?: boolean;
+    attributes: (attributes: any) => any;
+    replyContent: (conversation: Conversation) => {
+      icon: string;
+      copy: string;
+      number: number;
+    }
   }
 }
 

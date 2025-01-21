@@ -13,6 +13,16 @@ const linkedin: IdentityConfig = {
   organization: {
     urlPrefix: 'linkedin.com/company/',
   },
+  activity: {
+    showLink: true,
+  },
+  conversation: {
+    replyContent: (conversation) => ({
+      icon: 'ri-reply-line',
+      copy: 'reply',
+      number: conversation.activityCount - 1,
+    }),
+  },
 };
 
 export default linkedin;

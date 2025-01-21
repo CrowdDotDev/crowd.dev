@@ -157,7 +157,6 @@
 <script>
 import { mapState, storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppConversationReply from '@/modules/conversation/components/conversation-reply.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
@@ -173,6 +172,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppConversationDetails',
@@ -225,9 +225,7 @@ export default {
       types: 'types',
     }),
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.conversation.conversationStarter?.platform,
-      );
+      return lfIdentities[this.conversation.conversationStarter?.platform];
     },
     member() {
       return this.conversation.conversationStarter.member;

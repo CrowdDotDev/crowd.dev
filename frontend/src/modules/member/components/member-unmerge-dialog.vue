@@ -268,8 +268,8 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { useRouter } from 'vue-router';
-import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 import { lfIdentities } from '@/config/identities';
+import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
   modelValue: {
