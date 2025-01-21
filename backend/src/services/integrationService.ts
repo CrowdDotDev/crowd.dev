@@ -2178,4 +2178,103 @@ export default class IntegrationService {
       throw err
     }
   }
+
+  async updateGithubIntegrationSettings(installId: string) {
+    this.options.log.info(`Updating GitHub integration settings for installId: ${installId}`)
+
+    // Find the integration by installId
+    const integration: any = await IntegrationRepository.findByIdentifier(
+      installId,
+      PlatformType.GITHUB,
+    )
+
+    if (!integration || integration.platform !== PlatformType.GITHUB) {
+      this.options.log.warn(`GitHub integration not found for installId: ${installId}`)
+      throw new Error404('GitHub integration not found')
+    }
+
+    this.options.log.info(`Found integration: ${integration.id}`)
+
+    // Get the install token
+    const installToken = await IntegrationService.getInstallToken(installId)
+    this.options.log.info(`Obtained install token for installId: ${installId}`)
+
+    // Fetch all installed repositories
+    const repos = await getInstalledRepositories(installToken)
+    this.options.log.info(`Fetched ${repos.length} installed repositories`)
+
+    // Update integration settings
+    const currentSettings: {
+      orgs: Array<{
+        name: string
+        logo: string
+        url: string
+        fullSync: boolean
+        updatedAt: string
+        repos: Array<{
+          name: string
+          url: string
+          updatedAt: string
+        }>
+      }>
+    } = integration.settings || { orgs: [] }
+
+    if (currentSettings.orgs.length !== 1) {
+      throw new Error('Integration settings must have exactly one organization')
+    }
+
+    const currentRepos = currentSettings.orgs[0].repos || []
+    const newRepos = repos.filter((repo) => !currentRepos.some((r) => r.url === repo.url))
+    this.options.log.info(`Found ${newRepos.length} new repositories`)
+
+    const updatedSettings = {
+      ...currentSettings,
+      orgs: [
+        {
+          ...currentSettings.orgs[0],
+          repos: [
+            ...currentRepos,
+            ...newRepos.map((repo) => ({
+              name: repo.name,
+              url: repo.url,
+              updatedAt: repo.updatedAt || new Date().toISOString(),
+            })),
+          ],
+        },
+      ],
+    }
+
+    this.options = {
+      ...this.options,
+      currentSegments: [
+        {
+          id: integration.segmentId,
+        } as any,
+      ],
+    }
+
+    // Update the integration with new settings
+    await this.update(integration.id, { settings: updatedSettings })
+
+    this.options.log.info(`Updated integration settings for integration id: ${integration.id}`)
+
+    // Update GitHub repos mapping
+    const defaultSegmentId = integration.segmentId
+    const mapping = {}
+    for (const repo of newRepos) {
+      mapping[repo.url] = defaultSegmentId
+    }
+    if (Object.keys(mapping).length > 0) {
+      // false - not firing onboarding
+      await this.mapGithubRepos(integration.id, mapping, false)
+      this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
+    } else {
+      this.options.log.info(`No new repos to map for integration id: ${integration.id}`)
+    }
+
+    this.options.log.info(
+      `Completed updating GitHub integration settings for installId: ${installId}`,
+    )
+    return integration
+  }
 }
