@@ -1,5 +1,4 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import { GitHubOrganization, GitHubRepository } from '@/config/integrations/github-archive/types/GithubSettings';
 
 export class GithubApiService {

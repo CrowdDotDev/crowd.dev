@@ -34,6 +34,7 @@ const initClient = (ctx: IProcessStreamContext) => {
     database: settings.sfDatabase,
     warehouse: settings.sfWarehouse,
     role: settings.sfRole,
+    parentLog: ctx.log,
   })
   gh = new GithubSnowflakeClient(sf)
 }
@@ -47,6 +48,7 @@ const initIncrementalClient = (ctx: IProcessStreamContext) => {
     database: settings.sfDatabase,
     warehouse: settings.sfIncrementalWarehouse,
     role: settings.sfRole,
+    parentLog: ctx.log,
   })
   ghIncremental = new GithubSnowflakeClient(sfIncremental)
 }

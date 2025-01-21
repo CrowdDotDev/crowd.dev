@@ -28,13 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github-archive/components/settings/github-settings-drawer.vue';
-import { isTeamUser } from '@/config/permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+// import { isTeamUser } from '@/config/permissions';
+// import { useAuthStore } from '@/modules/auth/store/auth.store';
+// import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   integration: any,
