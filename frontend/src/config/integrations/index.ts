@@ -1,4 +1,5 @@
 import github from './github/config';
+import githubArchive from './github-archive/config';
 import git from './git/config';
 import groupsio from './groupsio/config';
 import confluence from './confluence/config';
@@ -14,6 +15,7 @@ import gitlab from './gitlab/config';
 import gerrit from './gerrit/config';
 import discourse from './discourse/config';
 import devto from './devto/config';
+import config from '@/config';
 
 export interface IntegrationConfig {
   key: string; // Unique key for the integration
@@ -28,7 +30,7 @@ export interface IntegrationConfig {
 }
 
 export const lfIntegrations: Record<string, IntegrationConfig> = {
-  github,
+  github: config.isGithubArchiveEnabled === 'true' ? githubArchive : github,
   git,
   groupsio,
   confluence,
