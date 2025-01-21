@@ -64,7 +64,6 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
       },
     )
 
-
     console.log('result', result.data.data.repository)
 
     const prsAll = await axios.get(
@@ -99,7 +98,7 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
       stars: 0,
       forks: 0,
       totalIssues: 0,
-      totalPRs: 0
+      totalPRs: 0,
     }
   }
 }

@@ -1,15 +1,16 @@
 /* eslint-disable no-promise-executor-return */
 import { createAppAuth } from '@octokit/auth-app'
+import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
-import { request } from '@octokit/request'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
@@ -26,8 +27,6 @@ import {
   GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
-import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 
 import {
   DISCORD_CONFIG,
@@ -43,6 +42,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import track from '../segment/track'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
+import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import {
   GitHubStats,
   getGitHubRemoteStats,
@@ -509,24 +509,27 @@ export default class IntegrationService {
         url: `https://github.com/${orgName}`,
         fullSync: true,
         updatedAt: new Date().toISOString(),
-        repos: []
+        repos: [],
       }
 
-      integration = await this.createOrUpdate({
-        ...integrationData,
-        settings: {
-          ...integrationData.settings,
-          orgs: [initialOrg]
-        }
-      }, transaction)
+      integration = await this.createOrUpdate(
+        {
+          ...integrationData,
+          settings: {
+            ...integrationData.settings,
+            orgs: [initialOrg],
+          },
+        },
+        transaction,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
       // Transform repos into the new format
-      const transformedRepos = repos.map(repo => ({
+      const transformedRepos = repos.map((repo) => ({
         name: repo.name,
         url: repo.url,
-        updatedAt: repo.createdAt || new Date().toISOString()
+        updatedAt: repo.createdAt || new Date().toISOString(),
       }))
 
       // Add repos in chunks
@@ -537,7 +540,6 @@ export default class IntegrationService {
       }
 
       return integration
-
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
@@ -574,7 +576,12 @@ export default class IntegrationService {
     }
   }
 
-  async mapGithubReposSnowflake(integrationId, mapping, fireOnboarding = true, isUpdateTransaction = false) {
+  async mapGithubReposSnowflake(
+    integrationId,
+    mapping,
+    fireOnboarding = true,
+    isUpdateTransaction = false,
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -588,7 +595,12 @@ export default class IntegrationService {
 
     try {
       const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-      await GithubReposRepository.updateMappingSnowflake(integrationId, mapping, oldMapping, txOptions)
+      await GithubReposRepository.updateMappingSnowflake(
+        integrationId,
+        mapping,
+        oldMapping,
+        txOptions,
+      )
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
