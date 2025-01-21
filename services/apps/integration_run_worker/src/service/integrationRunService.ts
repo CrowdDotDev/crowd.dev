@@ -14,7 +14,8 @@ import { IntegrationRunState, IntegrationStreamState, PlatformType } from '@crow
 
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
 
-const isSnowflakeEnabled = (PLATFORM_CONFIG('github') as any)?.isSnowflakeEnabled === 'true'
+const isSnowflakeEnabled =
+  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
