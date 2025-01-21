@@ -59,7 +59,7 @@ export const getInstalledRepositories = async (installToken: string): Promise<Re
       hasMorePages = data.total_count && data.total_count > 0 && data.total_count > repos.length
       page += 1
     }
-    return repos.filter((repo) => !IS_GITHUB_COMMIT_DATA_ENABLED || !(repo.fork || repo.private))
+    return repos.filter((repo) => !repo.private && !repo.fork)
   } catch (err: any) {
     log.error(err, 'Error fetching installed repositories!')
     throw err

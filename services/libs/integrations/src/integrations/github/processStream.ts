@@ -312,14 +312,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     try {
       // we don't need to get default 100 item per page, just 1 is enough to check if repo is available
       const stargazersQuery = new StargazersQuery(repo, await getGithubToken(ctx), 1)
-      await stargazersQuery.getSinglePage(
-        '',
-        {
-          concurrentRequestLimiter: getConcurrentRequestLimiter(ctx),
-          integrationId: ctx.integration.id,
-        },
-        getTokenRotator(ctx),
-      )
+      await stargazersQuery.getSinglePage('')
       repos.push(repo)
     } catch (e) {
       if (e.rateLimitResetSeconds) {
@@ -328,6 +321,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
         ctx.log.warn(
           `Repo ${repo.name} will not be parsed. It is not available with the github token`,
         )
+        console.log('e', e)
         unavailableRepos.push(repo)
       }
     }

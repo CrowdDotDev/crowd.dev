@@ -35,10 +35,16 @@ const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> =>
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GithubIntegrationSettings
-  const reposToCheck = [
+  let reposToCheck = [
     ...(settings?.orgs?.flatMap((o) => o.repos) || []),
     ...(settings?.unavailableRepos || []),
   ]
+
+  // repos from settings have only url and name, we need to get owner from url
+  reposToCheck = reposToCheck.map((repo) => {
+    const url = new URL(repo.url)
+    return { ...repo, owner: url.pathname.split('/')[1] }
+  })
 
   const isManualRun = ctx.isManualRun
 
@@ -62,7 +68,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
             manualSettings.streamType === streamToManualStreamMap.get(endpoint)
           ) {
             await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
-              repo,
+              repo: { ...repo, owner: new URL(repo.url).pathname.split('/')[1] },
               page: '',
             })
           }
@@ -78,7 +84,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           }
           const repo = manualSettings.orgs.flatMap((o) => o.repos).find((r) => r.url === repoUrl)
           await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
-            repo,
+            repo: { ...repo, owner: new URL(repo.url).pathname.split('/')[1] },
             page: '',
           })
         }

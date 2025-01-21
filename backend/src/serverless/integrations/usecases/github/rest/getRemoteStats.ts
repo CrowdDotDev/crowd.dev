@@ -50,6 +50,8 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
         }
     }`
 
+    console.log('query', query)
+
     const result = await axios.post(
       'https://api.github.com/graphql',
       {
@@ -61,6 +63,9 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
         },
       },
     )
+
+
+    console.log('result', result.data.data.repository)
 
     const prsAll = await axios.get(
       `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=1`,
