@@ -23,9 +23,6 @@ const linkedin: IdentityConfig = {
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),
-    attributes: function (attributes: any) {
-      throw new Error('Function not implemented.');
-    }
   },
 };
 
