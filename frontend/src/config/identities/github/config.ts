@@ -4,7 +4,8 @@ const github: IdentityConfig = {
   key: 'github',
   name: 'GitHub',
   image: '/images/identities/github.png',
-  icon: 'github-fill',
+  icon: 'github',
+  iconType: 'brands',
   color: '#24292F',
   member: {
     urlPrefix: 'github.com/',
