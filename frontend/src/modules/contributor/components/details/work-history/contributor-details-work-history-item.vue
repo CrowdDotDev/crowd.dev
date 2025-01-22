@@ -18,7 +18,7 @@
         </p>
       </div>
 
-      <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
+      <lf-dropdown v-show="hovered" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="ellipsis" />
@@ -119,9 +119,9 @@ const getDateRange = (dateStart?: string, dateEnd?: string) => {
 
 const setAffiliation = (affiliation: boolean) => {
   ContributorAffiliationsApiService.updateAffiliationOverride(props.contributor.id, {
-    isPrimaryOrganization: affiliation,
+    isPrimaryWorkExperience: affiliation,
     allowAffiliation: affiliation,
-    organizationId: props.organization.id,
+    memberOrganizationId: props.organization.id,
     memberId: props.contributor.id,
   })
     .then(() => {

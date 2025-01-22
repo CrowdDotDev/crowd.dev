@@ -33,9 +33,9 @@ export interface OrganizationIdentity {
 
 export interface MemberOrganizationAffiliationOverride {
   allowAffiliation: boolean;
-  isPrimaryOrganization: boolean;
+  isPrimaryWorkExperience: boolean;
   memberId: string;
-  organizationId: string;
+  memberOrganizationId: string;
 }
 
 export interface MemberOrganization {
