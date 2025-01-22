@@ -65,7 +65,7 @@ export default class MemberAffiliationsService extends LoggerBase {
     const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(data, this.options)
     await MemberAffiliationService.startAffiliationRecalculation(
       data.memberId,
-      [data.organizationId],
+      [],
       this.options,
     )
     return override
