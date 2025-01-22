@@ -49,7 +49,7 @@ class MemberOrganizationsRepository {
       }
 
       // Fetch affiliation overrides
-      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(qx, memberId, orgIds)
+      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(qx, memberId, memberOrganizations.map((mo) => mo.id))
 
       // Create mapping by id to speed up the processing
       const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(
@@ -66,7 +66,7 @@ class MemberOrganizationsRepository {
         id: mo.organizationId,
         memberOrganizations: {
           ...mo,
-          affiliationOverride: affiliationOverrides.find((ao) => ao.organizationId === mo.organizationId),
+          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === mo.id),
         },
       }))
 
