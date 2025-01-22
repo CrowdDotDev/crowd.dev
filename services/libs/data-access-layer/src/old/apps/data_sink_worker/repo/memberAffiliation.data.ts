@@ -4,7 +4,7 @@ interface BaseData {
   dateStart: string
   dateEnd: string
   title: string
-  isPrimaryOrganization?: boolean
+  isPrimaryWorkExperience?: boolean
   memberCount?: number
 }
 

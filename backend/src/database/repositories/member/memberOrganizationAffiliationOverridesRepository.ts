@@ -16,7 +16,7 @@ import {
         const qx = SequelizeRepository.getQueryExecutor(options)
   
         await changeMemberOrganizationAffiliationOverride(qx, data)
-        const overrides = await findMemberOrganizationAffiliationOverrides(qx, data.memberId, [data.organizationId])
+        const overrides = await findMemberOrganizationAffiliationOverrides(qx, data.memberId, [data.memberOrganizationId])
         return overrides[0]
     }
 

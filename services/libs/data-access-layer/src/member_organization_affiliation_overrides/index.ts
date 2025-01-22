@@ -1,6 +1,9 @@
 import { v4 as uuid } from 'uuid'
 
-import { IChangeAffiliationOverrideData, IMemberAffiliation, IMemberOrganizationAffiliationOverride } from '@crowd/types'
+import {
+  IChangeAffiliationOverrideData,
+  IMemberOrganizationAffiliationOverride,
+} from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -8,86 +11,90 @@ export async function changeOverride(
   qx: QueryExecutor,
   data: IChangeAffiliationOverrideData,
 ): Promise<void> {
-  if (!data.memberId || !data.organizationId || (data.allowAffiliation == undefined && data.isPrimaryOrganization == undefined)) {
-    return;
+  if (
+    !data.memberId ||
+    !data.memberOrganizationId ||
+    (data.allowAffiliation == undefined && data.isPrimaryWorkExperience == undefined)
+  ) {
+    return
   }
 
-  const updateFields = [];
+  const updateFields = []
   if (data.allowAffiliation !== undefined) {
-    updateFields.push(`"allowAffiliation" = $(allowAffiliation)`);
+    updateFields.push(`"allowAffiliation" = $(allowAffiliation)`)
   }
-  if (data.isPrimaryOrganization !== undefined) {
-    updateFields.push(`"isPrimaryOrganization" = $(isPrimaryOrganization)`);
+  if (data.isPrimaryWorkExperience !== undefined) {
+    updateFields.push(`"isPrimaryWorkExperience" = $(isPrimaryWorkExperience)`)
   }
 
-  const updateQuery = updateFields.length > 0 ? `DO UPDATE SET ${updateFields.join(', ')}` : 'DO NOTHING';
+  const updateQuery =
+    updateFields.length > 0 ? `DO UPDATE SET ${updateFields.join(', ')}` : 'DO NOTHING'
 
   await qx.result(
     `
       INSERT INTO "memberOrganizationAffiliationOverrides" (
           id, 
           "memberId", 
-          "organizationId", 
+          "memberOrganizationId", 
           "allowAffiliation", 
-          "isPrimaryOrganization"
+          "isPrimaryWorkExperience"
       )
       VALUES (
           $(id),
           $(memberId),
-          $(organizationId),
+          $(memberOrganizationId),
           $(allowAffiliation),
-          $(isPrimaryOrganization)
+          $(isPrimaryWorkExperience)
       )
-      ON CONFLICT ("memberId", "organizationId") 
+      ON CONFLICT ("memberId", "memberOrganizationId") 
       ${updateQuery};
     `,
     {
       id: uuid(),
       memberId: data.memberId,
-      organizationId: data.organizationId,
+      memberOrganizationId: data.memberOrganizationId,
       allowAffiliation: data.allowAffiliation ?? null,
-      isPrimaryOrganization: data.isPrimaryOrganization ?? null,
+      isPrimaryWorkExperience: data.isPrimaryWorkExperience ?? null,
     },
-  );
-
+  )
 }
 
 export async function findOverrides(
   qx: QueryExecutor,
   memberId: string,
-  organizationIds: string[],
+  memberOrganizationIds: string[],
 ): Promise<IMemberOrganizationAffiliationOverride[]> {
-  const overrides = await qx.select(
+  const overrides: IMemberOrganizationAffiliationOverride[] = await qx.select(
     `
       SELECT 
         id,
         "memberId",
-        "organizationId",
+        "memberOrganizationId",
         coalesce("allowAffiliation", true) as "allowAffiliation",
-        coalesce("isPrimaryOrganization", false) as "isPrimaryOrganization"
+        coalesce("isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
       FROM "memberOrganizationAffiliationOverrides"
       WHERE "memberId" = $(memberId)
-      AND "organizationId" IN ($(organizationIds:csv))
+      AND "memberOrganizationId" IN ($(memberOrganizationIds:csv))
     `,
     {
       memberId,
-      organizationIds,
+      memberOrganizationIds,
     },
-  );
+  )
 
-  const foundOrgIds = new Set(overrides.map((override) => override.organizationId));
+  const foundMemberOrgIds = new Set(overrides.map((override) => override.memberOrganizationId))
 
-  const results = organizationIds.map((organizationId) => {
-    if (foundOrgIds.has(organizationId)) {
-      return overrides.find((override) => override.organizationId === organizationId);
+  const results = memberOrganizationIds.map((memberOrganizationId) => {
+    if (foundMemberOrgIds.has(memberOrganizationId)) {
+      return overrides.find((override) => override.memberOrganizationId === memberOrganizationId)
     }
     return {
       allowAffiliation: true,
-      isPrimaryOrganization: false,
+      isPrimaryWorkExperience: false,
       memberId,
-      organizationId,
-    };
-  });
+      memberOrganizationId,
+    }
+  })
 
-  return results;
+  return results
 }

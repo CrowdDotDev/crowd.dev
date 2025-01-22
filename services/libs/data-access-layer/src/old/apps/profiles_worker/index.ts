@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import QueryStream from 'pg-query-stream'
 
-import { getLongestDateRange, getDefaultTenantId } from '@crowd/common'
+import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
-import { IMemberOrganization, ITenant } from '@crowd/types'
+import { IMemberOrganization } from '@crowd/types'
 
 import { insertActivities } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
@@ -47,13 +47,13 @@ export async function runMemberAffiliationsUpdate(
   }
 
   type MemberOrganizationWithOverrides = IMemberOrganization & {
-    isPrimaryOrganization: boolean
+    isPrimaryWorkExperience: boolean
     memberCount: number
   }
 
   type TimelineItem = {
     organizationId: string
-    isPrimaryOrganization: boolean
+    isPrimaryWorkExperience: boolean
     withDates?: boolean
   }
 
@@ -87,31 +87,31 @@ export async function runMemberAffiliationsUpdate(
     return newDate
   }
 
-  const selectPrimaryOrg = (
+  const selectPrimaryWorkExperience = (
     orgs: MemberOrganizationWithOverrides[],
   ): MemberOrganizationWithOverrides => {
     if (orgs.length === 1) {
       return orgs[0]
     }
 
-    // first check if there's a primary org
-    const primaryOrgs = orgs.filter((row) => row.isPrimaryOrganization)
+    // first check if there's a primary work experience
+    const primaryOrgs = orgs.filter((row) => row.isPrimaryWorkExperience)
     if (primaryOrgs.length > 0) {
-      // favor the one with dates if there are multiple primary orgs
+      // favor the one with dates if there are multiple primary work experiences
       const withDates = primaryOrgs.filter((row) => !!row.dateStart)
       if (withDates.length > 0) {
-        // there can be one primary org with intersecting date ranges so just return the first one found
+        // there can be one primary work experiences with intersecting date ranges so just return the first one found
         return withDates[0]
       } else {
         // no orgs with dates were found, return the first org without dates and with primary flag
         return primaryOrgs[0]
       }
     } else {
-      // no orgs were marked as primary by the user, use additional metrics to decide the primary
+      // no work experience was marked as primary by the user, use additional metrics to decide the primary
       // 1. favor the one with dates if there's only one
       const withDates = orgs.filter((row) => !!row.dateStart)
       if (withDates.length === 1) {
-        // there can be one primary org with intersecting date ranges so just return the first one found
+        // there can be one primary work exp with intersecting date ranges
         return withDates[0]
       }
 
@@ -158,7 +158,7 @@ export async function runMemberAffiliationsUpdate(
         currentPrimaryOrg = null
         currentStartDate = null
       } else {
-        const primaryOrg = selectPrimaryOrg(orgs)
+        const primaryOrg = selectPrimaryWorkExperience(orgs)
 
         if (currentPrimaryOrg == null) {
           // means there's a new range starting
@@ -213,10 +213,10 @@ export async function runMemberAffiliationsUpdate(
         mo."dateStart",
         mo."dateEnd",
         mo."createdAt",
-        coalesce(ovr."isPrimaryOrganization", false) as "isPrimaryOrganization",
+        coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience",
         coalesce(a.total_count, 0) as "memberCount"
       FROM "memberOrganizations" mo
-      LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."organizationId" = mo."organizationId"
+      LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo.id
       LEFT JOIN aggs a on a."organizationId" = mo."organizationId"
       WHERE mo."memberId" = $(memberId)
         AND mo."deletedAt" IS NULL

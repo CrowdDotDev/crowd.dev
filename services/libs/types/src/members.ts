@@ -226,17 +226,17 @@ export interface IMemberOpensearch {
   obj_attributes: IMemberAttributesOpensearch
 }
 
-export interface IChangeAffiliationOverrideData  {
+export interface IChangeAffiliationOverrideData {
   allowAffiliation?: boolean
-  isPrimaryOrganization?: boolean
-  organizationId: string
+  isPrimaryWorkExperience?: boolean
+  memberOrganizationId: string
   memberId: string
 }
 
 export interface IMemberOrganizationAffiliationOverride {
   id?: string
   memberId: string
-  organizationId: string
+  memberOrganizationId: string
   allowAffiliation: boolean
-  isPrimaryOrganization: boolean
+  isPrimaryWorkExperience: boolean
 }

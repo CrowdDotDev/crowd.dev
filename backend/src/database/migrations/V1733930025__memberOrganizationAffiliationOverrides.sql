@@ -1,14 +1,14 @@
 create table "memberOrganizationAffiliationOverrides" (
     id uuid not null,
     "memberId" uuid not null,
-    "organizationId"      uuid not null,
+    "memberOrganizationId"      uuid not null,
     "allowAffiliation"    boolean,
-    "isPrimaryOrganization" boolean,
+    "isPrimaryWorkExperience" boolean,
 
     primary key ("id"),
-    foreign key ("organizationId") references "organizations" (id),
+    foreign key ("memberOrganizationId") references "memberOrganizations" (id),
     foreign key ("memberId") references members (id),
-    unique ("memberId", "organizationId")
+    unique ("memberId", "memberOrganizationId")
 );
 
 

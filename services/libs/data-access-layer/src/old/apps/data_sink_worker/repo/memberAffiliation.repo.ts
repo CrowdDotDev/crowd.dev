@@ -44,9 +44,9 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT
             mo.*,
-            coalesce(ovr."isPrimaryOrganization", false) as "isPrimaryOrganization"
+            coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
         FROM "memberOrganizations" mo
-        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."organizationId" = mo."organizationId"
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo."id"
         WHERE mo."memberId" = $(memberId)
           AND (
             (mo."dateStart" <= $(timestamp) AND mo."dateEnd" >= $(timestamp))
@@ -100,9 +100,9 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT
           mo.*,
-          coalesce(ovr."isPrimaryOrganization", false) as "isPrimaryOrganization"
+          coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
         FROM "memberOrganizations" mo
-        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."organizationId" = mo."organizationId"
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo.id
         WHERE mo."memberId" = $(memberId)
           AND mo."dateStart" IS NULL
           AND mo."dateEnd" IS NULL
@@ -127,9 +127,9 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT
           mo.*,
-          coalesce(ovr."isPrimaryOrganization", false) as "isPrimaryOrganization"
+          coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
         FROM "memberOrganizations" mo
-        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."organizationId" = mo."organizationId"
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo.id
         WHERE mo."memberId" = $(memberId)
           AND mo."dateStart" IS NULL
           AND mo."dateEnd" IS NULL

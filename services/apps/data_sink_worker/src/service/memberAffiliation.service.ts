@@ -53,7 +53,7 @@ export default class MemberAffiliationService extends LoggerBase {
       }
 
       // check if any of the employements are marked as primary
-      const primaryEmployment = experiences.find((employment) => employment.isPrimaryOrganization)
+      const primaryEmployment = experiences.find((employment) => employment.isPrimaryWorkExperience)
 
       if (primaryEmployment) {
         return primaryEmployment.organizationId
