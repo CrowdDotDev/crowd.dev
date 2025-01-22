@@ -5,18 +5,10 @@
       <!--        <lf-icon name="circle-info" type="regular" />-->
       <!--        Details-->
       <!--      </lf-button>-->
-      <el-tooltip
-        content="Onboarding new data for GitHub is currently disabled due to some issues we are experiencing.
-      Please contact support if you need to onboard new data or update settings."
-        placement="top"
-      >
-        <span>
-          <lf-button type="secondary" disabled @click="isConnectModalOpen = true">
-            <lf-icon name="link-simple" />
-            Connect
-          </lf-button>
-        </span>
-      </el-tooltip>
+      <lf-button type="secondary" @click="isConnectModalOpen = true">
+        <lf-icon name="link-simple" />
+        Connect
+      </lf-button>
     </div>
     <lf-github-connect-modal
       v-if="isConnectModalOpen"
@@ -37,6 +29,10 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import LfGithubConnectFinishingModal
+  from '@/config/integrations/github/components/connect/github-connect-finishing-modal.vue';
+// import LfGithubDetailsModal from '@/config/integrations/github/components/github-details-modal.vue';
+import LfGithubConnectModal from './github-connect-modal.vue';
 
 const route = useRoute();
 const { doGithubConnect } = mapActions('integration');

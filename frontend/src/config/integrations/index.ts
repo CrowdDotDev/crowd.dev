@@ -1,4 +1,6 @@
+import config from '@/config';
 import github from './github/config';
+import githubArchive from './github-archive/config';
 import git from './git/config';
 import groupsio from './groupsio/config';
 import confluence from './confluence/config';
@@ -28,7 +30,7 @@ export interface IntegrationConfig {
 }
 
 export const lfIntegrations: Record<string, IntegrationConfig> = {
-  github,
+  github: config.isGithubArchiveEnabled === 'true' ? githubArchive : github,
   git,
   groupsio,
   confluence,

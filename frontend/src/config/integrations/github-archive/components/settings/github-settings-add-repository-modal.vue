@@ -160,8 +160,8 @@ import {
   GitHubOrganization,
   GitHubRepository,
   GitHubSettingsRepository,
-} from '@/config/integrations/github/types/GithubSettings';
-import { GithubApiService } from '@/config/integrations/github/services/github.api.service';
+} from '@/config/integrations/github-archive/types/GithubSettings';
+import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
 import Message from '@/shared/message/message';
 import dayjs from 'dayjs';
 

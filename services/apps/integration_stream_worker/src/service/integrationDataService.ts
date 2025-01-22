@@ -6,9 +6,12 @@ import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/i
 import { INTEGRATION_SERVICES, IProcessDataContext } from '@crowd/integrations'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { IActivityData, IntegrationResultType } from '@crowd/types'
+import { IActivityData, IntegrationResultType, PlatformType } from '@crowd/types'
 
 import { PLATFORM_CONFIG } from '../conf'
+
+const isSnowflakeEnabled =
+  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationDataService extends LoggerBase {
   private repo: IntegrationStreamRepository
@@ -26,10 +29,17 @@ export default class IntegrationDataService extends LoggerBase {
   }
 
   public async processData(data: unknown, stream: IStreamData): Promise<void> {
-    const integrationService = singleOrDefault(
+    let integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === stream.integrationType,
     )
+
+    if (isSnowflakeEnabled && stream.integrationType === PlatformType.GITHUB) {
+      integrationService = singleOrDefault(
+        INTEGRATION_SERVICES,
+        (i) => i.type === PlatformType.GITHUB_SNOWFLAKE,
+      )
+    }
 
     if (!integrationService) {
       this.log.error({ type: stream.integrationType }, 'Could not find integration service!')
