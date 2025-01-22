@@ -11,7 +11,7 @@ export default (app) => {
   )
 
   app.post(
-    `/tenant/:tenantId/member/:memberId/affiliation/override`,
+    `/tenant/member/:memberId/affiliation/override`,
     safeWrap(require('./memberAffiliationChangeOverride').default),
   )
 }
