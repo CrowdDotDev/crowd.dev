@@ -1,3 +1,4 @@
+import config from '@/config';
 import github from './github/config';
 import githubArchive from './github-archive/config';
 import git from './git/config';
@@ -15,7 +16,6 @@ import gitlab from './gitlab/config';
 import gerrit from './gerrit/config';
 import discourse from './discourse/config';
 import devto from './devto/config';
-import config from '@/config';
 
 export interface IntegrationConfig {
   key: string; // Unique key for the integration
