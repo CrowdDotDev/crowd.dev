@@ -5,17 +5,10 @@
       <!--        <lf-icon name="circle-info" type="regular" />-->
       <!--        Details-->
       <!--      </lf-button>-->
-      <el-tooltip
-        content="Onboarding new data for GitHub is currently being
-        managed by the CM dev team. Please reach out in Slack (#lfx-cm) to get your project onboarded."
-        placement="top"
-        :disabled="isTeam"
-      >
-        <lf-button type="secondary" :disabled="!isTeam" @click="isSettingsDrawerOpen = true">
-          <lf-icon name="link-simple" />
-          <slot>Connect</slot>
-        </lf-button>
-      </el-tooltip>
+      <lf-button type="secondary" @click="isSettingsDrawerOpen = true">
+        <lf-icon name="link-simple" />
+        <slot>Connect</slot>
+      </lf-button>
     </div>
     <lf-github-settings-drawer
       v-if="isSettingsDrawerOpen"
@@ -32,7 +25,6 @@ import { ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsDrawer from '@/config/integrations/github-archive/components/settings/github-settings-drawer.vue';
-// import { isTeamUser } from '@/config/permissions';
 // import { useAuthStore } from '@/modules/auth/store/auth.store';
 // import { storeToRefs } from 'pinia';
 
@@ -43,8 +35,6 @@ const props = defineProps<{
 }>();
 
 const isSettingsDrawerOpen = ref(false);
-
-const isTeam = true;
 </script>
 
 <script lang="ts">
