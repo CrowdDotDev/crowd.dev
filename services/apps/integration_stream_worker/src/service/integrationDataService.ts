@@ -10,7 +10,8 @@ import { IActivityData, IntegrationResultType, PlatformType } from '@crowd/types
 
 import { PLATFORM_CONFIG } from '../conf'
 
-const isSnowflakeEnabled = (PLATFORM_CONFIG('github') as any)?.isSnowflakeEnabled === 'true'
+const isSnowflakeEnabled =
+  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationDataService extends LoggerBase {
   private repo: IntegrationStreamRepository

@@ -28,7 +28,8 @@ import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 
 import IntegrationDataService from './integrationDataService'
 
-const isSnowflakeEnabled = (PLATFORM_CONFIG('github') as any)?.isSnowflakeEnabled === 'true'
+const isSnowflakeEnabled =
+  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
