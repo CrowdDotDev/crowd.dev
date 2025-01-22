@@ -137,7 +137,6 @@
 </template>
 
 <script setup>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
@@ -152,6 +151,7 @@ import LfActivityDisplay from '@/shared/modules/activity/components/activity-dis
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { lfIdentities } from '@/config/identities';
 import AppActivityHeader from './activity-header.vue';
 
 const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);
@@ -178,9 +178,7 @@ const { trackEvent } = useProductTracking();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const platform = computed(() => CrowdIntegrations.getConfig(
-  props.activity.platform,
-));
+const platform = computed(() => lfIdentities[props.activity.platform]);
 
 const openConversation = (conversationId) => {
   trackEvent({

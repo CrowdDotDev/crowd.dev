@@ -50,7 +50,7 @@
 
 <script setup>
 import { computed, defineProps } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps({
   platform: {
@@ -72,7 +72,7 @@ const props = defineProps({
   },
 });
 
-const platformDetails = computed(() => CrowdIntegrations.getConfig(props.platform));
+const platformDetails = computed(() => lfIdentities[props.platform]);
 </script>
 
 <script>

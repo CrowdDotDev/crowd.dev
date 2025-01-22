@@ -13,6 +13,7 @@ const linkedin: IntegrationConfig = {
   connectedParamsComponent: LinkedinParams,
   actionComponent: LinkedinAction,
   dropdownComponent: LinkedinDropdown,
+  showProgress: false,
 };
 
 export default linkedin;

@@ -13,6 +13,7 @@ const github: IntegrationConfig = {
   statusComponent: GithubStatus,
   actionComponent: GithubAction,
   connectedParamsComponent: GithubParams,
+  showProgress: true,
 };
 
 export default github;

@@ -14,9 +14,10 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { lfIdentities } from '@/config/identities';
+import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
 
 const props = defineProps<{
   modelValue: string,
@@ -24,15 +25,14 @@ const props = defineProps<{
   data: any,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void, (e: 'update:data', value: any): void}>();
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
 const store = useStore();
+const { getActiveIntegrations } = useIntegrationsHelpers();
 
-const activeIntegrations = computed<string[]>(() => CrowdIntegrations.mappedEnabledConfigs(
-  store,
-).filter((integration) => integration.status).map((integration) => integration.platform));
+const activeIntegrations = computed<string[]>(() => getActiveIntegrations().map((integration) => integration.key));
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -52,18 +52,18 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
+      label: lfIdentities[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
+        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,
       })),
     }));
 
   const customOptions = Object.entries(typesValue.custom)
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
+      label: lfIdentities[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
+        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,
       })),
     }));

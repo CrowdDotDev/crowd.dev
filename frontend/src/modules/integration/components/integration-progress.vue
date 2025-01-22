@@ -36,7 +36,7 @@
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { IntegrationProgress, IntegrationProgressPart } from '@/modules/integration/types/IntegrationProgress';
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIntegrations } from '@/config/integrations';
 
 const props = defineProps<{
   progress: IntegrationProgress | null,
@@ -55,7 +55,7 @@ const showProgress = computed(() => {
   if (!props.progress) {
     return false;
   }
-  return CrowdIntegrations.getConfig(props.progress.platform)?.showProgress || false;
+  return lfIntegrations[props.progress.platform]?.showProgress || false;
 });
 
 const parts = computed<IntegrationProgressPart[]>(() => {

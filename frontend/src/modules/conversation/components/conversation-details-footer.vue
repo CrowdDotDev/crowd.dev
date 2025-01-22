@@ -36,17 +36,17 @@
           </p>
         </div>
         <app-conversation-attributes
-          v-if="platformConfig?.conversationDisplay?.showConversationAttributes"
+          v-if="!!platformConfig?.conversation?.attributes"
           :changes="footerContent().changes"
           :changes-copy="footerContent().changesCopy"
           :insertions="footerContent().insertions"
           :deletions="footerContent().deletions"
-          :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
+          :source-id="platformConfig?.activity?.showSourceId && sourceId"
           display="drawer"
           :display-source-id="conversation.conversationStarter?.type === 'authored-commit'"
         />
       </div>
-      <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length" class="mt-5">
+      <div v-if="platformConfig?.conversation?.showLabels && attributes.labels?.length" class="mt-5">
         <div class="uppercase font-semibold text-2xs tracking-1 text-gray-400 mb-2">
           Labels
         </div>
@@ -69,7 +69,7 @@ import pluralize from 'pluralize';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
 import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps({
   conversation: {
@@ -78,18 +78,12 @@ const props = defineProps({
   },
 });
 
-const platformConfig = computed(() => CrowdIntegrations.getConfig(
-  props.conversation.conversationStarter?.platform,
-));
+const platformConfig = computed(() => lfIdentities[props.conversation.conversationStarter?.platform]);
 
 const footerContent = () => {
   const { attributes } = props.conversation.conversationStarter;
 
-  if (!platformConfig.value?.conversationDisplay?.showConversationAttributes) {
-    return {};
-  }
-
-  return platformConfig.value?.conversationDisplay?.attributes(attributes);
+  return platformConfig.value?.conversationDisplay?.attributes?.(attributes) || {};
 };
 </script>
 

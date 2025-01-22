@@ -11,6 +11,7 @@ const confluence: IntegrationConfig = {
   connectComponent: ConfluenceConnect,
   connectedParamsComponent: ConfluenceParams,
   dropdownComponent: ConfluenceDropdown,
+  showProgress: false,
 };
 
 export default confluence;

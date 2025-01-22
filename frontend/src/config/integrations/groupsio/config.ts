@@ -11,6 +11,7 @@ const groupsio: IntegrationConfig = {
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,
   dropdownComponent: GroupsioDropdown,
+  showProgress: false,
 };
 
 export default groupsio;

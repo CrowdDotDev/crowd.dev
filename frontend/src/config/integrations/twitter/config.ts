@@ -11,6 +11,7 @@ const twitter: IntegrationConfig = {
   connectComponent: TwitterConnect,
   connectedParamsComponent: TwitterParams,
   dropdownComponent: TwitterDropdown,
+  showProgress: false,
 };
 
 export default twitter;
