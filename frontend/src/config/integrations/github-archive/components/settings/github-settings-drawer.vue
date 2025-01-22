@@ -93,8 +93,6 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
-import { storeToRefs } from 'pinia';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -107,7 +105,6 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
-const { user } = storeToRefs(useAuthStore());
 
 const isAddRepositoryModalOpen = ref(false);
 
