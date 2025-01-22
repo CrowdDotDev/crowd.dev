@@ -28,9 +28,10 @@ const checkHeaders = (response: AxiosResponse<any>, defaultValue = 0): number =>
 }
 
 const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubStats> => {
-  const [owner, repo] = repoUrl.split('/').slice(-2)
+  try {
+    const [owner, repo] = repoUrl.split('/').slice(-2)
 
-  const query = `
+    const query = `
         query {
         repository(owner: "${owner}", name: "${repo}") {
           starCount: stargazers {
@@ -49,44 +50,53 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
         }
     }`
 
-  const result = await axios.post(
-    'https://api.github.com/graphql',
-    {
-      query,
-    },
-    {
-      headers: {
-        Authorization: `bearer ${token}`,
+    const result = await axios.post(
+      'https://api.github.com/graphql',
+      {
+        query,
       },
-    },
-  )
-
-  const prsAll = await axios.get(
-    `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=1`,
-    {
-      headers: {
-        Authorization: `bearer ${token}`,
+      {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
       },
-    },
-  )
+    )
 
-  let out
+    const prsAll = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=1`,
+      {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
+      },
+    )
 
-  try {
-    out = {
-      stars: result.data.data.repository.starCount.totalCount,
-      forks: result.data.data.repository.forkCountDirect.totalCount,
-      totalIssues:
-        result.data.data.repository.issuesOpened.totalCount +
-        result.data.data.repository.issuesClosed.totalCount,
-      totalPRs: checkHeaders(prsAll),
+    let out
+
+    try {
+      out = {
+        stars: result.data.data.repository.starCount.totalCount,
+        forks: result.data.data.repository.forkCountDirect.totalCount,
+        totalIssues:
+          result.data.data.repository.issuesOpened.totalCount +
+          result.data.data.repository.issuesClosed.totalCount,
+        totalPRs: checkHeaders(prsAll),
+      }
+    } catch (e) {
+      log.error('Error getting stats for repo', e)
+      throw e
     }
-  } catch (e) {
-    log.error('Error getting stats for repo', e)
-    throw e
-  }
 
-  return out
+    return out
+  } catch (error) {
+    log.error(`Error fetching GitHub stats for repo ${repoUrl}:`, error)
+    return {
+      stars: 0,
+      forks: 0,
+      totalIssues: 0,
+      totalPRs: 0,
+    }
+  }
 }
 
 export const getGitHubRemoteStats = async (

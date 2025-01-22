@@ -30,5 +30,8 @@
   },
   "worker": {
     "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
+  },
+  "github": {
+    "isSnowflakeEnabled": "CROWD_GITHUB_IS_SNOWFLAKE_ENABLED"
   }
 }

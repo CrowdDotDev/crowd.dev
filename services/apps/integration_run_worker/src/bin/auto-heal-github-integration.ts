@@ -188,7 +188,7 @@ setImmediate(async () => {
     const repos: Repo[] = []
 
     for (const repoFullName of repoFullNames) {
-      const repoExists = currentSettings.repos.find((r) => r.url === repoFullName)
+      const repoExists = currentSettings.orgs[0].repos.find((r) => r.url === repoFullName)
       if (!repoExists) {
         log.error(`Repo ${repoFullName} is not configured in integration settings, skipping!`)
         continue
@@ -220,7 +220,16 @@ setImmediate(async () => {
 
     const settings: GithubManualIntegrationSettings = {
       manualSettingsType: 'detailed_map',
-      repos,
+      orgs: [
+        {
+          name: currentSettings.orgs[0].name,
+          logo: currentSettings.orgs[0].logo,
+          url: currentSettings.orgs[0].url,
+          fullSync: currentSettings.orgs[0].fullSync,
+          updatedAt: currentSettings.orgs[0].updatedAt,
+          repos,
+        },
+      ],
       unavailableRepos: [],
       map: mapToObject(detailedMap),
     }

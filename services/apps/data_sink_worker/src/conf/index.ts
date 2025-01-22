@@ -11,6 +11,10 @@ export interface ISlackAlertingConfig {
   url: string
 }
 
+export interface IGithubConfig {
+  isSnowflakeEnabled: string
+}
+
 export interface IWorkerConfig {
   maxStreamRetries: number
   queuePriorityLevel: QueuePriorityLevel
@@ -67,4 +71,12 @@ export const TEMPORAL_CONFIG = (): ITemporalConfig | undefined => {
 
 export const SEARCH_SYNC_API_CONFIG = (): ISearchSyncApiConfig => {
   return config.get<ISearchSyncApiConfig>('searchSyncApi')
+}
+
+let githubConfig: IGithubConfig
+export const GITHUB_CONFIG = (): IGithubConfig => {
+  if (githubConfig) return githubConfig
+
+  githubConfig = config.get<IGithubConfig>('github')
+  return githubConfig
 }

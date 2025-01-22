@@ -121,7 +121,7 @@
 
 <script>
 import { mapActions } from 'vuex';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import hackernews from '@/config/integrations/hackernews/config';
 import isUrl from '@/utils/isUrl';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -152,7 +152,7 @@ export default {
   data() {
     return {
       logoUrl:
-        CrowdIntegrations.getConfig('hackernews').image,
+        hackernews.image,
       users: [],
       urls: [],
       keywords: [],

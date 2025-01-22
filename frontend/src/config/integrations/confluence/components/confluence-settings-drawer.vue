@@ -81,7 +81,7 @@ import useVuelidate from '@vuelidate/core';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import confluence from '@/config/integrations/confluence/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -132,7 +132,7 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
-const logoUrl = computed(() => CrowdIntegrations.getConfig('confluence').image);
+const logoUrl = confluence.image;
 
 onMounted(() => {
   if (props.integration?.settings) {

@@ -50,11 +50,11 @@
             @click="setPlatform(integration)"
           >
             <img
-              :alt="platformDetails(integration).name"
-              :src="platformDetails(integration).image"
+              :alt="lfIdentities[integration]?.name"
+              :src="lfIdentities[integration]?.image"
               class="w-4 h-4 mr-2"
             />
-            {{ platformDetails(integration).name }}
+            {{ lfIdentities[integration]?.name }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -69,7 +69,6 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
@@ -78,6 +77,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppWidgetPeriod from '@/modules/dashboard/components/widget/widget-period.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppDashboardFilters',
@@ -98,7 +98,7 @@ export default {
     }),
     getPlatformName() {
       if (this.platform.length) {
-        const platform = this.platformDetails(this.platform);
+        const platform = lfIdentities[this.platform];
         if (platform) {
           return platform.name;
         }
@@ -147,9 +147,6 @@ export default {
 
         this.setFilters(filters);
       }
-    },
-    platformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
       const { trackEvent } = useProductTracking();

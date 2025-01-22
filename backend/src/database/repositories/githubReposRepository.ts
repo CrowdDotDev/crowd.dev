@@ -38,7 +38,24 @@ export default class GithubReposRepository {
     )
   }
 
-  static async updateMapping(
+  static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
+    const tenantId = options.currentTenant.id
+
+    await GithubReposRepository.bulkInsert(
+      'githubRepos',
+      ['tenantId', 'integrationId', 'segmentId', 'url'],
+      (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
+      Object.entries(mapping).map(([url, segmentId], idx) => ({
+        [`tenantId_${idx}`]: tenantId,
+        [`integrationId_${idx}`]: integrationId,
+        [`segmentId_${idx}`]: segmentId,
+        [`url_${idx}`]: url,
+      })),
+      options,
+    )
+  }
+
+  static async updateMappingSnowflake(
     integrationId,
     newMapping: Record<string, string>,
     oldMapping: {

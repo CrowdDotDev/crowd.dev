@@ -1,5 +1,5 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const membersEditIdentities: LogRenderingConfig = {
   label: 'Profile identities updated',
@@ -11,7 +11,7 @@ const membersEditIdentities: LogRenderingConfig = {
     Object.keys(log.oldState).forEach((platform) => {
       log.oldState[platform].forEach((identity) => {
         if (!log.newState[platform] || log.newState[platform].length === 0 || !log.newState[platform].includes(identity)) {
-          removals.push(`${CrowdIntegrations.getConfig(platform)?.name || platform} username: ${identity}`);
+          removals.push(`${lfIdentities[platform]?.name || platform} username: ${identity}`);
         }
       });
     });
@@ -20,7 +20,7 @@ const membersEditIdentities: LogRenderingConfig = {
     Object.keys(log.newState).forEach((platform) => {
       log.newState[platform].forEach((identity) => {
         if (!log.oldState[platform] || !log.oldState[platform].includes(identity)) {
-          additions.push(`${CrowdIntegrations.getConfig(platform)?.name || platform} username: ${identity}`);
+          additions.push(`${lfIdentities[platform]?.name || platform} username: ${identity}`);
         }
       });
     });

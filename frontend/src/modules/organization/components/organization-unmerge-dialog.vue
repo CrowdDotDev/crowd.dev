@@ -112,10 +112,10 @@
                                 class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
                               />
                               <img
-                                v-else-if="platformDetails(i.platform)"
+                                v-else-if="lfIdentities[i.platform]"
                                 class="h-5 w-5 mr-2"
-                                :alt="platformDetails(i.platform)?.value"
-                                :src="platformDetails(i.platform)?.image"
+                                :alt="lfIdentities[i.platform]?.name"
+                                :src="lfIdentities[i.platform]?.image"
                               />
                               <lf-icon-old
                                 v-else
@@ -160,10 +160,10 @@
                       class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
                     />
                     <img
-                      v-else-if="platformDetails(i.platform)"
+                      v-else-if="lfIdentities[i.platform]"
                       class="h-5 w-5 mr-2"
-                      :alt="platformDetails(i.platform)?.value"
-                      :src="platformDetails(i.platform)?.image"
+                      :alt="lfIdentities[i.platform]?.name"
+                      :src="lfIdentities[i.platform]?.image"
                     />
                     <lf-icon-old
                       v-else
@@ -188,7 +188,6 @@ import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
@@ -197,6 +196,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps({
   modelValue: {
@@ -274,8 +274,6 @@ const identities = computed(() => {
     })
     .map((i) => parseIdentityValues(i));
 });
-
-const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
 const fetchPreview = (identity) => {
   if (fetchingPreview.value) {

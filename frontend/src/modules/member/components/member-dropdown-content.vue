@@ -61,40 +61,6 @@
     <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge profile</span>
   </button>
 
-  <!-- Hubspot -->
-  <!--  <button-->
-  <!--    v-if="!isSyncingWithHubspot"-->
-  <!--    class="h-10 el-dropdown-menu__item w-full"-->
-  <!--    :disabled="isHubspotActionDisabled"-->
-  <!--    type="button"-->
-  <!--    @click="handleCommand({-->
-  <!--      action: Actions.SYNC_HUBSPOT,-->
-  <!--      member,-->
-  <!--    })-->
-  <!--    "-->
-  <!--  >-->
-  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
-  <!--    <span-->
-  <!--      class="text-xs pl-2"-->
-  <!--    >Sync with HubSpot</span>-->
-  <!--  </button>-->
-  <!--  <button-->
-  <!--    v-else-->
-  <!--    class="h-10 el-dropdown-menu__item w-full"-->
-  <!--    :disabled="isHubspotActionDisabled"-->
-  <!--    type="button"-->
-  <!--    @click="handleCommand({-->
-  <!--      action: Actions.STOP_SYNC_HUBSPOT,-->
-  <!--      member,-->
-  <!--    })-->
-  <!--    "-->
-  <!--  >-->
-  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
-  <!--    <span-->
-  <!--      class="text-xs pl-2"-->
-  <!--    >Stop sync with HubSpot</span>-->
-  <!--  </button>-->
-
   <template v-if="hasPermission(LfPermission.memberEdit)">
     <el-tooltip
       placement="top"
@@ -186,7 +152,6 @@ import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -228,25 +193,6 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const memberStore = useMemberStore();
 
 const { hasPermission } = usePermissions();
-
-// const isSyncingWithHubspot = computed(
-//   () => props.member.attributes?.syncRemote?.hubspot || false,
-// );
-
-// const isHubspotConnected = computed(() => {
-//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-//   const enabledFor = hubspot.settings?.enabledFor || [];
-//
-//   return (
-//     hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
-//   );
-// });
-//
-// const isHubspotDisabledForMember = computed(
-//   () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
-// );
-
-// const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
 
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github

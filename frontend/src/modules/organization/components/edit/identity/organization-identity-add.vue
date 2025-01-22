@@ -24,8 +24,8 @@
                     <div class="flex items-center flex-nowrap whitespace-nowrap">
                       <div class="min-w-5">
                         <img
-                          v-if="platform(identity.platform)"
-                          :src="platform(identity.platform)?.image"
+                          v-if="lfIdentities[identity.platform]"
+                          :src="lfIdentities[identity.platform]?.image"
                           class="h-5 w-5 object-contain"
                           :alt="identity.value"
                         />
@@ -37,11 +37,11 @@
                         />
                       </div>
                       <p
-                        v-if="platform(identity.platform)?.orgUrlPrefix || platform(identity.platform)?.urlPrefix"
+                        v-if="lfIdentities[identity.platform]?.organization?.urlPrefix"
                         class="-mr-2 pl-2"
                         :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
                       >
-                        {{ platform(identity.platform)?.orgUrlPrefix || platform(identity.platform)?.urlPrefix }}
+                        {{ lfIdentities[identity.platform]?.organization?.urlPrefix }}
                       </p>
                     </div>
                   </template>
@@ -102,7 +102,6 @@ import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import useVuelidate from '@vuelidate/core';
@@ -118,6 +117,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfOrganizationDetailsIdentityAddDropdown
   from '@/modules/organization/components/details/identity/organization-details-identity-add-dropdown.vue';
 import { required } from '@vuelidate/validators';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -159,8 +159,6 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', value);
   },
 });
-
-const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;

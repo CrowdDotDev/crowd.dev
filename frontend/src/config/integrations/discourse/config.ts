@@ -11,6 +11,7 @@ const discourse: IntegrationConfig = {
   connectComponent: DiscourseConnect,
   connectedParamsComponent: DiscourseParams,
   dropdownComponent: DiscourseDropdown,
+  showProgress: false,
 };
 
 export default discourse;

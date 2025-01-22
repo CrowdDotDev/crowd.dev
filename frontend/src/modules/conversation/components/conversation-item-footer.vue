@@ -36,16 +36,16 @@
           </p>
         </div>
         <app-conversation-attributes
-          v-if="platformConfig?.conversationDisplay?.showConversationAttributes"
+          v-if="!!platformConfig?.conversation?.attributes"
           :changes="footerContent().changes"
           :changes-copy="footerContent().changesCopy"
           :insertions="footerContent().insertions"
           :deletions="footerContent().deletions"
-          :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
+          :source-id="platformConfig?.activity?.showSourceId && sourceId"
           :display-source-id="conversation.conversationStarter?.platform === Platform.GIT"
         />
 
-        <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length">
+        <div v-if="platformConfig?.conversation?.showLabels && attributes.labels?.length">
           <el-tooltip
             :content="attributes.labels.join(' ・ ')"
             placement="top"
@@ -79,8 +79,8 @@ import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationFooterWrapper from '@/modules/conversation/components/conversation-footer-wrapper.vue';
 import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps({
   conversation: {
@@ -89,18 +89,12 @@ const props = defineProps({
   },
 });
 
-const platformConfig = computed(() => CrowdIntegrations.getConfig(
-  props.conversation.conversationStarter?.platform,
-));
+const platformConfig = computed(() => lfIdentities[props.conversation.conversationStarter?.platform]);
 
 const footerContent = () => {
   const { attributes } = props.conversation.conversationStarter;
 
-  if (!platformConfig.value?.conversationDisplay?.showConversationAttributes) {
-    return {};
-  }
-
-  return platformConfig.value?.conversationDisplay?.attributes(attributes);
+  return platformConfig.value?.conversationDisplay?.attributes?.(attributes) || {};
 };
 </script>
 

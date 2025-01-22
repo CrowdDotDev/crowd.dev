@@ -11,6 +11,7 @@ const jira: IntegrationConfig = {
   connectComponent: JiraConnect,
   connectedParamsComponent: JiraParams,
   dropdownComponent: JiraDropdown,
+  showProgress: false,
 };
 
 export default jira;

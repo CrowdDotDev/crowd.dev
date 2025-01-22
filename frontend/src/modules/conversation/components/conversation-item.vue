@@ -101,7 +101,6 @@
 </template>
 
 <script>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
@@ -113,6 +112,7 @@ import AppActivityHeader from '@/modules/activity/components/activity-header.vue
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfConversationDisplay from '@/shared/modules/conversation/components/conversation-display.vue';
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppConversationItem',
@@ -145,9 +145,7 @@ export default {
   },
   computed: {
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.conversation.conversationStarter?.platform,
-      );
+      return lfIdentities[this.conversation.conversationStarter?.platform];
     },
     member() {
       return this.conversation.conversationStarter?.member;
@@ -157,7 +155,7 @@ export default {
     },
     separatorContent() {
       const remainingActivitiesCount = this.conversation.activityCount - 3;
-      const copy = this.platform?.conversationDisplay?.separatorContent || 'reply';
+      const copy = this.platform?.conversation?.separatorContent || 'reply';
 
       return pluralize(`more ${copy}`, remainingActivitiesCount, true);
     },
