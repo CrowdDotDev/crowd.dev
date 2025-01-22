@@ -165,7 +165,7 @@ import {
   ref,
 } from 'vue';
 import Message from '@/shared/message/message';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import github from '@/config/integrations/github/config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute, useRouter } from 'vue-router';
 import { required } from '@vuelidate/validators';
@@ -230,7 +230,7 @@ const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.
 } : null));
 
 // Static github details
-const githubDetails = computed(() => CrowdIntegrations.getConfig('github'));
+const githubDetails = computed(() => github);
 
 // Form
 const form = ref<Record<string, string>>(repos.value.reduce((a: Record<string, any>, b: any) => ({
