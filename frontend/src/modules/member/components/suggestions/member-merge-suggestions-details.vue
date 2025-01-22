@@ -232,7 +232,7 @@
             Joined date
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
+            {{ formatJoinedDate(member.joinedAt) }}
           </p>
         </article>
         <article
@@ -350,6 +350,13 @@ onMounted(() => {
     emit('bioHeight', scrollHeight);
   }, 0);
 });
+
+const formatJoinedDate = (date) => {
+  if (!date || new Date(date).getFullYear() <= 1970) {
+    return '-';
+  }
+  return moment(date).format('YYYY-MM-DD');
+};
 
 defineExpose({
   more,
