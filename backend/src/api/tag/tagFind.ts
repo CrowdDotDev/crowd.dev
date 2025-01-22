@@ -3,12 +3,11 @@ import TagService from '../../services/tagService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/tag/{id}
+ * GET /tag/{id}
  * @summary Find a tag
  * @tag Tags
  * @security Bearer
  * @description Find a tag by ID
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the tag
  * @response 200 - Ok
  * @responseContent {Tag} 200.application/json

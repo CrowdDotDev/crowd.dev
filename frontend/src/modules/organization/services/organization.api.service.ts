@@ -1,5 +1,4 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import { Organization } from '@/modules/organization/types/Organization';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -7,12 +6,10 @@ import { storeToRefs } from 'pinia';
 
 export class OrganizationApiService {
   static async find(id: string, segments: string[]): Promise<Organization> {
-    const tenantId = AuthService.getTenantId();
-
     const [segmentId] = segments;
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/organization/${id}`,
+      `/organization/${id}`,
       {
         params: {
           segmentId,
@@ -26,7 +23,6 @@ export class OrganizationApiService {
   }
 
   static async fetchMergeSuggestions(limit: number = 20, offset: number = 0, query: any = {}) {
-    const tenantId = AuthService.getTenantId();
     const lsSegmentsStore = useLfSegmentsStore();
     const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
@@ -43,17 +39,15 @@ export class OrganizationApiService {
     };
 
     return authAxios.post(
-      `/tenant/${tenantId}/organizationsToMerge`,
+      '/organizationsToMerge',
       data,
     )
       .then(({ data }) => Promise.resolve(data));
   }
 
   static create(data: Partial<Organization>, segments: string[]) {
-    const tenantId = AuthService.getTenantId();
-
     return authAxios.post(
-      `/tenant/${tenantId}/organization`,
+      '/organization',
       {
         ...data,
         segments,

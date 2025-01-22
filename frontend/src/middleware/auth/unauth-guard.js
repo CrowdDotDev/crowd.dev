@@ -18,9 +18,8 @@ export default async function ({ to, router }) {
   }
 
   const token = AuthService.getToken();
-  const tenantId = AuthService.getTenantId();
 
-  if (token && tenantId) {
+  if (token) {
     // `window.history.replaceState` to replace the current URL with the root URL
     window.history.replaceState(null, '', '/');
 

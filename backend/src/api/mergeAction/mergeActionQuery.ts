@@ -4,12 +4,11 @@ import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/mergeAction
+ * GET /mergeAction
  * @summary Query mergeActions
  * @tag MergeActions
  * @security Bearer
  * @description Query mergeActions. It accepts filters and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} entityId - ID of the entity
  * @queryParam {string} type - type of the entity (e.g., org or member)
  * @queryParam {number} [limit] - number of records to return (optional, default to 20)

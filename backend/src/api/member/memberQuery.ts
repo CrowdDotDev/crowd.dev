@@ -4,12 +4,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/member/query
+ * POST /member/query
  * @summary Query members
  * @tag Members
  * @security Bearer
  * @description Query members. It accepts filters, sorting options and pagination.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {MemberQuery} application/json
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json

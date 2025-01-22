@@ -3,10 +3,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class ActivityTypeService {
   static async create(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/settings/activity/types`,
+      '/settings/activity/types',
       {
         ...data,
         segments,
@@ -17,10 +15,8 @@ export class ActivityTypeService {
   }
 
   static async update(key, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/settings/activity/types/${key}`,
+      `/settings/activity/types/${key}`,
       {
         ...data,
         segments,
@@ -31,10 +27,8 @@ export class ActivityTypeService {
   }
 
   static async delete(key, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/settings/activity/types/${key}`,
+      `/settings/activity/types/${key}`,
       {
         params: {
           segments,
@@ -46,10 +40,8 @@ export class ActivityTypeService {
   }
 
   static async get() {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings/activity/types`,
+      '/settings/activity/types',
     );
 
     return response.data;

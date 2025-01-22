@@ -3,7 +3,7 @@ import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/conversation/{id}
+ * DELETE /conversation/{id}
  * @summary Delete a conversation
  * @tag Conversations
  * @security Bearer

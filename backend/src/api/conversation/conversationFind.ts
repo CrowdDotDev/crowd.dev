@@ -3,12 +3,11 @@ import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/conversation/{id}
+ * GET /conversation/{id}
  * @summary Find a conversation
  * @tag Conversations
  * @security Bearer
  * @description Find a conversation by ID.
- * @pathParam {string} tenantId - Your workspace/tenant ID.
  * @pathParam {string} id - The ID of the conversation.
  * @response 200 - Ok
  * @responseContent {Conversation} 200.application/json

@@ -3,12 +3,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * DELETE /tenant/{tenantId}/member/{id}
+ * DELETE /member/{id}
  * @summary Delete a member
  * @tag Members
  * @security Bearer
  * @description Delete a member given an ID
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @response 200 - Ok
  * @response 401 - Unauthorized

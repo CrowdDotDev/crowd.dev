@@ -44,5 +44,4 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 const emit = defineEmits(['onStepChange']);
 
 const { hasPermission } = usePermissions();
-
 </script>

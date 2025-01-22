@@ -4,12 +4,11 @@ import CustomViewService from '../../services/customViewService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/customview
+ * POST /customview
  * @summary Create a custom view
  * @tag CustomViews
  * @security Bearer
  * @description Create a custom view
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {CustomViewInput} application/json
  * @response 200 - Ok
  * @responseContent {CustomView} 200.application/json

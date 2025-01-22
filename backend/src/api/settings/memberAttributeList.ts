@@ -3,12 +3,11 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/settings/members/attributes
+ * GET /settings/members/attributes
  * @summary Attributes settings: list
  * @tag Members
  * @security Bearer
  * @description Get a list of members' attribute settings
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} [filter[label]] - Filter by label of member attribute settings
  * @queryParam {string} [filter[name]] - Filter by name of member attribute settings
  * @queryParam {string} [filter[type]] - Filter by type of member attribute settings

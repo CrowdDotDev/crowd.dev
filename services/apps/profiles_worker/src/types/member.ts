@@ -8,7 +8,4 @@ export interface MemberUpdateInput {
 
 export interface IRecalculateAffiliationsForNewRolesInput {
   offset?: number
-  tenant: {
-    id: string
-  }
 }

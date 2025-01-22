@@ -27,7 +27,6 @@ import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExec
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   IMemberIdentity,
   IMemberRoleWithOrganization,
@@ -43,10 +42,8 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
-  TemporalWorkflowId,
 } from '@crowd/types'
 
-import { TEMPORAL_CONFIG } from '@/conf'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -537,35 +534,6 @@ export default class MemberService extends LoggerBase {
 
       if (syncToOpensearch) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
-      }
-
-      if (!existing && fireCrowdWebhooks) {
-        try {
-          const handle = await this.options.temporal.workflow.start('processNewMemberAutomation', {
-            workflowId: `${TemporalWorkflowId.NEW_MEMBER_AUTOMATION}/${record.id}`,
-            taskQueue: TEMPORAL_CONFIG.automationsTaskQueue,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 100,
-            },
-
-            args: [
-              {
-                tenantId: this.options.currentTenant.id,
-                memberId: record.id,
-              },
-            ],
-            searchAttributes: {
-              TenantId: [this.options.currentTenant.id],
-            },
-          })
-          this.log.info(
-            { workflowId: handle.workflowId },
-            'Started temporal workflow to process new member automation!',
-          )
-        } catch (err) {
-          logger.error(err, `Error triggering new member automation - ${record.id}!`)
-        }
       }
 
       if (!fireCrowdWebhooks) {
@@ -1785,34 +1753,6 @@ export default class MemberService extends LoggerBase {
 
   async findMembersWithMergeSuggestions(args) {
     return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
-  }
-
-  async import(data, importHash) {
-    if (!importHash) {
-      throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-    }
-
-    if (await this._isImportHashExistent(importHash)) {
-      throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-    }
-
-    const dataToCreate = {
-      ...data,
-      importHash,
-    }
-
-    await this.upsert(dataToCreate)
-  }
-
-  async _isImportHashExistent(importHash) {
-    const count = await MemberRepository.count(
-      {
-        importHash,
-      },
-      this.options,
-    )
-
-    return count > 0
   }
 
   /**

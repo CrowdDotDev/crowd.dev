@@ -6,12 +6,11 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/member/{id}
+ * PUT /member/{id}
  * @summary Update a member
  * @tag Members
  * @security Bearer
  * @description Update a member
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @bodyContent {MemberUpdateInput} application/json
  * @response 200 - Ok

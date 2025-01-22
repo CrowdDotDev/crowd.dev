@@ -4,12 +4,11 @@ import CustomViewService from '../../services/customViewService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/customview/query
+ * GET /customview/query
  * @summary Query custom views
  * @tag CustomViews
  * @security Bearer
  * @description Query custom views. It accepts filters and sorting options.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string[]} placement - The placements to filter by
  * @queryParam {string} visibility - The visibility to filter by
  * @response 200 - Ok

@@ -3,7 +3,7 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/activity/{id}
+ * GET /activity/{id}
  * @summary Find an activity
  * @tag Activities
  * @security Bearer

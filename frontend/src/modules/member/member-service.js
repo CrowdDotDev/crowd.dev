@@ -13,10 +13,8 @@ const getSelectedProjectGroup = () => {
 
 export class MemberService {
   static async update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/member/${id}`,
+      `/member/${id}`,
       {
         ...data,
         segments,
@@ -27,10 +25,8 @@ export class MemberService {
   }
 
   static async updateBulk(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.patch(
-      `/tenant/${tenantId}/member`,
+      '/member',
       {
         segments,
         data,
@@ -47,10 +43,8 @@ export class MemberService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/member`,
+      '/member',
       {
         params,
       },
@@ -60,10 +54,8 @@ export class MemberService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member`,
+      '/member',
       {
         ...data.data,
         segments,
@@ -74,10 +66,8 @@ export class MemberService {
   }
 
   static async findGithub(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/member/github/${id}`,
+      `/member/github/${id}`,
     );
 
     return response.data;
@@ -98,10 +88,8 @@ export class MemberService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/export`,
+      '/member/export',
       body,
     );
 
@@ -109,10 +97,8 @@ export class MemberService {
   }
 
   static async find(id, segmentId) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/member/${id}`,
+      `/member/${id}`,
       {
         params: {
           segments: [segmentId ?? getSelectedProjectGroup().id],
@@ -153,10 +139,8 @@ export class MemberService {
       }),
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/autocomplete`,
+      '/member/autocomplete',
       payload,
       {
         headers: {
@@ -183,10 +167,8 @@ export class MemberService {
     body,
     countOnly = false,
   ) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/query`,
+      '/member/query',
       {
         ...body,
         countOnly,
@@ -236,10 +218,8 @@ export class MemberService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/member/active`,
+      '/member/active',
       {
         params,
       },
@@ -249,10 +229,8 @@ export class MemberService {
   }
 
   static async merge(memberToKeep, memberToMerge, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/member/${memberToKeep.id}/merge`,
+      `/member/${memberToKeep.id}/merge`,
       {
         memberToMerge: memberToMerge.id,
         segments,
@@ -263,10 +241,8 @@ export class MemberService {
   }
 
   static async unmerge(memberId, preview) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/${memberId}/unmerge`,
+      `/member/${memberId}/unmerge`,
       preview,
     );
 
@@ -274,10 +250,8 @@ export class MemberService {
   }
 
   static async unmergePreview(memberId, identity) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
+      `/member/${memberId}/unmerge/preview`,
       {
         identity,
       },
@@ -287,10 +261,8 @@ export class MemberService {
   }
 
   static async addToNoMerge(memberA, memberB, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/member/${memberA.id}/no-merge`,
+      `/member/${memberA.id}/no-merge`,
       {
         memberToNotMerge: memberB.id,
         segments,
@@ -301,8 +273,6 @@ export class MemberService {
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
-    const tenantId = AuthService.getTenantId();
-
     const segments = [
       ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
       getSelectedProjectGroup().id,
@@ -317,17 +287,15 @@ export class MemberService {
     };
 
     return authAxios.post(
-      `/tenant/${tenantId}/membersToMerge`,
+      '/membersToMerge',
       data,
     )
       .then(({ data }) => Promise.resolve(data));
   }
 
   static async getCustomAttribute(id, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings/members/attributes/${id}`,
+      `/settings/members/attributes/${id}`,
       {
         data: [
           segments,
@@ -339,10 +307,8 @@ export class MemberService {
   }
 
   static async fetchCustomAttributes(segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/settings/members/attributes`,
+      '/settings/members/attributes',
       {
         data: [
           segments,
@@ -354,10 +320,8 @@ export class MemberService {
   }
 
   static async createCustomAttributes(data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/settings/members/attributes`,
+      '/settings/members/attributes',
       {
         ...data,
         segments,
@@ -373,10 +337,8 @@ export class MemberService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/settings/members/attributes`,
+      '/settings/members/attributes',
       {
         params,
       },
@@ -386,10 +348,8 @@ export class MemberService {
   }
 
   static async updateCustomAttribute(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/settings/members/attributes/${id}`,
+      `/settings/members/attributes/${id}`,
       {
         ...data,
         segments,
@@ -400,10 +360,8 @@ export class MemberService {
   }
 
   static async enrichMember(id, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/enrichment/member/${id}`,
+      `/enrichment/member/${id}`,
       {
         segments,
       },
@@ -413,10 +371,8 @@ export class MemberService {
   }
 
   static async enrichMemberBulk(ids, segments) {
-    const tenantId = AuthService.getTenantId();
-
     return authAxios.put(
-      `/tenant/${tenantId}/enrichment/member/bulk`,
+      '/enrichment/member/bulk',
       {
         members: ids,
         segments,

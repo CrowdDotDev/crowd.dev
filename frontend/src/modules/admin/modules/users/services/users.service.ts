@@ -1,12 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class UsersService {
   static async list(query: any) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/user`,
+      '/user',
       {
         params: query,
       },
@@ -16,10 +13,8 @@ export class UsersService {
   }
 
   static async fetchGlobalIntegrations(query: any) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/global`,
+      '/integration/global',
       {
         params: query,
       },
@@ -29,10 +24,8 @@ export class UsersService {
   }
 
   static async fetchGlobalIntegrationStatusCount(query: any) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/integration/global/status`,
+      '/integration/global/status',
       {
         params: query,
       },
