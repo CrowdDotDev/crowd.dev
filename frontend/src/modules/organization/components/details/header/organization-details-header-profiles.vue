@@ -15,7 +15,7 @@
             class="flex items-center gap-1"
           >
             <p class="!text-white">
-              {{ platformData(platform)?.name }} profile
+              {{ lfIdentities[platform]?.name }} profile
             </p>
             <lf-icon name="arrow-up-right-from-square" :size="14" class="text-gray-400" />
           </a>
@@ -30,10 +30,11 @@
           @click="idents.length > 1 ? $event.preventDefault() : null"
         >
           <lf-icon
-            :name="platformData(platform)?.icon"
-            :type="platformData(platform)?.iconType"
+            v-if="lfIdentities[platform]?.icon"
+            :name="lfIdentities[platform]?.icon"
+            :type="lfIdentities[platform]?.iconType"
             :size="20"
-            :style="{ color: platformData(platform)?.brandColor }"
+            :style="{ color: lfIdentities[platform]?.color }"
             class="platform-icon"
           />
         </a>
@@ -58,7 +59,7 @@
           <div class="flex items-center text-gray-900">
             <img
               :alt="platform"
-              :src="platformData(platform)?.image"
+              :src="lfIdentities[platform]?.image"
               class="h-4 w-4"
             />
             <p class="pl-2 text-small">
@@ -74,7 +75,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
@@ -82,6 +82,7 @@ import {
   organizationDetailsHeaderProfilePlatforms,
 } from '@/modules/organization/config/details-header-profile-platforms';
 import { Organization } from '@/modules/organization/types/Organization';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   organization: Organization,
@@ -104,8 +105,6 @@ const platformIdentities = computed(() => {
   });
   return data;
 });
-
-const platformData = (name: string) => CrowdIntegrations.getConfig(name);
 </script>
 
 <script lang="ts">

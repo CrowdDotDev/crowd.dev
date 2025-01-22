@@ -94,7 +94,6 @@ import {
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { withHttp } from '@/utils/string';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -106,6 +105,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { useSharedStore } from '@/shared/pinia/shared.store';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
   domain: OrganizationIdentity,
@@ -113,7 +113,10 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void, }>();
-const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+
+const { getPlatformsLabel } = useIdentitiesHelpers();
+
+const platformLabel = (platforms: string[]) => getPlatformsLabel(platforms);
 
 const { hasPermission } = usePermissions();
 const { setReportDataModal } = useSharedStore();

@@ -9,9 +9,9 @@ Z<template>
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { IdentityConfig, lfIdentities } from '@/config/identities';
 
 const props = defineProps({
   conversation: {
@@ -29,14 +29,12 @@ const sourceId = computed(() => {
   return props.conversation.conversationStarter.parent?.sourceId;
 });
 
-const platformConfig = computed(() => CrowdIntegrations.getConfig(
-  props.conversation.conversationStarter?.platform,
-));
+const platformConfig = computed<IdentityConfig>(() => lfIdentities[props.conversation.conversationStarter?.platform]);
 
-const replyContent = computed(() => platformConfig.value?.conversationDisplay?.replyContent(props.conversation));
+const replyContent = computed(() => platformConfig.value?.conversation?.replyContent?.(props.conversation));
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppConversationParentFooter',
 };

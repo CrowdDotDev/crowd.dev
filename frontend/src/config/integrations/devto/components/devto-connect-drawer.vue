@@ -195,12 +195,12 @@ import {
   defineProps,
   watch,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
+import devto from '@/config/integrations/devto/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -218,7 +218,7 @@ const props = defineProps<{
   grandparentId: string;
 }>();
 
-const logoUrl = ref(CrowdIntegrations.getConfig('devto').image);
+const logoUrl = devto.image;
 const users = ref([]);
 const organizations = ref([]);
 const loading = ref(false);

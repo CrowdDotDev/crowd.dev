@@ -56,26 +56,20 @@
 <script setup lang="ts">
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { computed, ref } from 'vue';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const emit = defineEmits<{(e: 'add', value: Partial<ContributorIdentity>): void}>();
 
-const platformList = Object.entries({
-  ...CrowdIntegrations.memberIdentities,
-})
-  .map(([key, config]) => ({
-    ...config,
-    key,
-  }));
+const { memberIdentities } = useIdentitiesHelpers();
 
 const search = ref<string>('');
 
-const platforms = computed(() => platformList.filter((i) => {
+const platforms = computed(() => memberIdentities.filter((i) => {
   if (!search.value) return true;
   return i.name.toLowerCase().includes(search.value.toLowerCase()) || i.key.toLowerCase().includes(search.value.toLowerCase());
 }));

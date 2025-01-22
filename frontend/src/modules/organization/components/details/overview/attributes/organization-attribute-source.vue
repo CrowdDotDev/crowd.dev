@@ -6,12 +6,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { isEqual } from 'lodash';
+import { lfIdentities } from '@/config/identities';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
   values: Record<string, any>,
 }>();
+
+const { getPlatformsLabel } = useIdentitiesHelpers();
 
 const source = computed(() => {
   if (!props.values) {
@@ -30,8 +33,8 @@ const source = computed(() => {
 
   // Sort that integrations are first, then others like enrichment and last is custom
   const prioritySortedSources = sources.sort((a, b) => {
-    const aConfig = !!CrowdIntegrations.getConfig(a)?.name;
-    const bConfig = !!CrowdIntegrations.getConfig(b)?.name;
+    const aConfig = !!lfIdentities[a]?.name;
+    const bConfig = !!lfIdentities[b]?.name;
 
     if (aConfig && !bConfig) return -1;
     if (!aConfig && bConfig) return 1;
@@ -39,7 +42,7 @@ const source = computed(() => {
     return 0;
   });
   const selectedSource = prioritySortedSources[0];
-  return CrowdIntegrations.getPlatformsLabel([selectedSource]);
+  return getPlatformsLabel([selectedSource]);
 });
 </script>
 

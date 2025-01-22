@@ -1,5 +1,5 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const organizationsEditIdentities: LogRenderingConfig = {
   label: 'Organization identities updated',
@@ -27,8 +27,8 @@ const organizationsEditIdentities: LogRenderingConfig = {
     });
 
     return {
-      additions: (additions || []).map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
-      removals: (removals || []).map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
+      additions: (additions || []).map((p) => `${lfIdentities[p.platform]?.name || p.platform}: ${p.name}`),
+      removals: (removals || []).map((p) => `${lfIdentities[p.platform]?.name || p.platform}: ${p.name}`),
       changes: [],
     };
   },

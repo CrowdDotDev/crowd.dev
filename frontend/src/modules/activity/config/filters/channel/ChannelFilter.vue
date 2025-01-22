@@ -11,10 +11,10 @@ import {
   MultiSelectFilterConfig, MultiSelectFilterOptionGroup,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { extractRepoNameFromUrl } from '@/utils/string';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: string,
@@ -22,7 +22,7 @@ const props = defineProps<{
   data: any,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string), (e: 'update:data', value: any),}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void, (e: 'update:data', value: any): void}>();
 
 const form = computed({
   get: () => props.modelValue,
@@ -39,7 +39,7 @@ const { activityChannels } = storeToRefs(activityStore);
 
 watch(() => activityChannels.value, () => {
   data.value.options = Object.entries(activityChannels.value).map(([platform, channels]): MultiSelectFilterOptionGroup => ({
-    label: CrowdIntegrations.getConfig(platform)?.name ?? platform,
+    label: lfIdentities[platform]?.name ?? platform,
     options: channels.map((channel) => ({
       value: channel,
       label: platform === 'github' ? extractRepoNameFromUrl(channel) : channel,

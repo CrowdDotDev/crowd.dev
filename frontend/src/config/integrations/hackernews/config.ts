@@ -9,6 +9,7 @@ const hackernews: IntegrationConfig = {
   description: 'Connect Hacker News to get posts as well as their comments mentioning your community.',
   connectComponent: HackernewsConnect,
   connectedParamsComponent: HackernewsParams,
+  showProgress: false,
 };
 
 export default hackernews;

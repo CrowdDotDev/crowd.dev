@@ -88,7 +88,6 @@
 
 <script setup lang="ts">
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -106,6 +105,7 @@ import {
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
   email: OrganizationIdentity,
@@ -118,10 +118,11 @@ const { hasPermission } = usePermissions();
 const { setReportDataModal } = useSharedStore();
 
 const { updateOrganization } = useOrganizationStore();
+const { getPlatformsLabel } = useIdentitiesHelpers();
 
 const hovered = ref(false);
 
-const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+const platformLabel = (platforms: string[]) => getPlatformsLabel(platforms);
 const removeEmail = () => {
   const identities = props.organization.identities
     .filter((i: OrganizationIdentity) => !(i.type === OrganizationIdentityType.EMAIL && i.value === props.email?.value));

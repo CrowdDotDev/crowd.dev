@@ -11,6 +11,7 @@ const gerrit: IntegrationConfig = {
   connectComponent: GerritConnect,
   connectedParamsComponent: GerritParams,
   dropdownComponent: GerritDropdown,
+  showProgress: false,
 };
 
 export default gerrit;

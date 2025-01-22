@@ -1,4 +1,3 @@
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import {
   Organization,
   OrganizationIdentity,
@@ -6,6 +5,7 @@ import {
 } from '@/modules/organization/types/Organization';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { withHttp } from '@/utils/string';
+import { lfIdentities } from '@/config/identities';
 
 export default ({
   organization,
@@ -29,13 +29,8 @@ export default ({
         )
         .map((i) => ({
           ...i,
-          value: CrowdIntegrations.getConfig(platform)?.organization
-            ?.identityHandle
-            ? CrowdIntegrations.getConfig(
-              platform,
-            )?.organization?.identityHandle({
-              identityHandle: i.value,
-            })
+          value: lfIdentities[platform]?.organization?.handle
+            ? lfIdentities[platform]?.organization?.handle?.(i)
             : i.value,
         }));
     }
@@ -47,13 +42,8 @@ export default ({
       )
       .map((i) => ({
         ...i,
-        value: CrowdIntegrations.getConfig(platform)?.organization
-          ?.identityHandle
-          ? CrowdIntegrations.getConfig(platform)?.organization?.identityHandle(
-            {
-              identityHandle: i.value,
-            },
-          )
+        value: lfIdentities[platform]?.organization?.handle
+          ? lfIdentities[platform]?.organization?.handle?.(i)
           : i.value,
       }));
   };
@@ -62,13 +52,11 @@ export default ({
     identity: OrganizationIdentity,
     platform: string,
   ) => {
-    if (!CrowdIntegrations.getConfig(platform)?.organization?.identityLink) {
+    if (!lfIdentities[platform]?.organization?.url) {
       return null;
     }
 
-    return CrowdIntegrations.getConfig(platform)?.organization?.identityLink({
-      identityHandle: identity.value,
-    });
+    return lfIdentities[platform]?.organization?.url?.(identity);
   };
 
   const getIdentities = (): {

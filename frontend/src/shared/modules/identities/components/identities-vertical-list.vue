@@ -83,10 +83,10 @@
 
 <script setup lang="ts">
 import AppPlatform from '@/shared/modules/platform/components/platform.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed, ref } from 'vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   identities: {
@@ -114,7 +114,7 @@ const isCustomPlatform = (platform: string) => platform !== Platform.EMAILS
   && platform !== Platform.PHONE_NUMBERS
   && platform !== 'domains'
   && platform !== 'email'
-  && !CrowdIntegrations.getConfig(platform)?.name;
+  && !lfIdentities[platform]?.name;
 </script>
 
 <script lang="ts">

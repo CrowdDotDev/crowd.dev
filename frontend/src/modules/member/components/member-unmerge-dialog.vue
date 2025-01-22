@@ -158,10 +158,10 @@
                             >
                               <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                               <img
-                                v-else-if="platformDetails(i.platform)"
+                                v-else-if="lfIdentities[i.platform]"
                                 class="h-5 w-5 mr-2"
-                                :alt="platformDetails(i.platform)?.name"
-                                :src="platformDetails(i.platform)?.image"
+                                :alt="lfIdentities[i.platform]?.name"
+                                :src="lfIdentities[i.platform]?.image"
                               />
                               <lf-icon
                                 v-else
@@ -232,10 +232,10 @@
                   >
                     <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                     <img
-                      v-else-if="platformDetails(i.platform)"
+                      v-else-if="lfIdentities[i.platform]"
                       class="h-5 w-5 mr-2"
-                      :alt="platformDetails(i.platform)?.name"
-                      :src="platformDetails(i.platform)?.image"
+                      :alt="lfIdentities[i.platform]?.name"
+                      :src="lfIdentities[i.platform]?.image"
                     />
                     <lf-icon
                       v-else
@@ -262,13 +262,13 @@ import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { useRouter } from 'vue-router';
+import { lfIdentities } from '@/config/identities';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -309,8 +309,6 @@ const isModalOpen = computed({
     preview.value = null;
   },
 });
-
-const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
 const identityOrder = ['username', 'email'];
 

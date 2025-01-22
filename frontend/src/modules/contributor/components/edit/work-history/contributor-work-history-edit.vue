@@ -182,7 +182,7 @@ const $v = useVuelidate(rules, form);
 
 const updateWorkExperience = () => {
   const data: Partial<MemberOrganization> = {
-    organizationId: (props.organization || form.organization)?.id,
+    organizationId: (form.organization || props.organization)?.id,
     source: OrganizationSource.UI,
     title: form.title,
     dateStart: form.dateStart ? moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,

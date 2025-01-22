@@ -52,20 +52,24 @@
           <lf-field label-text="Identities">
             <div class="flex flex-col gap-3">
               <div v-for="(identity) of form.identities" :key="identity.platform">
-                <lf-input v-model="identity.value" :placeholder="`${identity.placeholder || ''}...`" class="h-10">
+                <lf-input
+                  v-model="identity.value"
+                  :placeholder="`${lfIdentities[identity.platform]?.organization?.placeholder || ''}...`"
+                  class="h-10"
+                >
                   <template #prefix>
                     <div class="flex items-center flex-nowrap whitespace-nowrap">
                       <div class="min-w-5">
                         <lf-tooltip :content="identity.platform">
-                          <img :src="identity.image" class="h-5 w-5 object-contain" :alt="identity.platform" />
+                          <img :src="lfIdentities[identity.platform]?.image" class="h-5 w-5 object-contain" :alt="identity.platform" />
                         </lf-tooltip>
                       </div>
                       <p
-                        v-if="identity.prefix"
+                        v-if="lfIdentities[identity.platform]?.organization?.urlPrefix"
                         class="-mr-2 pl-2"
                         :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
                       >
-                        {{ identity.prefix }}
+                        {{ lfIdentities[identity.platform]?.organization?.urlPrefix }}
                       </p>
                     </div>
                   </template>
@@ -100,7 +104,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
@@ -118,6 +121,8 @@ import { OrganizationApiService } from '@/modules/organization/services/organiza
 import Message from '@/shared/message/message';
 import Errors from '@/shared/error/errors';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -133,19 +138,11 @@ const isModalOpen = computed({
 const router = useRouter();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+const { organizationIdentities } = useIdentitiesHelpers();
 
-type OrganizationAddIdentity = OrganizationIdentity & {
-  image: string,
-  prefix: string,
-  placeholder: string,
-}
-
-const platformList: OrganizationAddIdentity[] = Object.entries(CrowdIntegrations.organizationIdentities)
-  .map(([key, config]: [string, any]) => ({
-    prefix: config.orgUrlPrefix ?? config.urlPrefix,
-    placeholder: config.placeholder,
-    image: config.image,
-    platform: key as Platform,
+const platformList: OrganizationIdentity[] = organizationIdentities
+  .map((config) => ({
+    platform: config.key as Platform,
     type: OrganizationIdentityType.USERNAME,
     value: '',
     verified: true,
@@ -156,7 +153,7 @@ interface OrganizationAddForm {
   subproject: string;
   name: string;
   website: string;
-  identities: OrganizationAddIdentity[];
+  identities: OrganizationIdentity[];
 }
 
 const form = reactive<OrganizationAddForm>({
@@ -177,7 +174,7 @@ const rules = {
     required,
   },
   identities: {
-    required: (value: OrganizationAddIdentity[]) => value.some((i) => i.value.length),
+    required: (value: OrganizationIdentity[]) => value.some((i) => i.value.length),
   },
 };
 
