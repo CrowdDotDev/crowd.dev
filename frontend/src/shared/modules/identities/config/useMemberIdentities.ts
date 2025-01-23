@@ -1,6 +1,6 @@
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Member } from '@/modules/member/types/Member';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { lfIdentities } from '@/config/identities';
 
 export default ({
   member,
@@ -41,14 +41,18 @@ export default ({
     name: string;
     verified: boolean;
   }, platform: string) => {
-    if (!CrowdIntegrations.getConfig(platform)?.showProfileLink) {
+    if (!lfIdentities[platform]?.member?.url) {
       return null;
     }
 
     return (
       identity.url
-      ?? CrowdIntegrations.getConfig(platform)?.url({
-        username: identity.name,
+      ?? lfIdentities[platform]?.member?.url?.({
+        identity: {
+          platform: identity.platform,
+          value: identity.name,
+          verified: identity.verified,
+        } as any,
         attributes,
       })
       ?? attributes?.url?.[platform as keyof typeof attributes.url]

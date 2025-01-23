@@ -1,40 +1,100 @@
 import { GenerateStreamsHandler } from '../../types'
 
-import { GithubIntegrationSettings, GithubRootStream, GithubStreamType, Repo } from './types'
+import {
+  GithubBasicStream,
+  GithubIntegrationSettings,
+  GithubManualIntegrationSettings,
+  GithubManualStreamType,
+  GithubRootStream,
+  GithubStreamType,
+} from './types'
 
-const NEW_REPO_THRESHOLD_MS = 20000 // 20 seconds in milliseconds
+const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = new Map([
+  [GithubStreamType.STARGAZERS, GithubManualStreamType.STARGAZERS],
+  [GithubStreamType.FORKS, GithubManualStreamType.FORKS],
+  [GithubStreamType.PULLS, GithubManualStreamType.PULLS],
+  [GithubStreamType.ISSUES, GithubManualStreamType.ISSUES],
+  [GithubStreamType.DISCUSSIONS, GithubManualStreamType.DISCUSSIONS],
+])
 
-interface AdditionalInfo {
-  messageSentAt: string
-}
+const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = new Map([
+  [GithubManualStreamType.STARGAZERS, GithubStreamType.STARGAZERS],
+  [GithubManualStreamType.FORKS, GithubStreamType.FORKS],
+  [GithubManualStreamType.PULLS, GithubStreamType.PULLS],
+  [GithubManualStreamType.ISSUES, GithubStreamType.ISSUES],
+  [GithubManualStreamType.DISCUSSIONS, GithubStreamType.DISCUSSIONS],
+])
 
-const isRepoRecentlyUpdated = (repo: Repo, messageSentAt?: Date): boolean => {
-  if (!repo.updatedAt) return true // If no updatedAt, process it to be safe
-
-  if (messageSentAt) {
-    // For newly added repos, check if they were updated within 20 seconds of the message
-    const repoUpdateTime = new Date(repo.updatedAt).getTime()
-    const messageTime = messageSentAt.getTime()
-    return Math.abs(repoUpdateTime - messageTime) < NEW_REPO_THRESHOLD_MS
+const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> => {
+  const map = new Map<string, Array<GithubManualStreamType>>()
+  for (const [key, value] of Object.entries(obj)) {
+    map.set(key, value)
   }
-
-  return true
+  return map
 }
 
 const handler: GenerateStreamsHandler = async (ctx) => {
-  const messageSentAt = (ctx.additionalInfo as AdditionalInfo)?.messageSentAt
-    ? new Date((ctx.additionalInfo as AdditionalInfo).messageSentAt)
-    : undefined
   const settings = ctx.integration.settings as GithubIntegrationSettings
-  const reposToCheck = ctx.onboarding
-    ? settings.orgs
-        .flatMap((org) => org.repos)
-        .filter((repo) => isRepoRecentlyUpdated(repo, messageSentAt))
-    : // for onboarding runs, we only check recently added repos. This needed when integration updated
-      settings.orgs.flatMap((org) => org.repos) // for non-onboarding runs, we check all repos
+  let reposToCheck = [
+    ...(settings?.orgs?.flatMap((o) => o.repos) || []),
+    ...(settings?.unavailableRepos || []),
+  ]
 
-  ctx.log.info(`${messageSentAt ? messageSentAt.toISOString() : 'Checking all repos'}`)
+  // repos from settings have only url and name, we need to get owner from url
+  reposToCheck = reposToCheck.map((repo) => {
+    const url = new URL(repo.url)
+    return { ...repo, owner: url.pathname.split('/')[1] }
+  })
 
+  const isManualRun = ctx.isManualRun
+
+  if (isManualRun) {
+    const manualSettings = ctx.manualSettings as GithubManualIntegrationSettings
+    if (!manualSettings) {
+      ctx.abortRunWithError('isManualRun is true but manualSettings is not set!')
+    }
+
+    if (manualSettings.orgs && manualSettings.manualSettingsType === 'default') {
+      for (const repo of manualSettings.orgs.flatMap((o) => o.repos)) {
+        for (const endpoint of [
+          GithubStreamType.STARGAZERS,
+          GithubStreamType.FORKS,
+          GithubStreamType.PULLS,
+          GithubStreamType.ISSUES,
+          GithubStreamType.DISCUSSIONS,
+        ]) {
+          if (
+            manualSettings.streamType === GithubManualStreamType.ALL ||
+            manualSettings.streamType === streamToManualStreamMap.get(endpoint)
+          ) {
+            await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+              repo: { ...repo, owner: new URL(repo.url).pathname.split('/')[1] },
+              page: '',
+            })
+          }
+        }
+      }
+    } else if (manualSettings.orgs && manualSettings.manualSettingsType === 'detailed_map') {
+      const map = objectToMap(manualSettings.map)
+      for (const [repoUrl, streams] of map) {
+        for (const stream of streams) {
+          const endpoint = manualStreamToStreamMap.get(stream)
+          if (!endpoint) {
+            ctx.abortRunWithError(`Invalid stream type: ${stream}`)
+          }
+          const repo = manualSettings.orgs.flatMap((o) => o.repos).find((r) => r.url === repoUrl)
+          await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+            repo: { ...repo, owner: new URL(repo.url).pathname.split('/')[1] },
+            page: '',
+          })
+        }
+      }
+    }
+
+    return
+  }
+
+  // not manual run, executing normal run
   await ctx.publishStream<GithubRootStream>(GithubStreamType.ROOT, {
     reposToCheck,
   })

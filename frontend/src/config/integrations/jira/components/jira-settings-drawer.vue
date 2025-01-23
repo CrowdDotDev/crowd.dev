@@ -150,7 +150,7 @@ import useVuelidate from '@vuelidate/core';
 import {
   computed, defineProps, onMounted, reactive, ref,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import jira from '@/config/integrations/jira/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppArrayInput from '@/shared/form/array-input.vue';
@@ -199,7 +199,7 @@ const isVisible = computed({
     emit('update:modelValue', value);
   },
 });
-const logoUrl = computed(() => CrowdIntegrations.getConfig('jira').image);
+const logoUrl = jira.image;
 
 onMounted(() => {
   if (props.integration?.settings?.url) {

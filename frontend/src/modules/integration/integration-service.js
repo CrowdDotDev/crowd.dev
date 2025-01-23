@@ -482,7 +482,7 @@ export class IntegrationService {
 
   static async githubConnectInstallation(installId) {
     const response = await authAxios.post(
-      '/github-connect-installation',
+      '/integration/github-connect-installation',
       {
         installId,
         ...getSegments(),
@@ -494,7 +494,7 @@ export class IntegrationService {
 
   static async getGithubInstallations() {
     const response = await authAxios.get(
-      '/github-installations',
+      '/integration/github-installations',
       {
         params: getSegments(),
       },

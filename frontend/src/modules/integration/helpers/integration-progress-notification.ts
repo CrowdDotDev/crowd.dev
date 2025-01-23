@@ -2,10 +2,10 @@ import { createVNode, h } from 'vue';
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import { ElNotification } from 'element-plus';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIntegrations } from '@/config/integrations';
 
 export const showIntegrationProgressNotification = (platform, segmentId) => {
-  const label = CrowdIntegrations.getConfig(platform)?.name;
+  const label = lfIntegrations[platform]?.name;
   const defaultSlot = ({ progress }) => {
     const integrationProgress = (progress || []).find((p) => p.platform === platform);
     const text = h('p', {

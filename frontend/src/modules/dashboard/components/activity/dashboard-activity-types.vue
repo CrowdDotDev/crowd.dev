@@ -26,10 +26,10 @@
     >
       <div class="flex items-center">
         <img
-          v-if="getPlatformDetails(platform)"
+          v-if="lfIdentities[platform]"
           class="w-4 h-4 mr-3"
-          :src="getPlatformDetails(platform)?.image"
-          :alt="getPlatformDetails(platform)?.name"
+          :src="lfIdentities[platform]?.image"
+          :alt="lfIdentities[platform]?.name"
         />
         <lf-icon v-else name="fingerprint" :size="16" class="text-gray-400 mr-3" />
         <p v-if="typeNames?.[platform]?.[type]?.display" class="text-xs leading-5 activity-type">
@@ -66,8 +66,8 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { storeToRefs } from 'pinia';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { lfIdentities } from '@/config/identities';
 
 const { chartData } = mapGetters('dashboard');
 
@@ -79,8 +79,6 @@ const typeNames = computed(() => (merge(types.value.default, types.value.custom)
 const activityData = computed(() => chartData.value?.activity?.byTypeAndPlatform || []);
 
 const totalActivities = computed(() => activityData.value.reduce((a, b) => a + b.count, 0));
-
-const getPlatformDetails = (plat: string) => CrowdIntegrations.getConfig(plat);
 </script>
 
 <script lang="ts">

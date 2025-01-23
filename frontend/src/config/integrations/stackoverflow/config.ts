@@ -11,6 +11,7 @@ const stackoverflow: IntegrationConfig = {
   connectComponent: StackoverflowConnect,
   dropdownComponent: StackoverflowDropdown,
   connectedParamsComponent: StackoverflowParams,
+  showProgress: false,
 };
 
 export default stackoverflow;

@@ -21,14 +21,14 @@
             >
               <template
                 v-if="
-                  platform && getPlatformDetails(platform)
+                  platform && lfIdentities[platform]
                 "
                 #prefix
               >
                 <img
-                  v-if="getPlatformDetails(platform)"
-                  :alt="getPlatformDetails(platform).name"
-                  :src="getPlatformDetails(platform).image"
+                  v-if="lfIdentities[platform]"
+                  :alt="lfIdentities[platform].name"
+                  :src="lfIdentities[platform].image"
                   class="w-4 h-4"
                 />
                 <i
@@ -38,9 +38,9 @@
               </template>
               <el-option
                 v-for="enabledPlatform of enabledPlatforms"
-                :key="enabledPlatform.id"
-                :value="enabledPlatform.platform"
-                :label="enabledPlatform.label"
+                :key="enabledPlatform.key"
+                :value="enabledPlatform.key"
+                :label="enabledPlatform.name"
                 @mouseleave="onSelectMouseLeave"
               >
                 <img
@@ -158,7 +158,7 @@
                   :activity="activity"
                   :show-more="true"
                 >
-                  <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                  <template v-if="lfIdentities[activity.platform]?.activity?.showContentDetails" #details>
                     <div v-if="activity.attributes">
                       <app-activity-content-footer
                         :source-id="isMemberEntity && activity.parent ? activity.parent?.sourceId : activity.sourceId"
@@ -188,9 +188,9 @@
                 :class="`btn--${activity.platform}`"
               >
                 <img
-                  v-if="platformDetails(activity.platform)"
+                  v-if="lfIdentities[activity.platform]"
                   :src="
-                    platformDetails(activity.platform).image
+                    lfIdentities[activity.platform].image
                   "
                   :alt="`${activity.platform}-icon`"
                   class="w-4 h-4"
@@ -235,7 +235,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useStore } from 'vuex';
 import {
   computed,
@@ -248,7 +248,6 @@ import debounce from 'lodash/debounce';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { onSelectMouseLeave } from '@/utils/select';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
@@ -262,6 +261,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { IdentityConfig, lfIdentities } from '@/config/identities';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -294,16 +294,7 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups, selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const conversationId = ref(null);
-
-const enabledPlatforms = computed(() => CrowdIntegrations.enabledConfigs.concat(Object.entries(CrowdIntegrations.customIntegrations).map(
-  ([key, config]) => ({
-    ...config,
-    platform: key,
-  }),
-)).map((i) => ({
-  ...i,
-  label: i.name,
-})));
+const enabledPlatforms: IdentityConfig[] = Object.values(lfIdentities);
 
 const loading = ref(false);
 const platform = ref(null);
@@ -426,13 +417,9 @@ const reloadActivities = async () => {
   await fetchActivities();
 };
 
-const platformDetails = (p) => CrowdIntegrations.getConfig(p);
-
 const debouncedQueryChange = debounce(async () => {
   await fetchActivities({ reset: true });
 }, 300);
-
-const getPlatformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
@@ -456,7 +443,7 @@ defineExpose({
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberViewActivities',
 };

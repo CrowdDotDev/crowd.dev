@@ -9,6 +9,7 @@ const devto: IntegrationConfig = {
   description: 'Connect DEV to sync profile information and comments on articles.',
   connectComponent: DevtoConnect,
   connectedParamsComponent: DevtoParams,
+  showProgress: false,
 };
 
 export default devto;
