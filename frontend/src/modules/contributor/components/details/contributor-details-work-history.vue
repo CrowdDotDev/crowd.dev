@@ -30,7 +30,7 @@
       </lf-tooltip>
     </div>
 
-    <div v-if="!masked" class="flex flex-col">
+    <div class="flex flex-col">
       <lf-timeline v-for="group in shownGroups" :key="group.id" width="1.5rem">
         <lf-timeline-item v-for="(item, ii) in group.items" :key="item.id">
           <template v-if="ii === 0 || item.memberOrganizations.affiliationOverride.isPrimaryWorkExperience" #dot>
