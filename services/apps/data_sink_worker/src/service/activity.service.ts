@@ -597,21 +597,28 @@ export default class ActivityService extends LoggerBase {
 
         segmentId = providedSegmentId
         if (!segmentId) {
-          const dbIntegration = await txIntegrationRepo.findById(integrationId)
-          const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
-            tenantId,
-            activity.channel,
-          )
-          const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
-            tenantId,
-            activity.channel,
-          )
+          if (platform === PlatformType.GITLAB) {
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
 
-          if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
-            segmentId = gitlabRepoSegmentId
-          } else if (platform === PlatformType.GITHUB && repoSegmentId) {
-            segmentId = repoSegmentId
-          } else {
+            if (gitlabRepoSegmentId) {
+              segmentId = gitlabRepoSegmentId
+            }
+          } else if (platform === PlatformType.GITHUB) {
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+
+            if (repoSegmentId) {
+              segmentId = repoSegmentId
+            }
+          }
+
+          if (!segmentId) {
+            const dbIntegration = await txIntegrationRepo.findById(integrationId)
             segmentId = dbIntegration.segmentId
           }
         }
