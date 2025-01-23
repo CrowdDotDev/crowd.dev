@@ -28,7 +28,6 @@ export interface OrganizationIdentity {
     value: string;
     verified: boolean;
     sourceId?: string | null;
-    tenantId?: string;
     integrationId?: string | null;
 }
 
@@ -75,7 +74,6 @@ export interface Organization {
   revenueRange: string | null;
   size: string;
   tags: string[] | null;
-  tenantId: string;
   ticker: Record<string, string> | null;
   type: string;
   updatedAt: string;
@@ -100,7 +98,6 @@ export interface Organization {
     segmentId: string;
     segments: string[];
     status: string;
-    tenantId: string;
     tier: string;
     updatedAt: string;
     usageEndDate: string;

@@ -2,11 +2,13 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface ContributorAttribute {
-  default: string;
-  custom: string;
-  github?: string;
-  twitter?: string;
+  default: any;
+  custom: any;
+  github?: any;
+  twitter?: any;
   hubspot?: any;
+  stackoverflow?: any;
+  discourse?: any;
 }
 
 export interface ContributorMaintainerRole {
@@ -92,7 +94,6 @@ export interface Contributor {
   reach:ContributorReach;
   score: number;
   tags: ContributorTag[];
-  tenantId: string;
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>

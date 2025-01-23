@@ -44,10 +44,14 @@ import {
   PlatformType,
 } from '@crowd/types'
 
+import { GITHUB_CONFIG } from '../conf'
+
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
+
+const IS_GITHUB_SNOWFLAKE_ENABLED = GITHUB_CONFIG().isSnowflakeEnabled === 'true'
 
 export default class ActivityService extends LoggerBase {
   constructor(
@@ -1101,13 +1105,16 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-          await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
-        } else if (
-          platform === PlatformType.GITHUB &&
-          activity.type === GithubActivityType.PULL_REQUEST_OPENED
-        ) {
-          await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+        // if snowflake is enabled, we need to push attributes to matching github activity
+        if (IS_GITHUB_SNOWFLAKE_ENABLED) {
+          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
+            await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+          } else if (
+            platform === PlatformType.GITHUB &&
+            activity.type === GithubActivityType.PULL_REQUEST_OPENED
+          ) {
+            await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+          }
         }
       } finally {
         // release locks matter what

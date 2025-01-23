@@ -13,7 +13,7 @@
         <app-avatar :entity="member" size="xs">
           <template #icon>
             <app-activity-icon
-              :type="platform?.activityDisplay?.typeIcon || activity.type"
+              :type="platform?.activity?.typeIcon || activity.type"
               :platform="activity.platform"
             />
           </template>
@@ -48,7 +48,7 @@
             :show-more="showMore"
             :limit="limit"
           >
-            <template v-if="platform?.activityDisplay?.showContentDetails && activity.attributes" #details>
+            <template v-if="platform?.activity?.showContentDetails && activity.attributes" #details>
               <app-conversation-reply-attributes
                 :changes="activity.attributes.lines"
                 changes-copy="line"
@@ -73,7 +73,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import AppActivityIcon from '@/modules/activity/components/activity-icon.vue';
 import pluralize from 'pluralize';
 import AppConversationReplyAttributes from '@/modules/conversation/components/conversation-reply-attributes.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppConversationReply',
@@ -133,9 +133,7 @@ export default {
       return 0;
     },
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.activity.platform,
-      );
+      return lfIdentities[this.activity.platform];
     },
     // Show activity for activity types coming from git
     // and comment on PR reviews from github

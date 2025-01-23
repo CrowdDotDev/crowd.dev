@@ -132,7 +132,6 @@
 </template>
 
 <script>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
@@ -142,6 +141,7 @@ import AppActivityHeader from '@/modules/activity/components/activity-header.vue
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppActivityMessage from '@/modules/activity/components/activity-message.vue';
 import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -171,9 +171,7 @@ export default {
   emits: ['details', 'conversation-destroyed'],
   computed: {
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.conversation.conversationStarter?.platform,
-      );
+      return lfIdentities[this.conversation.conversationStarter?.platform];
     },
     member() {
       return this.conversation.conversationStarter.member;

@@ -8,7 +8,7 @@
   >
     <template #header>
       <div v-if="!loading" class="flex items-center gap-1.5">
-        <img :alt="platform.name" class="w-6 h-6" :src="platform.image" />
+        <img :alt="platform?.name" class="w-6 h-6" :src="platform?.image" />
         <span class="text-lg font-medium text-black">{{
           configuration?.conversationTitle
         }}</span>
@@ -52,10 +52,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Conversation } from '@/shared/modules/conversation/types/Conversation';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import config from '@/modules/conversation/config/display/main';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import { lfIdentities } from '@/config/identities';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 const props = defineProps<{
@@ -75,7 +75,7 @@ const model = computed({
 
 const platform = computed(
   () => props.conversation
-    && CrowdIntegrations.getConfig(props.conversation.platform),
+    && lfIdentities[props.conversation.platform],
 );
 const configuration = computed(() => config.git);
 </script>

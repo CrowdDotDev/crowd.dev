@@ -3,10 +3,8 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class TagService {
   static async update(id, data) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.put(
-      `/tenant/${tenantId}/tag/${id}`,
+      `/tag/${id}`,
       data,
     );
 
@@ -18,10 +16,8 @@ export class TagService {
       ids,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/tag`,
+      '/tag',
       {
         params,
       },
@@ -31,10 +27,8 @@ export class TagService {
   }
 
   static async create(data) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/tag`,
+      '/tag',
       data,
     );
 
@@ -42,10 +36,8 @@ export class TagService {
   }
 
   static async find(id) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/tag/${id}`,
+      `/tag/${id}`,
     );
 
     return response.data;
@@ -64,10 +56,8 @@ export class TagService {
       offset,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/tag`,
+      '/tag',
       {
         params,
       },
@@ -85,10 +75,8 @@ export class TagService {
       limit,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/tag/autocomplete`,
+      '/tag/autocomplete',
       {
         params,
       },

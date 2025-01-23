@@ -12,11 +12,10 @@ import processWebhookStream from './processWebhookStream'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.GITHUB,
   memberAttributes: GITHUB_MEMBER_ATTRIBUTES,
-  checkEvery: 24 * 60, // 24 hours
   generateStreams,
   processStream,
-  processData,
   processWebhookStream,
+  processData,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postProcess: (settings: any) => {
     return settings

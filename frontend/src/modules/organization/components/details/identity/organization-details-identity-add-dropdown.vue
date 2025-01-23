@@ -4,7 +4,7 @@
       <slot />
     </template>
     <lf-dropdown-item
-      v-for="platform in platforms"
+      v-for="platform of organizationIdentities"
       :key="platform.key"
       @click="emit('add', {
         platform: platform.key,
@@ -20,18 +20,12 @@
 <script setup lang="ts">
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationIdentity } from '@/modules/organization/types/Organization';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const emit = defineEmits<{(e: 'add', value: Partial<OrganizationIdentity>): void}>();
 
-const platforms = Object.entries({
-  ...CrowdIntegrations.organizationIdentities,
-})
-  .map(([key, config]) => ({
-    ...config,
-    key,
-  }));
+const { organizationIdentities } = useIdentitiesHelpers();
 </script>
 
 <script lang="ts">

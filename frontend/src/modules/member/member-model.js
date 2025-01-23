@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
 import StringField from '@/shared/fields/string-field';
@@ -41,7 +42,15 @@ const fields = {
     'organizations',
     'Organizations',
   ),
-  joinedAt: new DateTimeField('joinedAt', 'Joined date'),
+  joinedAt: new DateTimeField('joinedAt', 'Joined date', {
+    filterable: true,
+    formatter: (value) => {
+      if (!value || new Date(value).getFullYear() <= 1970) {
+        return '-';
+      }
+      return moment(value).format('YYYY-MM-DD');
+    },
+  }),
   bio: new StringField('bio', 'Bio'),
   location: new StringField(
     'location',

@@ -109,6 +109,14 @@
           class="text-base text-black font-semibold leading-6"
           v-html="$sanitize(member.displayName)"
         />
+        <div class="flex mt-2 items-center gap-1.5">
+          <lf-badge v-if="isTeamMember(member)" size="small">
+            Team
+          </lf-badge>
+          <lf-badge v-if="isBot(member)" type="tertiary" size="small">
+            Bot
+          </lf-badge>
+        </div>
         <div class="flex items-center">
           <div
             v-if="member.attributes?.bio?.default"
@@ -224,7 +232,7 @@
             Joined date
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ moment(member.joinedAt).format('YYYY-MM-DD') }}
+            {{ formatJoinedDate(member.joinedAt) }}
           </p>
         </article>
         <article
@@ -286,6 +294,8 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import LfBadge from '@/ui-kit/badge/Badge.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps({
   member: {
@@ -323,6 +333,7 @@ const emit = defineEmits(['makePrimary', 'bioHeight']);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { isBot, isTeamMember } = useContributorHelpers();
 
 const bio = ref(null);
 const displayShowMore = ref(null);
@@ -339,6 +350,13 @@ onMounted(() => {
     emit('bioHeight', scrollHeight);
   }, 0);
 });
+
+const formatJoinedDate = (date) => {
+  if (!date || new Date(date).getFullYear() <= 1970) {
+    return '-';
+  }
+  return moment(date).format('YYYY-MM-DD');
+};
 
 defineExpose({
   more,

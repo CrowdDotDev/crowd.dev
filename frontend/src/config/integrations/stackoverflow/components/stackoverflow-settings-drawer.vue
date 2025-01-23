@@ -173,8 +173,7 @@ import { useThrottleFn } from '@vueuse/core';
 import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import stackoverflow from '@/config/integrations/stackoverflow/config';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -187,8 +186,6 @@ const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
 const { trackEvent } = useProductTracking();
 
 const store = useStore();
-
-const tenantId = computed(() => AuthService.getTenantId());
 
 const props = defineProps({
   modelValue: {
@@ -247,7 +244,7 @@ const calculateVolume = () => IntegrationService.stackOverflowVolume(
 const isVolumeUpdating = ref(false);
 const isKeywordsValid = ref(true);
 
-const logoUrl = CrowdIntegrations.getConfig('stackoverflow').image;
+const logoUrl = stackoverflow.image;
 
 const hasFormChanged = computed(
   () => !isEqual(
@@ -408,7 +405,7 @@ const connect = async () => {
   try {
     await nango.auth(
       'stackexchange',
-      `${tenantId.value}-stackoverflow`,
+      `${props.segmentId}-stackoverflow`,
     );
     await callOnboard();
     isVisible.value = false;
