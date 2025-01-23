@@ -18,49 +18,66 @@
         </p>
       </div>
 
-      <lf-dropdown v-show="hovered" placement="bottom-end" width="14.5rem">
-        <template #trigger>
-          <lf-button type="secondary-ghost" size="small" :icon-only="true">
-            <lf-icon name="ellipsis" />
-          </lf-button>
-        </template>
+      <div>
+        <lf-dropdown v-show="hovered" placement="bottom-end" width="14.5rem">
+          <template #trigger>
+            <lf-button type="secondary-ghost" size="small" :icon-only="true">
+              <lf-icon name="ellipsis" />
+            </lf-button>
+          </template>
 
-        <template v-if="hasPermission(LfPermission.memberEdit)">
-          <lf-dropdown-item @click="emit('edit')">
-            <lf-icon-old name="pencil-line" />Edit work experience
-          </lf-dropdown-item>
-          <lf-dropdown-separator />
+          <template v-if="hasPermission(LfPermission.memberEdit)">
+            <lf-dropdown-item @click="emit('edit')">
+              <lf-icon-old name="pencil-line" />Edit work experience
+            </lf-dropdown-item>
+            <lf-dropdown-separator />
+
+            <lf-dropdown-item
+              v-if="!props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+              @click="setAffiliation({
+                isPrimaryWorkExperience: true,
+                allowAffiliation: true,
+              })"
+            >
+              <lf-icon name="link" />Mark as affiliated organization/job title
+            </lf-dropdown-item>
+            <lf-dropdown-item
+              v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation
+                && props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+              @click="setAffiliation({
+                isPrimaryWorkExperience: false,
+                allowAffiliation: false,
+              })"
+            >
+              <lf-icon-old name="close-circle-line" />Remove affiliation
+            </lf-dropdown-item>
+            <lf-dropdown-item
+              v-else-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
+              @click="setAffiliation({
+                allowAffiliation: false,
+              })"
+            >
+              <lf-icon-old name="close-circle-line" />Exclude organization/job title from affiliation
+            </lf-dropdown-item>
+          </template>
 
           <lf-dropdown-item
-            v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
-            @click="setAffiliation(false)"
+            @click="setReportDataModal({
+              contributor: props.contributor,
+              type: ReportDataType.WORK_EXPERIENCE,
+              attribute: props.organization,
+            })"
           >
-            <lf-icon-old name="close-circle-line" />Remove affiliation
+            <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
           </lf-dropdown-item>
-          <lf-dropdown-item
-            v-else
-            @click="setAffiliation(true)"
-          >
-            <lf-icon name="link" />Mark as affiliated
-          </lf-dropdown-item>
-        </template>
-
-        <lf-dropdown-item
-          @click="setReportDataModal({
-            contributor: props.contributor,
-            type: ReportDataType.WORK_EXPERIENCE,
-            attribute: props.organization,
-          })"
-        >
-          <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
-        </lf-dropdown-item>
-        <template v-if="hasPermission(LfPermission.memberEdit)">
-          <lf-dropdown-separator />
-          <lf-dropdown-item type="danger" @click="removeWorkHistory">
-            <lf-icon-old name="delete-bin-6-line" />Delete work experience
-          </lf-dropdown-item>
-        </template>
-      </lf-dropdown>
+          <template v-if="hasPermission(LfPermission.memberEdit)">
+            <lf-dropdown-separator />
+            <lf-dropdown-item type="danger" @click="removeWorkHistory">
+              <lf-icon-old name="delete-bin-6-line" />Delete work experience
+            </lf-dropdown-item>
+          </template>
+        </lf-dropdown>
+      </div>
     </div>
   </article>
 </template>
@@ -117,15 +134,18 @@ const getDateRange = (dateStart?: string, dateEnd?: string) => {
   return `${start} → ${end}`;
 };
 
-const setAffiliation = (affiliation: boolean) => {
+const setAffiliation = (data: {
+  isPrimaryWorkExperience?: boolean
+  allowAffiliation?: boolean
+}) => {
   ContributorAffiliationsApiService.updateAffiliationOverride(props.contributor.id, {
-    isPrimaryWorkExperience: affiliation,
-    allowAffiliation: affiliation,
-    memberOrganizationId: props.organization.id,
+    isPrimaryWorkExperience: data.isPrimaryWorkExperience,
+    allowAffiliation: data.allowAffiliation,
+    memberOrganizationId: props.organization.memberOrganizations.id,
     memberId: props.contributor.id,
   })
     .then(() => {
-      if (affiliation) {
+      if (data.isPrimaryWorkExperience) {
         Message.success('Organization/job title successfully affiliated');
       } else {
         Message.success('Organization/job title affiliation successfully removed');
