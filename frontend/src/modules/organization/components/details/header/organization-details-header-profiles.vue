@@ -17,7 +17,7 @@
             <p class="!text-white">
               {{ lfIdentities[platform]?.name }} profile
             </p>
-            <lf-icon-old name="external-link-line" :size="14" class="text-gray-400" />
+            <lf-icon name="arrow-up-right-from-square" :size="14" class="text-gray-400" />
           </a>
         </template>
         <a
@@ -29,8 +29,10 @@
           class="flex items-center gap-1"
           @click="idents.length > 1 ? $event.preventDefault() : null"
         >
-          <lf-icon-old
+          <lf-icon
+            v-if="lfIdentities[platform]?.icon"
             :name="lfIdentities[platform]?.icon"
+            :type="lfIdentities[platform]?.iconType"
             :size="20"
             :style="{ color: lfIdentities[platform]?.color }"
             class="platform-icon"
@@ -64,7 +66,7 @@
               {{ identity.value }}
             </p>
           </div>
-          <lf-icon-old v-if="identity.url" name="external-link-line" :size="16" class="text-gray-300" />
+          <lf-icon v-if="identity.url" name="arrow-up-right-from-square" :size="16" class="text-gray-300" />
         </a>
       </div>
     </div>
@@ -73,7 +75,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import {

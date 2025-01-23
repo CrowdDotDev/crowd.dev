@@ -24,7 +24,7 @@
         >
           <template #placeholder>
             <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-              <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
+              <lf-icon name="house-building" :size="12" class="text-gray-400" />
             </div>
           </template>
         </lf-avatar>
@@ -41,7 +41,7 @@
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
+                <lf-icon name="house-building" :size="12" class="text-gray-400" />
               </div>
             </template>
           </lf-avatar>
@@ -59,7 +59,7 @@ import { ref, computed, onMounted } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { Organization } from '@/modules/organization/types/Organization';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfProjectGroupsTags from '@/shared/modules/project-groups/components/project-groups-tags.vue';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { storeToRefs } from 'pinia';

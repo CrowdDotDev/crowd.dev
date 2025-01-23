@@ -4,7 +4,8 @@ const linkedin: IdentityConfig = {
   key: 'linkedin',
   name: 'LinkedIn',
   image: '/images/identities/linkedin.png',
-  icon: 'linkedin-box-fill',
+  icon: 'linkedin',
+  iconType: 'brands',
   color: '#2867B2',
   member: {
     urlPrefix: 'linkedin.com/in/',
