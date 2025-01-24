@@ -2,7 +2,7 @@
   <div class="py-10 h-screen w-full flex flex-col items-center justify-center">
     <section class="flex justify-center items-center pb-10">
       <div class="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center mr-4">
-        <lf-icon name="git-repository-line" :size="40" />
+        <lf-svg name="git-repository" class="w-10 h-10" />
       </div>
       <div class="flex items-center gap-2">
         <div class="w-1 h-1 rounded-full bg-gray-300" />
@@ -45,6 +45,7 @@
 
 <script lang="ts" setup>
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 </script>
 
 <script lang="ts">

@@ -4,7 +4,7 @@
       <div class="flex justify-between">
         <!-- icon -->
         <div class="bg-primary-50 h-10 w-10 flex justify-center items-center rounded-full">
-          <lf-icon-old name="git-repository-private-line" :size="24" class="text-primary-500" />
+          <lf-svg name="git-repository-private" class="w-6 h-6 text-primary-500" />
         </div>
 
         <!-- close button -->
@@ -138,12 +138,12 @@
 import { computed, onMounted, ref } from 'vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import config from '@/config';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import LfSvg from '@/shared/svg/svg.vue';
 
 interface GithubInstallation {
   id: string;

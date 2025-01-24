@@ -1,7 +1,7 @@
 <template>
   <div class="flex justify-center">
     <div class="pt-16 flex flex-col items-center w-full max-w-100">
-      <lf-icon-old name="git-repository-line" :size="64" class="text-gray-300 mb-6" />
+      <lf-svg name="git-repository" class="w-16 h-16 text-gray-300 mb-6" />
       <h6 class="text-center pb-3">
         Sync and map GitHub repositories
       </h6>
@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 

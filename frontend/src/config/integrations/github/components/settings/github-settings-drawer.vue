@@ -88,7 +88,7 @@
           <div class="py-1.5">
             <article v-for="repo of filteredRepos" :key="repo.url" class="py-1.5 flex items-center">
               <div class="w-1/2 flex items-center pr-4">
-                <i class="ri-git-repository-line text-base mr-2" />
+                <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
                 <p class="text-2xs leading-5 flex-grow truncate">
                   /{{ repo.name }}
                 </p>
@@ -180,6 +180,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppGithubSettingsBulkSelect
   from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   modelValue: boolean,
