@@ -60,6 +60,12 @@ export interface IDbActivityCreateData {
   deletedAt?: string
 }
 
+export interface IActivityRelationCreateOrUpdateData {
+  activityId: string
+  memberId: string
+  organizationId: string
+}
+
 let insertActivityColumnSet: DbColumnSet
 export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet => {
   if (insertActivityColumnSet) {
