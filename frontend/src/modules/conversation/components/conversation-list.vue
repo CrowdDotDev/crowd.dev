@@ -26,7 +26,7 @@
       <!-- Empty state -->
       <app-empty-state-cta
         v-if="conversations.length === 0"
-        icon="ri-question-answer-line"
+        icon="ri-comments-question-check-"
         :title="emptyState.title"
         :description="emptyState.description"
       />

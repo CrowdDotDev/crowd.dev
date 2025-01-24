@@ -17,7 +17,7 @@
           <span>Send email
             <i
               v-if="email"
-              class="ri-external-link-line text-gray-400"
+              class="ri-arrow-up-right-from-square text-gray-400"
             /></span>
         </template>
         <div @click.prevent>
@@ -75,7 +75,7 @@
               <span>Send email
                 <i
                   v-if="email.link"
-                  class="ri-external-link-line text-gray-400"
+                  class="ri-arrow-up-right-from-square text-gray-400"
                 /></span>
             </template>
             <div @click.prevent>

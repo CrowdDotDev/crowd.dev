@@ -91,7 +91,7 @@
           type="button"
           @click.stop="$emit('edit-title')"
         >
-          <i class="ri-lg ri-pencil-line" />
+          <lf-icon name="pen fa-sharp" :size="20" />
         </button>
       </div>
     </div>
@@ -173,6 +173,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppConversationDetails',

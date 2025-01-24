@@ -10,18 +10,18 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-ellipsis solid" />
+        <lf-icon name="ellipsis" type="solid" :size="24" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="edit">
-          <i class="ri-pencil-line text-gray-400 mr-1" />
+          <lf-icon name="pen fa-sharp" class="text-gray-400 mr-1" />
           <span>Edit Activity type</span>
         </el-dropdown-item>
         <el-dropdown-item
           divided
           :command="doDestroyWithConfirm"
         >
-          <i class="ri-trash-can text-red-500 mr-1" />
+          <lf-icon name="trash-can" class="text-red-500 mr-1" />
           <span class="text-red-500">Delete activity type</span>
         </el-dropdown-item>
       </template>
@@ -34,7 +34,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 const props = defineProps({
   activityTypeKey: {
     type: Object,

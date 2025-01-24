@@ -11,15 +11,15 @@
     >
       <i
         v-if="label === 'Positive'"
-        class="ri-emotion-happy-line text-green-600 text-base"
+        class="ri-face-smile text-green-600 text-base"
       />
       <i
         v-else-if="label === 'Neutral'"
-        class="ri-emotion-normal-line text-gray-400 text-base"
+        class="ri-face-meh-line text-gray-400 text-base"
       />
       <i
         v-else
-        class="ri-emotion-unhappy-line text-red-500 text-base"
+        class="ri-face-frown-line text-red-500 text-base"
       />
     </el-tooltip>
   </div>

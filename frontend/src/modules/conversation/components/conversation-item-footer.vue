@@ -14,7 +14,7 @@
           class="flex items-center"
         >
           <i
-            class="ri-group-line text-base mr-2 text-gray-500"
+            class="ri-user-group text-base mr-2 text-gray-500"
           />
           <p
             class="text-xs text-gray-600"

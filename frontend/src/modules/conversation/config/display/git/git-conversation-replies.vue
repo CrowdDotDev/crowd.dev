@@ -44,7 +44,7 @@
   >
     <div class="flex items-center gap-8 w-9/12">
       <div class="flex items-center">
-        <i class="ri-group-line text-base mr-2 text-gray-500" />
+        <i class="ri-user-group text-base mr-2 text-gray-500" />
         <p class="text-xs text-gray-600">
           {{ pluralize("participant", conversation.memberCount, true) }}
         </p>

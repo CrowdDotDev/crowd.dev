@@ -26,7 +26,7 @@
               :command="{ action: 'mergeMembers' }"
               :disabled="!hasPermission(LfPermission.mergeMembers)"
             >
-              <i class="ri-lg ri-group-line mr-1" />
+              <i class="ri-lg ri-user-group mr-1" />
               Merge profile
             </el-dropdown-item>
           </span>
@@ -48,7 +48,7 @@
           v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
         >
-          <i class="ri-lg ri-file-edit-line mr-1" />
+          <i class="ri-lg ri-file-pen mr-1" />
           Edit attribute
         </el-dropdown-item>
         <el-dropdown-item

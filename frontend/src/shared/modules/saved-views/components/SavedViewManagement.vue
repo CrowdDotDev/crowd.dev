@@ -29,7 +29,7 @@
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="edit(view)"
               >
-                <i class="ri-pencil-line text-sm text-gray-400 group-hover:text-gray-600" />
+                <i class="ri-pen fa-sharp text-sm text-gray-400 group-hover:text-gray-600" />
               </div>
             </el-tooltip>
             <el-tooltip placement="top" content="Duplicate view">

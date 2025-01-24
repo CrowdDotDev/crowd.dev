@@ -14,7 +14,7 @@
       />
       <i
         v-else
-        class="ri-radar-line text-base"
+        class="ri-satellite-dish text-base"
       />
     </el-tooltip>
     <div class="text-gray-500 text-xs">

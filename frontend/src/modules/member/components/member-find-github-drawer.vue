@@ -32,7 +32,7 @@
             </div>
             <div class="pt-1">
               <a :href="suggestion.url" target="_blank" rel="noopener noreferrer" class="text-gray-300">
-                <i class="ri-external-link-line text-gray-400" aria-hidden="true" />
+                <i class="ri-arrow-up-right-from-square text-gray-400" aria-hidden="true" />
                 <span class="sr-only">Open in new tab</span>
               </a>
             </div>

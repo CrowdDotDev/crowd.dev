@@ -4,7 +4,7 @@
   >
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-3">
-        <i class="ri-git-commit-line text-lg text-gray-400" />
+        <i class="ri-code-commit text-lg text-gray-400" />
         <span class="text-sm text-gray-900">SHA: {{ conversation.conversationStarter.sourceId }}</span>
       </div>
       <div class="flex items-center gap-3">
