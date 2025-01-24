@@ -4,8 +4,9 @@ create table public."activityRelations" (
     "organizationId" uuid,
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
-    primary key ("activityId"),
-    foreign key ("activityId") references activities (id) on delete cascade,
+    foreign key ("memberId") references members (id) on delete cascade,
+    foreign key ("organizationId") references organizations (id) on delete cascade,
+    unique ("activityId", "memberId", "organizationId")
 );
 create index "ix_activityRelations_memberId" on "activityRelations"("memberId");
 create index "ix_activityRelations_organizationId" on "activityRelations"("organizationId");
@@ -15,28 +16,27 @@ DO
 $$
 DECLARE
     batch_size INT := 100000;
-    offset INT := 0;
+    last_processed_id UUID := '00000000-0000-0000-0000-000000000000';
     total_processed INT := 0;
     rows_inserted INT;
 BEGIN
     LOOP
-        WITH inserted_rows AS (
-            INSERT INTO "activityRelations" ("activityId", "memberId", "organizationId")
-            SELECT id, "memberId", "organizationId"
-            FROM activities
-            ORDER BY id
-            LIMIT batch_size OFFSET offset
-            RETURNING 1
-        )
-        SELECT COUNT(*) INTO rows_inserted FROM inserted_rows;
+        INSERT INTO "activityRelations" ("activityId", "memberId", "organizationId")
+        SELECT id, "memberId", "organizationId"
+        FROM activities
+        WHERE id > last_processed_id
+        ORDER BY id
+        LIMIT batch_size;
+
+        GET DIAGNOSTICS rows_inserted = ROW_COUNT;
 
         total_processed := total_processed + rows_inserted;
-
         RAISE NOTICE 'Batch processed: % rows. Total processed: % rows.', rows_inserted, total_processed;
 
         EXIT WHEN rows_inserted = 0;
 
-        offset := offset + batch_size;
+        SELECT MAX(id) INTO last_processed_id FROM activities WHERE id > last_processed_id;
+
     END LOOP;
 
     RAISE NOTICE 'All rows processed. Total rows inserted: %.', total_processed;

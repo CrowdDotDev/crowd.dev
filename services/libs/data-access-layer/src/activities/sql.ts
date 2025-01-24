@@ -22,10 +22,12 @@ import {
 import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
+  IActivityRelationCreateOrUpdateData,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { IDbOrganizationAggregateData } from '../organizations'
+import { QueryExecutor } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
 import {
@@ -1438,4 +1440,28 @@ export async function findCommitsForPRSha(
   })
 
   return rows.map((r) => r.id)
+}
+
+export async function createOrUpdateRelations(
+  qe: QueryExecutor,
+  data: IActivityRelationCreateOrUpdateData,
+): Promise<void> {
+  await qe.result(
+    `
+    INSERT INTO "activityRelations" ("activityId", "memberId", "organizationId", "createdAt", "updatedAt")
+    VALUES
+        ($(activityId), $(memberId), $(organizationId), now(), now())
+    ON CONFLICT ("activityId", "memberId", "organizationId") 
+    DO UPDATE 
+    SET 
+        "updatedAt" = EXCLUDED."updatedAt",
+        "memberId" = EXCLUDED."memberId",
+        "organizationId" = EXCLUDED."organizationId";
+    `,
+    {
+      activityId: data.activityId,
+      memberId: data.memberId,
+      organizationId: data.organizationId,
+    },
+  )
 }
