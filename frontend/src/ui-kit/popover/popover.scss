@@ -8,6 +8,10 @@
   &__content {
     @apply absolute z-50 w-max transition-all overflow-visible;
 
+    &.is-hidden {
+      @apply invisible opacity-0 pointer-events-none;
+    }
+
     &.is-placed {
       &-bottom-start {
         left: var(--lf-popover-trigger-left);
