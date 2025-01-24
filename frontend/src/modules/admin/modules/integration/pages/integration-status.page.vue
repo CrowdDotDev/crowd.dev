@@ -109,7 +109,7 @@
                     :grandparent-id="integration.grandparentId"
                   />
                   <template v-if="status !== 'notConnected'">
-                    <lf-dropdown placement="bottom-end" width="14.5rem">
+                    <lf-dropdown placement="bottom-end" width="14.5rem" :persistent="true">
                       <template #trigger>
                         <lf-button type="secondary-ghost" icon-only>
                           <lf-icon name="ellipsis" />

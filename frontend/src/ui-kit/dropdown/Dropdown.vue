@@ -1,5 +1,5 @@
 <template>
-  <lf-popover :placement="props.placement">
+  <lf-popover :placement="props.placement" :persistent="props.persistent">
     <template #trigger>
       <slot name="trigger" />
     </template>
@@ -22,9 +22,11 @@ import LfPopover from '@/ui-kit/popover/Popover.vue';
 const props = withDefaults(defineProps<{
   placement: DropdownPlacement;
   width?: string;
+  persistent?: boolean;
 }>(), {
   placement: 'bottom-start',
   width: 'auto',
+  persistent: false,
 });
 </script>
 
