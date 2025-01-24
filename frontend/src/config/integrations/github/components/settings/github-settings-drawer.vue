@@ -51,7 +51,7 @@
             </p>
           </div>
           <div class="border border-yellow-100 rounded-md bg-yellow-50 p-2 flex">
-            <div class="w-4 h-4 flex items-center ri-alert-fill text-yellow-500" />
+            <lf-icon name="triangle-exclamation" type="solid" :size="16" class="text-yellow-500" />
             <div class="flex-grow text-yellow-900 text-2xs leading-4.5 pl-2">
               Repository mapping is not reversible. Once GitHub is connected,
               you won’t be able to update these settings and reconnecting a different organization or repositories won’t override past activities.
@@ -66,7 +66,7 @@
             placeholder="Search repositories..."
           >
             <template #prefix>
-              <i class="ri-search-line text-gray-400" />
+              <lf-icon name="magnifying-glass" class="text-gray-400" />
             </template>
           </el-input>
         </section>
@@ -181,6 +181,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppGithubSettingsBulkSelect
   from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
 import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: boolean,

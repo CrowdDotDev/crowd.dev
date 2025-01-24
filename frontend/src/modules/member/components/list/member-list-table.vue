@@ -697,7 +697,7 @@
                       >
                         <i
                           :id="`buttonRefIcon-${scope.row.id}`"
-                          class="text-xl ri-more-fill"
+                          class="text-xl ri-ellipsis solid"
                         />
                       </button>
                     </div>

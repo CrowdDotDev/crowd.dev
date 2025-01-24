@@ -252,7 +252,7 @@ const handleCommand = async (command: {
       message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line',
+      icon: 'ri-trash-can',
     }).then(() => {
       trackEvent({
         key: FeatureEventKey.DELETE_MEMBER,

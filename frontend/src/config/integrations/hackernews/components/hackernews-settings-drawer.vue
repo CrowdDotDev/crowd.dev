@@ -77,9 +77,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeUrl(url.id)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg text-black"
-                />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
@@ -126,7 +124,7 @@ import isUrl from '@/utils/isUrl';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 export default {
   name: 'LfHackernewsSettingsDrawer',
 

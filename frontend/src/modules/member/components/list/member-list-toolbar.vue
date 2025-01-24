@@ -66,7 +66,7 @@
             <div
               class="flex items-center text-red-500"
             >
-              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <i class="ri-lg ri-trash-can mr-2" />
               Delete
             </div>
           </el-dropdown-item>
@@ -173,7 +173,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
   cancelButtonText: 'Cancel',
-  icon: 'ri-delete-bin-line',
+  icon: 'ri-trash-can',
 })
   .then(() => {
     trackEvent({

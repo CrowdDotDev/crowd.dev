@@ -145,7 +145,7 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
       "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
   cancelButtonText: 'Cancel',
-  icon: 'ri-delete-bin-line',
+  icon: 'ri-trash-can',
 })
   .then(() => {
     trackEvent({

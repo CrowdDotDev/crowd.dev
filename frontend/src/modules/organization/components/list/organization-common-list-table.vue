@@ -169,7 +169,7 @@ const deleteOrganization = (organization: any) => {
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line',
+    icon: 'ri-trash-can',
   }).then(() => {
     Message.info(null, {
       title: 'Organization is being deleted',

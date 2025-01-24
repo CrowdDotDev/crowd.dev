@@ -57,9 +57,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="deleteItem(index)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg text-black"
-                />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
@@ -83,7 +81,7 @@
           class="btn btn-link btn-link--primary"
           @click="doReset"
         >
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">
@@ -130,6 +128,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import reddit from '@/config/integrations/reddit/config';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const store = useStore();
 

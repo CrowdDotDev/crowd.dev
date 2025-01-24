@@ -30,9 +30,7 @@
           >
             /{{ repoNameFromUrl(mapping.url) }}
           </a>
-          <div
-            class="ri-arrow-right-line text-gray-400 text-base mx-2 h-4 flex items-center"
-          />
+          <lf-icon name="arrow-right" :size="16" class="text-gray-400 mx-2 flex items-center" />
           <div class="text-xs leading-5 max-w-3xs truncate">
             {{ mapping.segment.name }}
           </div>
@@ -47,6 +45,7 @@ import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
 import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   integration: any;

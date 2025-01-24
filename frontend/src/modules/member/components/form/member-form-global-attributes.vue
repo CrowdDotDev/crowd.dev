@@ -61,7 +61,7 @@
               @click="deleteAttribute(attribute.name)"
             >
               <i
-                class="ri-delete-bin-line text-lg text-black"
+                class="ri-trash-can text-lg text-black"
               />
             </el-button>
           </div>

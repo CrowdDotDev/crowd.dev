@@ -10,14 +10,14 @@
       type="button"
       @click.stop
     >
-      <i class="text-lg ri-more-fill" />
+      <i class="text-lg ri-ellipsis solid" />
     </button>
     <template #dropdown>
       <el-dropdown-item
         :command="onDeleteConversation"
       >
         <i
-          class="ri-delete-bin-line mr-1 text-red-500"
+          class="ri-trash-can mr-1 text-red-500"
         /><span
           class="text-red-500"
         >Delete conversation</span>
@@ -56,7 +56,7 @@ const onDeleteConversation = async () => {
             "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line',
+      icon: 'ri-trash-can',
     });
 
     trackEvent({

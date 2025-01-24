@@ -46,7 +46,7 @@
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="remove(view)"
               >
-                <i class="ri-delete-bin-line text-sm text-gray-400 group-hover:text-gray-600" />
+                <i class="ri-trash-can text-sm text-gray-400 group-hover:text-gray-600" />
               </div>
             </el-tooltip>
           </div>
@@ -126,7 +126,7 @@ const remove = (view: SavedView) => {
     message: isShared
       ? 'This view will be deleted on all user accounts from this workspace. Are you sure you want to proceed? You can’t undo this action.'
       : 'Are you sure you want to proceed? You can’t undo this action.',
-    icon: 'ri-delete-bin-line',
+    icon: 'ri-trash-can',
     cancelButtonText: 'Cancel',
     confirmButtonText: isShared ? 'Delete shared view' : 'Delete view',
   } as any)

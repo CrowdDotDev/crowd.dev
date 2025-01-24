@@ -10,7 +10,7 @@
         type="button"
         @click.stop
       >
-        <i class="text-xl ri-more-fill" />
+        <i class="text-xl ri-ellipsis solid" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="edit">
@@ -21,7 +21,7 @@
           divided
           :command="doDestroyWithConfirm"
         >
-          <i class="ri-delete-bin-line text-red-500 mr-1" />
+          <i class="ri-trash-can text-red-500 mr-1" />
           <span class="text-red-500">Delete activity type</span>
         </el-dropdown-item>
       </template>
@@ -60,7 +60,7 @@ const doDestroyWithConfirm = () => {
       "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Delete',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line',
+    icon: 'ri-trash-can',
   }).then(() => {
     trackEvent({
       key: FeatureEventKey.DELETE_ACTIVITY_TYPE,

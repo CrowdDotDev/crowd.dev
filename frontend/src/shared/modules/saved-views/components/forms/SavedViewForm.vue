@@ -98,7 +98,7 @@
                 class="ml-2 h-10 w-10 flex items-center justify-center cursor-pointer"
                 @click="removeFilter(filter)"
               >
-                <i class="ri-delete-bin-line text-lg h-5 flex items-center" />
+                <i class="ri-trash-can text-lg h-5 flex items-center" />
               </div>
             </div>
           </div>
