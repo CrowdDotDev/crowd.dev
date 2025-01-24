@@ -484,7 +484,7 @@ export default class UserRepository {
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    rows = this._mapUserForTenantForRows(rows, currentTenant)
+    rows = await this._mapUserForTenantForRows(rows, currentTenant, options)
 
     return { rows, count, limit: false, offset: 0 }
   }
@@ -531,7 +531,7 @@ export default class UserRepository {
       order: [['fullName', 'ASC']],
     })
 
-    users = this._mapUserForTenantForRows(users, currentTenant)
+    users = await this._mapUserForTenantForRows(users, currentTenant, options)
 
     const buildText = (user) => {
       if (!user.fullName) {
@@ -601,7 +601,7 @@ export default class UserRepository {
         throw new Error404()
       }
 
-      record = this._mapUserForTenant(record, currentTenant)
+      record = await this._mapUserForTenant(record, currentTenant, options)
     }
 
     return record
@@ -847,18 +847,18 @@ export default class UserRepository {
   /**
    * Maps the users data to show only the current tenant related info
    */
-  static _mapUserForTenantForRows(rows, tenant) {
+  static async _mapUserForTenantForRows(rows, tenant, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return rows.map((record) => this._mapUserForTenant(record, tenant))
+    return Promise.all(rows.map((record) => this._mapUserForTenant(record, tenant, options)))
   }
 
   /**
    * Maps the user data to show only the current tenant related info
    */
-  static _mapUserForTenant(user, tenant) {
+  static async _mapUserForTenant(user, tenant, options: IRepositoryOptions) {
     if (!user || !user.tenants) {
       return user
     }
@@ -873,6 +873,26 @@ export default class UserRepository {
     const status = tenantUser ? tenantUser.status : null
     const roles = tenantUser ? tenantUser.roles : []
     const adminSegments = tenantUser ? tenantUser.adminSegments : []
+    
+    let adminSegmentsWithNames = []
+    if (adminSegments?.length > 0) {
+      adminSegmentsWithNames = await options.database.sequelize.query(
+        `
+        SELECT id, name
+        FROM segments
+        WHERE id IN (:segmentIds)
+        AND "tenantId" = :tenantId
+        ORDER BY name;
+        `,
+        {
+          replacements: {
+            segmentIds: adminSegments,
+            tenantId: tenant.id,
+          },
+          type: options.database.Sequelize.QueryTypes.SELECT,
+        },
+      )
+    }
 
     // If the user is only invited,
     // tenant members can only see its email
@@ -886,7 +906,7 @@ export default class UserRepository {
       roles,
       status,
       invitationToken: tenantUser?.invitationToken,
-      adminSegments,
+      adminSegments: adminSegmentsWithNames,
     }
   }
 }
