@@ -1,5 +1,5 @@
 import LfSvg from '@/shared/svg/svg.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTimeline from './Timeline.vue';
 import LfTimelineItem from './TimelineItem.vue';
 import { TimelineGroup } from './types/TimelineTypes';
@@ -29,7 +29,7 @@ export const Regular = {
   },
   render: (args: { groups: TimelineGroup[] }) => ({
     components: {
-      LfTimeline, LfTimelineItem, LfSvg, LfIconOld,
+      LfTimeline, LfTimelineItem, LfSvg, LfIcon,
     },
     setup() {
       return { args };
