@@ -65,7 +65,7 @@
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ moment(integration.lastProcessedAt).fromNow() }}
+            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : moment(integration.lastProcessedAt).fromNow() }}
           </p>
         </div>
 
