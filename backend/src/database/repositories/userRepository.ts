@@ -851,14 +851,16 @@ export default class UserRepository {
     if (!rows) {
       return rows
     }
-
-    return Promise.all(rows.map((record) => this._mapUserForTenant(record, tenant, options)))
+    const segments = await options.database.segment.findAll({
+      where: { tenantId: tenant.id },
+    });
+    return Promise.all(rows.map((record) => this._mapUserForTenant(record, tenant, options, segments)))
   }
 
   /**
    * Maps the user data to show only the current tenant related info
    */
-  static async _mapUserForTenant(user, tenant, options: IRepositoryOptions) {
+  static async _mapUserForTenant(user, tenant, options: IRepositoryOptions, segments?) {
     if (!user || !user.tenants) {
       return user
     }
@@ -874,24 +876,9 @@ export default class UserRepository {
     const roles = tenantUser ? tenantUser.roles : []
     const adminSegments = tenantUser ? tenantUser.adminSegments : []
 
-    let adminSegmentsWithNames = []
-    if (adminSegments?.length > 0) {
-      adminSegmentsWithNames = await options.database.sequelize.query(
-        `
-        SELECT id, name
-        FROM segments
-        WHERE id IN (:segmentIds)
-        AND "tenantId" = :tenantId
-        ORDER BY name;
-        `,
-        {
-          replacements: {
-            segmentIds: adminSegments,
-            tenantId: tenant.id,
-          },
-          type: options.database.Sequelize.QueryTypes.SELECT,
-        },
-      )
+    let adminSegmentsWithNames = adminSegments;
+    if (adminSegments?.length > 0 && segments) {
+      adminSegmentsWithNames = segments.filter((segment) => adminSegments.includes(segment.id))
     }
 
     // If the user is only invited,
