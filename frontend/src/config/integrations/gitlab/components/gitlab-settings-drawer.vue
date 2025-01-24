@@ -111,7 +111,7 @@
                   <el-checkbox v-model="selectedRepos[project.web_url]" @change="updateSelectedRepos" />
                 </div>
                 <div class="flex-grow flex items-center pr-4">
-                  <i class="ri-git-repository-line text-base mr-2" />
+                  <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
                   <p class="text-2xs leading-5 flex-grow truncate">
                     {{ project.path_with_namespace }}
                   </p>
@@ -204,6 +204,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import LfSvg from '@/shared/svg/svg.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{

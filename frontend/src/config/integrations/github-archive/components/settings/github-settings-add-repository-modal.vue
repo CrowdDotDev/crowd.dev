@@ -59,7 +59,8 @@
             <article v-for="repo of resultRepositories" :key="repo.url" class="flex justify-between items-center">
               <div>
                 <div class="flex items-center gap-1.5 mb-0.5">
-                  <lf-icon-old name="git-repository-line" :size="16" class="text-gray-900" />
+                  <lf-svg name="git-repository" class="w-4 h-4 text-gray-900" />
+
                   <p class="text-small font-semibold">
                     {{ repo.name }}
                   </p>
@@ -86,7 +87,7 @@
             </article>
             <div v-if="resultRepositories.length === 0" class="flex justify-center">
               <div class="pt-12 flex flex-col items-center w-full max-w-100">
-                <lf-icon-old name="git-repository-line" :size="64" class="text-gray-300 mb-6" />
+                <lf-svg name="git-repository" class="w-16 h-16 text-gray-300 mb-6" />
                 <h6 class="text-center pb-3">
                   No repositories found
                 </h6>
@@ -154,7 +155,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import {
   GitHubOrganization,

@@ -5,10 +5,7 @@
         <div
           class="text-gray-600 text-2xs flex items-center leading-5"
         >
-          <i
-            class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-          />
-
+          <lf-svg name="git-repository" class="w-4 h-4 !text-gray-600 mr-1 flex items-center" />
           <span class="font-semibold">
             {{ pluralize("repository", Object.keys(mappings).length, true) }}
           </span>
@@ -24,9 +21,7 @@
           :key="mapping.url"
           class="py-2 flex items-center flex-nowrap"
         >
-          <i
-            class="ri-git-repository-line text-base mr-2 h-4 flex items-center"
-          />
+          <lf-svg name="git-repository" class="w-4 h-4 mr-2 flex items-center" />
           <a
             :href="mapping.url"
             target="_blank"
@@ -51,6 +46,7 @@
 import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   integration: any;
