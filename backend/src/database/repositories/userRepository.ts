@@ -873,7 +873,7 @@ export default class UserRepository {
     const status = tenantUser ? tenantUser.status : null
     const roles = tenantUser ? tenantUser.roles : []
     const adminSegments = tenantUser ? tenantUser.adminSegments : []
-    
+
     let adminSegmentsWithNames = []
     if (adminSegments?.length > 0) {
       adminSegmentsWithNames = await options.database.sequelize.query(
