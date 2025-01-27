@@ -10,15 +10,14 @@
       type="button"
       @click.stop
     >
-      <i class="text-lg ri-ellipsis solid" />
+      <lf-icon name="ellipsis" type="solid" size="20" />
     </button>
     <template #dropdown>
       <el-dropdown-item
         :command="onDeleteConversation"
       >
-        <i
-          class="ri-trash-can mr-1 text-red-500"
-        /><span
+        <lf-icon name="trash-can" class="text-red-500 mr-1" size="16" />
+        <span
           class="text-red-500"
         >Delete conversation</span>
       </el-dropdown-item>
@@ -34,6 +33,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { ConversationService } from '../conversation-service';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits<{(e: 'conversation-destroyed'): void}>();
 const props = defineProps<{

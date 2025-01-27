@@ -64,6 +64,7 @@
                       <span class="text-xs text-gray-400">Project groups</span>
                       <div class="overflow-auto max-h-30 mt-4 flex items-baseline flex-wrap gap-1">
                         <lf-badge
+                          class="truncate"
                           v-for="segment in user.adminSegments"
                           :key="segment.id"
                           type="tertiary"

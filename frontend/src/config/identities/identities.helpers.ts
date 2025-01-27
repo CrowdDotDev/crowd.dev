@@ -5,7 +5,7 @@ const useIdentitiesHelpers = () => {
     .filter((platform) => !['integration_or_enrichment', 'email', 'integration', 'unknown', 'delete'].includes(platform))
     .map((platform) => {
       if (['enrichment', 'peopledatalabs'].includes(platform)) {
-        return '<span class="ri-sparkling-line mr-0.5"></span> Enrichment';
+        return '<span class="fa-sparkles fa-light mr-0.5"></span> Enrichment';
       }
       if (platform === 'custom') {
         return 'Manually added';
