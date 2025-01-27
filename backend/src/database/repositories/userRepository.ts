@@ -854,7 +854,9 @@ export default class UserRepository {
     const segments = await options.database.segment.findAll({
       where: { tenantId: tenant.id },
     })
-    return Promise.all(rows.map((record) => this._mapUserForTenant(record, tenant, options, segments)))
+    return Promise.all(
+      rows.map((record) => this._mapUserForTenant(record, tenant, options, segments)),
+    )
   }
 
   /**
