@@ -86,7 +86,6 @@ import { Activity } from '@/shared/modules/activity/types/Activity';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import { computed } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
@@ -94,6 +93,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import { toSentenceCase } from '@/utils/string';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { lfIdentities } from '@/config/identities';
 
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
@@ -108,7 +108,7 @@ const props = defineProps<{
 
 const { trackEvent } = useProductTracking();
 
-const platform = computed(() => CrowdIntegrations.getConfig(props.activity.platform));
+const platform = computed(() => lfIdentities[props.activity.platform]);
 
 const activityMessage = computed(() => props.activity.display?.default ?? '');
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));

@@ -20,7 +20,6 @@
         <router-link :to="{ path: '/' }">
           <el-button
             class="btn btn--primary btn--md"
-            @click="onBackHomeClick"
           >
             Back to Home
           </el-button>
@@ -56,8 +55,6 @@
 </template>
 
 <script>
-import { TenantService } from '@/modules/tenant/tenant-service';
-
 export default {
   name: 'AppError404Page',
   props: {
@@ -72,11 +69,6 @@ export default {
     subtitle: {
       type: String,
       default: null,
-    },
-  },
-  methods: {
-    async onBackHomeClick() {
-      await TenantService.fetchAndApply();
     },
   },
 };

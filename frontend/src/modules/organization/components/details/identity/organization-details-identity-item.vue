@@ -6,12 +6,12 @@
   >
     <div class="mt-0.5">
       <lf-tooltip
-        v-if="platform(props.identity.platform)"
+        v-if="lfIdentities[props.identity.platform]"
         placement="top-start"
-        :content="platform(props.identity.platform).name"
+        :content="lfIdentities[props.identity.platform].name"
       >
         <img
-          :src="platform(props.identity.platform)?.image"
+          :src="lfIdentities[props.identity.platform]?.image"
           class="h-5 w-5 object-contain"
           :alt="props.identity.value"
         />
@@ -97,7 +97,6 @@
 
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -111,7 +110,7 @@ import { Organization, OrganizationIdentity } from '@/modules/organization/types
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 import { useSharedStore } from '@/shared/pinia/shared.store';
-import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   identity: OrganizationIdentity,
@@ -126,8 +125,6 @@ const { setReportDataModal } = useSharedStore();
 const { updateOrganization } = useOrganizationStore();
 
 const hovered = ref(false);
-
-const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
 const removeIdentity = () => {
   const identities = props.organization.identities

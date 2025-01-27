@@ -13,6 +13,7 @@ const gitlab: IntegrationConfig = {
   connectedParamsComponent: GitlabParams,
   actionComponent: GitlabAction,
   statusComponent: GitlabStatus,
+  showProgress: false,
 };
 
 export default gitlab;

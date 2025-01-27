@@ -1,4 +1,6 @@
+import config from '@/config';
 import github from './github/config';
+import githubArchive from './github-archive/config';
 import git from './git/config';
 import groupsio from './groupsio/config';
 import confluence from './confluence/config';
@@ -25,10 +27,11 @@ export interface IntegrationConfig {
   statusComponent?: Vue.Component; // Component rendered to show integration status
   connectedParamsComponent?: Vue.Component; // Component rendered to show connected integration params (repositories, channels)
   dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
+  showProgress: boolean; // Show progress bar when connecting
 }
 
 export const lfIntegrations: Record<string, IntegrationConfig> = {
-  github,
+  github: config.isGithubArchiveEnabled === 'true' ? githubArchive : github,
   git,
   groupsio,
   confluence,

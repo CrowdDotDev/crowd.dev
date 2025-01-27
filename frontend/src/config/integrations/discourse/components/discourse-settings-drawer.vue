@@ -198,7 +198,7 @@
 import {
   computed, defineEmits, defineProps, onMounted, reactive, ref,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import discourse from '@/config/integrations/discourse/config';
 import { helpers, required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -208,7 +208,6 @@ import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
@@ -221,8 +220,6 @@ const props = defineProps<{
   segmentId: string | null;
   grandparentId: string | null;
 }>();
-
-const tenantId = AuthService.getTenantId();
 
 const inputRef = ref();
 const showToken = ref(false);
@@ -329,7 +326,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const logoUrl = CrowdIntegrations.getConfig('discourse').image;
+const logoUrl = discourse.image;
 
 const isVisible = computed({
   get() {

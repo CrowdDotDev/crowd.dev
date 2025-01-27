@@ -117,7 +117,6 @@ export enum FeatureEventKey {
   DISCONNECT_INTEGRATION = 'Disconnect integration',
   EDIT_INTEGRATION_SETTINGS = 'Edit integration settings',
   SEARCH_PROJECTS = 'Search projects',
-  COPY_TENANT_ID = 'Copy tenant ID',
   COPY_AUTH_TOKEN = 'Copy auth token',
   SHOW_AUTH_TOKEN = 'Show auth token',
   VIEW_AUDIT_LOG_DETAILS = 'View audit log details',

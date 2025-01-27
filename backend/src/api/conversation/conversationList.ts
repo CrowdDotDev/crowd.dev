@@ -4,12 +4,11 @@ import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/conversation
+ * GET /conversation
  * @summary List conversations
  * @tag Conversations
  * @security Bearer
  * @description Get a list of conversations with filtering, sorting and offsetting.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} [filter[title]] - Filter by the title of the conversation.
  * @queryParam {string} [filter[slug]] - Filter by the slug of the conversation.
  * @queryParam {string} [filter[published]] - Filter by whether it is published or not.

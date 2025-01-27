@@ -3,12 +3,11 @@ import CustomViewService from '../../services/customViewService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/customview/{id}
+ * PUT /customview/{id}
  * @summary Update an custom view
  * @tag CustomViews
  * @security Bearer
  * @description Update an custom view given an ID.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the custom view
  * @bodyContent {CustomViewUpsertInput} application/json
  * @response 200 - Ok

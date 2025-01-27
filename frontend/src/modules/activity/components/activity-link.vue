@@ -1,6 +1,6 @@
 <template>
   <a
-    v-if="activity && activity.url && platform?.activityDisplay?.showLinkToUrl"
+    v-if="activity && activity.url && platform?.activity?.showLink"
     :href="activity.url"
     class="text-2xs text-gray-500 font-medium flex items-center"
     target="_blank"
@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppActivityLink',
@@ -28,9 +28,7 @@ export default {
   },
   computed: {
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.activity.platform,
-      );
+      return lfIdentities[this.activity.platform];
     },
   },
 };

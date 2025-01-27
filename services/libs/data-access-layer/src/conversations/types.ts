@@ -39,7 +39,7 @@ export interface IConversationWithActivities extends IDbConversation {
 }
 
 export interface IQueryConversationsParameters {
-  tenantId: string
+  tenantId?: string
   segmentIds: string[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: any

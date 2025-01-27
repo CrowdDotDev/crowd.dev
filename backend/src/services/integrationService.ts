@@ -1,17 +1,19 @@
 /* eslint-disable no-promise-executor-return */
 import { createAppAuth } from '@octokit/auth-app'
+import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import { EDITION, Error400, Error404 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
-import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
 import {
   fetchAllGitlabGroups,
   fetchGitlabGroupProjects,
@@ -40,6 +42,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import track from '../segment/track'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
+import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import {
   GitHubStats,
   getGitHubRemoteStats,
@@ -275,23 +278,21 @@ export default class IntegrationService {
   /**
    * Retrieves global integrations for the specified tenant.
    *
-   * @param {string} tenantId - The unique identifier of the tenant.
    * @param {any} args - Additional arguments that define search criteria or constraints.
    * @return {Promise<any>} A promise that resolves to the list of global integrations matching the criteria.
    */
-  async findGlobalIntegrations(tenantId: string, args: any) {
-    return IntegrationRepository.findGlobalIntegrations(tenantId, args, this.options)
+  async findGlobalIntegrations(args: any) {
+    return IntegrationRepository.findGlobalIntegrations(args, this.options)
   }
 
   /**
    * Fetches the global count of integration statuses for a given tenant.
    *
-   * @param {string} tenantId - The ID of the tenant for which to fetch the count.
    * @param {Object} args - Additional arguments to refine the query.
    * @return {Promise<number>} A promise that resolves to the count of global integration statuses.
    */
-  async findGlobalIntegrationsStatusCount(tenantId: string, args: any) {
-    return IntegrationRepository.findGlobalIntegrationsStatusCount(tenantId, args, this.options)
+  async findGlobalIntegrationsStatusCount(args: any) {
+    return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
   }
 
   async query(data) {
@@ -386,7 +387,201 @@ export default class IntegrationService {
     return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
   }
 
-  async mapGithubRepos(integrationId, mapping, fireOnboarding = true, isUpdateTransaction = false) {
+  async connectGithub(code, installId, setupAction = 'install') {
+    if (setupAction === 'request') {
+      return this.createOrUpdate(
+        {
+          platform: PlatformType.GITHUB,
+          status: 'waiting-approval',
+        },
+        await SequelizeRepository.createTransaction(this.options),
+      )
+    }
+
+    const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
+    const CLIENT_ID = GITHUB_CONFIG.clientId
+    const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
+
+    const tokenResponse = await axios({
+      method: 'post',
+      url: GITHUB_AUTH_ACCESSTOKEN_URL,
+      data: {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code,
+      },
+    })
+
+    let token = tokenResponse.data
+    token = token.slice(token.search('=') + 1, token.search('&'))
+
+    try {
+      const requestWithAuth = request.defaults({
+        headers: {
+          authorization: `token ${token}`,
+        },
+      })
+      await requestWithAuth('GET /user')
+    } catch {
+      throw new Error542(
+        `Invalid token for GitHub integration. Code: ${code}, setupAction: ${setupAction}. Token: ${token}`,
+      )
+    }
+
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
+
+    return integration
+  }
+
+  async connectGithubInstallation(installId: string) {
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token: installToken,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
+
+    return integration
+  }
+
+  async getGithubInstallations() {
+    return GithubInstallationsRepository.getInstallations(this.options)
+  }
+
+  /**
+   * Creates or updates a GitHub integration, handling large repos data
+   * @param integrationData The integration data to create or update
+   * @param repos The repositories data
+   */
+  private async createOrUpdateGithubIntegration(integrationData, repos: Repos) {
+    let integration
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      // Get the first repo's owner since we know all repos are from same installation
+      const orgName = repos[0]?.owner
+
+      // Create initial integration with org structure but empty repos
+      const initialOrg = {
+        name: orgName,
+        logo: integrationData.settings.orgAvatar,
+        url: `https://github.com/${orgName}`,
+        fullSync: true,
+        updatedAt: new Date().toISOString(),
+        repos: [],
+      }
+
+      integration = await this.createOrUpdate(
+        {
+          ...integrationData,
+          settings: {
+            ...integrationData.settings,
+            orgs: [initialOrg],
+          },
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      // Transform repos into the new format
+      const transformedRepos = repos.map((repo) => ({
+        name: repo.name,
+        url: repo.url,
+        updatedAt: repo.createdAt || new Date().toISOString(),
+      }))
+
+      // Add repos in chunks
+      const chunkSize = 100 // Process 100 repos at a time
+      for (let i = 0; i < transformedRepos.length; i += chunkSize) {
+        const reposChunk = transformedRepos.slice(i, i + chunkSize)
+        await this.appendGitHubReposToOrg(integration.id, reposChunk)
+      }
+
+      return integration
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  private async appendGitHubReposToOrg(integrationId: string, repos: any[]) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const sequelize = SequelizeRepository.getSequelize(this.options)
+
+    try {
+      // Append repos to the first (and only) org's repos array
+      const query = `
+        UPDATE integrations
+        SET settings = jsonb_set(
+          settings,
+          '{orgs,0,repos}',
+          COALESCE(settings->'orgs'->0->'repos', '[]'::jsonb) || ?::jsonb
+        )
+        WHERE id = ?
+      `
+
+      const values = [JSON.stringify(repos), integrationId]
+
+      await sequelize.query(query, {
+        replacements: values,
+        transaction,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  async mapGithubReposSnowflake(
+    integrationId,
+    mapping,
+    fireOnboarding = true,
+    isUpdateTransaction = false,
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -400,7 +595,12 @@ export default class IntegrationService {
 
     try {
       const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-      await GithubReposRepository.updateMapping(integrationId, mapping, oldMapping, txOptions)
+      await GithubReposRepository.updateMappingSnowflake(
+        integrationId,
+        mapping,
+        oldMapping,
+        txOptions,
+      )
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
@@ -599,6 +799,96 @@ export default class IntegrationService {
       } else if (hasAddedRepos || hasChangedSegments) {
         this.options.log.debug(
           'No onboarding message sent because no repos to add or change segments for!',
+        )
+      }
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
+      if (fireOnboarding) {
+        const integration = await IntegrationRepository.update(
+          integrationId,
+          { status: 'in-progress' },
+          txOptions,
+        )
+
+        this.options.log.info(
+          { tenantId: integration.tenantId },
+          'Sending GitHub message to int-run-worker!',
+        )
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
         )
       }
 
@@ -1887,5 +2177,104 @@ export default class IntegrationService {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+  }
+
+  async updateGithubIntegrationSettings(installId: string) {
+    this.options.log.info(`Updating GitHub integration settings for installId: ${installId}`)
+
+    // Find the integration by installId
+    const integration: any = await IntegrationRepository.findByIdentifier(
+      installId,
+      PlatformType.GITHUB,
+    )
+
+    if (!integration || integration.platform !== PlatformType.GITHUB) {
+      this.options.log.warn(`GitHub integration not found for installId: ${installId}`)
+      throw new Error404('GitHub integration not found')
+    }
+
+    this.options.log.info(`Found integration: ${integration.id}`)
+
+    // Get the install token
+    const installToken = await IntegrationService.getInstallToken(installId)
+    this.options.log.info(`Obtained install token for installId: ${installId}`)
+
+    // Fetch all installed repositories
+    const repos = await getInstalledRepositories(installToken)
+    this.options.log.info(`Fetched ${repos.length} installed repositories`)
+
+    // Update integration settings
+    const currentSettings: {
+      orgs: Array<{
+        name: string
+        logo: string
+        url: string
+        fullSync: boolean
+        updatedAt: string
+        repos: Array<{
+          name: string
+          url: string
+          updatedAt: string
+        }>
+      }>
+    } = integration.settings || { orgs: [] }
+
+    if (currentSettings.orgs.length !== 1) {
+      throw new Error('Integration settings must have exactly one organization')
+    }
+
+    const currentRepos = currentSettings.orgs[0].repos || []
+    const newRepos = repos.filter((repo) => !currentRepos.some((r) => r.url === repo.url))
+    this.options.log.info(`Found ${newRepos.length} new repositories`)
+
+    const updatedSettings = {
+      ...currentSettings,
+      orgs: [
+        {
+          ...currentSettings.orgs[0],
+          repos: [
+            ...currentRepos,
+            ...newRepos.map((repo) => ({
+              name: repo.name,
+              url: repo.url,
+              updatedAt: repo.updatedAt || new Date().toISOString(),
+            })),
+          ],
+        },
+      ],
+    }
+
+    this.options = {
+      ...this.options,
+      currentSegments: [
+        {
+          id: integration.segmentId,
+        } as any,
+      ],
+    }
+
+    // Update the integration with new settings
+    await this.update(integration.id, { settings: updatedSettings })
+
+    this.options.log.info(`Updated integration settings for integration id: ${integration.id}`)
+
+    // Update GitHub repos mapping
+    const defaultSegmentId = integration.segmentId
+    const mapping = {}
+    for (const repo of newRepos) {
+      mapping[repo.url] = defaultSegmentId
+    }
+    if (Object.keys(mapping).length > 0) {
+      // false - not firing onboarding
+      await this.mapGithubRepos(integration.id, mapping, false)
+      this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
+    } else {
+      this.options.log.info(`No new repos to map for integration id: ${integration.id}`)
+    }
+
+    this.options.log.info(
+      `Completed updating GitHub integration settings for installId: ${installId}`,
+    )
+    return integration
   }
 }

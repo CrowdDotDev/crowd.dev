@@ -3,12 +3,11 @@ import TagService from '../../services/tagService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/tag
+ * POST /tag
  * @summary Create a tag
  * @tag Tags
  * @security Bearer
  * @description Create a tag
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {TagNoId} application/json
  * @response 200 - Ok
  * @responseContent {Tag} 200.application/json

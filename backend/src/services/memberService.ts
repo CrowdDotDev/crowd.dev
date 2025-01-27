@@ -1755,34 +1755,6 @@ export default class MemberService extends LoggerBase {
     return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
   }
 
-  async import(data, importHash) {
-    if (!importHash) {
-      throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-    }
-
-    if (await this._isImportHashExistent(importHash)) {
-      throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-    }
-
-    const dataToCreate = {
-      ...data,
-      importHash,
-    }
-
-    await this.upsert(dataToCreate)
-  }
-
-  async _isImportHashExistent(importHash) {
-    const count = await MemberRepository.count(
-      {
-        importHash,
-      },
-      this.options,
-    )
-
-    return count > 0
-  }
-
   /**
    *
    * @param oldReach The old reach object

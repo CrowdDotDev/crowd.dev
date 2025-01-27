@@ -115,7 +115,7 @@ import { Member } from '@/modules/member/types/Member';
 import { computed } from 'vue';
 import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   member: Member
@@ -160,7 +160,7 @@ const getPlatformLabel = (platforms: string[]) => platforms
     if (platform === 'enrichment') {
       return 'Enrichment';
     }
-    return CrowdIntegrations.getConfig(platform)?.name || platform;
+    return lfIdentities[platform]?.name || platform;
   }).join(', ');
 
 const trackEmailClick = () => {

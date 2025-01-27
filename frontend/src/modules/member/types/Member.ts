@@ -62,7 +62,6 @@ export interface Member {
   reach:MemberReach;
   score: number;
   tags: MemberTag[];
-  tenantId: string;
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>

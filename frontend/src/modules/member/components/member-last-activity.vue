@@ -25,8 +25,8 @@
 
 <script>
 import { formatDateToTimeAgo } from '@/utils/date';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { toSentenceCase } from '@/utils/string';
+import { lfIdentities } from '@/config/identities';
 
 export default {
   name: 'AppMemberLastActivity',
@@ -38,9 +38,7 @@ export default {
   },
   computed: {
     platform() {
-      return CrowdIntegrations.getConfig(
-        this.member.lastActivity.platform,
-      );
+      return lfIdentities[this.member.lastActivity.platform];
     },
     timeAgo() {
       return formatDateToTimeAgo(

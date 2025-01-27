@@ -194,7 +194,7 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import Message from '@/shared/message/message';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import gitlab from '@/config/integrations/gitlab/config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRouter } from 'vue-router';
 import { required } from '@vuelidate/validators';
@@ -279,7 +279,7 @@ const groupedProjects = computed(() => allProjects.value.reduce((acc, project) =
 }, {}));
 
 // Static gitlab details
-const gitlabDetails = computed(() => CrowdIntegrations.getConfig('gitlab'));
+const gitlabDetails = gitlab;
 
 // Form
 const form = ref<Record<string, string>>(

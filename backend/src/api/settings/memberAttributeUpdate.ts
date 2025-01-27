@@ -3,12 +3,11 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * PUT /tenant/{tenantId}/settings/members/attributes/{id}
+ * PUT /settings/members/attributes/{id}
  * @summary Attribute settings: update
  * @tag Members
  * @security Bearer
  * @description Update a members' attribute setting
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member attribute settings
  * @bodyContent {MemberAttributeSettingsUpdateInput} application/json
  * @response 200 - Ok

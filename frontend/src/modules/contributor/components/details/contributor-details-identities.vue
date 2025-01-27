@@ -108,7 +108,6 @@ const selectedIdentity = ref<string | null>(null);
 const addIdentity = ref<boolean>(false);
 const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
 const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
-// const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
 const unmerge = (identityId: string) => {
   if (identityId) {

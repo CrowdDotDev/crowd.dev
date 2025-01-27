@@ -7,6 +7,7 @@ import {
 
 export interface IIntegrationData {
   integrationId: string
+  segmentId: string
   platform: PlatformType
 }
 
