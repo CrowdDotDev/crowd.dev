@@ -26,7 +26,7 @@
         </lf-tooltip>
       </div>
       <lf-dropdown
-        v-if="props.domain.type !== OrganizationIdentityType.AFFILIATED_PROFILE
+        v-show="props.domain.type !== OrganizationIdentityType.AFFILIATED_PROFILE
           && hovered"
         placement="bottom-end"
         width="232px"
@@ -106,6 +106,7 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   domain: OrganizationIdentity,
