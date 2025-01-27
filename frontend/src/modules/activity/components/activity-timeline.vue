@@ -196,7 +196,7 @@
 
         <app-empty-state-cta
           v-if="!activities.length && !loading"
-          icon="ri-list-check-2"
+          icon="list"
           title="No activities found"
           description="We couldn't find any results that match your search criteria, please try a different query"
         />
@@ -252,6 +252,7 @@ import LfActivityDisplay from '@/shared/modules/activity/components/activity-dis
 import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IdentityConfig, lfIdentities } from '@/config/identities';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(

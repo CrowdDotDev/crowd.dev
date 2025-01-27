@@ -695,10 +695,7 @@
                         type="button"
                         @click.prevent.stop="() => onActionBtnClick(scope.row)"
                       >
-                        <i
-                          :id="`buttonRefIcon-${scope.row.id}`"
-                          class="text-xl ri-ellipsis solid"
-                        />
+                        <lf-icon :id="`buttonRefIcon-${scope.row.id}`" name="ellipsis" type="solid" :size="24" />
                       </button>
                     </div>
                   </router-link>
@@ -795,6 +792,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';

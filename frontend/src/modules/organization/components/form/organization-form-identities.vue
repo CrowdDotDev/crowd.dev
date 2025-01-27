@@ -43,7 +43,7 @@
                       valye: staticModel[ii]?.value,
                     })"
                   >
-                    <i class="ri-link-unlink-m text-lg" />
+                    <lf-icon name="link-slash" :size="20" />
                   </el-button>
                 </div>
               </el-tooltip>

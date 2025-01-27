@@ -13,9 +13,7 @@
         <div
           class="flex items-center"
         >
-          <i
-            class="ri-user-group text-base mr-2 text-gray-500"
-          />
+          <lf-icon name="user-group" size="16" class="text-gray-500 mr-2" />
           <p
             class="text-xs text-gray-600"
           >
@@ -52,9 +50,7 @@
             :disabled="attributes.labels.length === 1"
           >
             <div class="flex items-center">
-              <i
-                class="ri-price-tag-3-line text-base mr-2 text-gray-500"
-              />
+              <lf-icon name="tag fa-rotate-90" size="16" class="text-gray-500 mr-2" />
               <p
                 class="text-xs text-gray-600"
               >
@@ -81,6 +77,7 @@ import AppConversationAttributes from '@/modules/conversation/components/convers
 import { computed } from 'vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   conversation: {

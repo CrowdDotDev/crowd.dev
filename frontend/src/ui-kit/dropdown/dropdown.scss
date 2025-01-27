@@ -39,7 +39,7 @@
       @apply bg-gray-50;
     }
 
-    [class^="ri-"], .c-icon{
+    [class^="fa-"], .c-icon{
       @apply text-gray-600;
     }
 
@@ -47,7 +47,7 @@
     &--danger{
       @apply text-red-600;
 
-      [class^="ri-"], .c-icon{
+      [class^="fa-"], .c-icon{
         @apply text-red-600;
       }
     }

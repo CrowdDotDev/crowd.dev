@@ -57,7 +57,9 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppConversationDrawer',
-  components: { AppConversationDetails, AppActivityLink, LfConversationDrawerDisplay, LfIcon },
+  components: {
+    AppConversationDetails, AppActivityLink, LfConversationDrawerDisplay, LfIcon,
+  },
   props: {
     conversationId: {
       type: String,

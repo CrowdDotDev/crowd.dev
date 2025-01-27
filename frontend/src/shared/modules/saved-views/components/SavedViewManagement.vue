@@ -19,7 +19,7 @@
           class="p-2 rounded flex items-center justify-between flex-grow transition hover:bg-gray-50 cursor-grab"
         >
           <div class="flex items-center">
-            <i class="ri-draggable text-base text-gray-400 mr-2" />
+            <lf-icon name="grip-dots-vertical" type="solid" :size="14" class="text-gray-400 mr-2" />
             <span class="text-sm leading-5 text-black">{{ view.name }}</span>
           </div>
           <div class="flex items-center">
@@ -29,7 +29,7 @@
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="edit(view)"
               >
-                <i class="ri-pen fa-sharp text-sm text-gray-400 group-hover:text-gray-600" />
+                <lf-icon name="pen fa-sharp" :size="14" class="text-gray-400 group-hover:text-gray-600" />
               </div>
             </el-tooltip>
             <el-tooltip placement="top" content="Duplicate view">
@@ -37,7 +37,7 @@
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="duplicate(view)"
               >
-                <i class="ri-file-copy-line text-sm text-gray-400 group-hover:text-gray-600" />
+                <lf-icon name="copy" :size="14" class="text-gray-400 group-hover:text-gray-600" />
               </div>
             </el-tooltip>
             <el-tooltip placement="top" content="Delete view">
@@ -46,7 +46,7 @@
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="remove(view)"
               >
-                <i class="ri-trash-can text-sm text-gray-400 group-hover:text-gray-600" />
+                <lf-icon name="trash-can" :size="14" class="text-gray-400 group-hover:text-gray-600" />
               </div>
             </el-tooltip>
           </div>
@@ -67,6 +67,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   config: SavedViewsConfig,
@@ -126,7 +127,7 @@ const remove = (view: SavedView) => {
     message: isShared
       ? 'This view will be deleted on all user accounts from this workspace. Are you sure you want to proceed? You can’t undo this action.'
       : 'Are you sure you want to proceed? You can’t undo this action.',
-    icon: 'ri-trash-can',
+    icon: 'fa-trash-can fa-light',
     cancelButtonText: 'Cancel',
     confirmButtonText: isShared ? 'Delete shared view' : 'Delete view',
   } as any)

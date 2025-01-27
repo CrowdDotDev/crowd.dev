@@ -185,6 +185,7 @@ export default {
     AppAvatar,
     AppConversationDetailsFooter,
     AppActivityHeader,
+    LfIcon,
   },
   props: {
     conversation: {

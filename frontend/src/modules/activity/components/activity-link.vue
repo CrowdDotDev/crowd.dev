@@ -21,6 +21,9 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppActivityLink',
+  components: {
+    LfIcon,
+  },
   props: {
     activity: {
       type: Object,

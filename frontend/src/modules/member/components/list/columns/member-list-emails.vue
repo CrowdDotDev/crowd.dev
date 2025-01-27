@@ -15,10 +15,8 @@
       >
         <template #content>
           <span>Send email
-            <i
-              v-if="email"
-              class="ri-arrow-up-right-from-square text-gray-400"
-            /></span>
+            <lf-icon name="arrow-up-right-from-square" :size="16" class="text-gray-400" />
+          </span>
         </template>
         <div @click.prevent>
           <a
@@ -31,7 +29,7 @@
             {{ email.handle }}
             <div v-if="email.verified">
               <el-tooltip placement="top" content="Verified email">
-                <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
+                <lf-icon name="badge-check" type="solid" :size="16" class="text-primary-500 leading-4" />
               </el-tooltip>
             </div>
           </a>
@@ -42,7 +40,7 @@
           <template #content>
             <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(email.platforms) }}
           </template>
-          <i class="ri-shining-fill text-sm" :class="isEnrichment(email.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+          <lf-icon name="sparkle" type="solid" :size="14" :class="isEnrichment(email.platforms) ? 'text-purple-400' : 'text-gray-300'" />
         </el-tooltip>
       </div>
     </div>
@@ -73,10 +71,8 @@
           >
             <template #content>
               <span>Send email
-                <i
-                  v-if="email.link"
-                  class="ri-arrow-up-right-from-square text-gray-400"
-                /></span>
+                <lf-icon v-if="email.link" name="arrow-up-right-from-square" :size="16" class="text-gray-400" />
+              </span>
             </template>
             <div @click.prevent>
               <a
@@ -89,7 +85,7 @@
                 {{ email.handle }}
                 <div v-if="email.verified">
                   <el-tooltip placement="top" content="Verified email">
-                    <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
+                    <lf-icon name="badge-check" type="solid" :size="16" class="text-primary-500 leading-4" />
                   </el-tooltip>
                 </div>
               </a>
@@ -100,7 +96,7 @@
               <template #content>
                 <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(email.platforms) }}
               </template>
-              <i class="ri-shining-fill text-sm" :class="isEnrichment(email.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+              <lf-icon name="sparkle" type="solid" :size="14" :class="isEnrichment(email.platforms) ? 'text-purple-400' : 'text-gray-300'" />
             </el-tooltip>
           </div>
         </div>
@@ -116,6 +112,7 @@ import { computed } from 'vue';
 import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   member: Member

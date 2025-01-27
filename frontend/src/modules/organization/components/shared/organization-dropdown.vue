@@ -90,7 +90,7 @@ const deleteOrganization = () => {
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-trash-can',
+    icon: 'fa-trash-can fa-light',
   }).then(() => {
     trackEvent({
       key: FeatureEventKey.DELETE_ORGANIZATION,

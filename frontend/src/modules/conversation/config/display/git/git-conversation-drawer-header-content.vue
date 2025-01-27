@@ -4,7 +4,7 @@
   >
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-3">
-        <i class="ri-code-commit text-lg text-gray-400" />
+        <lf-icon name="code-commit" :size="20" class="text-gray-400" />
         <span class="text-sm text-gray-900">SHA: {{ conversation.conversationStarter.sourceId }}</span>
       </div>
       <div class="flex items-center gap-3">
@@ -14,7 +14,7 @@
         />
       </div>
       <div class="flex items-center gap-3">
-        <i class="ri-group-3-line text-lg text-gray-400" />
+        <lf-icon name="user-group" :size="20" class="text-gray-400" />
         <span class="text-sm text-gray-900">
           {{ pluralize("participant", conversation.memberCount, true) }}
         </span>
@@ -31,6 +31,7 @@ import pluralize from 'pluralize';
 import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
 import LfGitAttributes from '@/modules/activity/config/display/git/git-attributes.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 defineProps<{
   conversation: Conversation;

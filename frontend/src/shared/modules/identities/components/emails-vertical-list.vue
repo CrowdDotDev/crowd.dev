@@ -37,7 +37,7 @@
                   <template #content>
                     <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformsLabel(identity.platforms) }}
                   </template>
-                  <i class="ri-shining-fill text-sm" :class="isEnrichment(identity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+                  <lf-icon name="sparkle" :size="14" :class="isEnrichment(identity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
                 </el-tooltip>
               </div>
               <lf-verified-identity-badge v-if="identity.verified" />
@@ -54,6 +54,7 @@ import AppPlatform from '@/shared/modules/platform/components/platform.vue';
 import { computed } from 'vue';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   emails: {

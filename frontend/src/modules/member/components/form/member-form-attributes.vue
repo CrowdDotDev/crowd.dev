@@ -141,12 +141,10 @@
                   })
                 "
               >
-                <i
-                  class="text-base text-black"
-                  :class="{
-                    'ri-eye-line': attribute.show,
-                    'ri-eye-off-line': !attribute.show,
-                  }"
+                <lf-icon
+                  :name="attribute.show ? 'eye' : 'eye-slash'"
+                  :size="16"
+                  class="text-black"
                 />
               </el-button>
             </el-tooltip>
@@ -179,12 +177,13 @@ import { MemberService } from '@/modules/member/member-service';
 import LfSvg from '@/shared/svg/svg.vue';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400',
+      'fa-calendar fa-light text-base leading-none text-gray-400',
   }, // props
   [],
 );
@@ -282,7 +281,7 @@ const updateAttribute = (id, data) => {
     } in all member profiles. Are you sure you want to proceed? You can undo this action later.`,
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: data.show ? 'ri-eye-line' : 'ri-eye-off-line',
+    icon: data.show ? 'fa-eye fa-light' : 'fa-eye-slash fa-light',
   }).then(() => {
     doUpdateCustomAttributes({ id, data }).then(() => {
       Message.success('Attribute successfully updated');

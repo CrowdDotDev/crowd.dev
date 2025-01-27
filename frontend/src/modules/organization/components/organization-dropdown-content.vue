@@ -9,7 +9,8 @@
         organization,
       })"
     >
-      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+      <lf-icon name="link-slash" :size="16" class="mr-2" />
+      <span class="text-xs">Unmerge identity</span>
     </button>
     <el-divider class="border-gray-200 my-2" />
   </template>
@@ -49,7 +50,8 @@
       })
     "
   >
-    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+    <lf-icon name="shuffle" :size="16" class="mr-2" />
+    <span class="text-xs">Merge organization</span>
   </button>
 
   <!-- Mark as Team Organization -->
@@ -72,7 +74,8 @@
             })
           "
         >
-          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
+          <lf-icon name="bookmark" :size="16" class="mr-2" />
+          <span class="text-xs">Mark as team organization</span>
         </button>
       </span>
     </el-tooltip>
@@ -204,7 +207,7 @@ const handleCommand = (command: {
       message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-trash-can',
+      icon: 'fa-trash-can fa-light',
     }).then(() => {
       trackEvent({
         key: FeatureEventKey.DELETE_ORGANIZATION,

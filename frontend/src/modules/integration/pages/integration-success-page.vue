@@ -11,7 +11,7 @@
         <div class="w-1 h-1 rounded-full bg-gray-300" />
       </div>
       <div class="px-2">
-        <lf-icon name="checkbox-circle-fill" :size="20" class="text-green-500" />
+        <lf-icon name="circle-check" type="solid" :size="20" class="text-green-500" />
       </div>
       <div class="flex items-center gap-2">
         <div class="w-1 h-1 rounded-full bg-gray-300" />
@@ -34,7 +34,7 @@
         each repository must be mapped to its corresponding sub-project.
       </p>
       <div class="bg-primary-50 border border-primary-100 flex items-center px-3 py-1.5 rounded-md">
-        <lf-icon name="information-line" :size="20" class="text-primary-800" />
+        <lf-icon name="circle-info" :size="20" class="text-primary-800" />
         <p class="ml-2 text-small text-primary-800">
           You must have a LF account and permissions to access Community Management in order to complete this final step.
         </p>

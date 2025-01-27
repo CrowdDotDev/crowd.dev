@@ -82,7 +82,8 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged organization
+                        <lf-icon name="link-slash" :size="16" class="mr-1" />
+                        Unmerged organization
                       </div>
                       <el-dropdown
                         placement="bottom-end"

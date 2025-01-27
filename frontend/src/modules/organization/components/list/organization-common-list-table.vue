@@ -104,7 +104,7 @@
   </div>
   <app-empty-state-cta
     v-else
-    icon="ri-community-line"
+    icon="house-building"
     title="No organizations found"
     description="We couldn't find any results that match your search criteria, please try a different query."
   />
@@ -127,6 +127,7 @@ import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import pluralize from 'pluralize';
 import { getSegmentName } from '@/utils/segments';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
@@ -169,7 +170,7 @@ const deleteOrganization = (organization: any) => {
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-trash-can',
+    icon: 'fa-trash-can fa-light',
   }).then(() => {
     Message.info(null, {
       title: 'Organization is being deleted',

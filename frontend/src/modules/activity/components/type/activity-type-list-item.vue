@@ -20,7 +20,7 @@
           :alt="platformDetails.name"
           class="w-4 h-4 mr-2"
         />
-        
+
         <lf-icon name="grid-round-2" :size="16" class="text-gray-400 mr-2" />
         <p
           class="text-sm leading-5"

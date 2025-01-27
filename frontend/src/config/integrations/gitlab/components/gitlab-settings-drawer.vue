@@ -359,7 +359,7 @@ const connect = () => {
       + 'In order to clean up existing data please reach out to our support team.',
     confirmButtonText: 'Connect GitLab',
     cancelButtonText: 'Cancel',
-    icon: 'ri-alert-fill',
+    icon: 'fa-triangle-exclamation fa-solid',
   } as any).then(() => {
     IntegrationService.mapGitlabRepos(
       props.integration.id,

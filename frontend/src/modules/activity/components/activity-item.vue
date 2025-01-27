@@ -57,7 +57,7 @@
                       :src="platform.image"
                     />
                   </el-tooltip>
-                  <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400"/>
+                  <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400" />
                 </div>
                 <app-activity-header
                   :activity="activity"
@@ -77,7 +77,7 @@
                   openConversation(activity.conversationId)
                 "
               >
-                <lf-icon name="eye" :size="16" class="mr-1"/>
+                <lf-icon name="eye" :size="16" class="mr-1" />
                 <span class="block">View conversation</span>
               </a>
               <app-activity-dropdown

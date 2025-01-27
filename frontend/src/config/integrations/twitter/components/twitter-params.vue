@@ -6,7 +6,7 @@
           <div
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
           >
-            <lf-icon name="hashtag" :size="16" class="!text-gray-600 mr-1 h-4 flex items-center"/>
+            <lf-icon name="hashtag" :size="16" class="!text-gray-600 mr-1 h-4 flex items-center" />
 
             {{ pluralize("hashtag", hashtags.length, true) }}
           </div>

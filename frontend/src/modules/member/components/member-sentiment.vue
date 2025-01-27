@@ -9,17 +9,20 @@
       :content="`Avg sentiment score: ${member.averageSentiment}`"
       placement="top"
     >
-      <i
+      <lf-icon
         v-if="label === 'Positive'"
-        class="ri-face-smile text-green-600 text-base"
+        name="face-smile"
+        class="text-green-600"
       />
-      <i
+      <lf-icon
         v-else-if="label === 'Neutral'"
-        class="ri-face-meh-line text-gray-400 text-base"
+        name="face-meh"
+        class="text-gray-400"
       />
-      <i
+      <lf-icon
         v-else
-        class="ri-face-frown-line text-red-500 text-base"
+        name="face-frown"
+        class="text-red-500"
       />
     </el-tooltip>
   </div>
@@ -27,6 +30,7 @@
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   member: {

@@ -44,7 +44,7 @@
   >
     <div class="flex items-center gap-8 w-9/12">
       <div class="flex items-center">
-        <i class="ri-user-group text-base mr-2 text-gray-500" />
+        <lf-icon name="user-group" :size="16" class="text-gray-500 mr-2" />
         <p class="text-xs text-gray-600">
           {{ pluralize("participant", conversation.memberCount, true) }}
         </p>
@@ -77,6 +77,7 @@ import AppConversationAttributes from '@/modules/conversation/components/convers
 import pluralize from 'pluralize';
 import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import LfGitActivityLink from '@/modules/activity/config/display/git/git-activity-link.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   conversation: Conversation;

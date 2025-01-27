@@ -6,15 +6,15 @@ interface FieldMessageTypeData{
 
 export const fieldMessageTypeData: Record<FieldMessageType, FieldMessageTypeData> = {
   error: {
-    icon: 'error-warning-line',
+    icon: 'circle-exclamation',
   },
   hint: {
     icon: '',
   },
   warning: {
-    icon: 'alert-line',
+    icon: 'triangle-exclamation',
   },
   info: {
-    icon: 'information-line',
+    icon: 'circle-info',
   },
 };

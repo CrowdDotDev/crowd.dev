@@ -263,7 +263,7 @@ const connect = () => {
         + 'In order to clean up existing data please reach out to our support team.',
     confirmButtonText: 'Connect GitHub',
     cancelButtonText: 'Cancel',
-    icon: 'ri-alert-fill',
+    icon: 'fa-triangle-exclamation fa-light',
   } as any)
     .then(() => {
       IntegrationService.githubMapRepos(props.integration.id, data, [props.integration.segmentId])

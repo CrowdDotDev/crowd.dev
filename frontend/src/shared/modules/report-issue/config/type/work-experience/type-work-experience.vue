@@ -9,7 +9,7 @@
     >
       <template #placeholder>
         <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-          <lf-icon name="community-line" :size="16" class="text-gray-400" />
+          <lf-icon name="house-building" :size="16" class="text-gray-400" />
         </div>
       </template>
     </lf-avatar>

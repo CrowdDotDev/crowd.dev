@@ -35,6 +35,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 const props = defineProps({
   activityTypeKey: {
     type: Object,
@@ -60,7 +61,7 @@ const doDestroyWithConfirm = () => {
       "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Delete',
     cancelButtonText: 'Cancel',
-    icon: 'ri-trash-can',
+    icon: 'fa-trash-can fa-light',
   }).then(() => {
     trackEvent({
       key: FeatureEventKey.DELETE_ACTIVITY_TYPE,

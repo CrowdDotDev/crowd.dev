@@ -11,11 +11,11 @@
     </template>
 
     <lf-dropdown-item @click="merge(props.suggestion)">
-      <i class="ri-shuffle-line" /> Merge suggestion
+      <lf-icon name="shuffle" />Merge suggestion
     </lf-dropdown-item>
 
     <lf-dropdown-item @click="ignore(props.suggestion)">
-      <i class="ri-close-circle-line" />Ignore suggestion
+      <lf-icon name="circle-xmark" />Ignore suggestion
     </lf-dropdown-item>
   </lf-dropdown>
 </template>

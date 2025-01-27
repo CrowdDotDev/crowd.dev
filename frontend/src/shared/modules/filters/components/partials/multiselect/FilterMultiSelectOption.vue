@@ -70,7 +70,7 @@ export default {
     @apply mr-2;
   }
 
-  i:not(.ri-trash-can) {
+  i:not(.fa-trash-can) {
     @apply text-gray-400;
   }
 

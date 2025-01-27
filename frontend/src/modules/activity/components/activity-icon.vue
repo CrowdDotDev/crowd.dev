@@ -27,37 +27,37 @@ defineProps({
 const icons = ref({
   github: {
     'issue-comment': {
-      iconClass: 'ri-chat-4-line',
+      iconClass: 'fa-message fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },
     'pull_request-opened': {
-      iconClass: 'ri-git-pull-request-line',
+      iconClass: 'fa-code-pull-request fa-light',
       color: 'text-white',
       bgColor: 'bg-green-600',
     },
     'pull_request-closed': {
-      iconClass: 'ri-git-close-pull-request-line',
+      iconClass: 'fa-code-pull-request-closed fa-light',
       color: 'text-white',
       bgColor: 'bg-red-600',
     },
     'pull_request-comment': {
-      iconClass: 'ri-chat-4-line',
+      iconClass: 'fa-message fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },
     'discussion-comment': {
-      iconClass: 'ri-chat-4-line',
+      iconClass: 'fa-message fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },
     'pull_request-review-requested': {
-      iconClass: 'ri-eye-line',
+      iconClass: 'fa-eye fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },
     'pull_request-reviewed': {
-      iconClass: 'ri-eye-line',
+      iconClass: 'fa-eye fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },
@@ -67,12 +67,12 @@ const icons = ref({
       bgColor: 'bg-gray-200',
     },
     'pull_request-merged': {
-      iconClass: 'ri-git-merge-line',
+      iconClass: 'fa-code-merge fa-light',
       color: 'text-white',
       bgColor: 'bg-purple-600',
     },
     'pull_request-review-thread-comment': {
-      iconClass: 'ri-chat-4-line',
+      iconClass: 'fa-message fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },

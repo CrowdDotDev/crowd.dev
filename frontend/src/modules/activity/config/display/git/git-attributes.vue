@@ -11,10 +11,14 @@
       'text-sm text-gray-600 gap-2': !inConversation,
     }"
   >
-    <lf-icon name="file-pen" :size="inConversation ? 20 : 14" :class="{ 
-      'text-gray-400': inConversation,
-      'text-gray-600': !inConversation,
-    }" />
+    <lf-icon
+      name="file-pen"
+      :size="inConversation ? 20 : 14"
+      :class="{
+        'text-gray-400': inConversation,
+        'text-gray-600': !inConversation,
+      }"
+    />
     <p
       :class="{
         'text-lg text-gray-400': inConversation,

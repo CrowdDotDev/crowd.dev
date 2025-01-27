@@ -123,9 +123,7 @@
     </div>
     <!-- Empty state -->
     <div v-else class="py-20 flex flex-col items-center pb-20">
-      <div
-        class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
-      />
+      <lf-icon name="shuffle" :size="160" class="text-gray-200 flex items-center mb-8" />
       <h5 class="text-center text-lg font-semibold mb-4">
         No merge suggestions
       </h5>

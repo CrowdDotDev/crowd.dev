@@ -9,11 +9,11 @@
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--secondary btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line" />
+        <lf-icon name="chevron-down" :size="24" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="{ action: 'export' }">
-          <i class="ri-lg ri-file-download-line mr-1" />
+          <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
           Export to CSV
         </el-dropdown-item>
         <el-tooltip
@@ -26,7 +26,7 @@
               :command="{ action: 'mergeMembers' }"
               :disabled="!hasPermission(LfPermission.mergeMembers)"
             >
-              <i class="ri-lg ri-user-group mr-1" />
+              <lf-icon name="user-group" :size="20" class="mr-1" />
               Merge profile
             </el-dropdown-item>
           </span>
@@ -38,24 +38,21 @@
             value: markAsTeamMemberOptions.value,
           }"
         >
-          <i
-            class="ri-lg mr-1"
-            :class="markAsTeamMemberOptions.icon"
-          />
+          <lf-icon :name="markAsTeamMemberOptions.icon" :size="20" class="mr-1" />
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
         >
-          <i class="ri-lg ri-file-pen mr-1" />
+          <lf-icon name="file-pen" :size="20" class="mr-1" />
           Edit attribute
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermission(LfPermission.tagEdit)"
           :command="{ action: 'editTags' }"
         >
-          <i class="ri-lg ri-price-tag-3-line mr-1" />
+          <lf-icon name="tag fa-rotated-90" :size="20" class="mr-1" />
           Edit tags
         </el-dropdown-item>
         <template v-if="hasPermission(LfPermission.memberDestroy)">
@@ -66,7 +63,7 @@
             <div
               class="flex items-center text-red-500"
             >
-              <i class="ri-lg ri-trash-can mr-2" />
+              <lf-icon name="trash-can" :size="20" class="mr-2" />
               Delete
             </div>
           </el-dropdown-item>
@@ -104,6 +101,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { trackEvent } = useProductTracking();
 
@@ -131,14 +129,14 @@ const markAsTeamMemberOptions = computed(() => {
 
   if (isTeamView) {
     return {
-      icon: 'ri-bookmark-2-line',
+      icon: 'bookmark-slash',
       copy: `Unmark as team ${membersCopy}`,
       value: false,
     };
   }
 
   return {
-    icon: 'ri-bookmark-line',
+    icon: 'bookmark',
     copy: `Mark as team ${membersCopy}`,
     value: true,
   };
@@ -173,7 +171,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
   cancelButtonText: 'Cancel',
-  icon: 'ri-trash-can',
+  icon: 'fa-trash-can fa-light',
 })
   .then(() => {
     trackEvent({

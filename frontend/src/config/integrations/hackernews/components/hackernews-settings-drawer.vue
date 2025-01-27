@@ -121,13 +121,16 @@
 import { mapActions } from 'vuex';
 import hackernews from '@/config/integrations/hackernews/config';
 import isUrl from '@/utils/isUrl';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 export default {
   name: 'LfHackernewsSettingsDrawer',
-
+  components: {
+    LfIcon,
+  },
   props: {
     integration: {
       type: Object,

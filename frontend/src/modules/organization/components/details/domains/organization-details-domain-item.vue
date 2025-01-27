@@ -106,7 +106,6 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   domain: OrganizationIdentity,
