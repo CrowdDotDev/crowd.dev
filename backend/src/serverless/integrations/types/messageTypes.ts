@@ -11,11 +11,6 @@ export type IntegrationsMessage = {
   args: object
 }
 
-export type MicroserviceMessage = {
-  service: string
-  tenant: string
-}
-
 export interface DevtoIntegrationMessage extends IntegrationsMessage {
   integrationId: string
 }

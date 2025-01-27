@@ -2,7 +2,6 @@ import { IServiceOptions } from '../../services/IServiceOptions'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import MemberService from '../../services/memberService'
-import MicroserviceService from '../../services/microserviceService'
 
 import Operations from './operations'
 
@@ -66,19 +65,6 @@ async function updateIntegrations(records: Array<any>, options: IServiceOptions)
 }
 
 /**
- * Update a bulk of microservices
- * @param records The records to perform the operation to
- */
-async function updateMicroservice(records: Array<any>, options: IServiceOptions): Promise<any> {
-  const microserviceService = new MicroserviceService(options)
-
-  while (records.length > 0) {
-    const record = records.shift()
-    await microserviceService.update(record.id, record.update)
-  }
-}
-
-/**
  * Worker function to choose an operation to perform
  * @param operation Operation to perform, one in the list of Operations
  * @param records Records to perform the operation to
@@ -101,9 +87,6 @@ async function bulkOperations(
 
     case Operations.UPDATE_INTEGRATIONS:
       return updateIntegrations(records, options)
-
-    case Operations.UPDATE_MICROSERVICE:
-      return updateMicroservice(records, options)
 
     default:
       throw new Error(`Operation ${operation} not found`)
