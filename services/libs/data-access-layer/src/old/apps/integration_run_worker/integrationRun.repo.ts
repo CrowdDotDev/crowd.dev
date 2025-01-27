@@ -342,14 +342,13 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
   public async publishStream(runId: string, identifier: string, data?: unknown): Promise<string> {
     const result = await this.db().one(
       `
-    insert into integration.streams("runId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration.streams("runId", state, identifier, data, "tenantId", "integrationId")
     select $(runId)::uuid,
            $(state),
            $(identifier),
            $(data)::json,
            "tenantId",
-           "integrationId",
-           "microserviceId"
+           "integrationId"
     from integration.runs where id = $(runId)
     returning id;
     `,

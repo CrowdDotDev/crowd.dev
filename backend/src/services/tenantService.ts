@@ -8,11 +8,9 @@ import { defaultCustomViews } from '@/types/customView'
 
 import { TenantMode } from '../conf/configTypes'
 import { TENANT_MODE } from '../conf/index'
-import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
 import Permissions from '../security/permissions'
 import Roles from '../security/roles'
 
@@ -218,12 +216,6 @@ export default class TenantService {
         ...this.options,
         transaction,
       })
-
-      // create default microservices for the tenant
-      await MicroserviceRepository.create(
-        { type: microserviceTypes.membersScore },
-        { ...this.options, transaction, currentTenant: record },
-      )
 
       // create default custom views
       for (const entity of Object.values(defaultCustomViews)) {

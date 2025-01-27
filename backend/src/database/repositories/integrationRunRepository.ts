@@ -30,7 +30,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
       select  id,
             "tenantId",
             "integrationId",
-            "microserviceId",
             onboarding,
             state,
             "delayedUntil",
@@ -85,7 +84,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
       select  id,
             "tenantId",
             "integrationId",
-            "microserviceId",
             onboarding,
             state,
             "delayedUntil",
@@ -116,7 +114,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
     select  id,
             "tenantId",
             "integrationId",
-            "microserviceId",
             onboarding,
             state,
             "delayedUntil",
@@ -182,7 +179,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
 
   async findLastProcessingRun(
     integrationId?: string,
-    microserviceId?: string,
     ignoreId?: string,
   ): Promise<IntegrationRun | undefined> {
     const transaction = this.transaction
@@ -199,11 +195,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
     if (integrationId) {
       condition = ` "integrationId" = :integrationId `
       replacements.integrationId = integrationId
-    } else if (microserviceId) {
-      condition = ` "microserviceId" = :microserviceId `
-      replacements.microserviceId = microserviceId
     } else {
-      throw new Error(`Either integrationId or microserviceId must be provided!`)
+      throw new Error(`integrationId must be provided!`)
     }
 
     if (ignoreId) {
@@ -215,7 +208,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
     select  id,
             "tenantId",
             "integrationId",
-            "microserviceId",
             onboarding,
             state,
             "delayedUntil",
@@ -251,7 +243,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
     select id,
            "tenantId",
           "integrationId",
-          "microserviceId",
           onboarding,
           state,
           "delayedUntil",
@@ -285,8 +276,8 @@ export default class IntegrationRunRepository extends RepositoryBase<
     const id = generateUUIDv1()
 
     const query = `
-      insert into "integrationRuns"(id, "tenantId", "integrationId", "microserviceId", onboarding, state)
-      values(:id, :tenantId, :integrationId, :microserviceId, :onboarding, :state)
+      insert into "integrationRuns"(id, "tenantId", "integrationId", onboarding, state)
+      values(:id, :tenantId, :integrationId, :onboarding, :state)
       returning "createdAt";
     `
 
@@ -295,7 +286,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
         id,
         tenantId: data.tenantId,
         integrationId: data.integrationId || null,
-        microserviceId: data.microserviceId || null,
         onboarding: data.onboarding,
         state: data.state,
       },
@@ -311,7 +301,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
       id,
       tenantId: data.tenantId,
       integrationId: data.integrationId,
-      microserviceId: data.microserviceId,
       onboarding: data.onboarding,
       state: data.state,
       delayedUntil: null,
