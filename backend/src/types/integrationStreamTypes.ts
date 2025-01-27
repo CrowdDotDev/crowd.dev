@@ -10,7 +10,6 @@ export interface IntegrationStream {
   runId: string
   tenantId: string
   integrationId: string | null
-  microserviceId: string | null
   state: IntegrationStreamState
   name: string
   metadata: any
@@ -25,7 +24,6 @@ export interface DbIntegrationStreamCreateData {
   runId: string
   tenantId: string
   integrationId?: string
-  microserviceId?: string
   name: string
   metadata: any
 }

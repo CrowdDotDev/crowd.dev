@@ -410,7 +410,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   ): Promise<string | null> {
     const result = await this.db().oneOrNone(
       `
-    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId", "microserviceId")
+    insert into integration.streams("parentId", "runId", "webhookId", state, identifier, data, "tenantId", "integrationId")
     select $(parentId)::uuid,
            $(runId)::uuid,
            $(webhookId)::uuid,
@@ -418,8 +418,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
            $(identifier),
            $(data)::json,
            "tenantId",
-           "integrationId",
-           "microserviceId"
+           "integrationId"
     from integration.runs where id = $(runId)
     on conflict ("runId", identifier) do nothing
     returning id;
@@ -508,15 +507,14 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   public async publishResult(streamId: string, result: IIntegrationResult): Promise<string> {
     const results = await this.db().oneOrNone(
       `
-    insert into integration.results(state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
+    insert into integration.results(state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId")
     select $(state),
            $(data)::json,
            "id",
            "runId",
            "webhookId",
            "tenantId",
-           "integrationId",
-           "microserviceId"
+           "integrationId"
     from integration.streams where id = $(streamId)
     returning id;
     `,
