@@ -853,7 +853,7 @@ export default class UserRepository {
     }
     const segments = await options.database.segment.findAll({
       where: { tenantId: tenant.id },
-    });
+    })
     return Promise.all(rows.map((record) => this._mapUserForTenant(record, tenant, options, segments)))
   }
 
@@ -876,7 +876,7 @@ export default class UserRepository {
     const roles = tenantUser ? tenantUser.roles : []
     const adminSegments = tenantUser ? tenantUser.adminSegments : []
 
-    let adminSegmentsWithNames = adminSegments;
+    let adminSegmentsWithNames = adminSegments
     if (adminSegments?.length > 0 && segments) {
       adminSegmentsWithNames = segments.filter((segment) => adminSegments.includes(segment.id))
     }
