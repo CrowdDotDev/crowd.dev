@@ -65,14 +65,14 @@
                 v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
                 class="!w-full"
                 placement="right"
-                content="Excluding this work experience prevents it from being considered for future affiliations"
+                content="Prevents this work experience from being considered for affiliations"
               >
                 <lf-dropdown-item
                   @click="setAffiliation({
                     allowAffiliation: false,
                   })"
                 >
-                  <lf-icon name="ban" type="regular" />Exclude from future affiliations
+                  <lf-icon name="ban" type="regular" />Block affiliations
                 </lf-dropdown-item>
               </lf-tooltip>
 
@@ -87,7 +87,7 @@
                     allowAffiliation: true,
                   })"
                 >
-                  <lf-icon name="toggle-on" type="regular" />Enable future affiliations
+                  <lf-icon name="toggle-on" type="regular" />Enable affiliations
                 </lf-dropdown-item>
               </lf-tooltip>
             </template>
@@ -179,6 +179,9 @@ const isOverlapping = computed(() => {
   const dateStart = moment(org.dateStart || new Date());
   const dateEnd = moment(org.dateEnd || new Date());
   return restOrganizations.value.some((o) => {
+    if (!o.memberOrganizations.affiliationOverride.isPrimaryWorkExperience) {
+      return false;
+    }
     const oOrg = o.memberOrganizations;
     const dateStartCompare = moment(oOrg.dateStart || new Date());
     const dateEndCompare = moment(oOrg.dateEnd || new Date());
