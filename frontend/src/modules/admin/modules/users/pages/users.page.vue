@@ -64,14 +64,12 @@
                       <span class="text-xs text-gray-400">Project groups</span>
                       <div class="overflow-auto max-h-30 mt-4 flex items-baseline flex-wrap gap-1">
                         <lf-badge
-                          v-for="segmentId in user.adminSegments"
-                          :key="segmentId"
+                          v-for="segment in user.adminSegments"
+                          :key="segment.id"
                           type="tertiary"
                           size="medium"
                         >
-                          {{
-                            getSegmentName(segmentId)
-                          }}
+                          {{ segment.name }}
                         </lf-badge>
                       </div>
                     </div>
@@ -110,7 +108,6 @@ import {
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { getSegmentName } from '@/utils/segments';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 
 const search = ref('');
