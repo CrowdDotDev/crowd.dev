@@ -84,14 +84,6 @@
       </div>
     </div>
 
-    <div v-else>
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="h-6 mb-2 bg-gray-200 rounded-md"
-      />
-    </div>
-
     <lf-button
       v-if="orgGrouped.length > minimumShownGroups"
       type="primary-link"
