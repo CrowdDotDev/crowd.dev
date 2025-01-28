@@ -1,6 +1,6 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { LLMSuggestionVerdictType } from '@crowd/types'
+import { LLMSuggestionVerdictType, MemberMergeSuggestionTable } from '@crowd/types'
 
 import * as commonActivities from '../activities/common'
 import * as memberActivities from '../activities/memberMergeSuggestions'
@@ -63,7 +63,14 @@ export async function mergeMembersWithLLM(
 
     if (members.length !== 2) {
       console.log(`Failed getting members data in suggestion. Skipping suggestion: ${suggestion}`)
-      await memberActivitiesProxy.removeRawMemberMergeSuggestions(suggestion)
+      await memberActivitiesProxy.removeMemberMergeSuggestion(
+        suggestion,
+        MemberMergeSuggestionTable.MEMBER_TO_MERGE_RAW,
+      )
+      await memberActivitiesProxy.removeMemberMergeSuggestion(
+        suggestion,
+        MemberMergeSuggestionTable.MEMBER_TO_MERGE_FILTERED,
+      )
       continue
     }
 
@@ -89,6 +96,19 @@ export async function mergeMembersWithLLM(
 
     if (llmResult.body.content[0].text === 'true') {
       await commonActivitiesProxy.mergeMembers(suggestion[0], suggestion[1], args.tenantId)
+    } else {
+      console.log(
+        `LLM doesn't think these members are the same. Removing from suggestions and adding to no merge: ${suggestion[0]} and ${suggestion[1]}!`,
+      )
+      await memberActivitiesProxy.removeMemberMergeSuggestion(
+        suggestion,
+        MemberMergeSuggestionTable.MEMBER_TO_MERGE_FILTERED,
+      )
+      await memberActivitiesProxy.removeMemberMergeSuggestion(
+        suggestion,
+        MemberMergeSuggestionTable.MEMBER_TO_MERGE_RAW,
+      )
+      await memberActivitiesProxy.addMemberSuggestionToNoMerge(suggestion)
     }
   }
 

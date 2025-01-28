@@ -1,5 +1,7 @@
 import moment from 'moment-timezone'
 
+import { IMemberOrganization } from '@crowd/types'
+
 export const timeout = async (delayMilliseconds: number): Promise<void> =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, delayMilliseconds)
@@ -36,4 +38,22 @@ export function getEarliestValidDate(oldDate: Date, newDate: Date): Date {
   return moment
     .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
     .toDate()
+}
+
+export const getLongestDateRange = <T extends IMemberOrganization>(orgs: T[]) => {
+  const orgsWithDates = orgs.filter((row) => !!row.dateStart)
+  if (orgsWithDates.length === 0) {
+    // all orgs have no dates, return the first one
+    return orgs[0]
+  }
+
+  const sortedByDateRange = orgsWithDates.sort((a, b) => {
+    return (
+      new Date(b.dateEnd || '9999-12-31').getTime() -
+      new Date(b.dateStart).getTime() -
+      (new Date(a.dateEnd || '9999-12-31').getTime() - new Date(a.dateStart).getTime())
+    )
+  })
+
+  return sortedByDateRange[0]
 }

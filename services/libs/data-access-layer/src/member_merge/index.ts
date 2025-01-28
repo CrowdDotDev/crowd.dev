@@ -28,6 +28,7 @@ export async function addMemberNoMerge(
     `
       INSERT INTO "memberNoMerge" ("memberId", "noMergeId", "createdAt", "updatedAt")
       VALUES ($(memberId), $(noMergeId), $(createdAt), $(updatedAt))
+      on conflict ("memberId", "noMergeId") do nothing
     `,
     {
       memberId,

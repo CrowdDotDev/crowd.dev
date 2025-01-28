@@ -7,6 +7,7 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -36,6 +37,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
+    private readonly client: IQueue,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -218,6 +220,7 @@ export default class DataSinkService extends LoggerBase {
                 this.searchSyncWorkerEmitter,
                 this.redisClient,
                 this.temporal,
+                this.client,
                 this.log,
               )
               const activityData = data.data as IActivityData

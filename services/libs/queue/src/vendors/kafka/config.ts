@@ -45,6 +45,14 @@ export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   },
 }
 
+export const ACTIVITIES_QUEUE_SETTINGS: IKafkaChannelConfig = {
+  name: CrowdQueue.ACTIVITIES,
+  replicationFactor: 1,
+  partitions: {
+    default: 1,
+  },
+}
+
 export const configMap = {
   [CrowdQueue.INTEGRATION_RUN_WORKER]: INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
   [CrowdQueue.INTEGRATION_STREAM_WORKER]: INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,

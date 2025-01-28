@@ -69,6 +69,7 @@
                           class="truncate"
                           type="tertiary"
                           size="medium"
+                          class="truncate"
                         >
                           {{ segment.name }}
                         </lf-badge>

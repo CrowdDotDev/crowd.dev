@@ -31,6 +31,13 @@ export interface OrganizationIdentity {
     integrationId?: string | null;
 }
 
+export interface MemberOrganizationAffiliationOverride {
+  allowAffiliation: boolean;
+  isPrimaryWorkExperience: boolean;
+  memberId: string;
+  memberOrganizationId: string;
+}
+
 export interface MemberOrganization {
   id: string;
   title: string;
@@ -38,6 +45,7 @@ export interface MemberOrganization {
   dateStart?: string;
   dateEnd?: string;
   source: OrganizationSource;
+  affiliationOverride: MemberOrganizationAffiliationOverride;
 }
 
 export interface Organization {

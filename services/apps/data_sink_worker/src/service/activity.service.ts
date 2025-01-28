@@ -34,6 +34,7 @@ import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
@@ -60,6 +61,7 @@ export default class ActivityService extends LoggerBase {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
+    private readonly client: IQueue,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -102,7 +104,7 @@ export default class ActivityService extends LoggerBase {
 
         this.log.debug('Creating an activity in QuestDB!')
         try {
-          await insertActivities([
+          await insertActivities(this.client, [
             {
               id: activity.id,
               timestamp: activity.timestamp.toISOString(),
@@ -185,7 +187,7 @@ export default class ActivityService extends LoggerBase {
 
           // use insert instead of update to avoid using pg protocol with questdb
           try {
-            await insertActivities([
+            await insertActivities(this.client, [
               {
                 id,
                 memberId: toUpdate.memberId || original.memberId,
@@ -592,6 +594,7 @@ export default class ActivityService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.redisClient,
           this.temporal,
+          this.client,
           this.log,
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
@@ -1303,6 +1306,7 @@ export default class ActivityService extends LoggerBase {
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
+        this.client,
         async (activity) => ({
           attributes: {
             ...gitAttributes,
@@ -1352,6 +1356,7 @@ export default class ActivityService extends LoggerBase {
 
     await updateActivities(
       this.qdbStore.connection(),
+      this.client,
       async () => ({
         sourceParentId: activity.sourceId,
       }),

@@ -31,7 +31,7 @@
         <div class="pr-8 pb-10">
           <lf-contributor-details-work-history
             :contributor="contributor"
-            class="mb-8"
+            class="mb-4"
             @reload="fetchContributor()"
           />
           <lf-contributor-details-identities
