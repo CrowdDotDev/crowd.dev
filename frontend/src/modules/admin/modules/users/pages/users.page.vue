@@ -66,7 +66,6 @@
                         <lf-badge
                           v-for="segment in user.adminSegments"
                           :key="segment.id"
-                          class="truncate"
                           type="tertiary"
                           size="medium"
                           class="truncate"
