@@ -37,7 +37,6 @@
 </template>
 
 <script>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
@@ -73,11 +72,6 @@ export default {
       const lsSegmentsStore = useLfSegmentsStore();
 
       return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
-    },
-  },
-  methods: {
-    getPlatformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform);
     },
   },
 };

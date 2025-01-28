@@ -65,7 +65,7 @@
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ moment(integration.lastProcessedAt).fromNow() }}
+            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : moment(integration.lastProcessedAt).fromNow() }}
           </p>
         </div>
 
@@ -77,7 +77,7 @@
             :segment-id="route.params.id"
             :grandparent-id="route.params.grandparentId"
           />
-          <lf-dropdown placement="bottom-end" width="14.5rem">
+          <lf-dropdown placement="bottom-end" width="14.5rem" :persistent="true">
             <template #trigger>
               <lf-button type="secondary-ghost" icon-only>
                 <lf-icon name="ellipsis" />

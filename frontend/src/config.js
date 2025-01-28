@@ -55,6 +55,7 @@ const defaultConfig = {
   lf: {
     tenantId: import.meta.env.VUE_APP_LF_TENANT_ID,
   },
+  isGithubArchiveEnabled: import.meta.env.VUE_APP_IS_GITHUB_ARCHIVE_ENABLED,
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
   isGroupsioEnabled: import.meta.env.VUE_APP_IS_GROUPSIO_ENABLED,
   isConfluenceEnabled: import.meta.env.VUE_APP_IS_CONFLUENCE_ENABLED,
@@ -116,6 +117,7 @@ const composedConfig = {
   lf: {
     tenantId: 'CROWD_VUE_APP_LF_TENANT_ID',
   },
+  isGithubArchiveEnabled: 'CROWD_VUE_APP_IS_GITHUB_ARCHIVE_ENABLED',
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
   isGroupsioEnabled: 'CROWD_VUE_APP_IS_GROUPSIO_ENABLED',
   isTwitterEnabled: 'CROWD_VUE_APP_IS_TWITTER_ENABLED',
@@ -126,9 +128,6 @@ const composedConfig = {
       applicationId: 'CROWD_VUE_APP_DATADOG_RUM_APPLICATION_ID',
       clientToken: 'CROWD_VUE_APP_DATADOG_RUM_CLIENT_TOKEN',
     },
-  },
-  permissions: {
-    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS',
   },
 };
 

@@ -4,8 +4,8 @@ import {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import { lfIdentities } from '@/config/identities';
 
 const platform: MultiSelectFilterConfig = {
   id: 'platform',
@@ -16,10 +16,10 @@ const platform: MultiSelectFilterConfig = {
     options: [
       {
         options: [
-          ...(CrowdIntegrations.enabledConfigs.map((platform) => ({
-            label: (platform as any).name,
-            value: platform.platform,
-          }))),
+          ...Object.values(lfIdentities).map((identity) => ({
+            label: identity.name,
+            value: identity.key,
+          })),
           {
             label: 'Other',
             value: 'other',

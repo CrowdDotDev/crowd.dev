@@ -9,6 +9,7 @@ const discord: IntegrationConfig = {
   description: 'Connect Discord to sync messages, threads, forum channels, and new joiners.',
   connectComponent: DiscordConnect,
   connectedParamsComponent: DiscordParams,
+  showProgress: false,
 };
 
 export default discord;

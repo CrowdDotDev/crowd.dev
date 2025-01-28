@@ -81,15 +81,15 @@
             </header>
             <div>
               <div
-                v-for="integration in activeIntegrations"
+                v-for="integration in getActiveIntegrations()"
                 :key="integration.platform"
               >
                 <app-activity-type-list-item
                   v-for="(settings, type) in types.default[
-                    integration.platform
+                    integration.key
                   ]"
                   :key="type"
-                  :platform="integration.platform"
+                  :platform="integration.key"
                   :label="settings.display.short"
                 />
               </div>
@@ -115,7 +115,6 @@ import {
   onMounted,
 } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useStore } from 'vuex';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppActivityTypeListItem from '@/modules/activity/components/type/activity-type-list-item.vue';
 import AppActivityTypeDropdown from '@/modules/activity/components/type/activity-type-dropdown.vue';
@@ -124,9 +123,9 @@ import {
   mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
 
 // Props & emits
 const props = defineProps({
@@ -143,8 +142,8 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 const { hasPermission } = usePermissions();
 
+const { getActiveIntegrations } = useIntegrationsHelpers();
 // Store
-const store = useStore();
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
@@ -171,10 +170,6 @@ const onModalViewChange = (opened) => {
     editableActivityType.value = null;
   }
 };
-
-const activeIntegrations = computed(() => CrowdIntegrations.mappedEnabledConfigs(
-  store,
-).filter((integration) => integration.status));
 
 onMounted(() => {
   doFetch([props.subprojectId]);

@@ -10,9 +10,12 @@ import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState, PlatformType } from '@crowd/types'
 
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
+
+const isSnowflakeEnabled =
+  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository
@@ -257,10 +260,17 @@ export default class IntegrationRunService extends LoggerBase {
       return
     }
 
-    const integrationService = singleOrDefault(
+    let integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === runInfo.integrationType,
     )
+
+    if (isSnowflakeEnabled && runInfo.integrationType === PlatformType.GITHUB) {
+      integrationService = singleOrDefault(
+        INTEGRATION_SERVICES,
+        (i) => i.type === PlatformType.GITHUB_SNOWFLAKE,
+      )
+    }
 
     if (!integrationService) {
       this.log.error({ type: runInfo.integrationType }, 'Could not find integration service!')

@@ -8,9 +8,9 @@
       <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
         <lf-icon-old name="mail-line" :size="20" />
       </lf-tooltip>
-      <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
+      <lf-tooltip v-else-if="lfIdentities[props.identity.platform]" placement="top-start" :content="lfIdentities[props.identity.platform].name">
         <img
-          :src="platform(props.identity.platform)?.image"
+          :src="lfIdentities[props.identity.platform].image"
           class="h-5 w-5 object-contain"
           :alt="props.identity.value"
         />
@@ -41,20 +41,20 @@
             {{ props.identity.value }}
           </a>
           <p
-            v-if="!platform(props.identity.platform) && !props.identity.platforms
-              && CrowdIntegrations.getPlatformsLabel([props.identity.platform]).length > 0"
+            v-if="!lfIdentities[props.identity.platform] && !props.identity.platforms
+              && getPlatformsLabel([props.identity.platform]).length > 0"
             class="text-medium text-gray-400 ml-1"
           >
-            <span v-html="$sanitize(CrowdIntegrations.getPlatformsLabel([props.identity.platform]))" />
+            <span v-html="$sanitize(getPlatformsLabel([props.identity.platform]))" />
           </p>
         </div>
         <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
       <p
-        v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms).length > 0"
+        v-if="props.identity.platforms && getPlatformsLabel(props.identity.platforms).length > 0"
         class="text-tiny text-gray-400 pt-1.5"
       >
-        Source: <span v-html="$sanitize(CrowdIntegrations.getPlatformsLabel(props.identity.platforms))" />
+        Source: <span v-html="$sanitize(getPlatformsLabel(props.identity.platforms))" />
       </p>
     </div>
 
@@ -74,7 +74,7 @@
       >
         <template #content>
           Identity can't be edited because the <br>contributor is active on
-          {{ platform(props.identity.platform)?.name || props.identity.platform }}
+          {{ lfIdentities[props.identity.platform]?.name || props.identity.platform }}
         </template>
         <lf-dropdown-item
           :disabled="editingDisabled"
@@ -114,7 +114,7 @@
         >
           <template #content>
             Identity can't be deleted because the <br>contributor is active on
-            {{ platform(props.identity.platform)?.name || props.identity.platform }}
+            {{ lfIdentities[props.identity.platform]?.name || props.identity.platform }}
           </template>
           <lf-dropdown-item
             type="danger"
@@ -133,7 +133,6 @@
 <script setup lang="ts">
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -147,6 +146,8 @@ import { computed, ref } from 'vue';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { useSharedStore } from '@/shared/pinia/shared.store';
+import { lfIdentities } from '@/config/identities';
+import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
   identity: ContributorIdentity,
@@ -157,12 +158,10 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
 const { setReportDataModal } = useSharedStore();
-
 const { deleteContributorIdentity } = useContributorStore();
+const { getPlatformsLabel } = useIdentitiesHelpers();
 
 const hovered = ref(false);
-
-const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
 const editingDisabled = computed(() => {
   if (['git'].includes(props.identity.platform)) {

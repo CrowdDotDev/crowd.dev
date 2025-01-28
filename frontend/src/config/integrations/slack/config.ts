@@ -9,6 +9,7 @@ const slack: IntegrationConfig = {
   description: 'Connect Slack to sync messages, threads, and new joiners.',
   connectComponent: SlackConnect,
   connectedParamsComponent: SlackParams,
+  showProgress: false,
 };
 
 export default slack;

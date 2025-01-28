@@ -10,15 +10,22 @@ export default class DateTimeField extends GenericField {
     this.placeholder = config.placeholder;
     this.hint = config.hint;
     this.filterable = config.filterable || false;
+    this.formatter = config.formatter || null;
   }
 
   forPresenter(value) {
+    if (this.formatter) {
+      return this.formatter(value);
+    }
     return value
       ? moment(value).format('YYYY-MM-DD HH:mm')
       : null;
   }
 
   forFilterPreview(value) {
+    if (this.formatter) {
+      return this.formatter(value);
+    }
     return value
       ? moment(value).format('YYYY-MM-DD HH:mm')
       : null;

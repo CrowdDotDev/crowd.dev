@@ -5,6 +5,7 @@ import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { IMemberOrganization } from '@crowd/types'
+import { IQueue } from '@crowd/queue'
 
 import { insertActivities } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
@@ -19,6 +20,7 @@ const tenantId = getDefaultTenantId()
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
   qDb: DbConnOrTx,
+  queueClient: IQueue,
   memberId: string,
 ) {
   const qx = pgpQx(pgDb.connection())
@@ -323,7 +325,7 @@ export async function runMemberAffiliationsUpdate(
       }
     }
 
-    await insertActivities([activity], true)
+    await insertActivities(queueClient, [activity], true)
   }
 
   const qs = new QueryStream(

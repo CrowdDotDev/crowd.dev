@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Organization, OrganizationIdentityType } from '@/modules/organization/types/Organization';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { lfIdentities } from '@/config/identities';
 
 const useOrganizationHelpers = () => {
   const displayName = (organization: Organization) => organization.attributes?.name?.default || organization.displayName;
@@ -27,12 +27,8 @@ const useOrganizationHelpers = () => {
     })
     .map((i) => ({
       ...i,
-      handle: CrowdIntegrations.getConfig(i.platform)?.organization?.identityHandle?.({
-        identityHandle: i.value,
-      }) || '',
-      url: CrowdIntegrations.getConfig(i.platform)?.organization?.identityLink?.({
-        identityHandle: i.value,
-      }) || '',
+      handle: lfIdentities[i.platform]?.organization?.handle?.(i) || '',
+      url: lfIdentities[i.platform]?.organization?.url?.(i) || '',
     }));
 
   const emails = (organization: Organization) => {

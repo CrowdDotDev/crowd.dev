@@ -210,7 +210,7 @@
 import {
   ref, reactive, onMounted, computed,
 } from 'vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import groupsio from '@/config/integrations/groupsio/config';
 import { required, email } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -411,7 +411,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const logoUrl = CrowdIntegrations.getConfig('groupsio').image;
+const logoUrl = groupsio.image;
 
 const isVisible = computed({
   get() {

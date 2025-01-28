@@ -30,10 +30,10 @@
       </lf-tooltip>
     </div>
 
-    <div v-if="!masked" class="flex flex-col">
+    <div class="flex flex-col">
       <lf-timeline v-for="group in shownGroups" :key="group.id" width="1.5rem">
         <lf-timeline-item v-for="(item, ii) in group.items" :key="item.id">
-          <template v-if="ii === 0 || item.memberOrganizations.affiliationOverride.allowAffiliation" #dot>
+          <template v-if="ii === 0 || item.memberOrganizations.affiliationOverride.isPrimaryWorkExperience" #dot>
             <div class="relative flex justify-center">
               <lf-avatar
                 v-if="ii === 0"
@@ -42,7 +42,10 @@
                 :size="24"
                 class="!rounded-md border border-gray-200 mb-1.5"
               />
-              <div v-if="item.memberOrganizations.affiliationOverride.allowAffiliation" :class="ii === 0 ? 'absolute -top-2 -right-2' : '-mt-0.5'">
+              <div
+                v-if="item.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+                :class="ii === 0 ? 'absolute -top-2 -right-2' : '-mt-0.5'"
+              >
                 <lf-tooltip content="Affiliated organization/job title" placement="top-start">
                   <div
                     class=" border-2 border-white bg-secondary-500 rounded-full w-4.5 h-4.5 flex items-center justify-center"
@@ -79,14 +82,6 @@
           No work experiences
         </p>
       </div>
-    </div>
-
-    <div v-else>
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="h-6 mb-2 bg-gray-200 rounded-md"
-      />
     </div>
 
     <lf-button

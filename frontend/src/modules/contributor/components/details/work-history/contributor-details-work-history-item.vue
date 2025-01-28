@@ -18,49 +18,99 @@
         </p>
       </div>
 
-      <lf-dropdown v-show="hovered" placement="bottom-end" width="14.5rem">
-        <template #trigger>
-          <lf-button type="secondary-ghost" size="small" :icon-only="true">
-            <lf-icon name="ellipsis" />
-          </lf-button>
-        </template>
+      <div>
+        <lf-dropdown v-show="hovered" placement="bottom-end" width="14.5rem">
+          <template #trigger>
+            <lf-button type="secondary-ghost" size="small" :icon-only="true">
+              <lf-icon name="ellipsis" />
+            </lf-button>
+          </template>
 
-        <template v-if="hasPermission(LfPermission.memberEdit)">
-          <lf-dropdown-item @click="emit('edit')">
-            <lf-icon-old name="pencil-line" />Edit work experience
-          </lf-dropdown-item>
+          <template v-if="hasPermission(LfPermission.memberEdit)">
+            <lf-dropdown-item @click="emit('edit')">
+              <lf-icon-old name="pencil-line" />Edit work experience
+            </lf-dropdown-item>
+            <lf-dropdown-separator />
+
+            <lf-dropdown-item
+              v-if="props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+              @click="setAffiliation({
+                isPrimaryWorkExperience: false,
+                allowAffiliation: false,
+              })"
+            >
+              <lf-icon name="xmark-circle" type="regular" />Remove affiliation
+            </lf-dropdown-item>
+            <template v-else>
+              <lf-tooltip
+                v-if="!props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+                class="!w-full"
+                placement="right"
+                :disabled="!isOverlapping"
+                content="You cannot affiliate an organization/job title that overlaps with another for the same time period"
+              >
+                <lf-dropdown-item
+                  v-if="!props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
+                  :disabled="isOverlapping"
+                  @click="setAffiliation({
+                    isPrimaryWorkExperience: true,
+                  })"
+                >
+                  <lf-icon name="link" type="regular" />Mark as affiliated
+                </lf-dropdown-item>
+              </lf-tooltip>
+
+              <lf-tooltip
+                v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
+                class="!w-full"
+                placement="right"
+                content="Prevents this work experience from being considered for affiliations"
+              >
+                <lf-dropdown-item
+                  @click="setAffiliation({
+                    allowAffiliation: false,
+                  })"
+                >
+                  <lf-icon name="ban" type="regular" />Block affiliations
+                </lf-dropdown-item>
+              </lf-tooltip>
+
+              <lf-tooltip
+                v-else
+                class="!w-full"
+                placement="right"
+                content="Include this work experience for consideration in future affiliations"
+              >
+                <lf-dropdown-item
+                  @click="setAffiliation({
+                    allowAffiliation: true,
+                  })"
+                >
+                  <lf-icon name="toggle-on" type="regular" />Enable affiliations
+                </lf-dropdown-item>
+              </lf-tooltip>
+            </template>
+          </template>
+
           <lf-dropdown-separator />
 
           <lf-dropdown-item
-            v-if="props.organization.memberOrganizations.affiliationOverride.allowAffiliation"
-            @click="setAffiliation(false)"
+            @click="setReportDataModal({
+              contributor: props.contributor,
+              type: ReportDataType.WORK_EXPERIENCE,
+              attribute: props.organization,
+            })"
           >
-            <lf-icon-old name="close-circle-line" />Remove affiliation
+            <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
           </lf-dropdown-item>
-          <lf-dropdown-item
-            v-else
-            @click="setAffiliation(true)"
-          >
-            <lf-icon name="link" />Mark as affiliated
-          </lf-dropdown-item>
-        </template>
-
-        <lf-dropdown-item
-          @click="setReportDataModal({
-            contributor: props.contributor,
-            type: ReportDataType.WORK_EXPERIENCE,
-            attribute: props.organization,
-          })"
-        >
-          <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
-        </lf-dropdown-item>
-        <template v-if="hasPermission(LfPermission.memberEdit)">
-          <lf-dropdown-separator />
-          <lf-dropdown-item type="danger" @click="removeWorkHistory">
-            <lf-icon-old name="delete-bin-6-line" />Delete work experience
-          </lf-dropdown-item>
-        </template>
-      </lf-dropdown>
+          <template v-if="hasPermission(LfPermission.memberEdit)">
+            <lf-dropdown-separator />
+            <lf-dropdown-item type="danger" @click="removeWorkHistory">
+              <lf-icon-old name="delete-bin-6-line" />Delete work experience
+            </lf-dropdown-item>
+          </template>
+        </lf-dropdown>
+      </div>
     </div>
   </article>
 </template>
@@ -75,7 +125,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -87,6 +137,7 @@ import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -117,15 +168,39 @@ const getDateRange = (dateStart?: string, dateEnd?: string) => {
   return `${start} → ${end}`;
 };
 
-const setAffiliation = (affiliation: boolean) => {
+const restOrganizations = computed(() => props.contributor.organizations.filter((org) => org.id !== props.organization.id
+      || org.memberOrganizations.title !== props.organization.memberOrganizations.title
+      || org.memberOrganizations.dateStart !== props.organization.memberOrganizations.dateStart
+      || org.memberOrganizations.dateEnd !== props.organization.memberOrganizations.dateEnd));
+
+const isOverlapping = computed(() => {
+  const org = props.organization.memberOrganizations;
+  const dateStart = moment(org.dateStart || new Date());
+  const dateEnd = moment(org.dateEnd || new Date());
+  return restOrganizations.value.some((o) => {
+    if (!o.memberOrganizations.affiliationOverride.isPrimaryWorkExperience) {
+      return false;
+    }
+    const oOrg = o.memberOrganizations;
+    const dateStartCompare = moment(oOrg.dateStart || new Date());
+    const dateEndCompare = moment(oOrg.dateEnd || new Date());
+
+    return dateStartCompare.isBefore(dateEnd) && dateEndCompare.isAfter(dateStart);
+  });
+});
+
+const setAffiliation = (data: {
+  isPrimaryWorkExperience?: boolean
+  allowAffiliation?: boolean
+}) => {
   ContributorAffiliationsApiService.updateAffiliationOverride(props.contributor.id, {
-    isPrimaryWorkExperience: affiliation,
-    allowAffiliation: affiliation,
-    memberOrganizationId: props.organization.id,
+    isPrimaryWorkExperience: data.isPrimaryWorkExperience,
+    allowAffiliation: data.allowAffiliation,
+    memberOrganizationId: props.organization.memberOrganizations.id,
     memberId: props.contributor.id,
   })
     .then(() => {
-      if (affiliation) {
+      if (data.isPrimaryWorkExperience) {
         Message.success('Organization/job title successfully affiliated');
       } else {
         Message.success('Organization/job title affiliation successfully removed');

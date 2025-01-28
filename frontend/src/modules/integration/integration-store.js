@@ -1,9 +1,9 @@
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import { lfIntegrations } from '@/config/integrations';
 import Message from '../../shared/message/message';
 
 export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
@@ -32,23 +32,17 @@ export default {
     findByPlatform: (state, getters) => (platform) => getters.array.find((w) => w.platform === platform),
 
     list: (state) => Object.keys(state.byId).reduce((acc, key) => {
-      const integrationJsonData = CrowdIntegrations.getConfig(
-        state.byId[key].platform,
-      );
       acc[key] = {
         ...state.byId[key],
-        ...integrationJsonData,
+        ...lfIntegrations[state.byId[key].platform],
       };
       return acc;
     }, {}),
 
     listByPlatform: (state) => Object.keys(state.byId).reduce((acc, key) => {
-      const integrationJsonData = CrowdIntegrations.getConfig(
-        state.byId[key].platform,
-      );
       acc[state.byId[key].platform] = {
         ...state.byId[key],
-        ...integrationJsonData,
+        ...lfIntegrations[state.byId[key].platform],
       };
       return acc;
     }, {}),

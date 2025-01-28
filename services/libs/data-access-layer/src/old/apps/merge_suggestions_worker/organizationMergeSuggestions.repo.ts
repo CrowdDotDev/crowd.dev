@@ -301,9 +301,12 @@ class OrganizationMergeSuggestionsRepository {
     return results.map((r) => [r.organizationId, r.toMergeId])
   }
 
-  async removeRawOrganizationMergeSuggestions(suggestion: string[]): Promise<void> {
+  async removeOrganizationMergeSuggestions(
+    suggestion: string[],
+    table: OrganizationMergeSuggestionTable,
+  ): Promise<void> {
     const query = `
-      delete from "organizationToMergeRaw" 
+      delete from "${table}" 
       where 
         ("organizationId" = $(organizationId) and "toMergeId" = $(toMergeId))
         or 
@@ -318,7 +321,7 @@ class OrganizationMergeSuggestionsRepository {
     try {
       await this.connection.none(query, replacements)
     } catch (error) {
-      this.log.error('Error removing raw organization suggestions', error)
+      this.log.error(`Error removing organization suggestions rom ${table}!`, error)
       throw error
     }
   }

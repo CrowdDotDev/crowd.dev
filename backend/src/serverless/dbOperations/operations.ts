@@ -9,6 +9,4 @@ export default class Operations {
   static UPSERT_ACTIVITIES_WITH_MEMBERS: string = 'upsert_activities_with_members'
 
   static UPDATE_INTEGRATIONS: string = 'update_integrations'
-
-  static UPDATE_MICROSERVICE: string = 'update_microservices'
 }

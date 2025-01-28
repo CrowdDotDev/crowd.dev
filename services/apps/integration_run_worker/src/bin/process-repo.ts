@@ -112,12 +112,12 @@ setImmediate(async () => {
     )) as GithubIntegrationSettings
 
     let repos = []
-    if (repoFullNames[0] === 'all' && currentSettings.repos) {
-      repos = currentSettings.repos
+    if (repoFullNames[0] === 'all' && currentSettings.orgs[0].repos) {
+      repos = currentSettings.orgs[0].repos
     } else {
       for (const repoFullName of repoFullNames) {
         const repoURL = `https://github.com/${repoFullName}`
-        const repoExists = currentSettings.repos.find((r) => r.url === repoURL)
+        const repoExists = currentSettings.orgs[0].repos.find((r) => r.url === repoURL)
         if (!repoExists) {
           log.error(`Repo ${repoURL} is not configured in integration settings, skipping!`)
           continue
@@ -133,7 +133,16 @@ setImmediate(async () => {
 
     const settings: GithubManualIntegrationSettings = {
       manualSettingsType: 'default',
-      repos,
+      orgs: [
+        {
+          name: currentSettings.orgs[0].name,
+          logo: currentSettings.orgs[0].logo,
+          url: currentSettings.orgs[0].url,
+          fullSync: currentSettings.orgs[0].fullSync,
+          updatedAt: currentSettings.orgs[0].updatedAt,
+          repos,
+        },
+      ],
       unavailableRepos: [],
       streamType,
     }

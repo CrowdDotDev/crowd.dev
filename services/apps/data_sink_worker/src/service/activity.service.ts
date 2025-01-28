@@ -34,6 +34,7 @@ import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
@@ -44,10 +45,14 @@ import {
   PlatformType,
 } from '@crowd/types'
 
+import { GITHUB_CONFIG } from '../conf'
+
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
+
+const IS_GITHUB_SNOWFLAKE_ENABLED = GITHUB_CONFIG().isSnowflakeEnabled === 'true'
 
 export default class ActivityService extends LoggerBase {
   constructor(
@@ -56,6 +61,7 @@ export default class ActivityService extends LoggerBase {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
+    private readonly client: IQueue,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -98,7 +104,7 @@ export default class ActivityService extends LoggerBase {
 
         this.log.debug('Creating an activity in QuestDB!')
         try {
-          await insertActivities([
+          await insertActivities(this.client, [
             {
               id: activity.id,
               timestamp: activity.timestamp.toISOString(),
@@ -181,7 +187,7 @@ export default class ActivityService extends LoggerBase {
 
           // use insert instead of update to avoid using pg protocol with questdb
           try {
-            await insertActivities([
+            await insertActivities(this.client, [
               {
                 id,
                 memberId: toUpdate.memberId || original.memberId,
@@ -588,6 +594,7 @@ export default class ActivityService extends LoggerBase {
           this.searchSyncWorkerEmitter,
           this.redisClient,
           this.temporal,
+          this.client,
           this.log,
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
@@ -597,21 +604,28 @@ export default class ActivityService extends LoggerBase {
 
         segmentId = providedSegmentId
         if (!segmentId) {
-          const dbIntegration = await txIntegrationRepo.findById(integrationId)
-          const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
-            tenantId,
-            activity.channel,
-          )
-          const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
-            tenantId,
-            activity.channel,
-          )
+          if (platform === PlatformType.GITLAB) {
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
 
-          if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
-            segmentId = gitlabRepoSegmentId
-          } else if (platform === PlatformType.GITHUB && repoSegmentId) {
-            segmentId = repoSegmentId
-          } else {
+            if (gitlabRepoSegmentId) {
+              segmentId = gitlabRepoSegmentId
+            }
+          } else if (platform === PlatformType.GITHUB) {
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+
+            if (repoSegmentId) {
+              segmentId = repoSegmentId
+            }
+          }
+
+          if (!segmentId) {
+            const dbIntegration = await txIntegrationRepo.findById(integrationId)
             segmentId = dbIntegration.segmentId
           }
         }
@@ -1094,13 +1108,16 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-          await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
-        } else if (
-          platform === PlatformType.GITHUB &&
-          activity.type === GithubActivityType.PULL_REQUEST_OPENED
-        ) {
-          await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+        // if snowflake is enabled, we need to push attributes to matching github activity
+        if (IS_GITHUB_SNOWFLAKE_ENABLED) {
+          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
+            await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+          } else if (
+            platform === PlatformType.GITHUB &&
+            activity.type === GithubActivityType.PULL_REQUEST_OPENED
+          ) {
+            await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+          }
         }
       } finally {
         // release locks matter what
@@ -1289,6 +1306,7 @@ export default class ActivityService extends LoggerBase {
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
+        this.client,
         async (activity) => ({
           attributes: {
             ...gitAttributes,
@@ -1338,6 +1356,7 @@ export default class ActivityService extends LoggerBase {
 
     await updateActivities(
       this.qdbStore.connection(),
+      this.client,
       async () => ({
         sourceParentId: activity.sourceId,
       }),

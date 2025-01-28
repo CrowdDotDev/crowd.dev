@@ -2,11 +2,13 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface ContributorAttribute {
-  default: string;
-  custom: string;
-  github?: string;
-  twitter?: string;
+  default: any;
+  custom: any;
+  github?: any;
+  twitter?: any;
   hubspot?: any;
+  stackoverflow?: any;
+  discourse?: any;
 }
 
 export interface ContributorMaintainerRole {

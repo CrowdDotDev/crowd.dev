@@ -22,6 +22,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r.retries,
            r."delayedUntil",
            i.platform,
+           i."segmentId",
            run.onboarding
     from integration.results r
         left join integrations i on r."integrationId" = i.id
@@ -36,6 +37,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   public async getIntegrationInfo(integrationId: string): Promise<IIntegrationData | null> {
     const result = await this.db().oneOrNone(
       `select id as "integrationId",
+              "segmentId",
               platform
        from integrations where id = $(integrationId)`,
       {

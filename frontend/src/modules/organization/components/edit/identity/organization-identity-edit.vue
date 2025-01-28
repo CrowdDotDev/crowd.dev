@@ -28,11 +28,11 @@
                   />
                 </div>
                 <p
-                  v-if="platform?.orgUrlPrefix || platform?.urlPrefix"
+                  v-if="platform?.organization?.urlPrefix"
                   class="-mr-2 pl-2"
                   :class="form.value?.length ? 'text-black' : 'text-gray-400'"
                 >
-                  {{ platform?.orgUrlPrefix || platform?.urlPrefix }}
+                  {{ platform?.organization?.urlPrefix }}
                 </p>
               </div>
             </template>
@@ -62,7 +62,6 @@ import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Message from '@/shared/message/message';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -73,6 +72,7 @@ import {
 } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
   modelValue: OrganizationIdentity | null,
@@ -125,7 +125,7 @@ const isModalOpen = computed<boolean>({
   },
 });
 
-const platform = computed(() => CrowdIntegrations.getConfig(form.platform));
+const platform = computed(() => lfIdentities[form.platform]);
 
 const updateIdentity = () => {
   const identities = props.organization.identities.map((i: OrganizationIdentity) => {

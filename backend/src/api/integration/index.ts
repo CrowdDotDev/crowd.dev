@@ -26,8 +26,21 @@ export default (app) => {
   app.get(`/integration/autocomplete`, safeWrap(require('./integrationAutocomplete').default))
   app.get(`/integration/global`, safeWrap(require('./integrationGlobal').default))
   app.get(`/integration/global/status`, safeWrap(require('./integrationGlobalStatus').default))
+
+  app.get(
+    '/integration/github-installations',
+    safeWrap(require('./helpers/githubGetInstallations').default),
+  )
+
+  app.post(
+    '/integration/github-connect-installation',
+    safeWrap(require('./helpers/githubConnectInstallation').default),
+  )
+
   app.get(`/integration`, safeWrap(require('./integrationList').default))
   app.get(`/integration/:id`, safeWrap(require('./integrationFind').default))
+
+  app.put(`/authenticate/:code`, safeWrap(require('./helpers/githubAuthenticate').default))
 
   app.put(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapRepos').default))
   app.get(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapReposGet').default))

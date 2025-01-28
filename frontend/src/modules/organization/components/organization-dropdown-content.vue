@@ -51,42 +51,6 @@
     <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
   </button>
 
-  <!-- Hubspot -->
-  <!--  <button-->
-  <!--    v-if="!isSyncingWithHubspot(organization)"-->
-  <!--    class="h-10 el-dropdown-menu__item w-full"-->
-  <!--    type="button"-->
-  <!--    :disabled="-->
-  <!--      !isHubspotConnected-->
-  <!--        || (!organization.website-->
-  <!--          && !organization.attributes?.sourceId?.hubspot)-->
-  <!--    "-->
-  <!--    @click="-->
-  <!--      handleCommand({-->
-  <!--        action: Actions.SYNC_HUBSPOT,-->
-  <!--        organization,-->
-  <!--      })-->
-  <!--    "-->
-  <!--  >-->
-  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
-  <!--    <span class="text-xs pl-2">Sync with HubSpot</span>-->
-  <!--  </button>-->
-  <!--  <button-->
-  <!--    v-else-->
-  <!--    class="h-10 el-dropdown-menu__item w-full"-->
-  <!--    type="button"-->
-  <!--    :disabled="!isHubspotConnected"-->
-  <!--    @click="-->
-  <!--      handleCommand({-->
-  <!--        action: Actions.STOP_SYNC_HUBSPOT,-->
-  <!--        organization,-->
-  <!--      })-->
-  <!--    "-->
-  <!--  >-->
-  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
-  <!--    <span class="text-xs pl-2">Stop sync with HubSpot</span>-->
-  <!--  </button>-->
-
   <!-- Mark as Team Organization -->
   <template v-if="hasPermission(LfPermission.organizationEdit)">
     <el-tooltip
@@ -157,7 +121,6 @@ import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -190,17 +153,6 @@ const { trackEvent } = useProductTracking();
 const organizationStore = useOrganizationStore();
 
 const { hasPermission } = usePermissions();
-
-// const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
-//
-// const isHubspotConnected = computed(() => {
-//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-//   const enabledFor = hubspot.settings?.enabledFor || [];
-//   return (
-//     hubspot.status === 'done'
-//     && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
-//   );
-// });
 
 const doManualAction = async ({
   loadingMessage,
