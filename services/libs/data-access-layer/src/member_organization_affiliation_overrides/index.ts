@@ -1,0 +1,100 @@
+import { v4 as uuid } from 'uuid'
+
+import {
+  IChangeAffiliationOverrideData,
+  IMemberOrganizationAffiliationOverride,
+} from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
+
+export async function changeOverride(
+  qx: QueryExecutor,
+  data: IChangeAffiliationOverrideData,
+): Promise<void> {
+  if (
+    !data.memberId ||
+    !data.memberOrganizationId ||
+    (data.allowAffiliation == undefined && data.isPrimaryWorkExperience == undefined)
+  ) {
+    return
+  }
+
+  const updateFields = []
+  if (data.allowAffiliation !== undefined) {
+    updateFields.push(`"allowAffiliation" = $(allowAffiliation)`)
+  }
+  if (data.isPrimaryWorkExperience !== undefined) {
+    updateFields.push(`"isPrimaryWorkExperience" = $(isPrimaryWorkExperience)`)
+  }
+
+  const updateQuery =
+    updateFields.length > 0 ? `DO UPDATE SET ${updateFields.join(', ')}` : 'DO NOTHING'
+
+  await qx.result(
+    `
+      INSERT INTO "memberOrganizationAffiliationOverrides" (
+          id, 
+          "memberId", 
+          "memberOrganizationId", 
+          "allowAffiliation", 
+          "isPrimaryWorkExperience"
+      )
+      VALUES (
+          $(id),
+          $(memberId),
+          $(memberOrganizationId),
+          $(allowAffiliation),
+          $(isPrimaryWorkExperience)
+      )
+      ON CONFLICT ("memberId", "memberOrganizationId") 
+      ${updateQuery};
+    `,
+    {
+      id: uuid(),
+      memberId: data.memberId,
+      memberOrganizationId: data.memberOrganizationId,
+      allowAffiliation: data.allowAffiliation ?? null,
+      isPrimaryWorkExperience: data.isPrimaryWorkExperience ?? null,
+    },
+  )
+}
+
+export async function findOverrides(
+  qx: QueryExecutor,
+  memberId: string,
+  memberOrganizationIds: string[],
+): Promise<IMemberOrganizationAffiliationOverride[]> {
+  const overrides: IMemberOrganizationAffiliationOverride[] = await qx.select(
+    `
+      SELECT 
+        id,
+        "memberId",
+        "memberOrganizationId",
+        coalesce("allowAffiliation", true) as "allowAffiliation",
+        coalesce("isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+      FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberId" = $(memberId)
+      AND "memberOrganizationId" IN ($(memberOrganizationIds:csv))
+    `,
+    {
+      memberId,
+      memberOrganizationIds,
+    },
+  )
+
+  const foundMemberOrgIds = new Set(overrides.map((override) => override.memberOrganizationId))
+
+  const results = memberOrganizationIds.map((memberOrganizationId) => {
+    if (foundMemberOrgIds.has(memberOrganizationId)) {
+      return overrides.find((override) => override.memberOrganizationId === memberOrganizationId)
+    }
+    return {
+      allowAffiliation: true,
+      isPrimaryWorkExperience: false,
+      memberId,
+      memberOrganizationId,
+    }
+  })
+
+  return results
+}
