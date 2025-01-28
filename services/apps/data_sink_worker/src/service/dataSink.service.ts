@@ -1,9 +1,13 @@
 import { addSeconds, generateUUIDv1 } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
+import {
+  IIntegrationData,
+  IResultData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -33,6 +37,7 @@ export default class DataSinkService extends LoggerBase {
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
+    private readonly client: IQueue,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -119,12 +124,6 @@ export default class DataSinkService extends LoggerBase {
       segmentId,
     }
 
-    let integration
-
-    if (integrationId) {
-      integration = await this.repo.getIntegrationInfo(integrationId)
-    }
-
     const id = generateUUIDv1()
     const result: IResultData = {
       id,
@@ -135,10 +134,36 @@ export default class DataSinkService extends LoggerBase {
       runId: null,
       streamId: null,
       webhookId: null,
-      platform: integration ? integration.platform : null,
+      platform: null,
+      segmentId,
       retries: 0,
       delayedUntil: null,
       onboarding: false,
+    }
+
+    let integration: IIntegrationData | null = null
+
+    if (integrationId) {
+      integration = await this.repo.getIntegrationInfo(integrationId)
+      if (integration) {
+        result.platform = integration.platform
+
+        if (segmentId && integration.segmentId !== segmentId) {
+          // save error and stop
+          await this.repo.markResultError(
+            id,
+            new Error(
+              `Segment id from queue message '${segmentId}' does not equal integration '${integration.integrationId}' segment id '${integration.segmentId}'!`,
+            ),
+            result,
+          )
+          return
+        }
+
+        if (!segmentId) {
+          result.segmentId = integration.segmentId
+        }
+      }
     }
 
     await this.processResult(id, result)
@@ -195,6 +220,7 @@ export default class DataSinkService extends LoggerBase {
                 this.searchSyncWorkerEmitter,
                 this.redisClient,
                 this.temporal,
+                this.client,
                 this.log,
               )
               const activityData = data.data as IActivityData
@@ -207,7 +233,7 @@ export default class DataSinkService extends LoggerBase {
                 resultInfo.onboarding === null ? true : resultInfo.onboarding,
                 platform,
                 activityData,
-                data.segmentId,
+                data.segmentId ?? resultInfo.segmentId,
               )
               break
             }

@@ -182,7 +182,7 @@ export async function createConversations(): Promise<ICreateConversationsResult>
   if (toUpdate.length > 0) {
     for (const batch of partition(toUpdate, 100)) {
       try {
-        const results = await insertActivities(batch, true)
+        const results = await insertActivities(svc.queue, batch, true)
         activitiesAddedToConversations += results.length
       } catch (err) {
         svc.log.error(err, 'Error linking activities to conversations')
@@ -209,7 +209,7 @@ async function getRows(qdbConn: DbConnOrTx, current: Date): Promise<any[]> {
   activities_to_check_for_parentId AS (
     SELECT *
     FROM activities child
-    WHERE deletedAt IS NULL 
+    WHERE deletedAt IS NULL
     AND sourceParentId IS NOT NULL
     AND conversationId IS NULL
     AND timestamp > dateadd('w', -1, $(limit))
@@ -236,7 +236,7 @@ async function getMinActivityTimestamp(qdbConn: DbConnOrTx): Promise<string | nu
   const query = `
   select first(timestamp) as minTimestamp
   from activities
-  where 
+  where
     deletedAt is null and
     sourceParentId is not null and
     conversationId is null;

@@ -4,7 +4,6 @@ export interface IntegrationRun {
   id: string
   tenantId: string
   integrationId: string | null
-  microserviceId: string | null
   onboarding: boolean
   state: IntegrationRunState
   delayedUntil: string | null
@@ -17,7 +16,6 @@ export interface IntegrationRun {
 export interface DbIntegrationRunCreateData {
   tenantId: string
   integrationId?: string
-  microserviceId?: string
   onboarding: boolean
   state: IntegrationRunState
 }

@@ -30,6 +30,11 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.MEMBER)
   }
 
+  let withAggs = true
+  if (processArguments.includes('--no-aggs')) {
+    withAggs = false
+  }
+
   const repo = new MemberRepository(store, log)
 
   const tenantIds = await repo.getTenantIds()
@@ -49,7 +54,7 @@ setImmediate(async () => {
     log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
     current += 1
     service
-      .syncTenantMembers(tenantId, 500)
+      .syncTenantMembers(tenantId, 500, { withAggs })
       .then(() => {
         current--
         log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)

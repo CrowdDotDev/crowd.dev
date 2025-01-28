@@ -161,6 +161,23 @@ services:
     networks:
       - crowd-bridge
 
+  kafka-connect:
+    build:
+      context: scaffold/kafka-connect
+    restart: unless-stopped
+    entrypoint:
+      - connect-standalone
+      - /etc/kafka-connect/worker-local.properties
+      - /etc/kafka-connect/console-local-sink.properties
+      - /etc/kafka-connect/questdb-local-sink.properties
+    volumes:
+      - kafka-connect-dev:/storage
+      - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
+      - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
+      - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
+    networks:
+      - crowd-bridge
+
   temporal:
     build:
       context: scaffold/temporal
@@ -182,3 +199,4 @@ volumes:
   opensearch-dev:
   s3-dev:
   redis-dev:
+  kafka-connect-dev:
