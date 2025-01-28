@@ -209,6 +209,7 @@ export class ServiceWorker extends Service {
         this._queueClient = QueueFactory.createQueueService({
           brokers: process.env['CROWD_KAFKA_BROKERS'],
           clientId: process.env['SERVICE'], //TODO:: make this configurable
+          extra: process.env['CROWD_KAFKA_EXTRA'],
         })
       } catch (err) {
         throw new Error(err)
