@@ -89,7 +89,7 @@
       <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
           <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0" data-tooltip="Manage views">
-            <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
+            <lf-icon name="gear" :size="20" class="text-gray-400 flex items-center" />
           </el-button>
         </template>
         <lf-saved-views-management

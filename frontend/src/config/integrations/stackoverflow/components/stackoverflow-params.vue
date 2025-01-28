@@ -51,7 +51,7 @@
               :key="keyword"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <div class="ri-seo-line text-[16px] mr-1 h-4 flex items-center" />
+              <lf-icon name="hashtag" :size="16" class="mr-1 flex items-center" />
 
               <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 keyword

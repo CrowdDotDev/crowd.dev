@@ -62,7 +62,7 @@ const icons = ref({
       bgColor: 'bg-gray-200',
     },
     'pull_request-assigned': {
-      iconClass: 'ri-user-shared-line',
+      iconClass: 'fa-paper-plane-top fa-light',
       color: 'text-black',
       bgColor: 'bg-gray-200',
     },

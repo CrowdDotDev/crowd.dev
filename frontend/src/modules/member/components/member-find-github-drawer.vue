@@ -49,7 +49,7 @@
       </div>
       <div v-else-if="!loading">
         <app-empty-state-cta
-          icon="ri-contacts-line"
+          icon="user-group-simple"
           title="We could not find any GitHub identities for this person."
           description="There are no GitHub users that match the identities in this person. We recommend Googling them instead."
           secondary-btn="Search on Google"

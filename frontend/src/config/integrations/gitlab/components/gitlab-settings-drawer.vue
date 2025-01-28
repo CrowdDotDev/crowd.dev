@@ -52,7 +52,7 @@
                 class="flex items-center text-primary-500 cursor-pointer select-none"
                 @click="isBulkSelectOpened = true"
               >
-                <i class="ri-checkbox-multiple-line text-base mr-1" />
+                <lf-icon name="check-double" :size="16" class="mr-1" />
                 <span class="text-xs font-normal">
                   Bulk selection
                 </span>
