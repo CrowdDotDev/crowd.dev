@@ -24,8 +24,10 @@
           v-if="replyContent"
           class="flex items-center"
         >
-          <i
-            :class="`${replyContent.icon} text-base mr-2 text-gray-500`"
+          <lf-icon
+            :name="replyContent.icon"
+            size="16"
+            class="mr-2 text-gray-500"
           />
           <p
             class="text-xs text-gray-600"

@@ -24,7 +24,7 @@ const github: IdentityConfig = {
       const activities = conversation.lastReplies || conversation.activities;
 
       return {
-        icon: 'ri-chat-4-line',
+        icon: 'message',
         copy: 'comment',
         number: activities.reduce((acc, activity) => {
           if (activity.type.includes('comment')) {
