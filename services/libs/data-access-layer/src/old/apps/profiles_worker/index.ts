@@ -420,10 +420,7 @@ export async function getMemberIdsWithRecentRoleChanges(
   }
 }
 
-export async function updateAffiliationsLastCheckedAt(
-  db: DbStore,
-  tenantId: string,
-): Promise<void> {
+export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void> {
   try {
     await db.connection().any(
       `
