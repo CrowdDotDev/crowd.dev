@@ -1,3 +1,4 @@
+import { pick } from 'lodash'
 import moment from 'moment'
 
 import { generateUUIDv4 } from '@crowd/common'
@@ -6,6 +7,8 @@ import { ACTIVITIES_QUEUE_SETTINGS, IQueue, QueueEmitter } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
 
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
+
+import { ACTIVITY_ALL_COLUMNS } from './sql'
 
 const logger = getServiceChildLogger('insert-activities')
 
@@ -16,29 +19,32 @@ export async function insertActivities(
 ): Promise<string[]> {
   const now = moment().toISOString()
 
-  const toInsert = activities.map((activity) => {
-    const id = activity.id || generateUUIDv4()
+  const toInsert = activities
+    .map((activity) => {
+      const id = activity.id || generateUUIDv4()
 
-    return {
-      // we keep these ones in front of `...activity` because these fields might exist in the activity object
-      member_isBot: activity.isBotActivity || false,
-      member_isTeamMember: activity.isTeamMemberActivity || false,
-      gitIsMainBranch: activity.attributes['isMainBranch'],
-      gitIsIndirectFork: activity.attributes['isIndirectFork'],
-      gitInsertions: activity.attributes['insertions'] || activity.attributes['additions'],
-      gitDeletions: activity.attributes['deletions'],
-      gitLines: activity.attributes['lines'],
-      gitIsMerge: activity.attributes['isMerge'],
+      return {
+        // we keep these ones in front of `...activity` because these fields might exist in the activity object
+        member_isBot: activity.isBotActivity || false,
+        member_isTeamMember: activity.isTeamMemberActivity || false,
+        gitIsMainBranch: activity.attributes['isMainBranch'],
+        gitIsIndirectFork: activity.attributes['isIndirectFork'],
+        gitInsertions: activity.attributes['insertions'] || activity.attributes['additions'],
+        gitDeletions: activity.attributes['deletions'],
+        gitLines: activity.attributes['lines'],
+        gitIsMerge: activity.attributes['isMerge'],
 
-      ...activity,
-      id,
-      updatedAt: update || !activity.updatedAt ? now : moment(activity.updatedAt).toISOString(),
-      createdAt: activity.createdAt ? moment(activity.createdAt).toISOString() : now,
-      timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
-      attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
-      body: activity.body.slice(0, 2000),
-    }
-  })
+        ...activity,
+
+        id,
+        updatedAt: update || !activity.updatedAt ? now : moment(activity.updatedAt).toISOString(),
+        createdAt: activity.createdAt ? moment(activity.createdAt).toISOString() : now,
+        timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
+        attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
+        body: activity.body?.slice(0, 2000),
+      }
+    })
+    .map((activity) => pick(activity, ACTIVITY_ALL_COLUMNS)) // otherwise QuestDB insert fails
 
   const emitter = new QueueEmitter(queueClient, ACTIVITIES_QUEUE_SETTINGS, logger)
 
