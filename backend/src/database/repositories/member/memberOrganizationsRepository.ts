@@ -1,3 +1,4 @@
+import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
@@ -6,9 +7,6 @@ import {
   updateMemberOrganization,
 } from '@crowd/data-access-layer/src/members'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import {
-  findOverrides as findMemberOrganizationAffiliationOverrides,
-} from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
 
 import { IRepositoryOptions } from '../IRepositoryOptions'
@@ -49,7 +47,11 @@ class MemberOrganizationsRepository {
       }
 
       // Fetch affiliation overrides
-      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(qx, memberId, memberOrganizations.map((mo) => mo.id))
+      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+        qx,
+        memberId,
+        memberOrganizations.map((mo) => mo.id),
+      )
 
       // Create mapping by id to speed up the processing
       const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(

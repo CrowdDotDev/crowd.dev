@@ -5,13 +5,17 @@ import { groupBy } from '@crowd/common'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
-import { IChangeAffiliationOverrideData, IMemberAffiliation, IMemberOrganizationAffiliationOverride } from '@crowd/types'
+import {
+  IChangeAffiliationOverrideData,
+  IMemberAffiliation,
+  IMemberOrganizationAffiliationOverride,
+} from '@crowd/types'
 
 import MemberAffiliationsRepository from '@/database/repositories/member/memberAffiliationsRepository'
+import MemberOrganizationAffiliationOverridesRepository from '@/database/repositories/member/memberOrganizationAffiliationOverridesRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
-import MemberOrganizationAffiliationOverridesRepository from '@/database/repositories/member/memberOrganizationAffiliationOverridesRepository'
 import MemberAffiliationService from '../memberAffiliationService'
 
 export default class MemberAffiliationsService extends LoggerBase {
@@ -62,12 +66,11 @@ export default class MemberAffiliationsService extends LoggerBase {
   async changeAffiliationOverride(
     data: IChangeAffiliationOverrideData,
   ): Promise<IMemberOrganizationAffiliationOverride> {
-    const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(data, this.options)
-    await MemberAffiliationService.startAffiliationRecalculation(
-      data.memberId,
-      [],
+    const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(
+      data,
       this.options,
     )
+    await MemberAffiliationService.startAffiliationRecalculation(data.memberId, [], this.options)
     return override
   }
 }

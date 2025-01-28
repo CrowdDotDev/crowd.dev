@@ -8,13 +8,10 @@ export default async (req, res) => {
 
   const memberAffiliationsService = new MemberAffiliationsService(req)
 
-  const payload = await memberAffiliationsService.changeAffiliationOverride(
-    {
-        ...req.body,
-        memberId: req.params.memberId,
-
-    },
-  )
+  const payload = await memberAffiliationsService.changeAffiliationOverride({
+    ...req.body,
+    memberId: req.params.memberId,
+  })
 
   await req.responseHandler.success(req, res, payload)
 }
