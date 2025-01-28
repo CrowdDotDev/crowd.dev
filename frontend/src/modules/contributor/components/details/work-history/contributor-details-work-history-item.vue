@@ -46,9 +46,8 @@
                 v-if="!props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
                 class="!w-full"
                 placement="right"
-                :content="isOverlapping
-                  ? 'You cannot affiliate an organization/job title that overlaps with another for the same time period'
-                  : 'Affiliating this work experience sets it as the current organization/job title'"
+                :disabled="!isOverlapping"
+                content="You cannot affiliate an organization/job title that overlaps with another for the same time period"
               >
                 <lf-dropdown-item
                   v-if="!props.organization.memberOrganizations.affiliationOverride.isPrimaryWorkExperience"
