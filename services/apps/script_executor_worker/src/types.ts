@@ -29,6 +29,6 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
 
 export interface ISyncMembersArgs {
   batchSize?: number
+  clean?: boolean
   withAggs?: boolean
-  memberIds?: string[]
 }
