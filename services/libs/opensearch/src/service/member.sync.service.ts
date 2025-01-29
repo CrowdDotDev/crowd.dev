@@ -298,9 +298,7 @@ export class MemberSyncService {
       memberIds = await this.memberRepo.getMembersForSync(batchSize)
     }
 
-    this.log.info(
-      `Synced total of ${memberCount} members with ${docCount} documents!`,
-    )
+    this.log.info(`Synced total of ${memberCount} members with ${docCount} documents!`)
   }
 
   public async syncOrganizationMembers(
