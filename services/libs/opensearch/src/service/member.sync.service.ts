@@ -1,4 +1,4 @@
-import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
   fetchMemberIdentities,
@@ -439,6 +439,8 @@ export class MemberSyncService {
       }
 
       if (memberData.length > 0) {
+        // dedup memberData so no same member-segment duplicates
+        memberData = distinctBy(memberData, (m) => `${m.memberId}-${m.segmentId}`)
         try {
           await this.memberRepo.transactionally(
             async (txRepo) => {
