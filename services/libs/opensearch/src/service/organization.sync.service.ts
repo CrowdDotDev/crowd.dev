@@ -293,9 +293,7 @@ export class OrganizationSyncService {
       'sync-tenant-organizations',
     )
 
-    this.log.info(
-      `Synced total of ${organizationCount} organizations with ${docCount} documents!`,
-    )
+    this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
   }
 
   public async syncOrganizations(
