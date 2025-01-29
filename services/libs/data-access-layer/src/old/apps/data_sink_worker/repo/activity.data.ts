@@ -63,7 +63,13 @@ export interface IDbActivityCreateData {
 export interface IActivityRelationCreateOrUpdateData {
   activityId: string
   memberId: string
-  organizationId: string
+  objectMemberId?: string
+  organizationId?: string
+  conversationId?: string
+  parentId?: string
+  platform: string
+  username: string
+  objectMemberUsername?: string
 }
 
 let insertActivityColumnSet: DbColumnSet

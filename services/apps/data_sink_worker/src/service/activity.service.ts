@@ -136,7 +136,11 @@ export default class ActivityService extends LoggerBase {
           await createOrUpdateRelations(queryExecutor, {
             activityId: activity.id,
             memberId: activity.memberId,
+            objectMemberId: activity.objectMemberId,
             organizationId: activity.organizationId,
+            platform: activity.platform,
+            username: activity.username,
+            objectMemberUsername: activity.objectMemberUsername,
           })
         } catch (error) {
           this.log.error('Error creating activity in QuestDB:', error)
@@ -225,7 +229,11 @@ export default class ActivityService extends LoggerBase {
             await createOrUpdateRelations(queryExecutor, {
               activityId: id,
               memberId: toUpdate.memberId || original.memberId,
+              objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
               organizationId: toUpdate.organizationId || original.organizationId,
+              platform: toUpdate.platform || (original.platform as PlatformType),
+              username: toUpdate.username || original.username,
+              objectMemberUsername: toUpdate.objectMemberUsername || original.objectMemberUsername,
             })
           } catch (error) {
             this.log.error('Error updating (by inserting) activity in QuestDB:', error)
