@@ -1,5 +1,6 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
+import { moveActivityRelationsWithIdentityToAnotherMember } from '@crowd/data-access-layer'
 import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
@@ -59,6 +60,13 @@ export async function moveActivitiesWithIdentityToAnotherMember(
       svc.questdbSQL,
       svc.queue,
       tenantId,
+      fromId,
+      toId,
+      identity.value,
+      identity.platform,
+    )
+    await moveActivityRelationsWithIdentityToAnotherMember(
+      dbStoreQx(svc.postgres.writer),
       fromId,
       toId,
       identity.value,
