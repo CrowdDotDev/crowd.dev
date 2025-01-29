@@ -4,7 +4,7 @@ import * as activities from '../activities/member-sync'
 import { ISyncMembersArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 minute',
+  startToCloseTimeout: '10 minute',
   retry: { maximumAttempts: 3 },
 })
 
@@ -20,5 +20,5 @@ export async function syncAllMembers(args: ISyncMembersArgs): Promise<void> {
   }
 
   await activity.syncAllMembers(BATCH_SIZE, WITH_AGGS)
-  console.log(`Successfully synced all members`)
+  console.log(`Synced all members!`)
 }
