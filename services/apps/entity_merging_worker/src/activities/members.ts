@@ -1,5 +1,9 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
+import {
+  moveActivityRelationsToAnotherMember,
+  moveActivityRelationsWithIdentityToAnotherMember,
+} from '@crowd/data-access-layer'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import {
   cleanupMember,
@@ -39,6 +43,7 @@ export async function moveActivitiesBetweenMembers(
     return
   }
   await moveActivitiesToNewMember(svc.questdbSQL, primaryId, secondaryId, tenantId)
+  await moveActivityRelationsToAnotherMember(dbStoreQx(svc.postgres.writer), primaryId, secondaryId)
 }
 
 export async function moveActivitiesWithIdentityToAnotherMember(
@@ -68,6 +73,13 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     await moveIdentityActivitiesToNewMember(
       svc.questdbSQL,
       tenantId,
+      fromId,
+      toId,
+      identity.value,
+      identity.platform,
+    )
+    await moveActivityRelationsWithIdentityToAnotherMember(
+      dbStoreQx(svc.postgres.writer),
       fromId,
       toId,
       identity.value,

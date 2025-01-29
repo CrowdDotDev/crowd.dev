@@ -1486,6 +1486,44 @@ export async function moveActivityRelationsToAnotherMember(
   } while (rowsUpdated === batchSize)
 }
 
+export async function moveActivityRelationsWithIdentityToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  username: string,
+  platform: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where 
+              "memberId" = $(fromId) and
+              "username" = $(username) and
+              "platform" = $(platform)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
 export async function moveActivityRelationsToAnotherOrganization(
   qe: QueryExecutor,
   fromId: string,
