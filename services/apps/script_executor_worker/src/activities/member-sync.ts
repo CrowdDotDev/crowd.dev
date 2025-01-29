@@ -3,7 +3,7 @@ import { MemberSyncService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 
-import { svc } from '../../main'
+import { svc } from '../main'
 
 export async function deleteIndexedEntities(): Promise<void> {
   const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)

@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities/search-sync'
+import * as activities from '../activities/member-sync'
 import { ISyncMembersArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({

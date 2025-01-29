@@ -17,11 +17,11 @@ import {
   isLfxMember,
   updateOrganizationIdentity,
 } from './activities/fix-organization-identities-with-wrong-urls'
+import { deleteIndexedEntities, syncAllMembers } from './activities/member-sync'
 import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
-import { deleteIndexedEntities, syncAllMembers } from './activities/search-sync'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
