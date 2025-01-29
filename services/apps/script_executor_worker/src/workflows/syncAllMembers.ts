@@ -4,7 +4,7 @@ import * as activities from '../activities/member-sync'
 import { ISyncMembersArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '1 hour',
+  startToCloseTimeout: '5 minute',
   retry: { maximumAttempts: 3 },
 })
 
