@@ -1,3 +1,4 @@
+import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
@@ -45,6 +46,13 @@ class MemberOrganizationsRepository {
         })
       }
 
+      // Fetch affiliation overrides
+      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+        qx,
+        memberId,
+        memberOrganizations.map((mo) => mo.id),
+      )
+
       // Create mapping by id to speed up the processing
       const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(
         (obj: Record<string, IOrganizationSummary>, org) => ({
@@ -58,7 +66,10 @@ class MemberOrganizationsRepository {
       const result: IRenderFriendlyMemberOrganization[] = memberOrganizations.map((mo) => ({
         ...(orgByid[mo.organizationId] || {}),
         id: mo.organizationId,
-        memberOrganizations: mo,
+        memberOrganizations: {
+          ...mo,
+          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === mo.id),
+        },
       }))
 
       await SequelizeRepository.commitTransaction(transaction)

@@ -34,7 +34,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           "runId",
           "tenantId",
           "integrationId",
-          "microserviceId",
           state,
           name,
           metadata,
@@ -97,7 +96,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           "runId",
           "tenantId",
           "integrationId",
-          "microserviceId",
           state,
           name,
           metadata,
@@ -130,7 +128,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     const results: IntegrationStream[] = []
 
     const query = `
-    insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", "microserviceId", state, name, metadata)
+    insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", state, name, metadata)
     values 
     `
 
@@ -142,14 +140,13 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       for (const item of batch) {
         const id = generateUUIDv1()
         values.push(
-          `(:id${i}, :runId${i}, :tenantId${i}, :integrationId${i}, :microserviceId${i}, :state${i}, :name${i}, :metadata${i})`,
+          `(:id${i}, :runId${i}, :tenantId${i}, :integrationId${i}, :state${i}, :name${i}, :metadata${i})`,
         )
         replacements[`id${i}`] = id
         replacements[`runId${i}`] = item.runId
         replacements[`tenantId${i}`] = item.tenantId
         replacements[`state${i}`] = IntegrationStreamState.PENDING
         replacements[`integrationId${i}`] = item.integrationId || null
-        replacements[`microserviceId${i}`] = item.microserviceId || null
         replacements[`name${i}`] = item.name
         replacements[`metadata${i}`] = JSON.stringify(item.metadata || {})
         i++
@@ -178,7 +175,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
           tenantId: item.tenantId,
           state: IntegrationStreamState.PENDING,
           integrationId: item.integrationId,
-          microserviceId: item.microserviceId,
           name: item.name,
           metadata: item.metadata || {},
           createdAt,
@@ -201,8 +197,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<
     const id = generateUUIDv1()
 
     const query = `
-      insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", "microserviceId", state, name, metadata)
-      values(:id, :runId, :tenantId, :integrationId, :microserviceId, :state, :name, :metadata)
+      insert into "integrationStreams"(id, "runId", "tenantId", "integrationId", state, name, metadata)
+      values(:id, :runId, :tenantId, :integrationId, :state, :name, :metadata)
       returning "createdAt";
     `
 
@@ -213,7 +209,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
         tenantId: data.tenantId,
         state: IntegrationStreamState.PENDING,
         integrationId: data.integrationId || null,
-        microserviceId: data.microserviceId || null,
         name: data.name,
         metadata: JSON.stringify(data.metadata || {}),
       },
@@ -231,7 +226,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
       tenantId: data.tenantId,
       state: IntegrationStreamState.PENDING,
       integrationId: data.integrationId,
-      microserviceId: data.microserviceId,
       name: data.name,
       metadata: data.metadata || {},
       createdAt: (result[0] as any).createdAt,
@@ -371,7 +365,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<
             "runId",
             "tenantId",
             "integrationId",
-            "microserviceId",
             state,
             name,
             metadata,

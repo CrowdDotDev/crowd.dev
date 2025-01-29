@@ -42,7 +42,7 @@ export async function moveActivitiesBetweenMembers(
   if (!memberExists) {
     return
   }
-  await moveActivitiesToNewMember(svc.questdbSQL, primaryId, secondaryId, tenantId)
+  await moveActivitiesToNewMember(svc.questdbSQL, svc.queue, primaryId, secondaryId, tenantId)
   await moveActivityRelationsToAnotherMember(dbStoreQx(svc.postgres.writer), primaryId, secondaryId)
 }
 
@@ -72,6 +72,7 @@ export async function moveActivitiesWithIdentityToAnotherMember(
   )) {
     await moveIdentityActivitiesToNewMember(
       svc.questdbSQL,
+      svc.queue,
       tenantId,
       fromId,
       toId,

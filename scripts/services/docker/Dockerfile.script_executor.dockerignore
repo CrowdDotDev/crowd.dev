@@ -8,7 +8,6 @@
 **/.idea
 **/.vscode
 **/dist
-backend/src/serverless/microservices/python
 .vscode/
 .github/
 frontend/

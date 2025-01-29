@@ -1,7 +1,7 @@
 import assert from 'assert'
 import lodash from 'lodash'
 
-import { Error400, Error403 } from '@crowd/common'
+import { Error403 } from '@crowd/common'
 
 import Permissions from '../../security/permissions'
 import Roles from '../../security/roles'
@@ -62,23 +62,6 @@ export default class PermissionChecker {
   public validateIntegrationsProtectedFields(data) {
     if (data.limitCount !== undefined) {
       this.validateHas(Permissions.values.integrationControlLimit)
-    }
-  }
-
-  /**
-   * Checks if the user has permission to change certain protected
-   * fields in a microservice.
-   * @param data Data sent to the microservice write service
-   */
-  public validateMicroservicesProtectedFields(data) {
-    if (data.variant !== undefined) {
-      if (data.variant === 'default') {
-        this.validateHas(Permissions.values.microserviceVariantFree)
-      } else if (data.variant === 'premium') {
-        this.validateHas(Permissions.values.microserviceVariantPremium)
-      } else {
-        throw new Error400(`Invalid variant: ${data.variant}`)
-      }
     }
   }
 

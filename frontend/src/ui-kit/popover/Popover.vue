@@ -10,12 +10,12 @@
       <slot name="trigger" :close="hidePopover" />
     </div>
 
-    <Teleport v-if="!props.disabled && isVisible" to="body">
+    <Teleport v-if="!props.disabled && (props.persistent || isVisible)" to="body">
       <div
         ref="popover"
         :style="popoverStyle"
         class="c-popover__content"
-        :class="`is-placed-${props.placement}`"
+        :class="[`is-placed-${props.placement}`, { 'is-hidden': props.persistent && !isVisible }]"
       >
         <slot :close="hidePopover" />
       </div>
@@ -36,12 +36,14 @@ const props = withDefaults(defineProps<{
   spacing?: number,
   visibility?: boolean,
   triggerEvent?: PopoverTrigger,
+  persistent?: boolean;
 }>(), {
   placement: 'bottom-start',
   disabled: false,
   spacing: 4,
   visibility: false,
   triggerEvent: 'click',
+  persistent: false,
 });
 
 const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();
