@@ -41,18 +41,16 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getTenantMembersForSync(tenantId: string, perPage: number): Promise<string[]> {
+  public async getMembersForSync(perPage: number): Promise<string[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results = await this.db().any(
       `
         select m.id
         from members m
         left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
-        where m."tenantId" = $(tenantId) and
-              ie.entity_id is null
+        where ie.entity_id is null
         limit ${perPage};`,
       {
-        tenantId,
         type: IndexedEntityType.MEMBER,
       },
     )
