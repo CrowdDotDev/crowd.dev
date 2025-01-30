@@ -30,6 +30,7 @@ export interface IdentityConfig {
   name: string; // Display name of the identity
   image: string; // Image URL for the identity
   icon?: string; // Image URL for the identity
+  iconType?: string
   color?: string; // Image URL for the identity
   member?: {
     placeholder?: string;

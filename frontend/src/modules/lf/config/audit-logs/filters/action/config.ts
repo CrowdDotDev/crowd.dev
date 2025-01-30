@@ -9,7 +9,7 @@ import options from './options';
 const action: MultiSelectFilterConfig = {
   id: 'action',
   label: 'Action',
-  iconClass: 'ri-cursor-line',
+  iconClass: 'arrow-pointer',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

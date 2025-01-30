@@ -40,6 +40,7 @@ import AppEagleEyeSettings from '@/modules/eagle-eye/components/list/eagle-eye-s
 import AppEagleEyeList from '@/modules/eagle-eye/components/list/eagle-eye-list.vue';
 import AppEagleEyeLoadingState from '@/modules/eagle-eye/components/list/eagle-eye-loading-state.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 
 const store = useStore();
 
@@ -66,7 +67,7 @@ const showEmptyState = computed(
 const emptyStateContent = computed(() => {
   if (activeView.value.id === 'feed') {
     return {
-      icon: 'eyes fa-regular',
+      icon: 'eyes',
       title: 'No results found',
       description: 'Try to refine your feed settings',
     };

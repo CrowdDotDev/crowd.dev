@@ -26,7 +26,7 @@
       <!-- Empty state -->
       <app-empty-state-cta
         v-if="conversations.length === 0"
-        icon="ri-question-answer-line"
+        icon="comments-question-check"
         :title="emptyState.title"
         :description="emptyState.description"
       />
@@ -80,6 +80,7 @@ import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
 import moment from 'moment/moment';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 
 const conversationId = ref(null);
 

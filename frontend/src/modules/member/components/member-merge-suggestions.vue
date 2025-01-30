@@ -11,7 +11,7 @@
             :icon-only="true"
             @click="fetch(offset - 1)"
           >
-            <i class="ri-arrow-left-s-line" />
+            <lf-icon name="chevron-left" :size="16" />
           </lf-button>
           <lf-button
             type="secondary"
@@ -20,7 +20,7 @@
             :icon-only="true"
             @click="fetch(offset + 1)"
           >
-            <i class="ri-arrow-right-s-line" />
+            <lf-icon name="chevron-right" :size="16" />
           </lf-button>
         </div>
 
@@ -120,9 +120,7 @@
     </div>
     <!-- Empty state -->
     <div v-else class="py-20 flex flex-col items-center">
-      <div
-        class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
-      />
+      <lf-icon name="shuffle" :size="160" class="text-gray-200 flex items-center mb-8" />
       <h5 class="text-center text-lg font-semibold mb-4">
         No merge suggestions
       </h5>
@@ -147,6 +145,7 @@ import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/me
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { MemberService } from '../member-service';
 
 const props = defineProps({

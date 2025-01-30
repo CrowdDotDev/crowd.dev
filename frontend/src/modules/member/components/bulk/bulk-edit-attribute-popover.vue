@@ -74,14 +74,14 @@
             </el-form-item>
 
             <div v-if="selectedAttribute.type === 'multiSelect'" class="flex items-center gap-2 -mt-2">
-              <i class="ri-information-line text-gray-400 text-lg " />
+              <lf-icon name="circle-info" :size="20" class="text-gray-400" />
               <span class="text-xs leading-5 text-gray-500">
                 Values will be added to each selected profile and the existing ones won’t be overwritten.
               </span>
             </div>
 
             <div v-else class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6">
-              <i class="ri-alert-fill text-yellow-500 text-base " />
+              <lf-icon name="triangle-exclamation" class="text-yellow-500" />
               <span class="text-xs leading-5 text-gray-900">Changes will overwrite the current attribute value of the selected profile.</span>
             </div>
           </div>
@@ -119,13 +119,14 @@ import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import AppBulkEditAttributeDropdown from '@/modules/member/components/bulk/bulk-edit-attribute-dropdown.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 
 const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400',
+      'fa-calendar fa-light text-base leading-none text-gray-400',
   }, // props
   [],
 );

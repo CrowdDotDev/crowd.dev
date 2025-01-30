@@ -60,9 +60,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="deleteAttribute(attribute.name)"
             >
-              <i
-                class="ri-delete-bin-line text-lg text-black"
-              />
+              <lf-icon name="trash-can" :size="20" class="text-black" />
             </el-button>
           </div>
         </div>
@@ -87,7 +85,7 @@
           class="btn btn-link btn-link--primary"
           @click="onReset"
         >
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">
@@ -131,6 +129,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

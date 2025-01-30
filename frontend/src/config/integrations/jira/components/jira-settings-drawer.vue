@@ -107,7 +107,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeProject(ii)"
               >
-                <i class="ri-delete-bin-line text-lg" />
+                <lf-icon name="trash-can" :size="20" />
               </el-button>
             </template>
           </app-array-input>
@@ -154,7 +154,7 @@ import jira from '@/config/integrations/jira/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppArrayInput from '@/shared/form/array-input.vue';
-
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { required } from '@vuelidate/validators';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';

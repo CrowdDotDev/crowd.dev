@@ -13,8 +13,11 @@
         <span class="filter-select-option-value">{{
           selectOptionLabel
         }}</span>
-        <i
-          class="ri-arrow-down-s-line ml-1"
+
+        <lf-icon
+          name="chevron-down"
+          :size="16"
+          class="ml-1"
           :class="{
             'rotate-180': dropdownExpanded,
           }"
@@ -42,6 +45,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { FilterOperator } from '@/shared/modules/filters/types/FilterOperator';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 const props = defineProps<{
@@ -60,11 +64,11 @@ const model = computed<string>({
   },
 });
 
-const selectOptionLabel = computed<string>(() => props.options.find((o) => o.value === model.value)
-  ?.label);
+const selectOptionLabel = computed<string | undefined>(() => props.options.find((o) => o.value === model.value)
+  ?.label) || '';
 </script>
 
-<script  lang="ts">
+<script lang="ts">
 export default {
   name: 'LfFilterInlineSelect',
 };

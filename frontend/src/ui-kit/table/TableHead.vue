@@ -6,14 +6,15 @@
       @click="sort()"
     >
       <slot />
-      <i v-if="model === `${props.property}_DESC`" class="ri-arrow-down-s-fill text-gray-500" />
-      <i v-else-if="model === `${props.property}_ASC`" class="ri-arrow-up-s-fill text-gray-500" />
+      <lf-icon v-if="model === `${props.property}_DESC`" name="chevron-down" type="solid" :size="16" class="text-gray-500" />
+      <lf-icon v-else-if="model === `${props.property}_ASC`" name="chevron-up" type="solid" :size="16" class="text-gray-500" />
     </div>
   </th>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue?: string,

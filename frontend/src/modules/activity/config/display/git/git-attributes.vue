@@ -11,8 +11,15 @@
       'text-sm text-gray-600 gap-2': !inConversation,
     }"
   >
-    <i
-      class="ri-file-edit-line"
+    <lf-icon
+      name="file-pen"
+      :size="inConversation ? 20 : 14"
+      :class="{
+        'text-gray-400': inConversation,
+        'text-gray-600': !inConversation,
+      }"
+    />
+    <p
       :class="{
         'text-lg text-gray-400': inConversation,
         'text-sm text-gray-600': !inConversation,
@@ -52,6 +59,7 @@
 <script setup lang="ts">
 import { Activity } from '@/shared/modules/activity/types/Activity';
 import pluralize from 'pluralize';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 defineProps<{
   activity: Activity;

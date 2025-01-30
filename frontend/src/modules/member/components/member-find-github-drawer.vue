@@ -32,7 +32,7 @@
             </div>
             <div class="pt-1">
               <a :href="suggestion.url" target="_blank" rel="noopener noreferrer" class="text-gray-300">
-                <i class="ri-external-link-line text-gray-400" aria-hidden="true" />
+                <lf-icon name="arrow-up-right-from-square" :size="16" class="text-gray-400" />
                 <span class="sr-only">Open in new tab</span>
               </a>
             </div>
@@ -49,7 +49,7 @@
       </div>
       <div v-else-if="!loading">
         <app-empty-state-cta
-          icon="ri-contacts-line"
+          icon="user-group-simple"
           title="We could not find any GitHub identities for this person."
           description="There are no GitHub users that match the identities in this person. We recommend Googling them instead."
           secondary-btn="Search on Google"
@@ -90,6 +90,8 @@ import {
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 
 const store = useStore();
 const props = defineProps({

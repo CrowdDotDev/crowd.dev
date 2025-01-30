@@ -27,7 +27,7 @@
                 :src="platform.image"
               />
             </el-tooltip>
-            <i v-else class="ri-radar-line text-base text-gray-500" />
+            <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-500" />
           </div>
 
           <div
@@ -66,7 +66,7 @@
           target="_blank"
           @click="openConversation"
         >
-          <i class="text-sm ri-eye-line mr-1" />
+          <lf-icon name="eye" :size="14" class="mr-1" />
           <span class="block">View commit</span></a>
       </div>
 
@@ -94,6 +94,7 @@ import { toSentenceCase } from '@/utils/string';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;

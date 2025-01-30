@@ -33,7 +33,7 @@ import { defineProps, defineEmits, h } from 'vue';
 const ArrowPrevIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-left-s-line text-lg leading-none',
+    class: 'fa-chevron-left fa-light text-lg leading-none',
   }, // props
   [],
 );
@@ -41,7 +41,7 @@ const ArrowPrevIcon = h(
 const ArrowNextIcon = h(
   'i', // type
   {
-    class: 'ri-arrow-right-s-line text-lg leading-none',
+    class: 'fa-chevron-right fa-light text-lg leading-none',
   }, // props
   [],
 );

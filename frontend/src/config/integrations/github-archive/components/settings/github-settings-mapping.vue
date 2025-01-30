@@ -15,7 +15,7 @@
     </div>
     <div v-if="filteredRepos.length === 0" class="flex justify-center">
       <div class="pt-12 flex flex-col items-center w-full max-w-100">
-        <lf-icon-old name="git-repository-line" :size="64" class="text-gray-300 mb-6" />
+        <lf-svg name="git-repository" class="w-16 h-16 text-gray-300 mb-6" />
         <h6 class="text-center pb-3">
           No repositories
         </h6>
@@ -81,7 +81,7 @@ import {
 import LfGithubSettingsOrgItem from '@/config/integrations/github-archive/components/settings/github-settings-org-item.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfGithubSettingsRepoItem from '@/config/integrations/github-archive/components/settings/github-settings-repo-item.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   repositories: GitHubSettingsRepository[];

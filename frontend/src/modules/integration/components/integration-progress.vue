@@ -15,7 +15,7 @@
       <template v-if="showProgress || props.showParts">
         <div v-for="(part, pi) of parts" :key="pi" class="flex items-center">
           <div v-if="showProgress">
-            <i v-if="part.status === 'ok'" class="ri-checkbox-circle-fill text-green-500 text-base mr-2 h-4 flex items-center" />
+            <lf-icon v-if="part.status === 'ok'" name="circle-check" class="text-green-500 mr-2 flex items-center" />
             <div v-else-if="part.status === 'in-progress'" class="flex items-center justify-center h-4 w-4 mr-2">
               <lf-spinner size="0.75rem" />
             </div>
@@ -37,6 +37,7 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { IntegrationProgress, IntegrationProgressPart } from '@/modules/integration/types/IntegrationProgress';
 import { computed } from 'vue';
 import { lfIntegrations } from '@/config/integrations';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   progress: IntegrationProgress | null,

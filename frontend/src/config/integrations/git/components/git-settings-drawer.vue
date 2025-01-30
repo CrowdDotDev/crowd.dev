@@ -30,7 +30,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="removeRemote(ii)"
             >
-              <i class="ri-delete-bin-line text-lg" />
+              <lf-icon name="trash-can" :size="20" />
             </el-button>
           </template>
         </app-array-input>
@@ -75,6 +75,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
