@@ -6,6 +6,7 @@ import {
   saveLLMVerdict,
 } from './activities/common'
 import {
+  addMemberSuggestionToNoMerge,
   addMemberToMerge,
   findTenantsLatestMemberSuggestionGeneratedAt,
   getMemberMergeSuggestions,
@@ -50,4 +51,5 @@ export {
   mergeMembers,
   mergeOrganizations,
   addOrganizationSuggestionToNoMerge,
+  addMemberSuggestionToNoMerge,
 }
