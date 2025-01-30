@@ -36,7 +36,10 @@
     "script:refreshGithubRepoSettings": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/refresh-github-repo-settings.ts"
   },
   "lint-staged": {
-    "src/**/*.*": ["eslint", "prettier --write"]
+    "**/*.*": [
+      "eslint",
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
