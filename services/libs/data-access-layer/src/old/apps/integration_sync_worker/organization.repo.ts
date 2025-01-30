@@ -1,12 +1,6 @@
-import { RawQueryParser, generateUUIDv1 as uuid } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import {
-  IOrganization,
-  IOrganizationSyncRemoteData,
-  JsonColumnInfo,
-  SyncStatus,
-} from '@crowd/types'
+import { IOrganization } from '@crowd/types'
 
 import { IOrganizationIdWithAttributes } from './organization.data'
 
@@ -31,25 +25,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return inputString.replace(/(?<!:):([\w.]+)/g, '$($1)')
   }
 
-  public async setIntegrationSourceId(
-    organizationId: string,
-    integrationId: string,
-    sourceId: string,
-  ): Promise<void> {
-    this.log.debug(
-      `Updating organization ${organizationId} in integration ${integrationId} sourceId to ${sourceId}.`,
-    )
-
-    await this.db().none(
-      `update "organizationsSyncRemote" set "sourceId" = $(sourceId) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId)`,
-      {
-        organizationId,
-        integrationId,
-        sourceId,
-      },
-    )
-  }
-
   public async findOrganizationAttributes(
     organizationId: string,
   ): Promise<IOrganizationIdWithAttributes> {
@@ -59,29 +34,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         organizationId,
       },
     )
-  }
-
-  public async findMarkedOrganizations(
-    integrationId: string,
-    limit: number,
-    offset: number,
-  ): Promise<IOrganizationSyncRemoteData[]> {
-    const results = await this.db().any(
-      `select distinct "organizationId", "sourceId"
-        from "organizationsSyncRemote"
-        where status = $(status)
-        and "integrationId" = $(integrationId)
-        and "organizationId" is not null
-        order by "organizationId", "sourceId"
-        limit $(limit) offset $(offset)`,
-      {
-        integrationId,
-        limit,
-        offset,
-        status: SyncStatus.ACTIVE,
-      },
-    )
-    return results
   }
 
   public async findOrganization(
@@ -173,173 +125,5 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         segmentId,
       },
     )
-  }
-
-  public async findFilteredOrganizations(
-    tenantId: string,
-    segmentIds: string[],
-    platform: string,
-    filter: unknown,
-    limit: number,
-    offset: number,
-  ): Promise<{ id: string }[]> {
-    const params: unknown = {
-      tenantId,
-      segmentIds,
-      limit,
-      offset,
-    }
-
-    const jsonColumnInfos: JsonColumnInfo[] = []
-
-    let filterString = RawQueryParser.parseFilters(
-      filter,
-      OrganizationRepository.ORGANIZATION_QUERY_FILTER_COLUMN_MAP,
-      jsonColumnInfos,
-      params,
-    )
-
-    if (filterString.trim().length === 0 || filterString === '()') {
-      filterString = '1=1'
-    } else {
-      filterString = OrganizationRepository.replaceParametersWithDollarSign(filterString)
-    }
-
-    const query = `
-        select org.*
-        from organizations as org
-        where org."deletedAt" is null
-        and coalesce((org.attributes -> 'syncRemote' -> '${platform}')::boolean, false) = false 
-        and org."tenantId" = $(tenantId)
-        and ${filterString}
-        order by org.name desc
-        limit $(limit) offset $(offset);
-    `
-
-    this.log.debug({ query }, 'Generated sql query from advanced filters!')
-
-    const results = await this.db().any(query, params)
-
-    return results
-  }
-
-  public async findSyncRemoteById(syncRemoteId: string): Promise<IOrganizationSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `select * from "organizationsSyncRemote" where id = $(syncRemoteId)`,
-      { syncRemoteId },
-    )
-  }
-
-  public async setSyncRemoteSourceId(syncRemoteId: string, sourceId: string): Promise<void> {
-    this.log.debug(`Updating syncRemote ${syncRemoteId} sourceId to ${sourceId}.`)
-
-    await this.db().none(
-      `update "organizationsSyncRemote" set "sourceId" = $(sourceId) where id = $(syncRemoteId)`,
-      {
-        syncRemoteId,
-        sourceId,
-      },
-    )
-  }
-
-  public async setLastSyncedAtBySyncRemoteId(
-    syncRemoteId: string,
-    lastSyncedPayload: unknown,
-  ): Promise<void> {
-    this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
-
-    await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
-      {
-        syncRemoteId,
-        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
-        status: SyncStatus.ACTIVE,
-      },
-    )
-  }
-
-  public async setLastSyncedAt(
-    organizationId: string,
-    integrationId: string,
-    lastSyncedPayload: unknown,
-  ): Promise<void> {
-    this.log.debug(
-      `Setting lastSyncedAt for organization ${organizationId} and integration ${integrationId} to now!`,
-    )
-
-    await this.db().none(
-      `update "organizationsSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
-      {
-        organizationId,
-        integrationId,
-        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
-        status: SyncStatus.ACTIVE,
-        neverStatus: SyncStatus.NEVER,
-      },
-    )
-  }
-
-  public async findSyncRemote(
-    organizationId: string,
-    integrationId: string,
-    syncFrom: string,
-  ): Promise<IOrganizationSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `select * from "organizationsSyncRemote" where "organizationId" = $(organizationId) and "integrationId" = $(integrationId) and "syncFrom" = $(syncFrom)`,
-      {
-        organizationId,
-        integrationId,
-        syncFrom,
-      },
-    )
-  }
-
-  public async findSyncRemoteByOrganizationId(
-    organizationId: string,
-  ): Promise<IOrganizationSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `SELECT *
-      FROM "organizationsSyncRemote"
-      WHERE "organizationId" = $(organizationId)
-      and "sourceId" is not null
-      limit 1;`,
-      { organizationId },
-    )
-  }
-
-  public async markOrganizationForSyncing(
-    data: IOrganizationSyncRemoteData,
-  ): Promise<IOrganizationSyncRemoteData> {
-    const existingSyncRemote = await this.findSyncRemoteByOrganizationId(data.organizationId)
-
-    if (existingSyncRemote) {
-      data.sourceId = existingSyncRemote.sourceId
-    }
-
-    this.log.debug({ data }, 'Marking organization for sync! ')
-
-    const id = await this.db()
-      .one(
-        `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
-      values
-          ($(id), $(organizationId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
-      returning "id"
-    `,
-        {
-          id: uuid(),
-          organizationId: data.organizationId,
-          integrationId: data.integrationId,
-          syncFrom: data.syncFrom,
-          metaData: data.metaData || null,
-          lastSyncedAt: data.lastSyncedAt || null,
-          sourceId: data.sourceId || null,
-          status: SyncStatus.ACTIVE,
-        },
-      )
-      .then((data) => data.id)
-
-    this.log.debug(`Inserted organizationSyncRemote with id ${id}`)
-
-    return this.findSyncRemoteById(id)
   }
 }
