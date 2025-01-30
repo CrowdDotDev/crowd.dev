@@ -161,14 +161,18 @@ class MemberRepository {
     return member
   }
 
-  public async getMembersForSync(perPage: number): Promise<string[]> {
+  public async getMembersNotInSegmentAggs(perPage: number): Promise<string[]> {
     const results = await this.connection.any(
       `
-        select m.id
-        from members m
-        left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
-        where ie.entity_id is null
-        limit ${perPage};`,
+      select distinct a."memberId"
+      from activities a
+      left join "memberSegmentsAgg" msa
+        on a."memberId" = msa."memberId"
+        and a."segmentId" = msa."segmentId"
+      where msa."memberId" is null
+        and msa."segmentId" is null
+      limit ${perPage};
+      `,
       {
         type: IndexedEntityType.MEMBER,
       },

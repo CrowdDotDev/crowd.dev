@@ -11,7 +11,7 @@ const activity = proxyActivities<typeof activities>({
 })
 
 export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
-  const BATCH_SIZE = args.batchSize || 500
+  const BATCH_SIZE = args.batchSize || 100
   const WITH_AGGS = args.withAggs || true
 
   console.log(`Starting members sync! (batchSize: ${BATCH_SIZE}, withAggs: ${WITH_AGGS})`)
