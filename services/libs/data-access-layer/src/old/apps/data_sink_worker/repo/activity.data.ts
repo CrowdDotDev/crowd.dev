@@ -67,6 +67,7 @@ export interface IActivityRelationCreateOrUpdateData {
   organizationId?: string
   conversationId?: string
   parentId?: string
+  segmentId: string
   platform: string
   username: string
   objectMemberUsername?: string
