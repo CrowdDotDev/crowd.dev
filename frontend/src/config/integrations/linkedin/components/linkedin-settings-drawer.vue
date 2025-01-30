@@ -52,7 +52,7 @@
             "
             class="text-yellow-600 flex items-start"
           >
-            <i class="ri-alert-line mr-2" />
+            <lf-icon name="alert-triangle" :size="16" class="mr-2" />
             <div class="text-sm pt-0.5">
               <span class="font-medium">Action required.</span>
               Select one of your associated organization
@@ -75,7 +75,7 @@
           class="btn btn-link btn-link--primary"
           @click="doReset"
         >
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">
@@ -118,6 +118,7 @@ import linkedin from '@/config/integrations/linkedin/config';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const store = useStore();
 

@@ -5,7 +5,8 @@
     target="_blank"
     rel="noopener noreferrer"
     @click.stop
-  ><i class="text-sm ri-external-link-line mr-1" />
+  >
+    <lf-icon name="arrow-up-right-from-square" :size="14" class="mr-1" />
     <span class="block">Open on Git Remote</span>
   </a>
 </template>
@@ -13,6 +14,7 @@
 <script setup lang="ts">
 import { Activity } from '@/shared/modules/activity/types/Activity';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   activity: Activity;

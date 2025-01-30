@@ -34,9 +34,7 @@
         />
         <div v-else>
           <div class="flex justify-center pt-4">
-            <i
-              class="ri-question-answer-line text-4xl h-12 text-gray-300"
-            />
+            <lf-icon name="comments-question-check" :size="48" class="text-gray-300" />
           </div>
           <p
             class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
@@ -55,10 +53,13 @@ import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationDetails from '@/modules/conversation/components/conversation-details.vue';
 import LfConversationDrawerDisplay from '@/shared/modules/conversation/components/conversation-drawer-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppConversationDrawer',
-  components: { AppConversationDetails, AppActivityLink, LfConversationDrawerDisplay },
+  components: {
+    AppConversationDetails, AppActivityLink, LfConversationDrawerDisplay, LfIcon,
+  },
   props: {
     conversationId: {
       type: String,

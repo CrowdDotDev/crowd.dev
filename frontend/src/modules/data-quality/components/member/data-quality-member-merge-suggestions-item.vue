@@ -3,7 +3,7 @@
     <div class="flex items-center gap-4">
       <template v-for="(member, mi) of props.suggestion.members" :key="member.id">
         <div v-if="mi > 0">
-          <lf-icon-old name="arrow-left-line" :size="16" class="text-gray-400" />
+          <lf-icon name="arrow-left" :size="16" class="text-gray-400" />
         </div>
         <div class="flex items-center gap-3">
           <lf-avatar
@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 

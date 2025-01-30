@@ -225,3 +225,18 @@ export interface IMemberOpensearch {
   nested_organizations: IMemberOrganizationOpensearch[]
   obj_attributes: IMemberAttributesOpensearch
 }
+
+export interface IChangeAffiliationOverrideData {
+  allowAffiliation?: boolean
+  isPrimaryWorkExperience?: boolean
+  memberOrganizationId: string
+  memberId: string
+}
+
+export interface IMemberOrganizationAffiliationOverride {
+  id?: string
+  memberId: string
+  memberOrganizationId: string
+  allowAffiliation: boolean
+  isPrimaryWorkExperience: boolean
+}

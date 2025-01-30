@@ -12,7 +12,7 @@
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                <lf-icon-old name="community-line" :size="48" class="text-gray-300" />
+                <lf-icon name="house-building" :size="48" class="text-gray-300" />
               </div>
             </template>
           </lf-avatar>
@@ -26,9 +26,9 @@
               @update:model-value="$v.logo.$touch()"
             >
               <template #suffix>
-                <lf-icon-old
+                <lf-icon
                   v-if="form.logo"
-                  name="close-circle-line"
+                  name="circle-xmark"
                   :size="20"
                   class="text-gray-300 cursor-pointer"
                   @click="form.logo = ''"
@@ -77,7 +77,7 @@ import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import Message from '@/shared/message/message';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';

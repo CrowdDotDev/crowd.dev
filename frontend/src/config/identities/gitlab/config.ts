@@ -14,7 +14,7 @@ const gitlab: IdentityConfig = {
   conversation: {
     showLabels: true,
     replyContent: (conversation) => ({
-      icon: 'ri-chat-4-line',
+      icon: 'message',
       copy: 'comment',
       number: conversation.activityCount - 1,
     }),

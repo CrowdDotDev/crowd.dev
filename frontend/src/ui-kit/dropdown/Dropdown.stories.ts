@@ -44,16 +44,16 @@ export const Regular = {
         <lf-button>Open dropdown</lf-button>
       </template>
       <lf-dropdown-item :disabled="true">
-        <i class="ri-link-unlink" />
+        <i class="fa-light fa-link-simple-slash" />
         Unmerge identity
       </lf-dropdown-item>
       <lf-dropdown-item>
-        <i class="ri-verified-badge-line" />
+        <i class="fa-light fa-badge-check" />
         Verify identity
       </lf-dropdown-item>
       <lf-dropdown-separator />
       <lf-dropdown-item type="danger">
-        <i class="ri-delete-bin-6-line" />
+        <i class="fa-light fa-trash-can" />
         Delete identity
       </lf-dropdown-item>
     </lf-dropdown></div>`,

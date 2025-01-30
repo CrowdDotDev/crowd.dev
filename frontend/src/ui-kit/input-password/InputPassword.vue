@@ -2,10 +2,7 @@
   <lf-input v-bind="$attrs" v-model="value" :type="reveal ? 'text' : 'password'">
     <template #suffix>
       <div @click="reveal = !reveal">
-        <span
-          class=" text-base text-gray-400 cursor-pointer"
-          :class="reveal ? 'ri-eye-off-line' : 'ri-eye-line'"
-        />
+        <lf-icon :name="reveal ? 'eye-slash' : 'eye'" :size="16" class="text-gray-400 cursor-pointer" />
       </div>
     </template>
   </lf-input>
@@ -14,6 +11,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import LfInput from '@/ui-kit/input/Input.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: string,

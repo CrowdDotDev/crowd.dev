@@ -6,9 +6,7 @@
           <div
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
           >
-            <i
-              class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-            />
+            <lf-svg name="git-repository" class="w-4 h-4 !text-gray-600 mr-1 flex items-center" />
             {{ pluralize("repository", Object.keys(mappings).length, true) }}
           </div>
         </template>
@@ -22,9 +20,7 @@
             :key="mapping.url"
             class="py-2 flex items-center flex-nowrap"
           >
-            <i
-              class="ri-git-repository-line text-base mr-2 h-4 flex items-center"
-            />
+            <lf-svg name="git-repository" class="w-4 h-4 mr-2 flex items-center" />
             <a
               :href="mapping.url"
               target="_blank"
@@ -33,9 +29,7 @@
             >
               /{{ repoNameFromUrl(mapping?.url) }}
             </a>
-            <div
-              class="ri-arrow-right-line text-gray-400 text-base mx-2 h-4 flex items-center"
-            />
+            <lf-icon name="arrow-right" :size="16" class="text-gray-400 mx-2 flex items-center" />
             <div class="text-xs leading-5 max-w-3xs truncate">
               {{ mapping?.segment?.name }}
             </div>
@@ -47,7 +41,7 @@
         content="Only public repositories will be tracked."
         placement="top"
       >
-        <i class="ri-information-line text-xs text-gray-600" />
+        <lf-icon name="circle-info" :size="13" class="text-gray-600" />
       </el-tooltip>
     </div>
   </div>
@@ -57,6 +51,8 @@
 import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   integration: {

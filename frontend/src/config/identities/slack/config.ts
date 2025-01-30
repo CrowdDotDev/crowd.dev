@@ -13,7 +13,7 @@ const slack: IdentityConfig = {
   },
   conversation: {
     replyContent: (conversation) => ({
-      icon: 'ri-reply-line',
+      icon: 'reply',
       copy: 'reply',
       number: conversation.activityCount - 1,
     }),

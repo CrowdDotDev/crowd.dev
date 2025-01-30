@@ -56,7 +56,7 @@
             </h6>
             <el-dropdown v-if="filterList.length > 0" placement="bottom-end">
               <p class="text-xs leading-5 font-medium text-gray-900">
-                Matching {{ form.relation === 'and' ? 'all' : 'any' }} <i class="ri-arrow-down-s-line" />
+                Matching {{ form.relation === 'and' ? 'all' : 'any' }} <lf-icon name="chevron-down" />
               </p>
               <template #dropdown>
                 <el-dropdown-item
@@ -65,9 +65,10 @@
                   @click="form.relation = 'and'"
                 >
                   Matching all
-                  <i
+                  <lf-icon
+                    name="check"
                     :class="form.relation === 'and' ? 'opacity-100' : 'opacity-0'"
-                    class="ri-check-line !text-primary-500 !mr-0 ml-1"
+                    class="!text-primary-500 !mr-0 ml-1"
                   />
                 </el-dropdown-item>
                 <el-dropdown-item
@@ -76,9 +77,10 @@
                   @click="form.relation = 'or'"
                 >
                   Matching any
-                  <i
+                  <lf-icon
+                    name="check"
                     :class="form.relation === 'or' ? 'opacity-100' : 'opacity-0'"
-                    class="ri-check-line !text-primary-500 !mr-0 ml-1"
+                    class="!text-primary-500 !mr-0 ml-1"
                   />
                 </el-dropdown-item>
               </template>
@@ -98,7 +100,7 @@
                 class="ml-2 h-10 w-10 flex items-center justify-center cursor-pointer"
                 @click="removeFilter(filter)"
               >
-                <i class="ri-delete-bin-line text-lg h-5 flex items-center" />
+                <lf-icon name="trash-can" :size="20" class="text-gray-400 flex items-center" />
               </div>
             </div>
           </div>
@@ -120,7 +122,7 @@
                       data-qa="filter-list-search"
                     >
                       <template #prefix>
-                        <i class="ri-search-line" />
+                        <lf-icon name="magnifying-glass" />
                       </template>
                     </el-input>
                   </div>
@@ -224,6 +226,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -422,7 +425,7 @@ const submit = (): void => {
       title: 'Update shared view',
       message:
           'This view is shared with all workspace users, any changes will reflected in each user account.',
-      icon: 'ri-loop-left-line',
+      icon: 'fa-arrows-rotate-reverse fa-light',
       cancelButtonText: 'Cancel',
       confirmButtonText: 'Update shared view',
     } as any) : Promise.resolve())

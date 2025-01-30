@@ -6,15 +6,13 @@
     @click="selectOption()"
   >
     <slot />
-    <i
-      v-if="selected"
-      class="ri-check-line text-primary-600 absolute right-0 mr-4"
-    />
+    <lf-icon v-if="selected" name="check" :size="16" class="text-primary-600 absolute right-0 mr-4" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: boolean | string,
@@ -50,7 +48,7 @@ export default {
     @apply mr-2;
   }
 
-  i:not(.ri-delete-bin-line) {
+  i:not(.fa-trash-can) {
     @apply text-gray-400;
   }
 

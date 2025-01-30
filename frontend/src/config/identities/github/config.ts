@@ -4,7 +4,8 @@ const github: IdentityConfig = {
   key: 'github',
   name: 'GitHub',
   image: '/images/identities/github.png',
-  icon: 'github-fill',
+  icon: 'github',
+  iconType: 'brands',
   color: '#24292F',
   member: {
     urlPrefix: 'github.com/',
@@ -23,7 +24,7 @@ const github: IdentityConfig = {
       const activities = conversation.lastReplies || conversation.activities;
 
       return {
-        icon: 'ri-chat-4-line',
+        icon: 'message',
         copy: 'comment',
         number: activities.reduce((acc, activity) => {
           if (activity.type.includes('comment')) {

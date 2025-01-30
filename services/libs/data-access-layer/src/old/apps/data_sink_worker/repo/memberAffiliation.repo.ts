@@ -4,6 +4,8 @@ import { Logger } from '@crowd/logging'
 import { IManualAffiliationData, IWorkExperienceData } from './memberAffiliation.data'
 
 export default class MemberAffiliationRepository extends RepositoryBase<MemberAffiliationRepository> {
+  private BLACKLISTED_TITLES = ['Investor', 'Mentor', 'Board Member']
+
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
   }
@@ -37,18 +39,22 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
   public async findWorkExperience(
     memberId: string,
     timestamp: string,
-  ): Promise<IWorkExperienceData | null> {
-    const result = await this.db().oneOrNone(
+  ): Promise<IWorkExperienceData[] | null> {
+    const result = await this.db().manyOrNone(
       `
-        SELECT * FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId)
+        SELECT
+            mo.*,
+            coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+        FROM "memberOrganizations" mo
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo."id"
+        WHERE mo."memberId" = $(memberId)
           AND (
-            ("dateStart" <= $(timestamp) AND "dateEnd" >= $(timestamp))
-            OR ("dateStart" <= $(timestamp) AND "dateEnd" IS NULL)
+            (mo."dateStart" <= $(timestamp) AND mo."dateEnd" >= $(timestamp))
+            OR (mo."dateStart" <= $(timestamp) AND mo."dateEnd" IS NULL)
           )
-          AND "deletedAt" IS NULL
-        ORDER BY "dateStart" DESC, id
-        LIMIT 1
+          AND mo."deletedAt" IS NULL
+          AND coalesce(ovr."allowAffiliation", true) = true
+        ORDER BY mo."dateStart" DESC, mo.id
       `,
       {
         memberId,
@@ -56,23 +62,54 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       },
     )
 
+    return this.filterOutBlacklistedTitles(result, this.BLACKLISTED_TITLES)
+  }
+
+  public async findMemberCountEstimateOfOrganizations(
+    organizationIds: string[],
+  ): Promise<IWorkExperienceData | null> {
+    const result = await this.db().oneOrNone(
+      `
+        SELECT
+          osa."organizationId",
+          sum(osa."memberCount") AS total_count
+      FROM "organizationSegmentsAgg" osa
+      WHERE osa."segmentId" IN (
+          SELECT id
+          FROM segments
+          WHERE "grandparentId" is not null
+              AND "parentId" is not null
+      )
+      and osa."organizationId" IN ($(organizationIds:csv))
+      group by osa."organizationId"
+      order by total_count desc
+      `,
+      {
+        organizationIds,
+      },
+    )
+
     return result
   }
 
-  public async findMostRecentOrganization(
+  public async findMostRecentUnknownDatedOrganizations(
     memberId: string,
     timestamp: string,
-  ): Promise<IWorkExperienceData | null> {
-    const result = await this.db().oneOrNone(
+  ): Promise<IWorkExperienceData[] | null> {
+    const result = await this.db().manyOrNone(
       `
-        SELECT * FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId)
-          AND "dateStart" IS NULL
-          AND "dateEnd" IS NULL
-          AND "createdAt" <= $(timestamp)
-          AND "deletedAt" IS NULL
-        ORDER BY "createdAt" DESC, id
-        LIMIT 1
+        SELECT
+          mo.*,
+          coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+        FROM "memberOrganizations" mo
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo.id
+        WHERE mo."memberId" = $(memberId)
+          AND mo."dateStart" IS NULL
+          AND mo."dateEnd" IS NULL
+          AND mo."createdAt" <= $(timestamp)
+          AND mo."deletedAt" IS NULL
+          AND coalesce(ovr."allowAffiliation", true) = true
+        ORDER BY mo."createdAt" DESC, mo.id
       `,
       {
         memberId,
@@ -80,27 +117,42 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       },
     )
 
-    return result
+    return this.filterOutBlacklistedTitles(result, this.BLACKLISTED_TITLES)
   }
 
-  public async findMostRecentOrganizationEver(
+  public async findAllUnkownDatedOrganizations(
     memberId: string,
-  ): Promise<IWorkExperienceData | null> {
-    const result = await this.db().oneOrNone(
+  ): Promise<IWorkExperienceData[] | null> {
+    const result = await this.db().manyOrNone(
       `
-        SELECT * FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId)
-          AND "dateStart" IS NULL
-          AND "dateEnd" IS NULL
-          AND "deletedAt" IS NULL
-        ORDER BY "createdAt", id
-        LIMIT 1
+        SELECT
+          mo.*,
+          coalesce(ovr."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+        FROM "memberOrganizations" mo
+        LEFT JOIN "memberOrganizationAffiliationOverrides" ovr on ovr."memberOrganizationId" = mo.id
+        WHERE mo."memberId" = $(memberId)
+          AND mo."dateStart" IS NULL
+          AND mo."dateEnd" IS NULL
+          AND mo."deletedAt" IS NULL
+          AND coalesce(ovr."allowAffiliation", true) = true
+        ORDER BY mo."createdAt", mo.id
       `,
       {
         memberId,
       },
     )
 
-    return result
+    return this.filterOutBlacklistedTitles(result, this.BLACKLISTED_TITLES)
+  }
+
+  public filterOutBlacklistedTitles(
+    experiences: IWorkExperienceData[],
+    blacklistedTitles: string[],
+  ): IWorkExperienceData[] {
+    return experiences.filter(
+      (row) =>
+        row.title &&
+        blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+    )
   }
 }

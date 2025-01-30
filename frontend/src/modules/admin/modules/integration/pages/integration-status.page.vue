@@ -64,7 +64,7 @@
                       <app-integration-progress-wrapper :segments="[integration.segmentId]">
                         <template #default="{ progress }">
                           <div class="flex items-center gap-1.5">
-                            <lf-icon-old name="loader-4-fill" class="text-gray-500 animate-spin" :size="16" />
+                            <lf-icon name="circle-notch" type="solid" class="text-gray-500 animate-spin" :size="16" />
                             <app-integration-progress-bar
                               :progress="progress.find((p) => p.platform === integration.platform)"
                               :hide-bar="true"
@@ -76,13 +76,13 @@
                     </template>
                     <template v-else-if="status === 'waitingForAction'">
                       <div class="flex items-center gap-1.5">
-                        <lf-icon-old name="alert-fill" class="text-yellow-600" :size="16" />
+                        <lf-icon name="triangle-exclamation" type="solid" class="text-yellow-600" :size="16" />
                         <span class="text-tiny text-yellow-600">Action required</span>
                       </div>
                     </template>
                     <template v-else-if="status === 'error'">
                       <div class="flex items-center gap-1.5">
-                        <lf-icon-old name="error-warning-fill" class="text-red-600" :size="16" />
+                        <lf-icon name="circle-exclamation" type="solid" class="text-red-600" :size="16" />
                         <span class="text-tiny text-red-600">Connection failed</span>
                       </div>
                     </template>
@@ -173,7 +173,6 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';

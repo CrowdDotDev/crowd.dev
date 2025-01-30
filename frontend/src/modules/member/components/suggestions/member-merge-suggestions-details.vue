@@ -44,7 +44,7 @@
             class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
             @click="emit('makePrimary')"
           >
-            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+            <lf-icon name="arrow-right-arrow-left" type="solid" :size="16" class="text-gray-600 mr-2" />
             <span>Make primary</span>
           </button>
           <slot name="action" />
@@ -296,6 +296,7 @@ import LfSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   member: {

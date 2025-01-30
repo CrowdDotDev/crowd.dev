@@ -51,7 +51,7 @@
                 :disabled="!!props.compareOrganization.lfxMembership"
                 @click="emit('makePrimary')"
               >
-                <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+                <lf-icon name="arrow-right-arrow-left" type="solid" :size="16" class="text-gray-600 mr-2" />
                 <span>Make primary</span>
               </button>
             </span>
@@ -322,6 +322,7 @@ import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-memb
 import { getOrganizationWebsite } from '@/utils/organization';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   organization: {

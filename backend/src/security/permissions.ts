@@ -196,41 +196,6 @@ class Permissions {
         id: 'integrationAutocomplete',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
-      microserviceImport: {
-        id: 'microserviceImport',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-      },
-      microserviceCreate: {
-        id: 'microserviceCreate',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      microserviceEdit: {
-        id: 'microserviceEdit',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      microserviceDestroy: {
-        id: 'microserviceDestroy',
-        allowedRoles: [roles.admin, roles.projectAdmin],
-        allowedStorage: [],
-      },
-      microserviceRead: {
-        id: 'microserviceRead',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      microserviceAutocomplete: {
-        id: 'microserviceAutocomplete',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      microserviceVariantFree: {
-        id: 'microserviceVariantFree',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
-      microserviceVariantPremium: {
-        id: 'microserviceVariantPremium',
-        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
-      },
       conversationCreate: {
         id: 'conversationCreate',
         allowedRoles: [roles.admin, roles.projectAdmin],
