@@ -1492,6 +1492,7 @@ export async function createOrUpdateRelations(
     {
       activityId: data.activityId,
       memberId: data.memberId,
+      segmentId: data.segmentId,
       objectMemberId: data.objectMemberId ?? null,
       organizationId: data.organizationId ?? null,
       conversationId: data.conversationId ?? null,
