@@ -17,6 +17,7 @@ drop table if exists member_organizations_backup_14_11_2024;
 drop table if exists member_identities_backup_14_11_2024;
 drop table if exists members_backup_14_11_2024;
 drop table if exists "membersSyncRemote";
+drop table if exists "memberToMergeOld";
 
 drop table if exists 
     "old_organizationCacheLinks",
