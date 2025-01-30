@@ -22,10 +22,7 @@
         :src="logo"
         :alt="`${displayName || name} logo`"
       />
-      <i
-        v-else
-        class="ri-community-line text-base text-gray-300"
-      />
+      <lf-icon v-else name="house-building" :size="16" class="text-gray-300" />
     </div>
     <div class="flex flex-col gap-1">
       <div
@@ -54,6 +51,7 @@
 
 <script setup lang="ts">
 import moment from 'moment/moment';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   member: {

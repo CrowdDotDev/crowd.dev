@@ -25,7 +25,7 @@ export const dateItemLabelRenderer = (property: string, { value, operator }: Dat
     const isBetween = [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
     if (isBetween) {
       const [from, to] = value;
-      valueText = `${from}<span class="ri-arrow-right-line text-base ml-1">&nbsp;</span>${to}`;
+      valueText = `${from}<span class="fa-arrow-right fa-light text-base ml-1">&nbsp;</span>${to}`;
     }
   }
 

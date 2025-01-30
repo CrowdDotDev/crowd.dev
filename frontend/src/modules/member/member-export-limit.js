@@ -8,7 +8,7 @@ export const showExportDialog = ({
   title: 'Export CSV',
   message:
             'Receive in your inbox a link to download the CSV file ',
-  icon: 'ri-file-download-line',
+  icon: 'fa-file-arrow-down fa-light',
   confirmButtonText: 'Send download link to e-mail',
   cancelButtonText: 'Cancel',
   badgeContent,

@@ -4,9 +4,7 @@
       <div
         class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
       >
-        <i
-          class="ri-community-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-        />
+        <lf-icon name="house-building" :size="16" class="!text-gray-600 mr-1 flex items-center" />
         <span>Organization:&nbsp;</span>
         <span class="max-w-3xs truncate">{{ organization.name }}</span>
       </div>
@@ -16,6 +14,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   integration: {

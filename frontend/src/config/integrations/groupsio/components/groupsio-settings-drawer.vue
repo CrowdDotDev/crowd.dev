@@ -81,7 +81,7 @@
           </el-button>
 
           <div v-if="accountVerificationFailed" class="mt-1">
-            <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
+            <lf-icon name="circle-exclamation" :size="14" class="text-red-500 mr-2" />
             <span class="text-red-500 text-sm">Authentication failed</span>
           </div>
         </div>
@@ -224,6 +224,7 @@ import {
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 

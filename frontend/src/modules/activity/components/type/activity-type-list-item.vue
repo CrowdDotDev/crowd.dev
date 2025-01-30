@@ -20,10 +20,8 @@
           :alt="platformDetails.name"
           class="w-4 h-4 mr-2"
         />
-        <i
-          v-else
-          class="ri-apps-2-line text-base text-gray-400 mr-2"
-        />
+
+        <lf-icon name="grid-round-2" :size="16" class="text-gray-400 mr-2" />
         <p
           class="text-sm leading-5"
           :class="{
@@ -51,6 +49,7 @@
 <script setup>
 import { computed, defineProps } from 'vue';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   platform: {

@@ -1,9 +1,7 @@
 <template>
   <div class="pt-16">
     <div class="flex justify-center">
-      <i
-        class="ri-account-circle-line text-gray-200 account-icon text-center h-16 flex items-center"
-      />
+      <lf-icon name="circle-user" :size="64" class="text-gray-200 account-icon text-center flex items-center" />
     </div>
     <div class="text-gray-600 text-sm text-center py-4">
       Select the profile you want to merge with
@@ -53,6 +51,7 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits('update:modelValue');
 const props = defineProps({

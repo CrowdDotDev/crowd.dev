@@ -6,7 +6,8 @@
     target="_blank"
     rel="noopener noreferrer"
     @click.stop
-  ><i class="text-sm ri-external-link-line mr-1" />
+  >
+    <lf-icon name="arrow-up-right-from-square" :size="14" class="mr-1" />
     <span
       v-if="platform"
       class="block"
@@ -16,9 +17,13 @@
 
 <script>
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppActivityLink',
+  components: {
+    LfIcon,
+  },
   props: {
     activity: {
       type: Object,

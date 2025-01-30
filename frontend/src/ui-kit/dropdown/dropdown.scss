@@ -39,7 +39,7 @@
       @apply bg-gray-50;
     }
 
-    [class^="ri-"], .c-icon{
+    [class^="fa-"], .c-icon{
       @apply text-gray-600;
     }
 
@@ -47,7 +47,7 @@
     &--danger{
       @apply text-red-600;
 
-      [class^="ri-"], .c-icon{
+      [class^="fa-"], .c-icon{
         @apply text-red-600;
       }
     }
@@ -68,7 +68,7 @@
       &:after{
         content: "\eb7b";
         font-size: 1rem;
-        font-family: 'remixicon', serif !important;
+        font-family: serif !important;
         font-style: normal;
         @apply text-primary-500;
       }

@@ -12,13 +12,14 @@
       content="If excluded, turns the filter into a negative condition"
       placement="top"
     >
-      <i class="ri-question-line text-gray-400 text-base" />
+      <lf-icon name="circle-question" :size="16" class="text-gray-400" />
     </el-tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

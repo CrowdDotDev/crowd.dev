@@ -55,9 +55,7 @@
                 class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8 hover:!no-underline group"
                 @click="close"
               >
-                <i
-                  class="ri-close-line text-lg text-gray-400 group-hover:text-primary-500"
-                />
+                <lf-icon name="xmark" :size="20" class="text-gray-400 group-hover:text-primary-500" />
               </el-button>
             </div>
           </div>
@@ -70,6 +68,7 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue', 'close']);
 const props = defineProps({

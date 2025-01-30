@@ -43,9 +43,7 @@
           <div
             class="flex items-center text-gray-600 text-xs ml-2"
           >
-            <i
-              class="ri-question-line flex items-center mr-1"
-            />
+            <lf-icon name="circle-question" :size="16" class="mr-1 flex items-center" />
             <span>How to use different match types</span>
           </div>
         </template>
@@ -78,8 +76,13 @@
 </template>
 
 <script>
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 export default {
   name: 'AppKeywordsInput',
+  components: {
+    LfIcon,
+  },
   props: {
     modelValue: {
       type: Array,

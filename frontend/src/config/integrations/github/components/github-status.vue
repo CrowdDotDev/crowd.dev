@@ -3,13 +3,13 @@
     v-if="props.integration?.status === 'mapping'"
     class="flex items-center gap-1"
   >
-    <lf-icon-old name="git-repository-line" :size="16" />
+    <lf-svg name="git-repository" class="w-4 h-4" />
     Mapping repositories...
   </div>
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   integration: any;

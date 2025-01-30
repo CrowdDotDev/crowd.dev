@@ -39,12 +39,12 @@
     border-color: var(--lf-btn-loading-border);
 
     // hide icons on loading
-    [class^="ri-"]:not(.c-btn__loader), .c-icon{
+    [class^="fa-"]:not(.c-btn__loader), .c-icon{
       @apply hidden;
     }
   }
 
-  [class^="ri-"], .c-icon{
+  [class^="fa-"], .c-icon{
     --lf-icon-size: var(--lf-btn-icon);
     @apply flex items-center justify-center font-normal;
   }

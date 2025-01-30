@@ -14,7 +14,7 @@
         class="btn btn-primary--secondary !bg-purple-100 !text-purple-600"
         @click="copyToClipboard"
       >
-        <i class="ri-clipboard-line" />
+        <lf-icon name="clipboard" />
         <span>Copy JSON query</span>
       </el-button>
       <slot name="actions" />
@@ -71,6 +71,7 @@ import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: Filter,

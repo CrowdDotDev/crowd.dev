@@ -14,7 +14,7 @@
               Affiliation
               <el-popover placement="top" width="20rem">
                 <template #reference>
-                  <lf-icon-old name="question-line" :size="14" class="text-secondary-200 font-normal" />
+                  <lf-icon name="circle-question" :size="14" class="text-secondary-200 font-normal" />
                 </template>
                 <div class="p-1">
                   <p class="text-small font-semibold mb-2 text-black">
@@ -33,7 +33,7 @@
               Role
               <el-popover placement="top" width="20rem">
                 <template #reference>
-                  <lf-icon-old name="question-line" :size="14" class="text-secondary-200 font-normal" />
+                  <lf-icon name="circle-question" :size="14" class="text-secondary-200 font-normal" />
                 </template>
                 <div class="p-1">
                   <p class="text-small font-semibold mb-2 text-black">
@@ -79,7 +79,7 @@
                   class="!text-primary-300 hover:!text-primary-600"
                   @click="isAffilationEditOpen = true"
                 >
-                  <lf-icon-old name="add-line" />Add affiliation
+                  <lf-icon name="plus" />Add affiliation
                 </lf-button>
               </div>
             </lf-table-cell>
@@ -90,14 +90,14 @@
               <lf-dropdown placement="bottom-end" width="160px">
                 <template #trigger>
                   <lf-button type="secondary-ghost" size="small" :icon-only="true">
-                    <lf-icon-old name="more-2-fill" />
+                    <lf-icon name="ellipsis-vertical" type="regular" />
                   </lf-button>
                 </template>
                 <lf-dropdown-item @click="viewActivity(project.id)">
-                  <lf-icon-old name="eye-line" />View activity
+                  <lf-icon name="eye" />View activity
                 </lf-dropdown-item>
                 <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="isAffilationEditOpen = true">
-                  <lf-icon-old name="pencil-line" />Edit affiliation
+                  <lf-icon name="pen fa-sharp" />Edit affiliation
                 </lf-dropdown-item>
                 <lf-dropdown-item
                   @click="
@@ -108,7 +108,7 @@
                     })
                   "
                 >
-                  <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
+                  <lf-icon name="message-exclamation fa-sharp" class="!text-red-500" />Report issue
                 </lf-dropdown-item>
               </lf-dropdown>
             </lf-table-cell>
@@ -132,7 +132,6 @@
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

@@ -20,7 +20,7 @@
         data-qa="filter-list-search"
       >
         <template #prefix>
-          <i class="ri-search-line" />
+          <lf-icon name="magnifying-glass" :size="16" />
         </template>
       </el-input>
     </div>
@@ -74,6 +74,7 @@ import {
   defineProps, ref,
   watch,
 } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 type Attribute = {
   label: string,
