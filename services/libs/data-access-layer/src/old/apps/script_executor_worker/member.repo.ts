@@ -1,5 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
@@ -158,6 +159,22 @@ class MemberRepository {
     }
 
     return member
+  }
+
+  public async getMembersForSync(perPage: number): Promise<string[]> {
+    const results = await this.connection.any(
+      `
+        select m.id
+        from members m
+        left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
+        where ie.entity_id is null
+        limit ${perPage};`,
+      {
+        type: IndexedEntityType.MEMBER,
+      },
+    )
+
+    return results.map((r) => r.id)
   }
 }
 

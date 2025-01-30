@@ -1510,6 +1510,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../opensearch
       '@crowd/questdb':
         specifier: workspace:*
         version: link:../questdb
