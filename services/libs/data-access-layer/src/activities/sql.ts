@@ -23,6 +23,7 @@ import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
+  IActivityRelationUpdateById,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
@@ -1500,6 +1501,25 @@ export async function createOrUpdateRelations(
       objectMemberUsername: data.objectMemberUsername ?? null,
     },
   )
+}
+
+export async function updateActivityRelationsById(
+  qe: QueryExecutor,
+  data: IActivityRelationUpdateById,
+): Promise<void> {
+  const fields: string[] = []
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && key !== 'activityId') {
+      fields.push(`"${key}" = $(${key})`)
+    }
+  }
+
+  if (fields.length === 0) return
+
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "activityId" = $(activityId)`
+
+  await qe.result(query, data)
 }
 
 export async function moveActivityRelationsToAnotherMember(

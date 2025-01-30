@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import pg from 'pg-promise/typescript/pg-subset'
 import QueryStream from 'pg-query-stream'
 
 import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
@@ -7,9 +8,9 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { IMemberOrganization } from '@crowd/types'
 
-import { insertActivities } from '../../../activities'
+import { insertActivities, updateActivityRelationsById } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { formatQuery, pgpQx } from '../../../queryExecutor'
+import { dbStoreQx, formatQuery, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
@@ -326,6 +327,7 @@ export async function runMemberAffiliationsUpdate(
     }
 
     await insertActivities(queueClient, [activity], true)
+    return activity
   }
 
   const qs = new QueryStream(
@@ -342,10 +344,33 @@ export async function runMemberAffiliationsUpdate(
       { memberId },
     ),
   )
+  const batchSize = 100
+  let activityRelationPromises: Promise<void>[] = []
+
+  const batchProcessActivityRelations = async () => {
+    await Promise.all(activityRelationPromises)
+    activityRelationPromises = []
+  }
+
   const { processed, duration } = await qDb.stream(qs, async (stream) => {
     for await (const activity of stream) {
-      await insertIfMatches(activity as unknown as IDbActivityCreateData)
+      const activityWithCorrectOrgId = await insertIfMatches(
+        activity as unknown as IDbActivityCreateData,
+      )
+      activityRelationPromises.push(
+        updateActivityRelationsById(dbStoreQx(pgDb), {
+          activityId: activityWithCorrectOrgId.id,
+          organizationId: activityWithCorrectOrgId.organizationId,
+        }),
+      )
+
+      if (activityRelationPromises.length >= batchSize) {
+        await batchProcessActivityRelations()
+      }
     }
+
+    // process the last batch (if any)
+    await batchProcessActivityRelations()
   })
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)
