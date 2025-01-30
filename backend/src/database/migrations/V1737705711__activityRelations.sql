@@ -5,6 +5,7 @@ create table public."activityRelations" (
     "organizationId" uuid null,
     "conversationId" uuid null,
     "parentId" uuid null,
+    "segmentId" uuid not null,
     "platform" text not null, -- use limited chars varchars (check the biggest one currently and use that)
     "username" text not null, -- -- use limited chars varchars (check the biggest one currently and use that)
     "objectMemberUsername" text null,
@@ -14,6 +15,7 @@ create table public."activityRelations" (
     foreign key ("organizationId") references organizations (id) on delete cascade,
     foreign key ("objectMemberId") references members (id) on delete set null,
     foreign key ("conversationId") references conversations (id) on delete set null,
+    foreign key ("segmentId") references segments (id) on delete cascade,
     unique ("activityId", "memberId")
 );
 create index "ix_activityRelations_memberId" on "activityRelations"("memberId");

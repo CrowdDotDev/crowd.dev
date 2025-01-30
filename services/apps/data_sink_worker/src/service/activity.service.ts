@@ -137,6 +137,7 @@ export default class ActivityService extends LoggerBase {
           ])
           await createOrUpdateRelations(queryExecutor, {
             activityId: activity.id,
+            segmentId,
             memberId: activity.memberId,
             objectMemberId: activity.objectMemberId,
             organizationId: activity.organizationId,
@@ -230,6 +231,7 @@ export default class ActivityService extends LoggerBase {
             ])
             await createOrUpdateRelations(queryExecutor, {
               activityId: id,
+              segmentId,
               memberId: toUpdate.memberId || original.memberId,
               objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
               organizationId: toUpdate.organizationId || original.organizationId,
