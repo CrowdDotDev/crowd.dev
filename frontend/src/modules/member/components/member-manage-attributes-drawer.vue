@@ -20,7 +20,8 @@
             class="btn btn-link btn-link--md btn-link--secondary mb-2"
             @click="onCloseManageAttributes"
           >
-            <i class="ri-arrow-left-s-line" /><span>Edit attributes</span>
+            <lf-icon name="chevron-left" :size="16" />
+            <span>Edit attributes</span>
           </el-button>
           <h5
             :id="titleId"
@@ -46,9 +47,7 @@
           class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8"
           @click="close"
         >
-          <i
-            class="ri-close-line text-lg text-gray-400"
-          />
+          <lf-icon name="xmark" :size="20" class="text-gray-400" />
         </el-button>
       </div>
     </template>
@@ -78,7 +77,7 @@
           class="btn btn-link btn-link--primary"
           @click="handleReset"
         >
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">
@@ -120,6 +119,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRoute } from 'vue-router';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 import AppMemberFormAttributes from './form/member-form-attributes.vue';
 

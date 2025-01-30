@@ -30,7 +30,7 @@
                     type="button"
                     class="btn btn--secondary btn--md flex items-center"
                   >
-                    <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                    <lf-icon name="shuffle" :size="16" class="mr-2 text-gray-900" />
                     <span class="text-gray-900">Merge suggestions</span>
                     <span
                       v-if="organizationsToMergeCount > 0"
@@ -97,6 +97,7 @@ import { organizationSavedViews } from '@/modules/organization/config/saved-view
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';

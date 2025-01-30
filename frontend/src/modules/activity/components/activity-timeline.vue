@@ -31,10 +31,7 @@
                   :src="lfIdentities[platform].image"
                   class="w-4 h-4"
                 />
-                <i
-                  v-else
-                  class="ri-radar-line text-base text-gray-400"
-                />
+                <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400" />
               </template>
               <el-option
                 v-for="enabledPlatform of enabledPlatforms"
@@ -55,9 +52,7 @@
                 label="Other"
                 @mouseleave="onSelectMouseLeave"
               >
-                <i
-                  class="ri-radar-line text-base text-gray-400 mr-2"
-                />
+                <lf-icon name="satellite-dish" :size="16" class="text-gray-400 mr-2" />
                 Other
               </el-option>
             </el-select>
@@ -123,9 +118,7 @@
                       conversationId = activity.conversationId
                     "
                   >
-                    <i
-                      class="text-sm ri-eye-line mr-1"
-                    />
+                    <lf-icon name="eye" :size="14" class="mr-1" />
                     <span class="block whitespace-nowrap">View {{ activity.platform !== Platform.GIT ? 'conversation' : 'commit' }}</span>
                   </a>
                   <app-activity-dropdown
@@ -195,10 +188,7 @@
                   :alt="`${activity.platform}-icon`"
                   class="w-4 h-4"
                 />
-                <i
-                  v-else
-                  class="ri-radar-line text-base text-gray-400"
-                />
+                <lf-icon name="satellite-dish" :size="16" class="text-gray-400" />
               </span>
             </template>
           </el-timeline-item>
@@ -206,7 +196,7 @@
 
         <app-empty-state-cta
           v-if="!activities.length && !loading"
-          icon="ri-list-check-2"
+          icon="list"
           title="No activities found"
           description="We couldn't find any results that match your search criteria, please try a different query"
         />
@@ -262,11 +252,12 @@ import LfActivityDisplay from '@/shared/modules/activity/components/activity-dis
 import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IdentityConfig, lfIdentities } from '@/config/identities';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
   'i', // type
-  { class: 'ri-search-line' }, // props
+  { class: 'fa-magnifying-glass fa-light' }, // props
   [],
 );
 

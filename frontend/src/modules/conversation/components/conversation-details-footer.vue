@@ -13,9 +13,7 @@
         <div
           class="flex items-center tag h-8 !rounded-md"
         >
-          <i
-            class="ri-group-line text-base mr-2 text-gray-400"
-          />
+          <lf-icon name="user-group" class="mr-2 text-gray-400" />
           <p
             class="text-xs text-gray-900"
           >
@@ -26,8 +24,10 @@
           v-if="replyContent"
           class="flex items-center tag h-8 !rounded-md"
         >
-          <i
-            :class="`${replyContent.icon} text-base mr-2 text-gray-400`"
+          <lf-icon
+            :name="replyContent.icon"
+            size="16"
+            class="mr-2 text-gray-400"
           />
           <p
             class="text-xs text-gray-900"
@@ -70,6 +70,7 @@ import AppConversationFooterWrapper from '@/modules/conversation/components/conv
 import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 import { computed } from 'vue';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   conversation: {

@@ -5,19 +5,19 @@ import { h } from 'vue';
 
 const successIcon = h(
   'i', // type
-  { class: 'ri-checkbox-circle-fill text-green-500' }, // props
+  { class: 'fa-circle-check fa-light text-green-500' }, // props
   [],
 );
 
 const errorIcon = h(
   'i', // type
-  { class: 'ri-error-warning-fill text-red-500' }, // props
+  { class: 'fa-circle-exclamation fa-light text-red-500' }, // props
   [],
 );
 
 const infoIcon = h(
   'i', // type
-  { class: 'ri-loader-4-line text-primary-600 animate-spin' }, // props
+  { class: 'fa-circle-notch fa-light text-primary-600 animate-spin' }, // props
   [],
 );
 

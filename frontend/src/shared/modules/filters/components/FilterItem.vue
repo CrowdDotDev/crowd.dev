@@ -55,7 +55,7 @@
       data-qa="filter-list-chip-close"
       @click="emit('remove')"
     >
-      <span class="ri-close-line text-base flex items-center h-4 text-gray-500 group-hover:text-gray-900" />
+      <lf-icon name="xmark" :size="16" class="text-gray-500 group-hover:text-gray-900 flex items-center" />
     </div>
   </div>
 </template>
@@ -65,6 +65,7 @@ import { computed, ref, watch } from 'vue';
 import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
 import useVuelidate from '@vuelidate/core';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: string,

@@ -13,7 +13,7 @@
             class="btn btn--md btn--transparent w-10 h-10"
             @click="removePhoneNumber(ei)"
           >
-            <i class="ri-delete-bin-line text-lg" />
+            <lf-icon name="trash-can" :size="20" />
           </el-button>
         </template>
       </app-organization-form-phone-number-item>
@@ -32,6 +32,7 @@ import {
 } from 'vue';
 import AppOrganizationFormPhoneNumberItem
   from '@/modules/organization/components/form/organization-form-phone-number-item.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 

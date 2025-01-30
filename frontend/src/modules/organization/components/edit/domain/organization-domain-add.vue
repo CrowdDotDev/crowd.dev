@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Add {{ modelValue?.type?.replace('-', ' ') }}</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon-old name="close-line" />
+            <lf-icon name="xmark" />
           </lf-button>
         </div>
 
@@ -21,7 +21,7 @@
                   @blur="$v.form[di].value.$touch()"
                 >
                   <template #prefix>
-                    <lf-icon-old name="link" class="text-black" :size="20" />
+                    <lf-icon name="link" class="text-black" :size="20" />
                   </template>
                 </lf-input>
                 <lf-button
@@ -31,7 +31,7 @@
                   :icon-only="true"
                   @click="form.splice(di, 1)"
                 >
-                  <lf-icon-old name="delete-bin-6-line" />
+                  <lf-icon name="trash-can" />
                 </lf-button>
               </div>
               <lf-field-messages
@@ -50,7 +50,7 @@
               ...props.modelValue,
             })"
           >
-            <lf-icon-old name="add-line" />
+            <lf-icon name="plus" />
             Add domain
           </lf-button>
         </div>
@@ -76,7 +76,7 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
