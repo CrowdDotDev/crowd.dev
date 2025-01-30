@@ -13,11 +13,11 @@
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--secondary btn--sm">
         <span class="mr-2">Actions</span>
-        <i class="ri-xl ri-arrow-down-s-line" />
+        <lf-icon name="chevron-down" :size="24" />
       </button>
       <template #dropdown>
         <el-dropdown-item :command="{ action: 'export' }">
-          <i class="ri-lg ri-file-download-line mr-1" />
+          <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
           Export to CSV
         </el-dropdown-item>
 
@@ -38,9 +38,7 @@
                   || !hasPermission(LfPermission.mergeOrganizations)
               "
             >
-              <i
-                class="ri-lg mr-1 ri-shuffle-line"
-              />
+              <lf-icon name="shuffling" :size="20" class="mr-1" />
               Merge organizations
             </el-dropdown-item>
           </span>
@@ -53,10 +51,7 @@
             value: markAsTeamOrganizationOptions.value,
           }"
         >
-          <i
-            class="ri-lg mr-1"
-            :class="markAsTeamOrganizationOptions.icon"
-          />
+          <lf-icon :name="markAsTeamOrganizationOptions.icon" :size="20" class="mr-1" />
           {{ markAsTeamOrganizationOptions.copy }}
         </el-dropdown-item>
 
@@ -70,7 +65,7 @@
             <div
               class="flex items-center text-red-500"
             >
-              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <lf-icon name="trash-can" :size="20" class="mr-2" />
               <span>Delete organizations</span>
             </div>
           </el-dropdown-item>
@@ -98,6 +93,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();
@@ -129,14 +125,14 @@ const markAsTeamOrganizationOptions = computed(() => {
 
   if (isTeamView) {
     return {
-      icon: 'ri-bookmark-2-line',
+      icon: 'bookmark-slash',
       copy: `Unmark as team ${organizationsCopy}`,
       value: false,
     };
   }
 
   return {
-    icon: 'ri-bookmark-line',
+    icon: 'bookmark',
     copy: `Mark as team ${organizationsCopy}`,
     value: true,
   };
@@ -149,7 +145,7 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
       "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
   cancelButtonText: 'Cancel',
-  icon: 'ri-delete-bin-line',
+  icon: 'fa-trash-can fa-light',
 })
   .then(() => {
     trackEvent({

@@ -7,7 +7,7 @@
       class="flex items-center justify-between bg-gray-50 h-8 px-4 border-b border-gray-200"
     >
       <div v-if="sourceId" class="text-xs font-medium flex items-center">
-        <i class="ri-git-commit-line text-base font-normal mr-1.5" />
+        <lf-icon name="code-commit" :size="16" class="mr-1.5" />
         <span>SHA: {{ sourceId }}</span>
       </div>
       <div v-if="activity.url">
@@ -55,6 +55,7 @@ import { computed } from 'vue';
 import { toSentenceCase } from '@/utils/string';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGitActivityLink from './git-activity-link.vue';
 import LfGitAttributes from './git-attributes.vue';
 

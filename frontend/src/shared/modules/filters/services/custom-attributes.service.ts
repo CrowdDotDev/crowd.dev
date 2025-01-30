@@ -39,7 +39,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
-            iconClass: 'ri-hashtag',
+            iconClass: 'fa-hashtag fa-light',
             type: FilterConfigType.NUMBER,
             options: {
               hideIncludeSwitch: true,
@@ -58,7 +58,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
-            iconClass: 'ri-toggle-line',
+            iconClass: 'fa-toggle-off fa-solid',
             type: FilterConfigType.BOOLEAN,
             options: {
               hideIncludeSwitch: true,
@@ -77,7 +77,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
-            iconClass: 'ri-menu-2-line',
+            iconClass: 'fa-bars fa-light',
             type: FilterConfigType.STRING,
             options: {
               hideIncludeSwitch: true,
@@ -96,7 +96,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
-            iconClass: 'ri-calendar-2-line',
+            iconClass: 'fa-calendar-range fa-light',
             type: FilterConfigType.DATE,
             options: {
               hideIncludeSwitch: true,
@@ -116,7 +116,7 @@ export const customAttributesService = () => {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
-            iconClass: 'ri-list-unordered',
+            iconClass: 'fa-list-ul fa-light',
             type: FilterConfigType.MULTISELECT,
             options: {
               hideIncludeSwitch: true,

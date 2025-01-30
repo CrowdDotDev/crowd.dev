@@ -52,7 +52,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="removeRepoName(ii)"
             >
-              <i class="ri-delete-bin-line text-lg" />
+              <lf-icon name="trash-can" :size="20" />
             </el-button>
           </template>
         </app-array-input>
@@ -104,6 +104,7 @@ import AppArrayInput from '@/shared/form/array-input.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

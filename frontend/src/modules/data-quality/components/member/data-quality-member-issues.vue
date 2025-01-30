@@ -21,7 +21,7 @@
             @click="trackReviewProfile(member.id)"
           >
             <lf-button type="secondary" size="small">
-              <lf-icon-old name="external-link-line" />Review profile
+              <lf-icon name="arrow-up-right-from-square" />Review profile
             </lf-button>
           </router-link>
         </template>
@@ -38,9 +38,7 @@
       </div>
     </lf-scroll-body-controll>
     <div v-else class="flex flex-col items-center pt-16">
-      <div
-        class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
-      />
+      <lf-icon name="shuffle" :size="160" class="text-gray-200 flex items-center mb-8" />
       <h5 class="text-center text-lg font-semibold mb-4">
         No member issues found
       </h5>
@@ -59,7 +57,7 @@ import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import { DataQualityApiService } from '@/modules/data-quality/services/data-quality.api.service';
 import LfDataQualityMemberIssuesItem
   from '@/modules/data-quality/components/member/data-quality-member-issues-item.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';

@@ -25,9 +25,7 @@
         class="btn btn-link btn-link--md btn-link--primary mr-3"
         @click="doExport"
       >
-        <i
-          class="ri-file-download-line ri-lg mr-1 flex items-center"
-        />Export to CSV
+        <lf-icon name="file-arrow-down" :size="20" class="mr-1 flex items-center" />Export to CSV
       </button>
       <app-inline-select-input
         v-if="sorter"
@@ -51,6 +49,7 @@ import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits([
   'changeSorter',

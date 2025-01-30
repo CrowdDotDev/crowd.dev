@@ -101,7 +101,7 @@
                     Unknown
                   </div>
                   <el-tooltip content="Calculated after profile is unmerged" placement="top">
-                    <div class="ri-question-line text-base text-gray-400" />
+                    <lf-icon name="circle-question" :size="16" class="text-gray-400" />
                   </el-tooltip>
                 </div>
               </template>
@@ -132,7 +132,8 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged profile
+                        <lf-icon name="link-simple-slash" :size="16" class="mr-1" />
+                        Unmerged profile
                       </div>
                       <el-dropdown
                         placement="bottom-end"
@@ -156,16 +157,21 @@
                               :label="i.value"
                               @click="fetchPreview(i.id)"
                             >
-                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                              <lf-icon
+                                v-if="i.type === 'email'"
+                                name="envelope"
+                                :size="20"
+                                class="text-gray-900 leading-5 mr-2"
+                              />
                               <img
                                 v-else-if="lfIdentities[i.platform]"
                                 class="h-5 w-5 mr-2"
                                 :alt="lfIdentities[i.platform]?.name"
                                 :src="lfIdentities[i.platform]?.image"
                               />
-                              <lf-icon-old
+                              <lf-icon
                                 v-else
-                                name="fingerprint-fill"
+                                name="fingerprint"
                                 :size="20"
                                 class="text-gray-600 mr-2"
                               />
@@ -183,7 +189,7 @@
                       Unknown
                     </div>
                     <el-tooltip content="Calculated after profile is unmerged" placement="top">
-                      <div class="ri-question-line text-base text-gray-400" />
+                      <lf-icon name="circle-question" :size="16" class="text-gray-400" />
                     </el-tooltip>
                   </div>
                 </template>
@@ -213,7 +219,7 @@
             <!-- Identity selection -->
             <div v-else class="pt-14">
               <div class="flex justify-center pb-5">
-                <div class="ri-fingerprint-line text-5xl text-gray-200" />
+                <lf-icon name="fingerprint" :size="64" class="text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
                 Select the profile identity you want to unmerge
@@ -230,16 +236,21 @@
                     :value="i.id"
                     :label="i.value"
                   >
-                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                    <lf-icon
+                      v-if="i.type === 'email'"
+                      name="envelope"
+                      :size="20"
+                      class="text-gray-900 leading-5 mr-2"
+                    />
                     <img
                       v-else-if="lfIdentities[i.platform]"
                       class="h-5 w-5 mr-2"
                       :alt="lfIdentities[i.platform]?.name"
                       :src="lfIdentities[i.platform]?.image"
                     />
-                    <lf-icon-old
+                    <lf-icon
                       v-else
-                      name="fingerprint-fill"
+                      name="fingerprint"
                       :size="20"
                       class="text-gray-600 mr-2"
                     />
@@ -265,7 +276,7 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { useRouter } from 'vue-router';
 import { lfIdentities } from '@/config/identities';

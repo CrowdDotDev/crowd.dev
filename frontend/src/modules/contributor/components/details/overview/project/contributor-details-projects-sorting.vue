@@ -5,7 +5,7 @@
         <p class="text-small pr-1">
           <span class="font-semibold">Sort:</span> {{ label }}
         </p>
-        <lf-icon-old name="arrow-down-s-line" :size="16" />
+        <lf-icon name="chevron-down" :size="16" />
       </div>
     </template>
     <lf-dropdown-item
@@ -22,7 +22,7 @@
 import { computed } from 'vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   sorting: string,

@@ -2,9 +2,9 @@
   <div class="c-field-message" :class="`c-field-message--${props.type}`" v-bind="$attrs">
     <span v-if="$slots.icon || iconClass" class="c-field-message__icon">
       <slot name="icon">
-        <span
+        <lf-icon
           v-if="!props.hideIcon"
-          :class="iconClass"
+          :name="iconClass || ''"
         />
       </slot>
     </span>
@@ -17,6 +17,7 @@
 import { FieldMessageType } from '@/ui-kit/field-message/types/FieldMessageType';
 import { computed } from 'vue';
 import { fieldMessageTypeData } from '@/ui-kit/field-message/constants/fieldMessageTypeData';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = withDefaults(defineProps<{
   type?: FieldMessageType,
@@ -29,7 +30,7 @@ const props = withDefaults(defineProps<{
 const iconClass = computed(() => {
   const { icon } = fieldMessageTypeData[props.type];
   if (icon) {
-    return `ri-${icon}`;
+    return icon;
   }
   return null;
 });

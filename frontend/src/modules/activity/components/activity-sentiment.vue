@@ -5,23 +5,15 @@
     :content="`Sentiment score: ${sentiment}`"
     placement="top"
   >
-    <i
-      v-if="label === 'Positive'"
-      class="ri-emotion-happy-line text-green-600 text-sm"
-    />
-    <i
-      v-else-if="label === 'Neutral'"
-      class="ri-emotion-normal-line text-gray-400 text-sm"
-    />
-    <i
-      v-else
-      class="ri-emotion-unhappy-line text-red-500 text-sm"
-    />
+    <lf-icon v-if="label === 'Positive'" name="face-smile" :size="14" class="text-green-600" />
+    <lf-icon v-else-if="label === 'Neutral'" name="face-meh" :size="14" class="text-gray-400" />
+    <lf-icon v-else name="face-frown" :size="14" class="text-red-500" />
   </el-tooltip>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   sentiment: {

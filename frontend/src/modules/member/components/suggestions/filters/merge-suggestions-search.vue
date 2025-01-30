@@ -7,7 +7,7 @@
     @update:model-value="search($event)"
   >
     <template #prefix>
-      <i class="ri-search-line text-gray-400" />
+      <lf-icon name="magnifying-glass" :size="16" class="text-gray-400" />
     </template>
   </el-input>
 </template>
@@ -17,6 +17,7 @@ import { ref } from 'vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRouter } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: string;

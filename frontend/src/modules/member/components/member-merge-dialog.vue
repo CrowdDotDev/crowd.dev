@@ -37,7 +37,7 @@
                   type="button"
                   @click="changeMember()"
                 >
-                  <span class="ri-refresh-line text-base text-primary-500 mr-2" />
+                  <lf-icon name="arrows-rotate" :size="16" class="text-primary-500 mr-2" />
                   <span class="text-primary-500">Change person</span>
                 </button>
               </template>
@@ -73,6 +73,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 

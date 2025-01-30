@@ -3,7 +3,7 @@
     <template #trigger="{ open }">
       <lf-button type="secondary-link">
         {{ selectedSegmentName }}
-        <lf-icon-old name="arrow-up-s-line" :size="16" class="transition" :class="{ 'rotate-180': open }" />
+        <lf-icon name="chevron-up" :size="16" class="transition" :class="{ 'rotate-180': open }" />
       </lf-button>
     </template>
     <lf-dropdown-item
@@ -21,7 +21,7 @@
           placeholder="Search project groups..."
         >
           <template #prefix>
-            <lf-icon-old name="search-line" :size="16" />
+            <lf-icon name="magnifying-glass" :size="16" />
           </template>
         </lf-input>
       </div>
@@ -54,7 +54,7 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import { computed, ref } from 'vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{

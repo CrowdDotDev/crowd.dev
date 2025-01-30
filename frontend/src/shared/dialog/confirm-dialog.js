@@ -16,7 +16,7 @@ export default ({
   cancelButtonClass = 'btn btn--md btn--secondary',
   confirmButtonText = 'Discard',
   confirmButtonClass = 'btn btn--md btn--primary',
-  icon = 'ri-error-warning-line',
+  icon = 'fa-circle-exclamation fa-light',
   distinguishCancelAndClose = false,
   autofocus = true,
   closeOnClickModal = true,
@@ -146,7 +146,7 @@ export default ({
                 h(
                   'i', // type
                   {
-                    class: 'text-lg ri-close-line leading-none text-gray-400 group-hover:text-primary-500',
+                    class: 'text-lg fa-xmark fa-light leading-none text-gray-400 group-hover:text-primary-500',
                   }, // props
                   [],
                 ),
@@ -180,7 +180,7 @@ export default ({
               h(
                 'i', // type
                 {
-                  class: 'text-base ri-alert-line leading-none mr-2',
+                  class: 'text-base fa-triangle-exclamation fa-light leading-none mr-2',
                 }, // props
                 [],
               ),

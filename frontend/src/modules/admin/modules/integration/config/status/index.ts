@@ -11,6 +11,7 @@ export interface IntegrationStatusConfig {
   status: {
     text: string;
     icon: string;
+    iconType?: string;
     color: string;
   },
   actionBar: {

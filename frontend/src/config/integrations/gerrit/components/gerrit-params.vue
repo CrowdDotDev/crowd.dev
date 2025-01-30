@@ -6,9 +6,7 @@
           <div
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
           >
-            <i
-              class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-            />
+            <lf-svg name="git-repository" class="w-4 h-4 !text-gray-600 mr-1 flex items-center" />
             {{ pluralize("repository", repositories.length, true) }}
           </div>
         </template>
@@ -22,9 +20,7 @@
             :key="repository"
             class="flex items-center flex-nowrap mb-4 last:mb-0"
           >
-            <i
-              class="ri-git-repository-line text-[16px] mr-1 h-4 flex items-center"
-            />
+            <lf-svg name="git-repository" class="w-4 h-4 mr-1 flex items-center" />
 
             <a
               :href="repository"
@@ -44,6 +40,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps({
   integration: {

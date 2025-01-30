@@ -57,10 +57,7 @@
                       :src="platform.image"
                     />
                   </el-tooltip>
-                  <i
-                    v-else
-                    class="ri-radar-line text-base text-gray-400"
-                  />
+                  <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400" />
                 </div>
                 <app-activity-header
                   :activity="activity"
@@ -79,10 +76,10 @@
                 @click="
                   openConversation(activity.conversationId)
                 "
-              ><i
-                 class="text-sm ri-eye-line mr-1"
-               />
-                <span class="block">View conversation</span></a>
+              >
+                <lf-icon name="eye" :size="16" class="mr-1" />
+                <span class="block">View conversation</span>
+              </a>
               <app-activity-dropdown
                 :show-affiliations="false"
                 :activity="activity"
@@ -152,6 +149,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppActivityHeader from './activity-header.vue';
 
 const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);

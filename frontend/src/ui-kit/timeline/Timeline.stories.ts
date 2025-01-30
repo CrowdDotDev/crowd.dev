@@ -1,5 +1,5 @@
 import LfSvg from '@/shared/svg/svg.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTimeline from './Timeline.vue';
 import LfTimelineItem from './TimelineItem.vue';
 import { TimelineGroup } from './types/TimelineTypes';
@@ -29,7 +29,7 @@ export const Regular = {
   },
   render: (args: { groups: TimelineGroup[] }) => ({
     components: {
-      LfTimeline, LfTimelineItem, LfSvg, LfIconOld,
+      LfTimeline, LfTimelineItem, LfSvg, LfIcon,
     },
     setup() {
       return { args };
@@ -44,7 +44,7 @@ export const Regular = {
           </p>
         </div>
         <p class="text-small text-gray-500 mb-1.5 flex items-center">
-          <lf-icon-old name="calendar-line" :size="16" class="mr-1.5 text-gray-400" />
+        <lf-icon name="calendar fa-sharp" :size="16" class="mr-1.5 text-gray-400" />
           {{ item.date }}
         </p>
       </lf-timeline-item>

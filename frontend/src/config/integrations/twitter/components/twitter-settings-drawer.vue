@@ -33,7 +33,7 @@
         "
       >
         <el-button v-if="hasFormChanged" class="btn btn-link btn-link--primary" @click="doReset">
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">

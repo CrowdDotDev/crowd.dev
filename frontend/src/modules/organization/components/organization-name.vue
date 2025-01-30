@@ -12,7 +12,7 @@
           :src="organization.logo"
           class="max-h-8"
         >
-          <i class="ri-community-line text-lg text-gray-300" />
+          <lf-icon name="house-building" :size="20" class="text-gray-300" />
         </app-avatar-image>
         <app-avatar-new-badge
           :entity="organization"
@@ -57,6 +57,7 @@ import AppOrganizationBadge from '@/modules/organization/components/organization
 import AppAvatarNewBadge from '@/shared/avatar/avatar-new-badge.vue';
 import AppAvatarImage from '@/shared/avatar-image/avatar-image.vue';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 defineProps({
   organization: {

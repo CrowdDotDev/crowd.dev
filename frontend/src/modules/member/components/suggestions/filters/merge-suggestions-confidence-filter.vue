@@ -2,7 +2,7 @@
   <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
       <lf-button type="secondary" size="small">
-        <i class="ri-command-line" /> <p>Confidence level: <span class="font-normal">{{ label }}</span></p>
+        <lf-icon name="command" /> <p>Confidence level: <span class="font-normal">{{ label }}</span></p>
       </lf-button>
     </template>
 
@@ -13,7 +13,7 @@
         @click="model = []"
       >
         <span class="text-black">All confidence levels</span>
-        <i v-if="model.length === 0" class="ri-check-line text-lg text-primary-600" />
+        <lf-icon v-if="model.length === 0" :size="20" name="check" class="text-primary-600" />
       </article>
     </div>
     <div class="p-2 border-t border-gray-100 flex flex-col gap-1">
@@ -61,6 +61,7 @@ import { computed, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import isEqual from 'lodash/isEqual';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRouter } from 'vue-router';

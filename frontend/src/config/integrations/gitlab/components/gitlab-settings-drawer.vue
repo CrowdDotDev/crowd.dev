@@ -52,7 +52,7 @@
                 class="flex items-center text-primary-500 cursor-pointer select-none"
                 @click="isBulkSelectOpened = true"
               >
-                <i class="ri-checkbox-multiple-line text-base mr-1" />
+                <lf-icon name="check-double" :size="16" class="mr-1" />
                 <span class="text-xs font-normal">
                   Bulk selection
                 </span>
@@ -64,7 +64,7 @@
             </p>
           </div>
           <div class="border border-yellow-100 rounded-md bg-yellow-50 p-2 flex">
-            <div class="w-4 h-4 flex items-center ri-alert-fill text-yellow-500" />
+            <lf-icon name="triangle-exclamation" type="solid" :size="16" class="text-yellow-500" />
             <div class="flex-grow text-yellow-900 text-2xs leading-4.5 pl-2">
               Repository mapping is not reversible. Once GitLab is connected,
               you won't be able to update these settings and reconnecting a
@@ -77,7 +77,7 @@
         <section class="pb-4">
           <el-input v-model="search" clearable placeholder="Search repositories...">
             <template #prefix>
-              <i class="ri-search-line text-gray-400" />
+              <lf-icon name="magnifying-glass" class="text-gray-400" />
             </template>
           </el-input>
         </section>
@@ -103,7 +103,7 @@
                 <div v-if="getOwnerAvatar(owner)" class="w-5 h-5 rounded-full mr-2 overflow-hidden">
                   <img :src="getOwnerAvatar(owner)" class="w-full h-full object-cover" alt="Owner avatar" />
                 </div>
-                <i v-else class="ri-community-line w-5 h-5" />
+                <lf-icon v-else name="house-building" :size="20" />
                 <span class="text-xs font-medium">{{ owner }}</span>
               </div>
               <article v-for="project in projects" :key="project.id" class="py-1.5 flex items-center">
@@ -111,7 +111,7 @@
                   <el-checkbox v-model="selectedRepos[project.web_url]" @change="updateSelectedRepos" />
                 </div>
                 <div class="flex-grow flex items-center pr-4">
-                  <i class="ri-git-repository-line text-base mr-2" />
+                  <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
                   <p class="text-2xs leading-5 flex-grow truncate">
                     {{ project.path_with_namespace }}
                   </p>
@@ -204,6 +204,8 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
@@ -357,7 +359,7 @@ const connect = () => {
       + 'In order to clean up existing data please reach out to our support team.',
     confirmButtonText: 'Connect GitLab',
     cancelButtonText: 'Cancel',
-    icon: 'ri-alert-fill',
+    icon: 'fa-triangle-exclamation fa-solid',
   } as any).then(() => {
     IntegrationService.mapGitlabRepos(
       props.integration.id,

@@ -9,7 +9,8 @@
         organization,
       })"
     >
-      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+      <lf-icon name="link-slash" :size="16" class="mr-2" />
+      <span class="text-xs">Unmerge identity</span>
     </button>
     <el-divider class="border-gray-200 my-2" />
   </template>
@@ -31,7 +32,8 @@
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
     >
-      <i class="ri-pencil-line text-base mr-2" /><span class="text-xs">Edit organization</span>
+      <lf-icon name="pen fa-sharp" class="text-base mr-2" />
+      <span class="text-xs">Edit organization</span>
     </button>
   </router-link>
 
@@ -48,7 +50,8 @@
       })
     "
   >
-    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+    <lf-icon name="shuffle" :size="16" class="mr-2" />
+    <span class="text-xs">Merge organization</span>
   </button>
 
   <!-- Mark as Team Organization -->
@@ -71,7 +74,8 @@
             })
           "
         >
-          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
+          <lf-icon name="bookmark" :size="16" class="mr-2" />
+          <span class="text-xs">Mark as team organization</span>
         </button>
       </span>
     </el-tooltip>
@@ -89,7 +93,7 @@
         })
       "
     >
-      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
+      <lf-icon name="bookmark-slash" class="mr-2" /><span class="text-xs">Unmark as team organization</span>
     </button>
   </template>
 
@@ -107,9 +111,8 @@
         })
       "
     >
-      <i
-        class="ri-delete-bin-line text-base mr-2 text-red-500"
-      /><span
+      <lf-icon name="trash-can" :size="16" class="mr-2 text-red-500" />
+      <span
         class="text-xs text-red-500"
       >Delete organization</span>
     </button>
@@ -125,6 +128,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { OrganizationService } from '../organization-service';
 import { Organization } from '../types/Organization';
 
@@ -203,7 +207,7 @@ const handleCommand = (command: {
       message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line',
+      icon: 'fa-trash-can fa-light',
     }).then(() => {
       trackEvent({
         key: FeatureEventKey.DELETE_ORGANIZATION,

@@ -18,9 +18,10 @@
               @update:model-value="$v.profilePhoto.$touch()"
             >
               <template #suffix>
-                <lf-icon-old
+                <lf-icon
                   v-if="form.profilePhoto"
-                  name="close-circle-line"
+                  name="circle-xmark"
+                  type="regular"
                   :size="20"
                   class="text-gray-300 cursor-pointer"
                   @click="form.profilePhoto = ''"
@@ -68,7 +69,7 @@ import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import Message from '@/shared/message/message';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
