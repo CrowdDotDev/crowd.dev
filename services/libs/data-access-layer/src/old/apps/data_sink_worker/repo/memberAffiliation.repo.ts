@@ -40,7 +40,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
     memberId: string,
     timestamp: string,
   ): Promise<IWorkExperienceData[] | null> {
-    const result = await this.db().many(
+    const result = await this.db().manyOrNone(
       `
         SELECT
             mo.*,
@@ -96,7 +96,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
     memberId: string,
     timestamp: string,
   ): Promise<IWorkExperienceData[] | null> {
-    const result = await this.db().many(
+    const result = await this.db().manyOrNone(
       `
         SELECT
           mo.*,
@@ -123,7 +123,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
   public async findAllUnkownDatedOrganizations(
     memberId: string,
   ): Promise<IWorkExperienceData[] | null> {
-    const result = await this.db().many(
+    const result = await this.db().manyOrNone(
       `
         SELECT
           mo.*,
