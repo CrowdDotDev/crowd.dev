@@ -1,13 +1,6 @@
-import { generateUUIDv1 as uuid } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import {
-  IMember,
-  IMemberAttribute,
-  IMemberSyncRemoteData,
-  PlatformType,
-  SyncStatus,
-} from '@crowd/types'
+import { IMember, IMemberAttribute, PlatformType } from '@crowd/types'
 
 import { IMemberIdWithAttributes } from './member.data'
 
@@ -18,106 +11,6 @@ export interface IMemberIdObject {
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
-  }
-
-  public async findSyncRemoteByMemberId(memberId: string): Promise<IMemberSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `SELECT *
-      FROM "membersSyncRemote"
-      WHERE "memberId" = $(memberId)
-      and "sourceId" is not null
-      limit 1;`,
-      { memberId },
-    )
-  }
-
-  public async markMemberForSyncing(data: IMemberSyncRemoteData): Promise<IMemberSyncRemoteData> {
-    const existingSyncRemote = await this.findSyncRemoteByMemberId(data.memberId)
-
-    if (existingSyncRemote) {
-      data.sourceId = existingSyncRemote.sourceId
-    }
-
-    const id = await this.db()
-      .one(
-        `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
-      values
-          ($(id), $(memberId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
-      returning "id"
-    `,
-        {
-          id: uuid(),
-          memberId: data.memberId,
-          integrationId: data.integrationId,
-          syncFrom: data.syncFrom,
-          metaData: data.metaData || null,
-          lastSyncedAt: data.lastSyncedAt || null,
-          sourceId: data.sourceId || null,
-          status: SyncStatus.ACTIVE,
-        },
-      )
-      .then((data) => data.id)
-
-    return this.findSyncRemoteById(id)
-  }
-
-  public async findSyncRemoteById(syncRemoteId: string): Promise<IMemberSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `select * from "membersSyncRemote" where id = $(syncRemoteId)`,
-      { syncRemoteId },
-    )
-  }
-
-  public async findSyncRemote(
-    memberId: string,
-    integrationId: string,
-    syncFrom: string,
-  ): Promise<IMemberSyncRemoteData> {
-    return await this.db().oneOrNone(
-      `select * from "membersSyncRemote" where "memberId" = $(memberId) and "integrationId" = $(integrationId) and "syncFrom" = $(syncFrom)`,
-      {
-        memberId,
-        integrationId,
-        syncFrom,
-      },
-    )
-  }
-
-  public async setLastSyncedAtBySyncRemoteId(
-    syncRemoteId: string,
-    lastSyncedPayload: unknown,
-  ): Promise<void> {
-    this.log.debug(`Setting lastSyncedAt for id ${syncRemoteId}.`)
-
-    await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where id = $(syncRemoteId)`,
-      {
-        syncRemoteId,
-        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
-        status: SyncStatus.ACTIVE,
-      },
-    )
-  }
-
-  public async setLastSyncedAt(
-    memberId: string,
-    integrationId: string,
-    lastSyncedPayload: unknown,
-  ): Promise<void> {
-    this.log.debug(
-      `Setting lastSyncedAt for member ${memberId} and integration ${integrationId} to now!`,
-    )
-
-    await this.db().none(
-      `update "membersSyncRemote" set "lastSyncedAt" = now(), "status" = $(status), "lastSyncedPayload" = $(lastSyncedPayload) where "memberId" = $(memberId) and "integrationId" = $(integrationId) and status <> $(neverStatus)`,
-      {
-        memberId,
-        integrationId,
-        lastSyncedPayload: JSON.stringify(lastSyncedPayload),
-        status: SyncStatus.ACTIVE,
-        neverStatus: SyncStatus.NEVER,
-      },
-    )
   }
 
   public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
@@ -142,64 +35,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results.map((p) => p.platform)
   }
 
-  public async setIntegrationSourceId(
-    memberId: string,
-    integrationId: string,
-    sourceId: string,
-  ): Promise<void> {
-    this.log.debug(
-      `Updating member ${memberId} in integration ${integrationId} sourceId to ${sourceId}.`,
-    )
-
-    await this.db().none(
-      `update "membersSyncRemote" set "sourceId" = $(sourceId) where "memberId" = $(memberId) and "integrationId" = $(integrationId)`,
-      {
-        memberId,
-        integrationId,
-        sourceId,
-      },
-    )
-  }
-
-  public async setSyncRemoteSourceId(syncRemoteId: string, sourceId: string): Promise<void> {
-    this.log.debug(`Updating syncRemote ${syncRemoteId} sourceId to ${sourceId}.`)
-
-    await this.db().none(
-      `update "membersSyncRemote" set "sourceId" = $(sourceId) where id = $(syncRemoteId)`,
-      {
-        syncRemoteId,
-        sourceId,
-      },
-    )
-  }
-
   public async findMemberAttributes(memberId: string): Promise<IMemberIdWithAttributes> {
     return await this.db().oneOrNone(`select id, attributes from members where id = $(memberId)`, {
       memberId,
     })
-  }
-
-  public async findMarkedMembers(
-    integrationId: string,
-    limit: number,
-    offset: number,
-  ): Promise<IMemberSyncRemoteData[]> {
-    const results = await this.db().any(
-      `select distinct "memberId", "sourceId"
-        from "membersSyncRemote"
-        where status = $(status)
-        and "integrationId" = $(integrationId)
-        and "memberId" is not null
-        order by "memberId", "sourceId"
-        limit $(limit) offset $(offset)`,
-      {
-        integrationId,
-        limit,
-        offset,
-        status: SyncStatus.ACTIVE,
-      },
-    )
-    return results
   }
 
   public async findOrganizationMembers(

@@ -457,16 +457,6 @@ export default class MemberService extends LoggerBase {
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
-          // set a record in membersSyncRemote to save the sourceId
-          // these rows will be used for outgoing data
-          if (member.attributes?.sourceId?.[platform]) {
-            await txRepo.addToSyncRemote(
-              dbMember.id,
-              dbIntegration.id,
-              member.attributes?.sourceId?.[platform],
-            )
-          }
-
           await txService.update(
             dbMember.id,
             tenantId,

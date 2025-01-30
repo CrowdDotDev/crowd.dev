@@ -1,7 +1,6 @@
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
-  addOrgToSyncRemote,
   addOrgsToMember,
   addOrgsToSegments,
   findMemberOrganizations,
@@ -122,17 +121,6 @@ export class OrganizationService extends LoggerBase {
 
         if (dbOrganization) {
           this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
-
-          // set a record in organizationsSyncRemote to save the sourceId
-          // we can't use organization.attributes because of segments
-          if (primaryIdentity.sourceId) {
-            await addOrgToSyncRemote(
-              qe,
-              dbOrganization.id,
-              dbIntegration.id,
-              primaryIdentity.sourceId,
-            )
-          }
 
           // check if sent primary identity already exists in the org
           const existingIdentities = await getOrgIdentities(qe, dbOrganization.id, tenantId)
