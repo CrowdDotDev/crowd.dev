@@ -233,9 +233,21 @@ export async function runMemberAffiliationsUpdate(
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title &&
+      row.title !== null &&
+      row.title !== undefined &&
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
+
+  // clean unknown dated work experiences if there is one marked as primary
+  const primaryUnknownDatedWorkExperience = memberOrganizations.find(
+    (row) => row.isPrimaryWorkExperience && !row.dateStart && !row.dateEnd,
+  )
+
+  if (primaryUnknownDatedWorkExperience) {
+    memberOrganizations = memberOrganizations.filter(
+      (row) => row.dateStart || row.id === primaryUnknownDatedWorkExperience.id,
+    )
+  }
 
   const timeline = buildTimeline(memberOrganizations)
 
@@ -314,8 +326,13 @@ export async function runMemberAffiliationsUpdate(
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
+  console.log('FULL CASE!!!!!!!!!!!!!!!!')
+  console.log(fullCase)
+
   async function insertIfMatches(activity: IDbActivityCreateData) {
-    activity.organizationId = null
+    const rawOrgId = activity.organizationId
+
+    activity.organizationId = fallbackOrganizationId || null
 
     if (orgCases.length > 0) {
       for (const condition of orgCases) {
@@ -325,6 +342,8 @@ export async function runMemberAffiliationsUpdate(
         }
       }
     }
+
+    console.log(`inserting activity !!!! rawOrgId = ${rawOrgId} orgId = ${activity.organizationId}`)
 
     await insertActivities(queueClient, [activity], true)
     return activity
@@ -362,6 +381,9 @@ export async function runMemberAffiliationsUpdate(
           activityId: activityWithCorrectOrgId.id,
           organizationId: activityWithCorrectOrgId.organizationId,
         }),
+      )
+      console.log(
+        `updating activity [${activityWithCorrectOrgId.id}] orgId to [${activityWithCorrectOrgId.organizationId}]`,
       )
 
       if (activityRelationPromises.length >= batchSize) {

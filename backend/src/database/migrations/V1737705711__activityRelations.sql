@@ -6,13 +6,13 @@ create table public."activityRelations" (
     "conversationId" uuid null,
     "parentId" uuid null,
     "segmentId" uuid not null,
-    "platform" text not null, -- use limited chars varchars (check the biggest one currently and use that)
-    "username" text not null, -- -- use limited chars varchars (check the biggest one currently and use that)
+    "platform" text not null,
+    "username" text not null,
     "objectMemberUsername" text null,
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
     foreign key ("memberId") references members (id) on delete cascade,
-    foreign key ("organizationId") references organizations (id) on delete cascade,
+    foreign key ("organizationId") references organizations (id) on delete set null,
     foreign key ("objectMemberId") references members (id) on delete set null,
     foreign key ("conversationId") references conversations (id) on delete set null,
     foreign key ("segmentId") references segments (id) on delete cascade,
