@@ -43,6 +43,11 @@ export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
 
     await activity.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
 
+    if (args.testRun) {
+      console.log('Test run completed - stopping after first batch!')
+      break
+    }
+
     memberIds = await activity.getMembersForSync(BATCH_SIZE)
   }
 

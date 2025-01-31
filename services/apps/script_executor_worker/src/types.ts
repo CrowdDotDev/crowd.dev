@@ -31,4 +31,5 @@ export interface ISyncMembersArgs {
   batchSize?: number
   clean?: boolean
   withAggs?: boolean
+  testRun?: boolean
 }
