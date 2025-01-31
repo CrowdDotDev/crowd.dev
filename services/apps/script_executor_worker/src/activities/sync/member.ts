@@ -28,7 +28,9 @@ export async function getMembersForSync(batchSize: number): Promise<string[]> {
 export async function syncMembersBatch(
   memberIds: string[],
   withAggs: boolean,
+  chunkSize?: number,
 ): Promise<{ docCount: number; memberCount: number }> {
+  const startTime = new Date()
   try {
     const service = new MemberSyncService(
       svc.redis,
@@ -38,8 +40,10 @@ export async function syncMembersBatch(
       svc.log,
     )
 
-    // Process in chunks of 10 members in parallel
-    const CHUNK_SIZE = 10
+    const CHUNK_SIZE = chunkSize || 10
+
+    svc.log.info(`Syncing members in chunks of ${CHUNK_SIZE} members!`)
+
     const results = []
     for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
       const chunk = memberIds.slice(i, i + CHUNK_SIZE)
@@ -48,6 +52,11 @@ export async function syncMembersBatch(
       )
       results.push(...chunkResults)
     }
+
+    const totalDiffInMinutes = (new Date().getTime() - startTime.getTime()) / (1000 * 60)
+    svc.log.info(
+      `Completed sync of ${memberIds.length} members in ${totalDiffInMinutes.toFixed(2)} minutes`,
+    )
 
     return {
       docCount: sumBy(results, (r) => r.documentsIndexed),
