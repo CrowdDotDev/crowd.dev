@@ -27,7 +27,7 @@ export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
   let memberIds = await activity.getMembersForSync(BATCH_SIZE)
 
   while (memberIds.length > 0) {
-    const batchStartTime = Date.now()
+    const batchStartTime = new Date()
     const { docCount, memberCount } = await activity.syncMembersBatch(
       memberIds,
       WITH_AGGS,
@@ -37,9 +37,13 @@ export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
     totalMembersSynced += memberCount
     totalDocumentsIndexed += docCount
 
-    const speed = Math.round(memberCount / ((Date.now() - batchStartTime) / 60000))
+    const diffInSeconds = (new Date().getTime() - batchStartTime.getTime()) / 1000
 
-    console.log(`Synced ${memberCount} members! Speed: ${speed} members/minute!`)
+    console.log(
+      `Synced ${memberCount} members! Speed: ${Math.round(
+        memberCount / diffInSeconds,
+      )} members/second!`,
+    )
 
     await activity.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
 
