@@ -6,8 +6,8 @@ alter table integration.runs drop column if exists "microserviceId";
 alter table integration.results drop column if exists "microserviceId";
 alter table integration.streams drop column if exists "microserviceId";
 
-alter table "integrationRuns" drop column if exists "microserviceId";
-alter table "integrationStreams" drop column if exists "microserviceId";
+drop table if exists public."integrationRuns";
+drop table if exists public."integrationStreams";
 
 drop table if exists microservices;
 
