@@ -225,9 +225,21 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title &&
+      row.title !== null &&
+      row.title !== undefined &&
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
+
+  // clean unknown dated work experiences if there is one marked as primary
+  const primaryUnknownDatedWorkExperience = memberOrganizations.find(
+    (row) => row.isPrimaryWorkExperience && !row.dateStart && !row.dateEnd,
+  )
+
+  if (primaryUnknownDatedWorkExperience) {
+    memberOrganizations = memberOrganizations.filter(
+      (row) => row.dateStart || row.id === primaryUnknownDatedWorkExperience.id,
+    )
+  }
 
   const timeline = buildTimeline(memberOrganizations)
 
