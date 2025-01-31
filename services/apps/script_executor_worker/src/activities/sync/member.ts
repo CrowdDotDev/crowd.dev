@@ -1,3 +1,4 @@
+import { sumBy } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { MemberSyncService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
@@ -28,9 +29,6 @@ export async function syncMembersBatch(
   memberIds: string[],
   withAggs: boolean,
 ): Promise<{ docCount: number; memberCount: number }> {
-  let totalDocCount = 0
-  let totalMemberCount = 0
-
   try {
     const service = new MemberSyncService(
       svc.redis,
@@ -40,76 +38,20 @@ export async function syncMembersBatch(
       svc.log,
     )
 
-    // Split members into two groups
-    const midpoint = Math.floor(memberIds.length / 2)
-    const firstHalf = memberIds.slice(0, midpoint)
-    const secondHalf = memberIds.slice(midpoint)
-
-    // Process first half sequentially
-    svc.log.info(`Processing first ${firstHalf.length} members sequentially...`)
-    const sequentialStartTime = Date.now()
-    let sequentialDocCount = 0
-    let sequentialMemberCount = 0
-
-    for (const memberId of firstHalf) {
-      const { membersSynced, documentsIndexed } = await service.syncMembers(memberId, {
-        withAggs,
-      })
-      sequentialDocCount += documentsIndexed
-      sequentialMemberCount += membersSynced
-    }
-
-    const sequentialEndTime = Date.now()
-    const sequentialDuration = (sequentialEndTime - sequentialStartTime) / 1000
-    svc.log.info(
-      `Sequential processing of ${firstHalf.length} members took ${sequentialDuration.toFixed(2)}s (${(
-        sequentialMemberCount / sequentialDuration
-      ).toFixed(2)} members/s)`,
-    )
-
-    // Process second half in parallel with chunks of 5
-    svc.log.info(`Processing second ${secondHalf.length} members in parallel...`)
-    const parallelStartTime = Date.now()
-    let parallelDocCount = 0
-    let parallelMemberCount = 0
+    // Process in chunks of 10 members in parallel
     const CHUNK_SIZE = 10
-
-    for (let i = 0; i < secondHalf.length; i += CHUNK_SIZE) {
-      const chunk = secondHalf.slice(i, i + CHUNK_SIZE)
-      const promises = chunk.map(async (memberId) => {
-        const result = await service.syncMembers(memberId, { withAggs })
-        return result
-      })
-      const results = await Promise.all(promises)
-      for (const result of results) {
-        parallelDocCount += result.documentsIndexed
-        parallelMemberCount += result.membersSynced
-      }
+    const results = []
+    for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
+      const chunk = memberIds.slice(i, i + CHUNK_SIZE)
+      const chunkResults = await Promise.all(
+        chunk.map((memberId) => service.syncMembers(memberId, { withAggs })),
+      )
+      results.push(...chunkResults)
     }
-
-    const parallelEndTime = Date.now()
-    const parallelDuration = (parallelEndTime - parallelStartTime) / 1000
-    svc.log.info(
-      `Parallel processing of ${secondHalf.length} members took ${parallelDuration.toFixed(2)}s (${(
-        parallelMemberCount / parallelDuration
-      ).toFixed(2)} members/s)`,
-    )
-
-    // Log performance comparison
-    const speedupRatio = sequentialDuration / parallelDuration
-    svc.log.info(
-      `Performance comparison for ${secondHalf.length} members each:
-      Sequential: ${sequentialDuration.toFixed(2)}s (${(sequentialMemberCount / sequentialDuration).toFixed(2)} members/s)
-      Parallel  : ${parallelDuration.toFixed(2)}s (${(parallelMemberCount / parallelDuration).toFixed(2)} members/s)
-      Parallel processing was ${speedupRatio.toFixed(2)}x ${speedupRatio > 1 ? 'faster' : 'slower'}`,
-    )
-
-    totalDocCount = sequentialDocCount + parallelDocCount
-    totalMemberCount = sequentialMemberCount + parallelMemberCount
 
     return {
-      docCount: totalDocCount,
-      memberCount: totalMemberCount,
+      docCount: sumBy(results, (r) => r.documentsIndexed),
+      memberCount: sumBy(results, (r) => r.membersSynced),
     }
   } catch (err) {
     throw new Error(err)
