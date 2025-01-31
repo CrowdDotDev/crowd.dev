@@ -24,11 +24,10 @@ export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
   let totalMembersSynced = 0
   let totalDocumentsIndexed = 0
 
-  const now = new Date()
-
   let memberIds = await activity.getMembersForSync(BATCH_SIZE)
 
   while (memberIds.length > 0) {
+    const batchStartTime = Date.now()
     const { docCount, memberCount } = await activity.syncMembersBatch(
       memberIds,
       WITH_AGGS,
@@ -38,8 +37,7 @@ export async function syncMembers(args: ISyncMembersArgs): Promise<void> {
     totalMembersSynced += memberCount
     totalDocumentsIndexed += docCount
 
-    const diffInMinutes = (new Date().getTime() - now.getTime()) / (1000 * 60)
-    const speed = Math.round(totalMembersSynced / diffInMinutes)
+    const speed = Math.round(memberCount / ((Date.now() - batchStartTime) / 60000))
 
     console.log(`Synced ${memberCount} members! Speed: ${speed} members/minute!`)
 
