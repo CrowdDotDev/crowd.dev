@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -42,18 +42,18 @@ const isNew = computed(() => {
     return false;
   }
 
-  return moment().diff(moment(props.entity.joinedAt), 'days')
+  return dayjs().diff(dayjs(props.entity.joinedAt), 'days')
     <= 14;
 });
 
 const computedContent = computed(() => {
   if (props.entityName === 'organization') {
-    return `Organization since ${moment(
+    return `Organization since ${dayjs(
       props.entity.joinedAt,
     ).format('MMM DD, YYYY')}`;
   }
 
-  return `Member since ${moment(
+  return `Member since ${dayjs(
     props.entity.joinedAt,
   ).format('MMM DD, YYYY')}`;
 });

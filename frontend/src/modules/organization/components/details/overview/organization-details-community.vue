@@ -43,8 +43,8 @@
           </p>
           <p class="text-small text-gray-600">
             {{
-              moment(props.organization.joinedAt).isAfter(moment('1970-01-01', 'year'))
-                ? moment(props.organization.joinedAt).format('MMM DD, YYYY')
+              dayjs(props.organization.joinedAt).isAfter(dayjs('1970-01-01', 'year'))
+                ? dayjs(props.organization.joinedAt).format('MMM DD, YYYY')
                 : '-'
             }}
           </p>
@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';

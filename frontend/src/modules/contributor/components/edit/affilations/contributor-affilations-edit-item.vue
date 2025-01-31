@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import useVuelidate from '@vuelidate/core';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
@@ -153,7 +153,7 @@ const minDate = (value: string, rest: AffilationForm) => {
   return (
     (!value && !dateEnd && !currentlyAffiliated)
       || (value && !dateEnd && currentlyAffiliated)
-      || (value && dateEnd && moment(value).isBefore(moment(dateEnd)))
+      || (value && dateEnd && dayjs(value).isBefore(dayjs(dateEnd)))
       || (!value && !dateEnd)
   );
 };

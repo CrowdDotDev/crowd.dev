@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import { stringify } from 'qs';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import config from '@/config';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -14,7 +14,7 @@ const authAxios = Axios.create({
       arrayFormat: 'brackets',
       filter: (prefix, value) => {
         if (
-          moment.isMoment(value)
+          dayjs.isDayjs(value)
           || value instanceof Date
         ) {
           return value.toISOString();

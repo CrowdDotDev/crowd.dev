@@ -193,7 +193,8 @@
 </template>
 
 <script lang="ts" setup>
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
@@ -206,6 +207,7 @@ import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
+dayjs.extend(utcPlugin);
 const {
   chartData, organizations, period, activeOrganizations, recentOrganizations,
 } = mapGetters('dashboard');
@@ -216,11 +218,11 @@ const mapData = (data: any[]) => data.map((item) => ({
 }));
 
 const periodRange = computed(() => [
-  moment()
+  dayjs()
     .utc()
     .subtract(period.value - 1, 'day')
     .format('YYYY-MM-DD'),
-  moment()
+  dayjs()
     .utc()
     .format('YYYY-MM-DD'),
 ]);

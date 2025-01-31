@@ -120,7 +120,8 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import { Organization } from '@/modules/organization/types/Organization';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -138,6 +139,7 @@ import { ReportDataType } from '@/shared/modules/report-issue/constants/report-d
 import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
+dayjs.extend(utcPlugin);
 const props = defineProps<{
   organization: Organization,
   contributor: Contributor,
@@ -155,11 +157,11 @@ const hovered = ref<boolean>(false);
 
 const getDateRange = (dateStart?: string, dateEnd?: string) => {
   const start = dateStart
-    ? moment(dateStart).utc().format('MMMM YYYY')
+    ? dayjs(dateStart).utc().format('MMMM YYYY')
     : 'Unknown';
   const endDefault = dateStart ? 'Present' : 'Unknown';
   const end = dateEnd
-    ? moment(dateEnd).utc().format('MMMM YYYY')
+    ? dayjs(dateEnd).utc().format('MMMM YYYY')
     : endDefault;
   if (start === end) {
     return start;
@@ -174,15 +176,15 @@ const restOrganizations = computed(() => props.contributor.organizations.filter(
 
 const isOverlapping = computed(() => {
   const org = props.organization.memberOrganizations;
-  const dateStart = moment(org.dateStart || new Date());
-  const dateEnd = moment(org.dateEnd || new Date());
+  const dateStart = dayjs(org.dateStart || undefined);
+  const dateEnd = dayjs(org.dateEnd || undefined);
   return restOrganizations.value.some((o) => {
     if (!o.memberOrganizations.affiliationOverride.isPrimaryWorkExperience) {
       return false;
     }
     const oOrg = o.memberOrganizations;
-    const dateStartCompare = moment(oOrg.dateStart || new Date());
-    const dateEndCompare = moment(oOrg.dateEnd || new Date());
+    const dateStartCompare = dayjs(oOrg.dateStart || undefined);
+    const dateEndCompare = dayjs(oOrg.dateEnd || undefined);
 
     return dateStartCompare.isBefore(dateEnd) && dateEndCompare.isAfter(dateStart);
   });

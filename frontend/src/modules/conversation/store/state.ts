@@ -1,5 +1,5 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export interface ConversationState {
   filters: Filter,
@@ -20,12 +20,12 @@ export default () => ({
     },
     lastActivityDate: {
       operator: 'gt',
-      value: moment().subtract(7, 'day').format('YYYY-MM-DD'),
+      value: dayjs().subtract(7, 'day').format('YYYY-MM-DD'),
       include: true,
     },
   } as Filter,
   limit: 20,
-  lastActive: moment().toISOString(),
+  lastActive: dayjs().toISOString(),
   savedFilterBody: {},
   conversations: [],
   totalConversations: 0,

@@ -1,8 +1,8 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export default () => {
-  const oneWeekAgo = moment().subtract(7, 'day').format('YYYY-MM-DD');
-  const twoDaysAgo = moment().subtract(2, 'day').format('YYYY-MM-DD');
+  const oneWeekAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD');
+  const twoDaysAgo = dayjs().subtract(2, 'day').format('YYYY-MM-DD');
 
   before(() => {
     cy.wait(1000);
@@ -42,7 +42,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', true);
+        cy.wrap(dayjs(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', true);
       });
     });
   });
@@ -58,7 +58,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
+        cy.wrap(dayjs(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
       });
     });
   });
@@ -76,7 +76,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isBefore(moment(oneWeekAgo))).should('eq', true);
+        cy.wrap(dayjs(row.lastActive).isBefore(dayjs(oneWeekAgo))).should('eq', true);
       });
     });
   });
@@ -92,7 +92,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isBefore(moment(oneWeekAgo))).should('eq', false);
+        cy.wrap(dayjs(row.lastActive).isBefore(dayjs(oneWeekAgo))).should('eq', false);
       });
     });
   });
@@ -110,7 +110,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isAfter(moment(oneWeekAgo))).should('eq', true);
+        cy.wrap(dayjs(row.lastActive).isAfter(dayjs(oneWeekAgo))).should('eq', true);
       });
     });
   });
@@ -126,7 +126,7 @@ export default () => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
         console.log(row.lastActive, oneWeekAgo);
-        cy.wrap(moment(row.lastActive).isAfter(moment(oneWeekAgo))).should('eq', false);
+        cy.wrap(dayjs(row.lastActive).isAfter(dayjs(oneWeekAgo))).should('eq', false);
       });
     });
   });
@@ -145,7 +145,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(moment(row.lastActive).isBetween(moment(oneWeekAgo).subtract(1, 'day'), moment(twoDaysAgo), 'day')).should('eq', true);
+        cy.wrap(dayjs(row.lastActive).isBetween(dayjs(oneWeekAgo).subtract(1, 'day'), dayjs(twoDaysAgo), 'day')).should('eq', true);
       });
     });
   });
@@ -163,7 +163,7 @@ export default () => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
         cy.wrap(
-          moment(row.lastActive).isBetween(moment(oneWeekAgo).subtract(1, 'day'), moment(twoDaysAgo), 'day')
+          dayjs(row.lastActive).isBetween(dayjs(oneWeekAgo).subtract(1, 'day'), dayjs(twoDaysAgo), 'day')
         ).should('eq', false);
       });
     });

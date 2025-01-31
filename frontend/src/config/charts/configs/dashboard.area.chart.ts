@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { formatTooltipTitle, parseTooltipBody, parseTooltipTitle } from '@/utils/reports';
 import { ChartConfig } from '@/config/charts';
 import { externalTooltipHandler } from '@/config/charts/helpers/tooltip';
@@ -111,7 +111,7 @@ export const dashboardAreaChart: ChartConfig = (ctx: any, data: DashboardAreaCha
               family: 'Open Sans',
               size: 10,
             },
-            callback: (label: string) => moment(label).format('MMM DD'),
+            callback: (label: string) => dayjs(label).format('MMM DD'),
           },
           grid: {
             display: false,

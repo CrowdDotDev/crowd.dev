@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import GenericField from '@/shared/fields/generic-field';
 import { formatDate } from '@/utils/date';
 
@@ -62,7 +62,7 @@ export default class DateField extends GenericField {
   }
 
   forFormInitialValue(value) {
-    return value ? moment(value, 'YYYY-MM-DD') : null;
+    return value ? dayjs(value, 'YYYY-MM-DD') : null;
   }
 
   forFormCast() {
@@ -90,7 +90,7 @@ export default class DateField extends GenericField {
             return true;
           }
 
-          return moment(value, 'YYYY-MM-DD').isValid();
+          return dayjs(value, 'YYYY-MM-DD').isValid();
         },
       )
       .transform((value) => (value ? formatDate({ timestamp: value }) : null));

@@ -1,18 +1,20 @@
 import { ReportDataTypeConfig } from '@/shared/modules/report-issue/config';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { Organization } from '@/modules/organization/types/Organization';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import WorkExperience from './type-work-experience.vue';
 
+dayjs.extend(utcPlugin);
 const { displayName } = useOrganizationHelpers();
 
 const getDateRange = (dateStart?: string, dateEnd?: string) => {
   const start = dateStart
-    ? moment(dateStart).utc().format('MMMM YYYY')
+    ? dayjs(dateStart).utc().format('MMMM YYYY')
     : 'Unknown';
   const endDefault = dateStart ? 'Present' : 'Unknown';
   const end = dateEnd
-    ? moment(dateEnd).utc().format('MMMM YYYY')
+    ? dayjs(dateEnd).utc().format('MMMM YYYY')
     : endDefault;
   if (start === end) {
     return start;

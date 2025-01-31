@@ -118,7 +118,7 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import { MemberOrganization, Organization, OrganizationSource } from '@/modules/organization/types/Organization';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfOrganizationSelect from '@/modules/organization/components/shared/organization-select.vue';
-import moment from 'moment/moment';
+import dayjs from 'dayjs';
 import Message from '@/shared/message/message';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -164,7 +164,7 @@ const minDate = (value: string, rest: ConrtibutorWorkHistoryForm) => {
   return (
     (!value && !dateEnd && !currentlyWorking)
       || (value && !dateEnd && currentlyWorking)
-      || (value && dateEnd && moment(value).isBefore(moment(dateEnd)))
+      || (value && dateEnd && dayjs(value).isBefore(dayjs(dateEnd)))
       || (!value && !dateEnd)
   );
 };
@@ -185,8 +185,8 @@ const updateWorkExperience = () => {
     organizationId: (form.organization || props.organization)?.id,
     source: OrganizationSource.UI,
     title: form.title,
-    dateStart: form.dateStart ? moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
-    dateEnd: !form.currentlyWorking && form.dateEnd ? moment(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+    dateStart: form.dateStart ? dayjs(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+    dateEnd: !form.currentlyWorking && form.dateEnd ? dayjs(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
   };
 
   if (isEdit.value) {
@@ -270,10 +270,10 @@ const hasSameOrgDetails = computed(() => (props.contributor.organizations || [])
 
     // Check if dates matching
     const start = form.dateStart && o.memberOrganizations.dateStart
-      ? moment(form.dateStart).startOf('month').isSame(moment(o.memberOrganizations.dateStart), 'day')
+      ? dayjs(form.dateStart).startOf('month').isSame(dayjs(o.memberOrganizations.dateStart), 'day')
       : form.dateStart === o.memberOrganizations.dateStart;
     const end = !form.currentlyWorking && form.dateEnd && o.memberOrganizations.dateEnd
-      ? moment(form.dateEnd).startOf('month').isSame(moment(o.memberOrganizations.dateEnd), 'day')
+      ? dayjs(form.dateEnd).startOf('month').isSame(dayjs(o.memberOrganizations.dateEnd), 'day')
       : form.dateEnd === o.memberOrganizations.dateEnd;
     return start && end;
   }));

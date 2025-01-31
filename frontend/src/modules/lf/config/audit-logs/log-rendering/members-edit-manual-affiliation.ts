@@ -1,16 +1,18 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
-import moment from 'moment/moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
+dayjs.extend(utcPlugin);
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
   const dateStartFormat = dateStart
-    ? moment(dateStart).utc().format('MMMM YYYY')
+    ? dayjs(dateStart).utc().format('MMMM YYYY')
     : 'Unknown';
   // eslint-disable-next-line no-nested-ternary
   const dateEndFormat = dateEnd
-    ? moment(dateEnd).utc().format('MMMM YYYY')
+    ? dayjs(dateEnd).utc().format('MMMM YYYY')
     : (dateStart ? 'Present' : 'Unknown');
   return `${dateStartFormat} -> ${dateEndFormat}`;
 };

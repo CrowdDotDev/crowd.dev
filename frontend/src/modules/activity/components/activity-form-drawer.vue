@@ -172,7 +172,7 @@ import {
 import { required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { storeToRefs } from 'pinia';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { MemberService } from '@/modules/member/member-service';
@@ -240,7 +240,7 @@ const rules = {
   },
   datetime: {
     required,
-    inPast: (date) => moment(date).isBefore(moment()),
+    inPast: (date) => dayjs(date).isBefore(dayjs()),
   },
   activityType: {
     required,

@@ -75,8 +75,8 @@
             Joined date
           </p>
           <p class="text-small text-gray-600">
-            {{ moment(props.contributor.joinedAt).isAfter(moment('1970-01-01', 'year'))
-              ? moment(props.contributor.joinedAt).format('MMM DD, YYYY') : '-' }}
+            {{ dayjs(props.contributor.joinedAt).isAfter(dayjs('1970-01-01', 'year'))
+              ? dayjs(props.contributor.joinedAt).format('MMM DD, YYYY') : '-' }}
           </p>
         </article>
       </div>
@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { formatNumber } from '@/utils/number';
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';

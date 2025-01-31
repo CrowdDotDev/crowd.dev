@@ -1,6 +1,6 @@
 import { ActivityState } from '@/modules/activity/store/pinia/state';
 import { ActivityService } from '@/modules/activity/activity-service';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export default {
   fetchActivities(this: ActivityState, { body = {}, reload = false, append = false }:
@@ -10,7 +10,7 @@ export default {
     // Clear activities
     if (!append) {
       this.activities = [];
-      this.timestamp = moment().toISOString();
+      this.timestamp = dayjs().toISOString();
     }
     return ActivityService.query(mappedBody)
       .then((data: any) => {

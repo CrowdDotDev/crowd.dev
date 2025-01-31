@@ -3,7 +3,12 @@ import {
   dateFilterTimePickerOptions,
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
+import arraySupportPlugin from 'dayjs/plugin/arraySupport';
+
+dayjs.extend(utcPlugin);
+dayjs.extend(arraySupportPlugin);
 
 export const dateApiFilterRenderer = (property: string, { value, operator }: DateFilterValue): any[] => {
   const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value);
@@ -25,8 +30,8 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         [filterOperator]: [
-          moment.utc(mappedValue[0]).startOf('day').toISOString(),
-          moment.utc(mappedValue[1]).endOf('day').toISOString(),
+          dayjs.utc(mappedValue[0]).startOf('day').toISOString(),
+          dayjs.utc(mappedValue[1]).endOf('day').toISOString(),
         ],
       },
     };
@@ -34,18 +39,18 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         between: [
-          moment.utc(mappedValue).startOf('day').toISOString(),
-          moment.utc(mappedValue).endOf('day').toISOString(),
+          dayjs.utc(mappedValue).startOf('day').toISOString(),
+          dayjs.utc(mappedValue).endOf('day').toISOString(),
         ],
       },
     };
   } else {
-    let parsedValue = moment.utc(mappedValue).startOf('day').toISOString();
+    let parsedValue = dayjs.utc(mappedValue).startOf('day').toISOString();
 
     if (['last24h'].includes(value as string)) {
       parsedValue = mappedValue as string;
     } else if ([FilterDateOperator.GT, FilterDateOperator.GTE].includes(operator)) {
-      parsedValue = moment.utc(mappedValue).endOf('day').toISOString();
+      parsedValue = dayjs.utc(mappedValue).endOf('day').toISOString();
     }
 
     filter = {

@@ -35,13 +35,13 @@
         <span v-if="memberOrganizations.title" class="mx-1">•</span>
         <span>
           {{ memberOrganizations.dateStart
-            ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
+            ? dayjs(memberOrganizations.dateStart).utc().format('MMMM YYYY')
             : 'Unknown' }}
         </span>
         <span class="mx-1 whitespace-nowrap">-></span>
         <span>
           {{ memberOrganizations.dateEnd
-            ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+            ? dayjs(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
             : memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
         </span>
       </div>
@@ -50,9 +50,11 @@
 </template>
 
 <script setup lang="ts">
-import moment from 'moment/moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
+dayjs.extend(utcPlugin);
 const props = defineProps({
   member: {
     type: Object,

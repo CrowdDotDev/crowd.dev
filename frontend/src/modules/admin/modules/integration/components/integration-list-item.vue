@@ -65,7 +65,7 @@
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : moment(integration.lastProcessedAt).fromNow() }}
+            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : dayjs(integration.lastProcessedAt).fromNow() }}
           </p>
         </div>
 
@@ -115,7 +115,7 @@ import AppIntegrationProgressBar from '@/modules/integration/components/integrat
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { useRoute } from 'vue-router';
 
 const props = defineProps<{

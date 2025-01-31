@@ -118,7 +118,7 @@ import LfContributorEditAffilationsItem
 , { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
 import useVuelidate from '@vuelidate/core';
 import Message from '@/shared/message/message';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 
@@ -166,10 +166,10 @@ const submit = () => {
     segmentId: affiliation.segmentId,
     organizationId: affiliation.organization,
     dateStart: affiliation.dateStart
-      ? moment(affiliation.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+      ? dayjs(affiliation.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
       : undefined,
     dateEnd: !affiliation.currentlyAffiliated && affiliation.dateEnd
-      ? moment(affiliation.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+      ? dayjs(affiliation.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
       : undefined,
   }));
 

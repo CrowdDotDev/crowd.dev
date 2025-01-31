@@ -349,7 +349,7 @@ import {
   computed, defineProps, ref, watch, h,
 } from 'vue';
 import { useStore } from 'vuex';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { formatDateToTimeAgo } from '@/utils/date';
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
 import { withHttp } from '@/utils/string';
@@ -589,7 +589,7 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
   const action = shouldAdd
     ? {
       type: actionType,
-      timestamp: moment(),
+      timestamp: dayjs(),
     }
     : props.result.actions.find(
       (a) => a.type === actionType,

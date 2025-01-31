@@ -109,9 +109,11 @@ import { ContributorAffiliation } from '@/modules/contributor/types/Contributor'
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import moment from 'moment/moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 
+dayjs.extend(utcPlugin);
 const props = defineProps<{
   project: any,
 }>();
@@ -120,11 +122,11 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const getAffilationPeriodText = (affilations: ContributorAffiliation[]) => affilations.map(({ dateStart, dateEnd }) => {
   const start = dateStart
-    ? moment(dateStart).utc().format('MMM YYYY')
+    ? dayjs(dateStart).utc().format('MMM YYYY')
     : 'Unknown';
   const endDefault = dateStart ? 'Present' : 'Unknown';
   const end = dateEnd
-    ? moment(dateEnd).utc().format('MMM YYYY')
+    ? dayjs(dateEnd).utc().format('MMM YYYY')
     : endDefault;
   if (start === end) {
     return start;

@@ -64,7 +64,9 @@ import AppConversationDrawer from '@/modules/conversation/components/conversatio
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
+dayjs.extend(utcPlugin);
 
 export default {
   name: 'AppDashboardConversationList',
@@ -99,7 +101,7 @@ export default {
         },
         lastActivityDate: {
           operator: 'gt',
-          value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+          value: dayjs().utc().subtract(6, 'day').format('YYYY-MM-DD'),
           include: true,
         },
       };

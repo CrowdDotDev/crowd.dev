@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Contributor } from '@/modules/contributor/types/Contributor';
@@ -15,7 +15,7 @@ const useContributorHelpers = () => {
     if (!contributor.joinedAt) {
       return false;
     }
-    return moment().diff(moment(contributor.joinedAt), 'days')
+    return dayjs().diff(dayjs(contributor.joinedAt), 'days')
       <= 14;
   };
 

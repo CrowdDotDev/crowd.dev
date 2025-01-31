@@ -1,5 +1,5 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export interface ActivityState {
   filters: Filter,
@@ -21,7 +21,7 @@ export default () => ({
     },
   } as Filter,
   limit: 20,
-  timestamp: moment().toISOString(),
+  timestamp: dayjs().toISOString(),
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,

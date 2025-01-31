@@ -282,7 +282,7 @@
 import {
   onMounted, ref,
 } from 'vue';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
@@ -356,7 +356,7 @@ const formatJoinedDate = (date) => {
   if (!date || new Date(date).getFullYear() <= 1970) {
     return '-';
   }
-  return moment(date).format('YYYY-MM-DD');
+  return dayjs(date).format('YYYY-MM-DD');
 };
 
 defineExpose({

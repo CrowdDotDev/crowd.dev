@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 const weekdays = [
   'Sun',
@@ -37,7 +37,7 @@ const parseDate = (date, granularity) => {
 export const parseTooltipTitle = (context) => {
   const { granularity } = context[0].dataset;
   const { label: title } = context[0];
-  const date = moment(title);
+  const date = dayjs(title);
 
   return parseDate(date, granularity);
 };
@@ -80,17 +80,17 @@ export const parseTooltipBody = (context) => {
     percDiff = (difference / previousPoint) * 100;
   }
 
-  const date = moment(label);
+  const date = dayjs(label);
   let previousDate;
 
   // For granularity WEEK
   // Show label as range between start and end of week
   // (e.g Nov 14 - Nov 20)
   if (granularity === 'week') {
-    const startDate = moment(label)
+    const startDate = dayjs(label)
       .subtract(7, 'day')
       .format('MMM DD');
-    const endDate = moment(label)
+    const endDate = dayjs(label)
       .subtract(1, 'day')
       .format('MMM DD');
 
@@ -117,7 +117,7 @@ export const parseTooltipBody = (context) => {
 };
 
 export const parseAxisLabel = (label, granularity) => {
-  const date = moment(label);
+  const date = dayjs(label);
 
   return parseDate(date, granularity);
 };

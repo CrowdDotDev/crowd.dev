@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export default {
   name: 'LfSvg',
@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       isHovered: false,
-      version: moment().format('x'),
+      version: dayjs().format('x'),
     };
   },
 };

@@ -1,13 +1,13 @@
 <template>
   <div v-if="props.organization.lastEnrichedAt" class="flex items-center mr-4">
     <p class="text-tiny text-gray-500 mr-2 text-right">
-      Last enrichment on {{ moment(props.organization.lastEnrichedAt).format('MMM DD, YYYY') }}
+      Last enrichment on {{ dayjs(props.organization.lastEnrichedAt).format('MMM DD, YYYY') }}
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { Organization } from '@/modules/organization/types/Organization';
 
 const props = defineProps<{

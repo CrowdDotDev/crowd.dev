@@ -1,20 +1,21 @@
-import moment from 'moment';
-import config from '@/config';
 import dayjs from 'dayjs';
+import utcPlugin from 'dayjs/plugin/utc';
+import config from '@/config';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
+dayjs.extend(utcPlugin);
 /**
  * Time ago utility
  *
- * This is a small wrapper of the moment(date).fromNow() method, to handle our data-related exception regarding
+ * This is a small wrapper of the dayjs(date).fromNow() method, to handle our data-related exception regarding
  * the year 1970, replacing the default label ("52 years ago") to "some time ago".
  *
  * @param timestamp
  * @returns {string|string}
  */
-export const formatDateToTimeAgo = (timestamp) => (moment.utc(timestamp).year() < 2000
+export const formatDateToTimeAgo = (timestamp) => (dayjs.utc(timestamp).year() < 2000
   ? 'some time ago'
-  : moment.utc(timestamp).fromNow());
+  : dayjs.utc(timestamp).fromNow());
 
 export const formatDateToTimeAgoForIntegrations = (timestamp) => {
   dayjs.extend(relativeTime, {
@@ -51,7 +52,7 @@ export const formatDate = ({
   subtractYears,
   format = 'YYYY-MM-DD',
 }) => {
-  const date = timestamp ? moment(timestamp) : moment();
+  const date = timestamp ? dayjs(timestamp) : dayjs();
 
   if (subtractDays) {
     date.subtract(subtractDays, 'days');
@@ -73,8 +74,8 @@ export const getTrialDate = (tenant) => {
     return null;
   }
 
-  const daysLeft = moment(tenant.trialEndsAt).diff(
-    moment(),
+  const daysLeft = dayjs(tenant.trialEndsAt).diff(
+    dayjs(),
     'days',
   );
 

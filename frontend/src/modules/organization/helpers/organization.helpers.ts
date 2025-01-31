@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { Organization, OrganizationIdentityType } from '@/modules/organization/types/Organization';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 import { lfIdentities } from '@/config/identities';
@@ -12,7 +12,7 @@ const useOrganizationHelpers = () => {
     if (!organization.joinedAt) {
       return false;
     }
-    return moment().diff(moment(organization.joinedAt), 'days')
+    return dayjs().diff(dayjs(organization.joinedAt), 'days')
       <= 14;
   };
 
