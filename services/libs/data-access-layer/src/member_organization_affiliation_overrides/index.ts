@@ -19,6 +19,12 @@ export async function changeOverride(
     return
   }
 
+  // If the user is setting the work experience as primary
+  // we should allow affiliations for this work experience as well
+  if (data.isPrimaryWorkExperience === true) {
+    data.allowAffiliation = true
+  }
+
   const updateFields = []
   if (data.allowAffiliation !== undefined) {
     updateFields.push(`"allowAffiliation" = $(allowAffiliation)`)
@@ -53,8 +59,8 @@ export async function changeOverride(
       id: uuid(),
       memberId: data.memberId,
       memberOrganizationId: data.memberOrganizationId,
-      allowAffiliation: data.allowAffiliation ?? null,
-      isPrimaryWorkExperience: data.isPrimaryWorkExperience ?? null,
+      allowAffiliation: data.allowAffiliation,
+      isPrimaryWorkExperience: data.isPrimaryWorkExperience,
     },
   )
 }
