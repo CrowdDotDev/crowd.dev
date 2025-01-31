@@ -72,7 +72,7 @@ export async function syncMembersBatch(
     const parallelStartTime = Date.now()
     let parallelDocCount = 0
     let parallelMemberCount = 0
-    const CHUNK_SIZE = 5
+    const CHUNK_SIZE = 10
 
     for (let i = 0; i < secondHalf.length; i += CHUNK_SIZE) {
       const chunk = secondHalf.slice(i, i + CHUNK_SIZE)
