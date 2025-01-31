@@ -53,8 +53,8 @@ export async function changeOverride(
       id: uuid(),
       memberId: data.memberId,
       memberOrganizationId: data.memberOrganizationId,
-      allowAffiliation: data.allowAffiliation ?? null,
-      isPrimaryWorkExperience: data.isPrimaryWorkExperience ?? null,
+      allowAffiliation: data.allowAffiliation,
+      isPrimaryWorkExperience: data.isPrimaryWorkExperience,
     },
   )
 }
