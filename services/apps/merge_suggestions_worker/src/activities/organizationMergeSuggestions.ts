@@ -257,7 +257,6 @@ export async function getOrganizationMergeSuggestions(
   }
 
   const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
-    tenantId,
     organizationId: fullOrg.id,
   })
 
@@ -284,7 +283,6 @@ export async function getOrganizationMergeSuggestions(
 
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
-      tenantId,
       organizationId: organizationToMerge._source.uuid_organizationId,
     })
 
@@ -415,7 +413,6 @@ export async function getRawOrganizationMergeSuggestions(
     for (let i = 0; i < suggestions.length; i++) {
       const qx = pgpQx(svc.postgres.reader.connection())
       const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
-        tenantId,
         organizationId: suggestions[i][0],
       })
 

@@ -123,7 +123,6 @@ export async function fetchMembersForEnrichment(
     `
     SELECT
          members."id",
-         members."tenantId",
          members."displayName",
          members.attributes->'location'->>'default' AS location,
          members.attributes->'websiteUrl'->>'default' AS website,
@@ -137,13 +136,11 @@ export async function fetchMembersForEnrichment(
          ) AS identities,
          MAX(coalesce("membersGlobalActivityCount".total_count, 0)) AS "activityCount"
     FROM members
-         INNER JOIN tenants ON tenants.id = members."tenantId"
          INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
          LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
     WHERE
       ${enrichableBySqlJoined}
       AND coalesce((m.attributes ->'isBot'->>'default')::boolean, false) = false 
-      AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
       AND (${cacheAgeInnerQueryItems.join(' OR ')})
     GROUP BY members.id
@@ -165,20 +162,16 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
         members."contributions",
         members."score",
         members."reach",
-        members."tenantId",
         jsonb_agg(mi.*) as identities
       FROM members
-              INNER JOIN tenants ON tenants.id = members."tenantId"
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
-      WHERE tenants.plan IN ('Scale', 'Enterprise')
-        AND (
+      WHERE (
           (mi.platform = 'github' and mi."sourceId" is not null) OR
           (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
           (mi.platform = 'cvent') OR
           (mi.platform = 'tnc') OR
           (mi.type = 'email' and mi.verified)
           )
-        AND tenants."deletedAt" IS NULL
         AND members."deletedAt" IS NULL
         ${idFilter}
       GROUP BY members.id
@@ -190,7 +183,6 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
 
 export async function getIdentitiesExistInOtherMembers(
   db: DbStore,
-  tenantId: string,
   excludeMemberId: string,
   identities: IMemberIdentity[],
 ): Promise<IMemberIdentity[]> {
@@ -224,14 +216,12 @@ export async function getIdentitiesExistInOtherMembers(
   }
   identityPartialQuery += ')'
 
-  // push replacement for excluded member id and tenant id to the end of replacements array
+  // push replacement for excluded member id to the end of replacements array
   replacements.push(excludeMemberId)
-  replacements.push(tenantId)
 
   const query = `select * from "memberIdentities" mi
   where ${identityPartialQuery}
-  and mi."memberId" <> $${replacementIndex + 1}
-  and mi."tenantId" = $${replacementIndex + 2};`
+  and mi."memberId" <> $${replacementIndex + 1};`
 
   return db.connection().query(query, replacements)
 }
@@ -313,7 +303,6 @@ export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string)
 export async function findExistingMember(
   db: DbStore,
   memberId: string,
-  tenantId: string,
   platform: string,
   values: string[],
   type: MemberIdentityType,
@@ -322,14 +311,12 @@ export async function findExistingMember(
     `SELECT mi."memberId"
        FROM "memberIdentities" mi
        WHERE mi."memberId" <> $(memberId)
-         AND mi."tenantId" = $(tenantId)
          AND mi.platform = $(platform)
          AND mi.value in ($(values:csv))
          AND mi.type = $(type)
          AND EXISTS (SELECT 1 FROM "memberSegments" ms WHERE ms."memberId" = mi."memberId")`,
     {
       memberId,
-      tenantId,
       platform,
       values,
       type,
@@ -619,7 +606,6 @@ export async function updateMember(
 
 export async function updateMemberAttributes(
   tx: DbTransaction,
-  tenantId: string,
   memberId: string,
   attributes: IAttributes,
 ) {
@@ -627,8 +613,8 @@ export async function updateMemberAttributes(
     `UPDATE members SET
       attributes = $1,
       "updatedAt" = NOW()
-    WHERE id = $2 AND "tenantId" = $3;`,
-    [attributes, memberId, tenantId],
+    WHERE id = $2;`,
+    [attributes, memberId],
   )
 }
 

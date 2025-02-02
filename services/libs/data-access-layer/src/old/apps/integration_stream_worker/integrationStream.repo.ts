@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
@@ -32,7 +33,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       const results = await this.db().any(
         `
           SELECT iw.id,
-                iw."tenantId",
                 iw."integrationId",
                 iw.state,
                 iw.type,
@@ -126,7 +126,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     const results = await this.db().any(
       `
         select s.id,
-               s."tenantId",
                i.platform as "integrationType",
                s."runId",
                s."webhookId",
@@ -157,7 +156,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       results = await this.db().any(
         `
           select s.id,
-                 s."tenantId",
                  i.platform as "integrationType",
                  run.onboarding
           from integration.streams s
@@ -177,7 +175,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       results = await this.db().any(
         `
           select s.id,
-                 s."tenantId",
                  i.platform as "integrationType",
                  run.onboarding
           from integration.streams s
@@ -209,7 +206,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
             i."refreshToken" as "integrationRefreshToken",
             r.state    as "runState",
             s."runId",
-            s."tenantId",
             s."webhookId",
             i.settings as "integrationSettings",
             s.id,
@@ -448,7 +444,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
           webhookId: w.webhookId,
           data: w.data ? JSON.stringify(w.data) : null,
           integrationId: w.integrationId,
-          tenantId: w.tenantId,
+          tenantId: DEFAULT_TENANT_ID,
           state: IntegrationStreamState.PENDING,
         }
       }),
@@ -463,7 +459,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     webhookId: string,
     data: unknown,
     integrationId: string,
-    tenantId: string,
   ): Promise<string> {
     const result = await this.db().one(
       `
@@ -476,7 +471,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
         state: IntegrationStreamState.PENDING,
         identifier: identifier,
         data: data ? JSON.stringify(data) : null,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         integrationId,
       },
     )

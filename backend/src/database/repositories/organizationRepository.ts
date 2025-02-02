@@ -1,5 +1,5 @@
 import lodash, { uniq } from 'lodash'
-import Sequelize, { QueryTypes } from 'sequelize'
+import { QueryTypes } from 'sequelize'
 import validator from 'validator'
 
 import {
@@ -65,8 +65,6 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-
-const { Op } = Sequelize
 
 interface IOrganizationId {
   id: string
@@ -620,11 +618,9 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    await cleanUpOrgIdentities(qx, organizationId, currentTenant.id)
+    await cleanUpOrgIdentities(qx, organizationId)
 
     await OrganizationRepository.addIdentities(organizationId, identities, options)
   }
@@ -645,13 +641,11 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     await updateOrgIdentityVerifiedFlag(qx, {
       organizationId,
-      tenantId: currentTenant.id,
       platform: identity.platform,
       value: identity.value,
       type: identity.type,
@@ -665,7 +659,6 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
@@ -676,7 +669,6 @@ class OrganizationRepository {
       value: identity.value,
       type: identity.type,
       verified: identity.verified,
-      tenantId: currentTenant.id,
       integrationId: identity.integrationId || null,
     })
   }
@@ -687,17 +679,15 @@ class OrganizationRepository {
   ): Promise<IOrganizationIdentity[]> {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const results = await sequelize.query(
       `
       select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
-      where "tenantId" = :tenantId and "organizationId" in (:organizationIds)
+      where "organizationId" in (:organizationIds)
     `,
       {
         replacements: {
           organizationIds,
-          tenantId: currentTenant.id,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -717,14 +707,11 @@ class OrganizationRepository {
 
     const seq = SequelizeRepository.getSequelize(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const query = `
       update "organizationIdentities"
       set
         "organizationId" = :newOrganizationId
       where
-        "tenantId" = :tenantId and
         "organizationId" = :oldOrganizationId and
         platform = :platform and
         value = :value and
@@ -736,7 +723,6 @@ class OrganizationRepository {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, count] = await seq.query(query, {
         replacements: {
-          tenantId: tenant.id,
           oldOrganizationId: fromOrganizationId,
           newOrganizationId: toOrganizationId,
           platform: identity.platform,
@@ -862,7 +848,6 @@ class OrganizationRepository {
       displayName?: string
       mergeActionType: MergeActionType
       mergeActionStatus: MergeActionState
-      tenantId: string
     },
     options: IRepositoryOptions,
   ): Promise<number> {
@@ -884,13 +869,11 @@ class OrganizationRepository {
         join organizations o2 on o2.id = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
-          AND ma."tenantId" = :tenantId
           AND (
             (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
             OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
           )
-        WHERE org."tenantId" = :tenantId
-          AND os1."segmentId" IN (:segmentIds)
+        WHERE os1."segmentId" IN (:segmentIds)
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
@@ -981,7 +964,6 @@ class OrganizationRepository {
           organizationId: args?.filter?.organizationId,
           mergeActionType: MergeActionType.ORG,
           mergeActionStatus: MergeActionState.ERROR,
-          tenantId: options.currentTenant.id,
         },
         options,
       )
@@ -1012,13 +994,11 @@ class OrganizationRepository {
         join organizations o2 on o2.id = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
-          AND ma."tenantId" = :tenantId
           AND (
             (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
             OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
           )
-        WHERE org."tenantId" = :tenantId
-          AND os1."segmentId" IN (:segmentIds)
+        WHERE os1."segmentId" IN (:segmentIds)
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
@@ -1067,7 +1047,6 @@ class OrganizationRepository {
     `,
       {
         replacements: {
-          tenantId: options.currentTenant.id,
           segmentIds,
           limit: args.limit,
           offset: args.offset,
@@ -1125,7 +1104,6 @@ class OrganizationRepository {
       const organizationIds = uniq(result.map((r) => r.organizations[0].id))
       const lfxMemberships = await findManyLfxMemberships(qx, {
         organizationIds,
-        tenantId: options.currentTenant.id,
       })
       result.forEach((r) => {
         r.organizations.forEach((org) => {
@@ -1201,7 +1179,6 @@ class OrganizationRepository {
     const foundOrgsIdentities = await fetchManyOrgIdentities(
       qx,
       foundOrgs.map((o) => o.organizationId),
-      options.currentTenant.id,
     )
 
     const orgIdWithMostIdentities = foundOrgsIdentities.sort(
@@ -1271,28 +1248,6 @@ class OrganizationRepository {
     organization.attributes = OrganizationRepository.convertOrgAttributesForDisplay(attributes)
 
     return organization
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.organization.findAll({
-      attributes: ['id'],
-      where,
-    })
-
-    return records.map((record) => record.id)
   }
 
   static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
@@ -1438,8 +1393,6 @@ class OrganizationRepository {
     options: IRepositoryOptions,
     segments: string[] = [],
   ): Promise<PageData<IActiveOrganizationData>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     if (segments.length !== 1) {
       throw new Error400(
         `This operation can have exactly one segment. Found ${segments.length} segments.`,
@@ -1481,7 +1434,6 @@ class OrganizationRepository {
     const activeOrgsResults = await getActiveOrganizations(options.qdb, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
-      tenantId: tenant.id,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
       offset: 0,
@@ -1568,7 +1520,6 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
-      tenantId: options.currentTenant.id,
       organizationIds,
     })
 
@@ -1733,7 +1684,6 @@ class OrganizationRepository {
     if (include.lfxMemberships) {
       const lfxMemberships = await findManyLfxMemberships(qx, {
         organizationIds: orgIds,
-        tenantId: options.currentTenant.id,
       })
 
       rows.forEach((org) => {
@@ -1741,7 +1691,7 @@ class OrganizationRepository {
       })
     }
     if (include.identities) {
-      const identities = await fetchManyOrgIdentities(qx, orgIds, options.currentTenant.id)
+      const identities = await fetchManyOrgIdentities(qx, orgIds)
 
       rows.forEach((org) => {
         org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
@@ -1874,7 +1824,6 @@ class OrganizationRepository {
   ): Promise<number> {
     const result = await queryActivities(options.qdb, {
       countOnly: true,
-      tenantId: options.currentTenant.id,
       filter: {
         and: [
           {
@@ -1898,7 +1847,6 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<number> {
     const rows = await countMembersWithActivities(options.qdb, {
-      tenantId: options.currentTenant.id,
       organizationId,
       platform,
     })

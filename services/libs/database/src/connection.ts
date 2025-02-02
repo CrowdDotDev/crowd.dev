@@ -7,6 +7,36 @@ import { DbConnection, DbInstance, IDatabaseConfig } from './types'
 
 const log = getServiceChildLogger('database.connection')
 
+let readDbConfig: IDatabaseConfig | undefined = undefined
+export const READ_DB_CONFIG = (): IDatabaseConfig => {
+  if (!readDbConfig) {
+    readDbConfig = {
+      host: process.env.CROWD_DB_READ_HOST,
+      port: parseInt(process.env.CROWD_DB_PORT, 10),
+      database: process.env.CROWD_DB_DATABASE,
+      user: process.env.CROWD_DB_USERNAME,
+      password: process.env.CROWD_DB_PASSWORD,
+    }
+  }
+
+  return readDbConfig
+}
+
+let writeDbConfig: IDatabaseConfig | undefined = undefined
+export const WRITE_DB_CONFIG = (): IDatabaseConfig => {
+  if (!writeDbConfig) {
+    writeDbConfig = {
+      host: process.env.CROWD_DB_WRITE_HOST,
+      port: parseInt(process.env.CROWD_DB_PORT, 10),
+      database: process.env.CROWD_DB_DATABASE,
+      user: process.env.CROWD_DB_USERNAME,
+      password: process.env.CROWD_DB_PASSWORD,
+    }
+  }
+
+  return writeDbConfig
+}
+
 let dbInstance: DbInstance | undefined
 
 export const getDbInstance = (): DbInstance => {

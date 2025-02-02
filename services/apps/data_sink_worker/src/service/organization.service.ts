@@ -28,14 +28,13 @@ export class OrganizationService extends LoggerBase {
   }
 
   public async findOrCreate(
-    tenantId: string,
     source: string,
     integrationId: string,
     data: IOrganization,
   ): Promise<string> {
     const id = await this.store.transactionally(async (txStore) => {
       const qe = dbStoreQx(txStore)
-      const id = await findOrCreateOrganization(qe, tenantId, source, data, integrationId)
+      const id = await findOrCreateOrganization(qe, source, data, integrationId)
       return id
     })
 
@@ -47,7 +46,6 @@ export class OrganizationService extends LoggerBase {
   }
 
   public async addToMember(
-    tenantId: string,
     segmentId: string,
     memberId: string,
     orgs: IOrganizationIdSource[],
@@ -56,7 +54,6 @@ export class OrganizationService extends LoggerBase {
 
     await addOrgsToSegments(
       qe,
-      tenantId,
       segmentId,
       orgs.map((org) => org.id),
     )
@@ -74,14 +71,12 @@ export class OrganizationService extends LoggerBase {
   }
 
   public async processOrganizationEnrich(
-    tenantId: string,
     integrationId: string,
     platform: PlatformType,
     organization: IOrganization,
   ): Promise<void> {
     this.log = getChildLogger('OrganizationService.processOrganizationEnrich', this.log, {
       integrationId,
-      tenantId,
     })
 
     try {
@@ -107,13 +102,13 @@ export class OrganizationService extends LoggerBase {
 
         // first try finding the organization using the remote sourceId
         let dbOrganization = primaryIdentity.sourceId
-          ? await findOrgBySourceId(qe, tenantId, segmentId, platform, primaryIdentity.sourceId)
+          ? await findOrgBySourceId(qe, segmentId, platform, primaryIdentity.sourceId)
           : null
 
         if (!dbOrganization) {
           // try finding the organization using verified identities
           for (const i of verifiedIdentities) {
-            dbOrganization = await findOrgByVerifiedIdentity(qe, tenantId, i)
+            dbOrganization = await findOrgByVerifiedIdentity(qe, i)
             if (dbOrganization) {
               break
             }
@@ -135,7 +130,7 @@ export class OrganizationService extends LoggerBase {
           }
 
           // check if sent primary identity already exists in the org
-          const existingIdentities = await getOrgIdentities(qe, dbOrganization.id, tenantId)
+          const existingIdentities = await getOrgIdentities(qe, dbOrganization.id)
 
           // merge existing and incoming identities
           for (const i of existingIdentities) {
@@ -154,7 +149,7 @@ export class OrganizationService extends LoggerBase {
             organization.identities.push(i)
           }
 
-          await txService.findOrCreate(tenantId, segmentId, integrationId, organization)
+          await txService.findOrCreate(segmentId, integrationId, organization)
         } else {
           this.log.debug(
             'No organization found for enriching. This organization enrich process had no affect.',

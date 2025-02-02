@@ -35,38 +35,30 @@ export async function moveActivitiesToNewOrg(
   qdb: DbConnOrTx,
   primaryId: string,
   secondaryId: string,
-  tenantId: string,
 ) {
   await updateActivities(
     qdb,
     async () => ({ organizationId: primaryId }),
     `
-      "organizationId" = $(organizationId) AND "tenantId" = $(tenantId)
+      "organizationId" = $(organizationId)
       LIMIT 5000
     `,
     {
       organizationId: secondaryId,
-      tenantId,
     },
   )
 }
 
-export async function markOrgMergeActionsDone(
-  db: DbStore,
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-) {
+export async function markOrgMergeActionsDone(db: DbStore, primaryId: string, secondaryId: string) {
   await db.connection().query(
     `
         UPDATE "mergeActions"
         SET state = $4
-        WHERE "tenantId" = $3
-          AND type = $5
+        WHERE type = $5
           AND "primaryId" = $1
           AND "secondaryId" = $2
           AND state != $4
     `,
-    [primaryId, secondaryId, tenantId, 'done', 'org'],
+    [primaryId, secondaryId, 'done', 'org'],
   )
 }

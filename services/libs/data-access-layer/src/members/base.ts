@@ -95,7 +95,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
   redis: RedisClient,
-  tenantId: string,
   {
     filter = {} as any,
     search = null,
@@ -125,7 +124,7 @@ export async function queryMembersAdvanced(
   qdbConn?: DbConnOrTx,
 ): Promise<PageData<IDbMemberData>> {
   if (!attributeSettings || attributeSettings.length === 0) {
-    attributeSettings = await getMemberAttributeSettings(qx, redis, tenantId)
+    attributeSettings = await getMemberAttributeSettings(qx, redis)
   }
 
   const withAggregates = !!segmentId
@@ -149,7 +148,6 @@ export async function queryMembersAdvanced(
   const params = {
     limit,
     offset,
-    tenantId,
     segmentId,
   }
 
@@ -235,8 +233,7 @@ export async function queryMembersAdvanced(
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
       ${searchJoin}
-      WHERE m."tenantId" = $(tenantId)
-        AND (${filterString})
+      WHERE (${filterString})
     `
 
   const countQuery = createQuery('COUNT(*)')
@@ -333,7 +330,6 @@ export async function queryMembersAdvanced(
           return acc
         }, []),
       ),
-      tenantId,
     })
 
     rows.forEach((member) => {
@@ -402,9 +398,7 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, tenantId, [
-      segmentId,
-    ])
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {

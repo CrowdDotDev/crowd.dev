@@ -1,42 +1,25 @@
 import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue } from '@crowd/queue'
-import { RedisClient } from '@crowd/redis'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import { QueuePriorityService } from '../priority.service'
 
 export class SearchSyncWorkerEmitter extends QueuePriorityService {
-  public constructor(
-    client: IQueue,
-    redis: RedisClient,
-    priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
-    parentLog: Logger,
-  ) {
+  public constructor(client: IQueue, parentLog: Logger) {
     super(
       CrowdQueue.SEARCH_SYNC_WORKER,
       client.getQueueChannelConfig(CrowdQueue.SEARCH_SYNC_WORKER),
       client,
-      redis,
-      priorityLevelCalculationContextLoader,
       parentLog,
     )
   }
 
-  public async triggerMemberSync(
-    tenantId: string,
-    memberId: string,
-    onboarding: boolean,
-    segmentId?: string,
-  ) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
+  public async triggerMemberSync(memberId: string, onboarding: boolean, segmentId?: string) {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
 
     await this.sendMessage(
-      tenantId,
       memberId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
@@ -50,30 +33,21 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerTenantMembersSync(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-    await this.sendMessage(tenantId, tenantId, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS,
-      tenantId,
-    })
+  public async triggerMembersSync() {
+    await this.sendMessage(
+      'search-sync-worker-system',
+      {
+        type: SearchSyncWorkerQueueMessageType.SYNC_MEMBERS,
+      },
+      'search-sync-worker-system-members-sync',
+    )
   }
 
-  public async triggerOrganizationMembersSync(
-    tenantId: string,
-    organizationId: string,
-    onboarding: boolean,
-  ) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
+  public async triggerOrganizationMembersSync(organizationId: string, onboarding: boolean) {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
     await this.sendMessage(
-      tenantId,
       organizationId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS,
@@ -86,16 +60,12 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerRemoveMember(tenantId: string, memberId: string, onboarding: boolean) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
+  public async triggerRemoveMember(memberId: string, onboarding: boolean) {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
 
     await this.sendMessage(
-      tenantId,
       memberId,
       {
         type: SearchSyncWorkerQueueMessageType.REMOVE_MEMBER,
@@ -108,31 +78,26 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerMemberCleanup(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-    await this.sendMessage(tenantId, tenantId, {
-      type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS,
-      tenantId,
-    })
+  public async triggerMemberCleanup() {
+    await this.sendMessage(
+      'search-sync-worker-system',
+      {
+        type: SearchSyncWorkerQueueMessageType.CLEANUP_MEMBERS,
+      },
+      'search-sync-worker-system-cleanup-members',
+    )
   }
 
   public async triggerOrganizationSync(
-    tenantId: string,
     organizationId: string,
     onboarding: boolean,
     segmentId?: string,
   ) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
 
     await this.sendMessage(
-      tenantId,
       organizationId,
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
@@ -146,35 +111,22 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerTenantOrganizationSync(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
+  public async triggerOrganizationsSync() {
     await this.sendMessage(
-      tenantId,
-      tenantId,
+      'search-sync-worker-system',
       {
-        type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS,
-        tenantId,
+        type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATIONS,
       },
-      tenantId,
+      'search-sync-worker-system-sync-organizations',
     )
   }
 
-  public async triggerRemoveOrganization(
-    tenantId: string,
-    organizationId: string,
-    onboarding: boolean,
-  ) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
+  public async triggerRemoveOrganization(organizationId: string, onboarding: boolean) {
     if (!organizationId) {
       throw new Error('organizationId is required!')
     }
 
     await this.sendMessage(
-      tenantId,
       organizationId,
       {
         type: SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION,
@@ -187,18 +139,13 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerOrganizationCleanup(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
+  public async triggerOrganizationCleanup() {
     await this.sendMessage(
-      tenantId,
-      tenantId,
+      'search-sync-worker-system',
       {
-        type: SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS,
-        tenantId,
+        type: SearchSyncWorkerQueueMessageType.CLEANUP_ORGANIZATIONS,
       },
-      tenantId,
+      'search-sync-worker-system-cleanup-organizations',
     )
   }
 }

@@ -1,4 +1,4 @@
-import { generateUUIDv1, getDefaultTenantId, websiteNormalizer } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv1, websiteNormalizer } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
@@ -24,11 +24,9 @@ import {
 import { prepareOrganizationData } from './utils'
 
 const log = getServiceChildLogger('data-access-layer/organizations')
-const tenantId = getDefaultTenantId()
 
 const ORG_SELECT_COLUMNS = [
   'id',
-  'tenantId',
   'description',
   'displayName',
   'logo',
@@ -51,11 +49,9 @@ const ORG_SELECT_COLUMNS = [
 export async function findOrgIdByDisplayName(
   qx: QueryExecutor,
   {
-    tenantId,
     orgName,
     exact = false,
   }: {
-    tenantId: string
     orgName: string
     exact: boolean
   },
@@ -69,13 +65,11 @@ export async function findOrgIdByDisplayName(
       SELECT id
       FROM organizations
       WHERE ${displayNameClause}
-        AND "tenantId" = $(tenantId)
         AND "deletedAt" IS NULL
       LIMIT 1;
     `,
     {
       displayName: exact ? orgName : `%${orgName}%`,
-      tenantId,
     },
   )
 
@@ -88,7 +82,6 @@ export async function findOrgIdByDisplayName(
 
 export async function findOrgBySourceId(
   qx: QueryExecutor,
-  tenantId: string,
   segmentId: string,
   platform: string,
   sourceId: string,
@@ -109,9 +102,8 @@ export async function findOrgBySourceId(
         )
     select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
     from organizations o
-    where o."tenantId" = $(tenantId)
-    and o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
-    { tenantId, sourceId, segmentId, platform },
+    where o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
+    { sourceId, segmentId, platform },
   )
 
   return result
@@ -137,19 +129,16 @@ export async function findOrgById(
 
 export async function findOrgByName(
   qx: QueryExecutor,
-  tenantId: string,
   name: string,
 ): Promise<IDbOrganization | null> {
   const result = await qx.selectOneOrNone(
     `
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          where o."tenantId" = $(tenantId)
-          and trim(lower(o."displayName")) = trim(lower($(name)))
+          where trim(lower(o."displayName")) = trim(lower($(name)))
           limit 1;
     `,
     {
-      tenantId,
       name,
     },
   )
@@ -159,7 +148,6 @@ export async function findOrgByName(
 
 export async function findOrgByVerifiedDomain(
   qx: QueryExecutor,
-  tenantId: string,
   identity: IDbOrgIdentity,
 ): Promise<IDbOrganization | null> {
   if (identity.type !== OrganizationIdentityType.PRIMARY_DOMAIN) {
@@ -171,19 +159,16 @@ export async function findOrgByVerifiedDomain(
               select oi."organizationId"
               from "organizationIdentities" oi
               where
-                    oi."tenantId" = $(tenantId)
-                    and lower(oi.value) = lower($(value))
+                    lower(oi.value) = lower($(value))
                     and oi.type = $(type)
                     and oi.verified = true
           )
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          where o."tenantId" = $(tenantId)
-          and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          where o.id in (select distinct "organizationId" from "organizationsWithIdentity")
           limit 1;
     `,
     {
-      tenantId,
       value: identity.value,
       platform: identity.platform,
       type: identity.type,
@@ -195,7 +180,6 @@ export async function findOrgByVerifiedDomain(
 
 export async function findOrgByVerifiedIdentity(
   qx: QueryExecutor,
-  tenantId: string,
   identity: IDbOrgIdentity,
 ): Promise<IDbOrganization | null> {
   const result = await qx.selectOneOrNone(
@@ -204,20 +188,17 @@ export async function findOrgByVerifiedIdentity(
               select oi."organizationId"
               from "organizationIdentities" oi
               where
-                    oi."tenantId" = $(tenantId)
-                    and oi.platform = $(platform)
+                    oi.platform = $(platform)
                     and lower(oi.value) = lower($(value))
                     and oi.type = $(type)
                     and oi.verified = true
           )
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          where o."tenantId" = $(tenantId)
-          and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          whereo.id in (select distinct "organizationId" from "organizationsWithIdentity")
           limit 1;
     `,
     {
-      tenantId,
       value: identity.value,
       platform: identity.platform,
       type: identity.type,
@@ -230,7 +211,6 @@ export async function findOrgByVerifiedIdentity(
 export async function getOrgIdentities(
   qx: QueryExecutor,
   organizationId: string,
-  tenantId: string,
 ): Promise<IDbOrgIdentity[]> {
   return await qx.select(
     `
@@ -241,12 +221,10 @@ export async function getOrgIdentities(
              "sourceId",
              "integrationId"
       from "organizationIdentities"
-      where "organizationId" = $(organizationId) and
-            "tenantId" = $(tenantId)
+      where "organizationId" = $(organizationId)
     `,
     {
       organizationId,
-      tenantId,
     },
   )
 }
@@ -268,8 +246,7 @@ export async function getOrgIdsToEnrich(
                                 max("lastActive")     as "lastActive"
                         from "organizationSegmentsAgg"
                         group by "organizationId")
-  select o.id as "organizationId",
-         o."tenantId"
+  select o.id as "organizationId"
   from organizations o
           inner join activity_data ad on ad."organizationId" = o.id
   where ${conditions.join(' and ')}
@@ -299,12 +276,11 @@ export async function markOrganizationEnriched(
 
 export async function addOrgsToSegments(
   qe: QueryExecutor,
-  tenantId: string,
   segmentId: string,
   orgIds: string[],
 ): Promise<void> {
   const parameters: Record<string, unknown> = {
-    tenantId,
+    tenantId: DEFAULT_TENANT_ID,
     segmentId,
   }
 
@@ -398,7 +374,6 @@ export async function addOrgToSyncRemote(
 
 export async function insertOrganization(
   qe: QueryExecutor,
-  tenantId: string,
   data: IDbOrganizationInput,
 ): Promise<string> {
   const columns = Object.keys(data)
@@ -423,7 +398,7 @@ export async function insertOrganization(
   const result = await qe.result(query, {
     ...data,
     id,
-    tenantId,
+    tenantId: DEFAULT_TENANT_ID,
     createdAt: now,
     updatedAt: now,
   })
@@ -473,8 +448,7 @@ export async function getTimeseriesOfNewOrganizations(
       TO_CHAR(osa."joinedAt", 'YYYY-MM-DD') AS "date"
     FROM organizations AS o
     JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
-    WHERE o."tenantId" = $(tenantId)
-      AND osa."joinedAt" >= $(startDate)
+    WHERE osa."joinedAt" >= $(startDate)
       AND osa."joinedAt" < $(endDate)
       ${params.segmentIds ? 'AND osa."segmentId" IN ($(segmentIds:csv))' : 'AND osa."segmentId" IS NULL'}
       ${params.platform ? 'AND $(platform) = ANY(osa."activeOn")' : ''}
@@ -482,7 +456,7 @@ export async function getTimeseriesOfNewOrganizations(
     ORDER BY 2
   `
 
-  return qx.select(query, { ...params, tenantId })
+  return qx.select(query, { ...params })
 }
 
 export async function getTimeseriesOfActiveOrganizations(
@@ -494,8 +468,7 @@ export async function getTimeseriesOfActiveOrganizations(
       COUNT_DISTINCT("organizationId") AS count,
       DATE_TRUNC('day', timestamp)
     FROM activities
-    WHERE tenantId = $(tenantId)
-      AND "deletedAt" IS NULL
+    WHERE "deletedAt" IS NULL
       AND "organizationId" IS NOT NULL
       ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
       AND timestamp >= $(startDate)
@@ -505,12 +478,11 @@ export async function getTimeseriesOfActiveOrganizations(
     ORDER BY 2
   `
 
-  return qx.select(query, { ...params, tenantId })
+  return qx.select(query, { ...params })
 }
 
 export async function findOrCreateOrganization(
   qe: QueryExecutor,
-  tenantId: string,
   source: string,
   data: IOrganization,
   integrationId?: string,
@@ -537,11 +509,11 @@ export async function findOrCreateOrganization(
     let existing
     // find existing org by sent verified identities
     for (const identity of verifiedIdentities) {
-      existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
+      existing = await findOrgByVerifiedIdentity(qe, identity)
 
       if (!existing && identity.type === OrganizationIdentityType.PRIMARY_DOMAIN) {
         // if primary domain isn't found in the incoming platform, check if the domain exists in any platform
-        existing = await findOrgByVerifiedDomain(qe, tenantId, identity)
+        existing = await findOrgByVerifiedDomain(qe, identity)
       }
       if (existing) {
         break
@@ -549,14 +521,13 @@ export async function findOrCreateOrganization(
     }
 
     if (!existing) {
-      existing = await findOrgByName(qe, tenantId, data.displayName)
+      existing = await findOrgByName(qe, data.displayName)
     }
 
     let id
 
     if (!existing && verifiedIdentities.length === 0) {
       log.debug(
-        { tenantId },
         'Organization does not have any verified identities and was not found by name so we will not create it.',
       )
       return undefined
@@ -575,7 +546,7 @@ export async function findOrCreateOrganization(
         log.info({ orgId: existing.id }, `Updating organization!`)
         await updateOrganization(qe, existing.id, processed.organization)
       }
-      await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
+      await upsertOrgIdentities(qe, existing.id, data.identities, integrationId)
       await upsertOrgAttributes(qe, existing.id, processed.attributes)
       for (const attr of processed.attributes) {
         if (attr.default) {
@@ -609,7 +580,7 @@ export async function findOrCreateOrganization(
       log.trace({ payload: processed }, `Creating new organization!`)
 
       // if it doesn't exists create it
-      id = await insertOrganization(qe, tenantId, processed.organization)
+      id = await insertOrganization(qe, processed.organization)
 
       await upsertOrgAttributes(qe, id, processed.attributes)
       for (const attr of processed.attributes) {
@@ -623,7 +594,6 @@ export async function findOrCreateOrganization(
         // add the identity
         await addOrgIdentity(qe, {
           organizationId: id,
-          tenantId,
           platform: i.platform,
           type: i.type,
           value: i.value,

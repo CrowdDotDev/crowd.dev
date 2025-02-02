@@ -16,6 +16,7 @@
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/opensearch": "workspace:*",
+    "@crowd/common": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
     "@temporalio/workflow": "~1.11.1",

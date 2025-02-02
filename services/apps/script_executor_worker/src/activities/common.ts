@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import {
   IMemberIdentity,
@@ -14,9 +15,8 @@ import { svc } from '../main'
 export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,
-  tenantId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${primaryMemberId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
@@ -38,9 +38,8 @@ export async function mergeMembers(
 export async function unmergeMembers(
   primaryMemberId: string,
   backup: IUnmergeBackup<IMemberUnmergeBackup>,
-  tenantId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/unmerge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${primaryMemberId}/unmerge`
   const requestOptions = {
     method: 'POST',
     headers: {
@@ -60,11 +59,10 @@ export async function unmergeMembers(
 }
 
 export async function unmergeMembersPreview(
-  tenantId: string,
   memberId: string,
   memberIdentity: IMemberIdentity,
 ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${memberId}/unmerge/preview`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${memberId}/unmerge/preview`
   const requestOptions = {
     method: 'POST',
     headers: {
@@ -87,7 +85,6 @@ export async function unmergeMembersPreview(
 }
 
 export async function mergeOrganizations(
-  tenantId: string,
   primaryOrgId: string,
   secondaryOrgId: string,
   segmentId?: string,
@@ -98,7 +95,7 @@ export async function mergeOrganizations(
     segmentId = result?.segmentIds?.[0] ?? undefined
   }
 
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrgId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/organization/${primaryOrgId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {

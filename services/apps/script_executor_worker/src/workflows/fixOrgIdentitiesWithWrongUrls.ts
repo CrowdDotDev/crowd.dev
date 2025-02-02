@@ -17,7 +17,6 @@ const common = proxyActivities<typeof commonActivities>({
 export async function fixOrgIdentitiesWithWrongUrls(
   args: IFixOrgIdentitiesWithWrongUrlsArgs,
 ): Promise<void> {
-  const tenantId = args.tenantId
   const PROCESS_ORGANIZATIONS_PER_RUN = args.testRun ? 10 : 100
 
   if (args.testRun) {
@@ -25,7 +24,6 @@ export async function fixOrgIdentitiesWithWrongUrls(
   }
 
   const orgIdentities = await activity.getOrgIdentitiesWithInvalidUrls(
-    tenantId,
     PROCESS_ORGANIZATIONS_PER_RUN,
   )
 
@@ -42,7 +40,6 @@ export async function fixOrgIdentitiesWithWrongUrls(
       normalizedUrl,
       org.type,
       org.verified,
-      args.tenantId,
     )
 
     const filteredIdentities = existingOrgIdentities.filter(
@@ -58,7 +55,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
       let secondaryOrgId = org.organizationId
       // 1. Merge the organizations if they are different
       if (primaryOrgId !== secondaryOrgId) {
-        const lfxMember = await activity.isLfxMember(org.organizationId, tenantId)
+        const lfxMember = await activity.isLfxMember(org.organizationId)
         if (lfxMember) {
           console.log(`Secondary organization ${org.organizationId} is an LFX member!`)
           primaryOrgId = org.organizationId
@@ -66,7 +63,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
         }
 
         console.log(`Merging organization ${secondaryOrgId} into ${primaryOrgId}`)
-        await common.mergeOrganizations(tenantId, primaryOrgId, secondaryOrgId)
+        await common.mergeOrganizations(primaryOrgId, secondaryOrgId)
       } else if (primaryOrgId === secondaryOrgId) {
         // 2. Simply delete the organization identity if it's the same organization
         await activity.deleteOrganizationIdentity(
@@ -75,7 +72,6 @@ export async function fixOrgIdentitiesWithWrongUrls(
           org.type,
           org.value,
           org.verified,
-          tenantId,
         )
         console.log(`Deleted ${org.organizationId} organization identity ${org.value}`)
       }
@@ -88,14 +84,12 @@ export async function fixOrgIdentitiesWithWrongUrls(
         org.value,
         org.type,
         org.verified,
-        tenantId,
       )
     }
   }
 
   if (!args.testRun) {
     await continueAsNew<typeof fixOrgIdentitiesWithWrongUrls>({
-      tenantId: args.tenantId,
       testRun: args.testRun,
     })
   }

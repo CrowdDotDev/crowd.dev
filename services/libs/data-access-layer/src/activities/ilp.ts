@@ -1,6 +1,6 @@
 import { Sender } from '@questdb/nodejs-client'
 
-import { generateUUIDv4 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { getClientILP } from '@crowd/questdb'
 import telemetry from '@crowd/telemetry'
 
@@ -39,7 +39,7 @@ export async function insertActivities(
 
       const row = ilp
         .table('activities')
-        .symbol('tenantId', activity.tenantId)
+        .symbol('tenantId', DEFAULT_TENANT_ID)
         .symbol('segmentId', activity.segmentId)
         .symbol('platform', activity.platform)
         .stringColumn('id', id)

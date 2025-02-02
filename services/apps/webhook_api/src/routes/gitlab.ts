@@ -14,19 +14,13 @@ export const installGitlabRoutes = async (app: express.Express) => {
       const integration = await repo.findIntegrationById(req.params.integrationId)
 
       if (integration) {
-        const id = await repo.createIncomingWebhook(
-          integration.tenantId,
-          integration.id,
-          WebhookType.GITLAB,
-          {
-            headers: req.headers,
-            data: req.body,
-            date: new Date().toISOString(),
-          },
-        )
+        const id = await repo.createIncomingWebhook(integration.id, WebhookType.GITLAB, {
+          headers: req.headers,
+          data: req.body,
+          date: new Date().toISOString(),
+        })
 
         await req.emitters.integrationStreamWorker.triggerWebhookProcessing(
-          integration.tenantId,
           integration.platform,
           id,
         )

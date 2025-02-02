@@ -100,12 +100,10 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
           break
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
-        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
-          if (data.tenantId) {
-            this.initMemberService()
-              .syncTenantMembers(data.tenantId)
-              .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
-          }
+        case SearchSyncWorkerQueueMessageType.SYNC_MEMBERS:
+          this.initMemberService()
+            .syncAllMembers()
+            .catch((err) => this.log.error(err, 'Error while syncing members!'))
 
           break
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
@@ -117,12 +115,10 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
           break
         // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
-        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
-          if (data.tenantId) {
-            this.initMemberService()
-              .cleanupMemberIndex(data.tenantId)
-              .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
-          }
+        case SearchSyncWorkerQueueMessageType.CLEANUP_MEMBERS:
+          this.initMemberService()
+            .cleanupMemberIndex()
+            .catch((err) => this.log.error(err, 'Error while cleaning up members!'))
 
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
@@ -138,21 +134,17 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
             await this.initOrganizationService().syncOrganizations([data.organizationId])
           }
           break
-        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
-          if (data.tenantId) {
-            this.initOrganizationService()
-              .syncTenantOrganizations(data.tenantId)
-              .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
-          }
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATIONS:
+          this.initOrganizationService()
+            .syncAllOrganizations()
+            .catch((err) => this.log.error(err, 'Error while syncing all organizations!'))
           break
-        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
-          if (data.tenantId) {
-            this.initOrganizationService()
-              .cleanupOrganizationIndex(data.tenantId)
-              .catch((err) => {
-                this.log.error(err, 'Error while cleaning up tenant organizations!')
-              })
-          }
+        case SearchSyncWorkerQueueMessageType.CLEANUP_ORGANIZATIONS:
+          this.initOrganizationService()
+            .cleanupOrganizationIndex()
+            .catch((err) => {
+              this.log.error(err, 'Error while cleaning up all organizations!')
+            })
           break
         case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
           if (data.organizationId) {

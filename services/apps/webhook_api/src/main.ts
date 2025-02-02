@@ -1,19 +1,13 @@
 import cors from 'cors'
 import express from 'express'
 
-import {
-  IntegrationStreamWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-} from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { IntegrationStreamWorkerEmitter } from '@crowd/common_services'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
+import { QueueFactory } from '@crowd/queue'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 
-import { QueueFactory } from '../../../libs/queue/src'
-
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, WEBHOOK_API_CONFIG } from './conf'
+import { DB_CONFIG, QUEUE_CONFIG, WEBHOOK_API_CONFIG } from './conf'
 import { databaseMiddleware } from './middleware/database'
 import { emittersMiddleware } from './middleware/emitters'
 import { errorMiddleware } from './middleware/error'
@@ -30,22 +24,11 @@ const config = WEBHOOK_API_CONFIG()
 setImmediate(async () => {
   const app = express()
 
-  const redisClient = await getRedisClient(REDIS_CONFIG())
-
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), 3, 0)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
-  const integrationStreamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    queueClient,
-    redisClient,
-    loader,
-    log,
-  )
+  const integrationStreamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, log)
 
   await integrationStreamWorkerEmitter.init()
   app.use(emittersMiddleware(integrationStreamWorkerEmitter))

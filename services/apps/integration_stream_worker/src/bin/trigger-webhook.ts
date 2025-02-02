@@ -1,16 +1,11 @@
-import {
-  IntegrationStreamWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-} from '@crowd/common_services'
+import { IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
-import { getRedisClient } from '@crowd/redis'
 import { WebhookState, WebhookType } from '@crowd/types'
 
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
+import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
@@ -24,17 +19,11 @@ if (processArguments.length !== 1) {
 const webhookIds = processArguments[0].split(',')
 
 setImmediate(async () => {
-  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const emitter = new IntegrationStreamWorkerEmitter(queueClient, redisClient, loader, log)
+  const emitter = new IntegrationStreamWorkerEmitter(queueClient, log)
   await emitter.init()
 
   const repo = new IncomingWebhookRepository(store, log)
@@ -56,7 +45,7 @@ setImmediate(async () => {
       }
 
       log.info({ webhookId }, 'Triggering webhook processing...')
-      await emitter.triggerWebhookProcessing(info.tenantId, info.platform, info.id)
+      await emitter.triggerWebhookProcessing(info.platform, info.id)
       log.info({ webhookId }, 'Triggered webhook processing!')
     } else {
       log.error({ webhookId }, 'Webhook not found!')

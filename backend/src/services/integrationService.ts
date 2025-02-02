@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
 
@@ -782,13 +782,9 @@ export default class IntegrationService {
           txOptions,
         )
 
-        this.options.log.info(
-          { tenantId: integration.tenantId },
-          'Sending GitHub message to int-run-worker!',
-        )
+        this.options.log.info('Sending GitHub message to int-run-worker!')
         const emitter = await getIntegrationRunWorkerEmitter()
         await emitter.triggerIntegrationRun(
-          integration.tenantId,
           integration.platform,
           integration.id,
           true,
@@ -879,17 +875,9 @@ export default class IntegrationService {
           txOptions,
         )
 
-        this.options.log.info(
-          { tenantId: integration.tenantId },
-          'Sending GitHub message to int-run-worker!',
-        )
+        this.options.log.info('Sending GitHub message to int-run-worker!')
         const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.tenantId,
-          integration.platform,
-          integration.id,
-          true,
-        )
+        await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
       }
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -947,17 +935,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending Discord message to int-run-worker!',
-    )
+    this.options.log.info('Sending Discord message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1007,12 +987,7 @@ export default class IntegrationService {
       }
 
       const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
+      await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
       return integration
     }
@@ -1022,8 +997,7 @@ export default class IntegrationService {
   }
 
   async linkedinConnect() {
-    const tenantId = this.options.currentTenant.id
-    const nangoId = `${tenantId}-${PlatformType.LINKEDIN}`
+    const nangoId = `${DEFAULT_TENANT_ID}-${PlatformType.LINKEDIN}`
 
     let token: string
     try {
@@ -1077,12 +1051,7 @@ export default class IntegrationService {
 
     if (status === 'in-progress') {
       const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
+      await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
     }
 
     return integration
@@ -1115,17 +1084,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending reddit message to int-run-worker!',
-    )
+    this.options.log.info('Sending reddit message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1161,17 +1122,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending devto message to int-run-worker!',
-    )
+    this.options.log.info('Sending devto message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1372,23 +1325,12 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending HackerNews message to int-run-worker!',
-    )
+    this.options.log.info('Sending HackerNews message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Got emmiter succesfully! Triggering integration run!',
-    )
+    this.options.log.info('Got emmiter succesfully! Triggering integration run!')
 
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1422,19 +1364,11 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending Slack message to int-run-worker!',
-    )
+    this.options.log.info('Sending Slack message to int-run-worker!')
 
     const isOnboarding: boolean = !('channels' in integration.settings)
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      isOnboarding,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, isOnboarding)
 
     return integration
   }
@@ -1477,17 +1411,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending Twitter message to int-run-worker!',
-    )
+    this.options.log.info('Sending Twitter message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1522,17 +1448,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending StackOverflow message to int-run-worker!',
-    )
+    this.options.log.info('Sending StackOverflow message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1568,18 +1486,10 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending Discourse message to int-run-worker!',
-    )
+    this.options.log.info('Sending Discourse message to int-run-worker!')
 
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1619,17 +1529,9 @@ export default class IntegrationService {
       throw err
     }
 
-    this.options.log.info(
-      { tenantId: integration.tenantId },
-      'Sending Groups.io message to int-run-worker!',
-    )
+    this.options.log.info('Sending Groups.io message to int-run-worker!')
     const emitter = await getIntegrationRunWorkerEmitter()
-    await emitter.triggerIntegrationRun(
-      integration.tenantId,
-      integration.platform,
-      integration.id,
-      true,
-    )
+    await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
     return integration
   }
@@ -1811,11 +1713,7 @@ export default class IntegrationService {
         let cachedStats
         cachedStats = await cacheDb.get(key)
         if (!cachedStats) {
-          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(
-            integration.tenantId,
-            repos,
-            this.options,
-          )
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(repos, this.options)
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
         } else {
@@ -1965,20 +1863,15 @@ export default class IntegrationService {
   }
 
   async getIntegrationProgressList(): Promise<IntegrationProgress[]> {
-    const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
     const currentSegments = SequelizeRepository.getCurrentSegments(this.options)
 
     if (currentSegments.length === 1) {
       const integrationIds =
-        await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(
-          currentTenant.id,
-          this.options,
-        )
+        await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(this.options)
       return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
     }
     const integrationIds =
       await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
-        currentTenant.id,
         this.options,
       )
     return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
@@ -2141,17 +2034,9 @@ export default class IntegrationService {
         txOptions,
       )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending GitLab message to int-run-worker!',
-      )
+      this.options.log.info('Sending GitLab message to int-run-worker!')
       const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
+      await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {

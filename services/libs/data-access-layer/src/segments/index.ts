@@ -8,7 +8,7 @@ import { QueryExecutor } from '../queryExecutor'
 
 export async function findProjectGroupByName(
   qx: QueryExecutor,
-  { tenantId, name }: { tenantId: string; name: string },
+  { name }: { name: string },
 ): Promise<SegmentData> {
   return qx.selectOneOrNone(
     `
@@ -17,9 +17,8 @@ export async function findProjectGroupByName(
       WHERE name = $(name)
         AND "parentSlug" IS NULL
         AND "grandparentSlug" IS NULL
-        AND "tenantId" = $(tenantId)
     `,
-    { name, tenantId },
+    { name },
   )
 }
 
@@ -93,12 +92,10 @@ export async function getSegmentChildrenOfProjectGroups(
     select * from segments s
     where (s."grandparentSlug" = $(slug) or
                  (s."parentSlug" = $(slug) and s."grandparentSlug" is null))
-            and s."tenantId" = $(tenantId)
           order by s."grandparentSlug" desc, s."parentSlug" desc, s.slug desc;
     `,
     {
       slug: segment.slug,
-      tenantId: segment.tenantId,
     },
   )
 
@@ -114,12 +111,10 @@ export async function getSegmentChildrenOfProjects(
     select * from segments s
       where s."parentSlug" = $(slug)
         AND s."grandparentSlug" = $(parentSlug)
-      and s."tenantId" = $(tenantId);
     `,
     {
       slug: segment.slug,
       parentSlug: segment.parentSlug,
-      tenantId: segment.tenantId,
     },
   )
 

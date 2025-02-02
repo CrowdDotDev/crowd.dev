@@ -27,18 +27,11 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerTenantMembersSync(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/tenant/members', {
-      tenantId,
-    })
+  public async triggerMembersSync(): Promise<void> {
+    await this.searchSyncApi.post('/sync/tenant/members', {})
   }
 
   public async triggerOrganizationMembersSync(
-    tenantId: string,
     organizationId: string,
     onboarding?: boolean,
     syncFrom: Date | null = null,
@@ -63,67 +56,8 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberCleanup(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/cleanup/tenant/members', {
-      tenantId,
-    })
-  }
-
-  public async triggerActivitySync(activityId: string): Promise<void> {
-    if (!activityId) {
-      throw new Error('activityId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/activities', {
-      activityIds: [activityId],
-    })
-  }
-
-  public async triggerTenantActivitiesSync(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/tenant/activities', {
-      tenantId,
-    })
-  }
-
-  public async triggerOrganizationActivitiesSync(
-    tenantId: string,
-    organizationId: string,
-  ): Promise<void> {
-    if (!organizationId) {
-      throw new Error('organizationId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/organization/activities', {
-      organizationId,
-    })
-  }
-
-  public async triggerRemoveActivity(activityId: string): Promise<void> {
-    if (!activityId) {
-      throw new Error('activityId is required!')
-    }
-
-    await this.searchSyncApi.post('/cleanup/activity', {
-      activityId,
-    })
-  }
-
-  public async triggerActivityCleanup(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/cleanup/tenant/activities', {
-      tenantId,
-    })
+  public async triggerMemberCleanup(): Promise<void> {
+    await this.searchSyncApi.post('/cleanup/tenant/members', {})
   }
 
   public async triggerOrganizationSync(
@@ -142,14 +76,8 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerTenantOrganizationSync(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/tenant/organizations', {
-      tenantId,
-    })
+  public async triggerOrganizationsSync(): Promise<void> {
+    await this.searchSyncApi.post('/sync/tenant/organizations', {})
   }
 
   public async triggerRemoveOrganization(organizationId: string): Promise<void> {
@@ -162,13 +90,7 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerOrganizationCleanup(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/cleanup/tenant/organizations', {
-      tenantId,
-    })
+  public async triggerOrganizationCleanup(): Promise<void> {
+    await this.searchSyncApi.post('/cleanup/tenant/organizations', {})
   }
 }

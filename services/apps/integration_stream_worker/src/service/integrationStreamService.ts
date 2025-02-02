@@ -1,4 +1,4 @@
-import { addSeconds, singleOrDefault } from '@crowd/common'
+import { DEFAULT_TENANT_ID, addSeconds, singleOrDefault } from '@crowd/common'
 import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -70,14 +70,12 @@ export default class IntegrationStreamService extends LoggerBase {
         await this.repo.resetStream(stream.id)
         if (stream.runId) {
           await this.streamWorkerEmitter.triggerStreamProcessing(
-            stream.tenantId,
             stream.integrationType,
             stream.id,
             stream.onboarding === null ? true : stream.onboarding,
           )
         } else {
           await this.streamWorkerEmitter.triggerWebhookProcessing(
-            stream.tenantId,
             stream.integrationType,
             stream.webhookId,
           )
@@ -95,7 +93,6 @@ export default class IntegrationStreamService extends LoggerBase {
     while (streams.length > 0) {
       for (const stream of streams) {
         this.streamWorkerEmitter.triggerStreamProcessing(
-          stream.tenantId,
           stream.integrationType,
           stream.id,
           stream.onboarding === null ? true : stream.onboarding,
@@ -213,7 +210,6 @@ export default class IntegrationStreamService extends LoggerBase {
         webhookId,
         webhookInfo.payload,
         webhookInfo.integrationId,
-        webhookInfo.tenantId,
       )
 
       this.log.debug({ webhookId, streamId }, 'Webhook stream created!')
@@ -288,11 +284,7 @@ export default class IntegrationStreamService extends LoggerBase {
       return false
     }
 
-    const cache = new RedisCache(
-      `int-${streamInfo.tenantId}-${streamInfo.integrationType}`,
-      this.redisClient,
-      this.log,
-    )
+    const cache = new RedisCache(`int-${streamInfo.integrationType}`, this.redisClient, this.log)
 
     const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
 
@@ -308,7 +300,7 @@ export default class IntegrationStreamService extends LoggerBase {
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${streamInfo.tenantId}-${streamInfo.integrationType}`,
+        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
@@ -340,14 +332,12 @@ export default class IntegrationStreamService extends LoggerBase {
       },
       publishStream: async (identifier, data) => {
         const webhookId = await this.webhookRepo.createWebhook(
-          streamInfo.tenantId,
           streamInfo.integrationId,
           // not a real webhok, just for compatibility
           WebhookType.CROWD_GENERATED,
           data,
         )
         await this.publishStream(
-          streamInfo.tenantId,
           streamInfo.integrationType,
           streamId,
           identifier,
@@ -464,11 +454,7 @@ export default class IntegrationStreamService extends LoggerBase {
       return false
     }
 
-    const cache = new RedisCache(
-      `int-${streamInfo.tenantId}-${streamInfo.integrationType}`,
-      this.redisClient,
-      this.log,
-    )
+    const cache = new RedisCache(`int-${streamInfo.integrationType}`, this.redisClient, this.log)
 
     const globalCache = new RedisCache(`int-global`, this.redisClient, this.log)
 
@@ -485,7 +471,7 @@ export default class IntegrationStreamService extends LoggerBase {
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${streamInfo.tenantId}-${streamInfo.integrationType}`,
+        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
@@ -516,7 +502,6 @@ export default class IntegrationStreamService extends LoggerBase {
       },
       publishStream: async (identifier, data) => {
         await this.publishStream(
-          streamInfo.tenantId,
           streamInfo.integrationType,
           streamId,
           identifier,
@@ -534,11 +519,7 @@ export default class IntegrationStreamService extends LoggerBase {
           return
         }
         this.log.trace(`Changing message visibility of ${receiptHandle} to ${newTimeout}!`)
-        await this.streamWorkerEmitter.setMessageVisibilityTimeout(
-          streamInfo.tenantId,
-          receiptHandle,
-          newTimeout,
-        )
+        await this.streamWorkerEmitter.setMessageVisibilityTimeout(receiptHandle, newTimeout)
       },
       updateIntegrationSettings: async (settings) => {
         await this.updateIntegrationSettings(streamId, settings, streamInfo.runId)
@@ -609,7 +590,6 @@ export default class IntegrationStreamService extends LoggerBase {
       return false
     } finally {
       await this.runWorkerEmitter.streamProcessed(
-        streamInfo.tenantId,
         streamInfo.integrationType,
         streamInfo.runId,
         streamInfo.onboarding,
@@ -676,7 +656,6 @@ export default class IntegrationStreamService extends LoggerBase {
   }
 
   private async publishStream(
-    tenantId: string,
     platform: string,
     parentId: string,
     identifier: string,
@@ -695,12 +674,7 @@ export default class IntegrationStreamService extends LoggerBase {
         // publising normal stream
         const streamId = await this.repo.publishStream(parentId, identifier, data, runId)
         if (streamId) {
-          await this.streamWorkerEmitter.triggerStreamProcessing(
-            tenantId,
-            platform,
-            streamId,
-            onboarding,
-          )
+          await this.streamWorkerEmitter.triggerStreamProcessing(platform, streamId, onboarding)
         } else {
           this.log.debug({ identifier }, 'Child stream already exists!')
         }
@@ -708,9 +682,9 @@ export default class IntegrationStreamService extends LoggerBase {
 
       if (webhookId) {
         // publishing webhook stream
-        await this.repo.publishWebhookStream(identifier, webhookId, data, integrationId, tenantId)
+        await this.repo.publishWebhookStream(identifier, webhookId, data, integrationId)
 
-        await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
+        await this.streamWorkerEmitter.triggerWebhookProcessing(platform, webhookId)
       }
     } catch (err) {
       if (runId) {

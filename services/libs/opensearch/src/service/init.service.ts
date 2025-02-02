@@ -64,7 +64,6 @@ export class InitService {
 
     const fakeMember: IMemberWithAggregatesForMergeSuggestions = {
       id: InitService.FAKE_MEMBER_ID,
-      tenantId: InitService.FAKE_TENANT_ID,
       displayName: 'Test Member',
 
       activityCount: 10,

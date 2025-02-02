@@ -1,6 +1,8 @@
 import * as buffer from 'buffer'
 import crypto from 'crypto'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * Some activities will not have a remote(API) counterparts so they will miss sourceIds.
  * Since we're using sourceIds to find out if an activity already exists in our DB,
@@ -39,7 +41,7 @@ export function verifyWebhookSignature(
   const expectedSignature = `sha256=${hmac.digest('hex')}`
 
   return crypto.timingSafeEqual(
-    buffer.Buffer.from(signatureHeader),
-    buffer.Buffer.from(expectedSignature),
+    buffer.Buffer.from(signatureHeader) as any,
+    buffer.Buffer.from(expectedSignature) as any,
   )
 }

@@ -50,7 +50,6 @@ export interface IActivitySentiment {
 }
 
 export interface IQueryActivitiesParameters {
-  tenantId?: string
   segmentIds?: string[]
   filter?: any
   orderBy?: string[]
@@ -69,7 +68,6 @@ export interface IQueryGroupedActivitiesParameters {
 }
 
 export interface IQueryTopActivitiesParameters {
-  tenantId: string
   segments?: SegmentRawData[]
   after: Date
   before: Date
@@ -87,7 +85,6 @@ export interface INumberOfActivitiesPerOrganization {
 }
 
 export interface IQueryDistinctParameters {
-  tenantId: string
   segmentIds?: string[]
   after: Date
   before: Date
@@ -120,7 +117,6 @@ export interface IActiveMemberData {
 }
 
 export interface IQueryNumberOfActiveMembersParameters {
-  tenantId: string
   segmentIds?: string[]
   organizationId?: string
   timestampFrom?: Date
@@ -130,7 +126,6 @@ export interface IQueryNumberOfActiveMembersParameters {
 }
 
 export interface IQueryActiveMembersParameters {
-  tenantId: string
   segmentIds: string[]
   timestampFrom: string
   timestampTo: string
@@ -149,7 +144,6 @@ export interface IActiveOrganizationData {
 }
 
 export interface IQueryActiveOrganizationsParameters {
-  tenantId: string
   segmentIds: string[]
   timestampFrom: Date
   timestampTo: Date

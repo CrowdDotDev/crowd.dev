@@ -3,7 +3,6 @@ import { SegmentRawData } from '@crowd/types'
 import { IQueryActivityResult } from '../activities'
 
 export interface IQueryConversationsWithActivitiesParameters {
-  tenantId: string
   segments: SegmentRawData[]
   after?: Date
   before?: Date
@@ -19,7 +18,6 @@ interface IDbConversation {
   createdAt: string
   updatedAt: string
   deletedAt: string
-  tenantId: string
   segmentId: string
   createdById?: string
   updatedById?: string
@@ -39,7 +37,6 @@ export interface IConversationWithActivities extends IDbConversation {
 }
 
 export interface IQueryConversationsParameters {
-  tenantId?: string
   segmentIds: string[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: any
@@ -60,7 +57,6 @@ export interface IQueryConversationResult {
   title: string
   slug: string
   published: boolean
-  tenantId: string
   segmentId: string
   updatedAt: string
 }

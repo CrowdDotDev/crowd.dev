@@ -1,4 +1,4 @@
-import { distinct } from '@crowd/common'
+import { DEFAULT_TENANT_ID, distinct } from '@crowd/common'
 import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import {
@@ -26,7 +26,7 @@ import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
 
-import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 
@@ -71,63 +71,14 @@ export class OrganizationSyncService {
     this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
-  public async getAllIndexedTenantIds(
-    pageSize = 500,
-    afterKey?: string,
-  ): Promise<IPagedSearchResponse<string, string>> {
-    const include = ['uuid_tenantId']
-
-    const results = await this.openSearchService.search(
-      OpenSearchIndex.ORGANIZATIONS,
-      undefined,
-      {
-        uuid_tenantId_buckets: {
-          composite: {
-            size: pageSize,
-            sources: [
-              {
-                uuid_tenantId: {
-                  terms: {
-                    field: 'uuid_tenantId',
-                  },
-                },
-              },
-            ],
-            after: afterKey
-              ? {
-                  uuid_tenantId: afterKey,
-                }
-              : undefined,
-          },
-        },
-      },
-      undefined,
-      undefined,
-      undefined,
-      include,
-    )
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = (results as any).uuid_tenantId_buckets
-
-    const newAfterKey = data.after_key?.uuid_tenantId
-
-    const ids = data.buckets.map((b) => b.key.uuid_tenantId)
-
-    return {
-      data: ids,
-      afterKey: newAfterKey,
-    }
-  }
-
-  public async cleanupOrganizationIndex(tenantId: string, batchSize = 300): Promise<void> {
-    this.log.warn({ tenantId }, 'Cleaning up organization index!')
+  public async cleanupOrganizationIndex(batchSize = 300): Promise<void> {
+    this.log.warn('Cleaning up organization index!')
 
     const query = {
       bool: {
         filter: {
           term: {
-            uuid_tenantId: tenantId,
+            uuid_tenantId: DEFAULT_TENANT_ID,
           },
         },
       },
@@ -154,7 +105,6 @@ export class OrganizationSyncService {
     while (results.length > 0) {
       // check every organization if they exists in the database and if not remove them from the index
       const dbIds = await this.readOrgRepo.checkOrganizationsExists(
-        tenantId,
         results.map((r) => r._source.uuid_organizationId),
       )
 
@@ -167,12 +117,12 @@ export class OrganizationSyncService {
       // Process bulk removals in chunks
       while (idsToRemove.length >= batchSize) {
         const batch = idsToRemove.splice(0, batchSize)
-        this.log.warn({ tenantId, batch }, 'Removing organizations from index!')
+        this.log.warn({ batch }, 'Removing organizations from index!')
         await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.ORGANIZATIONS)
       }
 
       processed += results.length
-      this.log.warn({ tenantId }, `Processed ${processed} organizations while cleaning up tenant!`)
+      this.log.warn(`Processed ${processed} organizations while cleaning up tenant!`)
 
       // use last createdAt to get the next page
       lastCreatedAt = results[results.length - 1]._source.date_createdAt
@@ -189,14 +139,11 @@ export class OrganizationSyncService {
 
     // Remove any remaining IDs that were not processed
     if (idsToRemove.length > 0) {
-      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining organizations from index!')
+      this.log.warn({ idsToRemove }, 'Removing remaining organizations from index!')
       await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.ORGANIZATIONS)
     }
 
-    this.log.warn(
-      { tenantId },
-      `Processed total of ${processed} organizations while cleaning up tenant!`,
-    )
+    this.log.warn(`Processed total of ${processed} organizations while cleaning up tenant!`)
   }
 
   public async removeOrganization(organizationId: string): Promise<void> {
@@ -245,8 +192,7 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(tenantId: string, batchSize = 200): Promise<void> {
-    this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
+  public async syncAllOrganizations(batchSize = 200): Promise<void> {
     let docCount = 0
     let organizationCount = 0
     let previousBatchIds: string[] = []
@@ -254,8 +200,7 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
-          tenantId,
+        let organizationIds = await this.readOrgRepo.getOrganizationsForSync(
           batchSize,
           previousBatchIds,
         )
@@ -271,7 +216,6 @@ export class OrganizationSyncService {
 
           const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
           this.log.info(
-            { tenantId },
             `Synced ${organizationCount} organizations! Speed: ${Math.round(
               organizationCount / diffInMinutes,
             )} organizations/minute!`,
@@ -282,14 +226,12 @@ export class OrganizationSyncService {
             organizationIds.map((id) => {
               return {
                 id,
-                tenantId,
               }
             }),
           )
 
           previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
-            tenantId,
+          organizationIds = await this.readOrgRepo.getOrganizationsForSync(
             batchSize,
             previousBatchIds,
           )
@@ -299,10 +241,7 @@ export class OrganizationSyncService {
       'sync-tenant-organizations',
     )
 
-    this.log.info(
-      { tenantId },
-      `Synced total of ${organizationCount} organizations with ${docCount} documents!`,
-    )
+    this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
   }
 
   public async syncOrganizations(
@@ -459,7 +398,6 @@ export class OrganizationSyncService {
 
     return {
       organizationId: input[0].organizationId,
-      tenantId: input[0].tenantId,
       segmentId,
 
       joinedAt,

@@ -93,7 +93,6 @@ export default class DataSinkService extends LoggerBase {
         this.log.info({ resultId: result.id }, 'Restarting delayed stream!')
         await this.repo.resetResults([result.id])
         await this.dataSinkWorkerEmitter.triggerResultProcessing(
-          result.tenantId,
           result.platform,
           result.id,
           result.id,
@@ -109,12 +108,11 @@ export default class DataSinkService extends LoggerBase {
   }
 
   public async processActivityInMemoryResult(
-    tenantId: string,
     segmentId: string,
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.info({ tenantId, segmentId }, 'Processing in memory activity result.')
+    this.log.info({ segmentId }, 'Processing in memory activity result.')
 
     const payload = {
       type: IntegrationResultType.ACTIVITY,
@@ -125,7 +123,6 @@ export default class DataSinkService extends LoggerBase {
     const id = generateUUIDv1()
     const result: IResultData = {
       id,
-      tenantId,
       integrationId,
       data: payload,
       state: IntegrationResultState.PENDING,
@@ -225,7 +222,6 @@ export default class DataSinkService extends LoggerBase {
               const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
 
               await service.processActivity(
-                resultInfo.tenantId,
                 resultInfo.integrationId,
                 resultInfo.onboarding === null ? true : resultInfo.onboarding,
                 platform,
@@ -246,7 +242,6 @@ export default class DataSinkService extends LoggerBase {
               const memberData = data.data as IMemberData
 
               await service.processMemberEnrich(
-                resultInfo.tenantId,
                 resultInfo.integrationId,
                 resultInfo.platform,
                 memberData,
@@ -259,7 +254,6 @@ export default class DataSinkService extends LoggerBase {
               const organizationData = data.data as IOrganization
 
               await service.processOrganizationEnrich(
-                resultInfo.tenantId,
                 resultInfo.integrationId,
                 resultInfo.platform,
                 organizationData,
@@ -278,7 +272,6 @@ export default class DataSinkService extends LoggerBase {
               const memberData = data.data as IMemberData
 
               await service.processMemberUpdate(
-                resultInfo.tenantId,
                 resultInfo.integrationId,
                 resultInfo.platform,
                 memberData,

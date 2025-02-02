@@ -1,4 +1,4 @@
-import { generateUUIDv4 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { DbTransaction } from '@crowd/database'
 import { MemberIdentityType } from '@crowd/types'
 
@@ -9,14 +9,12 @@ export async function insertMemberIdentity(
   tx: DbTransaction,
   platform: string,
   memberId: string,
-  tenantId: string,
   value: string,
   type: MemberIdentityType,
   verified: boolean,
 ) {
   return upsertMemberIdentity(new PgPromiseQueryExecutor(tx), {
     memberId,
-    tenantId,
     platform,
     value,
     type,
@@ -24,39 +22,32 @@ export async function insertMemberIdentity(
   })
 }
 
-export async function setMemberAttributeSettings(
-  tx: DbTransaction,
-  options: string[],
-  id: string,
-  tenantId: string,
-) {
+export async function setMemberAttributeSettings(tx: DbTransaction, options: string[], id: string) {
   return tx.query(
     `UPDATE "memberAttributeSettings"
         SET options = $1
-        WHERE id = $2 AND "tenantId" = $3;`,
-    [options, id, tenantId],
+        WHERE id = $2`,
+    [options, id],
   )
 }
 
 export async function updateMemberAttributeSettings(
   tx: DbTransaction,
-  tenantId: string,
   attributeName: string,
   option: string,
 ) {
   return tx.query(
     `UPDATE "memberAttributeSettings"
           SET options = array_append(options, $1), "updatedAt" = NOW()
-          WHERE name = $2 AND "tenantId" = $3
+          WHERE name = $2
           AND $1 <> ALL(options);`,
-    [option, attributeName, tenantId],
+    [option, attributeName],
   )
 }
 
 export async function insertMemberAttributeSettings(
   tx: DbTransaction,
   attributeName: string,
-  tenantId: string,
   label: string,
   attributeType: string,
   show: boolean,
@@ -69,7 +60,7 @@ export async function insertMemberAttributeSettings(
         SET options = EXCLUDED.options, "updatedAt" = $9;`,
     [
       generateUUIDv4(),
-      tenantId,
+      DEFAULT_TENANT_ID,
       attributeName,
       label,
       attributeType,

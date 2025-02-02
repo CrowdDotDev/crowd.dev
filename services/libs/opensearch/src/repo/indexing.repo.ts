@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
@@ -21,7 +22,7 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
 
   public async markEntitiesIndexed(type: IndexedEntityType, data: IEntityData[]): Promise<void> {
     if (data.length > 0) {
-      const values = data.map((d) => `('${type}', '${d.id}', '${d.tenantId}')`)
+      const values = data.map((d) => `('${type}', '${d.id}', '${DEFAULT_TENANT_ID}')`)
       const query = `
         insert into indexed_entities(type, entity_id, tenant_id)
         values ${values.join(',\n')}

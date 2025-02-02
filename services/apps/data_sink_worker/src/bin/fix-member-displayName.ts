@@ -1,43 +1,22 @@
 import { getProperDisplayName } from '@crowd/common'
-import {
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   getMembersWithWrongDisplayName,
   updateMemberDisplayName,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/fix-member-displayName'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
-import { getRedisClient } from '@crowd/redis'
 
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
+import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const log = getServiceLogger()
 
-const processArguments = process.argv.slice(2)
-
-if (processArguments.length !== 1) {
-  log.error('Expected 1 argument: tenantId')
-  process.exit(1)
-}
-
-const tenantId = processArguments[0]
-
 setImmediate(async () => {
   const dbClient = await getDbConnection(DB_CONFIG())
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const redis = await getRedisClient(REDIS_CONFIG())
-
-  const store = new DbStore(log, dbClient)
-
-  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   log.info('Started fixing members displayName!')
 
@@ -54,7 +33,7 @@ setImmediate(async () => {
 
   log.info(`Found ${totalWrongMembers} members!`)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
   while (processedMembers < totalWrongMembers) {
@@ -65,7 +44,7 @@ setImmediate(async () => {
       const displayName = getProperDisplayName(member.displayName)
       await updateMemberDisplayName(dbClient, member.id, displayName)
 
-      searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id, false)
+      searchSyncWorkerEmitter.triggerMemberSync(member.id, false)
 
       processedMembers += 1
     }

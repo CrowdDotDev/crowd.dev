@@ -16,43 +16,32 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     this.cache = new RedisCache('memberAttributes', redisClient, this.log)
   }
 
-  public async getTenantIds(): Promise<string[]> {
-    const results = await this.db().any(`select distinct "tenantId" from members;`)
-
-    return results.map((r) => r.tenantId)
-  }
-
-  public async getTenantMemberAttributes(tenantId: string): Promise<IMemberAttribute[]> {
-    const cachedString = await this.cache.get(tenantId)
+  public async getMemberAttributes(): Promise<IMemberAttribute[]> {
+    const cachedString = await this.cache.get('default')
 
     if (cachedString) {
       return JSON.parse(cachedString)
     }
 
-    const results = await this.db().any(
-      `select type, "canDelete", show, label, name, options from "memberAttributeSettings" where "tenantId" = $(tenantId)`,
-      {
-        tenantId,
-      },
+    const results = await this.db().one(
+      `select type, "canDelete", show, label, name, options from "memberAttributeSettings"`,
     )
 
-    await this.cache.set(tenantId, JSON.stringify(results))
+    await this.cache.set('default', JSON.stringify(results))
 
     return results
   }
 
-  public async getTenantMembersForSync(tenantId: string, perPage: number): Promise<string[]> {
+  public async getMembersForSync(perPage: number): Promise<string[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results = await this.db().any(
       `
         select m.id
         from members m
         left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
-        where m."tenantId" = $(tenantId) and
-              ie.entity_id is null
+        where ie.entity_id is null
         limit ${perPage};`,
       {
-        tenantId,
         type: IndexedEntityType.MEMBER,
       },
     )
@@ -186,7 +175,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
           group by msa."memberId")
   select
     m.id,
-    m."tenantId",
     m."displayName",
     m.attributes,
     coalesce(m.contributions, '[]'::jsonb)              as contributions,
@@ -220,17 +208,15 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<IMemberIdData[]> {
+  public async checkMembersExists(memberIds: string[]): Promise<IMemberIdData[]> {
     return await this.db().any(
       `
       select m.id as "memberId", m."manuallyCreated"
       from members m
-      where m."tenantId" = $(tenantId) and
-            m.id in ($(memberIds:csv)) and
+      where m.id in ($(memberIds:csv)) and
             exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
       `,
       {
-        tenantId,
         memberIds,
       },
     )

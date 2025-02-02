@@ -1,7 +1,6 @@
 import { generateUUIDv1 } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue } from '@crowd/queue'
-import { RedisClient } from '@crowd/redis'
 import {
   CheckResultsQueueMessage,
   CreateAndProcessActivityResultQueueMessage,
@@ -11,27 +10,20 @@ import {
   QueuePriorityLevel,
 } from '@crowd/types'
 
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import { QueuePriorityService } from '../priority.service'
 
 export class DataSinkWorkerEmitter extends QueuePriorityService {
-  public constructor(
-    queueClient: IQueue,
-    redis: RedisClient,
-    priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
-    parentLog: Logger,
-  ) {
+  public constructor(queueClient: IQueue, parentLog: Logger) {
     super(
       CrowdQueue.DATA_SINK_WORKER,
       queueClient.getQueueChannelConfig(CrowdQueue.DATA_SINK_WORKER),
       queueClient,
-      redis,
-      priorityLevelCalculationContextLoader,
+
       parentLog,
     )
   }
 
   public async triggerResultProcessing(
-    tenantId: string,
     platform: string,
     resultId: string,
     sourceId: string,
@@ -39,7 +31,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     deduplicationId?: string,
   ) {
     await this.sendMessage(
-      tenantId,
       sourceId,
       new ProcessIntegrationResultQueueMessage(resultId),
       deduplicationId || resultId,
@@ -50,15 +41,13 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
   }
 
   public async createAndProcessActivityResult(
-    tenantId: string,
     segmentId: string,
     integrationId: string,
     activity: IActivityData,
   ) {
     await this.sendMessage(
-      tenantId,
       generateUUIDv1(),
-      new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
+      new CreateAndProcessActivityResultQueueMessage(segmentId, integrationId, activity),
       undefined,
       {
         onboarding: true,
@@ -68,7 +57,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
 
   public async checkResults() {
     await this.sendMessage(
-      undefined,
       'global',
       new CheckResultsQueueMessage(),
       'global',
@@ -79,7 +67,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
 
   public sendMessagesBatch<T extends IQueueMessage>(
     messages: {
-      tenantId: string
       payload: T
       groupId: string
       deduplicationId?: string

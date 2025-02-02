@@ -22,10 +22,7 @@ export const installDiscourseRoutes = async (app: express.Express) => {
       const data = req.body
 
       const repo = new WebhooksRepository(req.dbStore, req.log)
-      const integration = await repo.findIntegrationByPlatformAndTenantId(
-        PlatformType.DISCOURSE,
-        req.params.tenantId,
-      )
+      const integration = await repo.findIntegrationByPlatform(PlatformType.DISCOURSE)
 
       if (integration) {
         req.log.info({ integrationId: integration.id }, 'Incoming Discourse Webhook!')
@@ -42,22 +39,16 @@ export const installDiscourseRoutes = async (app: express.Express) => {
           return
         }
 
-        const id = await repo.createIncomingWebhook(
-          integration.tenantId,
-          integration.id,
-          WebhookType.DISCOURSE,
-          {
-            signature,
-            eventId,
-            eventType,
-            event,
-            data,
-            date: new Date().toISOString(),
-          },
-        )
+        const id = await repo.createIncomingWebhook(integration.id, WebhookType.DISCOURSE, {
+          signature,
+          eventId,
+          eventType,
+          event,
+          data,
+          date: new Date().toISOString(),
+        })
 
         await req.emitters.integrationStreamWorker.triggerWebhookProcessing(
-          integration.tenantId,
           integration.platform,
           id,
         )

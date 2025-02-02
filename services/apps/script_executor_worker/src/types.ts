@@ -1,16 +1,10 @@
 export interface IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs {
-  tenantId: string
   afterHash?: number
 }
 
 export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationInPlatformArgs {
-  tenantId: string
   platform: string
   afterHash?: number
-}
-
-export interface IUnmergeWronglyMergedEmailIdentitiesArgs {
-  tenantId: string
 }
 
 export interface IDissectMemberArgs {
@@ -23,6 +17,5 @@ export interface IDissectMemberArgs {
 }
 
 export interface IFixOrgIdentitiesWithWrongUrlsArgs {
-  tenantId: string
   testRun?: boolean
 }

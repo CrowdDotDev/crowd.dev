@@ -205,6 +205,8 @@ setImmediate(async () => {
   require('./mergeAction').default(routes)
   require('./dataQuality').default(routes)
 
+  await require('./nango').default(routes)
+
   app.use('/', routes)
 
   app.use('/health', async (req: any, res) => {

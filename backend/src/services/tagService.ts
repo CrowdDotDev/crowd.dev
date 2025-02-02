@@ -1,4 +1,3 @@
-import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 
@@ -15,13 +14,6 @@ export default class TagService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, {
-          ...this.options,
-          transaction,
-        })
-      }
-
       const record = await TagRepository.create(data, {
         ...this.options,
         transaction,
@@ -43,13 +35,6 @@ export default class TagService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, {
-          ...this.options,
-          transaction,
-        })
-      }
-
       const record = await TagRepository.update(id, data, {
         ...this.options,
         transaction,

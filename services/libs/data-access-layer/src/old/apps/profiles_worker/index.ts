@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import QueryStream from 'pg-query-stream'
 
-import { getDefaultTenantId } from '@crowd/common'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 
@@ -13,7 +13,7 @@ import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
-const tenantId = getDefaultTenantId()
+const tenantId = DEFAULT_TENANT_ID
 
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
