@@ -189,6 +189,8 @@ export default class MemberService extends LoggerBase {
     fireSync = true,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
+    this.log.trace({ memberId: id }, 'Updating a member!')
+
     try {
       const { updated, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
@@ -197,9 +199,12 @@ export default class MemberService extends LoggerBase {
           txStore,
           this.log,
         )
+
+        this.log.trace({ memberId: id }, 'Fetching member identities!')
         const dbIdentities = await txRepo.getIdentities(id, tenantId)
 
         if (data.attributes) {
+          this.log.trace({ memberId: id }, 'Validating member attributes!')
           data.attributes = await txMemberAttributeService.validateAttributes(
             tenantId,
             data.attributes,
@@ -220,6 +225,7 @@ export default class MemberService extends LoggerBase {
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
         if (toUpdate.attributes) {
+          this.log.trace({ memberId: id }, 'Setting attribute default values!')
           toUpdate.attributes = await txMemberAttributeService.setAttributesDefaultValues(
             tenantId,
             toUpdate.attributes,
@@ -246,7 +252,9 @@ export default class MemberService extends LoggerBase {
             return acc
           }, {} as IDbMemberUpdateData)
 
+          this.log.trace({ memberId: id }, 'Updating member data in db!')
           await txRepo.update(id, tenantId, dateToUpdate)
+          this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
           await txRepo.addToSegment(id, tenantId, segmentId)
 
           updated = true
@@ -256,11 +264,13 @@ export default class MemberService extends LoggerBase {
         }
 
         if (identitiesToCreate) {
+          this.log.trace({ memberId: id }, 'Inserting new identities!')
           await txRepo.insertIdentities(id, tenantId, integrationId, identitiesToCreate)
           updated = true
         }
 
         if (identitiesToUpdate) {
+          this.log.trace({ memberId: id }, 'Updating identities!')
           await txRepo.updateIdentities(id, tenantId, identitiesToUpdate)
           updated = true
         }
@@ -273,9 +283,11 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, source, integrationId, org)
+            this.log.trace({ memberId: id }, 'Finding or creating organization!')
+
+            const orgId = await orgService.findOrCreate(tenantId, source, integrationId, org)
             organizations.push({
-              id,
+              orgId,
               source: data.source,
             })
           }
@@ -285,6 +297,7 @@ export default class MemberService extends LoggerBase {
           (i) => i.verified && i.type === MemberIdentityType.EMAIL,
         )
         if (emailIdentities.length > 0) {
+          this.log.trace({ memberId: id }, 'Assigning organization by email domain!')
           const orgs = await this.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
@@ -300,6 +313,7 @@ export default class MemberService extends LoggerBase {
           const uniqOrgs = uniqby(organizations, 'id')
           const orgService = new OrganizationService(txStore, this.log)
 
+          this.log.trace({ memberId: id }, 'Finding member organizations!')
           const orgsToAdd = (
             await Promise.all(
               uniqOrgs.map(async (org) => {
@@ -312,6 +326,7 @@ export default class MemberService extends LoggerBase {
           ).filter((org) => org !== null)
 
           if (orgsToAdd.length > 0) {
+            this.log.trace({ memberId: id }, 'Adding organizations to member!')
             await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
             updated = true
           }
@@ -321,10 +336,12 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
+        this.log.trace({ memberId: id }, 'Triggering member sync!')
         await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
+        this.log.trace({ memberId: id }, 'Triggering organization sync!')
         await this.searchSyncWorkerEmitter.triggerOrganizationSync(
           tenantId,
           org.id,
