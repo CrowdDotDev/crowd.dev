@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import weekdayPlugin from 'dayjs/plugin/weekday';
+
+dayjs.extend(weekdayPlugin);
 
 const weekdays = [
   'Sun',
