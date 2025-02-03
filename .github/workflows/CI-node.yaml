@@ -23,7 +23,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: cd .. && corepack enable && pnpm i --frozen-lockfile
+        run: cd .. && npm install -g corepack@latest && corepack enable pnpm && pnpm i --frozen-lockfile
 
       - name: Check linting
         run: pnpm run lint
@@ -51,7 +51,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: cd .. && corepack enable && pnpm i --frozen-lockfile
+        run: cd .. && npm install -g corepack@latest && corepack enable pnpm && pnpm i --frozen-lockfile
 
       - name: Check library linting, format and typescript
         run: ./scripts/lint_libs.sh
