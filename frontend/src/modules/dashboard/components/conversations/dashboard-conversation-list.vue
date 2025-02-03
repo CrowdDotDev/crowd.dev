@@ -66,6 +66,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import dayjs from 'dayjs';
 import utcPlugin from 'dayjs/plugin/utc';
+
 dayjs.extend(utcPlugin);
 
 export default {

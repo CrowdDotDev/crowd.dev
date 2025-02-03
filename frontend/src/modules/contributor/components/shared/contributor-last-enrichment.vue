@@ -10,6 +10,7 @@
 
 import dayjs from 'dayjs';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+
 const props = defineProps<{
   contributor: Contributor,
 }>();

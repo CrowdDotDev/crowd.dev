@@ -89,10 +89,10 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
-import utcPlugin from 'dayjs/plugin/utc'
+import utcPlugin from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-dayjs.extend(utcPlugin)
+dayjs.extend(utcPlugin);
 
 // const sorterFilter = ref('trending');
 const conversationId = ref(null);

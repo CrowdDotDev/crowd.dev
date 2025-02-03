@@ -38,6 +38,7 @@ import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-b
 import { computed } from 'vue';
 import dayjs from 'dayjs';
 import utcPlugin from 'dayjs/plugin/utc';
+
 dayjs.extend(utcPlugin);
 
 const props = withDefaults(defineProps<{
