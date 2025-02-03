@@ -383,7 +383,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       await consumer.run({
         eachMessage: async ({ message }) => {
           if (message && message.value) {
-            let startWait = performance.now()
+            const startWait = performance.now()
             while (!this.isAvailable(maxConcurrentMessageProcessing)) {
               const diff = performance.now() - startWait
 
