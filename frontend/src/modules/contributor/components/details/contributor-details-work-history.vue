@@ -67,9 +67,21 @@
               @edit="isEditModalOpen = true; editOrganization = item"
             >
               <template v-if="ii === 0" #above>
-                <p class="font-semibold text-medium pt-0.5 pb-1.5">
-                  {{ item.displayName }}
-                </p>
+                <router-link
+                  class="text-black w-fit"
+                  :to="{
+                    name: 'organizationView',
+                    params: { id: item.id },
+                    query: {
+                      projectGroup: selectedProjectGroup?.id,
+                      segmentId: props.contributor.segmentId,
+                    },
+                  }"
+                >
+                  <p class="font-semibold text-medium pt-0.5 pb-1.5">
+                    {{ item.displayName }}
+                  </p>
+                </router-link>
               </template>
             </lf-contributor-details-work-history-item>
           </div>
