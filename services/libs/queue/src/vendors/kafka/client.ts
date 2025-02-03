@@ -383,22 +383,24 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       await consumer.run({
         eachMessage: async ({ message }) => {
           if (message && message.value) {
+            const data = JSON.parse(message.value.toString())
+
             let startWait = performance.now()
             while (!this.isAvailable(maxConcurrentMessageProcessing)) {
               const diff = performance.now() - startWait
 
-              if (diff >= 5000) {
+              if (diff >= 5000 && diff % 10000 <= 100) {
                 this.log.warn(
-                  `Consumer is waiting for ${diff.toFixed(2)}ms to process the message!`,
+                  { topic: queueConf.name },
+                  `Consumer is waiting for ${diff.toFixed(2)}ms to process the message! Message type '${data.type}'!`,
                 )
               }
 
-              await timeout(10)
+              await timeout(100)
             }
             const now = performance.now()
 
             this.addJob()
-            const data = JSON.parse(message.value.toString())
 
             processMessage(data)
               .then(() => {
