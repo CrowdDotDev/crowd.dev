@@ -3,6 +3,7 @@ import {
   LineController,
   LineElement, PointElement, TimeScale, Tooltip,
 } from 'chart.js';
+import 'chartjs-adapter-moment';
 
 import { dashboardAreaChart } from './configs/dashboard.area.chart';
 
