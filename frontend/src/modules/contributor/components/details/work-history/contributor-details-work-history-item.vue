@@ -176,14 +176,16 @@ const restOrganizations = computed(() => props.contributor.organizations.filter(
 
 const isOverlapping = computed(() => {
   const org = props.organization.memberOrganizations;
-  const dateStart = dayjs(org.dateStart || undefined);
+  const dateStart = dayjs(org.dateStart || 0);
+  // undefined represents current date
   const dateEnd = dayjs(org.dateEnd || undefined);
   return restOrganizations.value.some((o) => {
     if (!o.memberOrganizations.affiliationOverride.isPrimaryWorkExperience) {
       return false;
     }
     const oOrg = o.memberOrganizations;
-    const dateStartCompare = dayjs(oOrg.dateStart || undefined);
+    const dateStartCompare = dayjs(oOrg.dateStart || 0);
+    // undefined represents current date
     const dateEndCompare = dayjs(oOrg.dateEnd || undefined);
 
     return dateStartCompare.isBefore(dateEnd) && dateEndCompare.isAfter(dateStart);
