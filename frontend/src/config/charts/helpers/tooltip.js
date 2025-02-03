@@ -95,13 +95,13 @@ export const externalTooltipHandler = (
             classes = {
               bgColor: 'bg-green-50',
               color: 'text-green-700',
-              arrow: 'ri-arrow-up-line',
+              arrow: 'fa-arrow-up fa-light',
             };
           } else {
             classes = {
               bgColor: 'bg-red-50',
               color: 'text-red-700',
-              arrow: 'ri-arrow-down-line',
+              arrow: 'fa-arrow-down fa-light',
             };
           }
           innerHtml += `

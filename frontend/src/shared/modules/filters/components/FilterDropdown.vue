@@ -30,7 +30,7 @@
         @click="add(key)"
       >
         <span class="flex items-center"><lf-icon :name="iconClass" :size="16" class="text-gray-400 mr-3" />{{ label }}</span>
-        <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
+        <lf-icon :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" name="check" :size="16" class="!text-gray-400 !mr-0 ml-1" />
       </article>
 
       <!-- CUSTOM ATTRIBUTES -->
@@ -49,7 +49,7 @@
           @click="add(key)"
         >
           <span class="first-letter:uppercase lowercase">{{ label }}</span>
-          <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
+          <lf-icon :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" name="check" :size="16" class="!text-gray-400 !mr-0 ml-1" />
         </article>
       </template>
       <div

@@ -12,7 +12,7 @@
         type="button"
         @click.stop
       >
-        <i class="text-lg ri-more-fill" />
+        <lf-icon name="ellipsis" type="solid" :size="16" />
       </button>
       <template #dropdown>
         <app-lf-activity-affiliations
@@ -26,15 +26,13 @@
               v-if="activity.platform === 'other' && !disableEdit"
               :command="editActivity"
             >
-              <i class="ri-pencil-line text-gray-400 mr-1" />
+              <lf-icon name="pen fa-sharp" :size="16" class="mr-1 text-gray-400" />
               <span>Edit Activity</span>
             </el-dropdown-item>
             <el-dropdown-item
               :command="doDestroyWithConfirm"
             >
-              <i
-                class="ri-delete-bin-line mr-1 text-red-500"
-              />
+              <lf-icon name="trash-can" :size="16" class="mr-1 text-red-500" />
               <span
                 class="text-red-500"
               >Delete activity</span>
@@ -57,6 +55,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({
@@ -96,7 +95,7 @@ const doDestroyWithConfirm = async () => {
             "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line',
+    icon: 'fa-trash-can fa-light',
   }).then(() => {
     ActivityService.destroyAll([props.activity.id], [props.activity.segmentId])
       .then(() => {

@@ -61,21 +61,21 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="deleteItem(index)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg text-black"
-                />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
               v-if="tag.touched && !tag.valid"
               class="el-form-item__error pt-1 flex gap-1"
-            ><i class="ri-error-warning-line" />
+            >
+              <lf-icon name="circle-exclamation" :size="16" />
               This tag does not exist
             </span>
             <span
               v-if="tag.touched && tag.volumeTooLarge"
               class="el-form-item__error pt-1 flex gap-1"
-            ><i class="ri-error-warning-line" />
+            >
+              <lf-icon name="circle-exclamation" :size="16" />
               Volume of questions is too big. Try something
               more specific.
             </span>
@@ -110,7 +110,8 @@
             :is-error="!isKeywordsValid"
           >
             <template #error>
-              <span class="text-xs text-red-500 flex gap-1"><i class="ri-error-warning-line" />
+              <span class="text-xs text-red-500 flex gap-1">
+                <lf-icon name="circle-exclamation" :size="16" />
                 Volume of questions is too big. Try
                 something more specific.</span>
             </template>
@@ -131,7 +132,7 @@
           class="btn btn-link btn-link--primary"
           @click="doReset"
         >
-          <i class="ri-arrow-go-back-line" />
+          <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
         </el-button>
         <div class="flex gap-4">
@@ -179,6 +180,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;

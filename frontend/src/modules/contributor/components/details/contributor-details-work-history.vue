@@ -77,7 +77,7 @@
       </lf-timeline>
 
       <div v-if="orgGrouped.length === 0" class="pt-2 flex flex-col items-center">
-        <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
+        <lf-icon name="clipboard-list fa-sharp" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No work experiences
         </p>
@@ -105,7 +105,6 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';

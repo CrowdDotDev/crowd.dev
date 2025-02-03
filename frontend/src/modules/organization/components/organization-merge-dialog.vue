@@ -39,7 +39,7 @@
                   type="button"
                   @click="changeOrganization()"
                 >
-                  <span class="ri-refresh-line text-base text-primary-500 mr-2" />
+                  <lf-icon name="arrows-rotate" :size="16" class="text-primary-500 mr-2" />
                   <span class="text-primary-500">Change organization</span>
                 </button>
               </template>
@@ -76,6 +76,7 @@ import AppOrganizationSelectionDropdown from '@/modules/organization/components/
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {

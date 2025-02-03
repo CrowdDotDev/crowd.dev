@@ -43,7 +43,7 @@
                       valye: staticModel[ii]?.value,
                     })"
                   >
-                    <i class="ri-link-unlink-m text-lg" />
+                    <lf-icon name="link-slash" :size="20" />
                   </el-button>
                 </div>
               </el-tooltip>
@@ -52,7 +52,7 @@
                 class="btn btn--md btn--transparent w-8 !h-8"
                 @click="removeUsername(ii)"
               >
-                <i class="ri-delete-bin-line text-lg" />
+                <lf-icon name="trash-can" :size="20" />
               </el-button>
             </article>
           </template>
@@ -66,6 +66,7 @@
 import {
   computed, ref, watch, reactive,
 } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
 import { OrganizationIdentityType } from '../../types/Organization';
 

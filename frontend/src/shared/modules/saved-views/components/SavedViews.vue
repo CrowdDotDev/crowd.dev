@@ -3,7 +3,7 @@
     <div v-if="scrollableTabs" class="border-b-2 border-r border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
       <el-dropdown placement="bottom-start">
         <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2">
-          <i class="ri-list-unordered text-lg text-gray-400 h-5 flex items-center" />
+          <lf-icon name="list-ul" :size="20" class="text-gray-400 flex items-center" />
         </el-button>
         <template #dropdown>
           <el-dropdown-item
@@ -70,12 +70,12 @@
             @click="update()"
           >
             <div class="w-40">
-              <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
+              <lf-icon name="arrows-rotate-reverse" :size="16" class="text-gray-400 mr-2" />Update view
             </div>
           </el-dropdown-item>
           <el-dropdown-item v-if="hasPermission(LfPermission.customViewsCreate)" @click="createNewView()">
             <div class="w-40">
-              <i class="ri-add-line text-gray-400 text-base mr-2" />Create new view
+              <lf-icon name="plus" class="text-gray-400 mr-2" />Create new view
             </div>
           </el-dropdown-item>
         </template>
@@ -83,13 +83,13 @@
 
       <el-tooltip v-if="hasPermission(LfPermission.customViewsCreate)" content="Add view" placement="top">
         <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2" @click="isFormOpen = true">
-          <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
+          <lf-icon name="plus" :size="20" class="text-gray-400 flex items-center" />
         </el-button>
       </el-tooltip>
       <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
           <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0" data-tooltip="Manage views">
-            <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
+            <lf-icon name="gear" :size="20" class="text-gray-400 flex items-center" />
           </el-button>
         </template>
         <lf-saved-views-management
@@ -129,6 +129,7 @@ import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-v
 import Message from '@/shared/message/message';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -275,7 +276,7 @@ const update = () => {
     title: 'Update shared view',
     message:
         'This view is shared with all workspace users, any changes will reflected in each user account.',
-    icon: 'ri-loop-left-line',
+    icon: 'fa-arrows-rotate-reverse fa-light',
     confirmButtonText: 'Update shared view',
     showCancelButton: true,
     cancelButtonText: 'Cancel',

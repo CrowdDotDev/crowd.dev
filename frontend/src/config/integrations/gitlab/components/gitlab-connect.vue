@@ -55,7 +55,7 @@ const connect = async () => {
       titleClass: 'text-lg pt-2',
       message: `Only GitLab users with admin permissions are able to connect LFX's GitLab integration.
         If you are an organization member, you will need an approval from the GitLab workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
-      icon: 'ri-information-line',
+      icon: 'fa-circle-info fa-light',
       confirmButtonText: "I'm the GitLab organization admin",
       cancelButtonText: 'Invite organization admin to this workspace',
       verticalCancelButtonClass: 'hidden',

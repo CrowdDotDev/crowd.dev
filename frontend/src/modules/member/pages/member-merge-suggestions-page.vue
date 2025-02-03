@@ -20,7 +20,7 @@
           placement="top"
           content="LFX is constantly checking your community for duplicate profiles. Here you can check all the merging suggestions."
         >
-          <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
+          <lf-icon name="circle-question" :size="20" class="text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
       <app-merge-suggestions-filters placeholder="Search people" @search="search" />
@@ -78,7 +78,7 @@
                   class="text-black hover:text-primary-500"
                 >
                   <div class="flex items-center gap-2">
-                    <i class="text-xl ri-subtract-line text-gray-300" />
+                    <lf-icon name="minus" :size="24" class=" text-gray-300" />
                     <app-avatar
                       :entity="suggestion.members[1]"
                       size="xs"
@@ -105,9 +105,7 @@
         </tbody>
       </lf-table>
       <div v-else class="py-20 flex flex-col items-center">
-        <div
-          class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
-        />
+        <lf-icon name="shuffle" :size="160" class="text-gray-200 flex items-center mb-8" />
         <h5 class="text-center text-lg font-semibold mb-4">
           No merge suggestions
         </h5>
@@ -118,7 +116,7 @@
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
         <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
-          <i class="ri-arrow-down-line" />Load more
+          <lf-icon name="arrow-down" />Load more
         </lf-button>
       </div>
     </div>
@@ -152,6 +150,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfMemberMergeSuggestionDropdown
   from '@/modules/member/components/suggestions/member-merge-suggestion-dropdown.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 

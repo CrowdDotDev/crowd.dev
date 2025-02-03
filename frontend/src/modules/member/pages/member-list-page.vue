@@ -18,7 +18,7 @@
                 type="button"
                 class="btn btn--secondary btn--md flex items-center"
               >
-                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                <lf-icon name="shuffle" :size="16" class="text-gray-900 mr-2" />
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
                   v-if="membersToMergeCount > 0"
@@ -97,6 +97,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 

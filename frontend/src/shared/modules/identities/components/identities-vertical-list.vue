@@ -29,7 +29,7 @@
                   >
                     <span>*********</span>
                     <el-tooltip placement="top" content="Private profile">
-                      <i class="ri-lock-line text-gray-400" />
+                      <lf-icon name="lock-keyhole" class="text-gray-400" />
                     </el-tooltip>
                   </div>
 
@@ -87,6 +87,7 @@ import { computed, ref } from 'vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 import { lfIdentities } from '@/config/identities';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   identities: {

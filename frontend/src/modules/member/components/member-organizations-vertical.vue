@@ -18,7 +18,7 @@
         <div v-if="organization.logo">
           <img :src="organization.logo" alt="Logo" class="w-full h-full" />
         </div>
-        <i v-else class="ri-community-line text-sm text-gray-300" />
+        <lf-icon v-else name="house-building" :size="14" class="text-gray-300" />
       </div>
       <div class="max-w-full flex items-center gap-1">
         <p
@@ -64,7 +64,7 @@
         >
           <div class="w-6 h-6 mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
             <img v-if="organization.logo" :src="organization.logo" alt="Logo" class="w-full h-full" />
-            <i v-else class="ri-community-line text-sm text-gray-300" />
+            <lf-icon v-else name="house-building" :size="14" class="text-gray-300" />
           </div>
           <div class="max-w-full flex items-center gap-1">
             <p
@@ -93,6 +93,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { computed } from 'vue';
 import pluralize from 'pluralize';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   member: {

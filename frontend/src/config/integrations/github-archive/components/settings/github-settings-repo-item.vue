@@ -3,7 +3,7 @@
     <td class="!pb-2.5" :class="ri > 0 ? '!pt-2.5' : '!pt-5'">
       <div>
         <div class="flex items-center gap-1.5 mb-0.5">
-          <lf-icon-old name="git-repository-line" :size="16" class="text-gray-900" />
+          <lf-svg name="git-repository" class="w-4 h-4 text-gray-900" />
           <p class="text-small">
             {{ props.repository.name }}
           </p>
@@ -51,7 +51,7 @@
 <script lang="ts" setup>
 import { GitHubRepository } from '@/config/integrations/github-archive/types/GithubSettings';
 import { computed, watch } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';

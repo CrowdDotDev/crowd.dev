@@ -10,7 +10,7 @@
     ]"
     :disabled="props.disabled"
   >
-    <i v-if="props.loading" class="ri-loader-4-line c-btn__loader text-base" />
+    <lf-icon v-if="props.loading" name="circle-notch" :size="14" class="c-btn__loader text-base" />
     <span v-if="props.loading && props.loadingText && !props.iconOnly">{{ props.loadingText }}</span>
     <slot v-else />
   </button>

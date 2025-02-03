@@ -84,16 +84,6 @@ export interface MemberIdentity {
   sourceId?: string
 }
 
-export interface IMemberSyncRemoteData {
-  id?: string
-  memberId: string
-  sourceId?: string
-  integrationId: string
-  syncFrom: string
-  metaData: string
-  lastSyncedAt?: string
-}
-
 export interface IMemberMergeSuggestion {
   similarity: number
   activityEstimate: number

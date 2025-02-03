@@ -101,7 +101,7 @@
                   :disabled="!isAPIConnectionValid"
                   @click="copyToClipboard('url')"
                 >
-                  <i class="ri-file-copy-line" />
+                  <lf-icon name="copy" />
                 </el-button>
               </el-tooltip>
             </template>
@@ -126,7 +126,7 @@
                   :disabled="!isAPIConnectionValid"
                   @click="onShowToken"
                 >
-                  <i class="ri-eye-line" />
+                  <lf-icon name="eye" />
                 </el-button>
               </el-tooltip>
               <el-tooltip
@@ -135,7 +135,7 @@
                 placement="top"
               >
                 <el-button :disabled="!isAPIConnectionValid" @click="copyToClipboard('secret')">
-                  <i class="ri-file-copy-line" />
+                  <lf-icon name="copy" />
                 </el-button>
               </el-tooltip>
             </template>
@@ -149,15 +149,15 @@
           </el-button>
           <div v-if="isWebhookVerifying == null" />
           <div v-else-if="isWebhookVerifying">
-            <i class="ri-loader-4-line animate-spin text-gray-900 w-[14px] mr-2" />
+            <lf-icon name="circle-notch" :size="14" class="animate-spin text-gray-900 mr-2" />
             <span class="text-gray-900 text-sm">Verifying</span>
           </div>
           <div v-else-if="isWebhookValid">
-            <i class="ri-check-line text-green-500 w-[14px] mr-2" />
+            <lf-icon name="check" :size="14" class="text-green-500 mr-2" />
             <span class="text-green-500 text-sm">Succesfully verified</span>
           </div>
           <div v-else>
-            <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
+            <lf-icon name="circle-exclamation" :size="14" class="text-red-500 mr-2" />
             <span class="text-red-500 text-sm">No webhooks received yet</span>
           </div>
         </div>
@@ -211,6 +211,7 @@ import Message from '@/shared/message/message';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { trackEvent } = useProductTracking();
 

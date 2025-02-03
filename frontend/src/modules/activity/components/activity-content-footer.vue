@@ -9,9 +9,7 @@
       <div
         class="flex items-center tag h-8 !rounded-l-md !rounded-r-none !bg-white"
       >
-        <i
-          class="ri-file-edit-line text-base mr-2 text-gray-400"
-        />
+        <lf-icon name="file-pen" type="regular" :size="16" class="mr-2 text-gray-400" />
         <p
           class="text-xs text-gray-900"
         >
@@ -37,6 +35,7 @@
 
 <script setup>
 import pluralize from 'pluralize';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 defineProps({
   changes: {

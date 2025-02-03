@@ -267,7 +267,7 @@ const CalendarIcon = h(
   'i', // type
   {
     class:
-      'ri-calendar-line text-base leading-none text-gray-400',
+      'fa-calendar fa-light text-base leading-none text-gray-400',
   }, // props
   [],
 );

@@ -13,7 +13,7 @@
           </p>
         </div>
         <p class="text-small text-gray-500 mb-1.5 flex items-center">
-          <lf-icon-old name="calendar-line" :size="16" class="mr-1.5 text-gray-400" />
+          <lf-icon name="calendar" :size="16" class="mr-1.5 text-gray-400" />
           {{ getDateRange(props.organization?.memberOrganizations?.dateStart, props.organization?.memberOrganizations?.dateEnd) }}
         </p>
       </div>
@@ -28,7 +28,7 @@
 
           <template v-if="hasPermission(LfPermission.memberEdit)">
             <lf-dropdown-item @click="emit('edit')">
-              <lf-icon-old name="pencil-line" />Edit work experience
+              <lf-icon name="pen fa-sharp" />Edit work experience
             </lf-dropdown-item>
             <lf-dropdown-separator />
 
@@ -101,12 +101,12 @@
               attribute: props.organization,
             })"
           >
-            <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
+            <lf-icon name="message-exclamation" class="!text-red-500" />Report issue
           </lf-dropdown-item>
           <template v-if="hasPermission(LfPermission.memberEdit)">
             <lf-dropdown-separator />
             <lf-dropdown-item type="danger" @click="removeWorkHistory">
-              <lf-icon-old name="delete-bin-6-line" />Delete work experience
+              <lf-icon name="trash-can" />Delete work experience
             </lf-dropdown-item>
           </template>
         </lf-dropdown>
@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import { Organization } from '@/modules/organization/types/Organization';
@@ -135,7 +135,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
