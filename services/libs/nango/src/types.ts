@@ -66,3 +66,8 @@ export interface INangoResult {
   records: INangoRecord[]
   nextCursor?: string
 }
+
+export interface INangoClientConfig {
+  secretKey: string
+  integrations: string[]
+}

@@ -3,6 +3,7 @@ import type { Nango } from '@nangohq/node' assert { 'resolution-mode': 'require'
 import { SERVICE } from '@crowd/common'
 
 import {
+  INangoClientConfig,
   INangoCloudSessionToken,
   INangoResult,
   NANGO_INTEGRATION_CONFIG,
@@ -13,6 +14,22 @@ import { toRecord } from './utils'
 let client: Nango | undefined = undefined
 
 const DEFAULT_NANGO_FETCH_LIMIT = 20
+
+let config: INangoClientConfig | undefined | null = undefined
+export const NANGO_CLOUD_CONFIG = () => {
+  if (!config && config !== null) {
+    if (process.env.NANGO_CLOUD_SECRET_KEY) {
+      config = {
+        secretKey: process.env.NANGO_CLOUD_SECRET_KEY,
+        integrations: process.env.NANGO_CLOUD_INTEGRATIONS.split(','),
+      }
+    } else {
+      config = null
+    }
+  }
+
+  return config
+}
 
 function ensureClient() {
   if (!client) {
@@ -25,16 +42,21 @@ export const getNangoCloudClient = () => {
   return client
 }
 
-export const initNangoCloudClient = async (secretKey: string) => {
+export const initNangoCloudClient = async (): Promise<Nango> => {
   if (!client) {
-    const module = await import('@nangohq/node')
-    client = new module.Nango({ secretKey })
+    const config = NANGO_CLOUD_CONFIG()
+    if (!config) {
+      const module = await import('@nangohq/node')
+      client = new module.Nango({ secretKey: config.secretKey })
+    } else {
+      throw new Error('Nango cloud client env variables not set!')
+    }
   }
+
+  return client
 }
 
-export const getNangoCloudSessionToken = async (
-  allowedIntegrations: string[],
-): Promise<INangoCloudSessionToken> => {
+export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionToken> => {
   ensureClient()
 
   const service = `cm-${SERVICE}`
@@ -42,7 +64,7 @@ export const getNangoCloudSessionToken = async (
     end_user: {
       id: service,
     },
-    allowed_integrations: allowedIntegrations,
+    allowed_integrations: NANGO_CLOUD_CONFIG().integrations,
   })
 
   return {

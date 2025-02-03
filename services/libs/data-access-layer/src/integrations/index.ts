@@ -201,3 +201,50 @@ export async function fetchGlobalIntegrationsStatusCount(
     },
   )
 }
+
+export async function findIntegrationDataForNangoWebhookProcessing(
+  qx: QueryExecutor,
+  id: string,
+): Promise<{
+  id: string
+  segmentId: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  settings: any
+} | null> {
+  return qx.selectOneOrNone(
+    `
+      select id,
+             "segmentId",
+             settings
+      from integrations
+      where id = $(id)
+    `,
+    {
+      id,
+    },
+  )
+}
+
+export async function setNangoIntegrationCursor(
+  qx: QueryExecutor,
+  integrationId: string,
+  model: string,
+  cursor: string,
+): Promise<void> {
+  await qx.result(
+    `
+      update integrations
+      set settings = jsonb_set(
+        settings,
+        '{cursors}',
+        coalesce(settings -> 'cursors', '{}') || jsonb_build_object($(model), $(cursor)))
+      )
+      where id = $(integrationId)
+    `,
+    {
+      integrationId,
+      model,
+      cursor,
+    },
+  )
+}

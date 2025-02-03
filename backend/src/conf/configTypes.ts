@@ -128,8 +128,6 @@ export interface GithubConfiguration {
 export interface NangoConfiguration {
   url: string
   secretKey: string
-  cloudSecretKey: string
-  cloudIntegrations: string
 }
 
 export interface EnrichmentConfiguration {
