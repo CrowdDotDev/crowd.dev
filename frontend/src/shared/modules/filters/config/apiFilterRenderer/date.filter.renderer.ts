@@ -3,12 +3,7 @@ import {
   dateFilterTimePickerOptions,
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
-import arraySupportPlugin from 'dayjs/plugin/arraySupport';
-
-dayjs.extend(utcPlugin);
-dayjs.extend(arraySupportPlugin);
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export const dateApiFilterRenderer = (property: string, { value, operator }: DateFilterValue): any[] => {
   const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value);
@@ -30,8 +25,8 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         [filterOperator]: [
-          dayjs.utc(mappedValue[0]).startOf('day').toISOString(),
-          dayjs.utc(mappedValue[1]).endOf('day').toISOString(),
+          dateHelper.utc(mappedValue[0]).startOf('day').toISOString(),
+          dateHelper.utc(mappedValue[1]).endOf('day').toISOString(),
         ],
       },
     };
@@ -39,18 +34,18 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         between: [
-          dayjs.utc(mappedValue).startOf('day').toISOString(),
-          dayjs.utc(mappedValue).endOf('day').toISOString(),
+          dateHelper.utc(mappedValue).startOf('day').toISOString(),
+          dateHelper.utc(mappedValue).endOf('day').toISOString(),
         ],
       },
     };
   } else {
-    let parsedValue = dayjs.utc(mappedValue).startOf('day').toISOString();
+    let parsedValue = dateHelper.utc(mappedValue).startOf('day').toISOString();
 
     if (['last24h'].includes(value as string)) {
       parsedValue = mappedValue as string;
     } else if ([FilterDateOperator.GT, FilterDateOperator.GTE].includes(operator)) {
-      parsedValue = dayjs.utc(mappedValue).endOf('day').toISOString();
+      parsedValue = dateHelper.utc(mappedValue).endOf('day').toISOString();
     }
 
     filter = {

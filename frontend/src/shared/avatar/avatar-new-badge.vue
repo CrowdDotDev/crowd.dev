@@ -19,8 +19,8 @@
 </template>
 
 <script setup>
-import dayjs from 'dayjs';
 import { computed } from 'vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps({
   entity: {
@@ -42,18 +42,18 @@ const isNew = computed(() => {
     return false;
   }
 
-  return dayjs().diff(dayjs(props.entity.joinedAt), 'days')
+  return dateHelper().diff(dateHelper(props.entity.joinedAt), 'days')
     <= 14;
 });
 
 const computedContent = computed(() => {
   if (props.entityName === 'organization') {
-    return `Organization since ${dayjs(
+    return `Organization since ${dateHelper(
       props.entity.joinedAt,
     ).format('MMM DD, YYYY')}`;
   }
 
-  return `Member since ${dayjs(
+  return `Member since ${dateHelper(
     props.entity.joinedAt,
   ).format('MMM DD, YYYY')}`;
 });

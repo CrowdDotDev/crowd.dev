@@ -1,8 +1,10 @@
-import dayjs from 'dayjs';
+import { dateHelper } from '@/shared/date-helper/date-helper';
+
+
 
 export default () => {
-  const oneWeekAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD');
-  const twoDaysAgo = dayjs().subtract(2, 'day').format('YYYY-MM-DD');
+  const oneWeekAgo = dateHelper().subtract(7, 'day').format('YYYY-MM-DD');
+  const twoDaysAgo = dateHelper().subtract(2, 'day').format('YYYY-MM-DD');
 
   before(() => {
     cy.wait(1000);
@@ -42,7 +44,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', true);
+        cy.wrap(dateHelper(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', true);
       });
     });
   });
@@ -58,7 +60,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
+        cy.wrap(dateHelper(row.lastActive).isSame(oneWeekAgo, 'day')).should('eq', false);
       });
     });
   });
@@ -76,7 +78,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isBefore(dayjs(oneWeekAgo))).should('eq', true);
+        cy.wrap(dateHelper(row.lastActive).isBefore(dateHelper(oneWeekAgo))).should('eq', true);
       });
     });
   });
@@ -92,7 +94,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isBefore(dayjs(oneWeekAgo))).should('eq', false);
+        cy.wrap(dateHelper(row.lastActive).isBefore(dateHelper(oneWeekAgo))).should('eq', false);
       });
     });
   });
@@ -110,7 +112,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isAfter(dayjs(oneWeekAgo))).should('eq', true);
+        cy.wrap(dateHelper(row.lastActive).isAfter(dateHelper(oneWeekAgo))).should('eq', true);
       });
     });
   });
@@ -126,7 +128,7 @@ export default () => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
         console.log(row.lastActive, oneWeekAgo);
-        cy.wrap(dayjs(row.lastActive).isAfter(dayjs(oneWeekAgo))).should('eq', false);
+        cy.wrap(dateHelper(row.lastActive).isAfter(dateHelper(oneWeekAgo))).should('eq', false);
       });
     });
   });
@@ -145,7 +147,7 @@ export default () => {
     cy.get('@apiMemberQuery').then((req) => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
-        cy.wrap(dayjs(row.lastActive).isBetween(dayjs(oneWeekAgo).subtract(1, 'day'), dayjs(twoDaysAgo), 'day')).should('eq', true);
+        cy.wrap(dateHelper(row.lastActive).isBetween(dateHelper(oneWeekAgo).subtract(1, 'day'), dateHelper(twoDaysAgo), 'day')).should('eq', true);
       });
     });
   });
@@ -163,7 +165,7 @@ export default () => {
       const { rows } = req.response.body;
       rows.forEach((row) => {
         cy.wrap(
-          dayjs(row.lastActive).isBetween(dayjs(oneWeekAgo).subtract(1, 'day'), dayjs(twoDaysAgo), 'day')
+          dateHelper(row.lastActive).isBetween(dateHelper(oneWeekAgo).subtract(1, 'day'), dateHelper(twoDaysAgo), 'day')
         ).should('eq', false);
       });
     });

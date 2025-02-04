@@ -75,8 +75,8 @@
             Joined date
           </p>
           <p class="text-small text-gray-600">
-            {{ dayjs(props.contributor.joinedAt).isAfter(dayjs('1970-01-01', 'year'))
-              ? dayjs(props.contributor.joinedAt).format('MMM DD, YYYY') : '-' }}
+            {{ dateHelper(props.contributor.joinedAt).isAfter(dateHelper('1970-01-01', 'year'))
+              ? dateHelper(props.contributor.joinedAt).format('MMM DD, YYYY') : '-' }}
           </p>
         </article>
       </div>
@@ -86,7 +86,6 @@
 
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
-import dayjs from 'dayjs';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { formatNumber } from '@/utils/number';
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
@@ -96,6 +95,7 @@ import LfLoading from '@/ui-kit/loading/Loading.vue';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfContributorDetailsMaintainer
   from '@/modules/contributor/components/details/overview/contributor-details-maintainer.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   contributor: Contributor,

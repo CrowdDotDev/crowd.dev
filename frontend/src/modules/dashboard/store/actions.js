@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
 import { MemberService } from '@/modules/member/member-service';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { ActivityService } from '@/modules/activity/activity-service';
@@ -8,8 +6,8 @@ import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
-dayjs.extend(utcPlugin);
 export default {
   async reset({ dispatch }) {
     dispatch('setFilters', {});
@@ -63,7 +61,7 @@ export default {
         and: [
           {
             lastActive: {
-              gte: dayjs()
+              gte: dateHelper()
                 .utc()
                 .startOf('day')
                 .subtract(
@@ -75,7 +73,7 @@ export default {
           },
           {
             lastActive: {
-              lte: dayjs()
+              lte: dateHelper()
                 .utc()
                 .toISOString(),
             },
@@ -139,7 +137,7 @@ export default {
         and: [
           {
             timestamp: {
-              gte: dayjs()
+              gte: dateHelper()
                 .utc()
                 .startOf('day')
                 .subtract(
@@ -151,7 +149,7 @@ export default {
           },
           {
             timestamp: {
-              lte: dayjs()
+              lte: dateHelper()
                 .utc()
                 .toISOString(),
             },
@@ -229,12 +227,12 @@ export default {
       platform: platform !== 'all' ? [{ value: platform }] : [],
       isTeamMember: false,
       activityIsContribution: null,
-      activityTimestampFrom: dayjs()
+      activityTimestampFrom: dateHelper()
         .utc()
         .subtract(period.value - 1, period.granularity)
         .startOf('day')
         .toISOString(),
-      activityTimestampTo: dayjs().utc().endOf('day'),
+      activityTimestampTo: dateHelper().utc().endOf('day'),
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
@@ -261,7 +259,7 @@ export default {
           ...DEFAULT_MEMBER_FILTERS,
           {
             joinedAt: {
-              gte: dayjs()
+              gte: dateHelper()
                 .utc()
                 .startOf('day')
                 .subtract(
@@ -347,12 +345,12 @@ export default {
     return OrganizationService.listActive({
       platform: platform !== 'all' ? [{ value: platform }] : [],
       isTeamOrganization: false,
-      activityTimestampFrom: dayjs()
+      activityTimestampFrom: dateHelper()
         .utc()
         .subtract(period.value - 1, period.granularity)
         .startOf('day')
         .toISOString(),
-      activityTimestampTo: dayjs().utc().endOf('day'),
+      activityTimestampTo: dateHelper().utc().endOf('day'),
       orderBy: 'activityCount_DESC',
       offset: 0,
       limit: 5,
@@ -378,7 +376,7 @@ export default {
           ...DEFAULT_ORGANIZATION_FILTERS,
           {
             joinedAt: {
-              gte: dayjs()
+              gte: dateHelper()
                 .utc()
                 .startOf('day')
                 .subtract(

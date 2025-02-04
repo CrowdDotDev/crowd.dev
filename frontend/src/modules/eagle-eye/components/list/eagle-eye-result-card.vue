@@ -349,7 +349,6 @@ import {
   computed, defineProps, ref, watch, h,
 } from 'vue';
 import { useStore } from 'vuex';
-import dayjs from 'dayjs';
 import { formatDateToTimeAgo } from '@/utils/date';
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
 import { withHttp } from '@/utils/string';
@@ -358,6 +357,7 @@ import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
@@ -589,7 +589,7 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
   const action = shouldAdd
     ? {
       type: actionType,
-      timestamp: dayjs(),
+      timestamp: dateHelper(),
     }
     : props.result.actions.find(
       (a) => a.type === actionType,

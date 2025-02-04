@@ -1,8 +1,8 @@
-import dayjs from 'dayjs';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { lfIdentities } from '@/config/identities';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
@@ -15,7 +15,7 @@ const useContributorHelpers = () => {
     if (!contributor.joinedAt) {
       return false;
     }
-    return dayjs().diff(dayjs(contributor.joinedAt), 'days')
+    return dateHelper().diff(dateHelper(contributor.joinedAt), 'days')
       <= 14;
   };
 

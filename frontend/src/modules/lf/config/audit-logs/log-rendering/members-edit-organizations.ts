@@ -1,21 +1,17 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
 import { OrganizationService } from '@/modules/organization/organization-service';
-// import { OrganizationService } from '@/modules/organization/organization-service';
-
-dayjs.extend(utcPlugin);
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
   const dateStartFormat = dateStart
-    ? dayjs(dateStart)
+    ? dateHelper(dateStart)
       .utc()
       .format('MMMM YYYY')
     : 'Unknown';
   // eslint-disable-next-line no-nested-ternary
   const dateEndFormat = dateEnd
-    ? dayjs(dateEnd)
+    ? dateHelper(dateEnd)
       .utc()
       .format('MMMM YYYY')
     : (dateStart ? 'Present' : 'Unknown');

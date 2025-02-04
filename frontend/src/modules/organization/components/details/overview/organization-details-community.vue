@@ -43,8 +43,8 @@
           </p>
           <p class="text-small text-gray-600">
             {{
-              dayjs(props.organization.joinedAt).isAfter(dayjs('1970-01-01', 'year'))
-                ? dayjs(props.organization.joinedAt).format('MMM DD, YYYY')
+              dateHelper(props.organization.joinedAt).isAfter(dateHelper(0))
+                ? dateHelper(props.organization.joinedAt).format('MMM DD, YYYY')
                 : '-'
             }}
           </p>
@@ -56,7 +56,6 @@
 
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
-import dayjs from 'dayjs';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';
@@ -70,6 +69,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfOrganizationDetailsCommunityProjectSelect
   from '@/modules/organization/components/details/overview/community/organization-details-community-project-select.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   organization: Organization,

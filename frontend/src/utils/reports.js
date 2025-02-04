@@ -1,7 +1,4 @@
-import dayjs from 'dayjs';
-import weekdayPlugin from 'dayjs/plugin/weekday';
-
-dayjs.extend(weekdayPlugin);
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const weekdays = [
   'Sun',
@@ -40,7 +37,7 @@ const parseDate = (date, granularity) => {
 export const parseTooltipTitle = (context) => {
   const { granularity } = context[0].dataset;
   const { label: title } = context[0];
-  const date = dayjs(title);
+  const date = dateHelper(title);
 
   return parseDate(date, granularity);
 };
@@ -83,17 +80,17 @@ export const parseTooltipBody = (context) => {
     percDiff = (difference / previousPoint) * 100;
   }
 
-  const date = dayjs(label);
+  const date = dateHelper(label);
   let previousDate;
 
   // For granularity WEEK
   // Show label as range between start and end of week
   // (e.g Nov 14 - Nov 20)
   if (granularity === 'week') {
-    const startDate = dayjs(label)
+    const startDate = dateHelper(label)
       .subtract(7, 'day')
       .format('MMM DD');
-    const endDate = dayjs(label)
+    const endDate = dateHelper(label)
       .subtract(1, 'day')
       .format('MMM DD');
 
@@ -120,7 +117,7 @@ export const parseTooltipBody = (context) => {
 };
 
 export const parseAxisLabel = (label, granularity) => {
-  const date = dayjs(label);
+  const date = dateHelper(label);
 
   return parseDate(date, granularity);
 };

@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import sharedActions from '@/shared/store/actions';
 import { EagleEyeService } from '@/modules/eagle-eye/eagle-eye-service';
 import Errors from '@/shared/error/errors';
@@ -11,6 +10,7 @@ import {
 import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default {
   ...sharedActions('eagleEye'),
@@ -102,7 +102,7 @@ export default {
           // Set new results in local storage
           setResultsInStorage({
             posts: list,
-            storageDate: dayjs(),
+            storageDate: dateHelper(),
             tenantId: tenant.value.id,
             userId: user.value.id,
           });
@@ -167,7 +167,7 @@ export default {
       index
     ].actions.find((a) => a.type === actionType) || {
       type: actionType,
-      timestamp: dayjs(),
+      timestamp: dateHelper(),
     };
     // Add new action
     if (storeActionType === 'add') {
@@ -248,7 +248,7 @@ export default {
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
-      storageDate: dayjs(),
+      storageDate: dateHelper(),
       tenantId: tenant.value.id,
       userId: user.value.id,
     });
@@ -294,7 +294,7 @@ export default {
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
-      storageDate: dayjs(),
+      storageDate: dateHelper(),
       tenantId: tenant.value.id,
       userId: user.value.id,
     });
@@ -344,7 +344,7 @@ export default {
           // Update posts with new actions in local storage
           setResultsInStorage({
             posts: state.views.feed.list.posts,
-            storageDate: dayjs(),
+            storageDate: dateHelper(),
             tenantId: tenant.value.id,
             userId: user.value.id,
           });

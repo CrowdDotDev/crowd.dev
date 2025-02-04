@@ -120,8 +120,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import { Organization } from '@/modules/organization/types/Organization';
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -138,8 +136,8 @@ import { useSharedStore } from '@/shared/pinia/shared.store';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
-dayjs.extend(utcPlugin);
 const props = defineProps<{
   organization: Organization,
   contributor: Contributor,
@@ -157,11 +155,11 @@ const hovered = ref<boolean>(false);
 
 const getDateRange = (dateStart?: string, dateEnd?: string) => {
   const start = dateStart
-    ? dayjs(dateStart).utc().format('MMMM YYYY')
+    ? dateHelper(dateStart).utc().format('MMMM YYYY')
     : 'Unknown';
   const endDefault = dateStart ? 'Present' : 'Unknown';
   const end = dateEnd
-    ? dayjs(dateEnd).utc().format('MMMM YYYY')
+    ? dateHelper(dateEnd).utc().format('MMMM YYYY')
     : endDefault;
   if (start === end) {
     return start;
@@ -176,17 +174,17 @@ const restOrganizations = computed(() => props.contributor.organizations.filter(
 
 const isOverlapping = computed(() => {
   const org = props.organization.memberOrganizations;
-  const dateStart = dayjs(org.dateStart || 0);
+  const dateStart = dateHelper(org.dateStart || 0);
   // undefined represents current date
-  const dateEnd = dayjs(org.dateEnd || undefined);
+  const dateEnd = dateHelper(org.dateEnd || undefined);
   return restOrganizations.value.some((o) => {
     if (!o.memberOrganizations.affiliationOverride.isPrimaryWorkExperience) {
       return false;
     }
     const oOrg = o.memberOrganizations;
-    const dateStartCompare = dayjs(oOrg.dateStart || 0);
+    const dateStartCompare = dateHelper(oOrg.dateStart || 0);
     // undefined represents current date
-    const dateEndCompare = dayjs(oOrg.dateEnd || undefined);
+    const dateEndCompare = dateHelper(oOrg.dateEnd || undefined);
 
     return dateStartCompare.isBefore(dateEnd) && dateEndCompare.isAfter(dateStart);
   });

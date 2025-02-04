@@ -238,8 +238,6 @@ import {
 } from 'vue';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   mapActions,
@@ -253,8 +251,8 @@ import elementChangeDetector from '@/shared/form/element-change';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
-dayjs.extend(utcPlugin);
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -337,7 +335,7 @@ const fillForm = (user) => {
   form.email = eagleEyeSettings.value.emailDigest?.email || user.email;
   form.frequency = eagleEyeSettings.value.emailDigest?.frequency || 'daily';
   form.time = eagleEyeSettings.value.emailDigest?.time
-    ? dayjs
+    ? dateHelper
       .utc(
         eagleEyeSettings.value.emailDigest?.time,
         'HH:mm',
@@ -360,7 +358,7 @@ const doSubmit = async () => {
     const data = {
       email: form.email,
       frequency: form.frequency,
-      time: dayjs(form.time, 'HH:mm')
+      time: dateHelper(form.time, 'HH:mm')
         .utc()
         .format('HH:mm'),
       matchFeedSettings: form.updateResults,

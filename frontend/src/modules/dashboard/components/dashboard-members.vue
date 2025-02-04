@@ -219,8 +219,6 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import dayjs from 'dayjs';
-import utcPlugin from 'dayjs/plugin/utc';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
@@ -233,8 +231,8 @@ import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
-dayjs.extend(utcPlugin);
 const {
   chartData, members, period, activeMembers, recentMembers,
 } = mapGetters('dashboard');
@@ -245,11 +243,11 @@ const mapData = (data: any[]) => data.map((item) => ({
 }));
 
 const periodRange = computed(() => [
-  dayjs()
+  dateHelper()
     .utc()
     .subtract(period.value - 1, 'day')
     .format('YYYY-MM-DD'),
-  dayjs()
+  dateHelper()
     .utc()
     .format('YYYY-MM-DD'),
 ]);

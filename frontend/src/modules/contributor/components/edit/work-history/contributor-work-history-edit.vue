@@ -118,7 +118,6 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import { MemberOrganization, Organization, OrganizationSource } from '@/modules/organization/types/Organization';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfOrganizationSelect from '@/modules/organization/components/shared/organization-select.vue';
-import dayjs from 'dayjs';
 import Message from '@/shared/message/message';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -127,6 +126,7 @@ import useVuelidate from '@vuelidate/core';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -164,7 +164,7 @@ const minDate = (value: string, rest: ConrtibutorWorkHistoryForm) => {
   return (
     (!value && !dateEnd && !currentlyWorking)
       || (value && !dateEnd && currentlyWorking)
-      || (value && dateEnd && dayjs(value).isBefore(dayjs(dateEnd)))
+      || (value && dateEnd && dateHelper(value).isBefore(dateHelper(dateEnd)))
       || (!value && !dateEnd)
   );
 };
@@ -185,8 +185,8 @@ const updateWorkExperience = () => {
     organizationId: (form.organization || props.organization)?.id,
     source: OrganizationSource.UI,
     title: form.title,
-    dateStart: form.dateStart ? dayjs(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
-    dateEnd: !form.currentlyWorking && form.dateEnd ? dayjs(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+    dateStart: form.dateStart ? dateHelper(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+    dateEnd: !form.currentlyWorking && form.dateEnd ? dateHelper(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
   };
 
   if (isEdit.value) {
@@ -270,10 +270,10 @@ const hasSameOrgDetails = computed(() => (props.contributor.organizations || [])
 
     // Check if dates matching
     const start = form.dateStart && o.memberOrganizations.dateStart
-      ? dayjs(form.dateStart).startOf('month').isSame(dayjs(o.memberOrganizations.dateStart), 'day')
+      ? dateHelper(form.dateStart).startOf('month').isSame(dateHelper(o.memberOrganizations.dateStart), 'day')
       : form.dateStart === o.memberOrganizations.dateStart;
     const end = !form.currentlyWorking && form.dateEnd && o.memberOrganizations.dateEnd
-      ? dayjs(form.dateEnd).startOf('month').isSame(dayjs(o.memberOrganizations.dateEnd), 'day')
+      ? dateHelper(form.dateEnd).startOf('month').isSame(dateHelper(o.memberOrganizations.dateEnd), 'day')
       : form.dateEnd === o.memberOrganizations.dateEnd;
     return start && end;
   }));

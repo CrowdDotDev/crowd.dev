@@ -164,7 +164,7 @@ import {
 } from '@/config/integrations/github-archive/types/GithubSettings';
 import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
 import Message from '@/shared/message/message';
-import dayjs from 'dayjs';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -200,17 +200,17 @@ const isOrganizationSynced = (org: GitHubOrganization) => organizations.value.so
 
 const addRepository = (repo: GitHubSettingsRepository) => {
   if (!repositories.value.some((r: GitHubSettingsRepository) => repo.url === r.url)) {
-    repositories.value.push({ ...repo, updatedAt: dayjs().toISOString() });
+    repositories.value.push({ ...repo, updatedAt: dateHelper().toISOString() });
   }
 };
 
 const addOrganizations = (org: GitHubOrganization) => {
-  organizations.value.push({ ...org, updatedAt: dayjs().toISOString() });
+  organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
   GithubApiService.getOrganizationRepositories(org.name)
     .then((res) => {
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter((r: GitHubSettingsRepository) => !repositories.value.some((repo: GitHubSettingsRepository) => repo.url === r.url))
-        .map((r: GitHubSettingsRepository) => ({ ...r, org, updatedAt: dayjs().toISOString() }));
+        .map((r: GitHubSettingsRepository) => ({ ...r, org, updatedAt: dateHelper().toISOString() }));
       repositories.value = [...repositories.value, ...newRepositories];
     });
 };

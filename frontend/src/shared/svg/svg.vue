@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import dayjs from 'dayjs';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default {
   name: 'LfSvg',
@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       isHovered: false,
-      version: dayjs().format('x'),
+      version: dateHelper().format('x'),
     };
   },
 };

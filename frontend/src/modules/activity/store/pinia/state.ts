@@ -1,5 +1,5 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import dayjs from 'dayjs';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export interface ActivityState {
   filters: Filter,
@@ -21,7 +21,7 @@ export default () => ({
     },
   } as Filter,
   limit: 20,
-  timestamp: dayjs().toISOString(),
+  timestamp: dateHelper().toISOString(),
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,

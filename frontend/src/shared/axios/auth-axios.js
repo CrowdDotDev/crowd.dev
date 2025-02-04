@@ -1,11 +1,11 @@
 import Axios from 'axios';
 import { stringify } from 'qs';
-import dayjs from 'dayjs';
 import config from '@/config';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const authAxios = Axios.create({
   baseURL: config.backendUrl,
@@ -14,7 +14,7 @@ const authAxios = Axios.create({
       arrayFormat: 'brackets',
       filter: (prefix, value) => {
         if (
-          dayjs.isDayjs(value)
+          dateHelper.isDayjs(value)
           || value instanceof Date
         ) {
           return value.toISOString();

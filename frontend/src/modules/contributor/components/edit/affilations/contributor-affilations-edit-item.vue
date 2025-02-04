@@ -104,7 +104,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import dayjs from 'dayjs';
 import useVuelidate from '@vuelidate/core';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
@@ -113,6 +112,7 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { required } from '@vuelidate/validators';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export interface AffilationForm {
   segmentId: string;
@@ -153,7 +153,7 @@ const minDate = (value: string, rest: AffilationForm) => {
   return (
     (!value && !dateEnd && !currentlyAffiliated)
       || (value && !dateEnd && currentlyAffiliated)
-      || (value && dateEnd && dayjs(value).isBefore(dayjs(dateEnd)))
+      || (value && dateEnd && dateHelper(value).isBefore(dateHelper(dateEnd)))
       || (!value && !dateEnd)
   );
 };
