@@ -53,7 +53,7 @@
         Timestamp
       </div>
       <div class="w-7/12 text-sm leading-24">
-        {{ moment(props.log.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
+        {{ dateHelper(props.log.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
       </div>
     </article>
 
@@ -97,9 +97,9 @@
 
 <script setup lang="ts">
 import { ActionType, AuditLog } from '@/modules/lf/segments/types/AuditLog';
-import moment from 'moment/moment';
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 import { logRenderingConfig } from '../../../../config/audit-logs/log-rendering';
 
 const props = defineProps<{

@@ -1,40 +1,20 @@
-import moment from 'moment';
 import config from '@/config';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 /**
  * Time ago utility
  *
- * This is a small wrapper of the moment(date).fromNow() method, to handle our data-related exception regarding
+ * This is a small wrapper of the dateHelper(date).fromNow() method, to handle our data-related exception regarding
  * the year 1970, replacing the default label ("52 years ago") to "some time ago".
  *
  * @param timestamp
  * @returns {string|string}
  */
-export const formatDateToTimeAgo = (timestamp) => (moment.utc(timestamp).year() < 2000
+export const formatDateToTimeAgo = (timestamp) => (dateHelper.utc(timestamp).year() < 2000
   ? 'some time ago'
-  : moment.utc(timestamp).fromNow());
+  : dateHelper.utc(timestamp).fromNow());
 
-export const formatDateToTimeAgoForIntegrations = (timestamp) => {
-  dayjs.extend(relativeTime, {
-    thresholds: [
-      { l: 's', r: 1 },
-      { l: 'm', r: 1 },
-      { l: 'mm', r: 59, d: 'minute' },
-      { l: 'h', r: 1 },
-      { l: 'hh', r: 23, d: 'hour' },
-      { l: 'd', r: 1 },
-      { l: 'dd', r: 29, d: 'day' },
-      { l: 'M', r: 1 },
-      { l: 'MM', r: 11, d: 'month' },
-      { l: 'y', r: 1 },
-      { l: 'yy', d: 'year' },
-    ],
-  });
-
-  return dayjs().to(dayjs(timestamp));
-};
+export const formatDateToTimeAgoForIntegrations = (timestamp) => dateHelper().to(dateHelper(timestamp));
 
 /**
  *
@@ -51,7 +31,7 @@ export const formatDate = ({
   subtractYears,
   format = 'YYYY-MM-DD',
 }) => {
-  const date = timestamp ? moment(timestamp) : moment();
+  const date = timestamp ? dateHelper(timestamp) : dateHelper();
 
   if (subtractDays) {
     date.subtract(subtractDays, 'days');
@@ -73,8 +53,8 @@ export const getTrialDate = (tenant) => {
     return null;
   }
 
-  const daysLeft = moment(tenant.trialEndsAt).diff(
-    moment(),
+  const daysLeft = dateHelper(tenant.trialEndsAt).diff(
+    dateHelper(),
     'days',
   );
 
