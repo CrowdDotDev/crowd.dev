@@ -545,6 +545,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
       },
     )
 
-    return resultss.id
+    return results.id
   }
 }

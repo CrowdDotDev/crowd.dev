@@ -7,7 +7,6 @@ import {
   IQueryTimeseriesParams,
   ITimeseriesDatapoint,
   OrganizationIdentityType,
-  SyncStatus,
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -344,30 +343,6 @@ export async function findMemberOrganizations(
     {
       memberId,
       organizationId,
-    },
-  )
-}
-
-export async function addOrgToSyncRemote(
-  qe: QueryExecutor,
-  organizationId: string,
-  integrationId: string,
-  sourceId: string,
-): Promise<void> {
-  await qe.selectNone(
-    `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
-    values
-        ($(id), $(organizationId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
-        on conflict do nothing`,
-    {
-      id: generateUUIDv1(),
-      organizationId,
-      sourceId,
-      integrationId,
-      syncFrom: 'enrich',
-      metaData: null,
-      lastSyncedAt: null,
-      status: SyncStatus.NEVER,
     },
   )
 }

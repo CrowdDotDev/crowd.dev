@@ -122,7 +122,7 @@ export class OrganizationSyncService {
       }
 
       processed += results.length
-      this.log.warn(`Processed ${processed} organizations while cleaning up tenant!`)
+      this.log.warn(`Processed ${processed} organizations while cleaning up!`)
 
       // use last createdAt to get the next page
       lastCreatedAt = results[results.length - 1]._source.date_createdAt
@@ -143,7 +143,7 @@ export class OrganizationSyncService {
       await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.ORGANIZATIONS)
     }
 
-    this.log.warn(`Processed total of ${processed} organizations while cleaning up tenant!`)
+    this.log.warn(`Processed total of ${processed} organizations while cleaning up!`)
   }
 
   public async removeOrganization(organizationId: string): Promise<void> {
@@ -192,7 +192,11 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncAllOrganizations(batchSize = 200): Promise<void> {
+  public async syncAllOrganizations(
+    batchSize = 200,
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<void> {
+    this.log.warn('Syncing all organizations!')
     let docCount = 0
     let organizationCount = 0
     let previousBatchIds: string[] = []
@@ -208,7 +212,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
-            { withAggs: true },
+            opts,
           )
 
           organizationCount += organizationsSynced
@@ -238,7 +242,7 @@ export class OrganizationSyncService {
         }
       },
       this.log,
-      'sync-tenant-organizations',
+      'sync-all-organizations',
     )
 
     this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
@@ -348,7 +352,6 @@ export class OrganizationSyncService {
         const qx = repoQx(this.readOrgRepo)
         const base = await findOrgById(qx, orgId, [
           OrganizationField.ID,
-          OrganizationField.TENANT_ID,
           OrganizationField.DISPLAY_NAME,
           OrganizationField.LOCATION,
           OrganizationField.INDUSTRY,
@@ -409,12 +412,10 @@ export class OrganizationSyncService {
     }
   }
 
-  public static async prefixData(
-    data: IOrganizationFullAggregatesOpensearch,
-  ): Promise<IOrganizationOpensearch> {
+  public static prefixData(data: IOrganizationFullAggregatesOpensearch): IOrganizationOpensearch {
     return {
       uuid_organizationId: data.id,
-      uuid_tenantId: data.tenantId,
+      uuid_tenantId: DEFAULT_TENANT_ID,
       string_location: data.location,
       string_industry: data.industry,
       string_ticker: data.ticker,

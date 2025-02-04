@@ -149,7 +149,7 @@ export class MemberSyncService {
       }
 
       processed += results.length
-      this.log.warn(`Processed ${processed} members while cleaning up tenant!`)
+      this.log.warn(`Processed ${processed} members while cleaning up!`)
 
       lastId = results[results.length - 1]._id
       results = (await this.openSearchService.search(
@@ -169,7 +169,7 @@ export class MemberSyncService {
       await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.MEMBERS)
     }
 
-    this.log.warn(`Processed total of ${processed} members while cleaning up tenant!`)
+    this.log.warn(`Processed total of ${processed} members while cleaning up!`)
   }
 
   public async removeMember(memberId: string): Promise<void> {
@@ -216,7 +216,10 @@ export class MemberSyncService {
     }
   }
 
-  public async syncAllMembers(batchSize = 200): Promise<void> {
+  public async syncAllMembers(
+    batchSize = 200,
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<void> {
     this.log.debug('Syncing all members!')
     let docCount = 0
     let memberCount = 0
@@ -227,7 +230,7 @@ export class MemberSyncService {
 
     while (memberIds.length > 0) {
       for (const memberId of memberIds) {
-        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId, opts)
 
         docCount += documentsIndexed
         memberCount += membersSynced

@@ -74,6 +74,7 @@ export enum CrowdQueue {
   INTEGRATION_STREAM_WORKER = 'integration-stream-worker',
   DATA_SINK_WORKER = 'data-sink-worker',
   SEARCH_SYNC_WORKER = 'search-sync-worker',
+  ACTIVITIES = 'activities',
 }
 
 export enum QueueVendor {

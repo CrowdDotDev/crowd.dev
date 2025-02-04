@@ -12,7 +12,7 @@
           <lf-icon name="search" :size="16" />
         </template>
         <template #suffix>
-          <i v-if="search.length > 0" class="ri-close-line text-base cursor-pointer" @click="search = ''" />
+          <lf-icon v-if="search.length > 0" name="xmark" :size="16" class="cursor-pointer" @click="search = ''" />
         </template>
       </el-input>
     </div>

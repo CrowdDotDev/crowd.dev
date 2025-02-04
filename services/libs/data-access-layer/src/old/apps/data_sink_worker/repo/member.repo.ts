@@ -1,7 +1,7 @@
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMemberIdentity, MemberIdentityType, SyncStatus } from '@crowd/types'
+import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import {
   deleteManyMemberIdentities,
@@ -242,25 +242,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
       ' ON CONFLICT DO NOTHING'
     await this.db().none(query)
-  }
-
-  public async addToSyncRemote(memberId: string, integrationId: string, sourceId: string) {
-    await this.db().none(
-      `insert into "membersSyncRemote" ("id", "memberId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
-      values
-          ($(id), $(memberId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
-          on conflict do nothing`,
-      {
-        id: generateUUIDv1(),
-        memberId,
-        sourceId,
-        integrationId,
-        syncFrom: 'enrich',
-        metaData: null,
-        lastSyncedAt: null,
-        status: SyncStatus.NEVER,
-      },
-    )
   }
 
   public async getMemberIdsAndEmailsAndCount(

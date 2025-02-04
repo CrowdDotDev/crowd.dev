@@ -11,7 +11,9 @@
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
     <template #content>
-      <div class="text-gray-900 text-sm font-medium">Remote URL</div>
+      <div class="text-gray-900 text-sm font-medium">
+        Remote URL
+      </div>
       <div class="text-2xs text-gray-500">
         Connect remote Gerrit repository.
       </div>
@@ -50,7 +52,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="removeRepoName(ii)"
             >
-              <i class="ri-delete-bin-line text-lg" />
+              <lf-icon name="trash-can" :size="20" />
             </el-button>
           </template>
         </app-array-input>
@@ -92,7 +94,9 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
-import { computed, defineProps, onMounted, reactive, ref } from 'vue';
+import {
+  computed, defineProps, onMounted, reactive, ref,
+} from 'vue';
 import gerrit from '@/config/integrations/gerrit/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -103,6 +107,7 @@ import {
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

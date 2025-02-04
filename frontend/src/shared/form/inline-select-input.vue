@@ -13,8 +13,10 @@
         <span class="inline-select-input-value">{{
           modelLabel
         }}</span>
-        <i
-          class="ri-arrow-down-s-line ml-1"
+        <lf-icon
+          name="chevron-down"
+          :size="16"
+          class="ml-1"
           :style="
             dropdownExpanded
               ? 'transform: rotate(180deg)'
@@ -55,6 +57,7 @@ import {
   ref,
   computed,
 } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {

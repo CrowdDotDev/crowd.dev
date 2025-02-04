@@ -10,7 +10,6 @@ import { NangoIntegration, connectNangoIntegration, startNangoSync } from '@crow
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
 
-import integrationFind from '@/api/integration/integrationFind'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'

@@ -1,4 +1,5 @@
 import { DbConnOrTx, DbStore } from '@crowd/database'
+import { IQueue } from '@crowd/queue'
 
 import { updateActivities } from '../../../activities/update'
 
@@ -33,11 +34,13 @@ export async function deleteOrganizationById(db: DbStore, organizationId: string
 
 export async function moveActivitiesToNewOrg(
   qdb: DbConnOrTx,
+  queueClient: IQueue,
   primaryId: string,
   secondaryId: string,
 ) {
   await updateActivities(
     qdb,
+    queueClient,
     async () => ({ organizationId: primaryId }),
     `
       "organizationId" = $(organizationId)

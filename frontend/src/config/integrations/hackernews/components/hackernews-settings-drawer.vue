@@ -77,9 +77,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeUrl(url.id)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg text-black"
-                />
+                <lf-icon name="trash-can" :size="20" class="text-black" />
               </el-button>
             </div>
             <span
@@ -123,13 +121,16 @@
 import { mapActions } from 'vuex';
 import hackernews from '@/config/integrations/hackernews/config';
 import isUrl from '@/utils/isUrl';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default {
   name: 'LfHackernewsSettingsDrawer',
-
+  components: {
+    LfIcon,
+  },
   props: {
     integration: {
       type: Object,

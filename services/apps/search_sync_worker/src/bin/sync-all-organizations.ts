@@ -41,6 +41,12 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
   }
 
+  let withAggs = true
+
+  if (processArguments.includes('--no-aggs')) {
+    withAggs = false
+  }
+
   const readStore = new DbStore(log, readHost)
 
   const service = new OrganizationSyncService(
@@ -51,7 +57,7 @@ setImmediate(async () => {
     readStore,
   )
 
-  await service.syncAllOrganizations(500)
+  await service.syncAllOrganizations(500, { withAggs })
 
   process.exit(0)
 })

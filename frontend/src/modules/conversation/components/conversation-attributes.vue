@@ -6,9 +6,7 @@
     <div
       :class="classes.container"
     >
-      <i
-        class="ri-file-edit-line text-base mr-2 text-gray-500"
-      />
+      <lf-icon name="file-pen" :size="14" class="mr-2 text-gray-500" />
       <p
         :class="classes.changes"
       >
@@ -38,6 +36,7 @@
 <script setup>
 import pluralize from 'pluralize';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   changes: {

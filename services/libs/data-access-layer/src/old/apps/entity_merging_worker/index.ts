@@ -1,4 +1,5 @@
 import { DbConnOrTx, DbStore } from '@crowd/database'
+import { IQueue } from '@crowd/queue'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
 import { updateActivities } from '../../../activities/update'
@@ -40,12 +41,19 @@ export async function findMemberById(db: DbStore, primaryId: string) {
 
 export async function moveActivitiesToNewMember(
   qdb: DbConnOrTx,
+  queueClient: IQueue,
   primaryId: string,
   secondaryId: string,
 ) {
-  await updateActivities(qdb, async () => ({ memberId: primaryId }), `"memberId" = $(memberId)`, {
-    memberId: secondaryId,
-  })
+  await updateActivities(
+    qdb,
+    queueClient,
+    async () => ({ memberId: primaryId }),
+    `"memberId" = $(memberId)`,
+    {
+      memberId: secondaryId,
+    },
+  )
 }
 
 export async function updateMergeActionState(
@@ -108,6 +116,7 @@ export async function getIdentitiesWithActivity(
 
 export async function moveIdentityActivitiesToNewMember(
   db: DbConnOrTx,
+  queueClient: IQueue,
   fromId: string,
   toId: string,
   username: string,
@@ -115,6 +124,7 @@ export async function moveIdentityActivitiesToNewMember(
 ) {
   await updateActivities(
     db,
+    queueClient,
     async (activity: IDbActivityCreateData) => ({ ...activity, memberId: toId }),
     formatQuery(
       `

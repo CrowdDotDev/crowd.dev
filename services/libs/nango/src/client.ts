@@ -40,7 +40,7 @@ function ensureBackendClient() {
   }
 }
 
-export const initNango = async (): Promise<void> => {
+export const initNangoCloudClient = async (): Promise<void> => {
   if (!backendClient) {
     const config = NANGO_CLOUD_CONFIG()
     if (!config) {

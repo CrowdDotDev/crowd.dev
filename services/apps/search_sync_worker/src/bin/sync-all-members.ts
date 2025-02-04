@@ -26,12 +26,17 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.MEMBER)
   }
 
+  let withAggs = true
+  if (processArguments.includes('--no-aggs')) {
+    withAggs = false
+  }
+
   const qdbConn = await getClientSQL()
   const qdbStore = new DbStore(log, qdbConn)
 
   const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
-  await service.syncAllMembers()
+  await service.syncAllMembers(500, { withAggs })
 
   process.exit(0)
 })

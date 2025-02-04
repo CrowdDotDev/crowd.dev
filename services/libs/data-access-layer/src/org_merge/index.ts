@@ -18,3 +18,24 @@ export async function findOrgNoMergeIds(
 
   return rows.map((row: { noMergeId: string }) => row.noMergeId)
 }
+
+export async function addOrgNoMerge(
+  qx: QueryExecutor,
+  organizationId: string,
+  noMergeId: string,
+): Promise<void> {
+  const currentTime = new Date()
+  await qx.result(
+    `
+      INSERT INTO "organizationNoMerge" ("organizationId", "noMergeId", "createdAt", "updatedAt")
+      VALUES ($(organizationId), $(noMergeId), $(createdAt), $(updatedAt))
+      on conflict ("organizationId", "noMergeId") do nothing
+    `,
+    {
+      organizationId,
+      noMergeId,
+      createdAt: currentTime,
+      updatedAt: currentTime,
+    },
+  )
+}

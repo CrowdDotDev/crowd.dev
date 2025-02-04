@@ -17,7 +17,7 @@ import DataSinkService from '../service/dataSink.service'
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
-    client: IQueue,
+    private readonly client: IQueue,
     private readonly pgConn: DbConnection,
     private readonly qdbConn: DbConnection,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
@@ -49,6 +49,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
         this.dataSinkWorkerEmitter,
         this.redisClient,
         this.temporal,
+        this.client,
         this.log,
       )
 

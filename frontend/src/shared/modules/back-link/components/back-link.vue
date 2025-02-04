@@ -3,7 +3,7 @@
     class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
     :to="routeLocation"
   >
-    <i class="ri-arrow-left-s-line mr-2" />
+    <lf-icon name="chevron-left" :size="16" class="mr-2" />
     <span>
       <slot v-if="!backLink" />
       <span v-else>{{ previousRouteTitle }}</span>
@@ -14,6 +14,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   defaultRoute: Record<string, unknown>

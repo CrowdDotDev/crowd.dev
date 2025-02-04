@@ -14,6 +14,8 @@ import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_members
 import { ActivityDisplayService } from '@crowd/integrations'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
+import { QUEUE_CLIENT } from '@/serverless/utils/queueService'
+
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
@@ -56,7 +58,7 @@ class ActivityRepository {
       data.platform = data.platform.toLowerCase()
     }
 
-    const ids = await insertActivities([
+    const ids = await insertActivities(QUEUE_CLIENT(), [
       {
         type: data.type,
         timestamp: data.timestamp,

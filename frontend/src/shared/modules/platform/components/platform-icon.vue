@@ -1,26 +1,25 @@
 <template>
-  <i
+  <lf-icon
+    :name="icons[platform] ? icons[platform].name : 'fingerprint'"
+    :type="icons[platform] ? icons[platform].type : 'light'"
     class="text-gray-900"
-    :class="{
-      [iconClass]: true,
-      [icons[platform]]: !!icons[platform],
-      'ri-fingerprint-line': !icons[platform],
-    }"
+    :class="iconClass"
   />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   platform: string;
   size: string;
 }>();
 
-const icons: { [key: string]: string } = {
-  domains: 'ri-window-line',
-  emails: 'ri-mail-line',
-  phoneNumbers: 'ri-phone-fill',
+const icons: { [key: string]: { name: string, type: string } } = {
+  domains: { name: 'window', type: 'regular' },
+  emails: { name: 'envelope', type: 'light' },
+  phoneNumbers: { name: 'phone', type: 'light' },
 };
 
 const iconClass = computed(() => {

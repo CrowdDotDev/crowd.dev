@@ -12,10 +12,7 @@
         class="w-4 h-4"
         :src="platform.image"
       />
-      <i
-        v-else
-        class="ri-radar-line text-base"
-      />
+      <lf-icon v-else name="satellite-dish" :size="16" />
     </el-tooltip>
     <div class="text-gray-500 text-xs">
       {{ timeAgo }}

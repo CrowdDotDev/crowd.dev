@@ -48,6 +48,7 @@ setImmediate(async () => {
     dataSinkWorkerEmitter,
     redis,
     temporal,
+    queueClient,
     log,
   )
 

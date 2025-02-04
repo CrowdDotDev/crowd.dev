@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-RUN corepack enable
+RUN npm install -g corepack@latest && corepack enable pnpm
 
 WORKDIR /usr/crowd/app
 

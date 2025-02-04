@@ -14,7 +14,7 @@
             class="btn btn-link btn-link--md btn-link--primary text-gray-600 mr-4"
             @click="onActivityTypesClick"
           >
-            <i class="ri-settings-3-line text-lg mr-2" />
+            <lf-icon name="gear" :size="20" class="mr-2" />
             Activity types
           </el-button>
           <el-button
@@ -88,6 +88,7 @@ import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppLfSubProjectsListModal from '@/modules/admin/modules/projects/components/lf-sub-projects-list-modal.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const route = useRoute();
 const router = useRouter();

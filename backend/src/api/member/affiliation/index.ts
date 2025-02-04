@@ -9,4 +9,9 @@ export default (app) => {
     `/member/:memberId/affiliation`,
     safeWrap(require('./memberAffiliationUpdateMultiple').default),
   )
+
+  app.post(
+    `/member/:memberId/affiliation/override`,
+    safeWrap(require('./memberAffiliationChangeOverride').default),
+  )
 }

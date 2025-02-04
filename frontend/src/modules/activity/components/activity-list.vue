@@ -26,7 +26,7 @@
       <!-- Empty State -->
       <app-empty-state-cta
         v-if="activities.length === 0"
-        icon="ri-list-check-2"
+        icon="list"
         :title="emptyState.title"
         :description="emptyState.description"
       />
@@ -83,6 +83,7 @@ import {
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 // import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';

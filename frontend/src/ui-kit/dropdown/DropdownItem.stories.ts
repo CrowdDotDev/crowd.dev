@@ -34,7 +34,7 @@ export const Regular = {
     },
     template: `<div class="c-dropdown__menu is-open">
       <lf-dropdown-item :disabled="args.disabled" :type="args.type">
-        <i class="ri-link-unlink" />
+        <i class="fa-light fa-link-simple-slash" />
         Dropdown item
       </lf-dropdown-item></div>`,
   }),

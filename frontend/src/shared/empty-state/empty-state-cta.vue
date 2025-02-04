@@ -9,10 +9,7 @@
       v-if="description"
       class="text-gray-600 text-sm mt-4 w-6/12 text-center"
     >
-      <i
-        v-if="hasWarningIcon"
-        class="ri-information-line text-primary-500 text-base mr-2"
-      />
+      <lf-icon v-if="hasWarningIcon" name="circle-info" :size="16" class="text-primary-500 mr-2" />
       <span v-html="description" />
     </div>
     <div class="flex gap-6 mt-8">

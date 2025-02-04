@@ -2,7 +2,7 @@
   <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
       <lf-button type="secondary" size="small">
-        <i class="ri-stack-line" /> <p>Projects: <span class="font-normal">{{ label }}</span></p>
+        <lf-icon name="layer-group" /> <p>Projects: <span class="font-normal">{{ label }}</span></p>
       </lf-button>
     </template>
 
@@ -13,7 +13,7 @@
         @click="segments = []; childSegments = []"
       >
         <span class="text-black">All projects</span>
-        <i v-if="empty" class="ri-check-line text-lg text-primary-600" />
+        <lf-icon v-if="empty" name="check" :size="20" class="text-primary-600" />
       </article>
     </div>
     <div class="border-t border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white z-10">
@@ -80,6 +80,7 @@ import isEqual from 'lodash/isEqual';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRouter } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   segments: string[]

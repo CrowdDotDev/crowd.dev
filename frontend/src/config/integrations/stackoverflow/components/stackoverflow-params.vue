@@ -7,9 +7,7 @@
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
-              <i
-                class="ri-price-tag-3-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-              />
+              <lf-icon name="tag fa-rotate-90" :size="16" class="!text-gray-600 mr-1 flex items-center" />
               {{ pluralize('tag', tags.length, true) }}
             </div>
             <template v-if="tags.length > 0 && keywords.length > 0">
@@ -33,10 +31,7 @@
               :key="tag"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <i
-                class="ri-price-tag-3-line text-[16px] mr-1 h-4 flex items-center"
-              />
-
+              <lf-icon name="tag fa-rotate-90" :size="16" class="mr-1 flex items-center" />
               <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 tag
               }}</span>
@@ -56,7 +51,7 @@
               :key="keyword"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <div class="ri-seo-line text-[16px] mr-1 h-4 flex items-center" />
+              <lf-icon name="hashtag" :size="16" class="mr-1 flex items-center" />
 
               <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 keyword
@@ -72,6 +67,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   integration: {

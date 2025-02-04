@@ -82,16 +82,6 @@ export interface MemberIdentity {
   sourceId?: string
 }
 
-export interface IMemberSyncRemoteData {
-  id?: string
-  memberId: string
-  sourceId?: string
-  integrationId: string
-  syncFrom: string
-  metaData: string
-  lastSyncedAt?: string
-}
-
 export interface IMemberMergeSuggestion {
   similarity: number
   activityEstimate: number
@@ -221,4 +211,19 @@ export interface IMemberOpensearch {
   nested_identities: IMemberIdentityOpensearch[]
   nested_organizations: IMemberOrganizationOpensearch[]
   obj_attributes: IMemberAttributesOpensearch
+}
+
+export interface IChangeAffiliationOverrideData {
+  allowAffiliation?: boolean
+  isPrimaryWorkExperience?: boolean
+  memberOrganizationId: string
+  memberId: string
+}
+
+export interface IMemberOrganizationAffiliationOverride {
+  id?: string
+  memberId: string
+  memberOrganizationId: string
+  allowAffiliation: boolean
+  isPrimaryWorkExperience: boolean
 }

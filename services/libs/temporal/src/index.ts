@@ -1,5 +1,6 @@
 import { Client, Connection } from '@temporalio/client'
 
+import { SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { getDataConverter } from './encryption/data-converter'
@@ -21,7 +22,7 @@ export const TEMPORAL_CONFIG = (): ITemporalConfig => {
     config = {
       serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
       namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
-      identity: this.name,
+      identity: SERVICE,
       certificate: process.env['CROWD_TEMPORAL_CERTIFICATE'],
       privateKey: process.env['CROWD_TEMPORAL_PRIVATE_KEY'],
     }

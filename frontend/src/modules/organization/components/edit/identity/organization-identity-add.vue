@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Add identity</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon-old name="close-line" />
+            <lf-icon name="xmark" />
           </lf-button>
         </div>
 
@@ -29,9 +29,9 @@
                           class="h-5 w-5 object-contain"
                           :alt="identity.value"
                         />
-                        <lf-icon-old
+                        <lf-icon
                           v-else
-                          name="fingerprint-fill"
+                          name="fingerprint"
                           :size="20"
                           class="text-gray-600"
                         />
@@ -53,7 +53,7 @@
                   :icon-only="true"
                   @click="form.splice(ii, 1)"
                 >
-                  <lf-icon-old name="delete-bin-6-line" />
+                  <lf-icon name="trash-can" />
                 </lf-button>
               </div>
               <lf-field-messages
@@ -73,7 +73,7 @@
             })"
           >
             <lf-button type="primary-link" size="small">
-              <lf-icon-old name="add-line" />
+              <lf-icon name="plus" />
               Add identity
             </lf-button>
           </lf-organization-details-identity-add-dropdown>
@@ -100,7 +100,7 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';

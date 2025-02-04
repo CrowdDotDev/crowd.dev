@@ -6,23 +6,25 @@ import {
   saveLLMVerdict,
 } from './activities/common'
 import {
+  addMemberSuggestionToNoMerge,
   addMemberToMerge,
   findTenantsLatestMemberSuggestionGeneratedAt,
   getMemberMergeSuggestions,
   getMembers,
   getMembersForLLMConsumption,
   getRawMemberMergeSuggestions,
-  removeRawMemberMergeSuggestions,
+  removeMemberMergeSuggestion,
   updateMemberMergeSuggestionsLastGeneratedAt,
 } from './activities/memberMergeSuggestions'
 import {
+  addOrganizationSuggestionToNoMerge,
   addOrganizationToMerge,
   findTenantsLatestOrganizationSuggestionGeneratedAt,
   getOrganizationMergeSuggestions,
   getOrganizations,
   getOrganizationsForLLMConsumption,
   getRawOrganizationMergeSuggestions,
-  removeRawOrganizationMergeSuggestions,
+  removeOrganizationMergeSuggestions,
   updateOrganizationMergeSuggestionsLastGeneratedAt,
 } from './activities/organizationMergeSuggestions'
 
@@ -42,10 +44,12 @@ export {
   getMembersForLLMConsumption,
   getOrganizationsForLLMConsumption,
   getRawOrganizationMergeSuggestions,
-  removeRawOrganizationMergeSuggestions,
+  removeOrganizationMergeSuggestions,
   getRawMemberMergeSuggestions,
-  removeRawMemberMergeSuggestions,
+  removeMemberMergeSuggestion,
   saveLLMVerdict,
   mergeMembers,
   mergeOrganizations,
+  addOrganizationSuggestionToNoMerge,
+  addMemberSuggestionToNoMerge,
 }

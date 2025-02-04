@@ -10,15 +10,14 @@
       type="button"
       @click.stop
     >
-      <i class="text-lg ri-more-fill" />
+      <lf-icon name="ellipsis" type="solid" :size="20" />
     </button>
     <template #dropdown>
       <el-dropdown-item
         :command="onDeleteConversation"
       >
-        <i
-          class="ri-delete-bin-line mr-1 text-red-500"
-        /><span
+        <lf-icon name="trash-can" class="text-red-500 mr-1" :size="16" />
+        <span
           class="text-red-500"
         >Delete conversation</span>
       </el-dropdown-item>
@@ -33,6 +32,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ConversationService } from '../conversation-service';
 
 const emit = defineEmits<{(e: 'conversation-destroyed'): void}>();
@@ -56,7 +56,7 @@ const onDeleteConversation = async () => {
             "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
-      icon: 'ri-delete-bin-line',
+      icon: 'fa-trash-can fa-light',
     });
 
     trackEvent({
