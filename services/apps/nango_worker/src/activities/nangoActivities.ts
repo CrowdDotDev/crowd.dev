@@ -2,6 +2,7 @@ import {
   findIntegrationDataForNangoWebhookProcessing,
   setNangoIntegrationCursor,
 } from '@crowd/data-access-layer/src/integrations'
+import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getChildLogger } from '@crowd/logging'
 import { NangoIntegration, getNangoCloudRecords, initNangoCloudClient } from '@crowd/nango'
@@ -9,7 +10,9 @@ import { NangoIntegration, getNangoCloudRecords, initNangoCloudClient } from '@c
 import { svc } from '../main'
 import { IProcessNangoWebhookArguments } from '../types'
 
-export async function processNangoWebhook(args: IProcessNangoWebhookArguments) {
+export async function processNangoWebhook(
+  args: IProcessNangoWebhookArguments,
+): Promise<string | undefined> {
   const logger = getChildLogger(processNangoWebhook.name, svc.log, {
     provider: args.providerConfigKey,
     connectionId: args.connectionId,
@@ -36,10 +39,18 @@ export async function processNangoWebhook(args: IProcessNangoWebhookArguments) {
     cursor,
   )
 
+  const repo = new IntegrationStreamRepository(svc.postgres.writer, logger)
+
   if (records.records.length > 0) {
     logger.info(`Processing ${records.records.length} nango records!`)
     for (const record of records.records) {
       // process record
+      const resultId = await repo.publishExternalResult(integration.id, record.activity)
+      await svc.dataSinkWorkerEmitter.triggerResultProcessing(
+        resultId,
+        resultId,
+        args.syncType === 'INITIAL',
+      )
     }
 
     if (records.nextCursor) {
@@ -50,8 +61,7 @@ export async function processNangoWebhook(args: IProcessNangoWebhookArguments) {
         records.nextCursor,
       )
 
-      // TODO trigger next page processing
-      logger.info('Triggering processing of the next page of nango records!')
+      return records.nextCursor
     } else {
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),

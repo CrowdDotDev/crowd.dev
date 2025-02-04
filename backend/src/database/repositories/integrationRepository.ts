@@ -48,6 +48,7 @@ class IntegrationRepository {
       tenantId: DEFAULT_TENANT_ID,
       createdById: currentUser.id,
       updatedById: currentUser.id,
+      id: data.id || undefined,
     }
     const record = await options.database.integration.create(toInsert, {
       transaction,

@@ -34,7 +34,6 @@ setImmediate(async () => {
     } else {
       await repo.resetResults([resultId])
       await emitter.triggerResultProcessing(
-        result.platform,
         result.id,
         result.id,
         result.onboarding === null ? true : result.onboarding,

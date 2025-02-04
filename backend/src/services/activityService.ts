@@ -558,7 +558,7 @@ export default class ActivityService extends LoggerBase {
         'Sending activity with member to data-sink-worker!',
       )
 
-      await dataSinkWorkerEmitter.triggerResultProcessing(data.platform, resultId, resultId, true)
+      await dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, true)
     } catch (error) {
       this.log.error(error, 'Error during activity create with member!')
       throw error

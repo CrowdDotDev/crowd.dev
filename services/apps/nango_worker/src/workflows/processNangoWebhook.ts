@@ -8,5 +8,9 @@ const activity = proxyActivities<typeof activities>({
 })
 
 export async function processNangoWebhook(args: IProcessNangoWebhookArguments): Promise<void> {
-  await activity.processNangoWebhook(args)
+  let nextCursor = await activity.processNangoWebhook(args)
+
+  while (nextCursor) {
+    nextCursor = await activity.processNangoWebhook(args)
+  }
 }

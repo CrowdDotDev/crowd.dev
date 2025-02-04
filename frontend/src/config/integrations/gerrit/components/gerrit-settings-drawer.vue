@@ -11,9 +11,7 @@
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
     <template #content>
-      <div class="text-gray-900 text-sm font-medium">
-        Remote URL
-      </div>
+      <div class="text-gray-900 text-sm font-medium">Remote URL</div>
       <div class="text-2xs text-gray-500">
         Connect remote Gerrit repository.
       </div>
@@ -24,7 +22,7 @@
           v-model="form.orgURL"
           class="text-green-500"
           spellcheck="false"
-          placeholder="Enter Organization URL"
+          placeholder="Enter Organization URL (without https:// or http://)"
         />
         <el-input
           id="devUrl"
@@ -35,10 +33,10 @@
         />
         <el-input
           id="devUrl"
-          v-model="form.key"
+          v-model="form.pass"
           class="text-green-500 mt-2"
           spellcheck="false"
-          placeholder="Enter Project key"
+          placeholder="Enter user HTTP password"
         />
         <app-array-input
           v-for="(_, ii) of form.repoNames"
@@ -60,7 +58,7 @@
       <el-button class="btn btn-link btn-link--primary" @click="addRepoName()">
         + Add Repository Name
       </el-button>
-      <br>
+      <br />
       <el-checkbox id="enableAllRepos" v-model="form.enableAllRepos">
         Enable All Projects
       </el-checkbox>
@@ -94,20 +92,21 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
-import {
-  computed, defineProps, onMounted, reactive, ref,
-} from 'vue';
+import { computed, defineProps, onMounted, reactive, ref } from 'vue';
 import gerrit from '@/config/integrations/gerrit/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppArrayInput from '@/shared/form/array-input.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
-  integration: any,
+  integration: any;
   modelValue: boolean;
   segmentId: string | null;
   grandparentId: string | null;
@@ -119,7 +118,7 @@ const loading = ref(false);
 const form = reactive({
   orgURL: '',
   user: '',
-  key: '',
+  pass: '',
   enableAllRepos: false,
   enableGit: false,
   repoNames: [],
@@ -143,7 +142,7 @@ onMounted(() => {
   if (props.integration?.settings?.remote) {
     form.orgURL = props.integration?.settings.remote.orgURL;
     form.user = props.integration?.settings.remote.user;
-    form.key = props.integration?.settings.remote.key;
+    form.pass = props.integration?.settings.remote.pass;
     form.repoNames = props.integration?.settings.remote.repoNames;
     form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
     form.enableGit = props.integration?.settings.remote.enableGit;
@@ -171,7 +170,7 @@ const connect = async () => {
   doGerritConnect({
     orgURL: form.orgURL,
     user: form.user,
-    key: form.key,
+    pass: form.pass,
     repoNames: form.repoNames,
     enableAllRepos: form.enableAllRepos,
     enableGit: form.enableGit,
@@ -180,7 +179,9 @@ const connect = async () => {
   })
     .then(() => {
       trackEvent({
-        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        key: isUpdate
+          ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS
+          : FeatureEventKey.CONNECT_INTEGRATION,
         type: EventType.FEATURE,
         properties: {
           platform: Platform.GERRIT,

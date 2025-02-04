@@ -1,16 +1,112 @@
-// import express from 'express'
+import bunyanMiddleware from 'bunyan-middleware'
+import cors from 'cors'
+import express, {
+  ErrorRequestHandler,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from 'express'
 
-// import { getServiceLogger } from '@crowd/logging'
-// import { QUEUE_CONFIG, QueueFactory } from '@crowd/queue'
-// import { REDIS_CONFIG, getRedisClient } from '@crowd/redis'
-// import { getDbConnection, WRITE_DB_CONFIG } from '@crowd/data-access-layer/src/database'
+import { HttpStatusError } from '@crowd/common'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import { INangoWebhookPayload } from '@crowd/nango'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
 
-// const log = getServiceLogger()
+const log = getServiceLogger()
 
-// setImmediate(async () => {
-//   const redis = getRedisClient(REDIS_CONFIG())
-//   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-//   const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 3, 0)
+setImmediate(async () => {
+  const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 3, 0)
+  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
 
-//   const app = express()
-// })
+  const app = express()
+
+  app.use('/health', async (req, res) => {
+    try {
+      const dbPingRes = await dbConnection
+        .result('select 1')
+        .then((result) => result.rowCount === 1)
+
+      if (dbPingRes) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          database: dbPingRes,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
+  })
+
+  app.use(telemetryExpressMiddleware('webhook.request.duration'))
+  app.use(cors({ origin: true }))
+  app.use(express.json({ limit: '5mb' }))
+  app.use(errorMiddleware())
+  app.use(loggingMiddleware(log))
+
+  app.post(
+    '/nango/webhook',
+    asyncWrap(async (req, res) => {
+      const payload: INangoWebhookPayload = req.body
+
+      req.log.info(
+        { connectionId: payload.connectionId, provider: payload.providerConfigKey },
+        'Received nango webhook payload!',
+      )
+
+      await temporal.workflow.start('processNangoWebhook', {
+        taskQueue: 'nango',
+        workflowId: `nango-webhook/${payload.providerConfigKey}/${payload.connectionId}/${payload.model}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [payload],
+      })
+
+      res.sendStatus(204)
+    }),
+  )
+
+  app.listen(8084, () => {
+    log.info(`Nango Webhook API listening on port 8084!`)
+  })
+})
+
+export const asyncWrap =
+  (fn: (req: ApiRequest, res: Response, next: NextFunction) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as ApiRequest, res, next)).catch(next)
+  }
+
+export const errorMiddleware = (): ErrorRequestHandler => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return (err, req, res, _next) => {
+    const request = req as ApiRequest
+
+    if (err instanceof HttpStatusError) {
+      request.log.error(err, { statusCode: err.status }, 'HTTP status error occured!')
+      res.status(err.status).send(err.message)
+    } else {
+      request.log.error(err, 'Unknown error occured!')
+      res.status(500).send('Internal Server Error')
+    }
+  }
+}
+
+export interface ApiRequest extends Request {
+  log: Logger
+}
+
+export const loggingMiddleware = (log: Logger): RequestHandler => {
+  return bunyanMiddleware({
+    headerName: 'x-request-id',
+    propertyName: 'requestId',
+    logName: `requestId`,
+    logger: getChildLogger('apiRequest', log),
+    level: 'trace',
+  })
+}

@@ -152,12 +152,7 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(
-        platform,
-        resultId,
-        resultId,
-        onboarding,
-      )
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, onboarding)
     } catch (err) {
       this.log.error(err, { platform }, 'Error while publishing custom result!')
       throw new Error('Error while publishing custom result!')
@@ -177,7 +172,6 @@ export default class IntegrationDataService extends LoggerBase {
         data: activity,
       })
       await this.dataSinkWorkerEmitter.triggerResultProcessing(
-        platform,
         resultId,
         activity.sourceId,
         onboarding,

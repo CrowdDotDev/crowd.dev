@@ -15,6 +15,21 @@ export interface ITemporalConfig {
 
 const log = getServiceChildLogger('temporal')
 
+let config: ITemporalConfig | undefined = undefined
+export const TEMPORAL_CONFIG = (): ITemporalConfig => {
+  if (!config) {
+    config = {
+      serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
+      namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
+      identity: this.name,
+      certificate: process.env['CROWD_TEMPORAL_CERTIFICATE'],
+      privateKey: process.env['CROWD_TEMPORAL_PRIVATE_KEY'],
+    }
+  }
+
+  return config
+}
+
 let client: Client | undefined
 export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> => {
   if (client) {

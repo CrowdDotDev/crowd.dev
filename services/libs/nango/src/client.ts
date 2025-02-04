@@ -1,4 +1,5 @@
-import type { Nango } from '@nangohq/node' assert { 'resolution-mode': 'require' }
+import type Nango from '@nangohq/frontend' assert { 'resolution-mode': 'require' }
+import type { Nango as BackendNango } from '@nangohq/node' assert { 'resolution-mode': 'require' }
 
 import { SERVICE } from '@crowd/common'
 
@@ -11,9 +12,11 @@ import {
 } from './types'
 import { toRecord } from './utils'
 
-let client: Nango | undefined = undefined
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const DEFAULT_NANGO_FETCH_LIMIT = 20
+let backendClient: BackendNango | undefined = undefined
+
+const DEFAULT_NANGO_FETCH_LIMIT = 100
 
 let config: INangoClientConfig | undefined | null = undefined
 export const NANGO_CLOUD_CONFIG = () => {
@@ -31,36 +34,29 @@ export const NANGO_CLOUD_CONFIG = () => {
   return config
 }
 
-function ensureClient() {
-  if (!client) {
+function ensureBackendClient() {
+  if (!backendClient) {
     throw new Error('Nango client not initialized')
   }
 }
 
-export const getNangoCloudClient = () => {
-  ensureClient()
-  return client
-}
-
-export const initNangoCloudClient = async (): Promise<Nango> => {
-  if (!client) {
+export const initNango = async (): Promise<void> => {
+  if (!backendClient) {
     const config = NANGO_CLOUD_CONFIG()
     if (!config) {
-      const module = await import('@nangohq/node')
-      client = new module.Nango({ secretKey: config.secretKey })
+      const backendModule = await import('@nangohq/node')
+      backendClient = new backendModule.Nango({ secretKey: config.secretKey })
     } else {
       throw new Error('Nango cloud client env variables not set!')
     }
   }
-
-  return client
 }
 
 export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionToken> => {
-  ensureClient()
+  ensureBackendClient()
 
   const service = `cm-${SERVICE}`
-  const response = await client.createConnectSession({
+  const response = await backendClient.createConnectSession({
     end_user: {
       id: service,
     },
@@ -73,26 +69,51 @@ export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionTok
   }
 }
 
-export const startSync = async (
+let frontendModule: any | undefined = undefined
+export const connectNangoIntegration = async (
   integration: NangoIntegration,
   connectionId: string,
-  syncs: string[],
+  params: any,
 ): Promise<void> => {
-  ensureClient()
+  ensureBackendClient()
 
-  // verify against config
-  const validSyncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
-  for (const sync of syncs) {
-    if (!validSyncs.includes(sync)) {
-      const available = validSyncs.join(', ')
+  const token = await getNangoCloudSessionToken()
 
-      throw new Error(
-        `Invalid sync: ${sync}! Integration '${integration}' supports these syncs: ${available}`,
-      )
+  if (!frontendModule) {
+    frontendModule = await import('@nangohq/frontend')
+  }
+
+  const frontendClient = new frontendModule.default({
+    connectSessionToken: token,
+  }) as Nango
+
+  await frontendClient.auth(integration, connectionId, params)
+}
+
+export const startNangoSync = async (
+  integration: NangoIntegration,
+  connectionId: string,
+  syncs?: string[],
+): Promise<void> => {
+  ensureBackendClient()
+
+  if (!syncs) {
+    syncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
+  } else {
+    // verify against config
+    const validSyncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
+    for (const sync of syncs) {
+      if (!validSyncs.includes(sync)) {
+        const available = validSyncs.join(', ')
+
+        throw new Error(
+          `Invalid sync: ${sync}! Integration '${integration}' supports these syncs: ${available}`,
+        )
+      }
     }
   }
 
-  await client.startSync(integration, syncs, connectionId)
+  await backendClient.startSync(integration, syncs, connectionId)
 }
 
 export const getNangoCloudRecords = async (
@@ -102,7 +123,7 @@ export const getNangoCloudRecords = async (
   cursor?: string,
   limit?: number,
 ): Promise<INangoResult> => {
-  ensureClient()
+  ensureBackendClient()
 
   // verify model against config
   if (!(Object.values(NANGO_INTEGRATION_CONFIG[integration].models) as string[]).includes(model)) {
@@ -113,7 +134,7 @@ export const getNangoCloudRecords = async (
     )
   }
 
-  const result = await client.listRecords({
+  const result = await backendClient.listRecords({
     providerConfigKey: integration,
     connectionId,
     model,

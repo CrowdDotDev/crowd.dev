@@ -33,7 +33,6 @@ setImmediate(async () => {
 
     for (const result of results) {
       await emitter.triggerResultProcessing(
-        result.platform,
         result.id,
         result.id,
         result.onboarding === null ? true : result.onboarding,

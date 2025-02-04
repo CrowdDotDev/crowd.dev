@@ -71,3 +71,13 @@ export interface INangoClientConfig {
   secretKey: string
   integrations: string[]
 }
+
+export interface INangoWebhookPayload {
+  connectionId: string
+  providerConfigKey: string
+  syncName: string
+  model: string
+  responseResults: { added: number; updated: number; deleted: number }
+  syncType: 'INITIAL' | 'INCREMENTAL'
+  modifiedAfter: string
+}

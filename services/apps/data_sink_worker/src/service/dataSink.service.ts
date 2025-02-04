@@ -93,7 +93,6 @@ export default class DataSinkService extends LoggerBase {
         this.log.info({ resultId: result.id }, 'Restarting delayed stream!')
         await this.repo.resetResults([result.id])
         await this.dataSinkWorkerEmitter.triggerResultProcessing(
-          result.platform,
           result.id,
           result.id,
           result.onboarding === null ? true : result.onboarding,

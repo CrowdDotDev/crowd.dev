@@ -526,4 +526,25 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
     return null
   }
+
+  public async publishExternalResult(
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<string> {
+    const results = await this.db().one(
+      `
+      insert into integration.results(state, data, "tenantId", "integrationId")
+      values($(state), $(data)::json, $(tenantId), $(integrationId))
+      returning id
+      `,
+      {
+        state: IntegrationResultState.PENDING,
+        tenantId: DEFAULT_TENANT_ID,
+        data: JSON.stringify(result),
+        integrationId,
+      },
+    )
+
+    return resultss.id
+  }
 }

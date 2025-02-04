@@ -24,7 +24,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
   }
 
   public async triggerResultProcessing(
-    platform: string,
     resultId: string,
     sourceId: string,
     onboarding: boolean,

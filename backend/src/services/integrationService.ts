@@ -6,9 +6,11 @@ import lodash from 'lodash'
 import moment from 'moment'
 
 import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { NangoIntegration, connectNangoIntegration, startNangoSync } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
 
+import integrationFind from '@/api/integration/integrationFind'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
@@ -1195,7 +1197,7 @@ export default class IntegrationService {
    * @param integrationData  to create the integration object
    * @returns integration object
    */
-  async gerritConnectOrUpdate(integrationData) {
+  async gerritConnectOrUpdate(integrationData: any) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     try {
@@ -1235,6 +1237,28 @@ export default class IntegrationService {
           transaction,
         )
       }
+
+      const orgUrl: string = integrationData.remote.orgURL
+      let host: string
+      if (orgUrl.startsWith('https://')) {
+        host = orgUrl.slice(8)
+      } else if (orgUrl.startsWith('http://')) {
+        host = orgUrl.slice(7)
+      } else {
+        host = orgUrl
+      }
+
+      await connectNangoIntegration(NangoIntegration.GERRIT, integration.id, {
+        params: {
+          host,
+        },
+        credentials: {
+          username: integrationData.remote.user,
+          password: integrationData.remote.pass,
+        },
+      })
+
+      await startNangoSync(NangoIntegration.GERRIT, integration.id)
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
