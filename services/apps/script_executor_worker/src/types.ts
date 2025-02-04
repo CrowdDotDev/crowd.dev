@@ -26,3 +26,9 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   tenantId: string
   testRun?: boolean
 }
+
+export interface IFixMemberAffiliationsArgs {
+  tenantId: string
+  offset?: number
+  testRun?: boolean
+}
