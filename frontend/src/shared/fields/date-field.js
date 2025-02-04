@@ -1,7 +1,7 @@
 import * as yup from 'yup';
-import moment from 'moment';
 import GenericField from '@/shared/fields/generic-field';
 import { formatDate } from '@/utils/date';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default class DateField extends GenericField {
   constructor(name, label, config = {}) {
@@ -62,7 +62,7 @@ export default class DateField extends GenericField {
   }
 
   forFormInitialValue(value) {
-    return value ? moment(value, 'YYYY-MM-DD') : null;
+    return value ? dateHelper(value, 'YYYY-MM-DD') : null;
   }
 
   forFormCast() {
@@ -90,7 +90,7 @@ export default class DateField extends GenericField {
             return true;
           }
 
-          return moment(value, 'YYYY-MM-DD').isValid();
+          return dateHelper(value, 'YYYY-MM-DD').isValid();
         },
       )
       .transform((value) => (value ? formatDate({ timestamp: value }) : null));

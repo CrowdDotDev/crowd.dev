@@ -83,7 +83,7 @@
       >
         <template #default="{ row }">
           <div class="text-sm py-4 flex items-center h-full">
-            {{ moment(row.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
+            {{ dateHelper(row.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
           </div>
         </template>
       </el-table-column>
@@ -124,11 +124,11 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import AppLfAuditLogsDrawer from '@/modules/lf/segments/components/logs/log.drawer.vue';
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import LfButton from '@/ui-kit/button/Button.vue';
-import moment from 'moment';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);

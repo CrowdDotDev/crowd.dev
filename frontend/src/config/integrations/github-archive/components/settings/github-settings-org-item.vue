@@ -76,8 +76,8 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { computed } from 'vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import dayjs from 'dayjs';
 import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   organizations: GitHubOrganization[];
@@ -101,12 +101,12 @@ const repos = computed<GitHubRepository[]>({
 const isSynced = computed(() => orgs.value.some((org) => org.url === props.organization.url));
 
 const sync = () => {
-  orgs.value.push({ ...props.organization, updatedAt: dayjs().toISOString() });
+  orgs.value.push({ ...props.organization, updatedAt: dateHelper().toISOString() });
   GithubApiService.getOrganizationRepositories(props.organization.name)
     .then((res) => {
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter((r: GitHubSettingsRepository) => !repos.value.some((repo: GitHubSettingsRepository) => repo.url === r.url))
-        .map((r: GitHubSettingsRepository) => ({ ...r, org: props.organization, updatedAt: dayjs().toISOString() }));
+        .map((r: GitHubSettingsRepository) => ({ ...r, org: props.organization, updatedAt: dateHelper().toISOString() }));
       repos.value = [...repos.value, ...newRepositories];
     });
 };

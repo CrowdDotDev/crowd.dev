@@ -82,7 +82,6 @@ import {
   GitHubSettingsRepository,
 } from '@/config/integrations/github-archive/types/GithubSettings';
 import LfGithubSettingsMapping from '@/config/integrations/github-archive/components/settings/github-settings-mapping.vue';
-import dayjs from 'dayjs';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -93,6 +92,7 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -148,7 +148,7 @@ const buildSettings = (): GitHubSettings => {
     (o: GitHubOrganization): GitHubSettingsOrganization => ({
       ...o,
       fullSync: organizations.value.some((org) => org.url === o.url),
-      updatedAt: o.updatedAt || dayjs().toISOString(),
+      updatedAt: o.updatedAt || dateHelper().toISOString(),
       repos: repositories.value
         .filter((r) => r.org!.url === o.url)
         .map((r) => ({
@@ -156,8 +156,8 @@ const buildSettings = (): GitHubSettings => {
           url: r.url,
           updatedAt: (props.integration
             && repoMappings.value[r.url] !== initialRepoMappings.value[r.url])
-            ? dayjs().toISOString()
-            : r.updatedAt || dayjs().toISOString(),
+            ? dateHelper().toISOString()
+            : r.updatedAt || dateHelper().toISOString(),
         })),
     }),
   );

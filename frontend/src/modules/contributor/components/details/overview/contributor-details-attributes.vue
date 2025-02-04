@@ -111,8 +111,8 @@
                 {{ edu.campus }}
               </p>
               <p class="text-small text-gray-500 mt-0.5">
-                {{ moment(edu.startDate).isValid() ? moment(edu.startDate).format('MMMM YYYY') : edu.startDate }}
-                → {{ moment(edu.endDate).isValid() ? moment(edu.endDate).format('MMMM YYYY') : edu.endDate }}
+                {{ dateHelper(edu.startDate).isValid() ? dateHelper(edu.startDate).format('MMMM YYYY') : edu.startDate }}
+                → {{ dateHelper(edu.endDate).isValid() ? dateHelper(edu.endDate).format('MMMM YYYY') : edu.endDate }}
               </p>
             </article>
           </div>
@@ -194,7 +194,6 @@ import AppMemberManageAttributesDrawer from '@/modules/member/components/member-
 import { computed, ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
-import moment from 'moment';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import LfContributorAttributeTags
@@ -208,6 +207,7 @@ import LfContributorAttributeSource
 import LfContributorAttributeUrl
   from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
   contributor: Contributor,

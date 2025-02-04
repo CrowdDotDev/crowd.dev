@@ -1,10 +1,10 @@
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export const dashboardChartOptions = {
   legend: false,
   yTicks: false,
   yLines: false,
-  xTicksCallback: (label) => moment(label).format('MMM DD'),
+  xTicksCallback: (label) => dateHelper(label).format('MMM DD'),
   gradient: {
     x0: 0,
     y0: 0,

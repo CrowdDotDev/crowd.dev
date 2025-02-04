@@ -29,7 +29,7 @@
               </a>
             </div>
             <p class="text-small text-gray-400">
-              since {{ moment(repo.dateStart).format('MMM YYYY') }}
+              since {{ dateHelper(repo.dateStart).format('MMM YYYY') }}
             </p>
           </article>
         </div>
@@ -54,7 +54,7 @@
               </a>
             </div>
             <p class="text-small text-gray-400">
-              {{ moment(repo.dateStart).format('MMM YYYY') }} → {{ moment(repo.dateEnd).format('MMM YYYY') }}
+              {{ dateHelper(repo.dateStart).format('MMM YYYY') }} → {{ dateHelper(repo.dateEnd).format('MMM YYYY') }}
             </p>
           </article>
         </div>
@@ -67,7 +67,7 @@
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { ContributorMaintainerRole } from '@/modules/contributor/types/Contributor';
 import { computed } from 'vue';
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
