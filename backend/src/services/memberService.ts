@@ -1195,7 +1195,7 @@ export default class MemberService extends LoggerBase {
    * @returns Success/Error message
    */
   async merge(originalId, toMergeId) {
-    this.options.log.info({ originalId, toMergeId }, 'Merging members!')
+    this.options.log.info({ originalId, toMergeId }, '[MERGE_START] Merging members!')
 
     if (originalId === toMergeId) {
       return {
@@ -1205,38 +1205,38 @@ export default class MemberService extends LoggerBase {
     }
 
     let tx
-
-    const getMemberById = async (memberId: string) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
-      const member = await findMemberById(qx, memberId, [
-        MemberField.ID,
-        MemberField.DISPLAY_NAME,
-        MemberField.JOINED_AT,
-        MemberField.TENANT_ID,
-        MemberField.REACH,
-        MemberField.SCORE,
-        MemberField.CONTRIBUTIONS,
-        MemberField.ATTRIBUTES,
-        MemberField.MANUALLY_CREATED,
-        MemberField.MANUALLY_CHANGED_FIELDS,
-      ])
-
-      const [tags, affiliations] = await Promise.all([
-        findMemberTags(qx, memberId),
-        findMemberAffiliations(qx, memberId),
-      ])
-
-      return {
-        ...member,
-        tags: tags.map((t) => ({ id: t.tagId })),
-        affiliations,
-      }
-    }
-
     try {
+      const getMemberById = async (memberId: string) => {
+        const qx = SequelizeRepository.getQueryExecutor(this.options)
+        const member = await findMemberById(qx, memberId, [
+          MemberField.ID,
+          MemberField.DISPLAY_NAME,
+          MemberField.JOINED_AT,
+          MemberField.TENANT_ID,
+          MemberField.REACH,
+          MemberField.SCORE,
+          MemberField.CONTRIBUTIONS,
+          MemberField.ATTRIBUTES,
+          MemberField.MANUALLY_CREATED,
+          MemberField.MANUALLY_CHANGED_FIELDS,
+        ])
+
+        const [tags, affiliations] = await Promise.all([
+          findMemberTags(qx, memberId),
+          findMemberAffiliations(qx, memberId),
+        ])
+
+        return {
+          ...member,
+          tags: tags.map((t) => ({ id: t.tagId })),
+          affiliations,
+        }
+      }
+
       const { original, toMerge } = await captureApiChange(
         this.options,
         memberMergeAction(originalId, async (captureOldState, captureNewState) => {
+          this.options.log.info('[TX_STEP_1] Getting member information...')
           const original = await getMemberById(originalId)
           const toMerge = await getMemberById(toMergeId)
 
@@ -1245,6 +1245,7 @@ export default class MemberService extends LoggerBase {
             secondary: toMerge,
           })
 
+          this.options.log.info('[TX_STEP_2] Getting identities...')
           const allIdentities = await MemberRepository.getIdentities(
             [originalId, toMergeId],
             this.options,
@@ -1272,6 +1273,7 @@ export default class MemberService extends LoggerBase {
             },
           }
 
+          this.options.log.info('[TX_STEP_3] Adding merge action...')
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
             originalId,
@@ -1282,10 +1284,12 @@ export default class MemberService extends LoggerBase {
             backup,
           )
 
+          this.options.log.info('[TX_STEP_4] Creating transaction...')
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
           tx = repoOptions.transaction
 
+          this.options.log.info('[TX_STEP_5] Moving identities...')
           const identitiesToUpdate = []
           const identitiesToMove = []
           for (const identity of toMergeIdentities) {
@@ -1297,7 +1301,6 @@ export default class MemberService extends LoggerBase {
             )
 
             if (existing) {
-              // if it's not verified but it should be
               if (!existing.verified && identity.verified) {
                 identitiesToUpdate.push(identity)
               }
@@ -1314,13 +1317,13 @@ export default class MemberService extends LoggerBase {
             repoOptions,
           )
 
-          // Update member affiliations
+          this.options.log.info('[TX_STEP_6] Moving affiliations...')
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
-          // Performs a merge and returns the fields that were changed so we can update
+          this.options.log.info('[TX_STEP_7] Merging members...')
           const toUpdate: any = await MemberService.membersMerge(original, toMerge)
 
-          // Update original member
+          this.options.log.info('[TX_STEP_8] Updating member...')
           const txService = new MemberService(repoOptions as IServiceOptions)
 
           captureNewState({ primary: toUpdate })
@@ -1329,28 +1332,33 @@ export default class MemberService extends LoggerBase {
             syncToOpensearch: false,
           })
 
-          // update members that belong to source organization to destination org
+          this.options.log.info('[TX_STEP_9] Moving organizations...')
           const memberOrganizationService = new MemberOrganizationService(repoOptions)
           await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
-          // Remove toMerge from original member
+          this.options.log.info('[TX_STEP_10] Removing merge...')
           await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+          this.options.log.info('[TX_STEP_11] Getting member segments...')
           const secondMemberSegments = await MemberRepository.getMemberSegments(
             toMergeId,
             repoOptions,
           )
 
+          this.options.log.info('[TX_STEP_12] Including member segments...')
           await MemberRepository.includeMemberToSegments(toMergeId, {
             ...repoOptions,
             currentSegments: secondMemberSegments,
           })
 
+          this.options.log.info('[TX_STEP_13] Committing transaction...')
           await SequelizeRepository.commitTransaction(tx)
+          this.options.log.info('[TX_STEP_14] Transaction committed successfully')
           return { original, toMerge }
         }),
       )
 
+      this.options.log.info('[TX_STEP_15] Setting merge action...')
       await MergeActionsRepository.setMergeAction(
         MergeActionType.MEMBER,
         originalId,
@@ -1361,6 +1369,7 @@ export default class MemberService extends LoggerBase {
         },
       )
 
+      this.options.log.info('[TX_STEP_16] Starting temporal workflow...')
       await this.options.temporal.workflow.start('finishMemberMerging', {
         taskQueue: 'entity-merging',
         workflowId: `finishMemberMerging/${originalId}/${toMergeId}`,
@@ -1380,12 +1389,14 @@ export default class MemberService extends LoggerBase {
         },
       })
 
-      this.options.log.info({ originalId, toMergeId }, 'Members merged!')
+      this.options.log.info({ originalId, toMergeId }, '[MERGE_SUCCESS] Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
-      this.options.log.error(err, 'Error while merging members!')
+      this.options.log.error(err, '[MERGE_ERROR] Error while merging members!')
+      this.options.log.error({ tx_state: tx?.finished }, '[MERGE_ERROR] Transaction state at error')
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
+        this.options.log.info('[MERGE_ERROR] Transaction rollback successful')
       }
       throw err
     }
