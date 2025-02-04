@@ -1,4 +1,4 @@
-import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
   fetchMemberIdentities,
@@ -266,18 +266,17 @@ export class MemberSyncService {
     }
   }
 
-  public async syncTenantMembers(
-    tenantId: string,
+  public async syncAllMembers(
     batchSize = 200,
     opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<void> {
-    this.log.debug({ tenantId }, 'Syncing all tenant members!')
+    this.log.debug('Syncing all members!')
     let docCount = 0
     let memberCount = 0
 
     const now = new Date()
 
-    let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+    let memberIds = await this.memberRepo.getMembersForSync(batchSize)
 
     while (memberIds.length > 0) {
       for (const memberId of memberIds) {
@@ -289,29 +288,17 @@ export class MemberSyncService {
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
-        { tenantId },
         `Synced ${memberCount} members! Speed: ${Math.round(
           memberCount / diffInSeconds,
         )} members/second!`,
       )
 
-      await this.indexingRepo.markEntitiesIndexed(
-        IndexedEntityType.MEMBER,
-        memberIds.map((id) => {
-          return {
-            id,
-            tenantId,
-          }
-        }),
-      )
+      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
 
-      memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+      memberIds = await this.memberRepo.getMembersForSync(batchSize)
     }
 
-    this.log.info(
-      { tenantId },
-      `Synced total of ${memberCount} members with ${docCount} documents!`,
-    )
+    this.log.info(`Synced total of ${memberCount} members with ${docCount} documents!`)
   }
 
   public async syncOrganizationMembers(
@@ -452,6 +439,8 @@ export class MemberSyncService {
       }
 
       if (memberData.length > 0) {
+        // dedup memberData so no same member-segment duplicates
+        memberData = distinctBy(memberData, (m) => `${m.memberId}-${m.segmentId}`)
         try {
           await this.memberRepo.transactionally(
             async (txRepo) => {

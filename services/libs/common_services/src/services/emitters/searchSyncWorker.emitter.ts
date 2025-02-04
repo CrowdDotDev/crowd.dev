@@ -50,16 +50,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerTenantMembersSync(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-    await this.sendMessage(tenantId, tenantId, {
-      type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS,
-      tenantId,
-    })
-  }
-
   public async triggerOrganizationMembersSync(
     tenantId: string,
     organizationId: string,
@@ -143,21 +133,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       {
         onboarding,
       },
-    )
-  }
-
-  public async triggerTenantOrganizationSync(tenantId: string) {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-    await this.sendMessage(
-      tenantId,
-      tenantId,
-      {
-        type: SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS,
-        tenantId,
-      },
-      tenantId,
     )
   }
 

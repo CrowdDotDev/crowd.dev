@@ -10,7 +10,7 @@ const config: Config = {
     enabled: true,
   },
   questdb: {
-    enabled: false,
+    enabled: true,
   },
   redis: {
     enabled: true,
@@ -22,7 +22,7 @@ const options: Options = {
     enabled: true,
   },
   opensearch: {
-    enabled: false,
+    enabled: true,
   },
 }
 
