@@ -60,7 +60,7 @@ export function prepareSelectColumns(columns: string[], alias?: string) {
 export interface QueryOptions<T> {
   limit?: number
   offset?: number
-  fields?: T[]
+  fields?: T[] | 'count'
   filter?: QueryFilter
 }
 
@@ -96,7 +96,7 @@ export async function queryTable<T extends string>(
   return qx.select(
     `
       SELECT
-        ${opts.fields.map((f) => `"${f}"`).join(',\n')}
+        ${opts.fields === 'count' ? 'COUNT(*) AS count' : opts.fields.map((f) => `"${f}"`).join(',\n')}
       FROM $(table:name)
       WHERE ${where}
       ${opts.limit ? 'LIMIT $(limit)' : ''}

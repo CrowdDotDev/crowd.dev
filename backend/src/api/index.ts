@@ -204,6 +204,7 @@ setImmediate(async () => {
   require('./dashboard').default(routes)
   require('./mergeAction').default(routes)
   require('./dataQuality').default(routes)
+  require('./collections').default(routes)
 
   app.use('/', routes)
 
