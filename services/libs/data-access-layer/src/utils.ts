@@ -100,9 +100,9 @@ export async function queryTable<T extends string>(
         ${opts.fields === 'count' ? 'COUNT(*) AS count' : opts.fields.map((f) => `"${f}"`).join(',\n')}
       FROM $(table:name)
       WHERE ${where}
+      ${opts.orderBy ? `ORDER BY ${opts.orderBy}` : ''}
       ${opts.limit ? 'LIMIT $(limit)' : ''}
       ${opts.offset ? 'OFFSET $(offset)' : ''}
-      ${opts.orderBy ? `ORDER BY ${opts.orderBy}` : ''}
     `,
     params,
   )
