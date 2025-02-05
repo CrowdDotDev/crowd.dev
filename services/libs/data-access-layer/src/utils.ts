@@ -62,6 +62,7 @@ export interface QueryOptions<T> {
   offset?: number
   fields?: T[] | 'count'
   filter?: QueryFilter
+  orderBy?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,6 +102,7 @@ export async function queryTable<T extends string>(
       WHERE ${where}
       ${opts.limit ? 'LIMIT $(limit)' : ''}
       ${opts.offset ? 'OFFSET $(offset)' : ''}
+      ${opts.orderBy ? `ORDER BY ${opts.orderBy}` : ''}
     `,
     params,
   )

@@ -93,6 +93,7 @@ export class CollectionService extends LoggerBase {
       offset,
       fields: Object.values(CollectionField),
       filter,
+      orderBy: '"name" DESC',
     })
 
     if (collections.length === 0) {
