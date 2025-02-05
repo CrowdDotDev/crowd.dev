@@ -35,5 +35,5 @@ export async function copyActivitiesFromQuestdbToTinybird(
   // 5- Mark activities as indexed
   await activity.markActivitiesAsIndexed(activitiesToCopy.map((a) => a.id))
 
-  // await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({})
+  await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({})
 }
