@@ -11,7 +11,7 @@ const activity = proxyActivities<typeof activities>({
 export async function copyActivitiesFromQuestdbToTinybird(
   args: ICopyActivitiesFromQuestDbToTinybirdArgs,
 ): Promise<void> {
-  const BATCH_SIZE_PER_RUN = 1000
+  const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
 
   if (args.deleteIndexedEntities) {
     await activity.deleteActivityIdsFromIndexedEntities()
@@ -37,5 +37,7 @@ export async function copyActivitiesFromQuestdbToTinybird(
   // 5- Mark activities as indexed
   await activity.markActivitiesAsIndexed(activitiesToCopy.map((a) => a.id))
 
-  await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({})
+  await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({
+    batchSizePerRun: args.batchSizePerRun,
+  })
 }
