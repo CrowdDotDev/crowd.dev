@@ -109,12 +109,15 @@ export class CollectionService extends LoggerBase {
       collections.map((c) => c.id),
     )
 
-    const projects = await queryInsightsProjects(qx, {
-      filter: {
-        id: { in: connections.map((c) => c.insightsProjectId) },
-      },
-      fields: Object.values(InsightsProjectField),
-    })
+    const projects =
+      connections.length > 0
+        ? await queryInsightsProjects(qx, {
+            filter: {
+              id: { in: connections.map((c) => c.insightsProjectId) },
+            },
+            fields: Object.values(InsightsProjectField),
+          })
+        : []
 
     const total = await countCollections(qx, filter)
 
