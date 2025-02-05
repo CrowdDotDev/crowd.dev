@@ -43,6 +43,8 @@ import { CollectionsService } from '@/modules/admin/modules/collections/services
 import {
   CollectionModel,
 } from '@/modules/admin/modules/collections/models/collection.model';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import Message from '@/shared/message/message';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -62,12 +64,11 @@ const fetchCollections = () => {
   }
   loading.value = true;
   CollectionsService.list({
-    filter: {
-      query: search.value,
-    },
+    filter: search.value ? {
+      name: search.value,
+    } : {},
     offset: offset.value,
     limit: limit.value,
-    orderBy: 'name_ASC',
   })
     .then((res) => {
       console.log('res', res);
@@ -80,7 +81,7 @@ const fetchCollections = () => {
       if (res.rows.length < limit.value) {
         total.value = collections.value.length;
       } else {
-        total.value = res.count;
+        total.value = res.total;
       }
     })
     .finally(() => {
@@ -107,7 +108,28 @@ const onEditCollection = (collectionId: string) => {
 };
 
 const onDeleteCollection = (collectionId: string) => {
-  console.log('onDeleteCollection', collectionId);
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Delete collection',
+    message: "Are you sure you want to proceed? You can't undo this action",
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: 'fa-trash-can fa-light',
+  }).then(() => {
+    Message.info(null, {
+      title: 'Collection is being deleted',
+    });
+    CollectionsService.delete(collectionId)
+      .then(() => {
+        Message.closeAll();
+        Message.success('Collection successfully deleted');
+        fetchCollections();
+      })
+      .catch(() => {
+        Message.closeAll();
+        Message.error('Something went wrong');
+      });
+  });
 };
 
 onMounted(() => {
