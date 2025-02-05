@@ -95,6 +95,15 @@ export class CollectionService extends LoggerBase {
       filter,
     })
 
+    if (collections.length === 0) {
+      return {
+        rows: [],
+        total: 0,
+        limit,
+        offset,
+      }
+    }
+
     const connections = await queryInsightsProjectsByCollectionIds(
       qx,
       collections.map((c) => c.id),

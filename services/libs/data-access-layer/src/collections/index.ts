@@ -129,6 +129,10 @@ export async function addInsightsProjectsToCollection(
     starred: boolean
   }[],
 ) {
+  if (projects.length === 0) {
+    return
+  }
+
   return qx.result(
     prepareBulkInsert(
       'collectionsInsightsProjects',
@@ -146,6 +150,10 @@ export async function queryInsightsProjectsByCollectionIds(
   qx: QueryExecutor,
   collectionIds: string[],
 ): Promise<ICollectionInsightProject[]> {
+  if (collectionIds.length === 0) {
+    return []
+  }
+
   return qx.select(
     `
       SELECT *
