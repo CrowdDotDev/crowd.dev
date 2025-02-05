@@ -92,7 +92,7 @@ const processMessage: ProcessDataHandler = async (ctx) => {
     sourceId: `${messageData.message.id}`,
     score: Groupsio_GRID[GroupsioActivityType.MESSAGE].score,
     body: sanitizeHtml(messageData.message.body),
-    title: sanitizeHtml(messageData.topic.subject),
+    title: messageData.topic.subject,
     ...(messageData.sourceParentId && {
       sourceParentId: messageData.sourceParentId,
     }),

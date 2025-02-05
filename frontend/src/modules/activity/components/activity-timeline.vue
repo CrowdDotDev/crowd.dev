@@ -249,10 +249,10 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
-import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IdentityConfig, lfIdentities } from '@/config/identities';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -292,7 +292,7 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
-const timestamp = ref(moment(props.entity.lastActive).toISOString());
+const timestamp = ref(dateHelper(props.entity.lastActive).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
@@ -363,14 +363,14 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     },
     ...(timestamp.value ? [{
       timestamp: {
-        gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
+        gte: dateHelper(timestamp.value).subtract(1, 'month').toISOString(),
       },
     }] : []),
   ];
 
   if (reset) {
     activities.value.length = 0;
-    timestamp.value = moment().toISOString();
+    timestamp.value = dateHelper().toISOString();
     noMore.value = false;
   }
 
@@ -397,9 +397,9 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   activities.value = reset ? rows : [...activities.value, ...rows];
 
   if (data.rows.length === 0) {
-    timestamp.value = moment(timestamp.value).subtract(1, 'month').toISOString();
+    timestamp.value = dateHelper(timestamp.value).subtract(1, 'month').toISOString();
   } else {
-    timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();
+    timestamp.value = dateHelper(data.rows.at(-1).timestamp).toISOString();
   }
 };
 

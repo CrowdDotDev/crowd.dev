@@ -36,7 +36,7 @@
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge.vue';
 import { computed } from 'vue';
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = withDefaults(defineProps<{
   currentTotal: number,
@@ -79,14 +79,14 @@ const computedBadgeLabel = computed(() => {
 });
 
 const computedPeriodTooltipLabel = computed(() => {
-  const from = moment()
+  const from = dateHelper()
     .utc()
     .startOf('day')
     .subtract(
       props.periodDays * 2 - 1,
       'day',
     );
-  const to = moment().utc().endOf('day').subtract(
+  const to = dateHelper().utc().endOf('day').subtract(
     props.periodDays - 1,
     'day',
   );

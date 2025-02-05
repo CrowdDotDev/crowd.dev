@@ -35,13 +35,13 @@
         <span v-if="memberOrganizations.title" class="mx-1">•</span>
         <span>
           {{ memberOrganizations.dateStart
-            ? moment(memberOrganizations.dateStart).utc().format('MMMM YYYY')
+            ? dateHelper(memberOrganizations.dateStart).utc().format('MMMM YYYY')
             : 'Unknown' }}
         </span>
         <span class="mx-1 whitespace-nowrap">-></span>
         <span>
           {{ memberOrganizations.dateEnd
-            ? moment(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
+            ? dateHelper(memberOrganizations.dateEnd).utc().format('MMMM YYYY')
             : memberOrganizations.dateStart ? 'Present' : 'Unknown' }}
         </span>
       </div>
@@ -50,8 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import moment from 'moment/moment';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps({
   member: {
