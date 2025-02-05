@@ -94,4 +94,9 @@ export enum LfPermission {
   // Custom views
   dataQualityRead = 'dataQualityRead',
   dataQualityEdit = 'dataQualityEdit',
+
+  // Collections
+  collectionCreate = 'collectionCreate',
+  collectionEdit = 'collectionEdit',
+  collectionDelete = 'collectionDelete',
 }
