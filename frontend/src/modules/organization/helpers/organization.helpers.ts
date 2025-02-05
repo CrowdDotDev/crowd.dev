@@ -1,7 +1,7 @@
-import moment from 'moment';
 import { Organization, OrganizationIdentityType } from '@/modules/organization/types/Organization';
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 import { lfIdentities } from '@/config/identities';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const useOrganizationHelpers = () => {
   const displayName = (organization: Organization) => organization.attributes?.name?.default || organization.displayName;
@@ -12,7 +12,7 @@ const useOrganizationHelpers = () => {
     if (!organization.joinedAt) {
       return false;
     }
-    return moment().diff(moment(organization.joinedAt), 'days')
+    return dateHelper().diff(dateHelper(organization.joinedAt), 'days')
       <= 14;
   };
 

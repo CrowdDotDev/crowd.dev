@@ -1,5 +1,5 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export interface ConversationState {
   filters: Filter,
@@ -20,12 +20,12 @@ export default () => ({
     },
     lastActivityDate: {
       operator: 'gt',
-      value: moment().subtract(7, 'day').format('YYYY-MM-DD'),
+      value: dateHelper().subtract(7, 'day').format('YYYY-MM-DD'),
       include: true,
     },
   } as Filter,
   limit: 20,
-  lastActive: moment().toISOString(),
+  lastActive: dateHelper().toISOString(),
   savedFilterBody: {},
   conversations: [],
   totalConversations: 0,

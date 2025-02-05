@@ -79,8 +79,8 @@ import { useConversationStore } from '@/modules/conversation/store';
 import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
-import moment from 'moment/moment';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const conversationId = ref(null);
 
@@ -108,7 +108,7 @@ filters.value = {
   },
   lastActivityDate: {
     operator: 'gt',
-    value: moment().subtract(7, 'day').format('YYYY-MM-DD'),
+    value: dateHelper().subtract(7, 'day').format('YYYY-MM-DD'),
     include: true,
   },
 };

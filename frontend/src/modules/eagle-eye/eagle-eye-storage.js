@@ -8,7 +8,7 @@
  * }
  */
 
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export const isStorageUpdating = ({ tenantId, userId }) => {
   const storage = localStorage.getItem('eagleEyeResults');
@@ -28,7 +28,7 @@ export const shouldFetchNewResults = ({
   userId,
 }) => {
   const storage = localStorage.getItem('eagleEyeResults');
-  const currentDay = moment();
+  const currentDay = dateHelper();
 
   // Fetch new results if it is a new day from the previous stored one,
   // or if storage is not set or if user is not set in storage

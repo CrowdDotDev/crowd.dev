@@ -1,18 +1,17 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
-import moment from 'moment';
 import { OrganizationService } from '@/modules/organization/organization-service';
-// import { OrganizationService } from '@/modules/organization/organization-service';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
   const dateStartFormat = dateStart
-    ? moment(dateStart)
+    ? dateHelper(dateStart)
       .utc()
       .format('MMMM YYYY')
     : 'Unknown';
   // eslint-disable-next-line no-nested-ternary
   const dateEndFormat = dateEnd
-    ? moment(dateEnd)
+    ? dateHelper(dateEnd)
       .utc()
       .format('MMMM YYYY')
     : (dateStart ? 'Present' : 'Unknown');

@@ -845,7 +845,9 @@ export default class OrganizationService extends LoggerBase {
 
       return await this.findById(record.id)
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      if (transaction) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      }
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
 
