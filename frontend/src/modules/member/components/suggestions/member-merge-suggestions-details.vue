@@ -282,7 +282,6 @@
 import {
   onMounted, ref,
 } from 'vue';
-import moment from 'moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
@@ -297,6 +296,7 @@ import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps({
   member: {
@@ -356,7 +356,7 @@ const formatJoinedDate = (date) => {
   if (!date || new Date(date).getFullYear() <= 1970) {
     return '-';
   }
-  return moment(date).format('YYYY-MM-DD');
+  return dateHelper(date).format('YYYY-MM-DD');
 };
 
 defineExpose({

@@ -219,7 +219,6 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
@@ -232,6 +231,7 @@ import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const {
   chartData, members, period, activeMembers, recentMembers,
@@ -243,11 +243,11 @@ const mapData = (data: any[]) => data.map((item) => ({
 }));
 
 const periodRange = computed(() => [
-  moment()
+  dateHelper()
     .utc()
     .subtract(period.value - 1, 'day')
     .format('YYYY-MM-DD'),
-  moment()
+  dateHelper()
     .utc()
     .format('YYYY-MM-DD'),
 ]);

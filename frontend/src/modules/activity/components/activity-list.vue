@@ -89,7 +89,7 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
-import moment from 'moment/moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 // const sorterFilter = ref('trending');
 const conversationId = ref(null);
@@ -121,7 +121,7 @@ filters.value = {
   },
   date: {
     include: true,
-    value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+    value: dateHelper().utc().subtract(6, 'day').format('YYYY-MM-DD'),
   },
 };
 

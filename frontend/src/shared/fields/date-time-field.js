@@ -1,6 +1,6 @@
 import * as yup from 'yup';
-import moment from 'moment';
 import GenericField from '@/shared/fields/generic-field';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default class DateTimeField extends GenericField {
   constructor(name, label, config = {}) {
@@ -18,7 +18,7 @@ export default class DateTimeField extends GenericField {
       return this.formatter(value);
     }
     return value
-      ? moment(value).format('YYYY-MM-DD HH:mm')
+      ? dateHelper(value).format('YYYY-MM-DD HH:mm')
       : null;
   }
 
@@ -27,18 +27,18 @@ export default class DateTimeField extends GenericField {
       return this.formatter(value);
     }
     return value
-      ? moment(value).format('YYYY-MM-DD HH:mm')
+      ? dateHelper(value).format('YYYY-MM-DD HH:mm')
       : null;
   }
 
   forImportViewTable(value) {
     return value
-      ? moment(value).format('YYYY-MM-DD HH:mm')
+      ? dateHelper(value).format('YYYY-MM-DD HH:mm')
       : null;
   }
 
   forFormInitialValue(value) {
-    return value ? moment(value) : null;
+    return value ? dateHelper(value) : null;
   }
 
   forFormRules() {
@@ -59,7 +59,7 @@ export default class DateTimeField extends GenericField {
       .mixed()
       .nullable(true)
       .label(this.label)
-      .transform((value) => (value ? moment(value) : null));
+      .transform((value) => (value ? dateHelper(value) : null));
   }
 
   forExport() {

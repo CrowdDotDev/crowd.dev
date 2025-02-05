@@ -193,7 +193,6 @@
 </template>
 
 <script lang="ts" setup>
-import moment from 'moment';
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
@@ -205,6 +204,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const {
   chartData, organizations, period, activeOrganizations, recentOrganizations,
@@ -216,11 +216,11 @@ const mapData = (data: any[]) => data.map((item) => ({
 }));
 
 const periodRange = computed(() => [
-  moment()
+  dateHelper()
     .utc()
     .subtract(period.value - 1, 'day')
     .format('YYYY-MM-DD'),
-  moment()
+  dateHelper()
     .utc()
     .format('YYYY-MM-DD'),
 ]);

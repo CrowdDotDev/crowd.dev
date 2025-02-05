@@ -1,6 +1,6 @@
 import { ConversationState } from '@/modules/conversation/store/state';
 import { ConversationService } from '@/modules/conversation/conversation-service';
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default {
   fetchConversation(this: ConversationState, body: any, reload = false, append = false): Promise<any> {
@@ -8,7 +8,7 @@ export default {
 
     if (!append) {
       this.conversations = [];
-      this.lastActive = moment().toISOString();
+      this.lastActive = dateHelper().toISOString();
     }
     return ConversationService.query(mappedBody)
       .then((data: any) => {
