@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import pg from 'pg-promise/typescript/pg-subset'
 import QueryStream from 'pg-query-stream'
 
 import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
@@ -327,8 +326,6 @@ export async function runMemberAffiliationsUpdate(
   }
 
   async function insertIfMatches(activity: IDbActivityCreateData) {
-    const rawOrgId = activity.organizationId
-
     activity.organizationId = fallbackOrganizationId || null
 
     if (orgCases.length > 0) {
