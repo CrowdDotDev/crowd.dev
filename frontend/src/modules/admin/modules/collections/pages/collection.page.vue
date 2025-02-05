@@ -34,6 +34,8 @@
       <lf-spinner />
     </div>
   </div>
+
+  <lf-collection-add v-if="collectionAdd" v-model="collectionAdd" />
 </template>
 
 <script setup lang="ts">
@@ -43,6 +45,7 @@ import { CollectionsService } from '@/modules/admin/modules/collections/services
 import {
   CollectionModel,
 } from '@/modules/admin/modules/collections/models/collection.model';
+import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
@@ -57,6 +60,7 @@ const offset = ref(0);
 const limit = ref(20);
 const total = ref(0);
 const collections = ref<CollectionModel[]>([]);
+const collectionAdd = ref<boolean>(false);
 
 const fetchCollections = () => {
   if (loading.value) {
@@ -100,7 +104,7 @@ const loadMore = () => {
 };
 
 const onAddCollection = () => {
-  console.log('onAddCollection');
+  collectionAdd.value = true;
 };
 
 const onEditCollection = (collectionId: string) => {
