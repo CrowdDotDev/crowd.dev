@@ -43,7 +43,7 @@ function ensureBackendClient() {
 export const initNangoCloudClient = async (): Promise<void> => {
   if (!backendClient) {
     const config = NANGO_CLOUD_CONFIG()
-    if (!config) {
+    if (config) {
       const backendModule = await import('@nangohq/node')
       backendClient = new backendModule.Nango({ secretKey: config.secretKey })
     } else {
@@ -77,17 +77,18 @@ export const connectNangoIntegration = async (
 ): Promise<void> => {
   ensureBackendClient()
 
-  const token = await getNangoCloudSessionToken()
+  const data = await getNangoCloudSessionToken()
 
   if (!frontendModule) {
     frontendModule = await import('@nangohq/frontend')
   }
 
   const frontendClient = new frontendModule.default({
-    connectSessionToken: token,
+    connectSessionToken: data.token,
   }) as Nango
 
-  await frontendClient.auth(integration, connectionId, params)
+  const result = await frontendClient.auth(integration, connectionId, params)
+  return result.connectionId
 }
 
 export const startNangoSync = async (
@@ -114,6 +115,15 @@ export const startNangoSync = async (
   }
 
   await backendClient.startSync(integration, syncs, connectionId)
+}
+
+export const deleteNangoConnection = async (
+  integration: NangoIntegration,
+  connectionId: string,
+): Promise<void> => {
+  ensureBackendClient()
+
+  await backendClient.deleteConnection(integration, connectionId)
 }
 
 export const getNangoCloudRecords = async (

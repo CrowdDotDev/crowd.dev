@@ -981,7 +981,7 @@ importers:
         specifier: ^3.0.1
         version: 3.1.0
 
-  services/apps/nango_webook_api:
+  services/apps/nango_webhook_api:
     dependencies:
       '@crowd/common':
         specifier: workspace:*
@@ -13488,13 +13488,13 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.7
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
   agent-base@7.1.1:
     dependencies:
-      debug: 4.3.7
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -15700,7 +15700,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
