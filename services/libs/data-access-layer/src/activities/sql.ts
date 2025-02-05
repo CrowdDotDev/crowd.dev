@@ -1439,3 +1439,31 @@ export async function findCommitsForPRSha(
 
   return rows.map((r) => r.id)
 }
+
+export async function getActivitiesSortedById(
+  qdbConn: DbConnOrTx,
+  cursorActivityId?: string,
+  limit = 100,
+): Promise<IActivityData[]> {
+  let cursorQuery = ''
+
+  if (cursorActivityId) {
+    cursorQuery = `AND id > $(cursorActivityId)::uuid`
+  }
+
+  const query = `
+    SELECT *
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    ${cursorQuery}
+    ORDER BY id asc
+    LIMIT ${limit}
+  `
+
+  const rows = await qdbConn.any<IActivityData>(query, {
+    cursorActivityId,
+    limit,
+  })
+
+  return rows
+}

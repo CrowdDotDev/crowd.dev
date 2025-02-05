@@ -22,6 +22,10 @@ export interface IDissectMemberArgs {
   forceSplitAllIdentities?: boolean
 }
 
+export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
+  deleteIndexedEntities?: boolean
+}
+
 export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   tenantId: string
   testRun?: boolean
