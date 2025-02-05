@@ -326,9 +326,6 @@ export async function runMemberAffiliationsUpdate(
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  console.log('FULL CASE!!!!!!!!!!!!!!!!')
-  console.log(fullCase)
-
   async function insertIfMatches(activity: IDbActivityCreateData) {
     const rawOrgId = activity.organizationId
 
@@ -342,8 +339,6 @@ export async function runMemberAffiliationsUpdate(
         }
       }
     }
-
-    console.log(`inserting activity !!!! rawOrgId = ${rawOrgId} orgId = ${activity.organizationId}`)
 
     await insertActivities(queueClient, [activity], true)
     return activity
@@ -381,9 +376,6 @@ export async function runMemberAffiliationsUpdate(
           activityId: activityWithCorrectOrgId.id,
           organizationId: activityWithCorrectOrgId.organizationId,
         }),
-      )
-      console.log(
-        `updating activity [${activityWithCorrectOrgId.id}] orgId to [${activityWithCorrectOrgId.organizationId}]`,
       )
 
       if (activityRelationPromises.length >= batchSize) {
