@@ -45,7 +45,9 @@ import AppLfProjectColumn from '@/modules/admin/modules/projects/components/frag
 import LfCollectionDropdown from './lf-collection-dropdown.vue';
 import { CollectionModel } from '../models/collection.model';
 
-const emit = defineEmits(['onEditCollection', 'onDeleteCollection']);
+const emit = defineEmits<{(e: 'onEditCollection', id: string): void,
+  (e: 'onDeleteCollection', id: string): void,
+}>();
 
 defineProps<{
   collections: CollectionModel[],

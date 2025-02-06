@@ -32,23 +32,22 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 
-const emit = defineEmits(['onEditCollection', 'onDeleteCollection']);
+const emit = defineEmits<{(e: 'onEditCollection', id: string): void,
+  (e: 'onDeleteCollection', id: string): void,
+}>();
 
-defineProps({
-  id: {
-    type: String,
-    default: null,
-  },
-});
+const props = defineProps<{
+  id: string,
+}>();
 
 const { hasPermission } = usePermissions();
 
 const editCollection = () => {
-  emit('onEditCollection');
+  emit('onEditCollection', props.id);
 };
 
 const deleteCollection = () => {
-  emit('onDeleteCollection');
+  emit('onDeleteCollection', props.id);
 };
 </script>
 

@@ -66,7 +66,7 @@
           <app-api-keys-page v-else-if="activeTab === 'api-keys'" />
           <app-lf-audit-logs-page v-else-if="activeTab === 'audit-logs'" />
           <lf-admin-users v-else-if="activeTab === 'users'" />
-          <lf-collections-page v-if="activeTab === 'collections'" />
+          <lf-collections-page v-else-if="activeTab === 'collections'" />
           <lf-collections-page v-else-if="activeTab === 'projects'" />
         </div>
       </div>
