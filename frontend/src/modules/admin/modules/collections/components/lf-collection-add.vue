@@ -1,44 +1,163 @@
 <template>
-  <lf-modal v-model="isModalOpen">
-    <!-- Header -->
-    <section class="py-4 pr-4 pl-6 flex justify-between items-center">
-      <h5>Add Collection</h5>
-      <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-        <lf-icon name="xmark" />
-      </lf-button>
-    </section>
+  <app-drawer v-model="model" :title="isEditForm ? 'Edit collection' : 'Add collection'" :size="480" @close="onCancel">
+    <template #content>
+      <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
+      <div v-else>
+        <lf-tabs v-model="activeTab" :fragment="false">
+          <lf-tab name="details">
+            Details
+          </lf-tab>
+          <lf-tab name="projects">
+            Projects
+          </lf-tab>
+        </lf-tabs>
+        <div class="mt-6 border-t border-gray-100">
+          <div class="tab-content">
+            <div v-if="activeTab === 'details'">
+              <!-- Collection name -->
+              <article class="mb-5">
+                <lf-field label-text="Collection name" :required="true">
+                  <lf-input
+                    v-model="form.name"
+                    class="h-10"
+                    :invalid="$v.name.$invalid && $v.name.$dirty"
+                    @blur="$v.name.$touch()"
+                    @change="$v.name.$touch()"
+                  />
+                  <lf-field-messages :validation="$v.name" :error-messages="{ required: 'This field is required' }" />
+                </lf-field>
+              </article>
 
-    <!-- Body -->
-
-    <!-- Footer -->
-    <section class="border-t border-gray-100 py-4 px-6 gap-4 flex justify-end  z-40">
-      <lf-button type="secondary-ghost" @click="isModalOpen = false">
+              <!-- Description -->
+              <article class="mb-5">
+                <lf-field label-text="Description" :required="true">
+                  <lf-textarea
+                    v-model="form.description"
+                    :invalid="$v.description.$invalid && $v.description.$dirty"
+                    @blur="$v.description.$touch()"
+                    @change="$v.description.$touch()"
+                  />
+                  <lf-field-messages
+                    :validation="$v.description"
+                    :error-messages="{ required: 'This field is required' }"
+                  />
+                </lf-field>
+              </article>
+            </div>
+            <lf-collection-add-projects-tab v-if="activeTab === 'projects'" :collection-projects="collection?.projects" />
+          </div>
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <lf-button type="secondary-ghost" @click="onCancel">
         Cancel
       </lf-button>
-      <lf-button type="primary">
-        Add Collection
+      <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
+        {{ isEditForm ? 'Update' : 'Add project group' }}
       </lf-button>
-    </section>
-  </lf-modal>
+    </template>
+  </app-drawer>
 </template>
-
 <script setup lang="ts">
-import { computed } from 'vue';
-import LfModal from '@/ui-kit/modal/Modal.vue';
+import formChangeDetector from '@/shared/form/form-change';
+import useVuelidate from '@vuelidate/core';
+import { required, maxLength } from '@vuelidate/validators';
+import {
+  computed, onMounted, reactive, ref,
+} from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfTabs from '@/ui-kit/tabs/Tabs.vue';
+import LfTab from '@/ui-kit/tabs/Tab.vue';
+import LfInput from '@/ui-kit/input/Input.vue';
+import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
+import LfField from '@/ui-kit/field/Field.vue';
+import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
+import { CollectionModel } from '../models/collection.model';
 
-const props = defineProps<{
-    modelValue: boolean,
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
+  (e: 'onCollectionEdited'): void;
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
+const props = defineProps<{
+  modelValue: boolean,
+  collection?: CollectionModel,
+}>();
 
-const isModalOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+const activeTab = ref('details');
+
+const loading = ref(false);
+const submitLoading = ref(false);
+const form = reactive({
+  name: '',
+  description: '',
 });
 
+const rules = {
+  name: {
+    required,
+    maxLength,
+  },
+  description: { required: (value: string) => value.trim().length },
+};
+
+const $v = useVuelidate(rules, form);
+
+const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+
+const model = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(v) {
+    emit('update:modelValue', v);
+  },
+});
+
+const isEditForm = computed(() => !!props.collection?.id);
+
+const fillForm = (record?: CollectionModel) => {
+  if (record) {
+    Object.assign(form, record);
+  }
+
+  formSnapshot();
+};
+
+onMounted(() => {
+  if (props.collection?.id) {
+    loading.value = true;
+    fillForm(props.collection);
+    loading.value = false;
+  } else {
+    fillForm();
+  }
+});
+
+const onCancel = () => {
+  model.value = false;
+};
+
+const onSubmit = () => {
+  submitLoading.value = true;
+
+  // if (isEditForm.value) {
+
+  //   updateCollection(props.collection?.id, form)
+  //     .finally(() => {
+  //       submitLoading.value = false;
+  //       model.value = false;
+  //       emit('onCollectionEdited');
+  //     });
+  // } else {
+  //   createCollection(form)
+  //     .finally(() => {
+  //       submitLoading.value = false;
+  //       model.value = false;
+  //     });
+  // }
+};
 </script>
 
 <script lang="ts">

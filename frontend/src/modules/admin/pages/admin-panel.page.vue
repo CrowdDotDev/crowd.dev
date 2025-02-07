@@ -4,7 +4,7 @@
       <h4 class="text-gray-900 py-6">
         Admin panel
       </h4>
-      <div v-if="isAdminUser" class="dashboard-tabs">
+      <div v-if="isAdminUser" class="flex h-fit border border-gray-200 rounded-md p-1 gap-0.5">
         <lf-button
           size="medium"
           class="!text-gray-500 text-xs"
@@ -132,6 +132,9 @@ onMounted(() => {
 
   if ((initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
     activeTab.value = 'project-groups';
+  } else if (initialActiveTab === 'collections' || initialActiveTab === 'projects') {
+    activeTab.value = isAdminUser.value ? initialActiveTab : 'project-groups';
+    isCommunityManagement.value = !isAdminUser.value;
   } else {
     activeTab.value = route.hash.substring(1) as string || 'project-groups';
   }
@@ -144,9 +147,3 @@ watch(() => route.hash, (hash: string) => {
   }
 }, { immediate: true });
 </script>
-
-<style scoped>
-.dashboard-tabs {
-  @apply flex h-fit border border-gray-200 rounded-md p-1 gap-0.5;
-}
-</style>

@@ -27,8 +27,26 @@
       </div>
     </div>
 
-    <div v-else-if="!loading">
-      <app-empty-state-cta icon="rectangle-history" title="No collections found" />
+    <div v-else-if="!loading" class="flex flex-col items-center">
+      <app-empty-state-cta
+        v-if="search.length"
+        class="w-full !pb-0"
+        icon="rectangle-history"
+        title="No collections found"
+        description="We couldn't find any results that match your search criteria, please try a different query"
+      />
+      <div v-else>
+        <app-empty-state-cta
+          class="w-full !pb-0"
+          icon="rectangle-history"
+          title="No collections yet"
+          description="Start creating project collections of a certain area or tech stack"
+        />
+        <lf-button class="w-fit" size="medium" type="primary-ghost" @click="onAddCollection">
+          <lf-icon name="rectangle-history-circle-plus" :size="16" />
+          Add collection
+        </lf-button>
+      </div>
     </div>
     <div v-if="loading" class="pt-8 flex justify-center">
       <lf-spinner />
@@ -69,13 +87,14 @@ const fetchCollections = () => {
   loading.value = true;
   CollectionsService.list({
     filter: search.value ? {
-      name: search.value,
+      name: {
+        like: `%${search.value}%`,
+      },
     } : {},
     offset: offset.value,
     limit: limit.value,
   })
     .then((res) => {
-      console.log('res', res);
       if (offset.value > 0) {
         collections.value = [...collections.value, ...res.rows];
       } else {
