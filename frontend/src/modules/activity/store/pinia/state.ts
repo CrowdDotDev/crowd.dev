@@ -1,5 +1,5 @@
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export interface ActivityState {
   filters: Filter,
@@ -21,7 +21,7 @@ export default () => ({
     },
   } as Filter,
   limit: 20,
-  timestamp: moment().toISOString(),
+  timestamp: dateHelper().toISOString(),
   savedFilterBody: {},
   activities: [],
   totalActivities: 0,

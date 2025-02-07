@@ -172,7 +172,6 @@ import {
 import { required, url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { storeToRefs } from 'pinia';
-import moment from 'moment';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { MemberService } from '@/modules/member/member-service';
@@ -186,6 +185,7 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 // Props & emits
 const props = defineProps({
@@ -240,7 +240,7 @@ const rules = {
   },
   datetime: {
     required,
-    inPast: (date) => moment(date).isBefore(moment()),
+    inPast: (date) => dateHelper(date).isBefore(dateHelper()),
   },
   activityType: {
     required,

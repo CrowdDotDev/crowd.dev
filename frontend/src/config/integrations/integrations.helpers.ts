@@ -7,7 +7,7 @@ const useIntegrationsHelpers = () => {
 
     return Object.values(lfIntegrations).map((config) => ({
       ...config,
-      ...findByPlatform(config.key),
+      ...(findByPlatform ? findByPlatform(config.key) : {}),
     }))
       .filter((integration) => integration.status);
   };

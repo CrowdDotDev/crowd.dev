@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import moment from 'moment';
+import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export default {
   name: 'LfSvg',
@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       isHovered: false,
-      version: moment().format('x'),
+      version: dateHelper().format('x'),
     };
   },
 };
