@@ -21,7 +21,7 @@ export async function markEntitiesIndexed(
 }
 
 export async function getMembersForSync(batchSize: number): Promise<string[]> {
-  const memberRepo = new MemberRepository(svc.redis, svc.postgres.writer, svc.log)
+  const memberRepo = new MemberRepository(svc.redis, svc.postgres.reader, svc.log)
   return memberRepo.getMembersForSync(batchSize)
 }
 
