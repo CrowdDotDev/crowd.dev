@@ -36,8 +36,8 @@ BEGIN
         SELECT id, "memberId", "segmentId", "objectMemberId", "organizationId", "conversationId", "parentId", "platform", "username", "objectMemberUsername"
         FROM activities
         WHERE id > last_processed_id
-        AND "segmentId" is not null
-        ORDER BY id
+        AND "segmentId" IS NOT NULL
+        ORDER BY id::TEXT
         LIMIT batch_size;
 
         GET DIAGNOSTICS rows_inserted = ROW_COUNT;
@@ -47,7 +47,11 @@ BEGIN
 
         EXIT WHEN rows_inserted = 0;
 
-        SELECT MAX(id) INTO last_processed_id FROM activities WHERE id > last_processed_id;
+        SELECT id::UUID INTO last_processed_id
+        FROM activities
+        WHERE id > last_processed_id
+        ORDER BY id::TEXT DESC
+        LIMIT 1;
 
     END LOOP;
 
