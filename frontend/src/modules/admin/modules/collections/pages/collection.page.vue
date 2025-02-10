@@ -35,7 +35,7 @@
         title="No collections found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
-      <div v-else>
+      <template v-else>
         <app-empty-state-cta
           class="w-full !pb-0"
           icon="rectangle-history"
@@ -46,7 +46,7 @@
           <lf-icon name="rectangle-history-circle-plus" :size="16" />
           Add collection
         </lf-button>
-      </div>
+      </template>
     </div>
     <div v-if="loading" class="pt-8 flex justify-center">
       <lf-spinner />

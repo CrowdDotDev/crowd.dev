@@ -78,8 +78,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
-import AppLfProjectColumn from '../fragments/lf-project-column.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 const router = useRouter();

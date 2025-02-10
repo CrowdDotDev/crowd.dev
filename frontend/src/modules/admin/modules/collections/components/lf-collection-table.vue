@@ -41,7 +41,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
-import AppLfProjectColumn from '@/modules/admin/modules/projects/components/fragments/lf-project-column.vue';
+import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
 import LfCollectionDropdown from './lf-collection-dropdown.vue';
 import { CollectionModel } from '../models/collection.model';
 
