@@ -1,0 +1,34 @@
+
+SCHEMA >
+    `id` String `json:$.id`,
+    `body` Nullable(String) `json:$.body`,
+    `attributes` String `json:$.attributes`,
+    `channel` String `json:$.channel`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `isContribution` UInt8 `json:$.isContribution`,
+    `platform` String `json:$.platform`,
+    `score` Int16 `json:$.score`,
+    `segmentId` String `json:$.segmentId`,
+    `sourceId` String `json:$.sourceId`,
+    `sourceParentId` String `json:$.sourceParentId`,
+    `timestamp` DateTime `json:$.timestamp`,
+    `title` Nullable(String) `json:$.title`,
+    `type` String `json:$.type`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `url` Nullable(String) `json:$.url`,
+    `sentimentLabel` Nullable(String) `json:$.sentimentLabel`,
+    `sentimentScore` Nullable(Int16) `json:$.sentimentScore`,
+    `sentimentScoreMixed` Nullable(Int16) `json:$.sentimentScoreMixed`,
+    `sentimentScoreNegative` Nullable(Int16) `json:$.sentimentScoreNegative`,
+    `sentimentScoreNeutral` Nullable(Int16) `json:$.sentimentScoreNeutral`,
+    `sentimentScorePositive` Nullable(Int16) `json:$.sentimentScorePositive`,
+    `gitDeletions` Nullable(Int32) `json:$.gitDeletions`,
+    `gitInsertions` Nullable(Int32) `json:$.gitInsertions`,
+    `gitIsIndirectFork` Nullable(UInt8) `json:$.gitIsIndirectFork`,
+    `gitIsMainBranch` Nullable(UInt8) `json:$.gitIsMainBranch`,
+    `gitIsMerge` Nullable(UInt8) `json:$.gitIsMerge`
+
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id"
+ENGINE_VER "updatedAt"

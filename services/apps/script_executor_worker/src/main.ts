@@ -2,7 +2,7 @@ import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 const config: Config = {
-  envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],
+  envvars: ['CROWD_TINYBIRD_ACCESS_TOKEN'],
   producer: {
     enabled: false,
   },
@@ -10,7 +10,7 @@ const config: Config = {
     enabled: true,
   },
   questdb: {
-    enabled: false,
+    enabled: true,
   },
   redis: {
     enabled: true,

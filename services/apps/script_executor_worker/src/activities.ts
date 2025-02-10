@@ -6,6 +6,13 @@ import {
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 import {
+  deleteActivityIdsFromIndexedEntities,
+  getActivitiesToCopy,
+  getLatestSyncedActivityId,
+  markActivitiesAsIndexed,
+  sendActivitiesToTinybird,
+} from './activities/copy-activities-from-questdb-to-tinybird'
+import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
@@ -38,4 +45,9 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  deleteActivityIdsFromIndexedEntities,
+  getActivitiesToCopy,
+  getLatestSyncedActivityId,
+  markActivitiesAsIndexed,
+  sendActivitiesToTinybird,
 }
