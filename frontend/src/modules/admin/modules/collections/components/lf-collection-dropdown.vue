@@ -6,17 +6,11 @@
           <lf-icon name="ellipsis" :size="24" class="text-gray-900" />
         </lf-button>
       </template>
-      <lf-dropdown-item
-        v-if="hasPermission(LfPermission.collectionEdit)"
-        @click="editCollection()"
-      >
+      <lf-dropdown-item @click="editCollection()">
         <lf-icon name="pen fa-sharp" />
         Edit collection
       </lf-dropdown-item>
-      <lf-dropdown-item
-        v-if="hasPermission(LfPermission.collectionDelete)"
-        @click="deleteCollection()"
-      >
+      <lf-dropdown-item type="danger" @click="deleteCollection()">
         <lf-icon name="trash-can" />
         Delete collection
       </lf-dropdown-item>
@@ -25,8 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -39,8 +31,6 @@ const emit = defineEmits<{(e: 'onEditCollection', id: string): void,
 const props = defineProps<{
   id: string,
 }>();
-
-const { hasPermission } = usePermissions();
 
 const editCollection = () => {
   emit('onEditCollection', props.id);

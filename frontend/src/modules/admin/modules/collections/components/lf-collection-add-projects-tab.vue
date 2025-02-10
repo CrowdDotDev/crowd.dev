@@ -1,68 +1,118 @@
 <template>
   <div>
-    <div v-if="projects.length > 0">
+    <div v-if="selectedProjects.length > 0">
       <!-- TODO: Add projects table -->
-      <lf-button class="w-fit" size="medium" type="primary-ghost" @click="onAddProject">
+      <lf-button class="w-fit mb-2" size="medium" type="primary-ghost" @click="onAddProject">
+        <lf-icon name="plus" :size="16" />
         Add project
       </lf-button>
       <!-- Search input -->
-      <lf-search
-        v-model="search"
-        class="h-9 flex-grow w-full"
-        :lazy="true"
-        placeholder="Search projects..."
-        @update:model-value="searchProjects()"
-      />
+      <lf-insights-projects-list-dropdown @on-add-project="onAddProject" />
+
+      <lf-table class="!overflow-visible" show-hover>
+        <thead>
+          <tr>
+            <lf-table-head class="pl-2 min-w-[45%]" />
+            <lf-table-head class="pl-3 w-12" />
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="project of selectedProjects" :key="project.id">
+            <lf-table-cell class="pl-2">
+              <div class="flex items-center">
+                <div class="inline-flex flex-wrap overflow-wrap items-center">
+                  <lf-avatar
+                    :src="project.logoUrl"
+                    :name="project.name"
+                    :size="24"
+                    class="!rounded-md border border-gray-200 mr-3"
+                  />
+                  <span class="text-black text-sm font-semibold line-clamp-2 w-auto">
+                    {{ project.name }}
+                  </span>
+                  <span
+                    v-if="project.starred"
+                    class="ml-3 text-primary-800 text-2xs bg-primary-50 border border-primary-200 rounded-md px-1"
+                  >
+                    Featured
+                  </span>
+                </div>
+              </div>
+            </lf-table-cell>
+
+            <lf-table-cell class="pr-2 flex justify-end">
+              <lf-collection-add-dropdown
+                :id="project.id"
+                :starred="project.starred"
+                @on-edit-project="onEditProject"
+                @on-featured-project="onFeaturedProject"
+                @on-remove-project="onRemoveProject"
+              />
+            </lf-table-cell>
+          </tr>
+        </tbody>
+      </lf-table>
     </div>
 
-    <div v-else-if="!loading" class="flex flex-col items-center">
+    <div v-else class="flex flex-col items-center">
       <app-empty-state-cta
         class="w-full !pb-0"
         icon="rectangle-history"
         title="No projects yet"
         description="Start adding projects into this collection"
       />
-      <lf-button class="w-fit" size="medium" type="primary-ghost" @click="onAddProject">
+      <lf-button class="w-fit mb-2" size="medium" type="primary-ghost" @click="onAddProject">
+        <lf-icon name="plus" :size="16" />
         Add project
       </lf-button>
       <!-- Search input -->
-      <lf-search
-        v-model="search"
-        class="h-9 flex-grow w-4/5"
-        :lazy="true"
-        placeholder="Search projects..."
-        @update:model-value="searchProjects()"
-      />
-    </div>
-    <div v-if="loading" class="pt-8 flex justify-center">
-      <lf-spinner />
+      <lf-insights-projects-list-dropdown @on-add-project="onAddProject" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import LfSearch from '@/ui-kit/search/Search.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
-import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import { Project } from '@/modules/lf/segments/types/Segments';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { InsightsProjectModel } from '../../insights-projects/models/insights-project.model';
+import LfInsightsProjectsListDropdown from './lf-insights-projects-list-dropdown.vue';
+import LfCollectionAddDropdown from './lf-collection-add-dropdown.vue';
+import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
-defineProps<{
-  collectionProjects?: Project[],
+const insightsProjectsStore = useInsightsProjectsStore();
+
+const props = defineProps<{
+  collectionProjects?: InsightsProjectModel[],
 }>();
 
-const search = ref('');
-const loading = ref(false);
+const selectedProjects = ref<InsightsProjectModel[]>(props.collectionProjects || []);
 
-const projects = ref<{ id: string, name: string }[]>([]);
-
-const searchProjects = () => {
-  // TODO: Implement search projects
+const onEditProject = (projectId: string) => {
+  // TODO: Implement edit project
 };
 
-const onAddProject = () => {
-  // TODO: Implement add project
+const onFeaturedProject = (projectId: string) => {
+  const project = selectedProjects.value.find((project) => project.id === projectId);
+  if (project) {
+    project.starred = !project.starred;
+  }
+};
+
+const onRemoveProject = (projectId: string) => {
+  selectedProjects.value = selectedProjects.value.filter((project) => project.id !== projectId);
+};
+
+const onAddProject = (projectId: string) => {
+  const project = insightsProjectsStore.getInsightsProject(projectId);
+  if (project) {
+    selectedProjects.value.push(project);
+  }
 };
 
 </script>

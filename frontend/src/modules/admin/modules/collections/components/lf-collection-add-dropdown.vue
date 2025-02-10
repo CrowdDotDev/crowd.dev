@@ -1,18 +1,23 @@
 <template>
   <div>
-    <lf-dropdown placement="bottom-end" width="14rem">
+    <lf-dropdown placement="bottom-end" class="z-[2090]" width="14rem">
       <template #trigger>
         <lf-button type="secondary-ghost" icon-only>
           <lf-icon name="ellipsis" :size="24" class="text-gray-900" />
         </lf-button>
       </template>
       <lf-dropdown-item @click="editProject()">
-        <lf-icon name="pen fa-sharp" />
+        <lf-icon name="edit" />
         Edit project
       </lf-dropdown-item>
-      <lf-dropdown-item type="danger" @click="deleteProject()">
+      <lf-dropdown-item @click="featuredProject()">
+        <lf-icon :name="props.starred ? 'bookmark-slash' : 'bookmark'" />
+        {{ props.starred ? 'Unfeature project' : 'Featured project' }}
+      </lf-dropdown-item>
+      <lf-dropdown-separator />
+      <lf-dropdown-item type="danger" @click="removeProject()">
         <lf-icon name="circle-minus" />
-        Remove project
+        Remove from collection
       </lf-dropdown-item>
     </lf-dropdown>
   </div>
@@ -23,26 +28,33 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 
 const emit = defineEmits<{(e: 'onEditProject', id: string): void,
-  (e: 'onDeleteProject', id: string): void,
+  (e: 'onFeaturedProject', id: string): void,
+  (e: 'onRemoveProject', id: string): void,
 }>();
 
 const props = defineProps<{
   id: string,
+  starred: boolean,
 }>();
 
 const editProject = () => {
   emit('onEditProject', props.id);
 };
 
-const deleteProject = () => {
-  emit('onDeleteProject', props.id);
+const featuredProject = () => {
+  emit('onFeaturedProject', props.id);
+};
+
+const removeProject = () => {
+  emit('onRemoveProject', props.id);
 };
 </script>
 
 <script lang="ts">
 export default {
-  name: 'LfInsightsProjectDropdown',
+  name: 'LfCollectionAddDropdown',
 };
 </script>

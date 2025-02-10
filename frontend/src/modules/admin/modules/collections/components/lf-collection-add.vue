@@ -44,7 +44,10 @@
                 </lf-field>
               </article>
             </div>
-            <lf-collection-add-projects-tab v-if="activeTab === 'projects'" :collection-projects="collection?.projects" />
+            <lf-collection-add-projects-tab
+              v-if="activeTab === 'projects'"
+              :collection-projects="form.projects"
+            />
           </div>
         </div>
       </div>
@@ -75,6 +78,11 @@ import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
 import { CollectionModel } from '../models/collection.model';
+import { InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
+import { useInsightsProjectsStore } from '../../insights-projects/pinia';
+import { CollectionsService } from '../services/collections.service';
+
+const insightsProjectsStore = useInsightsProjectsStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
   (e: 'onCollectionEdited'): void;
@@ -92,6 +100,7 @@ const submitLoading = ref(false);
 const form = reactive({
   name: '',
   description: '',
+  projects: [],
 });
 
 const rules = {
@@ -100,6 +109,7 @@ const rules = {
     maxLength,
   },
   description: { required: (value: string) => value.trim().length },
+  projects: { required: (value: any) => value.length > 0 },
 };
 
 const $v = useVuelidate(rules, form);
@@ -126,6 +136,10 @@ const fillForm = (record?: CollectionModel) => {
 };
 
 onMounted(() => {
+  InsightsProjectsService.list({})
+    .then((response) => {
+      insightsProjectsStore.setInsightsProjects(response.rows);
+    });
   if (props.collection?.id) {
     loading.value = true;
     fillForm(props.collection);
@@ -142,21 +156,30 @@ const onCancel = () => {
 const onSubmit = () => {
   submitLoading.value = true;
 
-  // if (isEditForm.value) {
+  if (isEditForm.value) {
 
-  //   updateCollection(props.collection?.id, form)
-  //     .finally(() => {
-  //       submitLoading.value = false;
-  //       model.value = false;
-  //       emit('onCollectionEdited');
-  //     });
-  // } else {
-  //   createCollection(form)
-  //     .finally(() => {
-  //       submitLoading.value = false;
-  //       model.value = false;
-  //     });
-  // }
+    // updateCollection(props.collection?.id, form)
+    //   .finally(() => {
+    //     submitLoading.value = false;
+    //     model.value = false;
+    //     emit('onCollectionEdited');
+    //   });
+  } else {
+    const request = {
+      name: form.name,
+      description: form.description,
+      projects: form.projects.map((project: any) => ({
+        id: project.id,
+        starred: project.starred,
+      })),
+      isLF: true,
+    };
+    CollectionsService.create(request)
+      .finally(() => {
+        submitLoading.value = false;
+        model.value = false;
+      });
+  }
 };
 </script>
 
