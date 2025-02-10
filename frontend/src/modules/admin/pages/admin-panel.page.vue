@@ -67,7 +67,7 @@
           <app-lf-audit-logs-page v-else-if="activeTab === 'audit-logs'" />
           <lf-admin-users v-else-if="activeTab === 'users'" />
           <lf-collections-page v-else-if="activeTab === 'collections'" />
-          <lf-collections-page v-else-if="activeTab === 'projects'" />
+          <lf-insights-projects-page v-else-if="activeTab === 'projects'" />
         </div>
       </div>
     </div>
@@ -92,6 +92,7 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCollectionsPage from '@/modules/admin/modules/collections/pages/collection.page.vue';
+import LfInsightsProjectsPage from '@/modules/admin/modules/insights-projects/pages/insights-projects.page.vue';
 
 const route = useRoute();
 const router = useRouter();
