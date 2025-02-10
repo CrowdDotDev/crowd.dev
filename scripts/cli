@@ -566,6 +566,8 @@ function run_tinybird_cli_command() {
 }
 
 function migrate_tinybird_local() {
+    set +e +o pipefail
+
     say "Applying Tinybird project!"
     fetch_tinybird_tokens
 
@@ -579,32 +581,36 @@ function migrate_tinybird_local() {
 
     say "Pushing Tinybird project!"
 
-    MAX_RETRIES=2
-    RETRY_DELAY=3
+    MAX_RETRIES=5
+    RETRY_DELAY=5
     attempt=1
 
     while [ $attempt -le $MAX_RETRIES ]; do
         whisper "Attempt $attempt/$MAX_RETRIES to deploy Tinybird project.."
 
-        docker run --rm --network "${PROJECT_NAME}-bridge" \
+        OUTPUT=$(docker run --rm --network "${PROJECT_NAME}-bridge" \
             -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
             -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
             -w /mnt/data \
             tinybirdco/tinybird-cli-docker \
-            sh -c 'tb auth --host http://tinybird:80 && tb push || exit 1'
+            sh -c 'tb auth --host http://tinybird:80 && tb push')
 
         STATUS=$?
 
-        if [ $STATUS -eq 0 ]; then
-            say "Tinybird project deployed successfully!"
-            return 0
-        else
+        whisper "$OUTPUT"
+
+        if [[ "$OUTPUT" == *"502 error responses"* ]] || [[ "$OUTPUT" == *"Max retries exceeded"* ]] || [ $STATUS -ne 0 ]; then
             yell "Tinybird push failed (Attempt: $attempt/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
+        else
+            say "Tinybird project deployed successfully!"
+            return 0
         fi
 
         attempt=$((attempt + 1))
     done
+
+    set -eo pipefail
 
     error "Tinybird push failed after $MAX_RETRIES attempts. Exiting."
     return 1
