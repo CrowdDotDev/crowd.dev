@@ -11,9 +11,7 @@
       <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
     <template #content>
-      <div class="text-gray-900 text-sm font-medium">
-        Remote URL
-      </div>
+      <div class="text-gray-900 text-sm font-medium">Remote URL</div>
       <div class="text-2xs text-gray-500">
         Connect remote Gerrit repository.
       </div>
@@ -24,7 +22,7 @@
           v-model="form.orgURL"
           class="text-green-500"
           spellcheck="false"
-          placeholder="Enter Organization URL (without https:// or http://)"
+          placeholder="Enter Organization URL"
         />
         <el-input
           id="devUrl"
@@ -94,9 +92,7 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
-import {
-  computed, defineProps, onMounted, reactive, ref,
-} from 'vue';
+import { computed, defineProps, onMounted, reactive, ref } from 'vue';
 import gerrit from '@/config/integrations/gerrit/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';

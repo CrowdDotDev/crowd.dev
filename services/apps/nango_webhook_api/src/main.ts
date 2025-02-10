@@ -9,7 +9,6 @@ import express, {
 } from 'express'
 
 import { HttpStatusError } from '@crowd/common'
-import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { INangoWebhookPayload } from '@crowd/nango'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
@@ -18,27 +17,12 @@ import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crow
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 3, 0)
   const temporal = await getTemporalClient(TEMPORAL_CONFIG())
 
   const app = express()
 
   app.use('/health', async (req, res) => {
-    try {
-      const dbPingRes = await dbConnection
-        .result('select 1')
-        .then((result) => result.rowCount === 1)
-
-      if (dbPingRes) {
-        res.sendStatus(200)
-      } else {
-        res.status(500).json({
-          database: dbPingRes,
-        })
-      }
-    } catch (err) {
-      res.status(500).json({ error: err })
-    }
+    res.sendStatus(200)
   })
 
   app.use(telemetryExpressMiddleware('webhook.request.duration'))

@@ -16,7 +16,6 @@
     "@crowd/logging": "workspace:*",
     "@crowd/nango": "workspace:*",
     "@crowd/temporal": "workspace:*",
-    "@crowd/data-access-layer": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@types/express": "^4.17.17",

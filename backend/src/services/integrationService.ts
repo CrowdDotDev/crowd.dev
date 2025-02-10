@@ -10,6 +10,7 @@ import {
   NangoIntegration,
   connectNangoIntegration,
   deleteNangoConnection,
+  setNangoMetadata,
   startNangoSync,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
@@ -1206,12 +1207,8 @@ export default class IntegrationService {
     let integration: any
     let connectionId
     try {
-      const res = await IntegrationService.getGerritServerRepos(integrationData.remote.orgURL)
-      if (integrationData.remote.enableAllRepos) {
-        integrationData.remote.repoNames = res.repoNames
-      }
-
       const orgUrl: string = integrationData.remote.orgURL
+
       let host: string
       if (orgUrl.startsWith('https://')) {
         host = orgUrl.slice(8)
@@ -1221,7 +1218,12 @@ export default class IntegrationService {
         host = orgUrl
       }
 
-      connectionId = await connectNangoIntegration(NangoIntegration.GERRIT, integration.id, {
+      const res = await IntegrationService.getGerritServerRepos(orgUrl)
+      if (integrationData.remote.enableAllRepos) {
+        integrationData.remote.repoNames = res
+      }
+
+      connectionId = await connectNangoIntegration(NangoIntegration.GERRIT, {
         params: {
           host,
         },
@@ -1230,6 +1232,12 @@ export default class IntegrationService {
           password: integrationData.remote.pass,
         },
       })
+
+      if (integrationData.remote.repoNames.length > 0) {
+        await setNangoMetadata(NangoIntegration.GERRIT, connectionId, {
+          repos: integrationData.remote.repoNames,
+        })
+      }
 
       integration = await this.createOrUpdate(
         {
@@ -1256,7 +1264,7 @@ export default class IntegrationService {
             platform: PlatformType.GIT,
             settings: {
               remotes: integrationData.remote.repoNames.map((repo) =>
-                stripGit(`${integrationData.remote.orgURL}${res.urlPartial}/${repo}`),
+                stripGit(`${integrationData.remote.orgURL}/${repo}`),
               ),
             },
             status: 'done',
@@ -1279,30 +1287,23 @@ export default class IntegrationService {
     return integration
   }
 
-  static async getGerritServerRepos(
-    serverURL: string,
-  ): Promise<{ repoNames: string[]; urlPartial: string }> {
-    const urlPartials = ['/r', '/gerrit', '/']
-    for (const p of urlPartials) {
-      try {
-        const result = await axios.get(`${serverURL}${p}/projects/?`, {})
-        const str = result.data.replace(")]}'\n", '')
-        const data = JSON.parse(str)
+  static async getGerritServerRepos(serverURL: string): Promise<string[]> {
+    try {
+      const result = await axios.get(`${serverURL}/projects/`, {})
+      const str = result.data.replace(")]}'\n", '')
+      const data = JSON.parse(str)
 
-        const repos = Object.keys(data).filter(
-          (key) => key !== '.github' && key !== 'All-Projects' && key !== 'All-Users',
-        )
-        return {
-          repoNames: repos,
-          urlPartial: p,
-        }
-      } catch (error) {
-        if (error.response && error.response.status !== 404) {
-          throw new Error404('Error in getGerritServerRepos:', error)
-        }
+      const repos = Object.keys(data).filter(
+        (key) => key !== '.github' && key !== 'All-Projects' && key !== 'All-Users',
+      )
+      return repos
+    } catch (error) {
+      if (error.response && error.response.status !== 404) {
+        throw new Error404('Error in getGerritServerRepos:', error)
       }
     }
-    return { repoNames: [], urlPartial: '' }
+
+    return []
   }
 
   /**

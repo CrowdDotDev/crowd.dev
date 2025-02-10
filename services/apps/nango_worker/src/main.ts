@@ -4,7 +4,7 @@ import { Options, ServiceWorker } from '@crowd/archetype-worker'
 const config: Config = {
   envvars: [],
   producer: {
-    enabled: false,
+    enabled: true,
   },
   temporal: {
     enabled: true,

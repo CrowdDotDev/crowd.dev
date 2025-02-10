@@ -6,6 +6,7 @@ import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/i
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getChildLogger } from '@crowd/logging'
 import { NangoIntegration, getNangoCloudRecords, initNangoCloudClient } from '@crowd/nango'
+import { IntegrationResultType } from '@crowd/types'
 
 import { svc } from '../main'
 import { IProcessNangoWebhookArguments } from '../types'
@@ -19,7 +20,7 @@ export async function processNangoWebhook(
     model: args.model,
   })
 
-  initNangoCloudClient()
+  await initNangoCloudClient()
 
   const integration = await findIntegrationDataForNangoWebhookProcessing(
     dbStoreQx(svc.postgres.reader),
@@ -45,7 +46,11 @@ export async function processNangoWebhook(
     logger.info(`Processing ${records.records.length} nango records!`)
     for (const record of records.records) {
       // process record
-      const resultId = await repo.publishExternalResult(integration.id, record.activity)
+      const resultId = await repo.publishExternalResult(integration.id, {
+        type: IntegrationResultType.ACTIVITY,
+        segmentId: integration.segmentId,
+        data: record.activity,
+      })
       await svc.dataSinkWorkerEmitter.triggerResultProcessing(
         resultId,
         resultId,

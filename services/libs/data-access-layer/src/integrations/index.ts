@@ -202,6 +202,22 @@ export async function fetchGlobalIntegrationsStatusCount(
   )
 }
 
+export async function fetchIntegrationDataForNangoTriggering(
+  qx: QueryExecutor,
+  platforms: string[],
+): Promise<{ id: string; platform: string }[]> {
+  return qx.select(
+    `
+      select id, platform
+      from integrations
+      where platform in ($(platforms:csv)) and "deletedAt" is null
+    `,
+    {
+      platforms,
+    },
+  )
+}
+
 export async function findIntegrationDataForNangoWebhookProcessing(
   qx: QueryExecutor,
   id: string,
@@ -237,7 +253,7 @@ export async function setNangoIntegrationCursor(
       set settings = jsonb_set(
         settings,
         '{cursors}',
-        coalesce(settings -> 'cursors', '{}') || jsonb_build_object($(model), $(cursor)))
+        coalesce(settings -> 'cursors', '{}') || jsonb_build_object($(model), $(cursor))
       )
       where id = $(integrationId)
     `,

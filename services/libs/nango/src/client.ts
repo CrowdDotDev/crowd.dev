@@ -72,9 +72,8 @@ export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionTok
 let frontendModule: any | undefined = undefined
 export const connectNangoIntegration = async (
   integration: NangoIntegration,
-  connectionId: string,
   params: any,
-): Promise<void> => {
+): Promise<string> => {
   ensureBackendClient()
 
   const data = await getNangoCloudSessionToken()
@@ -87,8 +86,18 @@ export const connectNangoIntegration = async (
     connectSessionToken: data.token,
   }) as Nango
 
-  const result = await frontendClient.auth(integration, connectionId, params)
+  const result = await frontendClient.auth(integration, params)
   return result.connectionId
+}
+
+export const setNangoMetadata = async (
+  integration: NangoIntegration,
+  connectionId: string,
+  metadata: Record<string, unknown>,
+): Promise<void> => {
+  ensureBackendClient()
+
+  await backendClient.setMetadata(integration, connectionId, metadata)
 }
 
 export const startNangoSync = async (

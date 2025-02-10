@@ -5,6 +5,8 @@ export enum NangoIntegration {
   JIRA = 'jira',
 }
 
+export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
+
 export const NANGO_INTEGRATION_CONFIG = {
   [NangoIntegration.GERRIT]: {
     models: {
