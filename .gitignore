@@ -53,3 +53,4 @@ services/libs/*/dist
 
 **/.tinyb
 **/.tinyenv
+services/libs/tinybird/.diff_tmp
