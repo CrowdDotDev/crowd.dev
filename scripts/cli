@@ -519,7 +519,7 @@ function migrate_env() {
     fi
 
     say "Building flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
     say "Applying PostgreSQL migrations to $CROWD_DB_WRITE_HOST!"
     docker run --rm \
         -e PGHOST=$CROWD_DB_WRITE_HOST \
@@ -536,9 +536,40 @@ function migrate_env() {
         -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
+function wait_for_tinybird() {
+    say "Waiting for Tinybird to get ready.."
+    until curl -s -f http://localhost:80/tokens >/dev/null 2>&1; do
+        yell "Tinybird is not ready yet. Retrying in 5 seconds.."
+        sleep 5
+    done
+    say "Tinybird is ready!"
+}
+
+function fetch_tinybird_tokens() {
+    wait_for_tinybird
+    read -r CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN CROWD_TINYBIRD_USER_TOKEN < <(curl -s http://localhost:80/tokens | jq -r '[.workspace_admin_token, .user_token] | @tsv')
+    progress "Workspace Admin Token=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
+    progress "User Token=$CROWD_TINYBIRD_USER_TOKEN"
+    export CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN
+    export CROWD_TINYBIRD_USER_TOKEN
+}
+
+run_tinybird_cli_command() {
+    fetch_tinybird_tokens
+    yell "Running Tinybird CLI command: sh -c '$@'"
+    docker run --rm --network "${PROJECT_NAME}-bridge" \
+        -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
+        -e TB_VERSION_WARNING=0 \
+        -v "$CLI_HOME/../services/libs/tinybird:/mnt/data:rw" \
+        -w /mnt/data \
+        tinybirdco/tinybird-cli-docker \
+        sh -c "$@"
+}
+
+
 function migrate_local() {
     say "Building crowd flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
     say "Applying PostgreSQL migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \
@@ -555,7 +586,7 @@ function migrate_local() {
         -f /tmp/migrations/V1716382997__init-questdb.sql
 
     say "Building product flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product --load
+    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product
     say "Applying product database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=product \
@@ -564,6 +595,26 @@ function migrate_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=product-db \
         product_flyway
+
+    say "Applying Tinybird project!"
+    fetch_tinybird_tokens
+
+    if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ] ||
+        [ -z "$CROWD_TINYBIRD_USER_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_USER_TOKEN" = "null" ]; then
+        echo "Error: Could not fetch Tinybird tokens. Exiting."
+    else
+        say "Pushing Tinybird project!"
+        docker run --rm --network "${PROJECT_NAME}-bridge" \
+            -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
+            -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
+            -w /mnt/data \
+            tinybirdco/tinybird-cli-docker \
+            sh -c 'tb auth --host http://tinybird:80 && tb push'
+        say "Tinybird project deployed succesfully!"
+    fi
+
 }
 
 function up_test_scaffold() {
@@ -895,6 +946,10 @@ while test $# -gt 0; do
         ;;
     lint-services)
         (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
+        exit
+        ;;
+    tb)
+        run_tinybird_cli_command "$*"
         exit
         ;;
     *)

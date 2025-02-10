@@ -1,0 +1,24 @@
+
+SCHEMA >
+    `attributes` String `json:$.attributes`,
+    `channel` String `json:$.channel`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `id` String `json:$.id`,
+    `isContribution` UInt8 `json:$.isContribution`,
+    `memberId` String `json:$.memberId`,
+    `member_isBot` UInt8 `json:$.member_isBot`,
+    `member_isTeamMember` UInt8 `json:$.member_isTeamMember`,
+    `platform` String `json:$.platform`,
+    `score` Int16 `json:$.score`,
+    `segmentId` String `json:$.segmentId`,
+    `sourceId` String `json:$.sourceId`,
+    `sourceParentId` String `json:$.sourceParentId`,
+    `tenantId` String `json:$.tenantId`,
+    `timestamp` DateTime `json:$.timestamp`,
+    `type` String `json:$.type`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `username` String `json:$.username`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "createdAt, tenantId, type, username"

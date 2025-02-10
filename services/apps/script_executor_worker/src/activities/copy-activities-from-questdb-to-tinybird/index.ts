@@ -39,7 +39,7 @@ export async function sendActivitiesToTinybird(activities: IActivityData[]): Pro
   let response
 
   try {
-    const url = `https://api.tinybird.co/v0/events?name=activity_events`
+    const url = `https://api.tinybird.co/v0/events?name=activities`
     const config = {
       method: 'post',
       url,

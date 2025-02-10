@@ -165,15 +165,10 @@ services:
     build:
       context: scaffold/kafka-connect
     restart: unless-stopped
-    entrypoint:
-      - connect-standalone
-      - /etc/kafka-connect/worker-local.properties
-      - /etc/kafka-connect/console-local-sink.properties
-      - /etc/kafka-connect/questdb-local-sink.properties
-      - /etc/kafka-connect/tinybird-local-sink.properties
-
+    entrypoint: ["/bin/sh", "-c", "/wait-for-tinybird.sh"]
     volumes:
       - kafka-connect-dev:/storage
+      - ./scaffold/kafka-connect/wait-for-tinybird.sh:/wait-for-tinybird.sh
       - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
       - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
       - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
@@ -191,6 +186,19 @@ services:
     networks:
       - crowd-bridge
 
+
+  tinybird:
+    image: tinybirdco/tinybird-local:latest
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/tokens"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true
@@ -203,3 +211,4 @@ volumes:
   s3-dev:
   redis-dev:
   kafka-connect-dev:
+  tinybird-data:

@@ -1,0 +1,8 @@
+
+NODE endpoint
+DESCRIPTION >
+    Generated from the command line
+SQL >
+    select * from activities
+
+    
