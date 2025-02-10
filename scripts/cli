@@ -554,20 +554,63 @@ function fetch_tinybird_tokens() {
     export CROWD_TINYBIRD_USER_TOKEN
 }
 
-run_tinybird_cli_command() {
+function run_tinybird_cli_command() {
     fetch_tinybird_tokens
     yell "Running Tinybird CLI command: sh -c '$@'"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
-        -e TB_VERSION_WARNING=0 \
         -v "$CLI_HOME/../services/libs/tinybird:/mnt/data:rw" \
         -w /mnt/data \
-        tinybirdco/tinybird-cli-docker \
+        tinybirdco/tinybird-cli-docker:latest \
         sh -c "$@"
 }
 
+function migrate_tinybird_local() {
+    say "Applying Tinybird project!"
+    fetch_tinybird_tokens
 
-function migrate_local() {
+    if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ] ||
+        [ -z "$CROWD_TINYBIRD_USER_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_USER_TOKEN" = "null" ]; then
+        echo "Error: Could not fetch Tinybird tokens. Exiting."
+        return 1
+    fi
+
+    say "Pushing Tinybird project!"
+
+    MAX_RETRIES=2
+    RETRY_DELAY=3
+    attempt=1
+
+    while [ $attempt -le $MAX_RETRIES ]; do
+        whisper "Attempt $attempt/$MAX_RETRIES to deploy Tinybird project.."
+
+        docker run --rm --network "${PROJECT_NAME}-bridge" \
+            -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
+            -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
+            -w /mnt/data \
+            tinybirdco/tinybird-cli-docker \
+            sh -c 'tb auth --host http://tinybird:80 && tb push || exit 1'
+
+        STATUS=$?
+
+        if [ $STATUS -eq 0 ]; then
+            say "Tinybird project deployed successfully!"
+            return 0
+        else
+            yell "Tinybird push failed (Attempt: $attempt/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+        fi
+
+        attempt=$((attempt + 1))
+    done
+
+    error "Tinybird push failed after $MAX_RETRIES attempts. Exiting."
+    return 1
+}
+
+function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
     say "Applying PostgreSQL migrations!"
@@ -578,13 +621,17 @@ function migrate_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=crowd-web \
         crowd_flyway
+}
 
+function migrate_questdb_local() {
     say "Applying QuestDB migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
         postgres psql postgresql://admin:quest@questdb:8812/qdb \
         -f /tmp/migrations/V1716382997__init-questdb.sql
+}
 
+function migrate_productdb_local() {
     say "Building product flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product
     say "Applying product database migrations!"
@@ -595,26 +642,13 @@ function migrate_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=product-db \
         product_flyway
+}
 
-    say "Applying Tinybird project!"
-    fetch_tinybird_tokens
-
-    if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] ||
-        [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ] ||
-        [ -z "$CROWD_TINYBIRD_USER_TOKEN" ] ||
-        [ "$CROWD_TINYBIRD_USER_TOKEN" = "null" ]; then
-        echo "Error: Could not fetch Tinybird tokens. Exiting."
-    else
-        say "Pushing Tinybird project!"
-        docker run --rm --network "${PROJECT_NAME}-bridge" \
-            -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
-            -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
-            -w /mnt/data \
-            tinybirdco/tinybird-cli-docker \
-            sh -c 'tb auth --host http://tinybird:80 && tb push'
-        say "Tinybird project deployed succesfully!"
-    fi
-
+function migrate_local() {
+    migrate_postgres_local
+    migrate_questdb_local
+    migrate_productdb_local
+    migrate_tinybird_local
 }
 
 function up_test_scaffold() {
