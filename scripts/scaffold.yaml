@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:14-alpine
     restart: unless-stopped
-    command: -c 'max_connections=300'
+    command: -c 'max_connections=300' -c 'wal_level=logical' -c 'max_replication_slots=11' -c 'max_replication_slots=15'
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
@@ -12,6 +12,7 @@ services:
       - 5432:5432
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
+      - ./scaffold/sequin/postgres-docker-entrypoint-initdb.d/create-sequin-user-and-database.sql:/docker-entrypoint-initdb.d/create-sequin-user-and-database.sql
     shm_size: 1gb
     networks:
       - crowd-bridge
