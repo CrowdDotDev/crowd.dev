@@ -20,10 +20,19 @@
         @on-edit-collection="onEditCollection($event)"
         @on-delete-collection="onDeleteCollection($event)"
       />
-      <div v-if="collections.length < total" class="pt-4">
-        <lf-button type="primary-ghost" loading-text="Loading collections..." :loading="loading" @click="loadMore()">
+      <div class="pt-4">
+        <lf-button v-if="collections.length < total && !loading" type="primary-ghost" @click="loadMore()">
           Load more
         </lf-button>
+        <div v-else-if="loading && collections.length > 0" class="flex items-center justify-center">
+          <span class="text-xs text-gray-400 mr-4">
+            {{ offset }} out of {{ total }} collections
+          </span>
+          <div class="flex items-center text-xs text-primary-200">
+            <lf-spinner :size="'1rem'" class="mr-1 border-primary-200" />
+            Loading collections...
+          </div>
+        </div>
       </div>
     </div>
 
@@ -48,7 +57,7 @@
         </lf-button>
       </template>
     </div>
-    <div v-if="loading" class="pt-8 flex justify-center">
+    <div v-if="loading && collections.length === 0" class="pt-8 flex justify-center">
       <lf-spinner />
     </div>
   </div>
