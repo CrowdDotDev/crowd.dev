@@ -17,7 +17,7 @@ export class QueueFactory {
       sasl: {
         mechanism: 'plain', // or scram-sha-256 or scram-sha-512
         username: 'user',
-        password: 'password'
+        password: 'password',
       },
       retry: {
         initialRetryTime: 100,
