@@ -32,10 +32,11 @@ DECLARE
     rows_inserted INT;
 BEGIN
     LOOP
-        INSERT INTO "activityRelations" ("activityId", "memberId", "objectMemberId", "organizationId", "conversationId", "parentId", "platform", "username", "objectMemberUsername")
-        SELECT id, "memberId", "objectMemberId", "organizationId", "conversationId", "parentId", "platform", "username", "objectMemberUsername"
+        INSERT INTO "activityRelations" ("activityId", "memberId", "segmentId", "objectMemberId", "organizationId", "conversationId", "parentId", "platform", "username", "objectMemberUsername")
+        SELECT id, "memberId", "segmentId", "objectMemberId", "organizationId", "conversationId", "parentId", "platform", "username", "objectMemberUsername"
         FROM activities
         WHERE id > last_processed_id
+        AND "segmentId" is not null
         ORDER BY id
         LIMIT batch_size;
 
