@@ -43,6 +43,21 @@ export function prepareBulkInsert(
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareInsert(table: string, data: any) {
+  console.log(data)
+  const q = `
+      INSERT INTO $(table:name)
+      (${Object.keys(data).join(',')})
+      VALUES (${Object.keys(data)
+        .map((k) => `$(data.${k})`)
+        .join(',')})
+      RETURNING *
+    `
+  console.log(q)
+  return pgp.as.format(q, { table, data })
+}
+
 export function checkUpdateRowCount(rowCount: number, expected: number) {
   if (rowCount !== expected) {
     new Error(`Updated number of rows (${rowCount}) not equal to expected number (${expected})!`)
@@ -128,6 +143,29 @@ export async function queryTableById<T extends string>(
   }
 
   return null
+}
+
+export async function updateTableById(
+  qx: QueryExecutor,
+  table: string,
+  id: string,
+  data: Record<string, unknown>,
+) {
+  return qx.result(
+    `
+      UPDATE $(table:name)
+      SET ${Object.entries(data)
+        .map(([key, value]) => `${key} = $(data.${key})`)
+        .join(',\n')}
+      WHERE id = $(id)
+      RETURNING *
+    `,
+    {
+      table,
+      id,
+      data,
+    },
+  )
 }
 
 export async function refreshMaterializedView(

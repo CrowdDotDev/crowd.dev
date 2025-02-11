@@ -13,7 +13,14 @@ CREATE TABLE IF NOT EXISTS "insightsProjects" (
     description TEXT,
     "segmentId" UUID REFERENCES segments(id),
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    "logoUrl" TEXT,
+    "organizationId" UUID REFERENCES organizations(id),
+    "website" TEXT,
+    "github" TEXT,
+    "linkedin" TEXT,
+    "twitter" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "collectionsInsightsProjects" (

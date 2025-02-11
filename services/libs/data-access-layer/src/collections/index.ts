@@ -1,6 +1,6 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
-import { QueryResult, prepareBulkInsert, queryTable, queryTableById } from '../utils'
+import { QueryResult, prepareBulkInsert, prepareInsert, queryTable, queryTableById } from '../utils'
 import { QueryOptions } from '../utils'
 
 export interface ICreateCollection {
@@ -130,6 +130,13 @@ export enum InsightsProjectField {
   SEGMENT_ID = 'segmentId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
+
+  LOGO_URL = 'logoUrl',
+  ORGANIZATION_ID = 'organizationId',
+  WEBSITE = 'website',
+  GITHUB = 'github',
+  LINKEDIN = 'linkedin',
+  TWITTER = 'twitter',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(
@@ -140,18 +147,7 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
 }
 
 export async function createInsightsProject(qx: QueryExecutor, insightProject: IInsightsProject) {
-  return qx.selectOne(
-    `
-      INSERT INTO "insightsProjects" (name, description, "segmentId")
-      VALUES ($(name), $(description), $(segmentId))
-      RETURNING *
-    `,
-    {
-      name: insightProject.name,
-      description: insightProject.description,
-      segmentId: insightProject.segmentId,
-    },
-  )
+  return qx.selectOne(prepareInsert('insightsProjects', insightProject))
 }
 
 export async function addInsightsProjectsToCollection(
