@@ -1,18 +1,21 @@
+import { uniq } from 'lodash'
+
 import {
   CollectionField,
-  ICollection,
   ICreateCollectionWithProjects,
   IInsightsProject,
   InsightsProjectField,
   addInsightsProjectsToCollection,
   countCollections,
+  countInsightsProjects,
   createCollection,
   createInsightsProject,
   deleteCollection,
+  deleteInsightsProject,
+  findCollectionProjectConnections,
   queryCollectionById,
   queryCollections,
   queryInsightsProjects,
-  queryInsightsProjectsByCollectionIds,
 } from '@crowd/data-access-layer/src/collections'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { LoggerBase } from '@crowd/logging'
@@ -49,7 +52,9 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
       const collection = await queryCollectionById(qx, id, Object.values(CollectionField))
-      const connections = await queryInsightsProjectsByCollectionIds(qx, [id])
+      const connections = await findCollectionProjectConnections(qx, {
+        collectionIds: [id],
+      })
       const projects = await queryInsightsProjects(qx, {
         filter: {
           id: {
@@ -105,16 +110,15 @@ export class CollectionService extends LoggerBase {
       }
     }
 
-    const connections = await queryInsightsProjectsByCollectionIds(
-      qx,
-      collections.map((c) => c.id),
-    )
+    const connections = await findCollectionProjectConnections(qx, {
+      collectionIds: uniq(collections.map((c) => c.id)),
+    })
 
     const projects =
       connections.length > 0
         ? await queryInsightsProjects(qx, {
             filter: {
-              id: { in: connections.map((c) => c.insightsProjectId) },
+              id: { in: uniq(connections.map((c) => c.insightsProjectId)) },
             },
             fields: Object.values(InsightsProjectField),
           })
@@ -149,5 +153,66 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const createdProject = await createInsightsProject(qx, project)
     return createdProject
+  }
+
+  async destroyInsightsProject(id: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    await deleteInsightsProject(qx, id)
+  }
+
+  async queryInsightsProjects({
+    limit,
+    offset,
+    filter,
+  }: {
+    limit?: number
+    offset?: number
+    filter: QueryFilter
+  }) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const projects = await queryInsightsProjects(qx, {
+      filter,
+      fields: Object.values(InsightsProjectField),
+    })
+
+    if (projects.length === 0) {
+      return {
+        rows: [],
+        total: 0,
+        limit,
+        offset,
+      }
+    }
+
+    const connections = await findCollectionProjectConnections(qx, {
+      insightsProjectIds: projects.map((p) => p.id),
+    })
+
+    const collections =
+      connections.length > 0
+        ? await queryCollections(qx, {
+            filter: {
+              id: { in: uniq(connections.map((c) => c.collectionId)) },
+            },
+            fields: Object.values(CollectionField),
+          })
+        : []
+
+    const total = await countInsightsProjects(qx, filter)
+
+    return {
+      rows: projects.map((p) => {
+        const collectionConnections = connections.filter((cp) => cp.insightsProjectId === p.id)
+        return {
+          ...p,
+          collections: collections.filter((c) =>
+            collectionConnections.some((cp) => cp.collectionId === c.id),
+          ),
+        }
+      }),
+      total,
+      limit,
+      offset,
+    }
   }
 }

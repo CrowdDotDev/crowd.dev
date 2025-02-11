@@ -146,11 +146,17 @@ export async function addInsightsProjectsToCollection(
   )
 }
 
-export async function queryInsightsProjectsByCollectionIds(
+export async function findCollectionProjectConnections(
   qx: QueryExecutor,
-  collectionIds: string[],
+  {
+    collectionIds,
+    insightsProjectIds,
+  }: {
+    collectionIds?: string[]
+    insightsProjectIds?: string[]
+  },
 ): Promise<ICollectionInsightProject[]> {
-  if (collectionIds.length === 0) {
+  if (!collectionIds && !insightsProjectIds) {
     return []
   }
 
@@ -158,8 +164,25 @@ export async function queryInsightsProjectsByCollectionIds(
     `
       SELECT *
       FROM "collectionsInsightsProjects"
-      WHERE "collectionId" IN ($(collectionIds:csv))
+      WHERE 1=1
+        ${collectionIds ? `AND "collectionId" IN ($(collectionIds:csv))` : ''}
+        ${insightsProjectIds ? `AND "insightsProjectId" IN ($(insightsProjectIds:csv))` : ''}
     `,
-    { collectionIds },
+    { collectionIds, insightsProjectIds },
   )
+}
+
+export async function countInsightsProjects(
+  qx: QueryExecutor,
+  filter: QueryFilter,
+): Promise<number> {
+  const result = await queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), {
+    filter,
+    fields: 'count',
+  })
+  return result[0]['count']
+}
+
+export async function deleteInsightsProject(qx: QueryExecutor, id: string) {
+  return qx.result(`DELETE FROM "insightsProjects" WHERE id = $(id)`, { id })
 }
