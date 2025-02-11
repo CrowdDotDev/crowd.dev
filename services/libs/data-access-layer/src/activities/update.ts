@@ -53,26 +53,42 @@ export async function streamActivities(
   })
 }
 
+export type MapActivityFunction = (
+  activity: IDbActivityCreateData,
+) => Promise<Partial<IDbActivityCreateData>>
+
 export async function updateActivities(
   qdb: DbConnOrTx,
   queueClient: IQueue,
-  mapActivity: (activity: IDbActivityCreateData) => Promise<Partial<IDbActivityCreateData>>,
+  mapActivity: MapActivityFunction | MapActivityFunction[],
   where: string,
   params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
+  async function mapNewActivity(
+    activity: IDbActivityCreateData,
+    mapActivity: MapActivityFunction | MapActivityFunction[],
+  ): Promise<IDbActivityCreateData> {
+    let newActivity = activity
+
+    if (!Array.isArray(mapActivity)) {
+      mapActivity = [mapActivity]
+    }
+
+    for (const map of mapActivity) {
+      newActivity = {
+        ...newActivity,
+        ...(await map(newActivity)),
+      }
+    }
+
+    return newActivity
+  }
+
   return streamActivities(
     qdb,
     async (activity) => {
-      await insertActivities(
-        queueClient,
-        [
-          {
-            ...activity,
-            ...(await mapActivity(activity)),
-          },
-        ],
-        true,
-      )
+      const newActivity = await mapNewActivity(activity, mapActivity)
+      await insertActivities(queueClient, [newActivity], true)
     },
     where,
     params,

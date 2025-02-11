@@ -6,7 +6,6 @@ import {
   deleteMemberSegments,
   findMemberById,
   getIdentitiesWithActivity,
-  moveActivitiesToNewMember,
   moveIdentityActivitiesToNewMember,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -26,19 +25,6 @@ export async function deleteMember(memberId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
   await cleanupMemberAggregates(qx, memberId)
   await cleanupMember(svc.postgres.writer, memberId)
-}
-
-export async function moveActivitiesBetweenMembers(
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-): Promise<void> {
-  const memberExists = await findMemberById(svc.postgres.writer, primaryId, tenantId)
-
-  if (!memberExists) {
-    return
-  }
-  await moveActivitiesToNewMember(svc.questdbSQL, svc.queue, primaryId, secondaryId, tenantId)
 }
 
 export async function moveActivitiesWithIdentityToAnotherMember(

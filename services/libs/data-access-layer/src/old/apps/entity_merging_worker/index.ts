@@ -40,25 +40,6 @@ export async function findMemberById(db: DbStore, primaryId: string, tenantId: s
   )
 }
 
-export async function moveActivitiesToNewMember(
-  qdb: DbConnOrTx,
-  queueClient: IQueue,
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-) {
-  await updateActivities(
-    qdb,
-    queueClient,
-    async () => ({ memberId: primaryId }),
-    `"memberId" = $(memberId) AND "tenantId" = $(tenantId)`,
-    {
-      memberId: secondaryId,
-      tenantId,
-    },
-  )
-}
-
 export async function updateMergeActionState(
   db: DbStore,
   primaryId: string,

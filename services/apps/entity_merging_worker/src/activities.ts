@@ -1,6 +1,5 @@
 export {
   deleteMember,
-  moveActivitiesBetweenMembers,
   moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   syncMember,
