@@ -1,0 +1,7 @@
+account:
+  name: "LFX Insights"
+
+users:
+  - account: "LFX Insights"
+    email: "admin@sequinstream.com"
+    password: "sequinpassword!"
