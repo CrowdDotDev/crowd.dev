@@ -5,6 +5,7 @@ export default (app) => {
   app.post('/collections/query', safeWrap(require('./collectionsQuery').default))
   app.post('/collections', safeWrap(require('./collectionsCreate').default))
   app.get('/collections/:id', safeWrap(require('./collectionsGet').default))
+  app.post('/collections/:id', safeWrap(require('./collectionsUpdate').default))
   app.delete('/collections/:id', safeWrap(require('./collectionsDestroy').default))
 
   // Insights projects routes

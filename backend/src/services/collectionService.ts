@@ -2,7 +2,9 @@ import { uniq } from 'lodash'
 
 import {
   CollectionField,
+  ICreateCollection,
   ICreateCollectionWithProjects,
+  ICreateInsightsProject,
   IInsightsProject,
   InsightsProjectField,
   addInsightsProjectsToCollection,
@@ -15,7 +17,9 @@ import {
   findCollectionProjectConnections,
   queryCollectionById,
   queryCollections,
+  queryInsightsProjectById,
   queryInsightsProjects,
+  updateCollection,
 } from '@crowd/data-access-layer/src/collections'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { LoggerBase } from '@crowd/logging'
@@ -38,13 +42,26 @@ export class CollectionService extends LoggerBase {
 
       const createdCollection = await createCollection(qx, collection)
 
-      await addInsightsProjectsToCollection(qx, createdCollection.id, collection.projects)
+      await addInsightsProjectsToCollection(qx, createdCollection.id, collection.projects || [])
 
       const txSvc = new CollectionService({
         ...this.options,
         transaction: tx,
       })
       return txSvc.findById(createdCollection.id)
+    })
+  }
+
+  async updateCollection(id: string, collection: Partial<ICreateCollection>) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      await updateCollection(qx, id, collection)
+
+      const txSvc = new CollectionService({
+        ...this.options,
+        transaction: tx,
+      })
+      return txSvc.findById(id)
     })
   }
 
@@ -55,14 +72,16 @@ export class CollectionService extends LoggerBase {
       const connections = await findCollectionProjectConnections(qx, {
         collectionIds: [id],
       })
-      const projects = await queryInsightsProjects(qx, {
-        filter: {
-          id: {
-            in: connections.map((c) => c.insightsProjectId),
-          },
-        },
-        fields: Object.values(InsightsProjectField),
-      })
+      const projects = connections.length
+        ? await queryInsightsProjects(qx, {
+            filter: {
+              id: {
+                in: connections.map((c) => c.insightsProjectId),
+              },
+            },
+            fields: Object.values(InsightsProjectField),
+          })
+        : []
 
       return {
         ...collection,
@@ -149,15 +168,46 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async createInsightsProject(project: IInsightsProject) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const createdProject = await createInsightsProject(qx, project)
-    return createdProject
+  async createInsightsProject(project: ICreateInsightsProject) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+
+      const createdProject = await createInsightsProject(qx, project)
+
+      const txSvc = new CollectionService({
+        ...this.options,
+        transaction: tx,
+      })
+      return txSvc.findById(createdProject.id)
+    })
   }
 
   async destroyInsightsProject(id: string) {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     await deleteInsightsProject(qx, id)
+  }
+
+  async findInsightsProjectById(id: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const project = await queryInsightsProjectById(qx, id, Object.values(InsightsProjectField))
+    const connections = await findCollectionProjectConnections(qx, {
+      insightsProjectIds: [id],
+    })
+
+    const collections =
+      connections.length > 0
+        ? await queryCollections(qx, {
+            filter: {
+              id: { in: uniq(connections.map((c) => c.collectionId)) },
+            },
+            fields: Object.values(CollectionField),
+          })
+        : []
+
+    return {
+      ...project,
+      collections,
+    }
   }
 
   async queryInsightsProjects({

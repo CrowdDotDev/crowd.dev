@@ -16,7 +16,7 @@ export interface ICollection extends ICreateCollection {
 }
 
 export interface ICreateCollectionWithProjects extends ICreateCollection {
-  projects: {
+  projects?: {
     id: string
     starred: boolean
   }[]
@@ -29,6 +29,17 @@ export interface IInsightsProject {
   segmentId: string
   createdAt: string
   updatedAt: string
+
+  logoUrl: string
+  organizationId: string
+  website: string
+  github: string
+  linkedin: string
+  twitter: string
+}
+
+export interface ICreateInsightsProject extends IInsightsProject {
+  collections: string[]
 }
 
 export interface ICollectionInsightProject {
@@ -87,6 +98,28 @@ export async function createCollection(
       RETURNING *
     `,
     collection,
+  )
+}
+
+export async function updateCollection(
+  qx: QueryExecutor,
+  id: string,
+  collection: Partial<ICreateCollection>,
+): Promise<ICollection> {
+  return qx.selectOne(
+    `
+      UPDATE collections
+      SET
+        ${collection.name ? `name = $(name)` : ''}
+        ${collection.description ? `description = $(description)` : ''}
+        ${collection.isLF ? `"isLF" = $(isLF)` : ''}
+      WHERE id = $(id)
+      RETURNING *
+    `,
+    {
+      ...collection,
+      id,
+    },
   )
 }
 
@@ -185,4 +218,12 @@ export async function countInsightsProjects(
 
 export async function deleteInsightsProject(qx: QueryExecutor, id: string) {
   return qx.result(`DELETE FROM "insightsProjects" WHERE id = $(id)`, { id })
+}
+
+export async function queryInsightsProjectById<T extends InsightsProjectField>(
+  qx: QueryExecutor,
+  id: string,
+  fields: T[],
+): Promise<QueryResult<T>> {
+  return queryTableById(qx, 'insightsProjects', Object.values(InsightsProjectField), id, fields)
 }
