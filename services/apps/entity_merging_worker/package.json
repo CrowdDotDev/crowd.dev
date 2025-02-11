@@ -18,6 +18,7 @@
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@temporalio/workflow": "~1.11.1",
     "tsx": "^4.7.1",
     "typescript": "^5.6.3"

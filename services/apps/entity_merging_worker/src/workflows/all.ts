@@ -3,14 +3,20 @@ import { proxyActivities } from '@temporalio/workflow'
 import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { DbConnOrTx } from '@crowd/data-access-layer/src/database'
+import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
   figureOutNewOrgId,
   prepareMemberAffiliationsUpdate,
 } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
+import { IQueue } from '@crowd/queue'
+import {
+  IMemberIdentity,
+  MemberIdentityType,
+  MergeActionState,
+  MergeActionStep,
+} from '@crowd/types'
 
-import { IQueue } from '../../../../libs/queue/src/types'
 import * as activities from '../activities'
 import { svc } from '../main'
 
@@ -20,7 +26,6 @@ const {
   moveActivitiesBetweenOrgs,
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
-  moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
   setMergeAction,
@@ -94,6 +99,56 @@ export async function finishMemberMerging(
   )
 }
 
+function moveByIdentities({
+  activity,
+  identities,
+  newMemberId,
+}: {
+  activity: IDbActivityCreateData
+  identities: IMemberIdentity[]
+  newMemberId: string
+}): Partial<IDbActivityCreateData> {
+  const { platform, username } = activity
+  const activityMatches = identities.some(
+    (i) =>
+      i.type === MemberIdentityType.USERNAME && i.platform === platform && i.value === username,
+  )
+
+  return activityMatches ? { memberId: newMemberId } : {}
+}
+
+export async function finishMemberUnmergingUpdateActivities({
+  pgDb,
+  qDb,
+  queueClient,
+  memberId,
+  newMemberId,
+  identities,
+}: {
+  pgDb: DbStore
+  qDb: DbConnOrTx
+  queueClient: IQueue
+  memberId: string
+  newMemberId: string
+  identities: IMemberIdentity[]
+}) {
+  const qx = pgpQx(pgDb.connection())
+  const { orgCases } = await prepareMemberAffiliationsUpdate(qx, memberId)
+
+  await updateActivities(
+    qDb,
+    queueClient,
+    [
+      async (activity) => moveByIdentities({ activity, identities, newMemberId }),
+      async (activity) => ({
+        organizationId: figureOutNewOrgId(activity, orgCases),
+      }),
+    ],
+    `"memberId" = $(memberId)`,
+    { memberId },
+  )
+}
+
 export async function finishMemberUnmerging(
   primaryId: string,
   secondaryId: string,
@@ -106,7 +161,15 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, tenantId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await moveActivitiesWithIdentityToAnotherMember(primaryId, secondaryId, identities, tenantId)
+
+  await finishMemberUnmergingUpdateActivities({
+    pgDb: svc.postgres.reader,
+    qDb: svc.questdbSQL,
+    queueClient: svc.queue,
+    memberId: primaryId,
+    newMemberId: secondaryId,
+    identities,
+  })
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
