@@ -21,6 +21,7 @@ import {
   queryInsightsProjects,
   updateCollection,
 } from '@crowd/data-access-layer/src/collections'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { LoggerBase } from '@crowd/logging'
 
@@ -240,6 +241,13 @@ export class CollectionService extends LoggerBase {
       insightsProjectIds: projects.map((p) => p.id),
     })
 
+    const organizations = await queryOrgs(qx, {
+      filter: {
+        id: { in: uniq(projects.map((p) => p.organizationId)) },
+      },
+      fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+    })
+
     const collections =
       connections.length > 0
         ? await queryCollections(qx, {
@@ -260,6 +268,7 @@ export class CollectionService extends LoggerBase {
           collections: collections.filter((c) =>
             collectionConnections.some((cp) => cp.collectionId === c.id),
           ),
+          organization: organizations.find((o) => o.id === p.organizationId),
         }
       }),
       total,
