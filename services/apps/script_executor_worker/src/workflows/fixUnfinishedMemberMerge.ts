@@ -28,4 +28,6 @@ export async function fixUnfinishedMemberMerge(args: IFixUnfinishedMemberMergeAr
     console.log(`Triggering merge ${mergeAction.primaryId} and ${mergeAction.secondaryId}`)
     await common.mergeMembers(mergeAction.primaryId, mergeAction.secondaryId, mergeAction.tenantId)
   }
+
+  console.log('Done!')
 }
