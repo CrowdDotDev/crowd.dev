@@ -101,7 +101,7 @@ export default class MemberOrganizationService extends LoggerBase {
       (m) => mergeStrat.entityId(m) === secondaryId,
     )
 
-    this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
+    await this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
 
     // update rest of the o2 members
     const remainingRoles = await MemberOrganizationRepository.findNonIntersectingRoles(
@@ -303,8 +303,8 @@ export default class MemberOrganizationService extends LoggerBase {
     secondaryRoles: IMemberOrganization[],
     mergeStrat: IMergeStrat,
   ) {
-    let removeRoles: IMemberOrganization[] = []
-    let addRoles: IMemberOrganization[] = []
+    const removeRoles: IMemberOrganization[] = []
+    const addRoles: IMemberOrganization[] = []
 
     for (const memberOrganization of secondaryRoles) {
       // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
@@ -345,8 +345,6 @@ export default class MemberOrganizationService extends LoggerBase {
         } else {
           throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
         }
-      } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
-        throw new Error(`Member organization with dateEnd and without dateStart!`)
       } else {
         // both dateStart and dateEnd exists
         const foundIntersectingRoles = primaryRoles.filter((mo) => {
@@ -394,17 +392,16 @@ export default class MemberOrganizationService extends LoggerBase {
           removeRoles.push(r)
         }
       }
+    }
 
-      for (const removeRole of removeRoles) {
-        await MemberOrganizationRepository.removeMemberRole(removeRole, this.options)
-      }
+    // Execute all removals first
+    for (const removeRole of removeRoles) {
+      await MemberOrganizationRepository.removeMemberRole(removeRole, this.options)
+    }
 
-      for (const addRole of addRoles) {
-        await MemberOrganizationRepository.addMemberRole(addRole, this.options)
-      }
-
-      addRoles = []
-      removeRoles = []
+    // Then execute all additions
+    for (const addRole of addRoles) {
+      await MemberOrganizationRepository.addMemberRole(addRole, this.options)
     }
   }
 }

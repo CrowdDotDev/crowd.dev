@@ -1272,20 +1272,23 @@ export default class MemberService extends LoggerBase {
             },
           }
 
+          this.log.info('Creating transaction') // debugger logs
+          const repoOptions: IRepositoryOptions =
+          await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
+
+          this.log.info('Adding merge action') // debugger logs
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
             originalId,
             toMergeId,
-            this.options,
+            repoOptions,
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
 
-          const repoOptions: IRepositoryOptions =
-            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-          tx = repoOptions.transaction
-
+          this.log.info('Processing identities') // debugger logs
           const identitiesToUpdate = []
           const identitiesToMove = []
           for (const identity of toMergeIdentities) {
@@ -1306,6 +1309,7 @@ export default class MemberService extends LoggerBase {
             }
           }
 
+          this.log.info('Moving identities between members') // debugger logs
           await MemberRepository.moveIdentitiesBetweenMembers(
             toMergeId,
             originalId,
@@ -1315,37 +1319,47 @@ export default class MemberService extends LoggerBase {
           )
 
           // Update member affiliations
+          this.log.info('Moving affiliations') // debugger logs
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Performs a merge and returns the fields that were changed so we can update
+          this.log.info('Performing member merge') // debugger logs
           const toUpdate: any = await MemberService.membersMerge(original, toMerge)
 
           // Update original member
+          this.log.info('Creating service for update') // debugger logs
           const txService = new MemberService(repoOptions as IServiceOptions)
 
           captureNewState({ primary: toUpdate })
 
+          this.log.info('Updating member') // debugger logs
           await txService.update(originalId, toUpdate, {
             syncToOpensearch: false,
           })
 
           // update members that belong to source organization to destination org
+          this.log.info('Creating memberOrganizationService') // debugger logs
           const memberOrganizationService = new MemberOrganizationService(repoOptions)
+          this.log.info('Moving orgs between members') // debugger logs
           await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
           // Remove toMerge from original member
+          this.log.info('Removing toMerge') // debugger logs
           await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
 
+          this.log.info('Getting member segments') // debugger logs
           const secondMemberSegments = await MemberRepository.getMemberSegments(
             toMergeId,
             repoOptions,
           )
 
+          this.log.info('Including member to segments') // debugger logs
           await MemberRepository.includeMemberToSegments(toMergeId, {
             ...repoOptions,
             currentSegments: secondMemberSegments,
           })
 
+          this.log.info('Committing transaction') // debugger logs
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
