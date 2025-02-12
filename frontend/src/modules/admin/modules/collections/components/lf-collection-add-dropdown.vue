@@ -1,6 +1,6 @@
 <template>
   <div>
-    <lf-dropdown placement="bottom-end" class="z-[2090]" width="14rem">
+    <lf-dropdown placement="bottom-end" :z-index="2090" width="14rem">
       <template #trigger>
         <lf-button type="secondary-ghost" icon-only>
           <lf-icon name="ellipsis" :size="24" class="text-gray-900" />
