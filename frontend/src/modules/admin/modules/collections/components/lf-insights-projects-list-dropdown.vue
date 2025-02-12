@@ -2,10 +2,10 @@
   <el-input
     ref="inputRef"
     class="insights-projects-select-input"
-    placeholder="Select option"
+    placeholder="Select project"
     readonly
     :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
-    @click="isPopoverVisible = true"
+    @click="openPopover"
   />
 
   <el-popover
@@ -76,6 +76,9 @@ const ArrowUpIcon = h(
 
 const emit = defineEmits<{(e: 'onAddProject', projectId: string): void;
 }>();
+const props = defineProps<{
+  selectedProjects: InsightsProjectModel[],
+}>();
 
 const insightsProjectsStore = useInsightsProjectsStore();
 
@@ -85,13 +88,22 @@ const isPopoverVisible = ref(false);
 const displayProjects = ref<InsightsProjectModel[]>([]);
 
 onMounted(() => {
-  displayProjects.value = insightsProjectsStore.getInsightsProjects();
+  displayProjects.value = removeSelectedProject(insightsProjectsStore.getInsightsProjects());
 });
+
+const removeSelectedProject = (projects: InsightsProjectModel[]) => {
+  const selectedProjectsIds = props.selectedProjects.map((project) => project.id);
+  return projects.filter((project) => !selectedProjectsIds.includes(project.id));
+};
 
 const onSearchProjects = (query: string) => {
   searchQuery.value = query;
+  displayProjects.value = removeSelectedProject(insightsProjectsStore.searchInsightsProjects(query));
+};
 
-  displayProjects.value = insightsProjectsStore.searchInsightsProjects(query);
+const openPopover = () => {
+  isPopoverVisible.value = true;
+  displayProjects.value = removeSelectedProject(insightsProjectsStore.getInsightsProjects());
 };
 
 const onOptionClick = (project: InsightsProjectModel) => {

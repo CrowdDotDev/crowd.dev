@@ -11,7 +11,7 @@
             Projects
           </lf-tab>
         </lf-tabs>
-        <div class="mt-6 border-t border-gray-100">
+        <div class="pt-6 border-t border-gray-100">
           <div class="tab-content">
             <div v-if="activeTab === 'details'">
               <!-- Collection name -->
@@ -44,10 +44,7 @@
                 </lf-field>
               </article>
             </div>
-            <lf-collection-add-projects-tab
-              v-if="activeTab === 'projects'"
-              :collection-projects="form.projects"
-            />
+            <lf-collection-add-projects-tab v-if="activeTab === 'projects'" :collection-projects="form.projects" />
           </div>
         </div>
       </div>
@@ -57,7 +54,7 @@
         Cancel
       </lf-button>
       <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
-        {{ isEditForm ? 'Update' : 'Add project group' }}
+        {{ isEditForm ? 'Update' : 'Add collection' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -76,6 +73,7 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import Message from '@/shared/message/message';
 import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
 import { CollectionModel } from '../models/collection.model';
 import { InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
@@ -86,6 +84,7 @@ const insightsProjectsStore = useInsightsProjectsStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
   (e: 'onCollectionEdited'): void;
+  (e: 'onCollectionCreated'): void;
 }>();
 
 const props = defineProps<{
@@ -170,14 +169,22 @@ const onSubmit = () => {
       description: form.description,
       projects: form.projects.map((project: any) => ({
         id: project.id,
-        starred: project.starred,
+        starred: project?.starred || false,
       })),
       isLF: true,
     };
+    Message.info(null, {
+      title: 'Collection is being created',
+    });
     CollectionsService.create(request)
-      .finally(() => {
-        submitLoading.value = false;
-        model.value = false;
+      .then(() => {
+        Message.closeAll();
+        Message.success('Collection successfully created');
+        emit('onCollectionCreated');
+      })
+      .catch(() => {
+        Message.closeAll();
+        Message.error('Something went wrong');
       });
   }
 };

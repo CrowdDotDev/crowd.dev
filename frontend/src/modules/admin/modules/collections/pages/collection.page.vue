@@ -9,7 +9,7 @@
         placeholder="Search collections..."
         @update:model-value="searchCollections()"
       />
-      <lf-button size="medium" type="secondary-ghost" @click="onAddCollection">
+      <lf-button size="medium" type="secondary-ghost" @click="openCollectionAdd">
         <lf-icon name="rectangle-history-circle-plus" :size="16" />
         Add collection
       </lf-button>
@@ -18,7 +18,7 @@
       <lf-collection-table
         :collections="collections"
         @on-edit-collection="onEditCollection($event)"
-        @on-delete-collection="onDeleteCollection($event)"
+        @on-delete-collection="openRemoveCollectionDialog($event)"
       />
       <div class="pt-4">
         <lf-button v-if="collections.length < total && !loading" type="primary-ghost" @click="loadMore()">
@@ -51,7 +51,7 @@
           title="No collections yet"
           description="Start creating project collections of a certain area or tech stack"
         />
-        <lf-button class="w-fit" size="medium" type="primary-ghost" @click="onAddCollection">
+        <lf-button class="w-fit" size="medium" type="primary-ghost" @click="openCollectionAdd">
           <lf-icon name="rectangle-history-circle-plus" :size="16" />
           Add collection
         </lf-button>
@@ -62,7 +62,18 @@
     </div>
   </div>
 
-  <lf-collection-add v-if="collectionAdd" v-model="collectionAdd" />
+  <lf-collection-add v-if="collectionAdd" v-model="collectionAdd" @on-collection-created="collectionCreated" />
+  <app-delete-confirm-dialog
+    v-model="removeCollection"
+    title="Are you sure you want to delete this collection?"
+    description="This will delete the collection permanently. You can’t undo this action."
+    icon="trash-can"
+    confirm-button-text="Delete collection"
+    cancel-button-text="Cancel"
+    confirm-text="delete"
+    @confirm="onRemoveCollection"
+    @close="onCloseRemoveCollection"
+  />
 </template>
 
 <script setup lang="ts">
@@ -73,13 +84,13 @@ import {
   CollectionModel,
 } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
 
 const search = ref('');
 const loading = ref<boolean>(false);
@@ -88,6 +99,8 @@ const limit = ref(20);
 const total = ref(0);
 const collections = ref<CollectionModel[]>([]);
 const collectionAdd = ref<boolean>(false);
+const removeCollection = ref<boolean>(false);
+const removeCollectionId = ref<string>('');
 
 const fetchCollections = () => {
   if (loading.value) {
@@ -131,37 +144,47 @@ const loadMore = () => {
   fetchCollections();
 };
 
-const onAddCollection = () => {
+const openCollectionAdd = () => {
   collectionAdd.value = true;
+};
+
+const collectionCreated = () => {
+  collectionAdd.value = false;
+  offset.value = 0;
+  fetchCollections();
 };
 
 const onEditCollection = (collectionId: string) => {
   console.log('onEditCollection', collectionId);
 };
 
-const onDeleteCollection = (collectionId: string) => {
-  ConfirmDialog({
-    type: 'danger',
-    title: 'Delete collection',
-    message: "Are you sure you want to proceed? You can't undo this action",
-    confirmButtonText: 'Confirm',
-    cancelButtonText: 'Cancel',
-    icon: 'fa-trash-can fa-light',
-  }).then(() => {
-    Message.info(null, {
-      title: 'Collection is being deleted',
-    });
-    CollectionsService.delete(collectionId)
-      .then(() => {
-        Message.closeAll();
-        Message.success('Collection successfully deleted');
-        fetchCollections();
-      })
-      .catch(() => {
-        Message.closeAll();
-        Message.error('Something went wrong');
-      });
+const openRemoveCollectionDialog = (collectionId: string) => {
+  removeCollectionId.value = collectionId;
+  removeCollection.value = true;
+};
+
+const onRemoveCollection = () => {
+  Message.info(null, {
+    title: 'Collection is being deleted',
   });
+  CollectionsService.delete(removeCollectionId.value)
+    .then(() => {
+      Message.closeAll();
+      Message.success('Collection successfully deleted');
+      offset.value = 0;
+      fetchCollections();
+      onCloseRemoveCollection();
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Something went wrong');
+      onCloseRemoveCollection();
+    });
+};
+
+const onCloseRemoveCollection = () => {
+  removeCollection.value = false;
+  removeCollectionId.value = '';
 };
 
 onMounted(() => {

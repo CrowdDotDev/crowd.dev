@@ -53,21 +53,34 @@
     </div>
   </div>
 
-  <!-- <lf-collection-add v-if="collectionAdd" v-model="collectionAdd" /> -->
+  <lf-insights-project-add v-if="projectAdd" v-model="projectAdd" />
+
+  <app-delete-confirm-dialog
+    v-model="removeProject"
+    title="Are you sure you want to remove this project from Insights?"
+    description="This will remove the project permanently. You can’t undo this action."
+    icon="circle-minus"
+    confirm-button-text="Remove project"
+    cancel-button-text="Cancel"
+    confirm-text="remove"
+    @confirm="onRemoveProject"
+    @close="onCloseRemoveProject"
+  />
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import LfInsightsProjectsTable from '@/modules/admin/modules/insights-projects/components/lf-insights-projects-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import { InsightsProjectsService } from '../services/insights-projects.service';
+import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
 
 const search = ref('');
 const loading = ref<boolean>(false);
@@ -76,6 +89,8 @@ const limit = ref(20);
 const total = ref(0);
 const projects = ref<InsightsProjectModel[]>([]);
 const projectAdd = ref<boolean>(false);
+const removeProjectId = ref<string>('');
+const removeProject = ref<boolean>(false);
 
 const fetchProjects = () => {
   if (loading.value) {
@@ -128,28 +143,32 @@ const onEditProject = (projectId: string) => {
 };
 
 const onDeleteProject = (projectId: string) => {
-  ConfirmDialog({
-    type: 'danger',
-    title: 'Delete project',
-    message: "Are you sure you want to proceed? You can't undo this action",
-    confirmButtonText: 'Confirm',
-    cancelButtonText: 'Cancel',
-    icon: 'fa-trash-can fa-light',
-  }).then(() => {
-    Message.info(null, {
-      title: 'Project is being deleted',
-    });
-    InsightsProjectsService.delete(projectId)
-      .then(() => {
-        Message.closeAll();
-        Message.success('Project successfully deleted');
-        fetchProjects();
-      })
-      .catch(() => {
-        Message.closeAll();
-        Message.error('Something went wrong');
-      });
+  removeProjectId.value = projectId;
+  removeProject.value = true;
+};
+
+const onRemoveProject = () => {
+  Message.info(null, {
+    title: 'Project is being deleted',
   });
+  InsightsProjectsService.delete(removeProjectId.value)
+    .then(() => {
+      Message.closeAll();
+      Message.success('Project successfully removed');
+      offset.value = 0;
+      fetchProjects();
+      onCloseRemoveProject();
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Something went wrong');
+      onCloseRemoveProject();
+    });
+};
+
+const onCloseRemoveProject = () => {
+  removeProject.value = false;
+  removeProjectId.value = '';
 };
 
 onMounted(() => {

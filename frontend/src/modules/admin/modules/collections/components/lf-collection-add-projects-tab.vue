@@ -4,10 +4,10 @@
       <!-- TODO: Add projects table -->
       <lf-button class="w-fit mb-2" size="medium" type="primary-ghost" @click="onAddProject">
         <lf-icon name="plus" :size="16" />
-        Add project
+        Add a new project
       </lf-button>
       <!-- Search input -->
-      <lf-insights-projects-list-dropdown @on-add-project="onAddProject" />
+      <lf-insights-projects-list-dropdown :selected-projects="selectedProjects" @on-add-project="onAddProject" />
 
       <lf-table class="!overflow-visible" show-hover>
         <thead>
@@ -63,10 +63,10 @@
       />
       <lf-button class="w-fit mb-2" size="medium" type="primary-ghost" @click="onAddProject">
         <lf-icon name="plus" :size="16" />
-        Add project
+        Add a new project
       </lf-button>
       <!-- Search input -->
-      <lf-insights-projects-list-dropdown @on-add-project="onAddProject" />
+      <lf-insights-projects-list-dropdown :selected-projects="selectedProjects" @on-add-project="onAddProject" />
     </div>
   </div>
 </template>
