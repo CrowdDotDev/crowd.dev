@@ -1596,7 +1596,7 @@ class OrganizationRepository {
     const withAggregates = include.aggregates
 
     // look for lfxMembership filter
-    const lfxMembershipFilter = filter.and?.find(f => f.lfxMembership)?.lfxMembership
+    const lfxMembershipFilter = filter.and?.find((f) => f.lfxMembership)?.lfxMembership
     let lfxMembershipFilterWhereClause = ''
 
     if (lfxMembershipFilter) {
@@ -1608,7 +1608,7 @@ class OrganizationRepository {
       }
 
       // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter(f => !f.lfxMembership)
+      filter.and = filter.and.filter((f) => !f.lfxMembership)
 
       // handle edge case where filter.and is empty
       if (filter.and.length === 0) {
