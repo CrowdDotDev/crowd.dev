@@ -9,6 +9,6 @@ export async function findUnfinishedMergeActions(): Promise<IMergeAction[]> {
 }
 
 export async function deleteMergeAction(mergeActionId: string): Promise<void> {
-  const mergeActionRepo = new MergeActionRepository(svc.postgres.reader.connection(), svc.log)
+  const mergeActionRepo = new MergeActionRepository(svc.postgres.writer.connection(), svc.log)
   await mergeActionRepo.deleteMergeAction(mergeActionId)
 }
