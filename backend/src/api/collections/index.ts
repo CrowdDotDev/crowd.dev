@@ -14,6 +14,10 @@ export default (app) => {
     '/collections/insights-projects/:id',
     safeWrap(require('./insightsProjects/insightsProjectsDestroy').default),
   )
+  app.post(
+    '/collections/insights-projects/:id',
+    safeWrap(require('./insightsProjects/insightsProjectsUpdate').default),
+  )
 
   // Collections routes
   app.post('/collections/query', safeWrap(require('./collectionsQuery').default))
