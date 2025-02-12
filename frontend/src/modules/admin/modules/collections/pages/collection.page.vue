@@ -62,7 +62,15 @@
     </div>
   </div>
 
-  <lf-collection-add v-if="collectionAdd" v-model="collectionAdd" @on-collection-created="collectionCreated" />
+  <lf-collection-add
+    v-if="isCollectionDialogOpen"
+    v-model="isCollectionDialogOpen"
+    :collection="collectionEditObject"
+    @on-collection-created="onCollectionDialogCloseSuccess"
+    @on-collection-edited="onCollectionDialogCloseSuccess"
+    @update:model-value="onCollectionDialogClose"
+  />
+
   <app-delete-confirm-dialog
     v-model="removeCollection"
     title="Are you sure you want to delete this collection?"
@@ -98,9 +106,10 @@ const offset = ref(0);
 const limit = ref(20);
 const total = ref(0);
 const collections = ref<CollectionModel[]>([]);
-const collectionAdd = ref<boolean>(false);
 const removeCollection = ref<boolean>(false);
 const removeCollectionId = ref<string>('');
+const isCollectionDialogOpen = ref<boolean>(false);
+const collectionEditObject = ref<CollectionModel | undefined>(undefined);
 
 const fetchCollections = () => {
   if (loading.value) {
@@ -145,17 +154,24 @@ const loadMore = () => {
 };
 
 const openCollectionAdd = () => {
-  collectionAdd.value = true;
+  isCollectionDialogOpen.value = true;
 };
 
-const collectionCreated = () => {
-  collectionAdd.value = false;
+const onCollectionDialogCloseSuccess = () => {
+  isCollectionDialogOpen.value = false;
+  collectionEditObject.value = undefined;
   offset.value = 0;
   fetchCollections();
 };
 
+const onCollectionDialogClose = () => {
+  isCollectionDialogOpen.value = false;
+  collectionEditObject.value = undefined;
+};
+
 const onEditCollection = (collectionId: string) => {
-  console.log('onEditCollection', collectionId);
+  isCollectionDialogOpen.value = true;
+  collectionEditObject.value = collections.value.find((collection) => collection.id === collectionId);
 };
 
 const openRemoveCollectionDialog = (collectionId: string) => {

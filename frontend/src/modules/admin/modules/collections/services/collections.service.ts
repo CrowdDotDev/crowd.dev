@@ -18,6 +18,14 @@ export class CollectionsService {
     return response.data;
   }
 
+  static async update(collectionId: string, collection: any) {
+    const response = await authAxios.post(
+      `/collections/${collectionId}`,
+      collection,
+    );
+    return response.data;
+  }
+
   static async delete(collectionId: string) {
     const response = await authAxios.delete(
       `/collections/${collectionId}`,

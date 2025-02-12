@@ -1,5 +1,5 @@
 <template>
-  <app-drawer v-model="model" :title="isEditForm ? 'Edit collection' : 'Add collection'" :size="480" @close="onCancel">
+  <app-drawer v-model="model" :title="isEditForm ? 'Edit collection' : 'Add collection'" :size="600" @close="onCancel">
     <template #content>
       <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
       <div v-else>
@@ -154,39 +154,52 @@ const onCancel = () => {
 
 const onSubmit = () => {
   submitLoading.value = true;
-
+  const request = {
+    name: form.name,
+    description: form.description,
+    projects: form.projects.map((project: any) => ({
+      id: project.id,
+      starred: project?.starred || false,
+    })),
+    isLF: true,
+  };
   if (isEditForm.value) {
-
-    // updateCollection(props.collection?.id, form)
-    //   .finally(() => {
-    //     submitLoading.value = false;
-    //     model.value = false;
-    //     emit('onCollectionEdited');
-    //   });
+    handleCollectionUpdate(request);
   } else {
-    const request = {
-      name: form.name,
-      description: form.description,
-      projects: form.projects.map((project: any) => ({
-        id: project.id,
-        starred: project?.starred || false,
-      })),
-      isLF: true,
-    };
-    Message.info(null, {
-      title: 'Collection is being created',
-    });
-    CollectionsService.create(request)
-      .then(() => {
-        Message.closeAll();
-        Message.success('Collection successfully created');
-        emit('onCollectionCreated');
-      })
-      .catch(() => {
-        Message.closeAll();
-        Message.error('Something went wrong');
-      });
+    handleCollectionCreate(request);
   }
+};
+
+const handleCollectionUpdate = (request: any) => {
+  Message.info(null, {
+    title: 'Collection is being updated',
+  });
+  CollectionsService.update(props.collection!.id, request)
+    .then(() => {
+      Message.closeAll();
+      Message.success('Collection successfully updated');
+      emit('onCollectionEdited');
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Something went wrong');
+    });
+};
+
+const handleCollectionCreate = (request: any) => {
+  Message.info(null, {
+    title: 'Collection is being created',
+  });
+  CollectionsService.create(request)
+    .then(() => {
+      Message.closeAll();
+      Message.success('Collection successfully created');
+      emit('onCollectionCreated');
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Something went wrong');
+    });
 };
 </script>
 
