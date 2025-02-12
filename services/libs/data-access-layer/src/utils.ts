@@ -154,8 +154,8 @@ export async function updateTableById(
   return qx.result(
     `
       UPDATE $(table:name)
-      SET ${Object.entries(data)
-        .map(([key, value]) => `${key} = $(data.${key})`)
+      SET ${Object.keys(data)
+        .map((key) => `${key} = $(data.${key})`)
         .join(',\n')}
       WHERE id = $(id)
       RETURNING *

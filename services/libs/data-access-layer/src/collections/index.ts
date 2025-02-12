@@ -1,6 +1,13 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
-import { QueryResult, prepareBulkInsert, prepareInsert, queryTable, queryTableById } from '../utils'
+import {
+  QueryResult,
+  prepareBulkInsert,
+  prepareInsert,
+  queryTable,
+  queryTableById,
+  updateTableById,
+} from '../utils'
 import { QueryOptions } from '../utils'
 
 export interface ICreateCollection {
@@ -36,6 +43,7 @@ export interface IInsightsProject {
   github: string
   linkedin: string
   twitter: string
+  widgets: string[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -137,6 +145,7 @@ export enum InsightsProjectField {
   GITHUB = 'github',
   LINKEDIN = 'linkedin',
   TWITTER = 'twitter',
+  WIDGETS = 'widgets',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(
@@ -222,4 +231,12 @@ export async function queryInsightsProjectById<T extends InsightsProjectField>(
   fields: T[],
 ): Promise<QueryResult<T>> {
   return queryTableById(qx, 'insightsProjects', Object.values(InsightsProjectField), id, fields)
+}
+
+export async function updateInsightsProject(
+  qx: QueryExecutor,
+  id: string,
+  project: Partial<ICreateInsightsProject>,
+) {
+  return updateTableById(qx, 'insightsProjects', id, project)
 }

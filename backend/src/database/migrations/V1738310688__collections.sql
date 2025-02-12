@@ -20,8 +20,11 @@ CREATE TABLE IF NOT EXISTS "insightsProjects" (
     "website" TEXT,
     "github" TEXT,
     "linkedin" TEXT,
-    "twitter" TEXT
+    "twitter" TEXT,
+    "widgets" TEXT[]
 );
+
+ALTER TABLE IF EXISTS "insightsProjects" ADD COLUMN IF NOT EXISTS "widgets" TEXT[];
 
 CREATE TABLE IF NOT EXISTS "collectionsInsightsProjects" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),

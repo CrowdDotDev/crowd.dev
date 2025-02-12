@@ -20,6 +20,7 @@ import {
   queryInsightsProjectById,
   queryInsightsProjects,
   updateCollection,
+  updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
@@ -275,5 +276,18 @@ export class CollectionService extends LoggerBase {
       limit,
       offset,
     }
+  }
+
+  async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      await updateInsightsProject(qx, id, project)
+
+      const txSvc = new CollectionService({
+        ...this.options,
+        transaction: tx,
+      })
+      return txSvc.findInsightsProjectById(id)
+    })
   }
 }
