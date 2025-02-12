@@ -94,6 +94,7 @@ import { computed } from 'vue';
 import pluralize from 'pluralize';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps({
   member: {
@@ -104,21 +105,11 @@ const props = defineProps({
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { activeOrganization } = useContributorHelpers();
 
 const currentOrganizations = computed(() => {
-  const orgsWithNoEndDate = props.member.organizations
-    .filter((o) => o.memberOrganizations?.dateStart && !o.memberOrganizations?.dateEnd);
-
-  // If there are organizations with no endDate
-  if (orgsWithNoEndDate.length) {
-    // Sort by startDate descending and pick the most recent one
-    return [orgsWithNoEndDate.sort(
-      (firstOrg, secondaryOrg) => new Date(secondaryOrg.memberOrganizations?.dateStart) - new Date(firstOrg.memberOrganizations?.dateStart),
-    )[0]];
-  }
-
-  // If there are no organizations with only startDate, return all with startDate and endDate
-  return props.member.organizations.filter((o) => !o.memberOrganizations?.dateEnd);
+  const active = activeOrganization(props.member);
+  return active ? [active] : [];
 });
 
 const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));

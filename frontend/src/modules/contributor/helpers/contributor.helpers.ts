@@ -66,7 +66,15 @@ const useContributorHelpers = () => {
     }));
   };
 
-  const activeOrganization = (contributor: Contributor) => contributor.organizations?.[0];
+  const activeOrganization = (contributor: Contributor) => {
+    const { organizations } = contributor;
+    console.log(organizations);
+    return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
+      && !!org.memberOrganizations.dateStart
+      && !org.memberOrganizations.dateEnd)
+      || organizations.find((org) => !!org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd)
+      || organizations.find((org) => !org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd) || null;
+  };
 
   return {
     avatar,
