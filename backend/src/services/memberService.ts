@@ -1273,8 +1273,8 @@ export default class MemberService extends LoggerBase {
           }
 
           const repoOptions: IRepositoryOptions =
-          await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-        tx = repoOptions.transaction
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
 
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
