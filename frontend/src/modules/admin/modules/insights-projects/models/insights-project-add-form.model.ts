@@ -11,11 +11,12 @@ export interface InsightsProjectAddFormModel {
     twitter: string;
     linkedin: string;
     repositories: {
+        id: string;
         url: string;
         enabled: boolean;
+        platforms: string[]
     }[];
     widgets: {
-        name: string;
-        enabled: boolean;
-    }[];
+        [key: string]: boolean;
+    };
 }

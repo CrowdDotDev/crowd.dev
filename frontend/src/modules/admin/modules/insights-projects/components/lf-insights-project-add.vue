@@ -1,5 +1,5 @@
 <template>
-  <app-drawer v-model="model" :title="isEditForm ? 'Edit project' : 'Add project'" :size="480" @close="onCancel">
+  <app-drawer v-model="model" :title="isEditForm ? 'Edit project' : 'Add project'" :size="600" @close="onCancel">
     <template #content>
       <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
       <div v-else>
@@ -14,15 +14,11 @@
             Widgets
           </lf-tab>
         </lf-tabs>
-        <div class="pt-6 border-t border-gray-100">
+        <div class="pt-6">
           <div class="tab-content">
-            <lf-insight-project-add-details-tab
-              v-if="activeTab === 'details'"
-              :form="form"
-              :rules="rules"
-            />
-            <!-- <lf-insight-project-add-repositories-tab v-if="activeTab === 'repositories'" :form="form" :$v="$v" />
-                        <lf-insight-project-add-widgets-tab v-if="activeTab === 'widgets'" :form="form" :$v="$v" /> -->
+            <lf-insights-project-add-details-tab v-if="activeTab === 'details'" :form="form" :rules="rules" />
+            <lf-insights-project-add-repository-tab v-if="activeTab === 'repositories'" :form="form" :repositories="repositories" />
+            <lf-insights-project-add-widgets-tab v-if="activeTab === 'widgets'" :form="form" />
           </div>
         </div>
       </div>
@@ -31,16 +27,11 @@
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
         Cancel
       </lf-button>
-      <lf-button
-        type="secondary"
-        class="mr-2"
-        :disabled="!hasFormChanged || $v.$invalid || loading"
-        @click="onSubmit"
-      >
+      <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
         {{ isEditForm ? 'Update' : 'Add project' }}
-      </lf-button>
+      </lf-button> -->
       <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
-        {{ isEditForm ? 'Update' : 'Add & enable project' }}
+        {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -58,26 +49,103 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import LfInsightProjectAddDetailsTab from './lf-insight-project-add-details-tab.vue';
+import cloneDeep from 'lodash/cloneDeep';
+import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
+import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import { useCollectionsStore } from '../../collections/pinia';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
+import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
 import { CollectionsService } from '../../collections/services/collections.service';
+import { defaultWidgetsValues } from '../widgets';
 
 const collectionsStore = useCollectionsStore();
 const organizationStore = useOrganizationStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
-    (e: 'onCollectionEdited'): void;
+  (e: 'onCollectionEdited'): void;
 }>();
 
 const props = defineProps<{
-    modelValue: boolean,
-    insightsProject?: InsightsProjectModel,
+  modelValue: boolean,
+  insightsProject?: InsightsProjectModel,
 }>();
 
 const activeTab = ref('details');
-
+const repositories = ref([
+  {
+    id: '1',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: false,
+  },
+  {
+    id: '2',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '3',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '4',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '5',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '6',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '7',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '8',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '9',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '10',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '11',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+  {
+    id: '12',
+    url: 'https://github.com/leetsoftware/leet-docs',
+    platforms: ['github', 'git', 'gitlab', 'gerrit'],
+    enabled: true,
+  },
+]);
 const loading = ref(false);
 const submitLoading = ref(false);
 
@@ -91,8 +159,8 @@ const form = reactive<InsightsProjectAddFormModel>({
   github: '',
   twitter: '',
   linkedin: '',
-  repositories: [],
-  widgets: [],
+  repositories: repositories.value,
+  widgets: cloneDeep(defaultWidgetsValues),
 });
 
 const rules = {
@@ -103,8 +171,8 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   logo: { required: (value: string) => value.trim().length },
   website: { required: (value: string) => value.trim().length },
-  repositories: { required: (value: any) => value.length > 0 },
-  widgets: { required: (value: any) => value.length > 0 },
+  repositories: { required: (value: any) => value.some((repository: any) => repository.enabled) },
+  widgets: { required: (value: any) => value.some((widget: any) => widget.enabled) },
 };
 
 const $v = useVuelidate(rules, form);

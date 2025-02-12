@@ -6,8 +6,9 @@ export interface InsightsProjectModel {
   logoUrl: string;
   collections: CollectionModel[];
   organization: {
-    name: string;
-    logoUrl: string;
+    id: string;
+    displayName: string;
+    logo: string;
   };
   starred: boolean;
   enabled: boolean;
