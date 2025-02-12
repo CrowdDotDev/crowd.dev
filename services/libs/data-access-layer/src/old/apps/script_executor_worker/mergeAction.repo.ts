@@ -61,6 +61,27 @@ class MergeActionRepository {
 
     return rows
   }
+
+  async findUnfinishedMemberMergeActions(): Promise<IMergeAction[]> {
+    const rows = await this.connection.query(
+      `
+      select * from "mergeActions" where type = 'member' and step = 'merge-started'
+      `,
+    )
+
+    return rows
+  }
+
+  async deleteMergeAction(mergeActionId: string): Promise<void> {
+    await this.connection.query(
+      `
+      delete from "mergeActions" where id = $(mergeActionId)
+      `,
+      {
+        mergeActionId,
+      },
+    )
+  }
 }
 
 export default MergeActionRepository

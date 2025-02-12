@@ -17,6 +17,7 @@ import {
   isLfxMember,
   updateOrganizationIdentity,
 } from './activities/fix-organization-identities-with-wrong-urls'
+import { deleteMergeAction, findUnfinishedMergeActions } from './activities/merge-members'
 import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -38,4 +39,6 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  deleteMergeAction,
+  findUnfinishedMergeActions,
 }
