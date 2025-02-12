@@ -6,6 +6,8 @@ export {
   notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
   syncRemoveMember,
+  finishMemberMergingUpdateActivities,
+  finishMemberUnmergingUpdateActivities,
 } from './activities/members'
 
 export {

@@ -1,24 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
-import { DbStore } from '@crowd/data-access-layer/src/database'
-import { DbConnOrTx } from '@crowd/data-access-layer/src/database'
-import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
-import {
-  figureOutNewOrgId,
-  prepareMemberAffiliationsUpdate,
-} from '@crowd/data-access-layer/src/old/apps/profiles_worker'
-import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { IQueue } from '@crowd/queue'
-import {
-  IMemberIdentity,
-  MemberIdentityType,
-  MergeActionState,
-  MergeActionStep,
-} from '@crowd/types'
+import { IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
 import * as activities from '../activities'
-import { svc } from '../main'
 
 const {
   deleteMember,
@@ -34,33 +18,11 @@ const {
   notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
   syncRemoveMember,
+  finishMemberMergingUpdateActivities,
+  finishMemberUnmergingUpdateActivities,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 minutes',
 })
-
-async function finishMemberMergingUpdateActivities(
-  pgDb: DbStore,
-  qDb: DbConnOrTx,
-  queueClient: IQueue,
-  memberId: string,
-  newMemberId: string,
-) {
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  await updateActivities(
-    qDb,
-    queueClient,
-    [
-      async () => ({ memberId: newMemberId }),
-      async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
-    ],
-    `"memberId" = $(memberId)`,
-    {
-      memberId,
-    },
-  )
-}
 
 export async function finishMemberMerging(
   primaryId: string,
@@ -74,13 +36,7 @@ export async function finishMemberMerging(
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
 
-  await finishMemberMergingUpdateActivities(
-    svc.postgres.reader,
-    svc.questdbSQL,
-    svc.queue,
-    primaryId,
-    secondaryId,
-  )
+  await finishMemberMergingUpdateActivities(primaryId, secondaryId)
 
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
@@ -99,56 +55,6 @@ export async function finishMemberMerging(
   )
 }
 
-function moveByIdentities({
-  activity,
-  identities,
-  newMemberId,
-}: {
-  activity: IDbActivityCreateData
-  identities: IMemberIdentity[]
-  newMemberId: string
-}): Partial<IDbActivityCreateData> {
-  const { platform, username } = activity
-  const activityMatches = identities.some(
-    (i) =>
-      i.type === MemberIdentityType.USERNAME && i.platform === platform && i.value === username,
-  )
-
-  return activityMatches ? { memberId: newMemberId } : {}
-}
-
-export async function finishMemberUnmergingUpdateActivities({
-  pgDb,
-  qDb,
-  queueClient,
-  memberId,
-  newMemberId,
-  identities,
-}: {
-  pgDb: DbStore
-  qDb: DbConnOrTx
-  queueClient: IQueue
-  memberId: string
-  newMemberId: string
-  identities: IMemberIdentity[]
-}) {
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  await updateActivities(
-    qDb,
-    queueClient,
-    [
-      async (activity) => moveByIdentities({ activity, identities, newMemberId }),
-      async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases),
-      }),
-    ],
-    `"memberId" = $(memberId)`,
-    { memberId },
-  )
-}
-
 export async function finishMemberUnmerging(
   primaryId: string,
   secondaryId: string,
@@ -163,9 +69,6 @@ export async function finishMemberUnmerging(
   })
 
   await finishMemberUnmergingUpdateActivities({
-    pgDb: svc.postgres.reader,
-    qDb: svc.questdbSQL,
-    queueClient: svc.queue,
     memberId: primaryId,
     newMemberId: secondaryId,
     identities,
