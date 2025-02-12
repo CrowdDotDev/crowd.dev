@@ -73,7 +73,7 @@ class MergeActionRepository {
   }
 
   async deleteMergeAction(mergeActionId: string): Promise<void> {
-    await this.connection.query(
+    await this.connection.none(
       `
       delete from "mergeActions" where id = $(mergeActionId)
       `,
