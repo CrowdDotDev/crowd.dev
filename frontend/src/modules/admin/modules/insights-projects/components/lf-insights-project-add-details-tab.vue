@@ -30,20 +30,20 @@
   <article class="mb-5">
     <lf-field label-text="Logo URL" :required="true">
       <lf-input
-        v-model="cForm.logo"
+        v-model="cForm.logoUrl"
         class="h-10"
-        :invalid="$v.logo.$invalid && $v.logo.$dirty"
-        @blur="$v.logo.$touch()"
-        @change="$v.logo.$touch()"
+        :invalid="$v.logoUrl.$invalid && $v.logoUrl.$dirty"
+        @blur="$v.logoUrl.$touch()"
+        @change="$v.logoUrl.$touch()"
       />
-      <lf-field-messages :validation="$v.logo" :error-messages="{ required: 'This field is required' }" />
+      <lf-field-messages :validation="$v.logoUrl" :error-messages="{ required: 'This field is required' }" />
     </lf-field>
   </article>
 
   <!-- Collections -->
   <article class="mb-5">
     <lf-field label-text="Collections">
-      <el-select v-model="cForm.collections" multiple placeholder="Select collection(s)" class="w-full">
+      <el-select v-model="cForm.collectionsIds" multiple placeholder="Select collection(s)" class="w-full">
         <el-option v-for="item in collectionsOptions" :key="item.id" :label="item.name" :value="item.id" />
       </el-select>
     </lf-field>
@@ -95,8 +95,6 @@
         v-model="cForm.github"
         class="h-10 flex-grow"
         placeholder="Enter GitHub repository URL"
-        @blur="$v.github.$touch()"
-        @change="$v.github.$touch()"
       />
     </div>
     <div class="flex items-center mt-3">
@@ -105,8 +103,6 @@
         v-model="cForm.linkedin"
         class="h-10 flex-grow"
         placeholder="Enter LinkedIn URL"
-        @blur="$v.linkedin.$touch()"
-        @change="$v.linkedin.$touch()"
       />
     </div>
     <div class="flex items-center mt-3">
@@ -115,8 +111,6 @@
         v-model="cForm.twitter"
         class="h-10 flex-grow"
         placeholder="Enter X/Twitter URL"
-        @blur="$v.twitter.$touch()"
-        @change="$v.twitter.$touch()"
       />
     </div>
   </article>

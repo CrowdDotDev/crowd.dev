@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <div
       v-for="(repository, index) of cForm.repositories"
-      :key="repository.id"
+      :key="repository.url"
       class="flex items-center py-4"
       :class="{
         'border-b border-gray-100': index !== cForm.repositories.length - 1,

@@ -10,6 +10,18 @@ export interface InsightsProjectModel {
     displayName: string;
     logo: string;
   };
+  website: string;
+  github: string;
+  twitter: string;
+  linkedin: string;
   starred: boolean;
   enabled: boolean;
+  repositories: {
+    url: string;
+    enabled: boolean;
+    platforms: string[];
+  }[];
+  widgets: {
+    [key: string]: boolean;
+  };
 }

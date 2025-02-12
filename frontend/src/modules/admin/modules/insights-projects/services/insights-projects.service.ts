@@ -9,6 +9,14 @@ export class InsightsProjectsService {
     return response.data;
   }
 
+  static async create(request: any) {
+    const response = await authAxios.post(
+      '/collections/insights-projects',
+      request,
+    );
+    return response.data;
+  }
+
   static async delete(collectionId: string) {
     const response = await authAxios.delete(
       `/collections/insights-projects/${collectionId}`,

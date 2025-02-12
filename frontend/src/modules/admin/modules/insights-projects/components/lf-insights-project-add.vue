@@ -17,7 +17,11 @@
         <div class="pt-6">
           <div class="tab-content">
             <lf-insights-project-add-details-tab v-if="activeTab === 'details'" :form="form" :rules="rules" />
-            <lf-insights-project-add-repository-tab v-if="activeTab === 'repositories'" :form="form" :repositories="repositories" />
+            <lf-insights-project-add-repository-tab
+              v-if="activeTab === 'repositories'"
+              :form="form"
+              :repositories="repositories"
+            />
             <lf-insights-project-add-widgets-tab v-if="activeTab === 'widgets'" :form="form" />
           </div>
         </div>
@@ -41,7 +45,7 @@
 
 import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
-import { required, maxLength } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
@@ -50,6 +54,7 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import cloneDeep from 'lodash/cloneDeep';
+import Message from '@/shared/message/message';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import { useCollectionsStore } from '../../collections/pinia';
@@ -58,12 +63,14 @@ import { InsightsProjectAddFormModel } from '../models/insights-project-add-form
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
 import { CollectionsService } from '../../collections/services/collections.service';
 import { defaultWidgetsValues } from '../widgets';
+import { InsightsProjectsService } from '../services/insights-projects.service';
 
 const collectionsStore = useCollectionsStore();
 const organizationStore = useOrganizationStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
-  (e: 'onCollectionEdited'): void;
+  (e: 'onInsightsProjectCreated'): void;
+  (e: 'onInsightsProjectEdited'): void;
 }>();
 
 const props = defineProps<{
@@ -74,73 +81,61 @@ const props = defineProps<{
 const activeTab = ref('details');
 const repositories = ref([
   {
-    id: '1',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: false,
   },
   {
-    id: '2',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '3',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '4',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '5',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '6',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '7',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '8',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '9',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '10',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '11',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
   },
   {
-    id: '12',
     url: 'https://github.com/leetsoftware/leet-docs',
     platforms: ['github', 'git', 'gitlab', 'gerrit'],
     enabled: true,
@@ -152,8 +147,8 @@ const submitLoading = ref(false);
 const form = reactive<InsightsProjectAddFormModel>({
   name: '',
   description: '',
-  logo: '',
-  collections: [],
+  logoUrl: '',
+  collectionsIds: [],
   organizationId: '',
   website: '',
   github: '',
@@ -166,13 +161,12 @@ const form = reactive<InsightsProjectAddFormModel>({
 const rules = {
   name: {
     required,
-    maxLength,
   },
   description: { required: (value: string) => value.trim().length },
-  logo: { required: (value: string) => value.trim().length },
+  logoUrl: { required: (value: string) => value.trim().length },
   website: { required: (value: string) => value.trim().length },
   repositories: { required: (value: any) => value.some((repository: any) => repository.enabled) },
-  widgets: { required: (value: any) => value.some((widget: any) => widget.enabled) },
+  widgets: { required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]) },
 };
 
 const $v = useVuelidate(rules, form);
@@ -259,22 +253,37 @@ const onSubmit = () => {
     //     emit('onCollectionEdited');
     //   });
   } else {
-    // const request = {
-    //     name: form.name,
-    //     description: form.description,
-    //     projects: form.projects.map((project: any) => ({
-    //         id: project.id,
-    //         starred: project.starred,
-    //     })),
-    //     isLF: true,
-    // };
-    // CollectionsService.create(request)
-    //     .finally(() => {
-    //         submitLoading.value = false;
-    //         model.value = false;
-    //     });
+    const request = buildRequest();
+    Message.info(null, {
+      title: 'Insights project is being created',
+    });
+    InsightsProjectsService.create(request)
+      .then(() => {
+        Message.closeAll();
+        Message.success('Insights project successfully created');
+        emit('onInsightsProjectCreated');
+      })
+      .catch(() => {
+        Message.closeAll();
+        Message.error('Something went wrong');
+      });
   }
 };
+
+const buildRequest = () => ({
+  name: form.name,
+  description: form.description,
+  logoUrl: form.logoUrl,
+  collections: form.collectionsIds,
+  organizationId: form.organizationId,
+  website: form.website,
+  github: form.github,
+  twitter: form.twitter,
+  linkedin: form.linkedin,
+  repositories: form.repositories.filter((repository: any) => repository.enabled).map((repository: any) => repository.url),
+  widgets: Object.keys(form.widgets).filter((key: any) => form.widgets[key]),
+  segmentId: '2cb302bc-ce83-4ae6-82b6-37a53fbee922',
+});
 </script>
 
 <script lang="ts">
