@@ -8,7 +8,7 @@ import moment from 'moment'
 import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   NangoIntegration,
-  connectNangoIntegration,
+  createNangoIntegration,
   deleteNangoConnection,
   setNangoMetadata,
   startNangoSync,
@@ -1223,13 +1223,9 @@ export default class IntegrationService {
         integrationData.remote.repoNames = res
       }
 
-      connectionId = await connectNangoIntegration(NangoIntegration.GERRIT, {
+      connectionId = await createNangoIntegration(NangoIntegration.GERRIT, {
         params: {
           host,
-        },
-        credentials: {
-          username: integrationData.remote.user,
-          password: integrationData.remote.pass,
         },
       })
 

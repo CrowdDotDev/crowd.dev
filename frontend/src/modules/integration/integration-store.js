@@ -29,58 +29,48 @@ export default {
 
     find: (state) => (id) => state.byId[id],
 
-    findByPlatform: (state, getters) => (platform) =>
-      getters.array.find((w) => w.platform === platform),
+    findByPlatform: (state, getters) => (platform) => getters.array.find((w) => w.platform === platform),
 
-    list: (state) =>
-      Object.keys(state.byId).reduce((acc, key) => {
-        acc[key] = {
-          ...state.byId[key],
-          ...lfIntegrations[state.byId[key].platform],
-        };
-        return acc;
-      }, {}),
+    list: (state) => Object.keys(state.byId).reduce((acc, key) => {
+      acc[key] = {
+        ...state.byId[key],
+        ...lfIntegrations[state.byId[key].platform],
+      };
+      return acc;
+    }, {}),
 
-    listByPlatform: (state) =>
-      Object.keys(state.byId).reduce((acc, key) => {
-        acc[state.byId[key].platform] = {
-          ...state.byId[key],
-          ...lfIntegrations[state.byId[key].platform],
-        };
-        return acc;
-      }, {}),
+    listByPlatform: (state) => Object.keys(state.byId).reduce((acc, key) => {
+      acc[state.byId[key].platform] = {
+        ...state.byId[key],
+        ...lfIntegrations[state.byId[key].platform],
+      };
+      return acc;
+    }, {}),
 
     array: (state, getters) => state.allIds.map((id) => getters.list[id]),
 
-    active: (state, getters) =>
-      getters.array.filter(
-        (i) => i.status === 'done' || i.status === 'in-progress'
-      ),
+    active: (state, getters) => getters.array.filter(
+      (i) => i.status === 'done' || i.status === 'in-progress',
+    ),
 
-    activeList: (state, getters) =>
-      getters.active.reduce((acc, item) => {
-        acc[item.platform] = item;
-        return acc;
-      }, {}),
+    activeList: (state, getters) => getters.active.reduce((acc, item) => {
+      acc[item.platform] = item;
+      return acc;
+    }, {}),
 
-    inProgress: (state, getters) =>
-      getters.array.filter((i) => i.status === 'in-progress'),
+    inProgress: (state, getters) => getters.array.filter((i) => i.status === 'in-progress'),
 
-    withErrors: (state, getters) =>
-      getters.array.filter(
-        (i) =>
-          i.status === 'error' &&
-          isCurrentDateAfterGivenWorkingDays(
+    withErrors: (state, getters) => getters.array.filter(
+      (i) => i.status === 'error'
+          && isCurrentDateAfterGivenWorkingDays(
             i.updatedAt,
-            ERROR_BANNER_WORKING_DAYS_DISPLAY
-          )
-      ),
+            ERROR_BANNER_WORKING_DAYS_DISPLAY,
+          ),
+    ),
 
-    withNoData: (state, getters) =>
-      getters.array.filter((i) => i.status === 'no-data'),
+    withNoData: (state, getters) => getters.array.filter((i) => i.status === 'no-data'),
 
-    needsReconnect: (state, getters) =>
-      getters.array.filter((i) => i.status === 'needs-reconnect'),
+    needsReconnect: (state, getters) => getters.array.filter((i) => i.status === 'needs-reconnect'),
 
     count: (state) => state.count,
 
@@ -207,7 +197,7 @@ export default {
           null,
           null,
           null,
-          segments
+          segments,
         );
 
         commit('FETCH_SUCCESS', {
@@ -261,7 +251,7 @@ export default {
 
     async doGithubConnect(
       { commit, dispatch },
-      { code, installId, setupAction }
+      { code, installId, setupAction },
     ) {
       // Function to trigger Oauth performance.
       try {
@@ -270,7 +260,7 @@ export default {
         const integration = await IntegrationService.githubConnect(
           code,
           installId,
-          setupAction
+          setupAction,
         );
         const repos = integration?.settings?.repos || [];
         const data = repos.reduce(
@@ -278,7 +268,7 @@ export default {
             ...a,
             [b.url]: integration.segmentId,
           }),
-          {}
+          {},
         );
 
         dispatch('doFetch');
@@ -299,7 +289,7 @@ export default {
 
     async doRedditOnboard(
       { commit },
-      { subreddits, segmentId, grandparentId }
+      { subreddits, segmentId, grandparentId },
     ) {
       // Function to trigger Oauth performance.
       try {
@@ -307,7 +297,7 @@ export default {
         // Call the connect function in IntegrationService to handle functionality
         const integration = await IntegrationService.redditOnboard(
           subreddits,
-          segmentId
+          segmentId,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -336,7 +326,7 @@ export default {
         if (integration.settings?.organizations.length === 1) {
           showIntegrationProgressNotification(
             'linkedin',
-            integration.segmentId
+            integration.segmentId,
           );
         }
         router.push({
@@ -354,14 +344,14 @@ export default {
 
     async doLinkedinOnboard(
       { commit },
-      { organizationId, segmentId, grandparentId }
+      { organizationId, segmentId, grandparentId },
     ) {
       try {
         commit('UPDATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
         const integration = await IntegrationService.linkedinOnboard(
           organizationId,
-          segmentId
+          segmentId,
         );
 
         commit('UPDATE_SUCCESS', integration);
@@ -406,7 +396,9 @@ export default {
 
     async doDevtoConnect(
       { commit },
-      { users, organizations, apiKey, segmentId, grandparentId }
+      {
+        users, organizations, apiKey, segmentId, grandparentId,
+      },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
@@ -418,7 +410,7 @@ export default {
           users,
           organizations,
           apiKey,
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -440,7 +432,9 @@ export default {
 
     async doHackerNewsConnect(
       { commit },
-      { keywords, urls, segmentId, grandparentId }
+      {
+        keywords, urls, segmentId, grandparentId,
+      },
     ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
@@ -451,14 +445,14 @@ export default {
         const integration = await IntegrationService.hackerNewsConnect(
           keywords,
           urls,
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
 
         showIntegrationProgressNotification(
           'hackernews',
-          integration.segmentId
+          integration.segmentId,
         );
 
         router.push({
@@ -476,7 +470,9 @@ export default {
 
     async doStackOverflowOnboard(
       { commit },
-      { tags, keywords, segmentId, grandparentId }
+      {
+        tags, keywords, segmentId, grandparentId,
+      },
     ) {
       // Function to connect to StackOverflow.
 
@@ -486,7 +482,7 @@ export default {
         const integration = await IntegrationService.stackOverflowOnboard(
           segmentId,
           tags,
-          keywords
+          keywords,
         );
 
         commit('CREATE_SUCCESS', integration);
@@ -523,7 +519,9 @@ export default {
 
     async doGitConnect(
       { commit },
-      { remotes, isUpdate, segmentId, grandparentId }
+      {
+        remotes, isUpdate, segmentId, grandparentId,
+      },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -535,13 +533,13 @@ export default {
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `Git integration ${
               isUpdate ? 'updated' : 'created'
             } successfully`,
-          }
+          },
         );
 
         router.push({
@@ -559,26 +557,28 @@ export default {
 
     async doConfluenceConnect(
       { commit },
-      { settings, isUpdate, segmentId, grandparentId }
+      {
+        settings, isUpdate, segmentId, grandparentId,
+      },
     ) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
           settings,
-          segmentId
+          segmentId,
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `Confluence integration ${
               isUpdate ? 'updated' : 'created'
             } successfully`,
-          }
+          },
         );
 
         router.push({
@@ -598,15 +598,15 @@ export default {
       { commit },
       {
         orgURL,
-        user,
-        pass,
+        // user,
+        // pass,
         isUpdate,
         repoNames,
         enableAllRepos,
         enableGit,
         segmentId,
         grandparentId,
-      }
+      },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -614,25 +614,25 @@ export default {
         const integration = await IntegrationService.gerritConnect(
           {
             orgURL,
-            user,
-            pass,
+            // user,
+            // pass,
             repoNames,
             enableAllRepos,
             enableGit,
           },
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `Gerrit integration ${
               isUpdate ? 'updated' : 'created'
             } successfully`,
-          }
+          },
         );
 
         router.push({
@@ -657,7 +657,7 @@ export default {
         isUpdate,
         segmentId,
         grandparentId,
-      }
+      },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -666,19 +666,19 @@ export default {
           forumHostname,
           apiKey,
           webhookSecret,
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `Discourse integration ${
               isUpdate ? 'updated' : 'created'
             } successfully`,
-          }
+          },
         );
 
         router.push({
@@ -706,7 +706,7 @@ export default {
         autoImports,
         segmentId,
         grandparentId,
-      }
+      },
     ) {
       console.log('doGroupsioConnect', email, token, groups, isUpdate);
 
@@ -720,20 +720,20 @@ export default {
           password,
           groups,
           autoImports,
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `
               groups.io integration ${
-                isUpdate ? 'updated' : 'created'
-              } successfully`,
-          }
+  isUpdate ? 'updated' : 'created'
+} successfully`,
+          },
         );
 
         router.push({
@@ -761,7 +761,7 @@ export default {
         isUpdate,
         segmentId,
         grandparentId,
-      }
+      },
     ) {
       try {
         commit('CREATE_STARTED');
@@ -772,20 +772,20 @@ export default {
           personalAccessToken,
           apiToken,
           projects,
-          [segmentId]
+          [segmentId],
         );
 
         commit('CREATE_SUCCESS', integration);
 
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> ' +
-            'This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
             title: `
               Jira integration ${
-                isUpdate ? 'updated' : 'created'
-              } successfully`,
-          }
+  isUpdate ? 'updated' : 'created'
+} successfully`,
+          },
         );
 
         router.push({
@@ -804,14 +804,16 @@ export default {
 
     async doGitlabConnect(
       { commit, dispatch },
-      { code, state, segmentId, grandparentId }
+      {
+        code, state, segmentId, grandparentId,
+      },
     ) {
       try {
         commit('CREATE_STARTED');
         const integration = await IntegrationService.gitlabConnect(
           code,
           state,
-          [segmentId]
+          [segmentId],
         );
         commit('CREATE_SUCCESS', integration);
         dispatch('doFetch');

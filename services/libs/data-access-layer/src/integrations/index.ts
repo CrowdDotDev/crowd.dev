@@ -202,7 +202,7 @@ export async function fetchGlobalIntegrationsStatusCount(
   )
 }
 
-export async function fetchIntegrationDataForNangoTriggering(
+export async function fetchNangoIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
 ): Promise<{ id: string; platform: string }[]> {

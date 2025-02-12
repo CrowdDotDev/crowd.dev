@@ -56,6 +56,7 @@ export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionTok
   ensureBackendClient()
 
   const service = `cm-${SERVICE}`
+
   const response = await backendClient.createConnectSession({
     end_user: {
       id: service,
@@ -67,6 +68,22 @@ export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionTok
     token: response.data.token,
     expiresAt: response.data.expires_at,
   }
+}
+
+export const getNangoConnectionIds = async (): Promise<
+  { connectionId: string; integration: NangoIntegration; createdAt: string }[]
+> => {
+  ensureBackendClient()
+
+  const results = await backendClient.listConnections()
+
+  return results.connections.map((c) => {
+    return {
+      connectionId: c.connection_id,
+      integration: c.provider_config_key as NangoIntegration,
+      createdAt: c.created,
+    }
+  })
 }
 
 let frontendModule: any | undefined = undefined
@@ -87,6 +104,25 @@ export const connectNangoIntegration = async (
   }) as Nango
 
   const result = await frontendClient.auth(integration, params)
+  return result.connectionId
+}
+
+export const createNangoIntegration = async (
+  integration: NangoIntegration,
+  params: any,
+): Promise<string> => {
+  ensureBackendClient()
+
+  const data = await getNangoCloudSessionToken()
+  if (!frontendModule) {
+    frontendModule = await import('@nangohq/frontend')
+  }
+
+  const frontendClient = new frontendModule.default({
+    connectSessionToken: data.token,
+  }) as Nango
+
+  const result = await frontendClient.create(integration, params)
   return result.connectionId
 }
 

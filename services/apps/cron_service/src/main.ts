@@ -159,18 +159,22 @@ setImmediate(async () => {
   // initialize cron
   const availableJobs = await loadJobs()
   for (const job of availableJobs) {
-    const cronJob = new CronJob(
-      job.cronTime,
-      async () => {
-        await queueJob(job)
-      },
-      null,
-      true,
-      'Europe/Berlin',
-    )
+    if ((job.enabled && (await job.enabled())) || !job.enabled) {
+      const cronJob = new CronJob(
+        job.cronTime,
+        async () => {
+          await queueJob(job)
+        },
+        null,
+        true,
+        'Europe/Berlin',
+      )
 
-    if (cronJob.running) {
-      log.info({ job: job.name, cronTime: job.cronTime }, 'Scheduled a new job.')
+      if (cronJob.running) {
+        log.info({ job: job.name, cronTime: job.cronTime }, 'Scheduled a new job.')
+      }
+    } else {
+      log.info({ job: job.name }, 'Job is disabled - skipping...')
     }
   }
 })

@@ -10,6 +10,9 @@ export interface IJobDefinition {
   // Seconds before the job is killed with a timeout error
   timeout: number
 
+  // enabled
+  enabled?: () => Promise<boolean>
+
   // Actual job
   process: (ctx: IJobContext) => Promise<void>
 }

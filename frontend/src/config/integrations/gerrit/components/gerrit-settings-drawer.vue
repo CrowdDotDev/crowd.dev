@@ -24,7 +24,7 @@
           spellcheck="false"
           placeholder="Enter Organization URL"
         />
-        <el-input
+        <!-- <el-input
           id="devUrl"
           v-model="form.user"
           class="text-green-500 mt-2"
@@ -37,7 +37,7 @@
           class="text-green-500 mt-2"
           spellcheck="false"
           placeholder="Enter user HTTP password"
-        />
+        /> -->
         <app-array-input
           v-for="(_, ii) of form.repoNames"
           :key="ii"
@@ -118,8 +118,8 @@ const { trackEvent } = useProductTracking();
 const loading = ref(false);
 const form = reactive({
   orgURL: '',
-  user: '',
-  pass: '',
+  // user: '',
+  // pass: '',
   enableAllRepos: false,
   enableGit: false,
   repoNames: [],
@@ -142,8 +142,8 @@ const logoUrl = gerrit.image;
 onMounted(() => {
   if (props.integration?.settings?.remote) {
     form.orgURL = props.integration?.settings.remote.orgURL;
-    form.user = props.integration?.settings.remote.user;
-    form.pass = props.integration?.settings.remote.pass;
+    // form.user = props.integration?.settings.remote.user;
+    // form.pass = props.integration?.settings.remote.pass;
     form.repoNames = props.integration?.settings.remote.repoNames;
     form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
     form.enableGit = props.integration?.settings.remote.enableGit;
@@ -170,8 +170,8 @@ const connect = async () => {
 
   doGerritConnect({
     orgURL: form.orgURL,
-    user: form.user,
-    pass: form.pass,
+    // user: form.user,
+    // pass: form.pass,
     repoNames: form.repoNames,
     enableAllRepos: form.enableAllRepos,
     enableGit: form.enableGit,
