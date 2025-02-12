@@ -114,21 +114,7 @@ export async function updateCollection(
   id: string,
   collection: Partial<ICreateCollection>,
 ): Promise<ICollection> {
-  return qx.selectOne(
-    `
-      UPDATE collections
-      SET
-        ${collection.name ? `name = $(name)` : ''}
-        ${collection.description ? `description = $(description)` : ''}
-        ${collection.isLF ? `"isLF" = $(isLF)` : ''}
-      WHERE id = $(id)
-      RETURNING *
-    `,
-    {
-      ...collection,
-      id,
-    },
-  )
+  return updateTableById(qx, 'collections', id, collection)
 }
 
 export enum InsightsProjectField {
