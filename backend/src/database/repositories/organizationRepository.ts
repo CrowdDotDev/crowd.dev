@@ -1601,6 +1601,7 @@ class OrganizationRepository {
 
     if (lfxMembershipFilter) {
       const filterKey = Object.keys(lfxMembershipFilter)[0]
+      options.log.info('filterKey', filterKey)
       if (filterKey === 'ne') {
         lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
       } else if (filterKey === 'eq') {
@@ -1633,6 +1634,8 @@ class OrganizationRepository {
       segmentId,
       tenantId: options.currentTenant.id,
     }
+
+    options.log.info('params', params)
 
     const filterString = RawQueryParser.parseFilters(
       filter,
