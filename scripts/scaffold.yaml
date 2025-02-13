@@ -172,7 +172,9 @@ services:
       - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
       - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
       - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
-      - ./scaffold/kafka-connect/tinybird-local-sink.properties:/etc/kafka-connect/tinybird-local-sink.properties
+      - ./scaffold/kafka-connect/tinybird-local-activities-sink.properties:/etc/kafka-connect/tinybird-local-activities-sink.properties
+      - ./scaffold/kafka-connect/tinybird-local-activity-relations-sink.properties:/etc/kafka-connect/tinybird-local-activity-relations-sink.properties
+
     networks:
       - crowd-bridge
 

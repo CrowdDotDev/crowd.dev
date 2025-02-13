@@ -1,0 +1,14 @@
+SCHEMA >
+    `id` String `json:$.id`,
+    `attributes` String `json:$.attributes`,
+    `contributions` Nullable(String) `json:$.contributions`,
+    `joinedAt` DateTime64(3) `json:$.joinedAt`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `displayName` String `json:$.displayName`,
+    `score` Nullable(Int32) `json:$.score`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt

@@ -14,11 +14,6 @@ export class QueueFactory {
     const kafkaClient = new Kafka({
       clientId: config.clientId,
       brokers: config.brokers.split(','),
-      sasl: {
-        mechanism: 'plain', // or scram-sha-256 or scram-sha-512
-        username: 'user',
-        password: 'password',
-      },
       retry: {
         initialRetryTime: 100,
         retries: 8,
