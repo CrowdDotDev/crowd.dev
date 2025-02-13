@@ -50,7 +50,7 @@ export class ActivityRepository {
       this.log.info('Updating activities in QuestDB...')
 
       await this.questdbSQL.none(
-        'UPDATE "activities" SET "memberId" = $(correctMemberId) WHERE "memberId" = $(wrongMemberId)',
+        'UPDATE activities SET "memberId" = $(correctMemberId) WHERE "memberId" = $(wrongMemberId)',
         {
           wrongMemberId,
           correctMemberId,
