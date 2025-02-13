@@ -114,7 +114,7 @@ export async function updateCollection(
   id: string,
   collection: Partial<ICreateCollection>,
 ): Promise<ICollection> {
-  return updateTableById(qx, 'collections', id, collection)
+  return updateTableById(qx, 'collections', id, Object.values(CollectionField), collection)
 }
 
 export enum InsightsProjectField {
@@ -142,18 +142,41 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
 }
 
 export async function createInsightsProject(qx: QueryExecutor, insightProject: IInsightsProject) {
-  return qx.selectOne(prepareInsert('insightsProjects', insightProject))
+  return qx.selectOne(
+    prepareInsert('insightsProjects', Object.values(InsightsProjectField), insightProject),
+  )
 }
 
-export async function addInsightsProjectsToCollection(
+export async function deleteInsightsProjectFromCollection(
   qx: QueryExecutor,
-  collectionId: string,
-  projects: {
-    id: string
+  {
+    collectionId,
+    insightsProjectId,
+  }: {
+    collectionId?: string
+    insightsProjectId?: string
+  },
+) {
+  return qx.result(
+    `
+      DELETE FROM "collectionsInsightsProjects"
+      WHERE 1=1
+        ${collectionId ? `AND "collectionId" = $(collectionId)` : ''}
+        ${insightsProjectId ? `AND "insightsProjectId" = $(insightsProjectId)` : ''}
+    `,
+    { collectionId, insightsProjectId },
+  )
+}
+
+export async function connectProjectsAndCollections(
+  qx: QueryExecutor,
+  connections: {
+    insightsProjectId: string
+    collectionId: string
     starred: boolean
   }[],
 ) {
-  if (projects.length === 0) {
+  if (connections.length === 0) {
     return
   }
 
@@ -161,11 +184,7 @@ export async function addInsightsProjectsToCollection(
     prepareBulkInsert(
       'collectionsInsightsProjects',
       ['collectionId', 'insightsProjectId', 'starred'],
-      projects.map((p) => ({
-        collectionId,
-        insightsProjectId: p.id,
-        starred: p.starred,
-      })),
+      connections,
     ),
   )
 }
@@ -224,5 +243,5 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  return updateTableById(qx, 'insightsProjects', id, project)
+  return updateTableById(qx, 'insightsProjects', id, Object.values(InsightsProjectField), project)
 }

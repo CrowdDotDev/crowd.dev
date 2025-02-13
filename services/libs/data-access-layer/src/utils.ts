@@ -44,19 +44,19 @@ export function prepareBulkInsert(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function prepareInsert(table: string, data: any) {
-  const columns = Object.keys(data)
+export function prepareInsert<T extends string>(table: string, columns: T[], data: any) {
+  const fields = columns.filter((col) => col in data)
   const q = `
       INSERT INTO $(table:name)
-      (${columns.map((_, i) => `$(columns.col${i}:name)`).join(',')})
-      VALUES (${columns.map((col) => `$(data.${col})`).join(',')})
+      (${fields.map((_, i) => `$(fields.col${i}:name)`).join(',')})
+      VALUES (${fields.map((col) => `$(data.${col})`).join(',')})
       RETURNING *
     `
   console.log(q)
   return pgp.as.format(q, {
     table,
     data,
-    columns: columns.reduce((acc, c, i) => {
+    fields: fields.reduce((acc, c, i) => {
       acc[`col${i}`] = c
       return acc
     }, {}),
@@ -150,18 +150,18 @@ export async function queryTableById<T extends string>(
   return null
 }
 
-export async function updateTableById(
+export async function updateTableById<T extends string>(
   qx: QueryExecutor,
   table: string,
   id: string,
-  data: Record<string, unknown>,
+  columns: T[],
+  data: Partial<{ [K in T]: unknown }>,
 ) {
+  const fields = columns.filter((col) => col in data)
   return qx.result(
     `
       UPDATE $(table:name)
-      SET ${Object.keys(data)
-        .map((key) => `${key} = $(data.${key})`)
-        .join(',\n')}
+      SET ${fields.map((key) => `${key} = $(data.${key})`).join(',\n')}
       WHERE id = $(id)
       RETURNING *
     `,

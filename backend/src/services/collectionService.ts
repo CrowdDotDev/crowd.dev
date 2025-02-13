@@ -7,13 +7,14 @@ import {
   ICreateInsightsProject,
   IInsightsProject,
   InsightsProjectField,
-  addInsightsProjectsToCollection,
+  connectProjectsAndCollections,
   countCollections,
   countInsightsProjects,
   createCollection,
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
+  deleteInsightsProjectFromCollection,
   findCollectionProjectConnections,
   queryCollectionById,
   queryCollections,
@@ -44,7 +45,16 @@ export class CollectionService extends LoggerBase {
 
       const createdCollection = await createCollection(qx, collection)
 
-      await addInsightsProjectsToCollection(qx, createdCollection.id, collection.projects || [])
+      if (collection.projects) {
+        await connectProjectsAndCollections(
+          qx,
+          collection.projects.map((p) => ({
+            insightsProjectId: p.id,
+            collectionId: createdCollection.id,
+            starred: p.starred,
+          })),
+        )
+      }
 
       const txSvc = new CollectionService({
         ...this.options,
@@ -54,10 +64,22 @@ export class CollectionService extends LoggerBase {
     })
   }
 
-  async updateCollection(id: string, collection: Partial<ICreateCollection>) {
+  async updateCollection(id: string, collection: Partial<ICreateCollectionWithProjects>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
       await updateCollection(qx, id, collection)
+
+      if (collection.projects) {
+        await deleteInsightsProjectFromCollection(qx, { collectionId: id })
+        await connectProjectsAndCollections(
+          qx,
+          collection.projects.map((p) => ({
+            insightsProjectId: p.id,
+            collectionId: id,
+            starred: p.starred,
+          })),
+        )
+      }
 
       const txSvc = new CollectionService({
         ...this.options,
@@ -176,6 +198,17 @@ export class CollectionService extends LoggerBase {
 
       const createdProject = await createInsightsProject(qx, project)
 
+      if (project.collections) {
+        await connectProjectsAndCollections(
+          qx,
+          project.collections.map((c) => ({
+            insightsProjectId: createdProject.id,
+            collectionId: c,
+            starred: true,
+          })),
+        )
+      }
+
       const txSvc = new CollectionService({
         ...this.options,
         transaction: tx,
@@ -282,6 +315,18 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
       await updateInsightsProject(qx, id, project)
+
+      if (project.collections) {
+        await deleteInsightsProjectFromCollection(qx, { insightsProjectId: id })
+        await connectProjectsAndCollections(
+          qx,
+          project.collections.map((c) => ({
+            insightsProjectId: id,
+            collectionId: c,
+            starred: true,
+          })),
+        )
+      }
 
       const txSvc = new CollectionService({
         ...this.options,
