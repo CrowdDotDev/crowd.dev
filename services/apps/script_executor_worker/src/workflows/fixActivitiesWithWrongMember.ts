@@ -7,7 +7,7 @@ const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '45 minutes',
 })
 
-export async function fixMisattributedActivities(
+export async function fixActivitiesWithWrongMember(
   args: IFixActivitiesWithWrongMembersArgs,
 ): Promise<void> {
   let records = await activity.findActivitiesWithWrongMembers(args.limit)
