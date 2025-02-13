@@ -42,7 +42,7 @@ export async function updateActivitiesWithWrongMember(
 ) {
   try {
     const activityRepo = new ActivityRepository(
-      svc.postgres.reader.connection(),
+      svc.postgres.writer.connection(),
       svc.log,
       svc.questdbSQL,
     )
