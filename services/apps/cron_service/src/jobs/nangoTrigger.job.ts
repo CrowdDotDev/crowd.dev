@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_DEV_ENV } from '@crowd/common'
+import { IS_DEV_ENV, IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -15,10 +15,14 @@ import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crow
 import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
-  name: 'local-nango-trigger',
-  cronTime: CronTime.everyMinute(),
+  name: 'nango-trigger',
+  cronTime: IS_DEV_ENV
+    ? CronTime.everyMinute()
+    : IS_PROD_ENV
+      ? CronTime.every(4).hours()
+      : CronTime.every(30).minutes(),
   timeout: 5 * 60,
-  enabled: async () => IS_DEV_ENV,
+  enabled: async () => true,
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
 

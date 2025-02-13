@@ -70,6 +70,10 @@ export async function findOverrides(
   memberId: string,
   memberOrganizationIds: string[],
 ): Promise<IMemberOrganizationAffiliationOverride[]> {
+  if (memberOrganizationIds.length === 0) {
+    return []
+  }
+
   const overrides: IMemberOrganizationAffiliationOverride[] = await qx.select(
     `
       SELECT 

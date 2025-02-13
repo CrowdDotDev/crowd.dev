@@ -2,6 +2,7 @@ import type Nango from '@nangohq/frontend' assert { 'resolution-mode': 'require'
 import type { Nango as BackendNango } from '@nangohq/node' assert { 'resolution-mode': 'require' }
 
 import { SERVICE } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
 
 import {
   INangoClientConfig,
@@ -11,6 +12,8 @@ import {
   NangoIntegration,
 } from './types'
 import { toRecord } from './utils'
+
+const log = getServiceChildLogger('nango')
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -44,6 +47,7 @@ export const initNangoCloudClient = async (): Promise<void> => {
   if (!backendClient) {
     const config = NANGO_CLOUD_CONFIG()
     if (config) {
+      log.info('Initializing Nango cloud client...')
       const backendModule = await import('@nangohq/node')
       backendClient = new backendModule.Nango({ secretKey: config.secretKey })
     } else {
@@ -93,6 +97,7 @@ export const connectNangoIntegration = async (
 ): Promise<string> => {
   ensureBackendClient()
 
+  log.info({ params, integration }, 'Creating a nango connection...')
   const data = await getNangoCloudSessionToken()
 
   if (!frontendModule) {
@@ -112,6 +117,8 @@ export const createNangoIntegration = async (
   params: any,
 ): Promise<string> => {
   ensureBackendClient()
+
+  log.info({ params, integration }, 'Creating a nango connection...')
 
   const data = await getNangoCloudSessionToken()
   if (!frontendModule) {
@@ -142,6 +149,7 @@ export const startNangoSync = async (
   syncs?: string[],
 ): Promise<void> => {
   ensureBackendClient()
+  log.info({ connectionId, integration, syncs }, 'Starting a nango sync...')
 
   if (!syncs) {
     syncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
