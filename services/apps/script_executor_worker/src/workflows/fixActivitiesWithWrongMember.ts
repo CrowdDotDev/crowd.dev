@@ -10,11 +10,7 @@ const activity = proxyActivities<typeof activities>({
 export async function fixActivitiesWithWrongMember(
   args: IFixActivitiesWithWrongMembersArgs,
 ): Promise<void> {
-  const BATCH_SIZE = args.testRun ? 10 : args.limit
-
-  if (args.testRun) {
-    console.log('Test run enabled so processing only 10 records!')
-  }
+  const BATCH_SIZE = args.limit
 
   let records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
 
@@ -34,6 +30,12 @@ export async function fixActivitiesWithWrongMember(
       }
 
       await activity.updateActivitiesWithWrongMember(record.memberId, memberIdentity.memberId)
+    }
+
+    // if testRun then just run only once
+    if (args.testRun) {
+      console.log('Test run completed!')
+      break
     }
 
     records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
