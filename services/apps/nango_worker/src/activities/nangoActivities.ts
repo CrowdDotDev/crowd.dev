@@ -28,7 +28,11 @@ export async function processNangoWebhook(
   )
 
   if (!integration) {
-    throw new Error(`Integration not found for connectionId: ${args.connectionId}`)
+    svc.log.warn(
+      { connectionId: args.connectionId, provider: args.providerConfigKey },
+      'Integration not found!',
+    )
+    return
   }
 
   const cursor = integration.settings.cursors ? integration.settings.cursors[args.model] : undefined

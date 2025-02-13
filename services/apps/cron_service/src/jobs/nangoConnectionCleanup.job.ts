@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { singleOrDefault } from '@crowd/common'
+import { IS_DEV_ENV, singleOrDefault } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -10,7 +10,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-connection-cleanup',
-  cronTime: CronTime.every(7).days(),
+  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.every(7).days(),
   timeout: 15 * 60,
   enabled: async () => true,
   process: async (ctx) => {
