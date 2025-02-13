@@ -16,25 +16,27 @@ export async function fixActivitiesWithWrongMember(
     console.log('Test run enabled so processing only 10 records!')
   }
 
-  const records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
+  let records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
 
   if (!records.length) {
     console.log(`No activities found!`)
     return
   }
 
-  for (const record of records) {
-    console.log(
-      `Processing recording with memberId: ${record.memberId} value: ${record.username} platform: ${record.platform}`,
-    )
+  while (records.length > 0) {
+    for (const record of records) {
+      console.log(`Processing activity with memberId: ${record.memberId}`)
 
-    const memberIdentity = await activity.findMemberIdentity(record.username, record.platform)
-    if (!memberIdentity) {
-      console.log(`Member identity not found!`)
-      continue
+      const memberIdentity = await activity.findMemberIdentity(record.username, record.platform)
+      if (!memberIdentity) {
+        console.log(`Member identity not found for ${record.username} on ${record.platform}`)
+        continue
+      }
+
+      await activity.updateActivitiesWithWrongMember(record.memberId, memberIdentity.memberId)
     }
 
-    await activity.updateActivitiesWithWrongMember(record.memberId, memberIdentity.memberId)
+    records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
   }
 
   console.log('Completed processing all members!')
