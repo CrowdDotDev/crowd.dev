@@ -25,7 +25,7 @@ export async function fixActivitiesWithWrongMember(
 
   for (const record of records) {
     console.log(
-      `Processing record memberId: ${record.memberId} username: ${record.username} platform: ${record.platform}`,
+      `Processing recording with memberId: ${record.memberId} value: ${record.username} platform: ${record.platform}`,
     )
 
     const memberIdentity = await activity.findMemberIdentity(record.username, record.platform)
@@ -35,7 +35,6 @@ export async function fixActivitiesWithWrongMember(
     }
 
     await activity.updateActivitiesWithWrongMember(record.memberId, memberIdentity.memberId)
-    console.log('Updated activities!')
   }
 
   console.log('Completed processing all members!')

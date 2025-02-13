@@ -37,7 +37,7 @@ export class ActivityRepository {
     correctMemberId: string,
   ): Promise<void> {
     try {
-      this.log.info('Updating activities in postgres...')
+      this.log.info(`Updating activities from ${wrongMemberId} to ${correctMemberId}`)
 
       await this.connection.none(
         'UPDATE activities SET "memberId" = $(correctMemberId) WHERE "memberId" = $(wrongMemberId)',
@@ -46,8 +46,6 @@ export class ActivityRepository {
           correctMemberId,
         },
       )
-
-      this.log.info('Updating activities in QuestDB...')
 
       await this.questdbSQL.none(
         'UPDATE activities SET "memberId" = $(correctMemberId) WHERE "memberId" = $(wrongMemberId)',
