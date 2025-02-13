@@ -24,14 +24,14 @@ fi
 ACTIVITIES_SINK_FILE="/etc/kafka-connect/tinybird-local-activities-sink.properties"
 ACTIVITIES_SINK_TEMP_FILE="/tmp/tinybird-local-activities-sink.properties"
 
-ACTIVITY_RELATIONS_SINK_FILE="/etc/kafka-connect/tinybird-local-activity-relations-sink.properties"
-ACTIVITY_RELATIONS_SINK_TEMP_FILE="/tmp/tinybird-local-activity-relations-sink.properties"
+SEQUIN_SINK_FILE="/etc/kafka-connect/tinybird-local-sequin-sink.properties"
+SEQUIN_SINK_TEMP_FILE="/tmp/tinybird-local-sequin-sink.properties"
 
 cp "$ACTIVITIES_SINK_FILE" "$ACTIVITIES_SINK_TEMP_FILE"
-cp "$ACTIVITY_RELATIONS_SINK_FILE" "$ACTIVITY_RELATIONS_SINK_TEMP_FILE"
+cp "$SEQUIN_SINK_FILE" "$SEQUIN_SINK_TEMP_FILE"
 
 sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$ACTIVITIES_SINK_TEMP_FILE"
-sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$ACTIVITY_RELATIONS_SINK_TEMP_FILE"
+sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$SEQUIN_SINK_TEMP_FILE"
 
 echo "✅ Using token [$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN] in Tinybird http sink of Kafka Connect."
 
@@ -40,4 +40,4 @@ exec connect-standalone \
   /etc/kafka-connect/console-local-sink.properties \
   /etc/kafka-connect/questdb-local-sink.properties \
   "$ACTIVITIES_SINK_TEMP_FILE" \
-  "$ACTIVITY_RELATIONS_SINK_TEMP_FILE"
+  "$SEQUIN_SINK_TEMP_FILE"
