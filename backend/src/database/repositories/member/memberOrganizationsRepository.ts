@@ -22,10 +22,7 @@ class MemberOrganizationsRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     // Fetch member organizations
-    const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(
-      qx,
-      memberId,
-    )
+    const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(qx, memberId)
 
     if (memberOrganizations.length === 0) {
       return []
