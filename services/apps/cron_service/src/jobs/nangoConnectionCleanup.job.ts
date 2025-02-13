@@ -10,7 +10,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-connection-cleanup',
-  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.every(7).days(),
+  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.everyDay(),
   timeout: 15 * 60,
   enabled: async () => true,
   process: async (ctx) => {
@@ -29,10 +29,10 @@ const job: IJobDefinition = {
       const integration = singleOrDefault(allIntegrations, (i) => i.id === connection.connectionId)
 
       if (!integration) {
-        // check if connection.created is older than 1 month
+        // check if connection.created is older than 1 day
         const created = new Date(connection.createdAt)
 
-        if (created < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
+        if (created < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
           ctx.log.info(`Deleting stale connection ${connection.connectionId}`)
           await deleteNangoConnection(connection.integration, connection.connectionId)
         }
