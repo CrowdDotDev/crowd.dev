@@ -697,6 +697,64 @@ class SegmentRepository extends RepositoryBase<
     }
   }
 
+  async querySubprojectsLite(criteria: QueryData): Promise<PageData<SegmentData>> {
+    let searchQuery = ''
+
+    if (criteria.filter?.status) {
+      searchQuery += ` AND s.status = :status`
+    }
+
+    if (criteria.filter?.name) {
+      searchQuery += ` AND s.name ilike :name`
+    }
+
+    if (criteria.filter?.parentSlug) {
+      searchQuery += ` AND s."parentSlug" = :parent_slug `
+    }
+
+    if (criteria.filter?.grandparentSlug) {
+      searchQuery += ` AND s."grandparentSlug" = :grandparent_slug `
+    }
+
+    const subprojects = await this.options.database.sequelize.query(
+      `
+        SELECT
+          s.id,
+          s.name,
+          s.url,
+          s.slug,
+          s.description
+        FROM segments s
+        WHERE s."grandparentSlug" IS NOT NULL
+          AND s."parentSlug" IS NOT NULL
+          AND s."tenantId" = :tenantId
+          ${searchQuery}
+        ORDER BY s.name
+        ${this.getPaginationString(criteria)};
+      `,
+      {
+        replacements: {
+          tenantId: this.currentTenant.id,
+          name: `%${criteria.filter?.name}%`,
+          status: criteria.filter?.status,
+          parent_slug: `${criteria.filter?.parentSlug}`,
+          grandparent_slug: `${criteria.filter?.grandparentSlug}`,
+          ids: criteria.filter?.ids,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    const rows = subprojects
+
+    return {
+      count: 1,
+      rows: rows,
+      limit: criteria.limit,
+      offset: criteria.offset,
+    }
+  }
+
   private async queryIntegrationsForSubprojects(subprojects) {
     const segmentIds = subprojects.map((i) => i.id)
     let { rows: integrations } = await IntegrationRepository.findAndCountAll(
