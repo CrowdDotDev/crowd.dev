@@ -2,7 +2,9 @@ import { CollectionModel } from '../../collections/models/collection.model';
 
 export interface InsightsProjectModel {
   id: string;
+  segmentId: string;
   name: string;
+  description: string;
   logoUrl: string;
   collections: CollectionModel[];
   organization: {
@@ -21,7 +23,5 @@ export interface InsightsProjectModel {
     enabled: boolean;
     platforms: string[];
   }[];
-  widgets: {
-    [key: string]: boolean;
-  };
+  widgets: string[];
 }

@@ -1,4 +1,5 @@
 export interface InsightsProjectAddFormModel {
+    segmentId: string;
     name: string;
     description: string;
     logoUrl: string;

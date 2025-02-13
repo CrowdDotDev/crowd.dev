@@ -9,9 +9,24 @@ export class InsightsProjectsService {
     return response.data;
   }
 
+  static async getById(id: string) {
+    const response = await authAxios.get(
+      `/collections/insights-projects/${id}`,
+    );
+    return response.data;
+  }
+
   static async create(request: any) {
     const response = await authAxios.post(
       '/collections/insights-projects',
+      request,
+    );
+    return response.data;
+  }
+
+  static async update(id: string, request: any) {
+    const response = await authAxios.post(
+      `/collections/insights-projects/${id}`,
       request,
     );
     return response.data;
@@ -22,6 +37,14 @@ export class InsightsProjectsService {
       `/collections/insights-projects/${collectionId}`,
     );
 
+    return response.data;
+  }
+
+  static async querySubProjects(query: any) {
+    const response = await authAxios.post(
+      '/collections/insights-projects/query-sub-projects',
+      query,
+    );
     return response.data;
   }
 }

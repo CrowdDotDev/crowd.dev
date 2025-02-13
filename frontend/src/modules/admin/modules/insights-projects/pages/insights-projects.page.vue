@@ -9,7 +9,7 @@
         placeholder="Search projects..."
         @update:model-value="searchProjects()"
       />
-      <lf-button size="medium" type="secondary-ghost" @click="onAddProject">
+      <lf-button size="medium" type="secondary-ghost" @click="openInsightsProjectAdd">
         <lf-icon name="plus" :size="16" />
         Add project
       </lf-button>
@@ -17,11 +17,16 @@
     <div v-if="projects.length > 0">
       <lf-insights-projects-table
         :projects="projects"
-        @on-edit-project="onEditProject($event)"
+        @on-edit-project="onEditInsightsProject($event)"
         @on-delete-project="onDeleteProject($event)"
       />
       <div v-if="projects.length < total" class="pt-4">
-        <lf-button type="primary-ghost" loading-text="Loading projects..." :loading="loading" @click="loadMore()">
+        <lf-button
+          type="primary-ghost"
+          loading-text="Loading projects..."
+          :loading="loading"
+          @click="loadMore()"
+        >
           Load more
         </lf-button>
       </div>
@@ -42,7 +47,12 @@
           title="No projects yet"
           description="Add projects to Insights and organize them within collections"
         />
-        <lf-button class="w-fit" size="medium" type="primary-ghost" @click="onAddProject">
+        <lf-button
+          class="w-fit"
+          size="medium"
+          type="primary-ghost"
+          @click="openInsightsProjectAdd"
+        >
           <lf-icon name="plus" :size="16" />
           Add project
         </lf-button>
@@ -53,7 +63,14 @@
     </div>
   </div>
 
-  <lf-insights-project-add v-if="projectAdd" v-model="projectAdd" />
+  <lf-insights-project-add
+    v-if="isProjectDialogOpen"
+    v-model="isProjectDialogOpen"
+    :insights-project="projectEditObject"
+    @on-insights-project-created="onInsightsProjectDialogCloseSuccess"
+    @on-insights-project-edited="onInsightsProjectDialogCloseSuccess"
+    @update:model-value="onInsightsProjectDialogClose"
+  />
 
   <app-delete-confirm-dialog
     v-model="removeProject"
@@ -78,6 +95,7 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
+import { cloneDeep } from 'lodash';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import { InsightsProjectsService } from '../services/insights-projects.service';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
@@ -88,7 +106,8 @@ const offset = ref(0);
 const limit = ref(20);
 const total = ref(0);
 const projects = ref<InsightsProjectModel[]>([]);
-const projectAdd = ref<boolean>(false);
+const isProjectDialogOpen = ref<boolean>(false);
+const projectEditObject = ref<InsightsProjectModel | undefined>(undefined);
 const removeProjectId = ref<string>('');
 const removeProject = ref<boolean>(false);
 
@@ -98,11 +117,13 @@ const fetchProjects = () => {
   }
   loading.value = true;
   InsightsProjectsService.list({
-    filter: search.value ? {
-      name: {
-        like: `%${search.value}%`,
-      },
-    } : {},
+    filter: search.value
+      ? {
+        name: {
+          like: `%${search.value}%`,
+        },
+      }
+      : {},
     offset: offset.value,
     limit: limit.value,
   })
@@ -134,12 +155,27 @@ const loadMore = () => {
   fetchProjects();
 };
 
-const onAddProject = () => {
-  projectAdd.value = true;
+const openInsightsProjectAdd = () => {
+  isProjectDialogOpen.value = true;
 };
 
-const onEditProject = (projectId: string) => {
-  console.log('onEditProject', projectId);
+const onEditInsightsProject = (insightsProjectId: string) => {
+  isProjectDialogOpen.value = true;
+  projectEditObject.value = cloneDeep(
+    projects.value.find((project) => project.id === insightsProjectId),
+  );
+};
+
+const onInsightsProjectDialogCloseSuccess = () => {
+  isProjectDialogOpen.value = false;
+  projectEditObject.value = undefined;
+  offset.value = 0;
+  fetchProjects();
+};
+
+const onInsightsProjectDialogClose = () => {
+  isProjectDialogOpen.value = false;
+  projectEditObject.value = undefined;
 };
 
 const onDeleteProject = (projectId: string) => {
