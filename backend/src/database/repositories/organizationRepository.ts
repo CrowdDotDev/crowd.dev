@@ -316,25 +316,6 @@ class OrganizationRepository {
     }
   }
 
-  static findLfxMembershipInFilters(filter: any): any {
-    if (!filter) return null
-
-    if (filter.lfxMembership) {
-      return filter.lfxMembership
-    }
-
-    if (Array.isArray(filter.and)) {
-      for (const subFilter of filter.and) {
-        const result = OrganizationRepository.findLfxMembershipInFilters(subFilter)
-        if (result) {
-          return result
-        }
-      }
-    }
-
-    return null
-  }
-
   static convertOrgAttributesForDisplay(attributes: IDbOrgAttribute[]) {
     return attributes.reduce((acc, a) => {
       if (!acc[a.name]) {
@@ -1615,7 +1596,7 @@ class OrganizationRepository {
     const withAggregates = include.aggregates
 
     // look for lfxMembership filter
-    const lfxMembershipFilter = OrganizationRepository.findLfxMembershipInFilters(filter)
+    const lfxMembershipFilter = filter.and?.find((f) => f.lfxMembership)?.lfxMembership
     let lfxMembershipFilterWhereClause = ''
 
     if (lfxMembershipFilter) {
@@ -1627,8 +1608,14 @@ class OrganizationRepository {
       }
 
       // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.lfxMembership))
+      filter.and = filter.and.filter((f) => !f.lfxMembership)
+
+      // handle edge case where filter.and is empty
+      if (filter.and.length === 0) {
+        delete filter.and
+      }
     }
+
     if (segmentId) {
       const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
 
