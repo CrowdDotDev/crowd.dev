@@ -9,7 +9,11 @@
         placeholder="Search collections..."
         @update:model-value="searchCollections()"
       />
-      <lf-button size="medium" type="secondary-ghost" @click="openCollectionAdd">
+      <lf-button
+        size="medium"
+        type="secondary-ghost"
+        @click="openCollectionAdd"
+      >
         <lf-icon name="rectangle-history-circle-plus" :size="16" />
         Add collection
       </lf-button>
@@ -21,10 +25,17 @@
         @on-delete-collection="openRemoveCollectionDialog($event)"
       />
       <div class="pt-4">
-        <lf-button v-if="collections.length < total && !loading" type="primary-ghost" @click="loadMore()">
+        <lf-button
+          v-if="collections.length < total && !loading"
+          type="primary-ghost"
+          @click="loadMore()"
+        >
           Load more
         </lf-button>
-        <div v-else-if="loading && collections.length > 0" class="flex items-center justify-center">
+        <div
+          v-else-if="loading && collections.length > 0"
+          class="flex items-center justify-center"
+        >
           <span class="text-xs text-gray-400 mr-4">
             {{ offset }} out of {{ total }} collections
           </span>
@@ -51,13 +62,21 @@
           title="No collections yet"
           description="Start creating project collections of a certain area or tech stack"
         />
-        <lf-button class="w-fit" size="medium" type="primary-ghost" @click="openCollectionAdd">
+        <lf-button
+          class="w-fit"
+          size="medium"
+          type="primary-ghost"
+          @click="openCollectionAdd"
+        >
           <lf-icon name="rectangle-history-circle-plus" :size="16" />
           Add collection
         </lf-button>
       </template>
     </div>
-    <div v-if="loading && collections.length === 0" class="pt-8 flex justify-center">
+    <div
+      v-if="loading && collections.length === 0"
+      class="pt-8 flex justify-center"
+    >
       <lf-spinner />
     </div>
   </div>
@@ -88,9 +107,7 @@
 import { onMounted, ref } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import { CollectionsService } from '@/modules/admin/modules/collections/services/collections.service';
-import {
-  CollectionModel,
-} from '@/modules/admin/modules/collections/models/collection.model';
+import { CollectionModel } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
 import Message from '@/shared/message/message';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
@@ -99,6 +116,7 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
+import { cloneDeep } from 'lodash';
 
 const search = ref('');
 const loading = ref<boolean>(false);
@@ -117,11 +135,13 @@ const fetchCollections = () => {
   }
   loading.value = true;
   CollectionsService.list({
-    filter: search.value ? {
-      name: {
-        like: `%${search.value}%`,
-      },
-    } : {},
+    filter: search.value
+      ? {
+        name: {
+          like: `%${search.value}%`,
+        },
+      }
+      : {},
     offset: offset.value,
     limit: limit.value,
   })
@@ -157,6 +177,13 @@ const openCollectionAdd = () => {
   isCollectionDialogOpen.value = true;
 };
 
+const onEditCollection = (collectionId: string) => {
+  isCollectionDialogOpen.value = true;
+  collectionEditObject.value = cloneDeep(
+    collections.value.find((collection) => collection.id === collectionId),
+  );
+};
+
 const onCollectionDialogCloseSuccess = () => {
   isCollectionDialogOpen.value = false;
   collectionEditObject.value = undefined;
@@ -167,11 +194,6 @@ const onCollectionDialogCloseSuccess = () => {
 const onCollectionDialogClose = () => {
   isCollectionDialogOpen.value = false;
   collectionEditObject.value = undefined;
-};
-
-const onEditCollection = (collectionId: string) => {
-  isCollectionDialogOpen.value = true;
-  collectionEditObject.value = collections.value.find((collection) => collection.id === collectionId);
 };
 
 const openRemoveCollectionDialog = (collectionId: string) => {
