@@ -45,17 +45,22 @@ export function prepareBulkInsert(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function prepareInsert(table: string, data: any) {
-  console.log(data)
+  const columns = Object.keys(data)
   const q = `
       INSERT INTO $(table:name)
-      (${Object.keys(data).join(',')})
-      VALUES (${Object.keys(data)
-        .map((k) => `$(data.${k})`)
-        .join(',')})
+      (${columns.map((_, i) => `$(columns.col${i}:name)`).join(',')})
+      VALUES (${columns.map((col) => `$(data.${col})`).join(',')})
       RETURNING *
     `
   console.log(q)
-  return pgp.as.format(q, { table, data })
+  return pgp.as.format(q, {
+    table,
+    data,
+    columns: columns.reduce((acc, c, i) => {
+      acc[`col${i}`] = c
+      return acc
+    }, {}),
+  })
 }
 
 export function checkUpdateRowCount(rowCount: number, expected: number) {
