@@ -10,16 +10,17 @@ const activity = proxyActivities<typeof activities>({
 export async function fixActivitiesWithWrongMember(
   args: IFixActivitiesWithWrongMembersArgs,
 ): Promise<void> {
-  let records = await activity.findActivitiesWithWrongMembers(args.limit)
+  const BATCH_SIZE = args.testRun ? 10 : args.limit
+
+  if (args.testRun) {
+    console.log('Test run enabled so processing only 10 records!')
+  }
+
+  const records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
 
   if (!records.length) {
     console.log(`No activities found!`)
     return
-  }
-
-  if (args.testRun) {
-    console.log('Test run enabled so processing only 10 records!')
-    records = records.slice(0, 10)
   }
 
   for (const record of records) {
