@@ -147,7 +147,7 @@ export async function createInsightsProject(qx: QueryExecutor, insightProject: I
   )
 }
 
-export async function deleteInsightsProjectFromCollection(
+export async function disconnectProjectsAndCollections(
   qx: QueryExecutor,
   {
     collectionId,

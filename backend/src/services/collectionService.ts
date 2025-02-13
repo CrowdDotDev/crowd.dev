@@ -14,7 +14,7 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
-  deleteInsightsProjectFromCollection,
+  disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
   queryCollections,
@@ -70,7 +70,7 @@ export class CollectionService extends LoggerBase {
       await updateCollection(qx, id, collection)
 
       if (collection.projects) {
-        await deleteInsightsProjectFromCollection(qx, { collectionId: id })
+        await disconnectProjectsAndCollections(qx, { collectionId: id })
         await connectProjectsAndCollections(
           qx,
           collection.projects.map((p) => ({
@@ -127,8 +127,11 @@ export class CollectionService extends LoggerBase {
   }
 
   async destroy(id: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    await deleteCollection(qx, id)
+    await SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      await disconnectProjectsAndCollections(qx, { collectionId: id })
+      await deleteCollection(qx, id)
+    })
   }
 
   async query({ limit, offset, filter }: { limit?: number; offset?: number; filter: QueryFilter }) {
@@ -218,8 +221,11 @@ export class CollectionService extends LoggerBase {
   }
 
   async destroyInsightsProject(id: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    await deleteInsightsProject(qx, id)
+    await SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
+      await deleteInsightsProject(qx, id)
+    })
   }
 
   async findInsightsProjectById(id: string) {
@@ -317,7 +323,7 @@ export class CollectionService extends LoggerBase {
       await updateInsightsProject(qx, id, project)
 
       if (project.collections) {
-        await deleteInsightsProjectFromCollection(qx, { insightsProjectId: id })
+        await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
