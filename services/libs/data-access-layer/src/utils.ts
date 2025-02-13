@@ -161,7 +161,7 @@ export async function updateTableById<T extends string>(
   return qx.result(
     `
       UPDATE $(table:name)
-      SET ${fields.map((key) => `${key} = $(data.${key})`).join(',\n')}
+      SET ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')}
       WHERE id = $(id)
       RETURNING *
     `,
@@ -169,6 +169,10 @@ export async function updateTableById<T extends string>(
       table,
       id,
       data,
+      fields: fields.reduce((acc, c, i) => {
+        acc[`col${i}`] = c
+        return acc
+      }, {}),
     },
   )
 }
