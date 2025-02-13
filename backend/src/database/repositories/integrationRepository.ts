@@ -137,21 +137,6 @@ class IntegrationRepository {
 
     // also mark integration runs as deleted
     const seq = SequelizeRepository.getSequelize(options)
-    await seq.query(
-      `update "integrationRuns" set state = :newState
-     where "integrationId" = :integrationId and state in (:delayed, :pending, :processing)
-    `,
-      {
-        replacements: {
-          newState: IntegrationRunState.INTEGRATION_DELETED,
-          delayed: IntegrationRunState.DELAYED,
-          pending: IntegrationRunState.PENDING,
-          processing: IntegrationRunState.PROCESSING,
-          integrationId: id,
-        },
-        transaction,
-      },
-    )
 
     await seq.query(
       `update integration.runs set state = :newState
