@@ -28,27 +28,39 @@
                 :size="24"
                 class="!rounded-md border border-gray-200 mr-3"
               />
-              <span class="text-black text-sm font-semibold line-clamp-2 w-auto">
+              <span
+                class="text-black text-sm font-semibold line-clamp-2 w-auto"
+              >
                 {{ project.name }}
               </span>
             </div>
           </div>
         </lf-table-cell>
 
-        <lf-table-cell>
-          <app-lf-project-column :icon="'rectangle-history'" :title="'collections'" :projects="project.collections" />
+        <lf-table-cell class="pl-2">
+          <app-lf-project-column
+            :icon="'rectangle-history'"
+            :title="'collections'"
+            :projects="project.collections"
+          />
         </lf-table-cell>
 
         <lf-table-cell class="pl-2">
-          <div class="border border-gray-200 rounded-[100px] w-fit px-2 py-1 bg-white flex items-center">
+          <div
+            v-if="project.organization"
+            class="border border-gray-200 rounded-[100px] w-fit px-2 py-1 bg-white flex items-center"
+          >
             <lf-avatar
               :src="project.organization.logo"
               :name="project.organization.displayName"
               :size="14"
               class="!rounded-md border border-gray-200"
             />
-            <span class="ml-2 text-gray-900 text-xs">{{ project.organization.displayName }}</span>
+            <span class="ml-2 text-gray-900 text-xs">
+              {{ project.organization.displayName }}
+            </span>
           </div>
+          <span v-else class="text-gray-500 text-sm">No Company</span>
         </lf-table-cell>
 
         <!-- <lf-table-cell class="pl-2">
@@ -76,14 +88,13 @@ import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
 
-const emit = defineEmits<{(e: 'onEditProject', id: string): void,
-  (e: 'onDeleteProject', id: string): void,
+const emit = defineEmits<{(e: 'onEditProject', id: string): void;
+  (e: 'onDeleteProject', id: string): void;
 }>();
 
 defineProps<{
-  projects: InsightsProjectModel[],
+  projects: InsightsProjectModel[];
 }>();
-
 </script>
 
 <script lang="ts">

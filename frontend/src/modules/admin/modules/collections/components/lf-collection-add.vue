@@ -1,7 +1,16 @@
 <template>
-  <app-drawer v-model="model" :title="isEditForm ? 'Edit collection' : 'Add collection'" :size="600" @close="onCancel">
+  <app-drawer
+    v-model="model"
+    :title="isEditForm ? 'Edit collection' : 'Add collection'"
+    :size="600"
+    @close="onCancel"
+  >
     <template #content>
-      <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
+      <div
+        v-if="loading"
+        v-loading="loading"
+        class="app-page-spinner h-16 !relative !min-h-5"
+      />
       <div v-else>
         <lf-tabs v-model="activeTab" :fragment="false">
           <lf-tab name="details">
@@ -24,7 +33,10 @@
                     @blur="$v.name.$touch()"
                     @change="$v.name.$touch()"
                   />
-                  <lf-field-messages :validation="$v.name" :error-messages="{ required: 'This field is required' }" />
+                  <lf-field-messages
+                    :validation="$v.name"
+                    :error-messages="{ required: 'This field is required' }"
+                  />
                 </lf-field>
               </article>
 
@@ -44,7 +56,10 @@
                 </lf-field>
               </article>
             </div>
-            <lf-collection-add-projects-tab v-if="activeTab === 'projects'" :collection-projects="form.projects" />
+            <lf-collection-add-projects-tab
+              v-if="activeTab === 'projects'"
+              :form="form"
+            />
           </div>
         </div>
       </div>
@@ -53,8 +68,12 @@
       <lf-button type="secondary-ghost" @click="onCancel">
         Cancel
       </lf-button>
-      <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
-        {{ isEditForm ? 'Update' : 'Add collection' }}
+      <lf-button
+        type="primary"
+        :disabled="!hasFormChanged || $v.$invalid || loading"
+        @click="onSubmit"
+      >
+        {{ isEditForm ? "Update" : "Add collection" }}
       </lf-button>
     </template>
   </app-drawer>
@@ -75,7 +94,10 @@ import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import Message from '@/shared/message/message';
 import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
-import { CollectionModel } from '../models/collection.model';
+import {
+  CollectionFormModel,
+  CollectionModel,
+} from '../models/collection.model';
 import { InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 import { CollectionsService } from '../services/collections.service';
@@ -88,15 +110,14 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
 }>();
 
 const props = defineProps<{
-  modelValue: boolean,
-  collection?: CollectionModel,
+  modelValue: boolean;
+  collection?: CollectionModel;
 }>();
 
 const activeTab = ref('details');
-
 const loading = ref(false);
 const submitLoading = ref(false);
-const form = reactive({
+const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
   projects: [],
@@ -135,10 +156,9 @@ const fillForm = (record?: CollectionModel) => {
 };
 
 onMounted(() => {
-  InsightsProjectsService.list({})
-    .then((response) => {
-      insightsProjectsStore.setInsightsProjects(response.rows);
-    });
+  InsightsProjectsService.list({}).then((response) => {
+    insightsProjectsStore.setInsightsProjects(response.rows);
+  });
   if (props.collection?.id) {
     loading.value = true;
     fillForm(props.collection);

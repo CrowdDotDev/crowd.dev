@@ -3,6 +3,11 @@ import { CollectionModel } from '../../collections/models/collection.model';
 export interface InsightsProjectModel {
   id: string;
   segmentId: string;
+  segment: {
+    id: string;
+    name: string;
+    logo: string;
+  };
   name: string;
   description: string;
   logoUrl: string;

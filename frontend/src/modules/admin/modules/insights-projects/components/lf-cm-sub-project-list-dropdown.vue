@@ -1,6 +1,6 @@
 <template>
   <app-form-item
-    class="mb-0"
+    class="mb-6"
     :validation="$v.projectId"
     label="Project"
     :required="true"
@@ -8,6 +8,9 @@
       required: 'Project is required',
     }"
   >
+    <span class="text-2xs text-gray-500">
+      Select an active project from Community Management
+    </span>
     <el-input
       ref="inputRef"
       v-model="inputValue"
@@ -55,6 +58,12 @@
           {{ project.name }}
         </div>
       </div>
+      <div
+        v-else-if="loading"
+        class="text-gray-400 p-3 py-6 h-10 flex items-center justify-center"
+      >
+        <lf-spinner />
+      </div>
       <div v-else class="text-gray-400 px-3 h-10 flex items-center">
         No projects found
       </div>
@@ -70,6 +79,8 @@ import {
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
+import { debounce } from 'lodash';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -89,13 +100,12 @@ const ArrowUpIcon = h(
   [],
 );
 
-const emit = defineEmits(['onChange']);
-const props = defineProps({
-  selectedProject: {
-    type: Object,
-    default: () => {},
-  },
-});
+const emit = defineEmits<{(e: 'onChange', value: any): void;
+}>();
+
+const props = defineProps<{
+  selectedProjectId: string;
+}>();
 
 const inputRef = ref(null);
 const loading = ref(false);
@@ -116,20 +126,18 @@ const rules = {
 
 const $v = useVuelidate(rules, form);
 
-const listProjects = (clearList?: boolean) => {
+const listProjects = () => {
   loading.value = true;
 
   InsightsProjectsService.querySubProjects({
     filter: {
       name: searchQuery.value,
     },
+    offset: 0,
+    limit: 50,
   })
     .then((response) => {
-      if (clearList) {
-        projectsList.value = response.rows;
-      } else {
-        projectsList.value = projectsList.value.concat(response.rows);
-      }
+      projectsList.value = response.rows;
     })
     .finally(() => {
       loading.value = false;
@@ -139,16 +147,19 @@ const listProjects = (clearList?: boolean) => {
 onMounted(() => {
   listProjects();
 
-  if (props.selectedProject) {
-    form.projectId = props.selectedProject.id;
-    inputValue.value = props.selectedProject.name;
+  if (props.selectedProjectId) {
+    form.projectId = props.selectedProjectId;
+    inputValue.value = props.selectedProjectId;
   }
 });
 
+const debouncedListProjects = debounce(() => {
+  listProjects();
+}, 500);
+
 const onSearchProjects = (query: string) => {
   searchQuery.value = query;
-
-  listProjects(true);
+  debouncedListProjects();
 };
 
 const onOptionClick = (project: any) => {
@@ -156,9 +167,8 @@ const onOptionClick = (project: any) => {
 
   form.projectId = project.id;
   inputValue.value = project.name;
-
   emit('onChange', {
-    projectId: form.projectId,
+    project,
     isSubmitEnabled: !$v.value.$invalid,
   });
 };
@@ -169,3 +179,20 @@ export default {
   name: 'LfCmSubProjectListDropdown',
 };
 </script>
+
+<style lang="scss">
+.subprojects-select-popper.el-popper {
+  width: 90% !important;
+  max-height: 480px;
+  overflow: auto;
+  @apply p-0;
+}
+
+.subprojects-select-input {
+  @apply cursor-pointer relative w-full;
+
+  .el-input__inner {
+    @apply cursor-pointer;
+  }
+}
+</style>

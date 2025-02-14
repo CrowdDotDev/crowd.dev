@@ -50,9 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  h, ref, onMounted,
-} from 'vue';
+import { h, ref, computed } from 'vue';
 import { InsightsProjectModel } from '@/modules/admin/modules/insights-projects/models/insights-project.model';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
@@ -74,10 +72,9 @@ const ArrowUpIcon = h(
   [],
 );
 
-const emit = defineEmits<{(e: 'onAddProject', projectId: string): void;
-}>();
+const emit = defineEmits<{(e: 'onAddProject', projectId: string): void }>();
 const props = defineProps<{
-  selectedProjects: InsightsProjectModel[],
+  selectedProjects: InsightsProjectModel[];
 }>();
 
 const insightsProjectsStore = useInsightsProjectsStore();
@@ -85,25 +82,25 @@ const insightsProjectsStore = useInsightsProjectsStore();
 const inputRef = ref(null);
 const searchQuery = ref('');
 const isPopoverVisible = ref(false);
-const displayProjects = ref<InsightsProjectModel[]>([]);
-
-onMounted(() => {
-  displayProjects.value = removeSelectedProject(insightsProjectsStore.getInsightsProjects());
-});
+const displayProjects = computed(() => removeSelectedProject(
+  insightsProjectsStore.searchInsightsProjects(searchQuery.value),
+));
 
 const removeSelectedProject = (projects: InsightsProjectModel[]) => {
-  const selectedProjectsIds = props.selectedProjects.map((project) => project.id);
-  return projects.filter((project) => !selectedProjectsIds.includes(project.id));
+  const selectedProjectsIds = props.selectedProjects.map(
+    (project) => project.id,
+  );
+  return projects.filter(
+    (project) => !selectedProjectsIds.includes(project.id),
+  );
 };
 
 const onSearchProjects = (query: string) => {
   searchQuery.value = query;
-  displayProjects.value = removeSelectedProject(insightsProjectsStore.searchInsightsProjects(query));
 };
 
 const openPopover = () => {
   isPopoverVisible.value = true;
-  displayProjects.value = removeSelectedProject(insightsProjectsStore.getInsightsProjects());
 };
 
 const onOptionClick = (project: InsightsProjectModel) => {
@@ -131,7 +128,7 @@ export default {
   @apply cursor-pointer relative w-full;
 
   .el-input__inner {
-    @apply cursor-pointer
+    @apply cursor-pointer;
   }
 }
 </style>

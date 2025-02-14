@@ -7,3 +7,9 @@ export interface CollectionModel {
   isLF: boolean;
   projects: InsightsProjectModel[];
 }
+
+export interface CollectionFormModel {
+  name: string;
+  description: string;
+  projects: InsightsProjectModel[];
+}

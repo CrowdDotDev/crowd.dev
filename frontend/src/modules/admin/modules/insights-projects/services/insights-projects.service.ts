@@ -42,7 +42,7 @@ export class InsightsProjectsService {
 
   static async querySubProjects(query: any) {
     const response = await authAxios.post(
-      '/collections/insights-projects/query-sub-projects',
+      '/segment/subproject/query-lite',
       query,
     );
     return response.data;

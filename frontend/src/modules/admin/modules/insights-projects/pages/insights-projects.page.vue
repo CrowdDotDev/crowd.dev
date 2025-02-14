@@ -9,7 +9,11 @@
         placeholder="Search projects..."
         @update:model-value="searchProjects()"
       />
-      <lf-button size="medium" type="secondary-ghost" @click="openInsightsProjectAdd">
+      <lf-button
+        size="medium"
+        type="secondary-ghost"
+        @click="openInsightsProjectAdd"
+      >
         <lf-icon name="plus" :size="16" />
         Add project
       </lf-button>
@@ -66,13 +70,14 @@
   <lf-insights-project-add
     v-if="isProjectDialogOpen"
     v-model="isProjectDialogOpen"
-    :insights-project="projectEditObject"
+    :insights-project-id="projectEditObject?.id"
     @on-insights-project-created="onInsightsProjectDialogCloseSuccess"
     @on-insights-project-edited="onInsightsProjectDialogCloseSuccess"
     @update:model-value="onInsightsProjectDialogClose"
   />
 
   <app-delete-confirm-dialog
+    v-if="removeProject"
     v-model="removeProject"
     title="Are you sure you want to remove this project from Insights?"
     description="This will remove the project permanently. You can’t undo this action."
