@@ -23,7 +23,7 @@ import {
   updateCollection,
   updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
+import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
@@ -237,7 +237,14 @@ export class CollectionService extends LoggerBase {
         insightsProjectIds: [id],
       })
 
-      const segment = await findSegmentById(qx, project.segmentId)
+      const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
+      const organization = project.organizationId
+        ? await findOrgById(qx, project.organizationId, [
+            OrganizationField.ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOGO,
+          ])
+        : null
 
       const collections =
         connections.length > 0
@@ -257,6 +264,11 @@ export class CollectionService extends LoggerBase {
           name: segment?.name,
           slug: segment?.slug,
           logo: segment?.url,
+        },
+        organization: {
+          id: organization?.id,
+          displayName: organization?.displayName,
+          logo: organization?.logo,
         },
       }
     })
