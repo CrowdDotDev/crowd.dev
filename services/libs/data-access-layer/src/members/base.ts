@@ -318,11 +318,13 @@ export async function queryMembersAdvanced(
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
-        qx,
-        member.id,
-        memberOrgs.map((o) => o.id),
-      )
+      const affiliationOverrides = memberOrgs.length
+        ? await findMemberOrganizationAffiliationOverrides(
+            qx,
+            member.id,
+            memberOrgs.map((o) => o.id),
+          )
+        : []
 
       member.organizations = memberOrgs.map((o) => ({
         id: o.organizationId,
