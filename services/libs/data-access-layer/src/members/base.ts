@@ -17,6 +17,7 @@ import {
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
+import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
@@ -313,15 +314,25 @@ export async function queryMembersAdvanced(
         })
       : []
 
-    rows.forEach((member) => {
-      member.organizations = (
+    for (const member of rows) {
+      const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
-      ).map((o) => ({
+
+      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+        qx,
+        member.id,
+        memberOrgs.map((o) => o.id),
+      )
+
+      member.organizations = memberOrgs.map((o) => ({
         id: o.organizationId,
         ...orgExtra.find((odn) => odn.id === o.organizationId),
-        memberOrganizations: o,
+        memberOrganizations: {
+          ...o,
+          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === o.id),
+        },
       }))
-    })
+    }
   }
   if (include.lfxMemberships) {
     const lfxMemberships = await findManyLfxMemberships(qx, {
