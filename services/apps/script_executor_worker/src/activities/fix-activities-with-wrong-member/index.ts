@@ -7,6 +7,7 @@ import { svc } from '../../main'
 
 export async function findActivitiesWithWrongMembers(
   limit: number,
+  excludeMemberIds?: string[],
 ): Promise<IFindActivitiesWithWrongMembersResult[]> {
   let activitiesWithWrongMember = []
 
@@ -16,7 +17,10 @@ export async function findActivitiesWithWrongMembers(
       svc.log,
       svc.questdbSQL,
     )
-    activitiesWithWrongMember = await activityRepo.getActivitiesWithWrongMembers(limit)
+    activitiesWithWrongMember = await activityRepo.getActivitiesWithWrongMembers(
+      limit,
+      excludeMemberIds,
+    )
   } catch (err) {
     throw new Error(err)
   }

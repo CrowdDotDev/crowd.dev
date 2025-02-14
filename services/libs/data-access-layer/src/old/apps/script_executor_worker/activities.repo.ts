@@ -12,20 +12,22 @@ export class ActivityRepository {
 
   async getActivitiesWithWrongMembers(
     limit = 100,
+    excludeMemberIds?: string[],
   ): Promise<IFindActivitiesWithWrongMembersResult[]> {
     try {
-      return await this.connection.query(
-        `
+      const query = `
         SELECT DISTINCT a."memberId", a.username, a.platform
         FROM activities a
         LEFT JOIN "memberIdentities" mi ON a."memberId" = mi."memberId"
         WHERE mi."memberId" IS NULL
+        ${excludeMemberIds?.length ? 'AND a."memberId" NOT IN ($(excludeMemberIds:csv))' : ''}
         LIMIT $(limit)
-        `,
-        {
-          limit,
-        },
-      )
+      `
+
+      return await this.connection.query(query, {
+        limit,
+        excludeMemberIds,
+      })
     } catch (err) {
       this.log.error('Error while finding activities!', err)
       throw new Error(err)

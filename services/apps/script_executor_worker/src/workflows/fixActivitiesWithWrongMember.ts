@@ -19,6 +19,8 @@ export async function fixActivitiesWithWrongMember(
     return
   }
 
+  const membersWithoutIdentities = new Set<string>()
+
   while (records.length > 0) {
     for (const record of records) {
       console.log(`Processing activity with memberId: ${record.memberId}`)
@@ -26,6 +28,7 @@ export async function fixActivitiesWithWrongMember(
       const memberIdentity = await activity.findMemberIdentity(record.username, record.platform)
       if (!memberIdentity) {
         console.log(`Member identity not found for ${record.username} on ${record.platform}`)
+        membersWithoutIdentities.add(record.memberId)
         continue
       }
 
@@ -38,8 +41,13 @@ export async function fixActivitiesWithWrongMember(
       break
     }
 
-    records = await activity.findActivitiesWithWrongMembers(BATCH_SIZE)
+    // Subsequent queries with excluded memberIds
+    records = await activity.findActivitiesWithWrongMembers(
+      BATCH_SIZE,
+      Array.from(membersWithoutIdentities),
+    )
   }
 
+  console.log(`Members without identities: ${membersWithoutIdentities.size}`)
   console.log('Completed processing all members!')
 }
