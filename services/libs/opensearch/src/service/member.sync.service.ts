@@ -383,6 +383,8 @@ export class MemberSyncService {
   ): Promise<IMemberSyncResult> {
     const qx = repoQx(this.memberRepo)
 
+    this.log.info('opts withAggs', { withAggs: opts.withAggs })
+
     const syncMemberAggregates = async (memberId) => {
       if (opts.syncFrom) {
         const lastSyncDate = await findLastSyncDate(qx, memberId)
