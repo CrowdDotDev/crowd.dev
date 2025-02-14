@@ -194,7 +194,7 @@ export async function findOrgByVerifiedIdentity(
           )
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          whereo.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          where o.id in (select distinct "organizationId" from "organizationsWithIdentity")
           limit 1;
     `,
     {
