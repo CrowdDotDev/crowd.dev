@@ -13,10 +13,7 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberSync(
-    memberId: string,
-    opts: { withAggs?: boolean } = {},
-  ): Promise<void> {
+  public async triggerMemberSync(memberId: string, opts?: { withAggs?: boolean }): Promise<void> {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
