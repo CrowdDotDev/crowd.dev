@@ -25,6 +25,7 @@ import {
 } from '@crowd/data-access-layer/src/collections'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
+import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -236,6 +237,8 @@ export class CollectionService extends LoggerBase {
         insightsProjectIds: [id],
       })
 
+      const segment = await findSegmentById(qx, project.segmentId)
+
       const collections =
         connections.length > 0
           ? await queryCollections(qx, {
@@ -249,6 +252,12 @@ export class CollectionService extends LoggerBase {
       return {
         ...project,
         collections,
+        segment: {
+          id: segment?.id,
+          name: segment?.name,
+          slug: segment?.slug,
+          logo: segment?.url,
+        },
       }
     })
   }
