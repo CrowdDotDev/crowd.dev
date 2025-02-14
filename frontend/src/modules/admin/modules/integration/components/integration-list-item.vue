@@ -77,7 +77,7 @@
             :segment-id="route.params.id"
             :grandparent-id="route.params.grandparentId"
           />
-          <lf-dropdown placement="bottom-end" width="14.5rem" :persistent="true">
+          <lf-dropdown placement="bottom-end" width="14.5rem">
             <template #trigger>
               <lf-button type="secondary-ghost" icon-only>
                 <lf-icon name="ellipsis" />
