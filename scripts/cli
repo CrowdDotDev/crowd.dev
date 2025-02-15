@@ -688,12 +688,24 @@ function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
+function download_kafka_connect_http() {
+    say "Downloading Kafka Connect HTTP plugin..."
+    wget -nv https://github.com/lensesio/stream-reactor/releases/download/8.1.28/kafka-connect-http-8.1.28.zip -O $CLI_HOME/kafka-connect-http.zip
+    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
+    rm $CLI_HOME/kafka-connect-http.zip
+    say "Kafka Connect HTTP plugin downloaded."
+}
+
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
     local profile=''
     if [[ -n "${WITH_NGINX}" ]]; then
         profile='--profile nginx'
+    fi
+
+    if [[ ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" ]]; then
+        download_kafka_connect_http
     fi
 
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
