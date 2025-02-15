@@ -1,0 +1,332 @@
+---
+databases:
+  - id: c48fc2a4-7c08-4f5d-91eb-acdbb96f74b8
+    name: crowd.dev
+    port: 5432
+    ssl: false
+    ipv6: false
+    hostname: db
+    tables:
+      - table_name: activities
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: integrations
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: memberOrganizations
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: members
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: organizations
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: memberIdentities
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: segments
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: memberSegments
+        table_schema: public
+        sort_column_name: createdAt
+      - table_name: organizationSegments
+        table_schema: public
+        sort_column_name: createdAt
+      - table_name: memberSegmentAffiliations
+        table_schema: public
+        sort_column_name: id
+      - table_name: organizationIdentities
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: githubRepos
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: organizationSegmentsAgg
+        table_schema: public
+        sort_column_name: id
+      - table_name: memberSegmentsAgg
+        table_schema: public
+        sort_column_name: createdAt
+      - table_name: gitlabRepos
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: maintainersInternal
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: memberOrganizationAffiliationOverrides
+        table_schema: public
+        sort_column_name: id
+    password: example
+    username: postgres
+    pool_size: 3
+    database: crowd-web
+    use_local_tunnel: false
+    slot_name: sequin_slot
+    publication_name: sequin_pub
+sinks:
+  - name: members_sink
+    status: active
+    table: public.members
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-members
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: organizationSegments_sink
+    status: active
+    table: public.organizationSegments
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-organizationSegments
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - organizationId
+      - segmentId
+      - tenantId
+      - createdAt
+    consumer_start:
+      position: beginning | end | from with value
+  - name: organizationIdentities_sink
+    status: active
+    table: public.organizationIdentities
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-organizationIdentities
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - organizationId
+      - platform
+      - type
+      - value
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberSegmentsAgg_sink
+    status: active
+    table: public.memberSegmentsAgg
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberSegmentsAgg
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: organizations_sink
+    status: active
+    table: public.organizations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-organizations
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: activities_sink
+    status: active
+    table: public.activities
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-activities
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberSegments_sink
+    status: active
+    table: public.memberSegments
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberSegments
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - memberId
+      - segmentId
+      - tenantId
+      - createdAt
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberOrganizations_sink
+    status: active
+    table: public.memberOrganizations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberOrganizations
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberOrganizationAffiliationOverrides_sink
+    status: active
+    table: public.memberOrganizationAffiliationOverrides
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberOrganizationAffiliationOverrides
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: gitlabRepos_sink
+    status: active
+    table: public.gitlabRepos
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-gitlabRepos
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: githubRepos_sink
+    status: active
+    table: public.githubRepos
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-githubRepos
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: maintainersInternal_sink
+    status: active
+    table: public.maintainersInternal
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-maintainersInternal
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberIdentities_sink
+    status: active
+    table: public.memberIdentities
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberIdentities
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: memberSegmentAffiliations_sink
+    status: active
+    table: public.memberSegmentAffiliations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-memberSegmentAffiliations
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: integrations_sink
+    status: active
+    table: public.integrations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-integratons
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: organizationSegmentsAgg_sink
+    status: active
+    table: public.organizationSegmentsAgg
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-organizationSegmentsAgg
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning | end | from with value
+  - name: segments_sink
+    status: active
+    table: public.segments
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: sequin-segments
+    database: crowd.dev
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: end
