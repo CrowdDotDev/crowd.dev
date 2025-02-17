@@ -107,7 +107,7 @@ export async function updateActivities(
 function getChangedRelationshipFields(
   activity: IDbActivityCreateData,
   newActivity: IDbActivityCreateData,
-) {
+): Partial<IDbActivityCreateData> {
   const updatedData = {}
   const relationships = [
     'memberId',
