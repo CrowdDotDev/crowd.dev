@@ -1,4 +1,3 @@
-import { moveActivityRelationsToAnotherOrganization } from '@crowd/data-access-layer'
 import {
   deleteOrganizationById,
   deleteOrganizationSegments,
@@ -30,11 +29,13 @@ export async function moveActivitiesBetweenOrgs(
   secondaryId: string,
   tenantId: string,
 ): Promise<void> {
-  await moveActivitiesToNewOrg(svc.questdbSQL, svc.queue, primaryId, secondaryId, tenantId)
-  await moveActivityRelationsToAnotherOrganization(
-    dbStoreQx(svc.postgres.writer),
+  await moveActivitiesToNewOrg(
+    svc.questdbSQL,
+    svc.postgres.writer.connection(),
+    svc.queue,
     primaryId,
     secondaryId,
+    tenantId,
   )
 }
 

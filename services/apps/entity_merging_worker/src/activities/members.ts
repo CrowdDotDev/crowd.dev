@@ -1,18 +1,11 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
-import {
-  moveActivityRelationsToAnotherMember,
-  moveActivityRelationsWithIdentityToAnotherMember,
-} from '@crowd/data-access-layer'
 import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
   cleanupMember,
   deleteMemberSegments,
-  findMemberById,
-  getIdentitiesWithActivity,
-  moveIdentityActivitiesToNewMember,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import { figureOutNewOrgId } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import { prepareMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
@@ -33,49 +26,6 @@ export async function deleteMember(memberId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
   await cleanupMemberAggregates(qx, memberId)
   await cleanupMember(svc.postgres.writer, memberId)
-}
-
-export async function moveActivitiesWithIdentityToAnotherMember(
-  fromId: string,
-  toId: string,
-  identities: IMemberIdentity[],
-  tenantId: string,
-): Promise<void> {
-  const memberExists = await findMemberById(svc.postgres.writer, toId, tenantId)
-
-  if (!memberExists) {
-    return
-  }
-
-  const identitiesWithActivity = await getIdentitiesWithActivity(
-    svc.postgres.writer,
-    fromId,
-    tenantId,
-    identities,
-  )
-
-  for (const identity of identities.filter(
-    (i) =>
-      i.type === MemberIdentityType.USERNAME &&
-      identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
-  )) {
-    await moveIdentityActivitiesToNewMember(
-      svc.questdbSQL,
-      svc.queue,
-      tenantId,
-      fromId,
-      toId,
-      identity.value,
-      identity.platform,
-    )
-    await moveActivityRelationsWithIdentityToAnotherMember(
-      dbStoreQx(svc.postgres.writer),
-      fromId,
-      toId,
-      identity.value,
-      identity.platform,
-    )
-  }
 }
 
 export async function recalculateActivityAffiliationsOfMemberAsync(
@@ -199,6 +149,7 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
 
   await updateActivities(
     qDb,
+    pgpQx(svc.postgres.writer.connection()),
     queueClient,
     [
       async () => ({ memberId: newMemberId }),
@@ -247,6 +198,7 @@ export async function finishMemberUnmergingUpdateActivities({
 
   await updateActivities(
     qDb,
+    pgpQx(svc.postgres.writer.connection()),
     queueClient,
     [
       async (activity) => moveByIdentities({ activity, identities, newMemberId }),
