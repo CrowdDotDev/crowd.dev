@@ -345,6 +345,7 @@ export async function runMemberAffiliationsUpdate(
 
   const { processed, duration } = await updateActivities(
     qDb,
+    qx,
     queueClient,
     async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
     `

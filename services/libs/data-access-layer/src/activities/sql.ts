@@ -1523,6 +1523,26 @@ export async function updateActivityRelationsById(
   await qe.result(query, data)
 }
 
+export async function updateActivityRelationsByMemberId(
+  qe: QueryExecutor,
+  memberId: string,
+  data: IActivityRelationUpdateById,
+): Promise<void> {
+  const fields: string[] = []
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && key !== 'activityId') {
+      fields.push(`"${key}" = $(${key})`)
+    }
+  }
+
+  if (fields.length === 0) return
+
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "memberId" = $(memberId)`
+
+  await qe.result(query, data)
+}
+
 export async function moveActivityRelationsToAnotherMember(
   qe: QueryExecutor,
   fromId: string,

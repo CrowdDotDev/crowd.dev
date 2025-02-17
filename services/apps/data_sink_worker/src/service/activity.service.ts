@@ -1362,6 +1362,7 @@ export default class ActivityService extends LoggerBase {
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
+        dbStoreQx(this.pgStore),
         this.client,
         async (activity) => ({
           attributes: {
@@ -1412,6 +1413,7 @@ export default class ActivityService extends LoggerBase {
 
     await updateActivities(
       this.qdbStore.connection(),
+      dbStoreQx(this.pgStore),
       this.client,
       async () => ({
         sourceParentId: activity.sourceId,
