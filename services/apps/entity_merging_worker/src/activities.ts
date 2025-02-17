@@ -1,12 +1,13 @@
 export {
   deleteMember,
-  moveActivitiesBetweenMembers,
   moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   syncMember,
   notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
   syncRemoveMember,
+  finishMemberMergingUpdateActivities,
+  finishMemberUnmergingUpdateActivities,
 } from './activities/members'
 
 export {
