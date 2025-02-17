@@ -519,7 +519,7 @@ function migrate_env() {
     fi
 
     say "Building flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying PostgreSQL migrations to $CROWD_DB_WRITE_HOST!"
     docker run --rm \
         -e PGHOST=$CROWD_DB_WRITE_HOST \
@@ -618,7 +618,7 @@ function migrate_tinybird_local() {
 
 function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying PostgreSQL migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \
