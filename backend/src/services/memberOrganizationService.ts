@@ -101,7 +101,7 @@ export default class MemberOrganizationService extends LoggerBase {
       (m) => mergeStrat.entityId(m) === secondaryId,
     )
 
-    this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
+    await this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
 
     // update rest of the o2 members
     const remainingRoles = await MemberOrganizationRepository.findNonIntersectingRoles(

@@ -19,68 +19,56 @@ class MemberOrganizationsRepository {
     memberId: string,
     options: IRepositoryOptions,
   ): Promise<IRenderFriendlyMemberOrganization[]> {
-    const transaction = await SequelizeRepository.createTransaction(options)
-    try {
-      const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      // Fetch member organizations
-      const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(
-        qx,
-        memberId,
-      )
+    // Fetch member organizations
+    const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(qx, memberId)
 
-      // Parse unique organization ids
-      const orgIds: string[] = [...new Set(memberOrganizations.map((mo) => mo.organizationId))]
-
-      // Fetch organizations
-      let organizations: IOrganizationSummary[] = []
-      if (orgIds.length) {
-        organizations = await queryOrgs(qx, {
-          filter: {
-            [OrganizationField.ID]: {
-              in: orgIds,
-            },
-          },
-          fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
-        })
-      }
-
-      // Fetch affiliation overrides
-      const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
-        qx,
-        memberId,
-        memberOrganizations.map((mo) => mo.id),
-      )
-
-      // Create mapping by id to speed up the processing
-      const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(
-        (obj: Record<string, IOrganizationSummary>, org) => ({
-          ...obj,
-          [org.id]: org,
-        }),
-        {},
-      )
-
-      // Format the results
-      const result: IRenderFriendlyMemberOrganization[] = memberOrganizations.map((mo) => ({
-        ...(orgByid[mo.organizationId] || {}),
-        id: mo.organizationId,
-        memberOrganizations: {
-          ...mo,
-          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === mo.id),
-        },
-      }))
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      return result
-    } catch (err) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
-      throw err
+    if (memberOrganizations.length === 0) {
+      return []
     }
+
+    // Parse unique organization ids
+    const orgIds: string[] = [...new Set(memberOrganizations.map((mo) => mo.organizationId))]
+
+    // Fetch organizations
+    let organizations: IOrganizationSummary[] = []
+    if (orgIds.length) {
+      organizations = await queryOrgs(qx, {
+        filter: {
+          [OrganizationField.ID]: {
+            in: orgIds,
+          },
+        },
+        fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+      })
+    }
+
+    // Fetch affiliation overrides
+    const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+      qx,
+      memberId,
+      memberOrganizations.map((mo) => mo.id),
+    )
+
+    // Create mapping by id to speed up the processing
+    const orgByid: Record<string, IOrganizationSummary> = organizations.reduce(
+      (obj: Record<string, IOrganizationSummary>, org) => ({
+        ...obj,
+        [org.id]: org,
+      }),
+      {},
+    )
+
+    // Format the results
+    return memberOrganizations.map((mo) => ({
+      ...(orgByid[mo.organizationId] || {}),
+      id: mo.organizationId,
+      memberOrganizations: {
+        ...mo,
+        affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === mo.id),
+      },
+    }))
   }
 
   static async create(

@@ -168,6 +168,38 @@ setImmediate(async () => {
     next()
   })
 
+  app.use('/health', async (req: any, res) => {
+    try {
+      const seq = SequelizeRepository.getSequelize(req)
+
+      const [osPingRes, redisPingRes, dbPingRes, temporalPingRes] = await Promise.all([
+        // ping opensearch
+        opensearch.ping().then((res) => res.body),
+        // ping redis,
+        redis.ping().then((res) => res === 'PONG'),
+        // ping database
+        seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
+        // ping temporal
+        req.temporal
+          ? (req.temporal as TemporalClient).workflowService.getSystemInfo({}).then(() => true)
+          : Promise.resolve(true),
+      ])
+
+      if (osPingRes && redisPingRes && dbPingRes && temporalPingRes) {
+        res.sendStatus(200)
+      } else {
+        res.status(500).json({
+          opensearch: osPingRes,
+          redis: redisPingRes,
+          database: dbPingRes,
+          temporal: temporalPingRes,
+        })
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message, stack: err.stack })
+    }
+  })
+
   // Configure the Entity routes
   const routes = express.Router()
 
@@ -206,38 +238,6 @@ setImmediate(async () => {
   require('./dataQuality').default(routes)
 
   app.use('/', routes)
-
-  app.use('/health', async (req: any, res) => {
-    try {
-      const seq = SequelizeRepository.getSequelize(req)
-
-      const [osPingRes, redisPingRes, dbPingRes, temporalPingRes] = await Promise.all([
-        // ping opensearch
-        opensearch.ping().then((res) => res.body),
-        // ping redis,
-        redis.ping().then((res) => res === 'PONG'),
-        // ping database
-        seq.query('select 1', { type: QueryTypes.SELECT }).then((rows) => rows.length === 1),
-        // ping temporal
-        req.temporal
-          ? (req.temporal as TemporalClient).workflowService.getSystemInfo({}).then(() => true)
-          : Promise.resolve(true),
-      ])
-
-      if (osPingRes && redisPingRes && dbPingRes && temporalPingRes) {
-        res.sendStatus(200)
-      } else {
-        res.status(500).json({
-          opensearch: osPingRes,
-          redis: redisPingRes,
-          database: dbPingRes,
-          temporal: temporalPingRes,
-        })
-      }
-    } catch (err) {
-      res.status(500).json({ error: err.message, stack: err.stack })
-    }
-  })
 
   app.use(errorMiddleware)
 })

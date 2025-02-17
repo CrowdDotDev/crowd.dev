@@ -1137,6 +1137,7 @@ export default class ActivityService extends LoggerBase {
               objectMemberId,
               objectMemberUsername,
               attributes:
+                IS_GITHUB_SNOWFLAKE_ENABLED &&
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT
                   ? await this.findMatchingGitActivityAttributes({

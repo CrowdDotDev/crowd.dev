@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import QueryStream from 'pg-query-stream'
 
 import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
@@ -7,9 +6,9 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { IMemberOrganization } from '@crowd/types'
 
-import { insertActivities, updateActivityRelationsById } from '../../../activities'
+import { updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { dbStoreQx, formatQuery, pgpQx } from '../../../queryExecutor'
+import { QueryExecutor, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
@@ -17,13 +16,24 @@ import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 const logger = getServiceChildLogger('profiles_worker')
 const tenantId = getDefaultTenantId()
 
-export async function runMemberAffiliationsUpdate(
-  pgDb: DbStore,
-  qDb: DbConnOrTx,
-  queueClient: IQueue,
-  memberId: string,
-) {
-  const qx = pgpQx(pgDb.connection())
+type Condition = {
+  when: string[]
+  orgId: string
+  matches: (activity: IDbActivityCreateData) => boolean
+}
+
+type MemberOrganizationWithOverrides = IMemberOrganization & {
+  isPrimaryWorkExperience: boolean
+  memberCount: number
+}
+
+type TimelineItem = {
+  organizationId: string
+  isPrimaryWorkExperience: boolean
+  withDates?: boolean
+}
+
+export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberId: string) {
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }
@@ -40,23 +50,6 @@ export async function runMemberAffiliationsUpdate(
       return tsBetween(start, end)
     }
     return tsAfter(start)
-  }
-
-  type Condition = {
-    when: string[]
-    orgId: string
-    matches: (activity: IDbActivityCreateData) => boolean
-  }
-
-  type MemberOrganizationWithOverrides = IMemberOrganization & {
-    isPrimaryWorkExperience: boolean
-    memberCount: number
-  }
-
-  type TimelineItem = {
-    organizationId: string
-    isPrimaryWorkExperience: boolean
-    withDates?: boolean
   }
 
   const condition = ({ when, orgId }: Condition) => {
@@ -325,64 +318,44 @@ export async function runMemberAffiliationsUpdate(
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  async function insertIfMatches(activity: IDbActivityCreateData) {
-    activity.organizationId = fallbackOrganizationId || null
+  return { orgCases, fullCase }
+}
 
-    if (orgCases.length > 0) {
-      for (const condition of orgCases) {
-        if (condition.matches(activity)) {
-          activity.organizationId = condition.orgId
-          break
-        }
+export function figureOutNewOrgId(activity: IDbActivityCreateData, orgCases: Condition[]) {
+  if (orgCases.length > 0) {
+    for (const condition of orgCases) {
+      if (condition.matches(activity)) {
+        return condition.orgId
       }
     }
-
-    await insertActivities(queueClient, [activity], true)
-    return activity
   }
 
-  const qs = new QueryStream(
-    formatQuery(
-      `
-        SELECT *
-        FROM activities
-        WHERE "memberId" = $(memberId)
-          AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-            ${fullCase},
-            cast('00000000-0000-0000-0000-000000000000' as uuid)
-          )
-      `,
-      { memberId },
-    ),
+  return null
+}
+
+export async function runMemberAffiliationsUpdate(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  queueClient: IQueue,
+  memberId: string,
+) {
+  const qx = pgpQx(pgDb.connection())
+
+  const { orgCases, fullCase } = await prepareMemberAffiliationsUpdate(qx, memberId)
+
+  const { processed, duration } = await updateActivities(
+    qDb,
+    queueClient,
+    async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
+    `
+      "memberId" = $(memberId)
+      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+        ${fullCase},
+        cast('00000000-0000-0000-0000-000000000000' as uuid)
+      )
+    `,
+    { memberId },
   )
-  const batchSize = 100
-  let activityRelationPromises: Promise<void>[] = []
-
-  const batchProcessActivityRelations = async () => {
-    await Promise.all(activityRelationPromises)
-    activityRelationPromises = []
-  }
-
-  const { processed, duration } = await qDb.stream(qs, async (stream) => {
-    for await (const activity of stream) {
-      const activityWithCorrectOrgId = await insertIfMatches(
-        activity as unknown as IDbActivityCreateData,
-      )
-      activityRelationPromises.push(
-        updateActivityRelationsById(dbStoreQx(pgDb), {
-          activityId: activityWithCorrectOrgId.id,
-          organizationId: activityWithCorrectOrgId.organizationId,
-        }),
-      )
-
-      if (activityRelationPromises.length >= batchSize) {
-        await batchProcessActivityRelations()
-      }
-    }
-
-    // process the last batch (if any)
-    await batchProcessActivityRelations()
-  })
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)
 }

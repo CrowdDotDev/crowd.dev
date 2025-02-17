@@ -631,6 +631,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/queue':
+        specifier: workspace:*
+        version: link:../../libs/queue
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
