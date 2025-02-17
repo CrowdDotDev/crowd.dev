@@ -221,3 +221,18 @@ export async function fetchGlobalIntegrationsStatusCount(
     },
   )
 }
+
+export async function fetchIntegrationsForSegment(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<IIntegration[]> {
+  return qx.select(
+    `
+      SELECT *
+      FROM "integrations" i
+      WHERE i."segmentId" = $(segmentId)
+        AND i."deletedAt" IS NULL
+    `,
+    { segmentId },
+  )
+}

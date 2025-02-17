@@ -23,10 +23,12 @@ import {
   updateCollection,
   updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
+import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -361,5 +363,56 @@ export class CollectionService extends LoggerBase {
       })
       return txSvc.findInsightsProjectById(id)
     })
+  }
+
+  async findRepositoriesForSegment(segmentId: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+
+    const result = {}
+    const addToResult = (platform: PlatformType, url: string) => {
+      if (!result[url]) {
+        result[url] = []
+      }
+      if (!result[url].includes(platform)) {
+        result[url].push(platform)
+      }
+    }
+
+    for (const i of integrations) {
+      if (i.platform === PlatformType.GITHUB) {
+        for (const r of (i.settings as any).repos) {
+          addToResult(i.platform, `${r.owner}/${r.name}`)
+        }
+      }
+
+      if (i.platform === PlatformType.GIT) {
+        for (const r of (i.settings as any).remotes) {
+          if (r.includes('https://gitlab.com')) {
+            addToResult(i.platform, r.replace('https://gitlab.com/', ''))
+          } else if (r.includes('https://github.com')) {
+            addToResult(i.platform, r.replace('https://github.com/', ''))
+          } else {
+            addToResult(i.platform, r)
+          }
+        }
+      }
+
+      if (i.platform === PlatformType.GITLAB) {
+        for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
+          for (const r of group) {
+            addToResult(i.platform, r.path_with_namespace)
+          }
+        }
+      }
+
+      if (i.platform === PlatformType.GERRIT) {
+        for (const r of (i.settings as any).remote.repos) {
+          addToResult(i.platform, r)
+        }
+      }
+    }
+
+    return result
   }
 }

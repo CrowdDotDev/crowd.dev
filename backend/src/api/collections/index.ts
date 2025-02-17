@@ -29,4 +29,6 @@ export default (app) => {
   app.get('/collections/:id', safeWrap(require('./collectionsGet').default))
   app.post('/collections/:id', safeWrap(require('./collectionsUpdate').default))
   app.delete('/collections/:id', safeWrap(require('./collectionsDestroy').default))
+
+  app.get('/segments/:id/repositories', safeWrap(require('./segmentsRepositoriesGet').default))
 }
