@@ -41,6 +41,7 @@ import { storeToRefs } from 'pinia';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -49,7 +50,9 @@ const props = defineProps<{
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const organization = computed(() => props.contributor.organizations?.[0]);
+const { activeOrganization } = useContributorHelpers();
+
+const organization = computed(() => activeOrganization(props.contributor));
 const jobTitle = computed(() => organization.value?.memberOrganizations?.title
     || props.contributor.attributes?.jobTitle?.default);
 </script>

@@ -48,7 +48,7 @@ export default class SearchSyncService extends LoggerBase {
     return process()
   }
 
-  async triggerMemberSync(tenantId: string, memberId: string, opts: { withAggs?: boolean } = {}) {
+  async triggerMemberSync(tenantId: string, memberId: string, opts?: { withAggs?: boolean }) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {

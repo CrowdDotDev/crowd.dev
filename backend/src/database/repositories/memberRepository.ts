@@ -543,8 +543,7 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     for (const i of identitiesToMove) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { rowCount } = await moveToNewMember(qx, {
+      await moveToNewMember(qx, {
         tenantId: tenant.id,
         oldMemberId: fromMemberId,
         newMemberId: toMemberId,
@@ -552,10 +551,6 @@ class MemberRepository {
         value: i.value,
         type: i.type,
       })
-
-      if (rowCount !== 1) {
-        throw new Error('One row should be updated!')
-      }
     }
 
     if (identitiesToUpdate.length > 0) {
