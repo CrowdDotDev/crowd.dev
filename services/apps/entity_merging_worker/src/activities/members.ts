@@ -145,7 +145,7 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
   const queueClient = svc.queue
 
   const qx = pgpQx(pgDb.connection())
-  const { orgCases } = await prepareMemberAffiliationsUpdate(qx, memberId)
+  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
 
   await updateActivities(
     qDb,
@@ -153,7 +153,9 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
     queueClient,
     [
       async () => ({ memberId: newMemberId }),
-      async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
+      async (activity) => ({
+        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+      }),
     ],
     `"memberId" = $(memberId)`,
     {
@@ -194,7 +196,7 @@ export async function finishMemberUnmergingUpdateActivities({
   const queueClient = svc.queue
 
   const qx = pgpQx(pgDb.connection())
-  const { orgCases } = await prepareMemberAffiliationsUpdate(qx, memberId)
+  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
 
   await updateActivities(
     qDb,
@@ -203,7 +205,7 @@ export async function finishMemberUnmergingUpdateActivities({
     [
       async (activity) => moveByIdentities({ activity, identities, newMemberId }),
       async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases),
+        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
       }),
     ],
     `"memberId" = $(memberId)`,
