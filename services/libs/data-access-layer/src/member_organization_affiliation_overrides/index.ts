@@ -104,3 +104,26 @@ export async function findOverrides(
 
   return results
 }
+
+export async function findPrimaryWorkExperiencesOfMember(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<IMemberOrganizationAffiliationOverride[]> {
+  const overrides: IMemberOrganizationAffiliationOverride[] = await qx.select(
+    `
+      SELECT 
+        id,
+        "memberId",
+        "memberOrganizationId",
+        coalesce("allowAffiliation", true) as "allowAffiliation",
+        coalesce("isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+      FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberId" = $(memberId)
+      AND "isPrimaryWorkExperience" = true
+    `,
+    {
+      memberId,
+    },
+  )
+  return overrides
+}
