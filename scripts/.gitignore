@@ -1,3 +1,5 @@
 db_dumps/*
 !db_dumps/.gitkeep
 .env
+kafka-connect-http.zip
+scaffold/kafka-connect/kafka-connect-http/*
