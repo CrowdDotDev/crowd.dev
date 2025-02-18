@@ -3,6 +3,10 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 import { loadJobs } from './loader'
 
+if (process.argv.length !== 3) {
+  throw new Error(`Needs job name as argument!`)
+}
+
 const jobName = process.argv[2]
 
 const log = getServiceChildLogger(`worker/job/${jobName}`)
