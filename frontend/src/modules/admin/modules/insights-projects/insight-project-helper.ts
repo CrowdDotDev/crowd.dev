@@ -15,36 +15,43 @@ export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   linkedin: form.linkedin,
   repositories: form.repositories
     .filter((repository: any) => repository.enabled)
-    .map((repository: any) => repository.url),
+    .map((repository: any) => ({
+      url: repository.url,
+      platforms: repository.platforms,
+    })),
   widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key]),
 });
 
-export const buildForm = (result: InsightsProjectModel, repositories: any): InsightsProjectAddFormModel => ({
+export const buildForm = (
+  result: InsightsProjectModel,
+  repositories: any[],
+): InsightsProjectAddFormModel => ({
   ...result,
   organizationId: result.organization.id,
   collectionsIds: result.collections.map((collection: any) => collection.id),
-  repositories,
-  // repositories:repositories.map((repository: any) => ({
-  //     ...repository,
-  //     enabled: result.repositories.some((repo: any) => repo.url === repository.url),
-  // })),
-  widgets: Object.keys(defaultWidgetsValues).reduce((acc, key: string) => ({
-    ...acc,
-    [key]: !!result.widgets.includes(key),
-  }), {}),
+  repositories: repositories.map((repository: any) => ({
+    ...repository,
+    enabled: result.repositories?.some(
+      (repo: any) => repo.url === repository.url,
+    ),
+  })),
+  widgets: Object.keys(defaultWidgetsValues).reduce(
+    (acc, key: string) => ({
+      ...acc,
+      [key]: !!result.widgets.includes(key),
+    }),
+    {},
+  ),
 });
 
-/**
- *
- * {
-  repositories: {
-    url: string;
-    enabled: boolean;
-    platforms: string[];
-  }[];
-  widgets: {
-    [key: string]: boolean;
-  };
-}
- *
- */
+export const buildRepositories = (res: any) => {
+  const repositories: any[] = [];
+  Object.keys(res).forEach((repoUrl: string) => {
+    repositories.push({
+      url: repoUrl,
+      enabled: true,
+      platforms: res[repoUrl],
+    });
+  });
+  return repositories;
+};

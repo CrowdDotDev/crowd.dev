@@ -74,7 +74,7 @@
               <lf-insights-project-add-repository-tab
                 v-if="activeTab === 'repositories'"
                 :form="form"
-                :repositories="repositories"
+                :repositories="form.repositories"
               />
               <lf-insights-project-add-widgets-tab
                 v-if="activeTab === 'widgets'"
@@ -127,7 +127,11 @@ import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-ta
 import { CollectionsService } from '../../collections/services/collections.service';
 import { defaultWidgetsValues } from '../widgets';
 import { InsightsProjectsService } from '../services/insights-projects.service';
-import { buildForm, buildRequest } from '../insight-project-helper';
+import {
+  buildForm,
+  buildRepositories,
+  buildRequest,
+} from '../insight-project-helper';
 import LfCmSubProjectListDropdown from './lf-cm-sub-project-list-dropdown.vue';
 
 const collectionsStore = useCollectionsStore();
@@ -145,73 +149,12 @@ const props = defineProps<{
 }>();
 
 const activeTab = ref('details');
-const repositories = ref([
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: false,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-  {
-    url: 'https://github.com/leetsoftware/leet-docs',
-    platforms: ['github', 'git', 'gitlab', 'gerrit'],
-    enabled: true,
-  },
-]);
+
 const loading = ref(false);
 const submitLoading = ref(false);
 const insightsProject = ref<InsightsProjectModel | null>(null);
 
-const initialFormState = {
+const initialFormState: InsightsProjectAddFormModel = {
   segmentId: '',
   name: '',
   description: '',
@@ -222,7 +165,7 @@ const initialFormState = {
   github: '',
   twitter: '',
   linkedin: '',
-  repositories: repositories.value,
+  repositories: [],
   widgets: cloneDeep(defaultWidgetsValues),
 };
 const form = reactive<InsightsProjectAddFormModel>(cloneDeep(initialFormState));
@@ -276,23 +219,27 @@ onMounted(() => {
 });
 
 const openModalEditMode = (insightsProjectId: string) => {
-  // TODO: fetch CM repositories
   InsightsProjectsService.getById(insightsProjectId).then((res) => {
     insightsProject.value = res;
-    const form = buildForm(res, repositories.value);
-    fetchOrganizations(form.segmentId);
-    fillForm(form);
-    loading.value = false;
+    fetchRepositories(res.segment.id, () => {
+      debugger;
+      const form = buildForm(res, initialFormState.repositories);
+      fetchOrganizations(form.segmentId);
+      fillForm(form);
+      loading.value = false;
+    });
   });
 };
 
 const onProjectSelection = ({ project }: any) => {
-  Object.assign(form, initialFormState);
-  form.segmentId = project.id;
-  form.name = project.name;
-  form.description = project.description;
-  form.logoUrl = project.url;
-  fetchOrganizations(project.id);
+  fetchRepositories(project.id, () => {
+    Object.assign(form, initialFormState);
+    form.segmentId = project.id;
+    form.name = project.name;
+    form.description = project.description;
+    form.logoUrl = project.url;
+    fetchOrganizations(project.id);
+  });
 };
 
 const onCancel = () => {
@@ -369,6 +316,15 @@ const fetchOrganizations = async (segmentId: string) => {
       },
     })
     .then(() => {});
+};
+
+const fetchRepositories = async (segmentId: string, callback?: () => void) => {
+  InsightsProjectsService.getRepositories(segmentId).then((res) => {
+    initialFormState.repositories = buildRepositories(res);
+    if (callback) {
+      callback();
+    }
+  });
 };
 </script>
 

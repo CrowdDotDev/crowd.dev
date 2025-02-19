@@ -47,4 +47,9 @@ export class InsightsProjectsService {
     );
     return response.data;
   }
+
+  static async getRepositories(segmentId: string) {
+    const response = await authAxios.get(`/segments/${segmentId}/repositories`);
+    return response.data;
+  }
 }
