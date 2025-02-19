@@ -381,8 +381,10 @@ export class CollectionService extends LoggerBase {
 
     for (const i of integrations) {
       if (i.platform === PlatformType.GITHUB) {
-        for (const r of (i.settings as any).repos) {
-          addToResult(i.platform, `${r.owner}/${r.name}`)
+        for (const org of (i.settings as any).orgs) {
+          for (const repo of org.repos) {
+            addToResult(i.platform, `${org.name}/${repo.name}`)
+          }
         }
       }
 
