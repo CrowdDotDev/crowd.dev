@@ -157,7 +157,7 @@ const en = {
 
   merge: {
     errors: {
-      multipleMerge: 'There is an existing merge operation in {0} state',
+      multipleMerge: 'Cannot merge suggestions - found existing merge with {0} state',
     },
   },
 
