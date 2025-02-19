@@ -36,7 +36,7 @@ export async function finishMemberMerging(
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
 
-  await finishMemberMergingUpdateActivities(primaryId, secondaryId)
+  await finishMemberMergingUpdateActivities(secondaryId, primaryId)
 
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
