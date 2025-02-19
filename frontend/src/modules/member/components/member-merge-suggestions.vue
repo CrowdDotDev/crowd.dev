@@ -199,7 +199,7 @@ const preview = computed(() => {
     ...secondaryMember.identities,
   ];
   mergedMembers.score = Math.max(primaryMember.score, secondaryMember.score);
-  mergedMembers.activityCount = primaryMember.activityCount + secondaryMember.activityCount;
+  mergedMembers.activityCount = +primaryMember.activityCount + +secondaryMember.activityCount;
   return mergedMembers;
 });
 

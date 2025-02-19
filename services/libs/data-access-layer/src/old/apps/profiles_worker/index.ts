@@ -225,9 +225,21 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title &&
+      row.title !== null &&
+      row.title !== undefined &&
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
+
+  // clean unknown dated work experiences if there is one marked as primary
+  const primaryUnknownDatedWorkExperience = memberOrganizations.find(
+    (row) => row.isPrimaryWorkExperience && !row.dateStart && !row.dateEnd,
+  )
+
+  if (primaryUnknownDatedWorkExperience) {
+    memberOrganizations = memberOrganizations.filter(
+      (row) => row.dateStart || row.id === primaryUnknownDatedWorkExperience.id,
+    )
+  }
 
   const timeline = buildTimeline(memberOrganizations)
 
@@ -306,10 +318,14 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  return { orgCases, fullCase }
+  return { orgCases, fullCase, fallbackOrganizationId }
 }
 
-export function figureOutNewOrgId(activity: IDbActivityCreateData, orgCases: Condition[]) {
+export function figureOutNewOrgId(
+  activity: IDbActivityCreateData,
+  orgCases: Condition[],
+  fallbackOrganizationId: string,
+) {
   if (orgCases.length > 0) {
     for (const condition of orgCases) {
       if (condition.matches(activity)) {
@@ -318,7 +334,7 @@ export function figureOutNewOrgId(activity: IDbActivityCreateData, orgCases: Con
     }
   }
 
-  return null
+  return fallbackOrganizationId || null
 }
 
 export async function runMemberAffiliationsUpdate(
@@ -329,12 +345,18 @@ export async function runMemberAffiliationsUpdate(
 ) {
   const qx = pgpQx(pgDb.connection())
 
-  const { orgCases, fullCase } = await prepareMemberAffiliationsUpdate(qx, memberId)
+  const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
+    qx,
+    memberId,
+  )
 
   const { processed, duration } = await updateActivities(
     qDb,
+    qx,
     queueClient,
-    async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
     `
       "memberId" = $(memberId)
       AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
