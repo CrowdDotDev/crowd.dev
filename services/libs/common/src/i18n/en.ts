@@ -155,6 +155,12 @@ const en = {
     alreadyExists: '{0}',
   },
 
+  merge: {
+    errors: {
+      multipleMerge: 'There is an existing merge operation in {0} state',
+    },
+  },
+
   email: {
     error: `Email provider is not configured.`,
   },
