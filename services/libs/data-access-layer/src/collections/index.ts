@@ -44,6 +44,10 @@ export interface IInsightsProject {
   linkedin: string
   twitter: string
   widgets: string[]
+  repositories: {
+    platform: string
+    url: string
+  }[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -132,6 +136,7 @@ export enum InsightsProjectField {
   LINKEDIN = 'linkedin',
   TWITTER = 'twitter',
   WIDGETS = 'widgets',
+  REPOSITORIES = 'repositories',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(
@@ -143,7 +148,11 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
 
 export async function createInsightsProject(qx: QueryExecutor, insightProject: IInsightsProject) {
   return qx.selectOne(
-    prepareInsert('insightsProjects', Object.values(InsightsProjectField), insightProject),
+    prepareInsert(
+      'insightsProjects',
+      Object.values(InsightsProjectField),
+      prepareProject(insightProject),
+    ),
   )
 }
 
@@ -243,5 +252,21 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  return updateTableById(qx, 'insightsProjects', id, Object.values(InsightsProjectField), project)
+  return updateTableById(
+    qx,
+    'insightsProjects',
+    id,
+    Object.values(InsightsProjectField),
+    prepareProject(project),
+  )
+}
+
+function prepareProject(project: Partial<ICreateInsightsProject>) {
+  const toUpdate: Record<string, unknown> = {
+    ...project,
+  }
+  if (project.repositories) {
+    toUpdate.repositories = JSON.stringify(project.repositories)
+  }
+  return toUpdate
 }

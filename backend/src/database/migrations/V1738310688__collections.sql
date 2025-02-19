@@ -21,10 +21,9 @@ CREATE TABLE IF NOT EXISTS "insightsProjects" (
     "github" TEXT,
     "linkedin" TEXT,
     "twitter" TEXT,
-    "widgets" TEXT[]
+    "widgets" TEXT[],
+    "repositories" JSONB
 );
-
-ALTER TABLE IF EXISTS "insightsProjects" ADD COLUMN IF NOT EXISTS "widgets" TEXT[];
 
 CREATE TABLE IF NOT EXISTS "collectionsInsightsProjects" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
