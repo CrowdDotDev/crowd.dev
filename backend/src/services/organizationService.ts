@@ -8,6 +8,7 @@ import {
 } from '@crowd/audit-logs'
 import { Error409, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -27,7 +28,6 @@ import {
   TemporalWorkflowId,
 } from '@crowd/types'
 
-import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
@@ -406,7 +406,10 @@ export default class OrganizationService extends LoggerBase {
     const mergeAction = await findMergeAction(qx, originalId, toMergeId)
 
     // prevent multiple merge operations
-    if (mergeAction?.state === MergeActionState.IN_PROGRESS || mergeAction?.state === MergeActionState.PENDING) {
+    if (
+      mergeAction?.state === MergeActionState.IN_PROGRESS ||
+      mergeAction?.state === MergeActionState.PENDING
+    ) {
       throw new Error409(this.options.language, 'merge.errors.multipleMerge', mergeAction?.state)
     }
 
