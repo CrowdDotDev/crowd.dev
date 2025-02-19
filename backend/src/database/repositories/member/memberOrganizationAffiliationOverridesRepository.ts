@@ -1,8 +1,12 @@
 import {
   changeOverride as changeMemberOrganizationAffiliationOverride,
   findOverrides as findMemberOrganizationAffiliationOverrides,
+  findPrimaryWorkExperiencesOfMember,
 } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
-import { IChangeAffiliationOverrideData } from '@crowd/types'
+import {
+  IChangeAffiliationOverrideData,
+  IMemberOrganizationAffiliationOverride,
+} from '@crowd/types'
 
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
@@ -16,6 +20,14 @@ class MemberOrganizationAffiliationOverridesRepository {
       data.memberOrganizationId,
     ])
     return overrides[0]
+  }
+
+  static async findPrimaryWorkExperiences(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganizationAffiliationOverride[]> {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return findPrimaryWorkExperiencesOfMember(qx, memberId)
   }
 }
 
