@@ -13,11 +13,12 @@ import {
 
 import MemberAffiliationsRepository from '@/database/repositories/member/memberAffiliationsRepository'
 import MemberOrganizationAffiliationOverridesRepository from '@/database/repositories/member/memberOrganizationAffiliationOverridesRepository'
-import MemberOrganizationsRepository from '@/database/repositories/member/memberOrganizationsRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
 import MemberAffiliationService from '../memberAffiliationService'
+
+import MemberOrganizationsService from './memberOrganizationsService'
 
 export default class MemberAffiliationsService extends LoggerBase {
   options: IServiceOptions
@@ -68,11 +69,12 @@ export default class MemberAffiliationsService extends LoggerBase {
     data: IChangeAffiliationOverrideData,
   ): Promise<IMemberOrganizationAffiliationOverride> {
     if (data.isPrimaryWorkExperience) {
+      const memberOrgService = new MemberOrganizationsService(this.options)
       // check if any other work experience in intersecting date range was marked as primary
       // we don't allow this because "isPrimaryWorkExperience" decides which work exp to pick on date conflicts
-      const allWorkExperiencesOfMember = (
-        await MemberOrganizationsRepository.list(data.memberId, this.options)
-      ).map((mo) => mo.memberOrganizations)
+      const allWorkExperiencesOfMember = (await memberOrgService.list(data.memberId)).map(
+        (mo) => mo.memberOrganizations,
+      )
 
       const currentlyEditedWorkExperience = allWorkExperiencesOfMember.find(
         (w) => w.id === data.memberOrganizationId,
