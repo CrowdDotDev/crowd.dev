@@ -22,10 +22,13 @@ import {
 import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
+  IActivityRelationCreateOrUpdateData,
+  IActivityRelationUpdateById,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { IDbOrganizationAggregateData } from '../organizations'
+import { QueryExecutor } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
 import {
@@ -1438,4 +1441,184 @@ export async function findCommitsForPRSha(
   })
 
   return rows.map((r) => r.id)
+}
+
+export async function createOrUpdateRelations(
+  qe: QueryExecutor,
+  data: IActivityRelationCreateOrUpdateData,
+): Promise<void> {
+  await qe.result(
+    `
+    INSERT INTO "activityRelations" (
+            "activityId", 
+            "memberId", 
+            "objectMemberId", 
+            "organizationId",
+            "conversationId",
+            "parentId",
+            "segmentId",
+            "platform",
+            "username",
+            "objectMemberUsername",
+            "createdAt", 
+            "updatedAt")
+    VALUES
+        (
+            $(activityId), 
+            $(memberId), 
+            $(objectMemberId),
+            $(organizationId),
+            $(conversationId),
+            $(parentId),
+            $(segmentId),
+            $(platform),
+            $(username),
+            $(objectMemberUsername),
+            now(), 
+            now()
+        )
+    ON CONFLICT ("activityId", "memberId") 
+    DO UPDATE 
+    SET 
+        "updatedAt" = EXCLUDED."updatedAt",
+        "memberId" = EXCLUDED."memberId",
+        "objectMemberId" = EXCLUDED."objectMemberId",
+        "organizationId" = EXCLUDED."organizationId",
+        "platform" = EXCLUDED."platform",
+        "username" = EXCLUDED."username",
+        "objectMemberUsername" = EXCLUDED."objectMemberUsername";
+
+    `,
+    {
+      activityId: data.activityId,
+      memberId: data.memberId,
+      segmentId: data.segmentId,
+      objectMemberId: data.objectMemberId ?? null,
+      organizationId: data.organizationId ?? null,
+      conversationId: data.conversationId ?? null,
+      parentId: data.parentId ?? null,
+      platform: data.platform,
+      username: data.username,
+      objectMemberUsername: data.objectMemberUsername ?? null,
+    },
+  )
+}
+
+export async function updateActivityRelationsById(
+  qe: QueryExecutor,
+  data: IActivityRelationUpdateById,
+): Promise<void> {
+  const fields: string[] = []
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && key !== 'activityId') {
+      fields.push(`"${key}" = $(${key})`)
+    }
+  }
+
+  if (fields.length === 0) return
+
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "activityId" = $(activityId)`
+
+  await qe.result(query, data)
+}
+
+export async function moveActivityRelationsToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "memberId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
+export async function moveActivityRelationsWithIdentityToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  username: string,
+  platform: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where 
+              "memberId" = $(fromId) and
+              "username" = $(username) and
+              "platform" = $(platform)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
+export async function moveActivityRelationsToAnotherOrganization(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "organizationId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "organizationId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
 }
