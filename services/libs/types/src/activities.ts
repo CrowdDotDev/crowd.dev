@@ -1,7 +1,6 @@
 import { PlatformType } from './enums/platforms'
 import { IMemberData } from './members'
 
-
 export interface IActivityDbBase {
   id: string
   type: string
