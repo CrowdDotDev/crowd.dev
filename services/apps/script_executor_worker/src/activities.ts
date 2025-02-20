@@ -23,10 +23,10 @@ import {
 } from './activities/merge-members-with-similar-identities'
 import {
   createRelations,
-  deleteActivityIdsFromIndexedEntities,
   getActivitiesToCopy,
-  getLatestSyncedActivityId,
+  getLatestSyncedActivityCreatedAt,
   markActivitiesAsIndexed,
+  resetIndexedIdentities,
 } from './activities/populate-activity-relations'
 
 export {
@@ -46,8 +46,8 @@ export {
   deleteOrganizationIdentity,
   isLfxMember,
   createRelations,
-  deleteActivityIdsFromIndexedEntities,
+  resetIndexedIdentities,
   getActivitiesToCopy,
-  getLatestSyncedActivityId,
+  getLatestSyncedActivityCreatedAt,
   markActivitiesAsIndexed,
 }

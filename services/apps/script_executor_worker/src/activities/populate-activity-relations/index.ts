@@ -1,50 +1,35 @@
-import { getDefaultTenantId } from '@crowd/common'
 import {
   createOrUpdateRelations,
-  getActivityCreatedAtById,
   getActivityRelationsSortedByCreatedAt,
 } from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { IndexedEntityType, IndexingRepository } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
 
 import { svc } from '../../main'
 
-const tenantId = getDefaultTenantId()
-
-export async function deleteActivityIdsFromIndexedEntities(): Promise<void> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.deleteIndexedEntities(IndexedEntityType.ACTIVITY)
+export async function resetIndexedIdentities(): Promise<void> {
+  const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
+  await redisCache.delete('latest-synced-activity-created-at')
 }
 
-export async function getLatestSyncedActivityId(): Promise<string> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  return await indexingRepo.getLatestIndexedEntityId(IndexedEntityType.ACTIVITY)
+export async function getLatestSyncedActivityCreatedAt(): Promise<string> {
+  const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
+  const result = await redisCache.get('latest-synced-activity-created-at')
+  return result || null
 }
 
 export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promise<string> {
-  const activities = await getCache(activitiesRedisKey)
-  const activityIds = activities.map((activity) => activity.id)
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.markEntitiesIndexed(
-    IndexedEntityType.ACTIVITY,
-    activityIds.map((id) => ({ id, tenantId })),
-  )
-  return activityIds[activityIds.length - 1]
+  const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
+  const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
+  const lastSyncedCreatedAt = activities[activities.length - 1].createdAt
+  await redisCache.set('latest-synced-activity-created-at', lastSyncedCreatedAt)
+  return lastSyncedCreatedAt
 }
 
-export async function getActivitiesToCopy(latestSyncedActivityId: string, limit: number) {
-  let latestSyncedActivityCreatedAt = undefined
-  if (latestSyncedActivityId) {
-    latestSyncedActivityCreatedAt = await getActivityCreatedAtById(
-      svc.questdbSQL,
-      latestSyncedActivityId,
-    )
-  }
-
+export async function getActivitiesToCopy(latestSyncedActivityCreatedAt: string, limit: number) {
   const activities = await getActivityRelationsSortedByCreatedAt(
     svc.questdbSQL,
-    latestSyncedActivityCreatedAt ? latestSyncedActivityCreatedAt.createdAt : undefined,
+    latestSyncedActivityCreatedAt,
     limit,
   )
 
@@ -54,13 +39,17 @@ export async function getActivitiesToCopy(latestSyncedActivityId: string, limit:
 
   // generate a random key
   const key = Math.random().toString(36).substring(7)
-  await saveToCache(key, activities)
+  await saveActivityDataToRedis(key, activities)
 
-  return { activitiesRedisKey: key, activitiesLength: activities.length }
+  return {
+    activitiesRedisKey: key,
+    activitiesLength: activities.length,
+    lastCreatedAt: activities[activities.length - 1].createdAt,
+  }
 }
 
 export async function createRelations(activitiesRedisKey): Promise<void> {
-  const activities = await getCache(activitiesRedisKey)
+  const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
   const promises = activities.map(async (activity) =>
     createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), {
       activityId: activity.id,
@@ -79,12 +68,12 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
   await Promise.all(promises)
 }
 
-export async function saveToCache(key: string, activities): Promise<void> {
+export async function saveActivityDataToRedis(key: string, activities): Promise<void> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
   await redisCache.set(key, JSON.stringify(activities), 30)
 }
 
-export async function getCache(key: string) {
+export async function getActivitiyDataFromRedis(key: string) {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
   const result = await redisCache.get(key)
   return JSON.parse(result)

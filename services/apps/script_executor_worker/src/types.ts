@@ -30,5 +30,5 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
-  lastIndexedActivityId?: string
+  latestSyncedActivityCreatedAt?: string
 }

@@ -12,36 +12,38 @@ export async function populateActivityRelations(
   args: IPopulateActivityRelationsArgs,
 ): Promise<void> {
   const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
+  let latestSyncedActivityCreatedAt
 
   if (args.deleteIndexedEntities) {
-    await activity.deleteActivityIdsFromIndexedEntities()
+    await activity.resetIndexedIdentities()
+    latestSyncedActivityCreatedAt = null
+  } else {
+    latestSyncedActivityCreatedAt =
+      args.latestSyncedActivityCreatedAt || (await activity.getLatestSyncedActivityCreatedAt())
   }
 
-  const latestSyncedActivityId =
-    args.lastIndexedActivityId || (await activity.getLatestSyncedActivityId())
-
-  const { activitiesLength, activitiesRedisKey } = await activity.getActivitiesToCopy(
-    latestSyncedActivityId ?? undefined,
-    BATCH_SIZE_PER_RUN,
-  )
+  const { activitiesLength, activitiesRedisKey, lastCreatedAt } =
+    await activity.getActivitiesToCopy(
+      latestSyncedActivityCreatedAt ?? undefined,
+      BATCH_SIZE_PER_RUN,
+    )
 
   if (activitiesLength === 0) {
     return
   }
 
   if (activitiesLength < BATCH_SIZE_PER_RUN) {
-    const lastSyncedActivityId = await activity.getLatestSyncedActivityId()
-    if (lastSyncedActivityId === args.lastIndexedActivityId) {
+    if (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
       return
     }
   }
 
   await activity.createRelations(activitiesRedisKey)
 
-  const lastIndexedActivityId = await activity.markActivitiesAsIndexed(activitiesRedisKey)
+  await activity.markActivitiesAsIndexed(activitiesRedisKey)
 
   await continueAsNew<typeof populateActivityRelations>({
     batchSizePerRun: args.batchSizePerRun,
-    lastIndexedActivityId,
+    latestSyncedActivityCreatedAt: lastCreatedAt,
   })
 }
