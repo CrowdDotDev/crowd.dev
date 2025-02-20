@@ -76,17 +76,17 @@ export async function getActivitiesById(
 }
 
 /**
- * Finds activity timestamp by id, without tenant or segment filters
+ * Finds activity createdAt by id, without tenant or segment filters
  * @param qdbConn
  * @param id
  * @returns IActivityCreateData
  */
-export async function getActivityTimestampById(
+export async function getActivityCreatedAtById(
   qdbConn: DbConnOrTx,
   id: string,
 ): Promise<Partial<IActivityDbBase>> {
   const query = `
-    SELECT timestamp
+    SELECT "createdAt"
     FROM activities
     WHERE "deletedAt" IS NULL
     and id = $(id)
@@ -1738,21 +1738,22 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
-export async function getActivityRelationsSortedByTimestamp(
+export async function getActivityRelationsSortedByCreatedAt(
   qdbConn: DbConnOrTx,
-  cursorActivityTimestamp?: string,
+  cursorActivityCreatedAt?: string,
   limit = 100,
 ) {
   let cursorQuery = ''
 
-  if (cursorActivityTimestamp) {
-    cursorQuery = `AND timestamp >= $(cursorActivityTimestamp)`
+  if (cursorActivityCreatedAt) {
+    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
   }
 
   const query = `
     SELECT 
       id,
       "memberId",
+      "createdAt",
       "objectMemberId",
       "organizationId",
       "conversationId",
@@ -1764,12 +1765,12 @@ export async function getActivityRelationsSortedByTimestamp(
     FROM activities
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
-    ORDER BY timestamp asc
+    ORDER BY "createdAt" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityTimestamp,
+    cursorActivityCreatedAt,
     limit,
   })
 
