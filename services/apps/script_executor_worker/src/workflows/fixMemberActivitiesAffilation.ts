@@ -11,7 +11,9 @@ const activity = proxyActivities<typeof activities>({
 export async function fixMemberActivitiesAffilation(
   args: IUnlinkDeletedMemberOrgArgs,
 ): Promise<void> {
+  console.log('Starting to fix affiliations for member: ', args.memberId)
+
   await activity.calculateMemberAffiliations(args.memberId)
 
-  console.log('Recalculated affiliations for member: ', args.memberId)
+  console.log('Finished fixing affiliations!')
 }
