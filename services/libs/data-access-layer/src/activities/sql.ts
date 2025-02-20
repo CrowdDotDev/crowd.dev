@@ -1511,6 +1511,24 @@ export async function createOrUpdateRelations(
     }
   }
 
+  // check conversation exists
+  if (data.conversationId !== undefined && data.conversationId !== null) {
+    const conversation = await qe.select(
+      `
+      SELECT id
+      FROM conversations
+      WHERE id = $(conversationId)
+    `,
+      {
+        conversationId: data.conversationId,
+      },
+    )
+
+    if (conversation.length === 0) {
+      data.conversationId = null
+    }
+  }
+
   // check member exists
   let member = await qe.select(
     `
