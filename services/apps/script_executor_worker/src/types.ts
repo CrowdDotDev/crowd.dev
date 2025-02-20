@@ -26,3 +26,11 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   tenantId: string
   testRun?: boolean
 }
+
+export interface ISyncMembersArgs {
+  batchSize?: number
+  chunkSize?: number
+  clean?: boolean
+  withAggs?: boolean
+  testRun?: boolean
+}

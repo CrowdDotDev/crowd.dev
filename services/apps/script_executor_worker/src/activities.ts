@@ -21,6 +21,12 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
+import {
+  deleteIndexedEntities,
+  getMembersForSync,
+  markEntitiesIndexed,
+  syncMembersBatch,
+} from './activities/sync/member'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -38,4 +44,8 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  syncMembersBatch,
+  getMembersForSync,
+  deleteIndexedEntities,
+  markEntitiesIndexed,
 }

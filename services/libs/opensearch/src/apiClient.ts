@@ -24,16 +24,6 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerTenantMembersSync(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/tenant/members', {
-      tenantId,
-    })
-  }
-
   public async triggerOrganizationMembersSync(
     tenantId: string,
     organizationId: string,

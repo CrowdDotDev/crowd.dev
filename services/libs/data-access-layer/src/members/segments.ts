@@ -44,6 +44,7 @@ export async function insertMemberSegments(qx: QueryExecutor, data: IMemberSegme
           'averageSentiment',
         ],
         data,
+        'DO NOTHING',
       ),
     )
   } catch (e) {

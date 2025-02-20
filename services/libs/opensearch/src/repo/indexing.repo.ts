@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IEntityData, IndexedEntityType } from './indexing.data'
+import { IndexedEntityType } from './indexing.data'
 
 export class IndexingRepository extends RepositoryBase<IndexingRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -19,11 +19,11 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     )
   }
 
-  public async markEntitiesIndexed(type: IndexedEntityType, data: IEntityData[]): Promise<void> {
+  public async markEntitiesIndexed(type: IndexedEntityType, data: string[]): Promise<void> {
     if (data.length > 0) {
-      const values = data.map((d) => `('${type}', '${d.id}', '${d.tenantId}')`)
+      const values = data.map((d) => `('${type}', '${d}')`)
       const query = `
-        insert into indexed_entities(type, entity_id, tenant_id)
+        insert into indexed_entities(type, entity_id)
         values ${values.join(',\n')}
         on conflict (type, entity_id)
         do update set indexed_at = now()
