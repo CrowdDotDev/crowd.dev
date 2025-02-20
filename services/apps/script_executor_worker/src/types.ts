@@ -32,3 +32,10 @@ export interface IPopulateActivityRelationsArgs {
   deleteIndexedEntities?: boolean
   latestSyncedActivityCreatedAt?: string
 }
+export interface ISyncMembersArgs {
+  batchSize?: number
+  chunkSize?: number
+  clean?: boolean
+  withAggs?: boolean
+  testRun?: boolean
+}

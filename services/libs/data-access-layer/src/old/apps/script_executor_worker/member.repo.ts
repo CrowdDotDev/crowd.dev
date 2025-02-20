@@ -1,5 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
@@ -158,6 +159,26 @@ class MemberRepository {
     }
 
     return member
+  }
+
+  public async getMembersNotInSegmentAggs(perPage: number): Promise<string[]> {
+    const results = await this.connection.any(
+      `
+      select distinct a."memberId"
+      from activities a
+      left join "memberSegmentsAgg" msa
+        on a."memberId" = msa."memberId"
+        and a."segmentId" = msa."segmentId"
+      where msa."memberId" is null
+        and msa."segmentId" is null
+      limit ${perPage};
+      `,
+      {
+        type: IndexedEntityType.MEMBER,
+      },
+    )
+
+    return results.map((r) => r.id)
   }
 }
 
