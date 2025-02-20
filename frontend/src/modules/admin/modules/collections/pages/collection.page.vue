@@ -91,6 +91,7 @@
   />
 
   <app-delete-confirm-dialog
+    v-if="removeCollection"
     v-model="removeCollection"
     title="Are you sure you want to delete this collection?"
     description="This will delete the collection permanently. You can’t undo this action."
