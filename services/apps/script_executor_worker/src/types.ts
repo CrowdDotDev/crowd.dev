@@ -39,3 +39,7 @@ export interface ISyncMembersArgs {
   withAggs?: boolean
   testRun?: boolean
 }
+
+export interface IUnlinkDeletedMemberOrgArgs {
+  memberId: string
+}
