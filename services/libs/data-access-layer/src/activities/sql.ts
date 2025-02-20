@@ -1529,6 +1529,28 @@ export async function createOrUpdateRelations(
     }
   }
 
+  // if segmentId is empty, skip adding this activity relation
+  if (data.segmentId == undefined || data.segmentId == null) {
+    return
+  }
+
+  // check segmentId exists
+  const segment = await qe.select(
+    `
+    SELECT id
+    FROM segments
+    WHERE id = $(segmentId)
+  `,
+    {
+      segmentId: data.segmentId,
+    },
+  )
+
+  if (segment.length === 0) {
+    // segment not found, skip adding this activity relation
+    return
+  }
+
   // check member exists
   let member = await qe.select(
     `
