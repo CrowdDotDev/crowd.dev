@@ -3,6 +3,7 @@ import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } 
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
 import { fixMemberActivitiesAffilation } from './workflows/fixMemberActivitiesAffilation'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
+import { populateActivityRelations } from './workflows/populateActivityRelations'
 import { syncMembers } from './workflows/syncMembers'
 
 export {
@@ -10,6 +11,7 @@ export {
   findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization,
   dissectMember,
   fixOrgIdentitiesWithWrongUrls,
+  populateActivityRelations,
   syncMembers,
   fixMemberActivitiesAffilation,
 }
