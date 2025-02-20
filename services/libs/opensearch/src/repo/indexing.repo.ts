@@ -38,7 +38,7 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
       select entity_id
       from indexed_entities
       where type = $(type)
-      order by entity_id desc
+      order by indexed_at desc
       limit 1
       `,
       {

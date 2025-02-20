@@ -17,7 +17,8 @@ export async function populateActivityRelations(
     await activity.deleteActivityIdsFromIndexedEntities()
   }
 
-  const latestSyncedActivityId = await activity.getLatestSyncedActivityId()
+  const latestSyncedActivityId =
+    args.lastIndexedActivityId || (await activity.getLatestSyncedActivityId())
 
   const activitiesToCopy = await activity.getActivitiesToCopy(
     latestSyncedActivityId ?? undefined,
@@ -28,11 +29,19 @@ export async function populateActivityRelations(
     return
   }
 
+  if (activitiesToCopy.length < BATCH_SIZE_PER_RUN) {
+    const lastSyncedActivityId = await activity.getLatestSyncedActivityId()
+    if (lastSyncedActivityId === args.lastIndexedActivityId)  {
+      return
+    }
+  }
+
   await activity.createRelations(activitiesToCopy)
 
   await activity.markActivitiesAsIndexed(activitiesToCopy.map((a) => a.id))
 
   await continueAsNew<typeof populateActivityRelations>({
     batchSizePerRun: args.batchSizePerRun,
+    lastIndexedActivityId: activitiesToCopy[activitiesToCopy.length - 1].id,
   })
 }

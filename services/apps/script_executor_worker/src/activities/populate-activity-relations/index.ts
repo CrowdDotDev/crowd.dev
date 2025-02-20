@@ -1,5 +1,9 @@
 import { getDefaultTenantId } from '@crowd/common'
-import { createOrUpdateRelations, getActivitiesSortedById } from '@crowd/data-access-layer'
+import {
+  createOrUpdateRelations,
+  getActivityRelationsSortedByTimestamp,
+  getActivityTimestampById,
+} from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { IndexedEntityType, IndexingRepository } from '@crowd/opensearch'
 
@@ -26,7 +30,19 @@ export async function markActivitiesAsIndexed(activityIds: string[]): Promise<vo
 }
 
 export async function getActivitiesToCopy(latestSyncedActivityId: string, limit: number) {
-  const activities = await getActivitiesSortedById(svc.questdbSQL, latestSyncedActivityId, limit)
+  let latestSyncedActivityTimestamp = undefined
+  if (latestSyncedActivityId) {
+    latestSyncedActivityTimestamp = await getActivityTimestampById(
+      svc.questdbSQL,
+      latestSyncedActivityId,
+    )
+  }
+
+  const activities = await getActivityRelationsSortedByTimestamp(
+    svc.questdbSQL,
+    latestSyncedActivityTimestamp ? latestSyncedActivityTimestamp.timestamp : undefined,
+    limit,
+  )
   return activities
 }
 

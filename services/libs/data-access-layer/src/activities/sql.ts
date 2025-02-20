@@ -10,8 +10,8 @@ import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
-  IActivityCreateData,
   IActivityData,
+  IActivityDbBase,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
@@ -73,6 +73,30 @@ export async function getActivitiesById(
   })
 
   return data.rows
+}
+
+/**
+ * Finds activity timestamp by id, without tenant or segment filters
+ * @param qdbConn
+ * @param id
+ * @returns IActivityCreateData
+ */
+export async function getActivityTimestampById(
+  qdbConn: DbConnOrTx,
+  id: string,
+): Promise<Partial<IActivityDbBase>> {
+  const query = `
+    SELECT timestamp
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    and id = $(id)
+  `
+
+  const rows = await qdbConn.any(query, {
+    id,
+  })
+
+  return rows.length > 0 ? rows[0] : null
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -1714,28 +1738,38 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
-export async function getActivitiesSortedById(
+export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
-  cursorActivityId?: string,
+  cursorActivityTimestamp?: string,
   limit = 100,
 ) {
   let cursorQuery = ''
 
-  if (cursorActivityId) {
-    cursorQuery = `AND id > $(cursorActivityId)::uuid`
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND timestamp >= $(cursorActivityTimestamp)`
   }
 
   const query = `
-    SELECT *
+    SELECT 
+      id,
+      "memberId",
+      "objectMemberId",
+      "organizationId",
+      "conversationId",
+      "parentId",
+      "segmentId",
+      platform,
+      username,
+      "objectMemberUsername"
     FROM activities
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
-    ORDER BY id::text asc
+    ORDER BY timestamp asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityId,
+    cursorActivityTimestamp,
     limit,
   })
 
