@@ -29,7 +29,7 @@ export const buildForm = (
   ...result,
   organizationId: result.organization.id,
   collectionsIds: result.collections.map((collection: any) => collection.id),
-  repositories: repositories.map((repository: any) => ({
+  repositories: repositories?.map((repository: any) => ({
     ...repository,
     enabled: result.repositories?.some(
       (repo: any) => repo.url === repository.url,

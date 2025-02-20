@@ -222,7 +222,6 @@ const openModalEditMode = (insightsProjectId: string) => {
   InsightsProjectsService.getById(insightsProjectId).then((res) => {
     insightsProject.value = res;
     fetchRepositories(res.segment.id, () => {
-      debugger;
       const form = buildForm(res, initialFormState.repositories);
       fetchOrganizations(form.segmentId);
       fillForm(form);
