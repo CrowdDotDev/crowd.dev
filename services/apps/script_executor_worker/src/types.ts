@@ -26,3 +26,8 @@ export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   tenantId: string
   testRun?: boolean
 }
+
+export interface IPopulateActivityRelationsArgs {
+  batchSizePerRun: number
+  deleteIndexedEntities?: boolean
+}

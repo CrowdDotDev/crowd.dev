@@ -21,6 +21,13 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
+import {
+  createRelations,
+  deleteActivityIdsFromIndexedEntities,
+  getActivitiesToCopy,
+  getLatestSyncedActivityId,
+  markActivitiesAsIndexed,
+} from './activities/populate-activity-relations'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -38,4 +45,9 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
+  createRelations,
+  deleteActivityIdsFromIndexedEntities,
+  getActivitiesToCopy,
+  getLatestSyncedActivityId,
+  markActivitiesAsIndexed,
 }
