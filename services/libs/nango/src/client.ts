@@ -1,5 +1,8 @@
 import type Nango from '@nangohq/frontend' assert { 'resolution-mode': 'require' }
-import type { Nango as BackendNango } from '@nangohq/node' assert { 'resolution-mode': 'require' }
+import type {
+  Nango as BackendNango,
+  SyncStatus,
+} from '@nangohq/node' assert { 'resolution-mode': 'require' }
 
 import { SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -14,6 +17,8 @@ import {
 import { toRecord } from './utils'
 
 const log = getServiceChildLogger('nango')
+
+export type { SyncStatus } from '@nangohq/node' assert { 'resolution-mode': 'require' }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -72,6 +77,17 @@ export const getNangoCloudSessionToken = async (): Promise<INangoCloudSessionTok
     token: response.data.token,
     expiresAt: response.data.expires_at,
   }
+}
+
+export const getNangoConnectionStatus = async (
+  integration: NangoIntegration,
+  connectionId: string,
+): Promise<SyncStatus[]> => {
+  ensureBackendClient()
+
+  const res = await backendClient.syncStatus(integration, '*', connectionId)
+
+  return res.syncs
 }
 
 export const getNangoConnectionIds = async (): Promise<

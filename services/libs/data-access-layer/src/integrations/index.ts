@@ -202,10 +202,15 @@ export async function fetchGlobalIntegrationsStatusCount(
   )
 }
 
+export interface INangoIntegrationData {
+  id: string
+  platform: string
+}
+
 export async function fetchNangoIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
-): Promise<{ id: string; platform: string }[]> {
+): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
       select id, platform
