@@ -20,28 +20,28 @@ export async function populateActivityRelations(
   const latestSyncedActivityId =
     args.lastIndexedActivityId || (await activity.getLatestSyncedActivityId())
 
-  const activitiesToCopy = await activity.getActivitiesToCopy(
+  const { activitiesLength, activitiesRedisKey } = await activity.getActivitiesToCopy(
     latestSyncedActivityId ?? undefined,
     BATCH_SIZE_PER_RUN,
   )
 
-  if (activitiesToCopy.length === 0) {
+  if (activitiesLength === 0) {
     return
   }
 
-  if (activitiesToCopy.length < BATCH_SIZE_PER_RUN) {
+  if (activitiesLength < BATCH_SIZE_PER_RUN) {
     const lastSyncedActivityId = await activity.getLatestSyncedActivityId()
-    if (lastSyncedActivityId === args.lastIndexedActivityId)  {
+    if (lastSyncedActivityId === args.lastIndexedActivityId) {
       return
     }
   }
 
-  await activity.createRelations(activitiesToCopy)
+  await activity.createRelations(activitiesRedisKey)
 
-  await activity.markActivitiesAsIndexed(activitiesToCopy.map((a) => a.id))
+  const lastIndexedActivityId = await activity.markActivitiesAsIndexed(activitiesRedisKey)
 
   await continueAsNew<typeof populateActivityRelations>({
     batchSizePerRun: args.batchSizePerRun,
-    lastIndexedActivityId: activitiesToCopy[activitiesToCopy.length - 1].id,
+    lastIndexedActivityId,
   })
 }
