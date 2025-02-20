@@ -31,21 +31,4 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
       await this.db().none(query)
     }
   }
-
-  public async getLatestIndexedEntityId(type: IndexedEntityType): Promise<string | null> {
-    const result = await this.db().oneOrNone<{ entity_id: string }>(
-      `
-      select entity_id
-      from indexed_entities
-      where type = $(type)
-      order by indexed_at desc
-      limit 1
-      `,
-      {
-        type,
-      },
-    )
-
-    return result?.entity_id ?? null
-  }
 }
