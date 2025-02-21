@@ -1068,6 +1068,9 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
+      '@temporalio/client':
+        specifier: ~1.11.1
+        version: 1.11.7
       '@temporalio/workflow':
         specifier: ~1.11.1
         version: 1.11.7

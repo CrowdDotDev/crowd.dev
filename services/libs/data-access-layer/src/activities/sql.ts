@@ -1632,7 +1632,7 @@ export async function createOrUpdateRelations(
             now(), 
             now()
         )
-    ON CONFLICT ("activityId", "memberId") 
+    ON CONFLICT ("activityId") 
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
