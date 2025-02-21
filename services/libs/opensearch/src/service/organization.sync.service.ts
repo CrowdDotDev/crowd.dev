@@ -154,7 +154,6 @@ export class OrganizationSyncService {
     while (results.length > 0) {
       // check every organization if they exists in the database and if not remove them from the index
       const dbIds = await this.readOrgRepo.checkOrganizationsExists(
-        tenantId,
         results.map((r) => r._source.uuid_organizationId),
       )
 
@@ -245,12 +244,11 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(
-    tenantId: string,
+  public async syncAllOrganizations(
     batchSize = 200,
     opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<void> {
-    this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
+    this.log.warn('Syncing all organizations!')
     let docCount = 0
     let organizationCount = 0
     let previousBatchIds: string[] = []
@@ -258,8 +256,7 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
-          tenantId,
+        let organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
           batchSize,
           previousBatchIds,
         )
@@ -275,7 +272,6 @@ export class OrganizationSyncService {
 
           const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
           this.log.info(
-            { tenantId },
             `Synced ${organizationCount} organizations! Speed: ${Math.round(
               organizationCount / diffInMinutes,
             )} organizations/minute!`,
@@ -283,17 +279,11 @@ export class OrganizationSyncService {
 
           await this.indexingRepo.markEntitiesIndexed(
             IndexedEntityType.ORGANIZATION,
-            organizationIds.map((id) => {
-              return {
-                id,
-                tenantId,
-              }
-            }),
+            organizationIds,
           )
 
           previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
-            tenantId,
+          organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
             batchSize,
             previousBatchIds,
           )
@@ -303,10 +293,7 @@ export class OrganizationSyncService {
       'sync-tenant-organizations',
     )
 
-    this.log.info(
-      { tenantId },
-      `Synced total of ${organizationCount} organizations with ${docCount} documents!`,
-    )
+    this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
   }
 
   public async syncOrganizations(

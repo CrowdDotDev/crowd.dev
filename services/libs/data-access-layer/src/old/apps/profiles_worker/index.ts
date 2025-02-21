@@ -318,10 +318,14 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  return { orgCases, fullCase }
+  return { orgCases, fullCase, fallbackOrganizationId }
 }
 
-export function figureOutNewOrgId(activity: IDbActivityCreateData, orgCases: Condition[]) {
+export function figureOutNewOrgId(
+  activity: IDbActivityCreateData,
+  orgCases: Condition[],
+  fallbackOrganizationId: string,
+) {
   if (orgCases.length > 0) {
     for (const condition of orgCases) {
       if (condition.matches(activity)) {
@@ -330,7 +334,7 @@ export function figureOutNewOrgId(activity: IDbActivityCreateData, orgCases: Con
     }
   }
 
-  return null
+  return fallbackOrganizationId || null
 }
 
 export async function runMemberAffiliationsUpdate(
@@ -341,13 +345,18 @@ export async function runMemberAffiliationsUpdate(
 ) {
   const qx = pgpQx(pgDb.connection())
 
-  const { orgCases, fullCase } = await prepareMemberAffiliationsUpdate(qx, memberId)
+  const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
+    qx,
+    memberId,
+  )
 
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => ({ organizationId: figureOutNewOrgId(activity, orgCases) }),
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
     `
       "memberId" = $(memberId)
       AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(

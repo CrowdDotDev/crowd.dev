@@ -7,9 +7,9 @@ import {
 } from './activities/common'
 import {
   deleteActivityIdsFromIndexedEntities,
-  getActivitiesToCopy,
+  getActivitiesToCopyToTinybird,
   getLatestSyncedActivityId,
-  markActivitiesAsIndexed,
+  markActivitiesAsIndexedInPostgres,
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
 import {
@@ -28,6 +28,19 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
+import {
+  createRelations,
+  getActivitiesToCopy,
+  getLatestSyncedActivityCreatedAt,
+  markActivitiesAsIndexed,
+  resetIndexedIdentities,
+} from './activities/populate-activity-relations'
+import {
+  deleteIndexedEntities,
+  getMembersForSync,
+  markEntitiesIndexed,
+  syncMembersBatch,
+} from './activities/sync/member'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -50,4 +63,13 @@ export {
   getLatestSyncedActivityId,
   markActivitiesAsIndexed,
   sendActivitiesToTinybird,
+  createRelations,
+  resetIndexedIdentities,
+  getLatestSyncedActivityCreatedAt,
+  markActivitiesAsIndexedInPostgres,
+  syncMembersBatch,
+  getMembersForSync,
+  deleteIndexedEntities,
+  markEntitiesIndexed,
+  getActivitiesToCopyToTinybird,
 }

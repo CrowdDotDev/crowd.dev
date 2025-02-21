@@ -19,15 +19,12 @@ export async function getLatestSyncedActivityId(): Promise<string> {
   return await indexingRepo.getLatestIndexedEntityId(IndexedEntityType.ACTIVITY)
 }
 
-export async function markActivitiesAsIndexed(activityIds: string[]): Promise<void> {
+export async function markActivitiesAsIndexedInPostgres(activityIds: string[]): Promise<void> {
   const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.markEntitiesIndexed(
-    IndexedEntityType.ACTIVITY,
-    activityIds.map((id) => ({ id, tenantId })),
-  )
+  await indexingRepo.markEntitiesIndexed(IndexedEntityType.ACTIVITY, activityIds)
 }
 
-export async function getActivitiesToCopy(
+export async function getActivitiesToCopyToTinybird(
   latestSyncedActivityId: string,
   limit: number,
 ): Promise<IActivityData[]> {
