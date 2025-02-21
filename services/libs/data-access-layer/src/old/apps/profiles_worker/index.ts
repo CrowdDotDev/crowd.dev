@@ -350,13 +350,21 @@ export async function runMemberAffiliationsUpdate(
     memberId,
   )
 
+  logger.info(`orgCases: ${JSON.stringify(orgCases)}`)
+  logger.info(`fullCase: ${fullCase}`)
+  logger.info(`fallbackOrganizationId: ${fallbackOrganizationId}`)
+
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => ({
-      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-    }),
+    async (activity) => {
+      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
+      logger.info(
+        `Activity ${activity.id}: current orgId=${activity.organizationId}, new orgId=${newOrgId}`,
+      )
+      return { organizationId: newOrgId }
+    },
     `
       "memberId" = $(memberId)
       AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
