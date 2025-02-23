@@ -1472,6 +1472,18 @@ export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
 ): Promise<void> {
+  if (data.username === undefined || data.username === null) {
+    return
+  }
+
+  if (data.platform === undefined || data.platform === null) {
+    return
+  }
+
+  if (data.segmentId === undefined || data.segmentId === null) {
+    return
+  }
+
   // check objectMember exists
   if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
     let objectMember = await qe.select(
