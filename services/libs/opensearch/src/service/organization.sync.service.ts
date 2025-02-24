@@ -314,15 +314,6 @@ export class OrganizationSyncService {
             'getOrgAggregates',
           )
 
-          if (orgData.length === 0) {
-            this.log.info(
-              { organizationId },
-              'No aggregates found for organization - cleaned old data',
-            )
-            await cleanupForOganization(qx, organizationId)
-            return
-          }
-
           // get segment data to aggregate for projects and project groups
           const subprojectSegmentIds = orgData.map((o) => o.segmentId)
           const segmentData = await logExecutionTimeV2(
@@ -368,36 +359,43 @@ export class OrganizationSyncService {
           throw e
         }
 
-        if (orgData.length > 0) {
-          try {
-            await this.writeOrgRepo.transactionally(
-              async (txRepo) => {
-                const qx = repoQx(txRepo)
-                await logExecutionTimeV2(
-                  () => cleanupForOganization(qx, organizationId),
-                  this.log,
-                  'cleanupForOganization',
-                )
-                await logExecutionTimeV2(
-                  () => insertOrganizationSegments(qx, orgData),
-                  this.log,
-                  'insertOrganizationSegments',
-                )
-              },
-              undefined,
-              true,
-            )
+        if (orgData.length === 0) {
+          this.log.info(
+            { organizationId },
+            'No aggregates found for organization - cleaned old data',
+          )
+          await cleanupForOganization(qx, organizationId)
+          continue // skip to next organization
+        }
 
-            organizationIdsToIndex.push(organizationId)
-            documentsIndexed += orgData.length
-            this.log.info(
-              { organizationId, total: documentsIndexed },
-              `Synced ${orgData.length} org aggregates!`,
-            )
-          } catch (e) {
-            this.log.error(e, 'Failed to insert organization aggregates!')
-            throw e
-          }
+        try {
+          await this.writeOrgRepo.transactionally(
+            async (txRepo) => {
+              const qx = repoQx(txRepo)
+              await logExecutionTimeV2(
+                () => cleanupForOganization(qx, organizationId),
+                this.log,
+                'cleanupForOganization',
+              )
+              await logExecutionTimeV2(
+                () => insertOrganizationSegments(qx, orgData),
+                this.log,
+                'insertOrganizationSegments',
+              )
+            },
+            undefined,
+            true,
+          )
+
+          organizationIdsToIndex.push(organizationId)
+          documentsIndexed += orgData.length
+          this.log.info(
+            { organizationId, total: documentsIndexed },
+            `Synced ${orgData.length} org aggregates!`,
+          )
+        } catch (e) {
+          this.log.error(e, 'Failed to insert organization aggregates!')
+          throw e
         }
       }
 
