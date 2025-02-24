@@ -1,6 +1,6 @@
 SCHEMA >
     `activityId` String `json:$.record.activityId`,
-    `conversationId` String `json:$.record.conversationId`,
+    `conversationId` String `json:$.record.conversationId` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `memberId` String `json:$.record.memberId`,
@@ -8,7 +8,7 @@ SCHEMA >
     `objectMemberUsername` String `json:$.record.objectMemberUsername` DEFAULT '',
     `organizationId` String `json:$.record.organizationId` DEFAULT '',
     `parentId` String `json:$.record.parentId` DEFAULT '',
-    `platform` LowCardinality(String) `json:$.record.platform` DEFAULT '',
+    `platform` LowCardinality(String) `json:$.record.platform`,
     `segmentId` String `json:$.record.segmentId`,
     `username` String `json:$.record.username`
 
