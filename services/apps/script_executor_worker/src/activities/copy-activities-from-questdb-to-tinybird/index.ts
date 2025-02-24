@@ -1,39 +1,67 @@
 import axios from 'axios'
 
 import { getDefaultTenantId } from '@crowd/common'
-import { getActivitiesSortedById } from '@crowd/data-access-layer'
+import {
+  getActivitiesSortedById,
+  getActivityRelationsSortedByCreatedAt,
+} from '@crowd/data-access-layer'
 import { IndexedEntityType, IndexingRepository } from '@crowd/opensearch'
+import { RedisCache } from '@crowd/redis'
 import { IActivityData } from '@crowd/types'
 
 import { svc } from '../../main'
 
 const tenantId = getDefaultTenantId()
 
-export async function deleteActivityIdsFromIndexedEntities(): Promise<void> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.deleteIndexedEntities(IndexedEntityType.ACTIVITY)
+export async function resetIndexedIdentitiesForSyncingActivitiesToTinybird(): Promise<void> {
+  const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
+  await redisCache.delete('latest-synced-activity-created-at')
 }
 
-export async function getLatestSyncedActivityId(): Promise<string> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  return await indexingRepo.getLatestIndexedEntityId(IndexedEntityType.ACTIVITY)
+export async function getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird(): Promise<string> {
+  const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
+  const result = await redisCache.get('latest-synced-activity-created-at')
+  return result || null
 }
 
-export async function markActivitiesAsIndexedInPostgres(activityIds: string[]): Promise<void> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.markEntitiesIndexed(IndexedEntityType.ACTIVITY, activityIds)
+export async function markActivitiesAsIndexedForSyncingActivitiesToTinybird(
+  activitiesRedisKey: string,
+): Promise<void> {
+  const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
+  const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
+  const lastSyncedCreatedAt = activities[activities.length - 1].createdAt
+  await redisCache.set('latest-synced-activity-created-at', lastSyncedCreatedAt)
+  return lastSyncedCreatedAt
 }
 
 export async function getActivitiesToCopyToTinybird(
-  latestSyncedActivityId: string,
+  latestSyncedActivityCreatedAt: string,
   limit: number,
-): Promise<IActivityData[]> {
-  const activities = await getActivitiesSortedById(svc.questdbSQL, latestSyncedActivityId, limit)
-  return activities
+) {
+  const activities = await getActivityRelationsSortedByCreatedAt(
+    svc.questdbSQL,
+    latestSyncedActivityCreatedAt,
+    limit,
+  )
+
+  if (activities.length === 0) {
+    return null
+  }
+
+  // generate a random key
+  const key = Math.random().toString(36).substring(7)
+  await saveActivityDataToRedis(key, activities)
+
+  return {
+    activitiesRedisKey: key,
+    activitiesLength: activities.length,
+    lastCreatedAt: activities[activities.length - 1].createdAt,
+  }
 }
 
-export async function sendActivitiesToTinybird(activities: IActivityData[]): Promise<void> {
+export async function sendActivitiesToTinybird(activitiesRedisKey: string): Promise<void> {
   let response
+  const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
 
   try {
     const url = `https://api.tinybird.co/v0/events?name=activities`
@@ -64,4 +92,15 @@ export async function sendActivitiesToTinybird(activities: IActivityData[]): Pro
   }
 
   return response
+}
+
+export async function saveActivityDataToRedis(key: string, activities): Promise<void> {
+  const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
+  await redisCache.set(key, JSON.stringify(activities), 30)
+}
+
+export async function getActivitiyDataFromRedis(key: string) {
+  const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
+  const result = await redisCache.get(key)
+  return JSON.parse(result)
 }

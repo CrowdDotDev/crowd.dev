@@ -6,10 +6,10 @@ import {
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 import {
-  deleteActivityIdsFromIndexedEntities,
   getActivitiesToCopyToTinybird,
-  getLatestSyncedActivityId,
-  markActivitiesAsIndexedInPostgres,
+  getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird,
+  markActivitiesAsIndexedForSyncingActivitiesToTinybird,
+  resetIndexedIdentitiesForSyncingActivitiesToTinybird,
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
 import {
@@ -58,15 +58,15 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
-  deleteActivityIdsFromIndexedEntities,
+  resetIndexedIdentitiesForSyncingActivitiesToTinybird,
   getActivitiesToCopy,
-  getLatestSyncedActivityId,
+  getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird,
   markActivitiesAsIndexed,
   sendActivitiesToTinybird,
   createRelations,
   resetIndexedIdentities,
   getLatestSyncedActivityCreatedAt,
-  markActivitiesAsIndexedInPostgres,
+  markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   syncMembersBatch,
   getMembersForSync,
   deleteIndexedEntities,

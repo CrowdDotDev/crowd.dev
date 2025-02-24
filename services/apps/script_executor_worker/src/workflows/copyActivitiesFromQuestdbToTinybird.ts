@@ -12,32 +12,40 @@ export async function copyActivitiesFromQuestdbToTinybird(
   args: ICopyActivitiesFromQuestDbToTinybirdArgs,
 ): Promise<void> {
   const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
+  let latestSyncedActivityCreatedAt
 
   if (args.deleteIndexedEntities) {
-    await activity.deleteActivityIdsFromIndexedEntities()
+    await activity.resetIndexedIdentitiesForSyncingActivitiesToTinybird()
+  } else {
+    latestSyncedActivityCreatedAt =
+      args.latestSyncedActivityCreatedAt ||
+      (await activity.getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird())
   }
 
-  // 1- Get latest synced activity id from indexed_entities
-  // select max(activity_id) from indexed_entities where tenant_id = 'tenant_id' and entity_type = 'activity'
-  const latestSyncedActivityId = await activity.getLatestSyncedActivityId()
+  const { activitiesLength, activitiesRedisKey, lastCreatedAt } =
+    await activity.getActivitiesToCopyToTinybird(
+      latestSyncedActivityCreatedAt ?? undefined,
+      BATCH_SIZE_PER_RUN,
+    )
 
-  // 2- Get all activities from questdb with id > latest synced activity id, order by activity_id asc, limit 1000
-  const activitiesToCopy = await activity.getActivitiesToCopy(
-    latestSyncedActivityId ?? undefined,
-    BATCH_SIZE_PER_RUN,
-  )
-
-  if (activitiesToCopy.length === 0) {
+  if (activitiesLength === 0) {
     return
   }
 
+  if (activitiesLength < BATCH_SIZE_PER_RUN) {
+    if (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
+      return
+    }
+  }
+
   // 4- Send activities to tinybird
-  await activity.sendActivitiesToTinybird(activitiesToCopy)
+  await activity.sendActivitiesToTinybird(activitiesRedisKey)
 
   // 5- Mark activities as indexed
-  await activity.markActivitiesAsIndexed(activitiesToCopy.map((a) => a.id))
+  await activity.markActivitiesAsIndexedForSyncingActivitiesToTinybird(activitiesRedisKey)
 
   await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({
     batchSizePerRun: args.batchSizePerRun,
+    latestSyncedActivityCreatedAt: lastCreatedAt,
   })
 }
