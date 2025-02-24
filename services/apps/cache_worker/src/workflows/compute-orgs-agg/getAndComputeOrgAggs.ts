@@ -21,30 +21,32 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
     cancelled if the parent workflow stops.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
-  const organizationIds = await activity.getOrgIdsFromRedis()
+  const currentCursor = '0'
 
-  // If no orgIds found, return early
-  if (!organizationIds) return
+  const { cursor, organizationIds } = await activity.getOrgIdsFromRedis(currentCursor)
 
-  const info = workflowInfo()
-  const BATCH_SIZE = 10
+  if (organizationIds.length > 0) {
+    const info = workflowInfo()
 
-  const batch = organizationIds.slice(0, BATCH_SIZE)
-  await Promise.all(
-    batch.map((organizationId) => {
-      return executeChild(computeOrgAggsAndUpdate, {
-        workflowId: `${info.workflowId}/${organizationId}`,
-        cancellationType: ChildWorkflowCancellationType.ABANDON,
-        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        retry: {
-          backoffCoefficient: 2,
-          initialInterval: 2 * 1000,
-          maximumInterval: 30 * 1000,
-        },
-        args: [{ organizationId }],
-      })
-    }),
-  )
+    await Promise.all(
+      organizationIds.map((organizationId) => {
+        return executeChild(computeOrgAggsAndUpdate, {
+          workflowId: `${info.workflowId}/${organizationId}`,
+          cancellationType: ChildWorkflowCancellationType.ABANDON,
+          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+          retry: {
+            backoffCoefficient: 2,
+            initialInterval: 2 * 1000,
+            maximumInterval: 30 * 1000,
+          },
+          args: [{ organizationIds }],
+        })
+      }),
+    )
+  }
 
-  await continueAsNew()
+  // Continue with the next batch
+  if (cursor !== '0') {
+    await continueAsNew<typeof dailyGetAndComputeOrgAggs>()
+  }
 }
