@@ -358,13 +358,9 @@ export async function runMemberAffiliationsUpdate(
     qDb,
     qx,
     queueClient,
-    async (activity) => {
-      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
-      logger.info(
-        `Activity ${activity.id}: current orgId=${activity.organizationId}, new orgId=${newOrgId}`,
-      )
-      return { organizationId: newOrgId }
-    },
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
     `
       "memberId" = $(memberId)
       AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
