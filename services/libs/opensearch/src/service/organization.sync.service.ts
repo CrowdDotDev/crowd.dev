@@ -13,7 +13,7 @@ import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/org
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
@@ -308,47 +308,60 @@ export class OrganizationSyncService {
       for (const organizationId of organizationIds) {
         let orgData: IDbOrganizationAggregateData[] = []
         try {
-          orgData = await getOrgAggregates(this.qdbStore.connection(), organizationId)
+          orgData = await logExecutionTimeV2(
+            () => getOrgAggregates(this.qdbStore.connection(), organizationId),
+            this.log,
+            'getOrgAggregates',
+          )
 
-          if (orgData.length > 0) {
-            // get segment data to aggregate for projects and project groups
-            const subprojectSegmentIds = orgData.map((o) => o.segmentId)
-            const segmentData = await fetchManySegments(qx, subprojectSegmentIds)
+          if (orgData.length === 0) {
+            this.log.info(
+              { organizationId },
+              'No aggregates found for organization - cleaned old data',
+            )
+            await cleanupForOganization(qx, organizationId)
+            return
+          }
 
-            if (segmentData.find((s) => s.type !== 'subproject')) {
-              throw new Error('Only subprojects should be set to activities.segmentId!')
+          // get segment data to aggregate for projects and project groups
+          const subprojectSegmentIds = orgData.map((o) => o.segmentId)
+          const segmentData = await logExecutionTimeV2(
+            () => fetchManySegments(qx, subprojectSegmentIds),
+            this.log,
+            'fetchManySegments',
+          )
+
+          if (segmentData.find((s) => s.type !== 'subproject')) {
+            throw new Error('Only subprojects should be set to activities.segmentId!')
+          }
+
+          // aggregate data for projects
+          const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
+          for (const projectSegmentId of projectSegmentIds) {
+            const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
+            const filtered: IDbOrganizationAggregateData[] = []
+            for (const subproject of subprojects) {
+              filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
             }
 
-            // aggregate data for projects
-            const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
-            for (const projectSegmentId of projectSegmentIds) {
-              const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-              const filtered: IDbOrganizationAggregateData[] = []
-              for (const subproject of subprojects) {
-                filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
-              }
+            const aggregated = OrganizationSyncService.aggregateData(projectSegmentId, filtered)
+            orgData.push(aggregated)
+          }
 
-              const aggregated = OrganizationSyncService.aggregateData(projectSegmentId, filtered)
-              orgData.push(aggregated)
+          // aggregate data for project groups
+          const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
+          for (const projectGroupSegmentId of projectGroupSegmentIds) {
+            const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
+            const filtered: IDbOrganizationAggregateData[] = []
+            for (const subproject of subprojects) {
+              filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
             }
 
-            // aggregate data for project groups
-            const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
-            for (const projectGroupSegmentId of projectGroupSegmentIds) {
-              const subprojects = segmentData.filter(
-                (s) => s.grandparentId === projectGroupSegmentId,
-              )
-              const filtered: IDbOrganizationAggregateData[] = []
-              for (const subproject of subprojects) {
-                filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
-              }
-
-              const aggregated = OrganizationSyncService.aggregateData(
-                projectGroupSegmentId,
-                filtered,
-              )
-              orgData.push(aggregated)
-            }
+            const aggregated = OrganizationSyncService.aggregateData(
+              projectGroupSegmentId,
+              filtered,
+            )
+            orgData.push(aggregated)
           }
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
@@ -360,8 +373,16 @@ export class OrganizationSyncService {
             await this.writeOrgRepo.transactionally(
               async (txRepo) => {
                 const qx = repoQx(txRepo)
-                await cleanupForOganization(qx, organizationId)
-                await insertOrganizationSegments(qx, orgData)
+                await logExecutionTimeV2(
+                  () => cleanupForOganization(qx, organizationId),
+                  this.log,
+                  'cleanupForOganization',
+                )
+                await logExecutionTimeV2(
+                  () => insertOrganizationSegments(qx, orgData),
+                  this.log,
+                  'insertOrganizationSegments',
+                )
               },
               undefined,
               true,

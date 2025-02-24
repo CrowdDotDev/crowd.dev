@@ -393,6 +393,8 @@ export class MemberSyncService {
         )
 
         if (memberData.length === 0) {
+          this.log.info({ memberId }, 'No aggregates found for member - cleaned old data')
+          await cleanupMemberAggregates(qx, memberId)
           return
         }
 
