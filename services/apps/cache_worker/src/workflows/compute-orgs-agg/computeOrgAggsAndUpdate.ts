@@ -13,8 +13,7 @@ export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Pro
   const orgExists = await activity.checkOrganizationExists(orgId)
 
   if (!orgExists) {
-    console.log(`organizationId ${orgId} does not exist!`)
-    // rm orgId from redis so that it's not processed again
+    console.log(`Organization ${orgId} does not exist. Skipping!`)
     await activity.dropOrgIdFromRedis(orgId)
     return
   }
