@@ -11,7 +11,7 @@ import * as activities from '../../activities/computeAggs/organization'
 
 import { computeOrgAggsAndUpdate } from './computeOrgAggsAndUpdate'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
+const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '10 minutes' })
 
 /*
 dailyGetAndComputeOrgAggs is a Temporal workflow that:
