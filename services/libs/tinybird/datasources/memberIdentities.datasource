@@ -12,5 +12,5 @@ SCHEMA >
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY memberId,platform,type
+ENGINE_SORTING_KEY verified, platform, type, value
 ENGINE_VER updatedAt

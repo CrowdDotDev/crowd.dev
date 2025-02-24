@@ -29,5 +29,5 @@ SCHEMA >
  
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY sourceId
+ENGINE_SORTING_KEY platform, type, channel, sourceId, timestamp
 ENGINE_VER updatedAt
