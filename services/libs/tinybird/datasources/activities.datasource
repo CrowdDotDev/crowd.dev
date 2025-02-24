@@ -4,7 +4,7 @@ SCHEMA >
     `timestamp` DateTime `json:$.timestamp`,
     `platform` LowCardinality(String) `json:$.platform`,
     `isContribution` UInt8 `json:$.isContribution`,
-    `score` UInt8 `json:$.score`,
+    `score` Int8 `json:$.score` DEFAULT -1,
     `sourceId` String `json:$.sourceId`,
     `createdAt` DateTime64(3) `json:$.createdAt`,
     `updatedAt` DateTime64(3) `json:$.updatedAt`,
