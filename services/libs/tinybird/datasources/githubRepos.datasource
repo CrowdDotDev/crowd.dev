@@ -1,0 +1,32 @@
+CREATE TABLE public."githubRepos" (
+	id uuid DEFAULT uuid_generate_v4() NOT NULL,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp DEFAULT now() NOT NULL,
+	"tenantId" uuid NOT NULL,
+	"integrationId" uuid NOT NULL,
+	"segmentId" uuid NOT NULL,
+	url varchar(1024) NOT NULL,
+	"maintainerFile" text NULL,
+	"lastMaintainerRunAt" timestamptz NULL,
+	"deletedAt" timestamp NULL,
+	CONSTRAINT "githubRepos_pkey" PRIMARY KEY (id),
+	CONSTRAINT "githubRepos_tenantId_url_key" UNIQUE ("tenantId", url)
+);
+
+
+SCHEMA >
+    `id` UUID `json:$.id`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `tenantId` UUID `json:$.tenantId`,
+    `integrationId` UUID `json:$.integrationId`,
+    `segmentId` UUID `json:$.segmentId`,
+    `url` String `json:$.url`,
+    `maintainerFile` Nullable(String) `json:$.maintainerFile`,
+    `lastMaintainerRunAt` Nullable(DateTime64(3)) `json:$.lastMaintainerRunAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.deletedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY sourceId
+ENGINE_VER updatedAt
