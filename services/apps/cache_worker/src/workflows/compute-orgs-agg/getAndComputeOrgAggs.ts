@@ -17,13 +17,11 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '10 m
 dailyGetAndComputeOrgAggs is a Temporal workflow that:
   - [Activity]: Get organization IDs from Redis.
   - [Child Workflow]: Re-compute and update aggregates for each organization 
-    in batches of 10. Child workflows run independently and won't be 
+    in batches of 50. Child workflows run independently and won't be 
     cancelled if the parent workflow stops.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
-  const currentCursor = '0'
-
-  const { cursor, organizationIds } = await activity.getOrgIdsFromRedis(currentCursor)
+  const { cursor, organizationIds } = await activity.getOrgIdsFromRedis()
 
   if (organizationIds.length > 0) {
     const info = workflowInfo()
@@ -39,7 +37,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
             initialInterval: 2 * 1000,
             maximumInterval: 30 * 1000,
           },
-          args: [{ organizationIds }],
+          args: [{ organizationId }],
         })
       }),
     )

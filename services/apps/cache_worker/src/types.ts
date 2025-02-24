@@ -1,3 +1,3 @@
 export interface IProcessComputeOrgAggs {
-  organizationIds: string[]
+  organizationId: string
 }
