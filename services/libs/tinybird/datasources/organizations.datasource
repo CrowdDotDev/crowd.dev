@@ -1,0 +1,20 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `displayName` String `json:$.record.displayName`,
+    `location` String `json:$.record.location` DEFAULT '',
+    `logo` String `json:$.record.logo` DEFAULT '',
+    `tags` String `json:$.record.tags` DEFAULT '',
+    `employees` UInt8 `json:$.record.employees` DEFAULT 0,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `isTeamOrganization` UInt8 `json:$.record.isTeamOrganization` DEFAULT 0,
+    `type` String `json:$.record.type` DEFAULT '',
+    `size` String `json:$.record.size` DEFAULT '',
+    `headline` String `json:$.record.headline` DEFAULT '',
+    `industry` String `json:$.record.industry` DEFAULT '',
+    `founded` UInt8 `json:$.record.founded` DEFAULT 0
+   
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt
