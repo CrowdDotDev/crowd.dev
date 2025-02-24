@@ -56,7 +56,7 @@ export async function sendActivitiesToTinybird(activitiesRedisKey: string): Prom
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
 
   try {
-    const url = `https://api.tinybird.co/v0/events?name=activities`
+    const url = `https://api.us-west-2.aws.tinybird.co/v0/events?name=activities`
     const config = {
       method: 'post',
       url,
