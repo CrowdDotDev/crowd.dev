@@ -1,6 +1,29 @@
 import { PlatformType } from './enums/platforms'
 import { IMemberData } from './members'
 
+export interface IActivityDbBase {
+  id: string
+  type: string
+  isContribution: boolean
+  score: number
+  timestamp: string
+  platform: string
+  sourceId: string
+  sourceParentId?: string
+  memberId: string
+  username: string
+  objectMemberId?: string
+  objectMemberUsername?: string
+  attributes: Record<string, unknown>
+  body?: string
+  title?: string
+  channel?: string
+  url?: string
+  tenantId?: string
+  organizationId?: string
+  segmentId?: string
+}
+
 export interface IActivityCreateData {
   id?: string
   type: string

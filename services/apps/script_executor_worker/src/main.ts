@@ -1,6 +1,8 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
+import { schedulePopulateActivityRelations } from './schedules/schedulePopulateActivityRelations'
+
 const config: Config = {
   envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],
   producer: {
@@ -10,7 +12,7 @@ const config: Config = {
     enabled: true,
   },
   questdb: {
-    enabled: false,
+    enabled: true,
   },
   redis: {
     enabled: true,
@@ -22,7 +24,7 @@ const options: Options = {
     enabled: true,
   },
   opensearch: {
-    enabled: false,
+    enabled: true,
   },
 }
 
@@ -30,5 +32,8 @@ export const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
   await svc.init()
+
+  await schedulePopulateActivityRelations()
+
   await svc.start()
 })

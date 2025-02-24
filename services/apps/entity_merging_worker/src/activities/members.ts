@@ -1,16 +1,16 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
   cleanupMember,
   deleteMemberSegments,
-  findMemberById,
-  getIdentitiesWithActivity,
-  moveActivitiesToNewMember,
-  moveIdentityActivitiesToNewMember,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { figureOutNewOrgId } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { prepareMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisPubSubEmitter } from '@crowd/redis'
 import {
@@ -27,51 +27,6 @@ export async function deleteMember(memberId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
   await cleanupMemberAggregates(qx, memberId)
   await cleanupMember(svc.postgres.writer, memberId)
-}
-
-export async function moveActivitiesBetweenMembers(
-  primaryId: string,
-  secondaryId: string,
-): Promise<void> {
-  const memberExists = await findMemberById(svc.postgres.writer, primaryId)
-
-  if (!memberExists) {
-    return
-  }
-  await moveActivitiesToNewMember(svc.questdbSQL, svc.queue, primaryId, secondaryId)
-}
-
-export async function moveActivitiesWithIdentityToAnotherMember(
-  fromId: string,
-  toId: string,
-  identities: IMemberIdentity[],
-): Promise<void> {
-  const memberExists = await findMemberById(svc.postgres.writer, toId)
-
-  if (!memberExists) {
-    return
-  }
-
-  const identitiesWithActivity = await getIdentitiesWithActivity(
-    svc.postgres.writer,
-    fromId,
-    identities,
-  )
-
-  for (const identity of identities.filter(
-    (i) =>
-      i.type === MemberIdentityType.USERNAME &&
-      identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
-  )) {
-    await moveIdentityActivitiesToNewMember(
-      svc.questdbSQL,
-      svc.queue,
-      fromId,
-      toId,
-      identity.value,
-      identity.platform,
-    )
-  }
 }
 
 export async function recalculateActivityAffiliationsOfMemberAsync(
@@ -99,7 +54,7 @@ export async function syncMember(memberId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId)
+  await syncApi.triggerMemberSync(memberId, { withAggs: true })
 }
 
 export async function syncRemoveMember(memberId: string): Promise<void> {
@@ -176,5 +131,79 @@ export async function notifyFrontendMemberUnmergeSuccessful(
       undefined,
       DEFAULT_TENANT_ID,
     ),
+  )
+}
+
+export async function finishMemberMergingUpdateActivities(memberId: string, newMemberId: string) {
+  const pgDb = svc.postgres.reader
+  const qDb = svc.questdbSQL
+  const queueClient = svc.queue
+
+  const qx = pgpQx(pgDb.connection())
+  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
+
+  await updateActivities(
+    qDb,
+    pgpQx(svc.postgres.writer.connection()),
+    queueClient,
+    [
+      async () => ({ memberId: newMemberId }),
+      async (activity) => ({
+        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+      }),
+    ],
+    `"memberId" = $(memberId)`,
+    {
+      memberId,
+    },
+  )
+}
+
+function moveByIdentities({
+  activity,
+  identities,
+  newMemberId,
+}: {
+  activity: IDbActivityCreateData
+  identities: IMemberIdentity[]
+  newMemberId: string
+}): Partial<IDbActivityCreateData> {
+  const { platform, username } = activity
+  const activityMatches = identities.some(
+    (i) =>
+      i.type === MemberIdentityType.USERNAME && i.platform === platform && i.value === username,
+  )
+
+  return activityMatches ? { memberId: newMemberId } : {}
+}
+
+export async function finishMemberUnmergingUpdateActivities({
+  memberId,
+  newMemberId,
+  identities,
+}: {
+  memberId: string
+  newMemberId: string
+  identities: IMemberIdentity[]
+}) {
+  const pgDb = svc.postgres.reader
+  const qDb = svc.questdbSQL
+  const queueClient = svc.queue
+
+  const qx = pgpQx(pgDb.connection())
+  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
+
+  await updateActivities(
+    qDb,
+    pgpQx(svc.postgres.writer.connection()),
+    queueClient,
+    [
+      async (activity) => moveByIdentities({ activity, identities, newMemberId }),
+      async (activity) => ({
+        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+      }),
+    ],
+    `"memberId" = $(memberId)`,
+    { memberId },
   )
 }

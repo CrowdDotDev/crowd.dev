@@ -11,6 +11,7 @@ import {
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
   IActivityData,
+  IActivityDbBase,
   IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
@@ -22,10 +23,13 @@ import {
 import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
+  IActivityRelationCreateOrUpdateData,
+  IActivityRelationUpdateById,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { IDbOrganizationAggregateData } from '../organizations'
+import { QueryExecutor } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
 import {
@@ -67,6 +71,30 @@ export async function getActivitiesById(
   })
 
   return data.rows
+}
+
+/**
+ * Finds activity createdAt by id, without tenant or segment filters
+ * @param qdbConn
+ * @param id
+ * @returns IActivityCreateData
+ */
+export async function getActivityCreatedAtById(
+  qdbConn: DbConnOrTx,
+  id: string,
+): Promise<Partial<IActivityDbBase>> {
+  const query = `
+    SELECT "createdAt"
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    and id = $(id)
+  `
+
+  const rows = await qdbConn.any(query, {
+    id,
+  })
+
+  return rows.length > 0 ? rows[0] : null
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -1389,4 +1417,353 @@ export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): P
   })
 
   return rows.map((r) => r.id)
+}
+
+export async function createOrUpdateRelations(
+  qe: QueryExecutor,
+  data: IActivityRelationCreateOrUpdateData,
+): Promise<void> {
+  // check objectMember exists
+  if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
+    let objectMember = await qe.select(
+      `
+      SELECT id
+      FROM members
+      WHERE id = $(objectMemberId)
+    `,
+      {
+        objectMemberId: data.objectMemberId,
+      },
+    )
+
+    if (objectMember.length === 0) {
+      if (data.objectMemberUsername && data.platform) {
+        objectMember = await qe.select(
+          `
+          SELECT "memberId"
+          FROM "memberIdentities"
+          WHERE value = $(value) and platform = $(platform) and verified = true
+          limit 1
+        `,
+          {
+            value: data.objectMemberUsername,
+            platform: data.platform,
+          },
+        )
+
+        if (objectMember.length === 0) {
+          data.objectMemberId = null
+        } else {
+          data.objectMemberId = objectMember[0].memberId
+        }
+      } else {
+        data.objectMemberId = null
+      }
+    }
+  }
+
+  // check conversation exists
+  if (data.conversationId !== undefined && data.conversationId !== null) {
+    const conversation = await qe.select(
+      `
+      SELECT id
+      FROM conversations
+      WHERE id = $(conversationId)
+    `,
+      {
+        conversationId: data.conversationId,
+      },
+    )
+
+    if (conversation.length === 0) {
+      data.conversationId = null
+    }
+  }
+
+  // if segmentId is empty, skip adding this activity relation
+  if (data.segmentId == undefined || data.segmentId == null) {
+    return
+  }
+
+  // check segmentId exists
+  const segment = await qe.select(
+    `
+    SELECT id
+    FROM segments
+    WHERE id = $(segmentId)
+  `,
+    {
+      segmentId: data.segmentId,
+    },
+  )
+
+  if (segment.length === 0) {
+    // segment not found, skip adding this activity relation
+    return
+  }
+
+  // check member exists
+  let member = await qe.select(
+    `
+    SELECT id
+    FROM members
+    WHERE id = $(memberId)
+  `,
+    {
+      memberId: data.memberId,
+    },
+  )
+
+  if (member.length === 0) {
+    // find member using identity
+    member = await qe.select(
+      `
+      SELECT "memberId"
+      FROM "memberIdentities"
+      WHERE value = $(value) and platform = $(platform) and verified = true
+      limit 1
+    `,
+      {
+        value: data.username,
+        platform: data.platform,
+      },
+    )
+    if (member.length === 0) {
+      // member not found, skip adding this activity relation
+      return
+    } else {
+      data.memberId = member[0].memberId
+    }
+  }
+
+  if (data.organizationId !== undefined && data.organizationId !== null) {
+    const organization = await qe.select(
+      `
+      SELECT id
+      FROM organizations
+      WHERE id = $(organizationId)
+    `,
+      {
+        organizationId: data.organizationId,
+      },
+    )
+
+    if (organization.length === 0) {
+      data.organizationId = null
+    }
+  }
+
+  await qe.result(
+    `
+    INSERT INTO "activityRelations" (
+            "activityId", 
+            "memberId", 
+            "objectMemberId", 
+            "organizationId",
+            "conversationId",
+            "parentId",
+            "segmentId",
+            "platform",
+            "username",
+            "objectMemberUsername",
+            "createdAt", 
+            "updatedAt")
+    VALUES
+        (
+            $(activityId), 
+            $(memberId), 
+            $(objectMemberId),
+            $(organizationId),
+            $(conversationId),
+            $(parentId),
+            $(segmentId),
+            $(platform),
+            $(username),
+            $(objectMemberUsername),
+            now(), 
+            now()
+        )
+    ON CONFLICT ("activityId") 
+    DO UPDATE 
+    SET 
+        "updatedAt" = EXCLUDED."updatedAt",
+        "memberId" = EXCLUDED."memberId",
+        "objectMemberId" = EXCLUDED."objectMemberId",
+        "organizationId" = EXCLUDED."organizationId",
+        "platform" = EXCLUDED."platform",
+        "username" = EXCLUDED."username",
+        "objectMemberUsername" = EXCLUDED."objectMemberUsername";
+
+    `,
+    {
+      activityId: data.activityId,
+      memberId: data.memberId,
+      segmentId: data.segmentId,
+      objectMemberId: data.objectMemberId ?? null,
+      organizationId: data.organizationId ?? null,
+      conversationId: data.conversationId ?? null,
+      parentId: data.parentId ?? null,
+      platform: data.platform,
+      username: data.username,
+      objectMemberUsername: data.objectMemberUsername ?? null,
+    },
+  )
+}
+
+export async function updateActivityRelationsById(
+  qe: QueryExecutor,
+  data: IActivityRelationUpdateById,
+): Promise<void> {
+  const fields: string[] = []
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && key !== 'activityId') {
+      fields.push(`"${key}" = $(${key})`)
+    }
+  }
+
+  if (fields.length === 0) return
+
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "activityId" = $(activityId)`
+
+  await qe.result(query, data)
+}
+
+export async function moveActivityRelationsToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "memberId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
+export async function moveActivityRelationsWithIdentityToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  username: string,
+  platform: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where 
+              "memberId" = $(fromId) and
+              "username" = $(username) and
+              "platform" = $(platform)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
+export async function moveActivityRelationsToAnotherOrganization(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "organizationId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "organizationId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
+
+export async function getActivityRelationsSortedByCreatedAt(
+  qdbConn: DbConnOrTx,
+  cursorActivityCreatedAt?: string,
+  limit = 100,
+) {
+  let cursorQuery = ''
+
+  if (cursorActivityCreatedAt) {
+    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
+  }
+
+  const query = `
+    SELECT 
+      id,
+      "memberId",
+      "createdAt",
+      "objectMemberId",
+      "organizationId",
+      "conversationId",
+      "parentId",
+      "segmentId",
+      platform,
+      username,
+      "objectMemberUsername"
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    ${cursorQuery}
+    ORDER BY "createdAt" asc
+    LIMIT ${limit}
+  `
+
+  const rows = await qdbConn.any(query, {
+    cursorActivityCreatedAt,
+    limit,
+  })
+
+  return rows
 }

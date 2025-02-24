@@ -29,7 +29,13 @@ export async function moveActivitiesBetweenOrgs(
   primaryId: string,
   secondaryId: string,
 ): Promise<void> {
-  await moveActivitiesToNewOrg(svc.questdbSQL, svc.queue, primaryId, secondaryId)
+  await moveActivitiesToNewOrg(
+    svc.questdbSQL,
+    svc.postgres.writer.connection(),
+    svc.queue,
+    primaryId,
+    secondaryId,
+  )
 }
 
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(

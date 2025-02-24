@@ -13,10 +13,7 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberSync(
-    memberId: string,
-    opts: { withAggs?: boolean } = {},
-  ): Promise<void> {
+  public async triggerMemberSync(memberId: string, opts?: { withAggs?: boolean }): Promise<void> {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
@@ -25,10 +22,6 @@ export class SearchSyncApiClient {
       memberId,
       ...opts,
     })
-  }
-
-  public async triggerMembersSync(): Promise<void> {
-    await this.searchSyncApi.post('/sync/tenant/members', {})
   }
 
   public async triggerOrganizationMembersSync(
@@ -57,7 +50,7 @@ export class SearchSyncApiClient {
   }
 
   public async triggerMemberCleanup(): Promise<void> {
-    await this.searchSyncApi.post('/cleanup/tenant/members', {})
+    await this.searchSyncApi.post('/cleanup/members', {})
   }
 
   public async triggerOrganizationSync(
@@ -76,10 +69,6 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerOrganizationsSync(): Promise<void> {
-    await this.searchSyncApi.post('/sync/tenant/organizations', {})
-  }
-
   public async triggerRemoveOrganization(organizationId: string): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
@@ -91,6 +80,6 @@ export class SearchSyncApiClient {
   }
 
   public async triggerOrganizationCleanup(): Promise<void> {
-    await this.searchSyncApi.post('/cleanup/tenant/organizations', {})
+    await this.searchSyncApi.post('/cleanup/organizations', {})
   }
 }

@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DEFAULT_TENANT_ID, distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
   fetchMemberIdentities,
@@ -243,14 +243,7 @@ export class MemberSyncService {
         )} members/second!`,
       )
 
-      await this.indexingRepo.markEntitiesIndexed(
-        IndexedEntityType.MEMBER,
-        memberIds.map((id) => {
-          return {
-            id,
-          }
-        }),
-      )
+      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
 
       memberIds = await this.memberRepo.getMembersForSync(batchSize)
     }
@@ -396,6 +389,8 @@ export class MemberSyncService {
       }
 
       if (memberData.length > 0) {
+        // dedup memberData so no same member-segment duplicates
+        memberData = distinctBy(memberData, (m) => `${m.memberId}-${m.segmentId}`)
         try {
           await this.memberRepo.transactionally(
             async (txRepo) => {

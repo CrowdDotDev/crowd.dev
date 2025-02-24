@@ -7,6 +7,7 @@ import validator from 'validator'
 import { captureApiChange, memberMergeAction, memberUnmergeAction } from '@crowd/audit-logs'
 import {
   Error400,
+  Error409,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -23,6 +24,7 @@ import {
   queryMembersAdvanced,
   removeMemberTags,
 } from '@crowd/data-access-layer/src/members'
+import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
@@ -1182,10 +1184,21 @@ export default class MemberService extends LoggerBase {
       }
     }
 
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    const mergeAction = await findMergeAction(qx, originalId, toMergeId)
+
+    // prevent multiple merge operations
+    if (
+      mergeAction?.state === MergeActionState.IN_PROGRESS ||
+      mergeAction?.state === MergeActionState.PENDING
+    ) {
+      throw new Error409(this.options.language, 'merge.errors.multipleMerge', mergeAction?.state)
+    }
+
     let tx
 
     const getMemberById = async (memberId: string) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
       const member = await findMemberById(qx, memberId, [
         MemberField.ID,
         MemberField.DISPLAY_NAME,
@@ -1250,19 +1263,19 @@ export default class MemberService extends LoggerBase {
             },
           }
 
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
+
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
             originalId,
             toMergeId,
-            this.options,
+            repoOptions,
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
-
-          const repoOptions: IRepositoryOptions =
-            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-          tx = repoOptions.transaction
 
           const identitiesToUpdate = []
           const identitiesToMove = []
@@ -1324,19 +1337,19 @@ export default class MemberService extends LoggerBase {
             currentSegments: secondMemberSegments,
           })
 
+          await MergeActionsRepository.setMergeAction(
+            MergeActionType.MEMBER,
+            originalId,
+            toMergeId,
+            repoOptions,
+            {
+              step: MergeActionStep.MERGE_SYNC_DONE,
+            },
+          )
+
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
-      )
-
-      await MergeActionsRepository.setMergeAction(
-        MergeActionType.MEMBER,
-        originalId,
-        toMergeId,
-        this.options,
-        {
-          step: MergeActionStep.MERGE_SYNC_DONE,
-        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {

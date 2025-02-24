@@ -204,7 +204,7 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.readOrgRepo.getOrganizationsForSync(
+        let organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
           batchSize,
           previousBatchIds,
         )
@@ -227,15 +227,11 @@ export class OrganizationSyncService {
 
           await this.indexingRepo.markEntitiesIndexed(
             IndexedEntityType.ORGANIZATION,
-            organizationIds.map((id) => {
-              return {
-                id,
-              }
-            }),
+            organizationIds,
           )
 
           previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getOrganizationsForSync(
+          organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
             batchSize,
             previousBatchIds,
           )

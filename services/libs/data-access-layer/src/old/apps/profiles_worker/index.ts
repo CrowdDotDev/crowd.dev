@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import QueryStream from 'pg-query-stream'
 
 import { getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
@@ -7,22 +6,33 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { IMemberOrganization } from '@crowd/types'
 
-import { insertActivities } from '../../../activities'
+import { updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { formatQuery, pgpQx } from '../../../queryExecutor'
+import { QueryExecutor, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
 
-export async function runMemberAffiliationsUpdate(
-  pgDb: DbStore,
-  qDb: DbConnOrTx,
-  queueClient: IQueue,
-  memberId: string,
-) {
-  const qx = pgpQx(pgDb.connection())
+type Condition = {
+  when: string[]
+  orgId: string
+  matches: (activity: IDbActivityCreateData) => boolean
+}
+
+type MemberOrganizationWithOverrides = IMemberOrganization & {
+  isPrimaryWorkExperience: boolean
+  memberCount: number
+}
+
+type TimelineItem = {
+  organizationId: string
+  isPrimaryWorkExperience: boolean
+  withDates?: boolean
+}
+
+export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberId: string) {
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }
@@ -39,23 +49,6 @@ export async function runMemberAffiliationsUpdate(
       return tsBetween(start, end)
     }
     return tsAfter(start)
-  }
-
-  type Condition = {
-    when: string[]
-    orgId: string
-    matches: (activity: IDbActivityCreateData) => boolean
-  }
-
-  type MemberOrganizationWithOverrides = IMemberOrganization & {
-    isPrimaryWorkExperience: boolean
-    memberCount: number
-  }
-
-  type TimelineItem = {
-    organizationId: string
-    isPrimaryWorkExperience: boolean
-    withDates?: boolean
   }
 
   const condition = ({ when, orgId }: Condition) => {
@@ -231,9 +224,21 @@ export async function runMemberAffiliationsUpdate(
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title &&
+      row.title !== null &&
+      row.title !== undefined &&
       !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
   )
+
+  // clean unknown dated work experiences if there is one marked as primary
+  const primaryUnknownDatedWorkExperience = memberOrganizations.find(
+    (row) => row.isPrimaryWorkExperience && !row.dateStart && !row.dateEnd,
+  )
+
+  if (primaryUnknownDatedWorkExperience) {
+    memberOrganizations = memberOrganizations.filter(
+      (row) => row.dateStart || row.id === primaryUnknownDatedWorkExperience.id,
+    )
+  }
 
   const timeline = buildTimeline(memberOrganizations)
 
@@ -312,40 +317,54 @@ export async function runMemberAffiliationsUpdate(
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
-  async function insertIfMatches(activity: IDbActivityCreateData) {
-    activity.organizationId = null
+  return { orgCases, fullCase, fallbackOrganizationId }
+}
 
-    if (orgCases.length > 0) {
-      for (const condition of orgCases) {
-        if (condition.matches(activity)) {
-          activity.organizationId = condition.orgId
-          break
-        }
+export function figureOutNewOrgId(
+  activity: IDbActivityCreateData,
+  orgCases: Condition[],
+  fallbackOrganizationId: string,
+) {
+  if (orgCases.length > 0) {
+    for (const condition of orgCases) {
+      if (condition.matches(activity)) {
+        return condition.orgId
       }
     }
-
-    await insertActivities(queueClient, [activity], true)
   }
 
-  const qs = new QueryStream(
-    formatQuery(
-      `
-        SELECT *
-        FROM activities
-        WHERE "memberId" = $(memberId)
-          AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-            ${fullCase},
-            cast('00000000-0000-0000-0000-000000000000' as uuid)
-          )
-      `,
-      { memberId },
-    ),
+  return fallbackOrganizationId || null
+}
+
+export async function runMemberAffiliationsUpdate(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  queueClient: IQueue,
+  memberId: string,
+) {
+  const qx = pgpQx(pgDb.connection())
+
+  const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
+    qx,
+    memberId,
   )
-  const { processed, duration } = await qDb.stream(qs, async (stream) => {
-    for await (const activity of stream) {
-      await insertIfMatches(activity as unknown as IDbActivityCreateData)
-    }
-  })
+
+  const { processed, duration } = await updateActivities(
+    qDb,
+    qx,
+    queueClient,
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
+    `
+      "memberId" = $(memberId)
+      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+        ${fullCase},
+        cast('00000000-0000-0000-0000-000000000000' as uuid)
+      )
+    `,
+    { memberId },
+  )
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)
 }

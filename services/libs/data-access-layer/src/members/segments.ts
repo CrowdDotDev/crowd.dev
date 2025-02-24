@@ -46,10 +46,11 @@ export async function insertMemberSegments(qx: QueryExecutor, data: IMemberSegme
         ],
         data.map((d) => {
           return {
-            tenantId: DEFAULT_TENANT_ID,
             ...d,
+            tenantId: DEFAULT_TENANT_ID,
           }
         }),
+        'DO NOTHING',
       ),
     )
   } catch (e) {

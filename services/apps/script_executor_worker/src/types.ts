@@ -19,3 +19,16 @@ export interface IDissectMemberArgs {
 export interface IFixOrgIdentitiesWithWrongUrlsArgs {
   testRun?: boolean
 }
+
+export interface IPopulateActivityRelationsArgs {
+  batchSizePerRun: number
+  deleteIndexedEntities?: boolean
+  latestSyncedActivityCreatedAt?: string
+}
+export interface ISyncMembersArgs {
+  batchSize?: number
+  chunkSize?: number
+  clean?: boolean
+  withAggs?: boolean
+  testRun?: boolean
+}

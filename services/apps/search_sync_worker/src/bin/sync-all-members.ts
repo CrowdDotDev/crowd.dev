@@ -36,7 +36,14 @@ setImmediate(async () => {
 
   const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
-  await service.syncAllMembers(500, { withAggs })
+  log.info('Starting sync of all members')
+
+  try {
+    await service.syncAllMembers(500, { withAggs })
+    log.info('Successfully synced all members')
+  } catch (err) {
+    log.error(err, 'Error syncing members!')
+  }
 
   process.exit(0)
 })

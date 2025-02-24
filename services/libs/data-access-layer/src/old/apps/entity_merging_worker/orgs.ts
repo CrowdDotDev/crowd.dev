@@ -2,6 +2,7 @@ import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IQueue } from '@crowd/queue'
 
 import { updateActivities } from '../../../activities/update'
+import { pgpQx } from '../../../queryExecutor'
 
 export async function deleteOrganizationSegments(db: DbStore, organizationId: string) {
   await db.connection().query(
@@ -34,12 +35,14 @@ export async function deleteOrganizationById(db: DbStore, organizationId: string
 
 export async function moveActivitiesToNewOrg(
   qdb: DbConnOrTx,
+  pgDb: DbConnOrTx,
   queueClient: IQueue,
   primaryId: string,
   secondaryId: string,
 ) {
   await updateActivities(
     qdb,
+    pgpQx(pgDb),
     queueClient,
     async () => ({ organizationId: primaryId }),
     `

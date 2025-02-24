@@ -57,7 +57,14 @@ setImmediate(async () => {
     readStore,
   )
 
-  await service.syncAllOrganizations(500, { withAggs })
+  log.info('Starting sync of all organizations')
+
+  try {
+    await service.syncAllOrganizations(500, { withAggs })
+    log.info('Successfully synced all organizations')
+  } catch (err) {
+    log.error(err, 'Error syncing organizations!')
+  }
 
   process.exit(0)
 })

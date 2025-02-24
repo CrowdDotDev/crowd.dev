@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_DEV_ENV, IS_PROD_ENV } from '@crowd/common'
+import { IS_DEV_ENV } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'

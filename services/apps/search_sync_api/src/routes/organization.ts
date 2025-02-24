@@ -29,23 +29,7 @@ router.post(
 )
 
 router.post(
-  '/sync/tenant/organizations',
-  asyncWrap(async (req: ApiRequest, res) => {
-    const organizationSyncService = syncService(req)
-
-    try {
-      req.log.trace(`Calling organizationSyncService.syncTenantOrganizations`)
-      await organizationSyncService.syncAllOrganizations()
-      res.sendStatus(200)
-    } catch (error) {
-      req.log.error(error)
-      res.status(500).send(error.message)
-    }
-  }),
-)
-
-router.post(
-  '/cleanup/tenant/organizations',
+  '/cleanup/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = syncService(req)
 

@@ -28,22 +28,6 @@ router.post(
 )
 
 router.post(
-  '/sync/tenant/members',
-  asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = syncService(req)
-
-    try {
-      req.log.trace(`Calling memberSyncService.syncAllMembers`)
-      await memberSyncService.syncAllMembers()
-      res.sendStatus(200)
-    } catch (error) {
-      req.log.error(error)
-      res.status(500).send(error.message)
-    }
-  }),
-)
-
-router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = syncService(req)
@@ -65,7 +49,7 @@ router.post(
 )
 
 router.post(
-  '/cleanup/tenant/members',
+  '/cleanup/members',
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = syncService(req)
 

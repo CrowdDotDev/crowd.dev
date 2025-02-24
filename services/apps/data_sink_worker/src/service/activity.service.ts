@@ -12,6 +12,7 @@ import {
 } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
+  createOrUpdateRelations,
   findCommitsForPRSha,
   findMatchingPullRequestNodeId,
   insertActivities,
@@ -31,6 +32,7 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -83,6 +85,7 @@ export default class ActivityService extends LoggerBase {
       })
 
       const id = await this.pgStore.transactionally(async (txStore) => {
+        const queryExecutor = dbStoreQx(txStore)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         await txSettingsRepo.createActivityType(
@@ -124,6 +127,16 @@ export default class ActivityService extends LoggerBase {
               importHash: activity.importHash,
             },
           ])
+          await createOrUpdateRelations(queryExecutor, {
+            activityId: activity.id,
+            segmentId,
+            memberId: activity.memberId,
+            objectMemberId: activity.objectMemberId,
+            organizationId: activity.organizationId,
+            platform: activity.platform,
+            username: activity.username,
+            objectMemberUsername: activity.objectMemberUsername,
+          })
         } catch (error) {
           this.log.error('Error creating activity in QuestDB:', error)
           throw error
@@ -151,6 +164,7 @@ export default class ActivityService extends LoggerBase {
     try {
       let toUpdate: IDbActivityUpdateData
       const updated = await this.pgStore.transactionally(async (txStore) => {
+        const queryExecutor = dbStoreQx(txStore)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         toUpdate = await this.mergeActivityData(activity, original)
@@ -199,6 +213,16 @@ export default class ActivityService extends LoggerBase {
                 importHash: original.importHash,
               },
             ])
+            await createOrUpdateRelations(queryExecutor, {
+              activityId: id,
+              segmentId,
+              memberId: toUpdate.memberId || original.memberId,
+              objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+              organizationId: toUpdate.organizationId || original.organizationId,
+              platform: toUpdate.platform || (original.platform as PlatformType),
+              username: toUpdate.username || original.username,
+              objectMemberUsername: toUpdate.objectMemberUsername || original.objectMemberUsername,
+            })
           } catch (error) {
             this.log.error('Error updating (by inserting) activity in QuestDB:', error)
             throw error
@@ -1060,6 +1084,7 @@ export default class ActivityService extends LoggerBase {
               objectMemberId,
               objectMemberUsername,
               attributes:
+                IS_GITHUB_SNOWFLAKE_ENABLED &&
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT
                   ? await this.findMatchingGitActivityAttributes({
@@ -1265,6 +1290,7 @@ export default class ActivityService extends LoggerBase {
     }) => {
       await updateActivities(
         this.qdbStore.connection(),
+        dbStoreQx(this.pgStore),
         this.client,
         async (activity) => ({
           attributes: {
@@ -1307,6 +1333,7 @@ export default class ActivityService extends LoggerBase {
 
     await updateActivities(
       this.qdbStore.connection(),
+      dbStoreQx(this.pgStore),
       this.client,
       async () => ({
         sourceParentId: activity.sourceId,

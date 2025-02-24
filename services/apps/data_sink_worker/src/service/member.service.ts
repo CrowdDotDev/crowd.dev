@@ -272,7 +272,7 @@ export default class MemberService extends LoggerBase {
 
             const orgId = await orgService.findOrCreate(source, integrationId, org)
             organizations.push({
-              orgId,
+              id: orgId,
               source: data.source,
             })
           }

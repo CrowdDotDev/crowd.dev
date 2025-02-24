@@ -26,7 +26,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async getOrganizationsForSync(
+  public async getAllOrganizationsForSync(
     perPage: number,
     previousBatchIds: string[],
   ): Promise<string[]> {

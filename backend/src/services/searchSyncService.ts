@@ -48,7 +48,7 @@ export default class SearchSyncService extends LoggerBase {
     return process()
   }
 
-  async triggerMemberSync(memberId: string, opts: { withAggs?: boolean } = {}) {
+  async triggerMemberSync(memberId: string, opts?: { withAggs?: boolean }) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
@@ -58,16 +58,6 @@ export default class SearchSyncService extends LoggerBase {
       )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerMemberSync(memberId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerMembersSync() {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerMembersSync()
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -121,16 +111,6 @@ export default class SearchSyncService extends LoggerBase {
       )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerOrganizationSync(organizationId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerOrganizationsSync() {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationsSync()
     } else {
       throw new Error('Unexpected search client type!')
     }

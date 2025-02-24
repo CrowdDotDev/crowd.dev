@@ -99,13 +99,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
           }
 
           break
-        // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
-        case SearchSyncWorkerQueueMessageType.SYNC_MEMBERS:
-          this.initMemberService()
-            .syncAllMembers()
-            .catch((err) => this.log.error(err, 'Error while syncing members!'))
-
-          break
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
           if (data.organizationId) {
             this.initMemberService()
@@ -133,11 +126,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
             // await this.organizationBatchProcessor.addToBatch(data.organizationId)
             await this.initOrganizationService().syncOrganizations([data.organizationId])
           }
-          break
-        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATIONS:
-          this.initOrganizationService()
-            .syncAllOrganizations()
-            .catch((err) => this.log.error(err, 'Error while syncing all organizations!'))
           break
         case SearchSyncWorkerQueueMessageType.CLEANUP_ORGANIZATIONS:
           this.initOrganizationService()

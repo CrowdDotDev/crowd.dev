@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
 import { uniq } from 'lodash'
 
-import { groupBy } from '@crowd/common'
+import { Error400, dateIntersects, groupBy } from '@crowd/common'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
@@ -17,6 +17,8 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
 import MemberAffiliationService from '../memberAffiliationService'
+
+import MemberOrganizationsService from './memberOrganizationsService'
 
 export default class MemberAffiliationsService extends LoggerBase {
   options: IServiceOptions
@@ -66,6 +68,41 @@ export default class MemberAffiliationsService extends LoggerBase {
   async changeAffiliationOverride(
     data: IChangeAffiliationOverrideData,
   ): Promise<IMemberOrganizationAffiliationOverride> {
+    if (data.isPrimaryWorkExperience) {
+      const memberOrgService = new MemberOrganizationsService(this.options)
+      // check if any other work experience in intersecting date range was marked as primary
+      // we don't allow this because "isPrimaryWorkExperience" decides which work exp to pick on date conflicts
+      const allWorkExperiencesOfMember = (await memberOrgService.list(data.memberId)).map(
+        (mo) => mo.memberOrganizations,
+      )
+
+      const currentlyEditedWorkExperience = allWorkExperiencesOfMember.find(
+        (w) => w.id === data.memberOrganizationId,
+      )
+
+      const primaryWorkExperiencesOfMember = allWorkExperiencesOfMember.filter(
+        (w) => w.affiliationOverride.isPrimaryWorkExperience,
+      )
+
+      if (currentlyEditedWorkExperience.affiliationOverride.isPrimaryWorkExperience === false) {
+        for (const existingPrimaryWorkExp of primaryWorkExperiencesOfMember) {
+          if (
+            dateIntersects(
+              existingPrimaryWorkExp.dateStart as string,
+              existingPrimaryWorkExp.dateEnd as string,
+              currentlyEditedWorkExperience.dateStart as string,
+              currentlyEditedWorkExperience.dateEnd as string,
+            )
+          ) {
+            throw new Error400(
+              this.options.language,
+              `Date range conflicts with another primary work experience id = ${existingPrimaryWorkExp.id}`,
+            )
+          }
+        }
+      }
+    }
+
     const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(
       data,
       this.options,

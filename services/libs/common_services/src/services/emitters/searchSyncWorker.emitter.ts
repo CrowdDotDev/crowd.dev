@@ -33,16 +33,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerMembersSync() {
-    await this.sendMessage(
-      'search-sync-worker-system',
-      {
-        type: SearchSyncWorkerQueueMessageType.SYNC_MEMBERS,
-      },
-      'search-sync-worker-system-members-sync',
-    )
-  }
-
   public async triggerOrganizationMembersSync(organizationId: string, onboarding: boolean) {
     if (!organizationId) {
       throw new Error('organizationId is required!')
@@ -108,16 +98,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       {
         onboarding,
       },
-    )
-  }
-
-  public async triggerOrganizationsSync() {
-    await this.sendMessage(
-      'search-sync-worker-system',
-      {
-        type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATIONS,
-      },
-      'search-sync-worker-system-sync-organizations',
     )
   }
 

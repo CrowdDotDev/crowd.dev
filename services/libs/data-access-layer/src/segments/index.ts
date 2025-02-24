@@ -65,10 +65,13 @@ export async function findSegmentById(
       } else if (isSegmentSubproject(child)) {
         // find project index
         const projectIndex = acc.findIndex((project) => project.slug === child.parentSlug)
-        if (!acc[projectIndex].subprojects) {
-          acc[projectIndex].subprojects = [child]
-        } else {
-          acc[projectIndex].subprojects.push(child)
+        // process subproject only if its parent project exists
+        if (projectIndex !== -1) {
+          if (!acc[projectIndex].subprojects) {
+            acc[projectIndex].subprojects = [child]
+          } else {
+            acc[projectIndex].subprojects.push(child)
+          }
         }
       }
       return acc
