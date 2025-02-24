@@ -26,7 +26,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   console.log('cursor', cursor)
   console.log('organizationIds', organizationIds)
 
-  if (organizationIds.length === 0 && cursor === '0') {
+  if (organizationIds.length === 0) {
     console.log('No more organizations to process. Workflow completed successfully!')
     return
   }
