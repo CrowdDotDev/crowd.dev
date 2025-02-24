@@ -70,7 +70,7 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
 
 export async function saveActivityDataToRedis(key: string, activities): Promise<void> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
-  await redisCache.set(key, JSON.stringify(activities), 30)
+  await redisCache.set(key, JSON.stringify(activities), 90)
 }
 
 export async function getActivitiyDataFromRedis(key: string) {
