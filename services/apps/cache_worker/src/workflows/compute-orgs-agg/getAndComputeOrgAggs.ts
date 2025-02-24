@@ -23,26 +23,32 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const { cursor, organizationIds } = await activity.getOrgIdsFromRedis()
 
-  if (organizationIds.length > 0) {
-    const info = workflowInfo()
+  console.log('cursor', cursor)
+  console.log('organizationIds', organizationIds)
 
-    await Promise.all(
-      organizationIds.map((organizationId) => {
-        return executeChild(computeOrgAggsAndUpdate, {
-          workflowId: `${info.workflowId}/${organizationId}`,
-          cancellationType: ChildWorkflowCancellationType.ABANDON,
-          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-          retry: {
-            backoffCoefficient: 2,
-            initialInterval: 2 * 1000,
-            maximumInterval: 30 * 1000,
-            maximumAttempts: 3,
-          },
-          args: [{ organizationId }],
-        })
-      }),
-    )
+  if (organizationIds.length === 0 && cursor === '0') {
+    console.log('No more organizations to process. Workflow completed successfully!')
+    return
   }
+
+  const info = workflowInfo()
+
+  await Promise.all(
+    organizationIds.map((organizationId) => {
+      return executeChild(computeOrgAggsAndUpdate, {
+        workflowId: `${info.workflowId}/${organizationId}`,
+        cancellationType: ChildWorkflowCancellationType.ABANDON,
+        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+        retry: {
+          backoffCoefficient: 2,
+          initialInterval: 2 * 1000,
+          maximumInterval: 30 * 1000,
+          maximumAttempts: 3,
+        },
+        args: [{ organizationId }],
+      })
+    }),
+  )
 
   // Continue with the next batch
   if (cursor !== '0') {

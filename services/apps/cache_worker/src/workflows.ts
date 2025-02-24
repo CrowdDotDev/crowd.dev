@@ -1,4 +1,3 @@
-import { checkRedis } from './workflows/compute-orgs-agg/checkRedis'
 import { computeOrgAggsAndUpdate } from './workflows/compute-orgs-agg/computeOrgAggsAndUpdate'
 import { dailyGetAndComputeOrgAggs } from './workflows/compute-orgs-agg/getAndComputeOrgAggs'
 import { refreshDashboardCache } from './workflows/refreshDashboardCache'
@@ -9,5 +8,4 @@ export {
   refreshDashboardCache,
   dailyGetAndComputeOrgAggs,
   computeOrgAggsAndUpdate,
-  checkRedis,
 }
