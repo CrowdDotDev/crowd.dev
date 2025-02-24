@@ -1,17 +1,9 @@
 import axios from 'axios'
 
-import { getDefaultTenantId } from '@crowd/common'
-import {
-  getActivitiesSortedById,
-  getActivityRelationsSortedByCreatedAt,
-} from '@crowd/data-access-layer'
-import { IndexedEntityType, IndexingRepository } from '@crowd/opensearch'
+import { getActivitiesSortedByCreatedAt } from '@crowd/data-access-layer'
 import { RedisCache } from '@crowd/redis'
-import { IActivityData } from '@crowd/types'
 
 import { svc } from '../../main'
-
-const tenantId = getDefaultTenantId()
 
 export async function resetIndexedIdentitiesForSyncingActivitiesToTinybird(): Promise<void> {
   const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
@@ -38,7 +30,7 @@ export async function getActivitiesToCopyToTinybird(
   latestSyncedActivityCreatedAt: string,
   limit: number,
 ) {
-  const activities = await getActivityRelationsSortedByCreatedAt(
+  const activities = await getActivitiesSortedByCreatedAt(
     svc.questdbSQL,
     latestSyncedActivityCreatedAt,
     limit,

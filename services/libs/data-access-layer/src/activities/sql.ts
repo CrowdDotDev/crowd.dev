@@ -1816,3 +1816,32 @@ export async function getActivityRelationsSortedByCreatedAt(
 
   return rows
 }
+
+export async function getActivitiesSortedByCreatedAt(
+  qdbConn: DbConnOrTx,
+  cursorActivityCreatedAt?: string,
+  limit = 100,
+) {
+  let cursorQuery = ''
+
+  if (cursorActivityCreatedAt) {
+    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
+  }
+
+  const query = `
+    SELECT 
+      *
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    ${cursorQuery}
+    ORDER BY "createdAt" asc
+    LIMIT ${limit}
+  `
+
+  const rows = await qdbConn.any(query, {
+    cursorActivityCreatedAt,
+    limit,
+  })
+
+  return rows
+}
