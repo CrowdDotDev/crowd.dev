@@ -1,14 +1,14 @@
 SCHEMA >
     `activityId` String `json:$.record.activityId`,
-    `conversationId` Nullable(String) `json:$.record.conversationId`,
+    `conversationId` String `json:$.record.conversationId`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `memberId` String `json:$.record.memberId`,
-    `objectMemberId` Nullable(String) `json:$.record.objectMemberId`,
-    `objectMemberUsername` Nullable(String) `json:$.record.objectMemberUsername`,
-    `organizationId` Nullable(String) `json:$.record.organizationId`,
-    `parentId` Nullable(String) `json:$.record.parentId`,
-    `platform` String `json:$.record.platform`,
+    `objectMemberId` String `json:$.record.objectMemberId` DEFAULT '',
+    `objectMemberUsername` String `json:$.record.objectMemberUsername` DEFAULT '',
+    `organizationId` String `json:$.record.organizationId` DEFAULT '',
+    `parentId` String `json:$.record.parentId` DEFAULT '',
+    `platform` LowCardinality(String) `json:$.record.platform` DEFAULT '',
     `segmentId` String `json:$.record.segmentId`,
     `username` String `json:$.record.username`
 

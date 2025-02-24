@@ -1,12 +1,13 @@
 SCHEMA >
     `id` String `json:$.record.id`,
-    `attributes` Nullable(String) `json:$.record.attributes`,
-    `contributions` Nullable(String) `json:$.record.contributions`,
+    `attributes` String `json:$.record.attributes` DEFAULT '',
+    `location` String `json:$.record.attributes.location.default` DEFAULT '',
+    `contributions` String `json:$.record.contributions` DEFAULT '',
     `joinedAt` DateTime64(3) `json:$.record.joinedAt`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `displayName` String `json:$.record.displayName`,
-    `score` Nullable(Int32) `json:$.record.score`
+    `score` Int32 `json:$.record.score` DEFAULT -1
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
