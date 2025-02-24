@@ -9,12 +9,11 @@ interface IScanResult {
   organizationIds: string[]
 }
 
-export async function getOrgIdsFromRedis(cursor = '0', count = 50): Promise<IScanResult> {
+export async function getOrgIdsFromRedis(cursor = '0', count = 100): Promise<IScanResult> {
   try {
     const result = await svc.redis.sScan('organizationIdsForAggComputation', Number(cursor), {
       COUNT: count,
     })
-    console.log('result', result)
     return { organizationIds: result.members, cursor: result.cursor.toString() }
   } catch (e) {
     this.log.error(e, 'Failed to get organization IDs from Redis!')

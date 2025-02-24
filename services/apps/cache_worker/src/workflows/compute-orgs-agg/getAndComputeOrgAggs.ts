@@ -21,7 +21,6 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
     cancelled if the parent workflow stops.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
-  const testRun = true
   const { cursor, organizationIds } = await activity.getOrgIdsFromRedis()
 
   if (organizationIds.length > 0) {
@@ -45,7 +44,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   }
 
   // Continue with the next batch
-  if (cursor !== '0' && !testRun) {
+  if (cursor !== '0') {
     await continueAsNew<typeof dailyGetAndComputeOrgAggs>()
   }
 }
