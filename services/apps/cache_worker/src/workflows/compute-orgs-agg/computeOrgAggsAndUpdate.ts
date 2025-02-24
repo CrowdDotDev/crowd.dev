@@ -3,7 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../../activities/computeAggs/organization'
 import { IProcessComputeOrgAggs } from '../../types'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '10 minutes' })
+const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '30 minutes' })
 
 export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Promise<void> {
   const orgId = args.organizationId

@@ -11,7 +11,7 @@ import * as activities from '../../activities/computeAggs/organization'
 
 import { computeOrgAggsAndUpdate } from './computeOrgAggsAndUpdate'
 
-const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '10 minutes' })
+const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '15 minutes' })
 
 /*
 dailyGetAndComputeOrgAggs is a Temporal workflow that:
@@ -36,6 +36,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
             backoffCoefficient: 2,
             initialInterval: 2 * 1000,
             maximumInterval: 30 * 1000,
+            maximumAttempts: 3,
           },
           args: [{ organizationId }],
         })
