@@ -8,8 +8,6 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '10 m
 export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Promise<void> {
   const orgId = args.organizationId
 
-  console.log(`Processing organizationId: ${orgId}`)
-
   const orgExists = await activity.checkOrganizationExists(orgId)
 
   if (!orgExists) {
