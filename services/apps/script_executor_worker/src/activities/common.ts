@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import {
   IMemberIdentity,
