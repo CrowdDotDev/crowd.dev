@@ -7,14 +7,16 @@ import { svc } from '../../main'
 interface IScanResult {
   cursor: string
   organizationIds: string[]
+  totalSize: number
 }
 
 export async function getOrgIdsFromRedis(cursor = '0', count = 50): Promise<IScanResult> {
   try {
+    const totalSize = await svc.redis.sCard('organizationIdsForAggComputation')
     const result = await svc.redis.sScan('organizationIdsForAggComputation', Number(cursor), {
       COUNT: count,
     })
-    return { organizationIds: result.members, cursor: result.cursor.toString() }
+    return { organizationIds: result.members, cursor: result.cursor.toString(), totalSize }
   } catch (e) {
     this.log.error(e, 'Failed to get organization IDs from Redis!')
     throw e
