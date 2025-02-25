@@ -50,7 +50,7 @@ export async function getActivitiesToCopy(latestSyncedActivityCreatedAt: string,
   return {
     activitiesRedisKey: key,
     activitiesLength: activities.length,
-    lastCreatedAt: activities[activities.length - 1].createdAt,
+    lastCreatedAt: activities[activities.length - 1].timestamp,
   }
 }
 
