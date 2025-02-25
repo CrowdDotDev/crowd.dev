@@ -152,7 +152,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
     return experiences.filter(
       (row) =>
         row.title &&
-        blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+        !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
     )
   }
 }
