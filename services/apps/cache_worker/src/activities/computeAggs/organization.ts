@@ -5,20 +5,33 @@ import { OrganizationSyncService } from '@crowd/opensearch'
 import { svc } from '../../main'
 
 interface IScanResult {
-  cursor: string
   organizationIds: string[]
   totalSize: number
 }
 
-export async function getOrgIdsFromRedis(cursor = '0', count = 50): Promise<IScanResult> {
+export async function getOrgIdsFromRedis(batchSize = 100): Promise<IScanResult> {
+  let cursor = '0'
+  const organizationIds: string[] = []
+
   try {
     const totalSize = await svc.redis.sCard('organizationIdsForAggComputation')
-    const result = await svc.redis.sScan('organizationIdsForAggComputation', Number(cursor), {
-      COUNT: count,
-    })
-    return { organizationIds: result.members, cursor: result.cursor.toString(), totalSize }
+
+    do {
+      const { cursor: nextCursor, members } = await svc.redis.sScan(
+        'organizationIdsForAggComputation',
+        Number(cursor),
+        {
+          COUNT: batchSize,
+        },
+      )
+
+      cursor = nextCursor.toString()
+      organizationIds.push(...members)
+    } while (cursor !== '0')
+
+    return { organizationIds, totalSize }
   } catch (e) {
-    this.log.error(e, 'Failed to get organization IDs from Redis!')
+    svc.log.error(e, 'Failed to get organization IDs from Redis!')
     throw e
   }
 }
@@ -35,7 +48,7 @@ export async function checkOrganizationExists(orgId: string): Promise<boolean> {
     const results = await repo.checkOrganizationsExists([orgId])
     exists = results.length > 0
   } catch (e) {
-    this.log.error(e, 'Failed to check if organization exists!')
+    svc.log.error(e, 'Failed to check if organization exists!')
   }
 
   return exists
