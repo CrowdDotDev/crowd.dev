@@ -4,7 +4,10 @@
       <h4 class="text-gray-900 py-6">
         Admin panel
       </h4>
-      <div v-if="isAdminUser" class="flex h-fit border border-gray-200 rounded-md p-1 gap-0.5">
+      <div
+        v-if="isAdminUser && config.env !== 'production'"
+        class="flex h-fit border border-gray-200 rounded-md p-1 gap-0.5"
+      >
         <lf-button
           size="medium"
           class="!text-gray-500 text-xs"
@@ -61,8 +64,12 @@
       <div class="mt-6 border-t border-gray-100">
         <div class="tab-content">
           <app-lf-project-groups-page v-if="activeTab === 'project-groups'" />
-          <lf-admin-integration-status v-else-if="activeTab === 'integrations'" />
-          <app-organization-common-page v-else-if="activeTab === 'organizations'" />
+          <lf-admin-integration-status
+            v-else-if="activeTab === 'integrations'"
+          />
+          <app-organization-common-page
+            v-else-if="activeTab === 'organizations'"
+          />
           <app-api-keys-page v-else-if="activeTab === 'api-keys'" />
           <app-lf-audit-logs-page v-else-if="activeTab === 'audit-logs'" />
           <lf-admin-users v-else-if="activeTab === 'users'" />
@@ -93,6 +100,7 @@ import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCollectionsPage from '@/modules/admin/modules/collections/pages/collection.page.vue';
 import LfInsightsProjectsPage from '@/modules/admin/modules/insights-projects/pages/insights-projects.page.vue';
+import config from '@/config';
 
 const route = useRoute();
 const router = useRouter();
@@ -131,20 +139,30 @@ const changeAdminPanelView = (view: string) => {
 onMounted(() => {
   const initialActiveTab = route.hash.substring(1) as string;
 
-  if ((initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
+  if (
+    (initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs')
+    && !isAdminUser.value
+  ) {
     activeTab.value = 'project-groups';
-  } else if (initialActiveTab === 'collections' || initialActiveTab === 'projects') {
+  } else if (
+    initialActiveTab === 'collections'
+    || initialActiveTab === 'projects'
+  ) {
     activeTab.value = isAdminUser.value ? initialActiveTab : 'project-groups';
     isCommunityManagement.value = !isAdminUser.value;
   } else {
-    activeTab.value = route.hash.substring(1) as string || 'project-groups';
+    activeTab.value = (route.hash.substring(1) as string) || 'project-groups';
   }
 });
 
-watch(() => route.hash, (hash: string) => {
-  const view = hash.substring(1);
-  if (view.length > 0 && view !== activeTab.value) {
-    activeTab.value = view;
-  }
-}, { immediate: true });
+watch(
+  () => route.hash,
+  (hash: string) => {
+    const view = hash.substring(1);
+    if (view.length > 0 && view !== activeTab.value) {
+      activeTab.value = view;
+    }
+  },
+  { immediate: true },
+);
 </script>
