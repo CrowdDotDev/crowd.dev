@@ -161,7 +161,7 @@ class MemberMergeSuggestionsRepository {
         where not exists (
           select 1
           from "${table}"
-          where ("memberId" = new_vals."memberId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid) 
+          where ("memberId" = new_vals."memberId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid)
           or ("memberId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."memberId"::uuid)
         );
       `
@@ -211,7 +211,7 @@ class MemberMergeSuggestionsRepository {
     try {
       const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
         `
-        select 
+        select
           mem.attributes,
           mem."displayName",
           mem."joinedAt",
@@ -256,15 +256,15 @@ class MemberMergeSuggestionsRepository {
     }
 
     const query = `select * from "memberToMergeRaw" mtmr
-                     where 
+                     where
                      not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv 
+                          select 1 from "llmSuggestionVerdicts" lsv
                           where (
-                              lsv."primaryId" = mtmr."memberId" and 
-                              lsv."secondaryId" = mtmr."toMergeId" and 
+                              lsv."primaryId" = mtmr."memberId" and
+                              lsv."secondaryId" = mtmr."toMergeId" and
                               lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
-                            ) 
-                              or 
+                            )
+                              or
                             (
                               lsv."primaryId" = mtmr."toMergeId" and
                               lsv."secondaryId" = mtmr."memberId" and
@@ -289,10 +289,10 @@ class MemberMergeSuggestionsRepository {
     table: MemberMergeSuggestionTable,
   ): Promise<void> {
     const query = `
-      delete from "${table}" 
-      where 
+      delete from "${table}"
+      where
         ("memberId" = $(memberId) and "toMergeId" = $(toMergeId))
-        or 
+        or
         ("memberId" = $(toMergeId) and "toMergeId" = $(memberId))
     `
 

@@ -16,14 +16,13 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
     )
   }
 
-  public async createPredefined(tenantId: string, attributes: IMemberAttribute[]): Promise<void> {
+  public async createPredefined(attributes: IMemberAttribute[]): Promise<void> {
     const names = attributes.map((a) => a.name)
 
     // find existing
     const results = await this.db().any(
-      `select name from "memberAttributeSettings" where "tenantId" = $(tenantId) and name in ($(names:csv))`,
+      `select name from "memberAttributeSettings" where name in ($(names:csv))`,
       {
-        tenantId,
         names,
       },
     )
@@ -39,7 +38,6 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
           return {
             ...a,
             id: generateUUIDv1(),
-            tenantId,
             createdAt: now,
             updatedAt: now,
           }

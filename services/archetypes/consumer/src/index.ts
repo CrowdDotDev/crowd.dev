@@ -62,18 +62,6 @@ export class ServiceConsumer extends Service {
     if (missing.length > 0) {
       throw new Error(`Missing environment variables: ${missing.join(', ')}`)
     }
-
-    try {
-      this._consumer = this._kafka.consumer({
-        groupId: process.env['CROWD_KAFKA_GROUP_ID'],
-        maxWaitTimeInMs: this.options.maxWaitTimeInMs || 2000,
-        retry: this.options.retryPolicy,
-      })
-
-      await this._consumer.connect()
-    } catch (err) {
-      throw new Error(err)
-    }
   }
 
   // Actually start the consumer's subscription.

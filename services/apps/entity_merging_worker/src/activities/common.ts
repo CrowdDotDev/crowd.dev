@@ -6,8 +6,7 @@ import { svc } from '../main'
 export async function setMergeAction(
   primaryId: string,
   secondaryId: string,
-  tenantId: string,
   data: { state?: MergeActionState; step?: MergeActionStep },
 ): Promise<void> {
-  await updateMergeActionState(svc.postgres.writer, primaryId, secondaryId, tenantId, data)
+  await updateMergeActionState(svc.postgres.writer, primaryId, secondaryId, data)
 }

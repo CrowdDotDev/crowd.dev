@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import {
   deleteOrganizationById,
   deleteOrganizationSegments,
@@ -27,7 +28,6 @@ export async function deleteOrganization(organizationId: string): Promise<void> 
 export async function moveActivitiesBetweenOrgs(
   primaryId: string,
   secondaryId: string,
-  tenantId: string,
 ): Promise<void> {
   await moveActivitiesToNewOrg(
     svc.questdbSQL,
@@ -35,24 +35,21 @@ export async function moveActivitiesBetweenOrgs(
     svc.queue,
     primaryId,
     secondaryId,
-    tenantId,
   )
 }
 
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   organizationId: string,
-  tenantId: string,
 ): Promise<void> {
   await svc.temporal.workflow.start('organizationUpdate', {
     taskQueue: 'profiles',
-    workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
+    workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`,
     followRuns: true,
     retry: {
       maximumAttempts: 10,
     },
     args: [
       {
-        tenantId,
         organization: {
           id: organizationId,
         },
@@ -63,14 +60,9 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
         },
       },
     ],
-    searchAttributes: {
-      TenantId: [tenantId],
-    },
   })
 
-  await svc.temporal.workflow.result(
-    `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
-  )
+  await svc.temporal.workflow.result(`${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`)
 }
 
 export async function syncOrganization(organizationId: string, syncStart: Date): Promise<void> {
@@ -79,7 +71,7 @@ export async function syncOrganization(organizationId: string, syncStart: Date):
   })
 
   await syncApi.triggerOrganizationSync(organizationId)
-  await syncApi.triggerOrganizationMembersSync(null, organizationId, null, syncStart)
+  await syncApi.triggerOrganizationMembersSync(organizationId, null, syncStart)
 }
 
 export async function notifyFrontendOrganizationUnmergeSuccessful(
@@ -87,7 +79,6 @@ export async function notifyFrontendOrganizationUnmergeSuccessful(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
   const emitter = new RedisPubSubEmitter(
@@ -105,7 +96,7 @@ export async function notifyFrontendOrganizationUnmergeSuccessful(
       'organization-unmerge',
       JSON.stringify({
         success: true,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         userId,
         primaryId,
         secondaryId,
@@ -113,7 +104,7 @@ export async function notifyFrontendOrganizationUnmergeSuccessful(
         secondaryDisplayName,
       }),
       undefined,
-      tenantId,
+      DEFAULT_TENANT_ID,
     ),
   )
 }
@@ -123,7 +114,6 @@ export async function notifyFrontendOrganizationMergeSuccessful(
   secondaryOrgId: string,
   original: string,
   toMerge: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
   const emitter = new RedisPubSubEmitter(
@@ -141,15 +131,15 @@ export async function notifyFrontendOrganizationMergeSuccessful(
       'org-merge',
       JSON.stringify({
         success: true,
-        tenantId,
         userId,
+        tenantId: DEFAULT_TENANT_ID,
         primaryOrgId,
         secondaryOrgId,
         original,
         toMerge,
       }),
       undefined,
-      tenantId,
+      DEFAULT_TENANT_ID,
     ),
   )
 }

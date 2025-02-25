@@ -35,8 +35,6 @@ class ActivityRepository {
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     // Data and body will be displayed as HTML. We need to sanitize them.
@@ -69,7 +67,6 @@ class ActivityRepository {
         parentId: data.parent || undefined,
         sourceId: data.sourceId,
         sourceParentId: data.sourceParentId || undefined,
-        tenantId: tenant.id,
         segmentId: segment.id,
         memberId: data.member || undefined,
         username: data.username,
@@ -124,8 +121,6 @@ class ActivityRepository {
   static async update(id: string, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     // Data and body will be displayed as HTML. We need to sanitize them.
@@ -149,7 +144,6 @@ class ActivityRepository {
       parentId: data.parent || undefined,
       sourceId: data.sourceId,
       sourceParentId: data.sourceParentId || undefined,
-      tenantId: currentTenant.id,
       segmentId: segment.id,
       memberId: data.member || undefined,
       username: data.username,
@@ -185,14 +179,12 @@ class ActivityRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, loadChildren = true) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     const results = await queryActivities(options.qdb, {
       filter: {
         and: [{ id: { eq: id } }],
       },
-      tenantId: currentTenant.id,
       segmentIds,
       limit: 1,
     })
@@ -218,11 +210,9 @@ class ActivityRepository {
     arg: IQueryActivitiesParameters,
     options: IRepositoryOptions,
   ): Promise<any | null> {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
     arg.limit = 1
-    arg.tenantId = currentTenant.id
     arg.segmentIds = segmentIds
     arg.groupBy = null
 
@@ -244,15 +234,12 @@ class ActivityRepository {
       return []
     }
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const records = await queryActivities(
       options.qdb,
       {
         filter: {
           and: [{ id: { in: ids } }],
         },
-        tenantId: currentTenant.id,
         segmentIds: SequelizeRepository.getSegmentIds(options),
         limit: ids.length,
       },
@@ -265,12 +252,9 @@ class ActivityRepository {
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     return options.database.activity.count({
       where: {
         ...filter,
-        tenantId: tenant.id,
         segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
@@ -298,12 +282,10 @@ class ActivityRepository {
       orderBy = ['timestamp_DESC']
     }
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
     const segmentIds = SequelizeRepository.getSegmentIds(options)
     const seq = SequelizeRepository.getSequelize(options)
 
     const params: any = {
-      tenantId: tenant.id,
       segmentIds,
       limit,
       offset,
@@ -363,8 +345,7 @@ class ActivityRepository {
     const baseQuery = `
       from mv_activities_cube a
       inner join members m on m.id = a."memberId"
-      where a."tenantId" = :tenantId
-      and a."segmentId" in (:segmentIds)
+      where a."segmentId" in (:segmentIds)
       and ${filterString}
     `
 
@@ -455,7 +436,6 @@ class ActivityRepository {
     const organizationIds = uniq(rows.map((r) => r.organizationId))
     const qx = SequelizeRepository.getQueryExecutor(options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
-      tenantId: tenant.id,
       organizationIds,
     })
 

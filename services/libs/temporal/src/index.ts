@@ -1,5 +1,6 @@
 import { Client, Connection } from '@temporalio/client'
 
+import { SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { getDataConverter } from './encryption/data-converter'
@@ -14,6 +15,21 @@ export interface ITemporalConfig {
 }
 
 const log = getServiceChildLogger('temporal')
+
+let config: ITemporalConfig | undefined = undefined
+export const TEMPORAL_CONFIG = (): ITemporalConfig => {
+  if (!config) {
+    config = {
+      serverUrl: process.env['CROWD_TEMPORAL_SERVER_URL'],
+      namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
+      identity: SERVICE,
+      certificate: process.env['CROWD_TEMPORAL_CERTIFICATE'],
+      privateKey: process.env['CROWD_TEMPORAL_PRIVATE_KEY'],
+    }
+  }
+
+  return config
+}
 
 let client: Client | undefined
 export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> => {

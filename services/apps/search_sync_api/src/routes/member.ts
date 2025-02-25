@@ -49,14 +49,13 @@ router.post(
 )
 
 router.post(
-  '/cleanup/tenant/members',
+  '/cleanup/members',
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = syncService(req)
 
-    const { tenantId } = req.body
     try {
-      req.log.trace(`Calling memberSyncService.cleanupMemberIndex for tenant ${tenantId}`)
-      await memberSyncService.cleanupMemberIndex(tenantId)
+      req.log.trace(`Calling memberSyncService.cleanupMemberIndex`)
+      await memberSyncService.cleanupMemberIndex()
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)

@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 
-import { Error404, distinct, single } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error404, distinct, single } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   IQueryActivityResult,
@@ -27,15 +27,12 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     const id = await insertConversation(options.qdb, {
       title: data.title,
       slug: data.slug,
       published: data.published,
-      tenantId: tenant.id,
       segmentId: segment.id,
       createdById: currentUser.id,
       updatedById: currentUser.id,
@@ -47,7 +44,7 @@ class ConversationRepository {
       {
         id,
         ...lodash.pick(data, ['title', 'slug', 'published']),
-        tenantId: tenant.id,
+        tenantId: DEFAULT_TENANT_ID,
         segmentId: segment.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -67,8 +64,6 @@ class ConversationRepository {
   static async update(id, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -76,7 +71,6 @@ class ConversationRepository {
     let record = await options.database.conversation.findOne({
       where: {
         id,
-        tenantId: currentTenant.id,
         segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
@@ -98,7 +92,6 @@ class ConversationRepository {
     )
 
     await updateConversation(options.qdb, id, {
-      tenantId: currentTenant.id,
       segmentId: segment.id,
       title: data.title,
       slug: data.slug,
@@ -116,12 +109,9 @@ class ConversationRepository {
   static async destroy(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const record = await options.database.conversation.findOne({
       where: {
         id,
-        tenantId: currentTenant.id,
         segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
@@ -141,13 +131,10 @@ class ConversationRepository {
   }
 
   static async findById(id, options: IRepositoryOptions) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     // quest db for selects
     const conversation = await getConversationById(
       options.qdb,
       id,
-      currentTenant.id,
       SequelizeRepository.getSegmentIds(options),
     )
 
@@ -161,12 +148,9 @@ class ConversationRepository {
   static async destroyBulk(ids: string[], options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     await options.database.conversation.destroy({
       where: {
         id: ids,
-        tenantId: currentTenant.id,
         segmentId: SequelizeRepository.getSegmentIds(options),
       },
       force,
@@ -236,7 +220,6 @@ class ConversationRepository {
             and: [{ conversationId: { eq: conversation.id } }],
           },
           noLimit: true,
-          tenantId: conversation.tenantId,
           segmentIds: [conversation.segmentId],
         },
         DEFAULT_COLUMNS_TO_SELECT,
@@ -245,15 +228,10 @@ class ConversationRepository {
       // populate member
       const memberIds = distinct(results.rows.map((a) => a.memberId))
       if (memberIds.length > 0) {
-        const memberResults = await queryMembersAdvanced(
-          optionsQx(options),
-          options.redis,
-          options.currentTenant.id,
-          {
-            filter: { and: [{ id: { in: memberIds } }] },
-            limit: memberIds.length,
-          },
-        )
+        const memberResults = await queryMembersAdvanced(optionsQx(options), options.redis, {
+          filter: { and: [{ id: { in: memberIds } }] },
+          limit: memberIds.length,
+        })
 
         for (const activity of results.rows) {
           ;(activity as any).member = memberResults.rows.find((m) => m.id === activity.memberId)

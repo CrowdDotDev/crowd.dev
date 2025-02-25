@@ -21,7 +21,6 @@ export async function findAndMergeMembersWithSamePlatformIdentitiesDifferentCapi
 
   const mergeableMemberCouples =
     await activity.findMembersWithSamePlatformIdentitiesDifferentCapitalization(
-      args.tenantId,
       args.platform,
       PROCESS_MEMBERS_PER_RUN,
       args.afterHash || undefined,
@@ -36,11 +35,10 @@ export async function findAndMergeMembersWithSamePlatformIdentitiesDifferentCapi
     console.log(
       `Merging ${couple.secondaryMemberId} [${couple.secondaryMemberIdentityValue}] into ${couple.primaryMemberId} [${couple.primaryMemberIdentityValue}]! `,
     )
-    await common.mergeMembers(couple.primaryMemberId, couple.secondaryMemberId, args.tenantId)
+    await common.mergeMembers(couple.primaryMemberId, couple.secondaryMemberId)
   }
 
   await continueAsNew<typeof findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization>({
-    tenantId: args.tenantId,
     platform: args.platform,
     afterHash: mergeableMemberCouples[mergeableMemberCouples.length - 1]?.hash,
   })

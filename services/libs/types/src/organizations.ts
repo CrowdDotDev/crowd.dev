@@ -220,7 +220,6 @@ export interface IOrganizationFullAggregatesOpensearch
 export interface IDbOrganizationSyncData {
   // base
   organizationId: string
-  tenantId: string
   displayName: string
 
   ticker: string | null
@@ -234,7 +233,6 @@ export interface IDbOrganizationSyncData {
 
 export interface IOrganizationBaseForMergeSuggestions {
   id: string
-  tenantId: string
   displayName: string
   location: string
   industry: string

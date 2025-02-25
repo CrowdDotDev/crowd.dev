@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -43,7 +44,12 @@ export async function insertMemberSegments(qx: QueryExecutor, data: IMemberSegme
           'activeOn',
           'averageSentiment',
         ],
-        data,
+        data.map((d) => {
+          return {
+            ...d,
+            tenantId: DEFAULT_TENANT_ID,
+          }
+        }),
         'DO NOTHING',
       ),
     )

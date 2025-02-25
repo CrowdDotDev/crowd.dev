@@ -43,6 +43,26 @@ export function prepareBulkInsert(
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function prepareInsert<T extends string>(table: string, columns: T[], data: any) {
+  const fields = columns.filter((col) => col in data)
+  const q = `
+      INSERT INTO $(table:name)
+      (${fields.map((_, i) => `$(fields.col${i}:name)`).join(',')})
+      VALUES (${fields.map((col) => `$(data.${col})`).join(',')})
+      RETURNING *
+    `
+  console.log(q)
+  return pgp.as.format(q, {
+    table,
+    data,
+    fields: fields.reduce((acc, c, i) => {
+      acc[`col${i}`] = c
+      return acc
+    }, {}),
+  })
+}
+
 export function checkUpdateRowCount(rowCount: number, expected: number) {
   if (rowCount !== expected) {
     new Error(`Updated number of rows (${rowCount}) not equal to expected number (${expected})!`)
@@ -60,8 +80,9 @@ export function prepareSelectColumns(columns: string[], alias?: string) {
 export interface QueryOptions<T> {
   limit?: number
   offset?: number
-  fields?: T[]
+  fields?: T[] | 'count'
   filter?: QueryFilter
+  orderBy?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,9 +117,10 @@ export async function queryTable<T extends string>(
   return qx.select(
     `
       SELECT
-        ${opts.fields.map((f) => `"${f}"`).join(',\n')}
+        ${opts.fields === 'count' ? 'COUNT(*) AS count' : opts.fields.map((f) => `"${f}"`).join(',\n')}
       FROM $(table:name)
       WHERE ${where}
+      ${opts.orderBy ? `ORDER BY ${opts.orderBy}` : ''}
       ${opts.limit ? 'LIMIT $(limit)' : ''}
       ${opts.offset ? 'OFFSET $(offset)' : ''}
     `,
@@ -126,6 +148,33 @@ export async function queryTableById<T extends string>(
   }
 
   return null
+}
+
+export async function updateTableById<T extends string>(
+  qx: QueryExecutor,
+  table: string,
+  id: string,
+  columns: T[],
+  data: Partial<{ [K in T]: unknown }>,
+) {
+  const fields = columns.filter((col) => col in data)
+  return qx.result(
+    `
+      UPDATE $(table:name)
+      SET ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')}
+      WHERE id = $(id)
+      RETURNING *
+    `,
+    {
+      table,
+      id,
+      data,
+      fields: fields.reduce((acc, c, i) => {
+        acc[`col${i}`] = c
+        return acc
+      }, {}),
+    },
+  )
 }
 
 export async function refreshMaterializedView(

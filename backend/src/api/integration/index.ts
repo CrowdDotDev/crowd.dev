@@ -1,6 +1,6 @@
 import passport from 'passport'
 
-import { getDefaultTenantId } from '@crowd/common'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
@@ -160,7 +160,7 @@ export default (app) => {
       },
       authMiddleware,
       async (req, _res, next) => {
-        const tenantId = getDefaultTenantId()
+        const tenantId = DEFAULT_TENANT_ID
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
       },
@@ -202,7 +202,7 @@ export default (app) => {
       },
       authMiddleware,
       async (req, _res, next) => {
-        const tenantId = getDefaultTenantId()
+        const tenantId = DEFAULT_TENANT_ID
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
       },

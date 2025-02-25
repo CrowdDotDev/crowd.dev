@@ -12,7 +12,6 @@ import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
 
 export class InitService {
-  public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
   public static FAKE_SEGMENT_ID = 'ce36b0b0-1fc4-4637-955d-afb8a6b58e48'
   public static FAKE_MEMBER_ID = '9c19e17c-6a07-4f4c-bc9b-ce1fdce9c126'
   public static FAKE_ACTIVITY_ID = 'fa761640-f77c-4340-b56e-bdd0936d852b'
@@ -31,7 +30,6 @@ export class InitService {
   private async createFakeOrganization(): Promise<void> {
     const fakeOrg: IOrganizationFullAggregatesOpensearch = {
       id: InitService.FAKE_ORGANIZATION_ID,
-      tenantId: InitService.FAKE_TENANT_ID,
       noMergeIds: [],
       website: 'test.com',
       ticker: 'FAKE',
@@ -64,7 +62,6 @@ export class InitService {
 
     const fakeMember: IMemberWithAggregatesForMergeSuggestions = {
       id: InitService.FAKE_MEMBER_ID,
-      tenantId: InitService.FAKE_TENANT_ID,
       displayName: 'Test Member',
 
       activityCount: 10,
