@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { Logger } from '@crowd/logging'
@@ -9,7 +10,6 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
   }
 
   public async createActivityType(
-    tenantId: string,
     platform: PlatformType,
     type: string,
     segmentId: string,
@@ -21,10 +21,9 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     }
 
     const results = await this.db().one(
-      'select "customActivityTypes" from segments where id = $(segmentId) and "tenantId" = $(tenantId)',
+      'select "customActivityTypes" from segments where id = $(segmentId)',
       {
         segmentId,
-        tenantId,
       },
     )
 
@@ -48,9 +47,8 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     }
 
     const result = await this.db().result(
-      `update segments set "customActivityTypes" = $(custom) where id = $(segmentId) and "tenantId" = $(tenantId)`,
+      `update segments set "customActivityTypes" = $(custom) where id = $(segmentId)`,
       {
-        tenantId,
         custom,
         segmentId,
       },
@@ -60,7 +58,6 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
   }
 
   public async createActivityChannel(
-    tenantId: string,
     segmentId: string,
     platform: string,
     channel: string,
@@ -72,7 +69,7 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
       ON CONFLICT DO NOTHING;
       `,
       {
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         segmentId,
         platform,
         channel,

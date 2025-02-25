@@ -49,10 +49,12 @@ services:
       - ../../services/libs/feature-flags/src:/usr/crowd/app/services/libs/feature-flags/src
       - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
       - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
+      - ../../services/libs/nango/src:/usr/crowd/app/services/libs/nango/src
       - ../../services/libs/opensearch/src:/usr/crowd/app/services/libs/opensearch/src
       - ../../services/libs/questdb/src:/usr/crowd/app/services/libs/questdb/src
       - ../../services/libs/queue/src:/usr/crowd/app/services/libs/queue/src
       - ../../services/libs/redis/src:/usr/crowd/app/services/libs/redis/src
+      - ../../services/libs/snowflake/src:/usr/crowd/app/services/libs/snowflake/src
       - ../../services/libs/telemetry/src:/usr/crowd/app/services/libs/telemetry/src
       - ../../services/libs/temporal/src:/usr/crowd/app/services/libs/temporal/src
       - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src

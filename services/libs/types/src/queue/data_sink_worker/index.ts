@@ -24,7 +24,6 @@ export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage
   public readonly type: string = DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT
 
   constructor(
-    public readonly tenantId: string,
     public readonly segmentId: string,
     public readonly integrationId: string,
     public readonly activityData: IActivityData,

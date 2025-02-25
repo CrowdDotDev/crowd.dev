@@ -1,10 +1,9 @@
 export async function setAttributesDefaultValues(
-  tenantId: string,
   attributes: Record<string, unknown>,
   priorities: string[],
 ): Promise<Record<string, unknown>> {
   if (!priorities) {
-    throw new Error(`No priorities set for tenant '${tenantId}'!`)
+    throw new Error(`No priorities set!`)
   }
 
   for (const attributeName of Object.keys(attributes)) {

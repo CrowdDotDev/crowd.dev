@@ -1,4 +1,4 @@
-import { Error400, Error404, getDefaultTenantId } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error400, Error404 } from '@crowd/common'
 import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
@@ -64,7 +64,7 @@ export default class TenantService {
     }
 
     const record = await this.create({
-      id: getDefaultTenantId(),
+      id: DEFAULT_TENANT_ID,
       name: 'default',
       url: 'default',
       integrationsRequired: [],
@@ -256,11 +256,9 @@ export default class TenantService {
 
       // if tenant already has some published conversations, updating url is not allowed
       if (data.url && data.url !== record.url) {
-        const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
         const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
         const publishedConversations = await queryConversations(this.options.qdb, {
-          tenantId,
           segmentIds,
           filter: {
             and: [

@@ -1,4 +1,4 @@
-import { singleOrDefault } from '@crowd/common'
+import { DEFAULT_TENANT_ID, singleOrDefault } from '@crowd/common'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
@@ -78,11 +78,7 @@ export default class IntegrationRunService extends LoggerBase {
             this.log.warn('Onboarding - marking integration as failed!')
             await this.repo.markIntegration(runId, 'error')
 
-            this.apiPubSubEmitter.emitIntegrationCompleted(
-              runInfo.tenantId,
-              runInfo.integrationId,
-              'error',
-            )
+            this.apiPubSubEmitter.emitIntegrationCompleted(runInfo.integrationId, 'error')
           } else {
             const last5RunStates = await this.repo.getLastRuns(runId, 3)
             if (
@@ -131,11 +127,7 @@ export default class IntegrationRunService extends LoggerBase {
         await this.repo.markIntegration(runId, 'done')
 
         if (runInfo.onboarding) {
-          this.apiPubSubEmitter.emitIntegrationCompleted(
-            runInfo.tenantId,
-            runInfo.integrationId,
-            'done',
-          )
+          this.apiPubSubEmitter.emitIntegrationCompleted(runInfo.integrationId, 'done')
         }
       }
     }
@@ -152,7 +144,6 @@ export default class IntegrationRunService extends LoggerBase {
         this.log.info({ runId: run.id }, 'Restarting delayed run!')
         await this.repo.resetDelayedRun(run.id)
         await this.streamWorkerEmitter.continueProcessingRunStreams(
-          run.tenantId,
           run.onboarding,
           run.integrationType,
           run.id,
@@ -207,11 +198,10 @@ export default class IntegrationRunService extends LoggerBase {
     }
 
     this.log.info('Creating new integration run!')
-    const runId = await this.repo.createRun(integrationInfo.tenantId, integrationId, onboarding)
+    const runId = await this.repo.createRun(integrationId, onboarding)
 
     this.log.info('Triggering run processing!')
     await this.runWorkerEmitter.triggerRunProcessing(
-      integrationInfo.tenantId,
       integrationInfo.type,
       runId,
       onboarding,
@@ -298,14 +288,11 @@ export default class IntegrationRunService extends LoggerBase {
         )
         const txRunRepo = new IntegrationRunRepository(txStore, this.log)
 
-        await txMemberAttributeSettingsRepo.createPredefined(
-          runInfo.tenantId,
-          integrationService.memberAttributes,
-        )
+        await txMemberAttributeSettingsRepo.createPredefined(integrationService.memberAttributes)
 
         // delete the attributes cache
         const cache = new RedisCache('memberAttributes', this.redisClient, this.log)
-        await cache.delete(runInfo.tenantId)
+        await cache.delete('default')
 
         await txRunRepo.updateIntegrationSettings(runId, {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -315,11 +302,7 @@ export default class IntegrationRunService extends LoggerBase {
       })
     }
 
-    const cache = new RedisCache(
-      `int-${runInfo.tenantId}-${runInfo.integrationType}`,
-      this.redisClient,
-      this.log,
-    )
+    const cache = new RedisCache(`int-${runInfo.integrationType}`, this.redisClient, this.log)
 
     const nangoConfig = NANGO_CONFIG()
 
@@ -328,7 +311,7 @@ export default class IntegrationRunService extends LoggerBase {
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${runInfo.tenantId}-${runInfo.integrationType}`,
+        nangoId: `${DEFAULT_TENANT_ID}-${runInfo.integrationType}`,
       },
       platformSettings: PLATFORM_CONFIG(runInfo.integrationType),
       integration: {
@@ -358,7 +341,6 @@ export default class IntegrationRunService extends LoggerBase {
 
       publishStream: async (identifier: string, data?: unknown) => {
         await this.publishStream(
-          runInfo.tenantId,
           runInfo.integrationType,
           runId,
           identifier,
@@ -448,7 +430,6 @@ export default class IntegrationRunService extends LoggerBase {
   }
 
   private async publishStream(
-    tenantId: string,
     platform: string,
     runId: string,
     identifier: string,
@@ -458,12 +439,7 @@ export default class IntegrationRunService extends LoggerBase {
     try {
       this.log.debug('Publishing new root stream!')
       const streamId = await this.repo.publishStream(runId, identifier, data)
-      await this.streamWorkerEmitter.triggerStreamProcessing(
-        tenantId,
-        platform,
-        streamId,
-        onboarding,
-      )
+      await this.streamWorkerEmitter.triggerStreamProcessing(platform, streamId, onboarding)
     } catch (err) {
       await this.triggerRunError(
         runId,

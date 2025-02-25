@@ -1,6 +1,7 @@
 /* eslint-disable no-case-declarations */
 import { Kafka } from 'kafkajs'
 
+import { SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { IQueue, IQueueClientConfig } from './types'
@@ -22,4 +23,17 @@ export class QueueFactory {
     })
     return new KafkaQueueService(kafkaClient, log)
   }
+}
+
+let queueConfig: IQueueClientConfig | undefined = undefined
+export const QUEUE_CONFIG = (): IQueueClientConfig => {
+  if (!queueConfig) {
+    queueConfig = {
+      brokers: process.env.CROWD_KAFKA_BROKERS,
+      clientId: SERVICE,
+      extra: process.env.CROWD_KAFKA_EXTRA || undefined,
+    }
+  }
+
+  return queueConfig
 }

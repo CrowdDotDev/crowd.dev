@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -44,7 +45,12 @@ export async function insertOrganizationSegments(
           'memberCount',
           'avgContributorEngagement',
         ],
-        data,
+        data.map((d) => {
+          return {
+            tenantId: DEFAULT_TENANT_ID,
+            ...d,
+          }
+        }),
         `("organizationId", "segmentId") DO UPDATE SET "joinedAt" = EXCLUDED."joinedAt",
                        "lastActive" = EXCLUDED."lastActive",
                        "activeOn" = EXCLUDED."activeOn",

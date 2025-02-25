@@ -6,16 +6,15 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
     super(dbStore, parentLog)
   }
 
-  public async findSegmentForRepo(tenantId: string, url: string): Promise<string | null> {
+  public async findSegmentForRepo(url: string): Promise<string | null> {
     const results = await this.db().oneOrNone(
       `
         SELECT "segmentId"
         FROM "githubRepos"
-        WHERE "tenantId" = $(tenantId) AND url = $(url)
+        WHERE url = $(url)
         LIMIT 1
       `,
       {
-        tenantId,
         url,
       },
     )

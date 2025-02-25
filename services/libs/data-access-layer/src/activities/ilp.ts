@@ -1,7 +1,7 @@
 import { pick } from 'lodash'
 import moment from 'moment'
 
-import { generateUUIDv4 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { ACTIVITIES_QUEUE_SETTINGS, IQueue, QueueEmitter } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
@@ -42,6 +42,7 @@ export async function insertActivities(
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
         attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
         body: activity.body?.slice(0, 2000),
+        tenantId: DEFAULT_TENANT_ID,
       }
     })
     .map((activity) => pick(activity, ACTIVITY_ALL_COLUMNS)) // otherwise QuestDB insert fails

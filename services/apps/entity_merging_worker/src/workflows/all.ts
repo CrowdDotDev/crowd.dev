@@ -29,10 +29,9 @@ export async function finishMemberMerging(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
 
@@ -41,7 +40,7 @@ export async function finishMemberMerging(
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
   })
@@ -50,7 +49,6 @@ export async function finishMemberMerging(
     secondaryId,
     primaryDisplayName,
     secondaryDisplayName,
-    tenantId,
     userId,
   )
 }
@@ -61,10 +59,9 @@ export async function finishMemberUnmerging(
   identities: IMemberIdentity[],
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
 
@@ -75,9 +72,9 @@ export async function finishMemberUnmerging(
   })
   await syncMember(primaryId)
   await syncMember(secondaryId)
-  await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
-  await recalculateActivityAffiliationsOfMemberAsync(secondaryId, tenantId)
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await recalculateActivityAffiliationsOfMemberAsync(primaryId)
+  await recalculateActivityAffiliationsOfMemberAsync(secondaryId)
+  await setMergeAction(primaryId, secondaryId, {
     state: 'unmerged' as MergeActionState,
     step: MergeActionStep.UNMERGE_DONE,
   })
@@ -86,7 +83,6 @@ export async function finishMemberUnmerging(
     secondaryId,
     primaryDisplayName,
     secondaryDisplayName,
-    tenantId,
     userId,
   )
 }
@@ -96,30 +92,22 @@ export async function finishOrganizationMerging(
   secondaryId: string,
   original: string,
   toMerge: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
 
-  await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
+  await moveActivitiesBetweenOrgs(primaryId, secondaryId)
 
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)
   await deleteOrganization(secondaryId)
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
   })
-  await notifyFrontendOrganizationMergeSuccessful(
-    primaryId,
-    secondaryId,
-    original,
-    toMerge,
-    tenantId,
-    userId,
-  )
+  await notifyFrontendOrganizationMergeSuccessful(primaryId, secondaryId, original, toMerge, userId)
 }
 
 export async function finishOrganizationUnmerging(
@@ -127,18 +115,17 @@ export async function finishOrganizationUnmerging(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
-  await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
+  await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId)
+  await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId)
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)
   await syncOrganization(secondaryId, syncStart)
-  await setMergeAction(primaryId, secondaryId, tenantId, {
+  await setMergeAction(primaryId, secondaryId, {
     state: 'unmerged' as MergeActionState,
     step: MergeActionStep.UNMERGE_DONE,
   })
@@ -147,7 +134,6 @@ export async function finishOrganizationUnmerging(
     secondaryId,
     primaryDisplayName,
     secondaryDisplayName,
-    tenantId,
     userId,
   )
 }

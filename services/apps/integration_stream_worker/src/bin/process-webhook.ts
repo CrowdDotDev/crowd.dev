@@ -2,8 +2,6 @@ import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -29,18 +27,10 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
-  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(queueClient, redisClient, loader, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    queueClient,
-    redisClient,
-    loader,
-    log,
-  )
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, redisClient, loader, log)
+  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(queueClient, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, log)
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, log)
 
   await runWorkerEmiiter.init()
   await streamWorkerEmitter.init()
