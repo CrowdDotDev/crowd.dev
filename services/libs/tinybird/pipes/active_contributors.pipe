@@ -1,0 +1,23 @@
+NODE activities_timestamp_and_channel_filter
+SQL >
+
+    %
+    SELECT id, timestamp, channel FROM activities
+    where 1=1
+    {% if defined(after) %}
+    AND activities.timestamp > {{DateTime(after, null, description="Filter activity timestamp after", required=False)}}
+    {% end %}
+    {% if defined(before) %}
+    AND activities.timestamp < {{DateTime(before, null, description="Filter activity timestamp before", required=False)}}
+    {% end %}
+    {% if defined(repo) %}
+    AND activities.channel = {{String(repo, null, description="Filter activity repo", required=False)}}
+    {% end %}
+
+
+NODE active_contributors_1
+SQL >
+
+    SELECT * FROM activities_timestamp_and_channel_filter
+
+

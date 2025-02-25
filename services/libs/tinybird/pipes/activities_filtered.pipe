@@ -1,0 +1,39 @@
+TOKEN "activities_filtered_endpoint_read_8708" READ
+
+NODE activities_filtered_by_timestamp_and_channel
+SQL >
+
+    %
+    SELECT id, timestamp, channel FROM activities
+    where 1=1
+    {% if defined(after) %}
+    AND activities.timestamp > {{DateTime(after, null, description="Filter activity timestamp after", required=False)}}
+    {% end %}
+    {% if defined(before) %}
+    AND activities.timestamp < {{DateTime(before, null, description="Filter activity timestamp before", required=False)}}
+    {% end %}
+    {% if defined(repo) %}
+    AND activities.channel = {{String(repo, null, description="Filter activity repo", required=False)}}
+    {% end %}
+
+
+
+
+NODE segments_filtered
+SQL >
+
+    %
+    SELECT id FROM segments
+    where segments.slug = {{String(project, 'crowddev', description="Filter by project slug", required=True)}}
+
+
+
+
+NODE activity_relations_filtered
+SQL >
+
+    SELECT activities_filtered_by_timestamp_and_channel.id, activities_filtered_by_timestamp_and_channel.timestamp, activityRelations.memberId, activityRelations.organizationId FROM activities_filtered_by_timestamp_and_channel
+    join activityRelations on activityRelations.activityId = activities_filtered_by_timestamp_and_channel.id
+    where activityRelations.segmentId in (select id from segments_filtered)
+
+

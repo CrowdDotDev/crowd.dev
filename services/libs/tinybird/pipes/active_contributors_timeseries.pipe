@@ -1,0 +1,13 @@
+NODE data_source_node
+SQL >
+
+    %
+    SELECT 
+      toDate(activities.timestamp) AS day,
+      count(activityRelations.activityId) AS daily_activity_count
+    FROM members
+    JOIN activityRelations ON activityRelations.memberId = members.id
+    JOIN activities ON activities.id = activityRelations.activityId
+    WHERE activities.timestamp > {{DateTime(after, '1970-01-01 00:00:00', description="Filter activity timestamp after", required=True)}}
+    GROUP BY day
+    ORDER BY day ASC, daily_activity_count DESC
