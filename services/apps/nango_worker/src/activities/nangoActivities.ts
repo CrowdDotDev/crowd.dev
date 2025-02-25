@@ -5,8 +5,13 @@ import {
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getChildLogger } from '@crowd/logging'
-import { NangoIntegration, getNangoCloudRecords, initNangoCloudClient } from '@crowd/nango'
-import { IntegrationResultType } from '@crowd/types'
+import {
+  ALL_NANGO_INTEGRATIONS,
+  NangoIntegration,
+  getNangoCloudRecords,
+  initNangoCloudClient,
+} from '@crowd/nango'
+import { AuthProvider, IntegrationResultType } from '@crowd/types'
 
 import { svc } from '../main'
 import { IProcessNangoWebhookArguments } from '../types'
@@ -19,6 +24,11 @@ export async function processNangoWebhook(
     connectionId: args.connectionId,
     model: args.model,
   })
+
+  if (!ALL_NANGO_INTEGRATIONS.includes(args.providerConfigKey as NangoIntegration)) {
+    logger.info({ providerConfigKey: args.providerConfigKey }, 'Skipping non-Nango integration!')
+    return
+  }
 
   await initNangoCloudClient()
 
