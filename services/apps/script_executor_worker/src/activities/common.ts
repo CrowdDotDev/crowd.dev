@@ -16,7 +16,7 @@ export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${primaryMemberId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${primaryMemberId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
@@ -39,7 +39,7 @@ export async function unmergeMembers(
   primaryMemberId: string,
   backup: IUnmergeBackup<IMemberUnmergeBackup>,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${primaryMemberId}/unmerge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${primaryMemberId}/unmerge`
   const requestOptions = {
     method: 'POST',
     headers: {
@@ -62,7 +62,7 @@ export async function unmergeMembersPreview(
   memberId: string,
   memberIdentity: IMemberIdentity,
 ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${memberId}/unmerge/preview`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${memberId}/unmerge/preview`
   const requestOptions = {
     method: 'POST',
     headers: {
@@ -95,7 +95,7 @@ export async function mergeOrganizations(
     segmentId = result?.segmentIds?.[0] ?? undefined
   }
 
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/organization/${primaryOrgId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/organization/${primaryOrgId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
