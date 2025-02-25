@@ -749,7 +749,7 @@ class SegmentRepository extends RepositoryBase<
 
     return {
       count: 1,
-      rows: rows,
+      rows,
       limit: criteria.limit,
       offset: criteria.offset,
     }

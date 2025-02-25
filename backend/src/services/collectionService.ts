@@ -2,10 +2,8 @@ import { uniq } from 'lodash'
 
 import {
   CollectionField,
-  ICreateCollection,
   ICreateCollectionWithProjects,
   ICreateInsightsProject,
-  IInsightsProject,
   InsightsProjectField,
   connectProjectsAndCollections,
   countCollections,
