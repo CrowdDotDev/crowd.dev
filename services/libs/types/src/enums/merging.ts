@@ -8,7 +8,6 @@ export enum MergeActionState {
   IN_PROGRESS = 'in-progress',
   MERGED = 'merged',
   UNMERGED = 'unmerged',
-  FINISHING = 'finishing',
   ERROR = 'error',
 }
 

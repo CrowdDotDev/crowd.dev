@@ -6,12 +6,10 @@ import * as activities from '../activities'
 
 const {
   deleteMember,
-  moveActivitiesBetweenMembers,
   deleteOrganization,
   moveActivitiesBetweenOrgs,
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
-  moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
   setMergeAction,
@@ -20,6 +18,8 @@ const {
   notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
   syncRemoveMember,
+  finishMemberMergingUpdateActivities,
+  finishMemberUnmergingUpdateActivities,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '60 minutes',
 })
@@ -35,8 +35,9 @@ export async function finishMemberMerging(
   await setMergeAction(primaryId, secondaryId, tenantId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-  await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
-  await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
+
+  await finishMemberMergingUpdateActivities(secondaryId, primaryId)
+
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
@@ -66,7 +67,12 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, tenantId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await moveActivitiesWithIdentityToAnotherMember(primaryId, secondaryId, identities, tenantId)
+
+  await finishMemberUnmergingUpdateActivities({
+    memberId: primaryId,
+    newMemberId: secondaryId,
+    identities,
+  })
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)

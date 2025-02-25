@@ -631,6 +631,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/queue':
+        specifier: workspace:*
+        version: link:../../libs/queue
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1047,18 +1050,27 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
+      '@temporalio/client':
+        specifier: ~1.11.1
+        version: 1.11.7
       '@temporalio/workflow':
         specifier: ~1.11.1
         version: 1.11.7
@@ -1516,6 +1528,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../opensearch
       '@crowd/questdb':
         specifier: workspace:*
         version: link:../questdb

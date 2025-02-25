@@ -3,7 +3,7 @@ import { IQueue } from '@crowd/queue'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
 import { updateActivities } from '../../../activities/update'
-import { formatQuery } from '../../../queryExecutor'
+import { formatQuery, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { ISegmentIds } from './types'
@@ -37,25 +37,6 @@ export async function findMemberById(db: DbStore, primaryId: string, tenantId: s
         AND "tenantId" = $2
     `,
     [primaryId, tenantId],
-  )
-}
-
-export async function moveActivitiesToNewMember(
-  qdb: DbConnOrTx,
-  queueClient: IQueue,
-  primaryId: string,
-  secondaryId: string,
-  tenantId: string,
-) {
-  await updateActivities(
-    qdb,
-    queueClient,
-    async () => ({ memberId: primaryId }),
-    `"memberId" = $(memberId) AND "tenantId" = $(tenantId)`,
-    {
-      memberId: secondaryId,
-      tenantId,
-    },
   )
 }
 
@@ -122,6 +103,7 @@ export async function getIdentitiesWithActivity(
 
 export async function moveIdentityActivitiesToNewMember(
   db: DbConnOrTx,
+  pgDb: DbConnOrTx,
   queueClient: IQueue,
   tenantId: string,
   fromId: string,
@@ -131,6 +113,7 @@ export async function moveIdentityActivitiesToNewMember(
 ) {
   await updateActivities(
     db,
+    pgpQx(pgDb),
     queueClient,
     async (activity: IDbActivityCreateData) => ({ ...activity, memberId: toId }),
     formatQuery(

@@ -13,10 +13,7 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberSync(
-    memberId: string,
-    opts: { withAggs?: boolean } = {},
-  ): Promise<void> {
+  public async triggerMemberSync(memberId: string, opts?: { withAggs?: boolean }): Promise<void> {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
@@ -24,16 +21,6 @@ export class SearchSyncApiClient {
     await this.searchSyncApi.post('/sync/members', {
       memberId,
       ...opts,
-    })
-  }
-
-  public async triggerTenantMembersSync(tenantId: string): Promise<void> {
-    if (!tenantId) {
-      throw new Error('tenantId is required!')
-    }
-
-    await this.searchSyncApi.post('/sync/tenant/members', {
-      tenantId,
     })
   }
 

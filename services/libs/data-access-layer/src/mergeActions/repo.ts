@@ -1,6 +1,6 @@
 import validator from 'validator'
 
-import { IMergeAction } from '@crowd/types'
+import { IMergeAction, MergeActionState } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -49,4 +49,33 @@ export async function queryMergeActions(
   )
 
   return result
+}
+
+export async function findMergeAction(
+  qx: QueryExecutor,
+  primaryId: string,
+  secondaryId: string,
+  { state }: { state?: MergeActionState } = {},
+): Promise<IMergeAction> {
+  let where = ''
+
+  const params = {
+    primaryId,
+    secondaryId,
+  }
+
+  if (state) {
+    where += ` and "state" = $(state)`
+    params['state'] = state
+  }
+
+  return qx.selectOneOrNone(
+    `
+      select * from "mergeActions" 
+      where "primaryId" = $(primaryId) 
+        and "secondaryId" = $(secondaryId)
+        ${where}
+    `,
+    params,
+  )
 }
