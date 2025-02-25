@@ -177,9 +177,6 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
   website: { required: (value: string) => value.trim().length },
-  repositories: {
-    required: (value: any) => value.some((repository: any) => repository.enabled),
-  },
   widgets: {
     required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]),
   },
