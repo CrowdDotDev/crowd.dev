@@ -10,7 +10,6 @@ export const WIDGETS_GROUPS = [
       { name: 'Organization dependency', key: 'organizationDependency' },
       { name: 'Retention', key: 'retention' },
       { name: 'Geographical distribution', key: 'geographicalDistribution' },
-      { name: 'Industry distribution', key: 'industryDistribution' },
     ],
   },
   {
@@ -18,9 +17,25 @@ export const WIDGETS_GROUPS = [
     widgets: [
       { name: 'Stars', key: 'stars' },
       { name: 'Forks', key: 'forks' },
-      { name: 'Social mentions', key: 'socialMentions' },
-      { name: 'GitHub mentions', key: 'githubMentions' },
-      { name: 'Press mentions', key: 'pressMentions' },
+    ],
+  },
+  {
+    name: 'Development',
+    widgets: [
+      { name: 'Issues resolution', key: 'issuesResolution' },
+      { name: 'Pull requests', key: 'pullRequests' },
+      {
+        name: 'Contributions outside work hours',
+        key: 'contributionsOutsideWorkHours',
+      },
+      { name: 'Merge lead time', key: 'mergeLeadTime' },
+      {
+        name: 'Review time by pull request size',
+        key: 'reviewTimeByPullRequestSize',
+      },
+      { name: 'Average time to merge', key: 'averageTimeToMerge' },
+      { name: 'Wait time for 1st review', key: 'waitTimeFor1stReview' },
+      { name: 'Code review engagement', key: 'codeReviewEngagement' },
     ],
   },
 ];
