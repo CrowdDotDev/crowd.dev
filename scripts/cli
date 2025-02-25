@@ -897,9 +897,6 @@ while test $# -gt 0; do
         (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
         exit
         ;;
-    nango-tunnel)
-        npx localtunnel --port 8084 --subdomain lfx-cm-1
-        ;;
     *)
         error "Invalid command '$1'" && say "$SCRIPT_USAGE"
         exit 1
