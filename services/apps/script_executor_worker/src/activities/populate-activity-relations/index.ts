@@ -27,7 +27,7 @@ export async function getLatestSyncedActivityCreatedAt(): Promise<string> {
 export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promise<string> {
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
-  const lastSyncedCreatedAt = activities[activities.length - 1].createdAt
+  const lastSyncedCreatedAt = activities[activities.length - 1].timestamp
   await redisCache.set(REDIS_KEY, lastSyncedCreatedAt)
   return lastSyncedCreatedAt
 }
