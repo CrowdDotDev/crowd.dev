@@ -12,15 +12,14 @@ const LAST_SYNCED_ACTIVITY_TIMESTAMP_REDIS_KEY = 'last-synced-activity-timestamp
 
 const REDIS_KEY = LAST_SYNCED_ACTIVITY_TIMESTAMP_REDIS_KEY
 
-
 export async function resetIndexedIdentities(): Promise<void> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
-  await redisCache.delete(REDIS_KEY)
+  await redisCache.delete('last-synced-activity-timestamp')
 }
 
 export async function getLatestSyncedActivityCreatedAt(): Promise<string> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
-  const result = await redisCache.get(REDIS_KEY)
+  const result = await redisCache.get('last-synced-activity-timestamp')
   return result || null
 }
 
@@ -28,7 +27,7 @@ export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promi
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
   const lastSyncedCreatedAt = activities[activities.length - 1].timestamp
-  await redisCache.set(REDIS_KEY, lastSyncedCreatedAt)
+  await redisCache.set('last-synced-activity-timestamp', lastSyncedCreatedAt)
   return lastSyncedCreatedAt
 }
 
