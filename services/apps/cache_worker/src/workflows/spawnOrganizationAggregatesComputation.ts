@@ -7,20 +7,20 @@ import {
   workflowInfo,
 } from '@temporalio/workflow'
 
-import * as activities from '../../activities/computeAggs/organization'
+import * as activities from '../activities/computeAggs/organization'
 
-import { computeOrgAggsAndUpdate } from './computeOrgAggsAndUpdate'
+import { processOrganizationAggregates } from './processOrganizationAggregates'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '15 minutes' })
 
 /*
-dailyGetAndComputeOrgAggs is a Temporal workflow that:
+spawnOrganizationAggregatesComputation is a Temporal workflow that:
   - [Activity]: Get organization IDs from Redis.
   - [Child Workflow]: Re-compute and update aggregates for each organization 
-    in batches of 50. Child workflows run independently and won't be 
+    in batches of 100. Child workflows run independently and won't be 
     cancelled if the parent workflow stops.
 */
-export async function dailyGetAndComputeOrgAggs(): Promise<void> {
+export async function spawnOrganizationAggregatesComputation(): Promise<void> {
   const { organizationIds, totalSize } = await activity.getOrganizationIdsFromRedis()
 
   if (!totalSize) {
@@ -34,7 +34,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
 
   await Promise.all(
     organizationIds.map((organizationId) => {
-      return executeChild(computeOrgAggsAndUpdate, {
+      return executeChild(processOrganizationAggregates, {
         workflowId: `${info.workflowId}/${organizationId}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
@@ -50,5 +50,5 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   )
 
   // Continue with the next batch
-  await continueAsNew<typeof dailyGetAndComputeOrgAggs>()
+  await continueAsNew<typeof spawnOrganizationAggregatesComputation>()
 }

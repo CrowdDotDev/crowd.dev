@@ -1,11 +1,11 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../../activities/computeAggs/organization'
-import { IProcessComputeOrgAggs } from '../../types'
+import * as activities from '../activities/computeAggs/organization'
+import { IProcessComputeOrgAggs } from '../types'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '30 minutes' })
 
-export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Promise<void> {
+export async function processOrganizationAggregates(args: IProcessComputeOrgAggs): Promise<void> {
   const orgId = args.organizationId
 
   const orgExists = await activity.checkOrganizationExists(orgId)
