@@ -10,24 +10,14 @@ interface IScanResult {
 }
 
 export async function getOrgIdsFromRedis(batchSize = 100): Promise<IScanResult> {
-  let cursor = '0'
-  const organizationIds: string[] = []
-
+  let organizationIds: string[] = []
   try {
     const totalSize = await svc.redis.sCard('organizationIdsForAggComputation')
-
-    do {
-      const { cursor: nextCursor, members } = await svc.redis.sScan(
-        'organizationIdsForAggComputation',
-        Number(cursor),
-        {
-          COUNT: batchSize,
-        },
-      )
-
-      cursor = nextCursor.toString()
-      organizationIds.push(...members)
-    } while (cursor !== '0')
+    organizationIds = await svc.redis.sendCommand([
+      'SRANDMEMBER',
+      'organizationIdsForAggComputation',
+      batchSize.toString(),
+    ])
 
     return { organizationIds, totalSize }
   } catch (e) {
