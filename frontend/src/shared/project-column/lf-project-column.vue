@@ -6,7 +6,7 @@
       trigger="hover"
     >
       <template #reference>
-        <app-lf-project-count :count="projects.length" />
+        <app-lf-project-count :title="props.title" :icon="props.icon" :count="projects.length" />
       </template>
       <template #default>
         <div class="flex flex-wrap gap-1 overflow-hidden">
@@ -23,17 +23,23 @@
       </template>
     </el-popover>
   </div>
-  <span v-else class="text-gray-500 text-sm">No projects</span>
+  <span v-else class="text-gray-500 text-sm">No {{ props.title }}</span>
 </template>
 
 <script lang="ts" setup>
-import { Project } from '@/modules/lf/segments/types/Segments';
 import AppLfProjectCount from './lf-project-count.vue';
 
 const props = withDefaults(defineProps<{
-  projects: Project[];
+  projects: {
+    id: string;
+    name: string;
+  }[];
+  icon?: string;
+  title?: string;
 }>(), {
   projects: () => [],
+  title: () => 'Projects',
+  icon: () => 'layer-group',
 });
 </script>
 

@@ -67,6 +67,9 @@ const projectAdmin: Record<LfPermission, boolean> = {
   [LfPermission.customViewsTenantManage]: true,
   [LfPermission.dataQualityRead]: false,
   [LfPermission.dataQualityEdit]: false,
+  [LfPermission.collectionCreate]: false,
+  [LfPermission.collectionEdit]: false,
+  [LfPermission.collectionDelete]: false,
 };
 
 export default projectAdmin;

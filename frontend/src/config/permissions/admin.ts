@@ -67,6 +67,9 @@ const admin: Record<LfPermission, boolean> = {
   [LfPermission.customViewsTenantManage]: true,
   [LfPermission.dataQualityRead]: true,
   [LfPermission.dataQualityEdit]: true,
+  [LfPermission.collectionCreate]: true,
+  [LfPermission.collectionEdit]: true,
+  [LfPermission.collectionDelete]: true,
 };
 
 export default admin;

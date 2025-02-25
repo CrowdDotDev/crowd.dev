@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import { Sequelize, UniqueConstraintError } from 'sequelize'
+import { Sequelize, Transaction, UniqueConstraintError } from 'sequelize'
 
 import { Error400 } from '@crowd/common'
 import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
@@ -129,6 +129,18 @@ export default class SequelizeRepository {
     }
 
     return options.database.sequelize.transaction()
+  }
+
+  static async withTx<T>(options: IRepositoryOptions, fn: (tx: Transaction) => Promise<T>) {
+    const tx = await this.createTransaction(options)
+    try {
+      const result = await fn(tx)
+      await this.commitTransaction(tx)
+      return result
+    } catch (error) {
+      await this.rollbackTransaction(tx)
+      throw error
+    }
   }
 
   /**
