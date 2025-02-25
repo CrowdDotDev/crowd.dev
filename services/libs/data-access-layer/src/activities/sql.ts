@@ -1805,6 +1805,7 @@ export async function getActivityRelationsSortedByCreatedAt(
     SELECT 
       id,
       "memberId",
+      timestamp,
       "createdAt",
       "objectMemberId",
       "organizationId",
