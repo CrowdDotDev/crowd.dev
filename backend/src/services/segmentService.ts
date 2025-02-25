@@ -222,6 +222,11 @@ export default class SegmentService extends LoggerBase {
     return result
   }
 
+  async querySubprojectsLite(search: SegmentCriteria) {
+    const result = await new SegmentRepository(this.options).querySubprojectsLite(search)
+    return result
+  }
+
   async createActivityType(
     data: SegmentActivityTypesCreateData,
     platform: string = PlatformType.OTHER,

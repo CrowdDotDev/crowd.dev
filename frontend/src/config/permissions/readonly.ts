@@ -67,6 +67,9 @@ const readonly: Record<LfPermission, boolean> = {
   [LfPermission.customViewsTenantManage]: false,
   [LfPermission.dataQualityRead]: false,
   [LfPermission.dataQualityEdit]: false,
+  [LfPermission.collectionCreate]: false,
+  [LfPermission.collectionEdit]: false,
+  [LfPermission.collectionDelete]: false,
 };
 
 export default readonly;

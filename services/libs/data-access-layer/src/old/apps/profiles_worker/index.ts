@@ -224,9 +224,10 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title !== null &&
-      row.title !== undefined &&
-      !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+      !row.title ||
+      (row.title !== null &&
+        row.title !== undefined &&
+        !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase()))),
   )
 
   // clean unknown dated work experiences if there is one marked as primary

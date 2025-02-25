@@ -151,8 +151,10 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
   ): IWorkExperienceData[] {
     return experiences.filter(
       (row) =>
-        row.title &&
-        blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+        !row.title ||
+        (row.title !== null &&
+          row.title !== undefined &&
+          !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase()))),
     )
   }
 }

@@ -306,6 +306,15 @@ class Permissions {
         id: 'dataIssueCreate',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
+
+      collectionEdit: {
+        id: 'collectionEdit',
+        allowedRoles: [roles.admin],
+      },
+      collectionRead: {
+        id: 'collectionRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+      },
     }
   }
 
