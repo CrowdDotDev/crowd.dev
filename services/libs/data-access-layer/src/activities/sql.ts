@@ -1798,7 +1798,7 @@ export async function getActivityRelationsSortedByCreatedAt(
   let cursorQuery = ''
 
   if (cursorActivityCreatedAt) {
-    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
+    cursorQuery = `AND "timestamp" >= $(cursorActivityCreatedAt)`
   }
 
   const query = `
@@ -1817,7 +1817,7 @@ export async function getActivityRelationsSortedByCreatedAt(
     FROM activities
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
-    ORDER BY "createdAt" asc
+    ORDER BY "timestamp" asc
     LIMIT ${limit}
   `
 
