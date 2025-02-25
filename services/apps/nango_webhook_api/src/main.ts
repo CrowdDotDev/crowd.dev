@@ -10,7 +10,7 @@ import express, {
 
 import { HttpStatusError } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
-import { INangoWebhookPayload } from '@crowd/nango'
+import { ALL_NANGO_INTEGRATIONS, INangoWebhookPayload, NangoIntegration } from '@crowd/nango'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
 
@@ -36,9 +36,18 @@ setImmediate(async () => {
     asyncWrap(async (req, res) => {
       const payload: INangoWebhookPayload = req.body
 
+      if (!ALL_NANGO_INTEGRATIONS.includes(payload.providerConfigKey as NangoIntegration)) {
+        req.log.warn(
+          { connectionId: payload.connectionId, providerConfigKey: payload.providerConfigKey },
+          'Ignoring nango webhook!',
+        )
+        res.sendStatus(204)
+        return
+      }
+
       req.log.info(
         { connectionId: payload.connectionId, provider: payload.providerConfigKey },
-        'Received nango webhook payload!',
+        'Received nango webhook!',
       )
 
       await temporal.workflow.start('processNangoWebhook', {
