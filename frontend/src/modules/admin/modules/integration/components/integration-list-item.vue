@@ -30,7 +30,7 @@
       <div v-else class="flex items-center justify-end gap-4">
         <component
           :is="props.config.connectComponent"
-          v-if="props.config.connectComponent"
+          v-if="props.config.connectComponent && isComponentMounted"
           :integration="integration"
           :segment-id="route.params.id"
           :grandparent-id="route.params.grandparentId"
@@ -103,7 +103,7 @@
 
 <script lang="ts" setup>
 import { IntegrationConfig } from '@/config/integrations';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import LfIntegrationStatus from '@/modules/admin/modules/integration/components/integration-status.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
@@ -139,6 +139,12 @@ const hasError = computed(() => integration.value.status === 'error');
 const isComplete = computed(() => integration.value.status === 'done');
 
 const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.config.key));
+
+const isComponentMounted = ref(false);
+
+onMounted(() => {
+  isComponentMounted.value = true;
+});
 
 const disconnectIntegration = () => {
   trackEvent({
