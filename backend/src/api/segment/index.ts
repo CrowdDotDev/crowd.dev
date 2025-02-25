@@ -15,7 +15,10 @@ export default (app) => {
   app.post(`/segment/subproject/query`, safeWrap(require('./segmentSubprojectQuery').default))
 
   // query all subprojects lite
-  app.post(`/segment/subproject/query-lite`, safeWrap(require('./segmentSubprojectQueryLite').default))
+  app.post(
+    `/segment/subproject/query-lite`,
+    safeWrap(require('./segmentSubprojectQueryLite').default),
+  )
 
   // get segment by id
   app.get(`/segment/:segmentId`, safeWrap(require('./segmentFind').default))
