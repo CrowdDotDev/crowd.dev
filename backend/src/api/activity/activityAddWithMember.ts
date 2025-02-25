@@ -8,7 +8,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @tag Activities
  * @security Bearer
  * @description Create or update an activity with a member
- * Activity existence is checked by sourceId and tId
+ * Activity existence is checked by sourceId
  * Member existence is checked by platform and username
  * @bodyContent {ActivityUpsertWithMemberInput} application/json
  * @response 200 - Ok
