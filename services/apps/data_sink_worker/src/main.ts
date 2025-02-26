@@ -1,10 +1,5 @@
-import {
-  DataSinkWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getClientILP, getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
@@ -35,13 +30,9 @@ setImmediate(async () => {
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redisClient, loader, log)
-
-  const dataWorkerEmitter = new DataSinkWorkerEmitter(queueClient, redisClient, loader, log)
+  const dataWorkerEmitter = new DataSinkWorkerEmitter(queueClient, log)
 
   const queue = new WorkerQueueReceiver(
     WORKER_SETTINGS().queuePriorityLevel,

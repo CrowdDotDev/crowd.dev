@@ -36,6 +36,7 @@
     "@linuxfoundation/lfx-ui-core": "^0.0.12",
     "@loomhq/loom-embed": "^1.5.0",
     "@nangohq/frontend": "^0.9.0",
+    "@nangohq/frontend-v2": "npm:@nangohq/frontend@^0.52.4",
     "@octokit/core": "^3.6.0",
     "@tiptap/extension-link": "^2.1.12",
     "@tiptap/extension-placeholder": "^2.1.12",

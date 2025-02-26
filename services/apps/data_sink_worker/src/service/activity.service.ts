@@ -70,7 +70,6 @@ export default class ActivityService extends LoggerBase {
   }
 
   public async create(
-    tenantId: string,
     segmentId: string,
     activity: IActivityCreateData,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
@@ -90,19 +89,13 @@ export default class ActivityService extends LoggerBase {
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
         await txSettingsRepo.createActivityType(
-          tenantId,
           activity.platform as PlatformType,
           activity.type,
           segmentId,
         )
 
         if (activity.channel) {
-          await txSettingsRepo.createActivityChannel(
-            tenantId,
-            segmentId,
-            activity.platform,
-            activity.channel,
-          )
+          await txSettingsRepo.createActivityChannel(segmentId, activity.platform, activity.channel)
         }
 
         this.log.debug('Creating an activity in QuestDB!')
@@ -118,7 +111,6 @@ export default class ActivityService extends LoggerBase {
               sourceId: activity.sourceId,
               sourceParentId: activity.sourceParentId,
               memberId: activity.memberId,
-              tenantId: tenantId,
               attributes: activity.attributes,
               sentiment: sentiment,
               title: activity.title,
@@ -162,7 +154,6 @@ export default class ActivityService extends LoggerBase {
 
   public async update(
     id: string,
-    tenantId: string,
     onboarding: boolean,
     segmentId: string,
     activity: IActivityUpdateData,
@@ -180,7 +171,6 @@ export default class ActivityService extends LoggerBase {
 
         if (toUpdate.type) {
           await txSettingsRepo.createActivityType(
-            tenantId,
             original.platform as PlatformType,
             toUpdate.type,
             segmentId,
@@ -188,12 +178,7 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (toUpdate.channel) {
-          await txSettingsRepo.createActivityChannel(
-            tenantId,
-            segmentId,
-            original.platform,
-            toUpdate.channel,
-          )
+          await txSettingsRepo.createActivityChannel(segmentId, original.platform, toUpdate.channel)
         }
 
         if (!isObjectEmpty(toUpdate)) {
@@ -212,7 +197,6 @@ export default class ActivityService extends LoggerBase {
                 score: toUpdate.score || original.score,
                 sourceId: toUpdate.sourceId || original.sourceId,
                 sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-                tenantId: tenantId,
                 attributes: toUpdate.attributes || original.attributes,
                 sentiment: toUpdate.sentiment || original.sentiment,
                 body: escapeNullByte(toUpdate.body || original.body),
@@ -254,7 +238,6 @@ export default class ActivityService extends LoggerBase {
       if (updated) {
         // const activityToProcess: IQueryActivityResult = {
         //   id: id,
-        //   tenantId: tenantId,
         //   segmentId: segmentId,
         //   type: toUpdate.type || original.type,
         //   isContribution: toUpdate.isContribution || original.isContribution,
@@ -276,7 +259,6 @@ export default class ActivityService extends LoggerBase {
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(
-            tenantId,
             activity.memberId,
             onboarding,
             segmentId,
@@ -415,7 +397,6 @@ export default class ActivityService extends LoggerBase {
   }
 
   public async processActivity(
-    tenantId: string,
     integrationId: string,
     onboarding: boolean,
     platform: PlatformType,
@@ -424,11 +405,10 @@ export default class ActivityService extends LoggerBase {
   ): Promise<void> {
     this.log = getChildLogger('ActivityService.processActivity', this.log, {
       integrationId,
-      tenantId,
       sourceId: activity.sourceId,
     })
 
-    this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
+    this.log.debug({ integrationId, platform }, 'Processing activity.')
 
     if (!activity.username && !activity.member) {
       this.log.error(
@@ -632,20 +612,14 @@ export default class ActivityService extends LoggerBase {
         if (!segmentId) {
           if (platform === PlatformType.GITLAB) {
             this.log.trace('Finding segment for GitLab repo.')
-            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
-              tenantId,
-              activity.channel,
-            )
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(activity.channel)
 
             if (gitlabRepoSegmentId) {
               segmentId = gitlabRepoSegmentId
             }
           } else if (platform === PlatformType.GITHUB) {
             this.log.trace('Finding segment for Github repo.')
-            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(
-              tenantId,
-              activity.channel,
-            )
+            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(activity.channel)
 
             if (repoSegmentId) {
               segmentId = repoSegmentId
@@ -664,7 +638,6 @@ export default class ActivityService extends LoggerBase {
         const {
           rows: [dbActivity],
         } = await queryActivities(this.qdbStore.connection(), {
-          tenantId,
           segmentIds: [segmentId],
           filter: {
             and: [
@@ -693,12 +666,7 @@ export default class ActivityService extends LoggerBase {
           this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
           // process member data
 
-          let dbMember = await txMemberRepo.findMemberByUsername(
-            tenantId,
-            segmentId,
-            platform,
-            username,
-          )
+          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
           if (dbMember) {
             // we found a member for the identity from the activity
             this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -723,7 +691,6 @@ export default class ActivityService extends LoggerBase {
             // update the member
             await txMemberService.update(
               dbMember.id,
-              tenantId,
               onboarding,
               segmentId,
               integrationId,
@@ -767,7 +734,6 @@ export default class ActivityService extends LoggerBase {
             this.log.trace('Updating member data!')
             await txMemberService.update(
               dbMember.id,
-              tenantId,
               onboarding,
               segmentId,
               integrationId,
@@ -805,7 +771,6 @@ export default class ActivityService extends LoggerBase {
             if (dbActivity.objectMemberId) {
               this.log.trace('Finding object member id by username.')
               let dbObjectMember = await txMemberRepo.findMemberByUsername(
-                tenantId,
                 segmentId,
                 platform,
                 objectMemberUsername,
@@ -839,7 +804,6 @@ export default class ActivityService extends LoggerBase {
                 this.log.trace('Updating object member data!')
                 await txMemberService.update(
                   dbObjectMember.id,
-                  tenantId,
                   onboarding,
                   segmentId,
                   integrationId,
@@ -879,7 +843,6 @@ export default class ActivityService extends LoggerBase {
                 this.log.trace('Updating object member data!')
                 await txMemberService.update(
                   dbObjectMember.id,
-                  tenantId,
                   onboarding,
                   segmentId,
                   integrationId,
@@ -914,7 +877,6 @@ export default class ActivityService extends LoggerBase {
             this.log.trace('Updating activity.')
             await txActivityService.update(
               dbActivity.id,
-              tenantId,
               onboarding,
               segmentId,
               {
@@ -955,12 +917,7 @@ export default class ActivityService extends LoggerBase {
           // we don't have the activity yet in the database
           // check if we have a member for the identity from the activity
           this.log.trace({ platform, username }, 'Finding activity member by username from db.')
-          let dbMember = await txMemberRepo.findMemberByUsername(
-            tenantId,
-            segmentId,
-            platform,
-            username,
-          )
+          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
 
           // try to find a member by email if verified one is available
           if (!dbMember) {
@@ -971,7 +928,7 @@ export default class ActivityService extends LoggerBase {
             if (emails.length > 0) {
               for (const email of emails) {
                 this.log.trace({ email }, 'Finding activity member by email.')
-                dbMember = await txMemberRepo.findMemberByEmail(tenantId, email)
+                dbMember = await txMemberRepo.findMemberByEmail(email)
 
                 if (dbMember) {
                   break
@@ -987,7 +944,6 @@ export default class ActivityService extends LoggerBase {
             )
             await txMemberService.update(
               dbMember.id,
-              tenantId,
               onboarding,
               segmentId,
               integrationId,
@@ -1014,7 +970,6 @@ export default class ActivityService extends LoggerBase {
               'We did not find a member for the identity provided! Creating a new one.',
             )
             memberId = await txMemberService.create(
-              tenantId,
               onboarding,
               segmentId,
               integrationId,
@@ -1045,7 +1000,6 @@ export default class ActivityService extends LoggerBase {
               'Finding existing db object member by username.',
             )
             const dbObjectMember = await txMemberRepo.findMemberByUsername(
-              tenantId,
               segmentId,
               platform,
               objectMemberUsername,
@@ -1057,7 +1011,6 @@ export default class ActivityService extends LoggerBase {
               )
               await txMemberService.update(
                 dbObjectMember.id,
-                tenantId,
                 onboarding,
                 segmentId,
                 integrationId,
@@ -1080,7 +1033,6 @@ export default class ActivityService extends LoggerBase {
                 'We did not find a member for the identity provided! Creating a new one.',
               )
               objectMemberId = await txMemberService.create(
-                tenantId,
                 onboarding,
                 segmentId,
                 integrationId,
@@ -1112,7 +1064,6 @@ export default class ActivityService extends LoggerBase {
 
           this.log.trace('Creating activity.')
           await txActivityService.create(
-            tenantId,
             segmentId,
             {
               id: activityId,
@@ -1126,11 +1077,7 @@ export default class ActivityService extends LoggerBase {
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT &&
                 activity.sourceParentId
-                  ? await findMatchingPullRequestNodeId(
-                      this.qdbStore.connection(),
-                      tenantId,
-                      activity,
-                    )
+                  ? await findMatchingPullRequestNodeId(this.qdbStore.connection(), activity)
                   : activity.sourceParentId,
               memberId,
               username,
@@ -1141,7 +1088,6 @@ export default class ActivityService extends LoggerBase {
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT
                   ? await this.findMatchingGitActivityAttributes({
-                      tenantId,
                       segmentId,
                       activity,
                       attributes: activity.attributes || {},
@@ -1164,13 +1110,13 @@ export default class ActivityService extends LoggerBase {
         if (IS_GITHUB_SNOWFLAKE_ENABLED) {
           if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
             this.log.trace('Pushing attributes to matching github activity.')
-            await this.pushAttributesToMatchingGithubActivity({ tenantId, segmentId, activity })
+            await this.pushAttributesToMatchingGithubActivity({ segmentId, activity })
           } else if (
             platform === PlatformType.GITHUB &&
             activity.type === GithubActivityType.PULL_REQUEST_OPENED
           ) {
             this.log.trace('Pushing PR sourceId to matching github commits.')
-            await this.pushPRSourceIdToMatchingGithubCommits({ tenantId, activity })
+            await this.pushPRSourceIdToMatchingGithubCommits({ activity })
           }
         }
       } finally {
@@ -1180,21 +1126,11 @@ export default class ActivityService extends LoggerBase {
 
     if (memberId) {
       this.log.trace('Triggering member sync.')
-      await this.searchSyncWorkerEmitter.triggerMemberSync(
-        tenantId,
-        memberId,
-        onboarding,
-        segmentId,
-      )
+      await this.searchSyncWorkerEmitter.triggerMemberSync(memberId, onboarding, segmentId)
     }
     if (objectMemberId) {
       this.log.trace('Triggering object member sync.')
-      await this.searchSyncWorkerEmitter.triggerMemberSync(
-        tenantId,
-        objectMemberId,
-        onboarding,
-        segmentId,
-      )
+      await this.searchSyncWorkerEmitter.triggerMemberSync(objectMemberId, onboarding, segmentId)
     }
 
     if (organizationId) {
@@ -1260,18 +1196,15 @@ export default class ActivityService extends LoggerBase {
   }
 
   private async findMatchingActivity({
-    tenantId,
     segmentId,
     platform,
     activity,
   }: {
-    tenantId: string
     segmentId: string
     platform: PlatformType
     activity: IActivityData
   }): Promise<IDbActivityCreateData | null> {
     const { rows } = await queryActivities(this.qdbStore.connection(), {
-      tenantId,
       segmentIds: [segmentId],
       filter: {
         platform: { eq: platform },
@@ -1294,12 +1227,10 @@ export default class ActivityService extends LoggerBase {
   }
 
   private async findMatchingGitActivityAttributes({
-    tenantId,
     segmentId,
     activity,
     attributes,
   }: {
-    tenantId: string
     segmentId: string
     activity: IActivityData
     attributes: Record<string, unknown>
@@ -1316,7 +1247,6 @@ export default class ActivityService extends LoggerBase {
     }
 
     const gitActivity = await this.findMatchingActivity({
-      tenantId,
       segmentId,
       platform: PlatformType.GIT,
       activity,
@@ -1332,11 +1262,9 @@ export default class ActivityService extends LoggerBase {
   }
 
   private async pushAttributesToMatchingGithubActivity({
-    tenantId,
     segmentId,
     activity,
   }: {
-    tenantId: string
     segmentId: string
     activity: IActivityData
   }) {
@@ -1376,7 +1304,6 @@ export default class ActivityService extends LoggerBase {
     }
 
     const githubActivity = await this.findMatchingActivity({
-      tenantId,
       segmentId,
       platform: PlatformType.GITHUB,
       activity,
@@ -1391,13 +1318,7 @@ export default class ActivityService extends LoggerBase {
     })
   }
 
-  private async pushPRSourceIdToMatchingGithubCommits({
-    tenantId,
-    activity,
-  }: {
-    tenantId: string
-    activity: IActivityData
-  }) {
+  private async pushPRSourceIdToMatchingGithubCommits({ activity }: { activity: IActivityData }) {
     if (
       activity.platform !== PlatformType.GITHUB ||
       activity.type !== GithubActivityType.PULL_REQUEST_OPENED
@@ -1407,7 +1328,6 @@ export default class ActivityService extends LoggerBase {
 
     const commits = await findCommitsForPRSha(
       this.qdbStore.connection(),
-      tenantId,
       activity.attributes.sha as string,
     )
 

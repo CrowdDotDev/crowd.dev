@@ -52,5 +52,6 @@
   "openStatusApi": {},
   "gitlab": {},
   "jiraIssueReporter": {},
-  "snowflake": {}
+  "snowflake": {},
+  "nango": {}
 }

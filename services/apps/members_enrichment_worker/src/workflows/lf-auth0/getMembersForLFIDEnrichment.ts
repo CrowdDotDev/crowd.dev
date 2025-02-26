@@ -30,7 +30,7 @@ export async function getMembersForLFIDEnrichment(
   await Promise.all(
     members.map((member: IMember) => {
       return executeChild(enrichMemberWithLFAuth0, {
-        workflowId: 'member-enrichment-lfid/' + member.tenantId + '/' + member.id,
+        workflowId: 'member-enrichment-lfid/' + member.id,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         workflowExecutionTimeout: '1 minute',
@@ -41,9 +41,6 @@ export async function getMembersForLFIDEnrichment(
           maximumInterval: 30 * 1000,
         },
         args: [member],
-        searchAttributes: {
-          TenantId: [member.tenantId],
-        },
       })
     }),
   )

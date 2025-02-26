@@ -377,16 +377,14 @@ class TenantRepository {
     return SequelizeRepository.getCurrentTenant(options)
   }
 
-  static async getAvailablePlatforms(id, options: IRepositoryOptions) {
+  static async getAvailablePlatforms(options: IRepositoryOptions) {
     const query = `
       SELECT platform
       FROM "memberIdentities"
-      WHERE "tenantId" = :tenantId
       GROUP BY 1
+      limit 1
     `
-    const parameters: any = {
-      tenantId: id,
-    }
+    const parameters: any = {}
 
     const platforms = await options.database.sequelize.query(query, {
       replacements: parameters,

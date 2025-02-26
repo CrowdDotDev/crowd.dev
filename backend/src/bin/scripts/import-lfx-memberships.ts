@@ -70,24 +70,23 @@ function parseDomains(domains: string) {
   )
 }
 
-async function findOrgId(qx, tenantId, record) {
-  let org = await findOrgIdByDomain(qx, tenantId, [record['Account Domain']])
+async function findOrgId(qx, record) {
+  let org = await findOrgIdByDomain(qx, [record['Account Domain']])
   if (org) {
     return org
   }
 
-  org = await findOrgIdByDomain(qx, tenantId, record['Domain Alias'])
+  org = await findOrgIdByDomain(qx, record['Domain Alias'])
   if (org) {
     return org
   }
 
-  org = await findOrgIdByDisplayName(qx, { tenantId, orgName: record['Account Name'], exact: true })
+  org = await findOrgIdByDisplayName(qx, { orgName: record['Account Name'], exact: true })
   if (org) {
     return org
   }
 
   org = await findOrgIdByDisplayName(qx, {
-    tenantId,
     orgName: record['Account Name'],
     exact: false,
   })
@@ -106,8 +105,6 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
     await qx.result(`DELETE FROM "lfxMemberships"`)
 
     console.log('All records deleted')
-
-    const tenantId = parameters.tenantId
 
     const fileData = fs.readFileSync(path.resolve(parameters.file), 'latin1')
 
@@ -133,12 +130,10 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
         record['Domain Alias'] = parseDomains(record['Domain Alias'])
 
         const segment = await findProjectGroupByName(qx, {
-          tenantId,
           name: record['Project'],
         })
-        const orgId = await findOrgId(qx, tenantId, record)
+        const orgId = await findOrgId(qx, record)
         const row = {
-          tenantId: parameters.tenantId,
           organizationId: orgId,
           segmentId: segment?.id,
           accountName: orgName,

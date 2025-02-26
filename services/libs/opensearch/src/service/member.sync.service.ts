@@ -1,4 +1,4 @@
-import { distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DEFAULT_TENANT_ID, distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
   fetchMemberIdentities,
@@ -35,7 +35,7 @@ import { MemberRepository } from '../repo/member.repo'
 import { OpenSearchIndex } from '../types'
 
 import { IMemberSyncResult } from './member.sync.data'
-import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -89,63 +89,14 @@ export class MemberSyncService {
     this.indexingRepo = new IndexingRepository(pgStore, this.log)
   }
 
-  public async getAllIndexedTenantIds(
-    pageSize = 500,
-    afterKey?: string,
-  ): Promise<IPagedSearchResponse<string, string>> {
-    const include = ['uuid_tenantId']
-
-    const results = await this.openSearchService.search(
-      OpenSearchIndex.MEMBERS,
-      undefined,
-      {
-        uuid_tenantId_buckets: {
-          composite: {
-            size: pageSize,
-            sources: [
-              {
-                uuid_tenantId: {
-                  terms: {
-                    field: 'uuid_tenantId',
-                  },
-                },
-              },
-            ],
-            after: afterKey
-              ? {
-                  uuid_tenantId: afterKey,
-                }
-              : undefined,
-          },
-        },
-      },
-      undefined,
-      undefined,
-      undefined,
-      include,
-    )
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = (results as any).uuid_tenantId_buckets
-
-    const newAfterKey = data.after_key?.uuid_tenantId
-
-    const ids = data.buckets.map((b) => b.key.uuid_tenantId)
-
-    return {
-      data: ids,
-      afterKey: newAfterKey,
-    }
-  }
-
-  public async cleanupMemberIndex(tenantId: string, batchSize = 300): Promise<void> {
-    this.log.warn({ tenantId }, 'Cleaning up member index!')
+  public async cleanupMemberIndex(batchSize = 300): Promise<void> {
+    this.log.warn('Cleaning up member index!')
 
     const query = {
       bool: {
         filter: {
           term: {
-            uuid_tenantId: tenantId,
+            uuid_tenantId: DEFAULT_TENANT_ID,
           },
         },
       },
@@ -172,7 +123,6 @@ export class MemberSyncService {
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
       const memberData = await this.memberRepo.checkMembersExists(
-        tenantId,
         results.map((r) => r._source.uuid_memberId),
       )
 
@@ -194,12 +144,12 @@ export class MemberSyncService {
       // Process bulk removals in chunks
       while (idsToRemove.length >= batchSize) {
         const batch = idsToRemove.splice(0, batchSize)
-        this.log.warn({ tenantId, batch }, 'Removing members from index!')
+        this.log.warn({ batch }, 'Removing members from index!')
         await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.MEMBERS)
       }
 
       processed += results.length
-      this.log.warn({ tenantId }, `Processed ${processed} members while cleaning up tenant!`)
+      this.log.warn(`Processed ${processed} members while cleaning up!`)
 
       lastId = results[results.length - 1]._id
       results = (await this.openSearchService.search(
@@ -215,11 +165,11 @@ export class MemberSyncService {
 
     // Remove any remaining IDs that were not processed
     if (idsToRemove.length > 0) {
-      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining members from index!')
+      this.log.warn({ idsToRemove }, 'Removing remaining members from index!')
       await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.MEMBERS)
     }
 
-    this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
+    this.log.warn(`Processed total of ${processed} members while cleaning up!`)
   }
 
   public async removeMember(memberId: string): Promise<void> {
@@ -488,7 +438,6 @@ export class MemberSyncService {
       const qx = repoQx(this.memberRepo)
       const base = await findMemberById(qx, memberId, [
         MemberField.ID,
-        MemberField.TENANT_ID,
         MemberField.DISPLAY_NAME,
         MemberField.ATTRIBUTES,
       ])
@@ -497,7 +446,7 @@ export class MemberSyncService {
         return
       }
 
-      const attributes = await this.memberRepo.getTenantMemberAttributes(base.tenantId)
+      const attributes = await this.memberRepo.getMemberAttributes()
       const data = await buildFullMemberForMergeSuggestions(qx, base)
       const prefixed = MemberSyncService.prefixData(data, attributes)
       await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prefixed)
@@ -522,7 +471,7 @@ export class MemberSyncService {
     const p: IMemberOpensearch = {} as IMemberOpensearch
 
     p.uuid_memberId = data.id
-    p.uuid_tenantId = data.tenantId
+    p.uuid_tenantId = DEFAULT_TENANT_ID
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
     const p_attributes = {}
@@ -652,7 +601,6 @@ export class MemberSyncService {
     return {
       segmentId,
       memberId: input[0].memberId,
-      tenantId: input[0].tenantId,
 
       activityCount,
       lastActive,

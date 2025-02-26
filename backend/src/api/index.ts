@@ -238,6 +238,8 @@ setImmediate(async () => {
   require('./dataQuality').default(routes)
   require('./collections').default(routes)
 
+  await require('./nango').default(routes)
+
   app.use('/', routes)
 
   app.use(errorMiddleware)

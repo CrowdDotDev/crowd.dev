@@ -53,16 +53,12 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
 
     for (const groupedIdentities of memberIdentitiesGroupedByPlatform) {
       // 1. get payload for identity split using unmergePreview endpoint
-      const preview = await common.unmergeMembersPreview(
-        groupedIdentities.tenantId,
-        args.memberId,
-        {
-          platform: groupedIdentities.platforms[0],
-          type: groupedIdentities.types[0] as MemberIdentityType,
-          verified: groupedIdentities.verified[0],
-          value: groupedIdentities.values[0],
-        },
-      )
+      const preview = await common.unmergeMembersPreview(args.memberId, {
+        platform: groupedIdentities.platforms[0],
+        type: groupedIdentities.types[0] as MemberIdentityType,
+        verified: groupedIdentities.verified[0],
+        value: groupedIdentities.values[0],
+      })
       // 2. Currently unmerge preview only supports a single identity as input. Add grouped identities to secondary payload
       // and remove the grouped identities from the primary payload
       const toMove = preview.primary.identities.filter(
@@ -80,7 +76,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
       )
 
       // 2. call api.unmerge using the payload
-      await common.unmergeMembers(args.memberId, preview, groupedIdentities.tenantId)
+      await common.unmergeMembers(args.memberId, preview)
     }
   } else {
     const mergeActions = await activity.findMemberMergeActions(
@@ -99,7 +95,6 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
       await common.unmergeMembers(
         mergeAction.primaryId,
         mergeAction.unmergeBackup as IUnmergeBackup<IMemberUnmergeBackup>,
-        mergeAction.tenantId,
       )
 
       const workflowId = `finishMemberUnmerging/${mergeAction.primaryId}/${mergeAction.secondaryId}`
@@ -121,9 +116,6 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
             memberId: mergeAction.secondaryId,
           },
         ],
-        searchAttributes: {
-          TenantId: [mergeAction.tenantId],
-        },
       })
 
       console.log(

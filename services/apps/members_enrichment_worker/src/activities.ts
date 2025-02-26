@@ -7,7 +7,7 @@ import {
   getEnrichmentData,
   getEnrichmentInput,
   getObsoleteSourcesOfMember,
-  getTenantPriorityArray,
+  getPriorityArray,
   hasRemainingCredits,
   insertMemberEnrichmentCache,
   isCacheObsolete,
@@ -74,7 +74,7 @@ export {
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
-  getTenantPriorityArray,
+  getPriorityArray as getTenantPriorityArray,
   cleanAttributeValue,
   hasRemainingCredits,
 }

@@ -12,7 +12,6 @@ export interface IStreamData {
   runState: IntegrationRunState | null
   webhookId: string | null
   runId: string | null
-  tenantId: string
   integrationSettings: unknown
 
   id: string
@@ -25,7 +24,6 @@ export interface IStreamData {
 
 export interface IProcessableStream {
   id: string
-  tenantId: string
   integrationType: string
   runId: string | null
   webhookId: string | null
@@ -37,7 +35,6 @@ export interface IInsertableWebhookStream {
   webhookId: string
   data: unknown
   integrationId: string
-  tenantId: string
 }
 
 let insertWebhookStreamColumnSet: DbColumnSet

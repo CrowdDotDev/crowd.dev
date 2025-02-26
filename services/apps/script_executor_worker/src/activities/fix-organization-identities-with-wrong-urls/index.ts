@@ -6,14 +6,13 @@ import { IOrganizationIdentity } from '@crowd/types'
 import { svc } from '../../main'
 
 export async function getOrgIdentitiesWithInvalidUrls(
-  tenantId: string,
   limit: number,
 ): Promise<IOrganizationIdentity[]> {
   let organizations: IOrganizationIdentity[] = []
 
   try {
     const repo = new OrganizationRepo(svc.postgres.reader.connection(), svc.log)
-    organizations = await repo.getOrgIdentitiesWithInvalidUrls(tenantId, limit)
+    organizations = await repo.getOrgIdentitiesWithInvalidUrls(limit)
   } catch (err) {
     throw new Error(err)
   }
@@ -26,13 +25,12 @@ export async function findOrganizationIdentity(
   value: string,
   type: string,
   verified: boolean,
-  tenantId: string,
 ): Promise<IOrganizationIdentity[]> {
   let orgIdentity: IOrganizationIdentity[]
 
   try {
     const repo = new OrganizationRepo(svc.postgres.reader.connection(), svc.log)
-    orgIdentity = await repo.findOrganizationIdentity(platform, value, type, verified, tenantId)
+    orgIdentity = await repo.findOrganizationIdentity(platform, value, type, verified)
   } catch (err) {
     throw new Error(err)
   }
@@ -47,19 +45,10 @@ export async function updateOrganizationIdentity(
   oldValue: string,
   type: string,
   verified: boolean,
-  tenantId: string,
 ): Promise<void> {
   try {
     const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
-    await repo.updateOrganizationIdentity(
-      orgId,
-      platform,
-      newValue,
-      oldValue,
-      type,
-      verified,
-      tenantId,
-    )
+    await repo.updateOrganizationIdentity(orgId, platform, newValue, oldValue, type, verified)
   } catch (err) {
     throw new Error(err)
   }
@@ -71,22 +60,21 @@ export async function deleteOrganizationIdentity(
   type: string,
   value: string,
   verified: boolean,
-  tenantId: string,
 ): Promise<void> {
   try {
     const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
-    await repo.deleteOrganizationIdentity(orgId, platform, type, value, verified, tenantId)
+    await repo.deleteOrganizationIdentity(orgId, platform, type, value, verified)
   } catch (err) {
     throw new Error(err)
   }
 }
 
-export async function isLfxMember(organizationId: string, tenantId: string): Promise<boolean> {
+export async function isLfxMember(organizationId: string): Promise<boolean> {
   let hasMembership: boolean
 
   try {
     const qx = pgpQx(svc.postgres.reader.connection())
-    hasMembership = await hasLfxMembership(qx, { organizationId, tenantId })
+    hasMembership = await hasLfxMembership(qx, { organizationId })
   } catch (err) {
     throw new Error(err)
   }

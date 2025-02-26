@@ -1,4 +1,4 @@
-import { getDefaultTenantId, getEnv } from '@crowd/common'
+import { DEFAULT_TENANT_ID, getEnv } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IMember, IQueryTimeseriesParams, ITimeseriesDatapoint } from '@crowd/types'
 
@@ -10,12 +10,12 @@ const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
-const tenantId = getDefaultTenantId()
+const tenantId = DEFAULT_TENANT_ID
 
 export async function getMemberById(db: DbStore, id: string): Promise<IMember> {
   const query = `
     SELECT
-      "id", "tenantId",
+      "id"
       "attributes", "displayName",
       "score",
       "enrichedBy",

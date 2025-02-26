@@ -2,10 +2,8 @@ import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
 } from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
@@ -25,18 +23,9 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
-  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(queueClient, redisClient, loader, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    queueClient,
-    redisClient,
-    loader,
-    log,
-  )
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, redisClient, loader, log)
+  const runWorkerEmiiter = new IntegrationRunWorkerEmitter(queueClient, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, log)
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, log)
 
   const queue = new WorkerQueueReceiver(
     WORKER_SETTINGS().queuePriorityLevel,

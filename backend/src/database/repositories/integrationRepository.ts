@@ -2,7 +2,7 @@ import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
-import { Error404 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error404 } from '@crowd/common'
 import {
   fetchGlobalIntegrations,
   fetchGlobalIntegrationsCount,
@@ -27,8 +27,6 @@ class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
@@ -47,9 +45,10 @@ class IntegrationRepository {
         'emailSentAt',
       ]),
       segmentId: segment.id,
-      tenantId: tenant.id,
+      tenantId: DEFAULT_TENANT_ID,
       createdById: currentUser.id,
       updatedById: currentUser.id,
+      id: data.id || undefined,
     }
     const record = await options.database.integration.create(toInsert, {
       transaction,
@@ -72,12 +71,9 @@ class IntegrationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     let record = await options.database.integration.findOne({
       where: {
         id,
-        tenantId: currentTenant.id,
         segmentId: SequelizeRepository.getSegmentIds(options),
       },
       transaction,
@@ -117,12 +113,9 @@ class IntegrationRepository {
   static async destroy(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const record = await options.database.integration.findOne({
       where: {
         id,
-        tenantId: currentTenant.id,
       },
       transaction,
     })
@@ -161,12 +154,9 @@ class IntegrationRepository {
 
     const include = []
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const records = await options.database.integration.findAll({
       where: {
         platform,
-        tenantId: currentTenant.id,
       },
       include,
       transaction,
@@ -182,12 +172,9 @@ class IntegrationRepository {
 
     const include = []
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const record = await options.database.integration.findOne({
       where: {
         platform,
-        tenantId: currentTenant.id,
         segmentId: segment.id,
       },
       include,
@@ -201,13 +188,12 @@ class IntegrationRepository {
     return this._populateRelations(record)
   }
 
-  static async findActiveIntegrationByPlatform(platform: PlatformType, tenantId: string) {
+  static async findActiveIntegrationByPlatform(platform: PlatformType) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const record = await options.database.integration.findOne({
       where: {
         platform,
-        tenantId,
       },
     })
 
@@ -271,7 +257,6 @@ class IntegrationRepository {
 
   /**
    * Find an integration using the integration identifier and a platform.
-   * Tenant not needed.
    * @param identifier The integration identifier
    * @returns The integration object
    */
@@ -299,12 +284,9 @@ class IntegrationRepository {
 
     const include = []
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const record = await options.database.integration.findOne({
       where: {
         id,
-        tenantId: currentTenant.id,
       },
       include,
       transaction,
@@ -317,41 +299,12 @@ class IntegrationRepository {
     return this._populateRelations(record)
   }
 
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.integration.findAll({
-      attributes: ['id'],
-      where,
-    })
-
-    return records.map((record) => record.id)
-  }
-
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
 
     return options.database.integration.count({
       where: {
         ...filter,
-        tenantId: tenant.id,
       },
       transaction,
     })
@@ -360,7 +313,6 @@ class IntegrationRepository {
   /**
    * Finds global integrations based on the provided parameters.
    *
-   * @param {string} tenantId - The ID of the tenant for which integrations are to be found.
    * @param {Object} filters - An object containing various filter options.
    * @param {string} [filters.platform=null] - The platform to filter integrations by.
    * @param {string[]} [filters.status=['done']] - The status of the integrations to be filtered.
@@ -374,28 +326,20 @@ class IntegrationRepository {
     { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
     options: IRepositoryOptions,
   ) {
-    const tenantId = options.currentTenant.id
     const qx = SequelizeRepository.getQueryExecutor(options)
     if (status.includes('not-connected')) {
-      const rows = await fetchGlobalNotConnectedIntegrations(
-        qx,
-        tenantId,
-        platform,
-        query,
-        limit,
-        offset,
-      )
-      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, tenantId, platform, query)
+      const rows = await fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset)
+      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query)
       return { rows, count: +result.count, limit: +limit, offset: +offset }
     }
 
-    const rows = await fetchGlobalIntegrations(qx, tenantId, status, platform, query, limit, offset)
-    const [result] = await fetchGlobalIntegrationsCount(qx, tenantId, status, platform, query)
+    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
+    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query)
     return { rows, count: +result.count, limit: +limit, offset: +offset }
   }
 
   /**
-   * Retrieves the count of global integrations statuses for a specified tenant and platform.
+   * Retrieves the count of global integrations statuses for a specified platform.
    * This method aggregates the count of different integration statuses including a 'not-connected' status.
    *
    * @param {Object} param1 - The optional parameters.
@@ -404,10 +348,9 @@ class IntegrationRepository {
    * @return {Promise<Array<Object>>} A promise that resolves to an array of objects containing the statuses and their counts.
    */
   static async findGlobalIntegrationsStatusCount({ platform = null }, options: IRepositoryOptions) {
-    const tenantId = options.currentTenant.id
     const qx = SequelizeRepository.getQueryExecutor(options)
-    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, tenantId, platform, '')
-    const rows = await fetchGlobalIntegrationsStatusCount(qx, tenantId, platform)
+    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '')
+    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform)
     return [...rows, { status: 'not-connected', count: +result.count }]
   }
 
@@ -606,13 +549,7 @@ class IntegrationRepository {
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = [
-      {
-        tenantId: tenant.id,
-      },
-    ]
+    const whereAnd: Array<any> = [{}]
 
     if (query) {
       whereAnd.push({

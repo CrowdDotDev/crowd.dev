@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
 
-import { Error401, getDefaultTenantId } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error401 } from '@crowd/common'
 
 import { AUTH0_CONFIG } from '../../conf'
 import AuthService from '../../services/auth/authService'
@@ -22,7 +22,7 @@ async function getKey(header, callback) {
 
 export default async (req, res) => {
   const { idToken, invitationToken } = req.body
-  const tenantId = getDefaultTenantId()
+  const tenantId = DEFAULT_TENANT_ID
 
   try {
     const verifyToken = new Promise((resolve, reject) => {
