@@ -17,6 +17,11 @@ export interface IWorkExperienceData extends BaseData {
   id: string
 }
 
+export interface IOrganizationIdWithMemberCount {
+  organizationId: string
+  memberCount: number
+}
+
 export interface IOrganizationMemberCount {
   organizationId: string
   memberCount: number
