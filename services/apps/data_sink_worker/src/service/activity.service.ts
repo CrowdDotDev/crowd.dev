@@ -182,7 +182,10 @@ export default class ActivityService extends LoggerBase {
         }
 
         if (!isObjectEmpty(toUpdate)) {
-          this.log.debug({ activityId: id }, 'Updating activity.')
+          this.log.debug(
+            { activityId: id, createdAt: original.createdAt },
+            'Updating activity in database.',
+          )
 
           // use insert instead of update to avoid using pg protocol with questdb
           try {
@@ -211,6 +214,7 @@ export default class ActivityService extends LoggerBase {
                 isBotActivity: memberInfo.isBot,
                 isTeamMemberActivity: memberInfo.isTeamMember,
                 importHash: original.importHash,
+                createdAt: original.createdAt,
               },
             ])
             await createOrUpdateRelations(queryExecutor, {

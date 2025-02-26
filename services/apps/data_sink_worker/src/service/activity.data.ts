@@ -39,6 +39,7 @@ export interface IActivityUpdateData {
   url?: string
   organizationId?: string
   platform?: PlatformType
+  createdAt?: string
 }
 
 export interface ISentimentActivityInput {
