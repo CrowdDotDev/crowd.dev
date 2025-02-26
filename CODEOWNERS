@@ -33,9 +33,6 @@
 /services/libs/logging/                                      @themarolt @sausage-todd
 /services/libs/telemetry/                                    @themarolt @sausage-todd
 
-# data-access-layer
-/services/libs/data-access-layer/                            @sausage-todd
-
 # database
 /services/libs/database/                                     @sausage-todd
 /services/libs/questdb/                                      @sausage-todd
