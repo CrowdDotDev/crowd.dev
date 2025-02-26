@@ -11,7 +11,7 @@ import {
   getNangoCloudRecords,
   initNangoCloudClient,
 } from '@crowd/nango'
-import { AuthProvider, IntegrationResultType } from '@crowd/types'
+import { IntegrationResultType } from '@crowd/types'
 
 import { svc } from '../main'
 import { IProcessNangoWebhookArguments } from '../types'

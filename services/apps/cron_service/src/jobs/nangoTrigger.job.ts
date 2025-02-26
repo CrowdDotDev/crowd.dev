@@ -56,7 +56,7 @@ const job: IJobDefinition = {
         }
         await temporal.workflow.start('processNangoWebhook', {
           taskQueue: 'nango',
-          workflowId: `nango-webhook/${platform}/${id}/${model}`,
+          workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
           workflowIdReusePolicy:
             WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
           retry: {

@@ -30,7 +30,9 @@ const job: IJobDefinition = {
 
     const nangoConnections = await getNangoConnectionIds()
 
-    for (const connection of nangoConnections) {
+    for (const connection of nangoConnections.filter((c) =>
+      ALL_NANGO_INTEGRATIONS.includes(c.integration),
+    )) {
       const integration = singleOrDefault(allIntegrations, (i) => i.id === connection.connectionId)
 
       if (!integration) {
