@@ -1423,6 +1423,18 @@ export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
 ): Promise<void> {
+  if (data.username === undefined || data.username === null) {
+    return
+  }
+
+  if (data.platform === undefined || data.platform === null) {
+    return
+  }
+
+  if (data.segmentId === undefined || data.segmentId === null) {
+    return
+  }
+
   // check objectMember exists
   if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
     let objectMember = await qe.select(
@@ -1729,21 +1741,22 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
-export async function getActivityRelationsSortedByCreatedAt(
+export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
-  cursorActivityCreatedAt?: string,
+  cursorActivityTimestamp?: string,
   limit = 100,
 ) {
   let cursorQuery = ''
 
-  if (cursorActivityCreatedAt) {
-    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
   }
 
   const query = `
     SELECT 
       id,
       "memberId",
+      timestamp,
       "createdAt",
       "objectMemberId",
       "organizationId",
@@ -1756,12 +1769,12 @@ export async function getActivityRelationsSortedByCreatedAt(
     FROM activities
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
-    ORDER BY "createdAt" asc
+    ORDER BY "timestamp" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityCreatedAt,
+    cursorActivityTimestamp,
     limit,
   })
 
