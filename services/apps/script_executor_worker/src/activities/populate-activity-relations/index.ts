@@ -1,23 +1,18 @@
 import {
   createOrUpdateRelations,
-  getActivityRelationsSortedByCreatedAt,
+  getActivityRelationsSortedByTimestamp,
 } from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
 
 import { svc } from '../../main'
 
-const LAST_SYNCED_ACTIVITY_CREATED_AT_REDIS_KEY = 'latest-synced-activity-created-at'
-const LAST_SYNCED_ACTIVITY_TIMESTAMP_REDIS_KEY = 'last-synced-activity-timestamp'
-
-const REDIS_KEY = LAST_SYNCED_ACTIVITY_TIMESTAMP_REDIS_KEY
-
 export async function resetIndexedIdentities(): Promise<void> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
   await redisCache.delete('last-synced-activity-timestamp')
 }
 
-export async function getLatestSyncedActivityCreatedAt(): Promise<string> {
+export async function getLatestSyncedActivityTimestamp(): Promise<string> {
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
   const result = await redisCache.get('last-synced-activity-timestamp')
   return result || null
@@ -26,15 +21,15 @@ export async function getLatestSyncedActivityCreatedAt(): Promise<string> {
 export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promise<string> {
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
   const redisCache = new RedisCache(`activity-relations-data`, svc.redis, svc.log)
-  const lastSyncedCreatedAt = activities[activities.length - 1].timestamp
-  await redisCache.set('last-synced-activity-timestamp', lastSyncedCreatedAt)
-  return lastSyncedCreatedAt
+  const lastSyncedTimestamp = activities[activities.length - 1].timestamp
+  await redisCache.set('last-synced-activity-timestamp', lastSyncedTimestamp)
+  return lastSyncedTimestamp
 }
 
-export async function getActivitiesToCopy(latestSyncedActivityCreatedAt: string, limit: number) {
-  const activities = await getActivityRelationsSortedByCreatedAt(
+export async function getActivitiesToCopy(latestSyncedActivityTimestamp: string, limit: number) {
+  const activities = await getActivityRelationsSortedByTimestamp(
     svc.questdbSQL,
-    latestSyncedActivityCreatedAt,
+    latestSyncedActivityTimestamp,
     limit,
   )
 
@@ -49,7 +44,7 @@ export async function getActivitiesToCopy(latestSyncedActivityCreatedAt: string,
   return {
     activitiesRedisKey: key,
     activitiesLength: activities.length,
-    lastCreatedAt: activities[activities.length - 1].timestamp,
+    lastTimestamp: activities[activities.length - 1].timestamp,
   }
 }
 

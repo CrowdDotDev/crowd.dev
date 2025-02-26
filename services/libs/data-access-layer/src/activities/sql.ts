@@ -1741,15 +1741,15 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
-export async function getActivityRelationsSortedByCreatedAt(
+export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
-  cursorActivityCreatedAt?: string,
+  cursorActivityTimestamp?: string,
   limit = 100,
 ) {
   let cursorQuery = ''
 
-  if (cursorActivityCreatedAt) {
-    cursorQuery = `AND "timestamp" >= $(cursorActivityCreatedAt)`
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
   }
 
   const query = `
@@ -1774,7 +1774,7 @@ export async function getActivityRelationsSortedByCreatedAt(
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityCreatedAt,
+    cursorActivityTimestamp,
     limit,
   })
 
