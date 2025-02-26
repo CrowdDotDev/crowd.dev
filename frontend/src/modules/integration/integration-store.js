@@ -287,12 +287,18 @@ export default {
       }
     },
 
-    async doRedditOnboard({ commit }, { subreddits, segmentId, grandparentId }) {
+    async doRedditOnboard(
+      { commit },
+      { subreddits, segmentId, grandparentId },
+    ) {
       // Function to trigger Oauth performance.
       try {
         commit('CREATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.redditOnboard(subreddits, segmentId);
+        const integration = await IntegrationService.redditOnboard(
+          subreddits,
+          segmentId,
+        );
 
         commit('CREATE_SUCCESS', integration);
 
@@ -336,7 +342,10 @@ export default {
       }
     },
 
-    async doLinkedinOnboard({ commit }, { organizationId, segmentId, grandparentId }) {
+    async doLinkedinOnboard(
+      { commit },
+      { organizationId, segmentId, grandparentId },
+    ) {
       try {
         commit('UPDATE_STARTED');
         // Call the connect function in IntegrationService to handle functionality
@@ -385,9 +394,12 @@ export default {
       }
     },
 
-    async doDevtoConnect({ commit }, {
-      users, organizations, apiKey, segmentId, grandparentId,
-    }) {
+    async doDevtoConnect(
+      { commit },
+      {
+        users, organizations, apiKey, segmentId, grandparentId,
+      },
+    ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -418,9 +430,12 @@ export default {
       }
     },
 
-    async doHackerNewsConnect({ commit }, {
-      keywords, urls, segmentId, grandparentId,
-    }) {
+    async doHackerNewsConnect(
+      { commit },
+      {
+        keywords, urls, segmentId, grandparentId,
+      },
+    ) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 
@@ -453,9 +468,12 @@ export default {
       }
     },
 
-    async doStackOverflowOnboard({ commit }, {
-      tags, keywords, segmentId, grandparentId,
-    }) {
+    async doStackOverflowOnboard(
+      { commit },
+      {
+        tags, keywords, segmentId, grandparentId,
+      },
+    ) {
       // Function to connect to StackOverflow.
 
       try {
@@ -469,10 +487,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        showIntegrationProgressNotification(
-          'stackoverflow',
-          segmentId,
-        );
+        showIntegrationProgressNotification('stackoverflow', segmentId);
 
         router.push({
           name: 'integration',
@@ -502,13 +517,18 @@ export default {
       }
     },
 
-    async doGitConnect({ commit }, {
-      remotes, isUpdate, segmentId, grandparentId,
-    }) {
+    async doGitConnect(
+      { commit },
+      {
+        remotes, isUpdate, segmentId, grandparentId,
+      },
+    ) {
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.gitConnect(remotes, [segmentId]);
+        const integration = await IntegrationService.gitConnect(remotes, [
+          segmentId,
+        ]);
 
         commit('CREATE_SUCCESS', integration);
 
@@ -535,9 +555,12 @@ export default {
       }
     },
 
-    async doConfluenceConnect({ commit }, {
-      settings, isUpdate, segmentId, grandparentId,
-    }) {
+    async doConfluenceConnect(
+      { commit },
+      {
+        settings, isUpdate, segmentId, grandparentId,
+      },
+    ) {
       try {
         commit('CREATE_STARTED');
 
@@ -574,20 +597,31 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit, segmentId, grandparentId,
+        orgURL,
+        // user,
+        // pass,
+        isUpdate,
+        repoNames,
+        enableAllRepos,
+        enableGit,
+        segmentId,
+        grandparentId,
       },
     ) {
       try {
         commit('CREATE_STARTED');
 
-        const integration = await IntegrationService.gerritConnect({
-          orgURL,
-          user,
-          key,
-          repoNames,
-          enableAllRepos,
-          enableGit,
-        }, [segmentId]);
+        const integration = await IntegrationService.gerritConnect(
+          {
+            orgURL,
+            // user,
+            // pass,
+            repoNames,
+            enableAllRepos,
+            enableGit,
+          },
+          [segmentId],
+        );
 
         commit('CREATE_SUCCESS', integration);
 
@@ -617,7 +651,12 @@ export default {
     async doDiscourseConnect(
       { commit },
       {
-        forumHostname, apiKey, webhookSecret, isUpdate, segmentId, grandparentId,
+        forumHostname,
+        apiKey,
+        webhookSecret,
+        isUpdate,
+        segmentId,
+        grandparentId,
       },
     ) {
       try {
@@ -658,8 +697,15 @@ export default {
     async doGroupsioConnect(
       { commit },
       {
-        email, token, tokenExpiry, password, groups, isUpdate, autoImports,
-        segmentId, grandparentId,
+        email,
+        token,
+        tokenExpiry,
+        password,
+        groups,
+        isUpdate,
+        autoImports,
+        segmentId,
+        grandparentId,
       },
     ) {
       console.log('doGroupsioConnect', email, token, groups, isUpdate);
@@ -707,8 +753,14 @@ export default {
     async doJiraConnect(
       { commit },
       {
-        url, username, personalAccessToken, apiToken, projects, isUpdate,
-        segmentId, grandparentId,
+        url,
+        username,
+        personalAccessToken,
+        apiToken,
+        projects,
+        isUpdate,
+        segmentId,
+        grandparentId,
       },
     ) {
       try {
@@ -750,12 +802,19 @@ export default {
       }
     },
 
-    async doGitlabConnect({ commit, dispatch }, {
-      code, state, segmentId, grandparentId,
-    }) {
+    async doGitlabConnect(
+      { commit, dispatch },
+      {
+        code, state, segmentId, grandparentId,
+      },
+    ) {
       try {
         commit('CREATE_STARTED');
-        const integration = await IntegrationService.gitlabConnect(code, state, [segmentId]);
+        const integration = await IntegrationService.gitlabConnect(
+          code,
+          state,
+          [segmentId],
+        );
         commit('CREATE_SUCCESS', integration);
         dispatch('doFetch');
 

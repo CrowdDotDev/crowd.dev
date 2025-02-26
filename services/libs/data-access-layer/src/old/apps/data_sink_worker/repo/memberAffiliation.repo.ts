@@ -1,7 +1,11 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IManualAffiliationData, IWorkExperienceData } from './memberAffiliation.data'
+import {
+  IManualAffiliationData,
+  IOrganizationMemberCount,
+  IWorkExperienceData,
+} from './memberAffiliation.data'
 
 export default class MemberAffiliationRepository extends RepositoryBase<MemberAffiliationRepository> {
   private BLACKLISTED_TITLES = ['Investor', 'Mentor', 'Board Member']
@@ -67,12 +71,12 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
 
   public async findMemberCountEstimateOfOrganizations(
     organizationIds: string[],
-  ): Promise<IWorkExperienceData | null> {
-    const result = await this.db().oneOrNone(
+  ): Promise<IOrganizationMemberCount[] | null> {
+    const result = await this.db().manyOrNone(
       `
         SELECT
           osa."organizationId",
-          sum(osa."memberCount") AS total_count
+          sum(osa."memberCount") AS "memberCount
       FROM "organizationSegmentsAgg" osa
       WHERE osa."segmentId" IN (
           SELECT id
@@ -151,8 +155,10 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
   ): IWorkExperienceData[] {
     return experiences.filter(
       (row) =>
-        row.title &&
-        blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+        !row.title ||
+        (row.title !== null &&
+          row.title !== undefined &&
+          !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase()))),
     )
   }
 }

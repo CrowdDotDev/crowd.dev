@@ -1,7 +1,7 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 import merge from 'lodash.merge'
 
-import { RawQueryParser, generateUUIDv4, getDefaultTenantId, getEnv } from '@crowd/common'
+import { DEFAULT_TENANT_ID, RawQueryParser, generateUUIDv4, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { ActivityDisplayVariant, PageData, PlatformType } from '@crowd/types'
@@ -30,7 +30,6 @@ const s3Url = `https://${
 export async function getConversationById(
   conn: DbConnOrTx,
   id: string,
-  tenantId: string,
   segmentIds: string[],
 ): Promise<IDbConversation | null> {
   const conversation: IDbConversation | null = await conn.oneOrNone(
@@ -41,20 +40,17 @@ export async function getConversationById(
              published,
              "createdAt",
              "updatedAt",
-             "tenantId",
              "segmentId",
              "createdById",
              "updatedById"
       from conversations
       where
         id = $(id) and
-        "tenantId" = $(tenantId) and
         "segmentId" in ($(segmentIds:csv)) and
         "deletedAt" is null
     `,
     {
       id,
-      tenantId,
       segmentIds,
     },
   )
@@ -77,7 +73,7 @@ export async function insertConversation(
       `,
       {
         id: conversation.id || id,
-        tenantId: conversation.tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         segmentId: conversation.segmentId,
         slug: conversation.slug,
         title: conversation.title,
@@ -92,12 +88,10 @@ export async function insertConversation(
         `
         UPDATE "activities" SET "conversationId" = $(id)
         WHERE "id" = $(activityParentId)
-        AND "tenantId" = $(tenantId)
         AND "segmentId" = $(segmentId);
         `,
         {
           id: conversation.id || id,
-          tenantId: conversation.tenantId,
           segmentId: conversation.segmentId,
           activityParentId: conversation.activityParentId,
         },
@@ -112,12 +106,10 @@ export async function insertConversation(
         `
         UPDATE "activities" SET "conversationId" = $(id)
         WHERE "id" = $(activityChildId)
-        AND "tenantId" = $(tenantId)
         AND "segmentId" = $(segmentId);
         `,
         {
           id: conversation.id || id,
-          tenantId: conversation.tenantId,
           segmentId: conversation.segmentId,
           activityChildId: conversation.activityChildId,
         },
@@ -133,8 +125,8 @@ export async function updateConversation(
   id: string,
   data: IDbConversationUpdateData,
 ): Promise<void> {
-  if (!data.tenantId || !data.segmentId) {
-    throw new Error('tenantId and segmentId are required to update conversation!')
+  if (!data.segmentId) {
+    throw new Error('segmentId is required to update conversation!')
   }
 
   const toUpdate: any = {}
@@ -158,7 +150,6 @@ export async function updateConversation(
 
   const params: any = {
     id,
-    tenantId: data.tenantId,
     segmentId: data.segmentId,
   }
 
@@ -176,7 +167,7 @@ export async function updateConversation(
   const query = `
     update conversations set
     ${sets.join(', ')}
-    where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
+    where "id" = $(id) and "segmentId" = $(segmentId);
   `
 
   const result = await conn.result(query, params)
@@ -190,13 +181,11 @@ export async function findConversationsWithActivities(
 ): Promise<IConversationWithActivities[]> {
   const query = `
     SELECT * FROM conversations
-    WHERE "tenantId" = $(tenantId)
-    AND timestamp BETWEEN $(after) AND $(before)
+    WHERE timestamp BETWEEN $(after) AND $(before)
     LIMIT $(limit);
   `
 
   const convs: IConversationWithActivities[] = await conn.query(query, {
-    tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
     limit: arg.limit,
@@ -204,7 +193,6 @@ export async function findConversationsWithActivities(
 
   for (const conv of convs) {
     const firstActivity = await queryActivities(conn, {
-      tenantId: arg.tenantId,
       segmentIds: arg.segments.map((segment) => segment.id),
       orderBy: ['timestamp', 'ASC'],
       filter: {
@@ -223,7 +211,6 @@ export async function findConversationsWithActivities(
     })
 
     const remainingActivities = await queryActivities(conn, {
-      tenantId: arg.tenantId,
       segmentIds: arg.segments.map((segment) => segment.id),
       orderBy: ['timestamp', 'ASC'],
       filter: {
@@ -311,19 +298,17 @@ export async function setConversationToActivity(
   conn: DbConnOrTx,
   conversationId: string,
   activityId: string,
-  tenantId: string,
   segmentId: string,
 ): Promise<void> {
   const result = await conn.result(
     `
       update activities
       set "conversationId" = $(conversationId)
-      where id = $(activityId) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
+      where id = $(activityId) and "segmentId" = $(segmentId);
     `,
     {
       conversationId,
       activityId,
-      tenantId,
       segmentId,
     },
   )
@@ -374,13 +359,8 @@ export async function queryConversations(
   qdbConn: DbConnOrTx,
   arg: IQueryConversationsParameters,
 ): Promise<PageData<IQueryConversationResult>> {
-  if (arg.tenantId === undefined) {
-    // fall back to default tenant
-    arg.tenantId = getDefaultTenantId()
-  }
-
-  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
-    throw new Error('tenantId and segmentIds are required to query conversations!')
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds is required to query conversations!')
   }
 
   // set defaults
@@ -423,7 +403,6 @@ export async function queryConversations(
   const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
 
   const params: any = {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     lowerLimit: arg.offset,
     upperLimit: arg.offset + arg.limit - 1,
@@ -460,7 +439,6 @@ export async function queryConversations(
         select distinct "conversationId"
         from activities a
         where a."deletedAt" is null and
-              a."tenantId" = $(tenantId) and
               a."segmentId" in ($(segmentIds:csv)) and
               ${queryFilter}
       ), activity_data as (
@@ -479,7 +457,6 @@ export async function queryConversations(
     from conversations c
     inner join activity_data a on a."conversationId" = c.id
     where c."deletedAt" is null and
-          c."tenantId" = $(tenantId) and
           c."segmentId" in ($(segmentIds:csv)) and
           ${filterString}
     `
@@ -497,7 +474,6 @@ export async function queryConversations(
       from activities
       where "deletedAt" is null and
             "conversationId" is not null and
-            "tenantId" = $(tenantId) and
             "segmentId" in ($(segmentIds:csv))
       group by "conversationId"
     )
@@ -505,7 +481,6 @@ export async function queryConversations(
     from conversations c
     inner join activity_data a on a."conversationId" = c.id
     where c."deletedAt" is null and
-          c."tenantId" = $(tenantId) and
           c."segmentId" in ($(segmentIds:csv)) and
           ${filterString}
     `
@@ -535,7 +510,6 @@ export async function queryConversations(
       a.platform,
       c.published,
       c."segmentId",
-      c."tenantId",
       c.slug,
       c.title,
       c."updatedAt"

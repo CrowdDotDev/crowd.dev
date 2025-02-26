@@ -1,8 +1,4 @@
-import {
-  IntegrationRunWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-} from '@crowd/common_services'
+import { IntegrationRunWorkerEmitter } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import {
@@ -12,10 +8,9 @@ import {
 } from '@crowd/integrations'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
-import { getRedisClient } from '@crowd/redis'
 import { IntegrationState } from '@crowd/types'
 
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
+import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
 
 const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {
   switch (stream) {
@@ -74,14 +69,9 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-  const redis = await getRedisClient(REDIS_CONFIG())
-
-  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(queueClient, redis, loader, log)
+  const emitter = new IntegrationRunWorkerEmitter(queueClient, log)
   await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)
@@ -148,7 +138,6 @@ setImmediate(async () => {
     }
 
     await emitter.triggerIntegrationRun(
-      integration.tenantId,
       integration.type,
       integration.id,
       false, // disable onboarding

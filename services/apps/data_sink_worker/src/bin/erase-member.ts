@@ -2,18 +2,13 @@ import fs from 'fs'
 import path from 'path'
 
 import { generateUUIDv1 } from '@crowd/common'
-import {
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
-import { getRedisClient } from '@crowd/redis'
 import { MemberIdentityType } from '@crowd/types'
 
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
+import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -39,12 +34,8 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const redisClient = await getRedisClient(REDIS_CONFIG())
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redisClient, loader, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
   const pairs = []
@@ -82,7 +73,7 @@ setImmediate(async () => {
             orgResults = await store
               .connection()
               .any(
-                `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
+                `select distinct "organizationId" from activities where "memberId" = $(memberId)`,
                 {
                   memberId,
                 },
@@ -102,18 +93,17 @@ setImmediate(async () => {
             memberDataMap.set(memberId, memberData)
           }
 
-          log.info({ tenantId: memberData.tenantId }, 'CLEANUP ACTIVITIES...')
+          log.info('CLEANUP ACTIVITIES...')
 
           // delete the member and everything around it
           await deleteMemberFromDb(t, memberId)
 
-          await searchSyncWorkerEmitter.triggerRemoveMember(memberData.tenantId, memberId, true)
+          await searchSyncWorkerEmitter.triggerRemoveMember(memberId, true)
 
           if (orgResults.length > 0) {
             for (const orgResult of orgResults) {
               if (orgResult.organizationId) {
                 await searchSyncWorkerEmitter.triggerOrganizationSync(
-                  orgResult.tenantId,
                   orgResult.organizationId,
                   true,
                 )
@@ -201,11 +191,7 @@ setImmediate(async () => {
                   // track so we don't delete the same member twice
                   deletedMemberIds.push(eIdentity.memberId)
 
-                  await searchSyncWorkerEmitter.triggerRemoveMember(
-                    memberData.tenantId,
-                    eIdentity.memberId,
-                    true,
-                  )
+                  await searchSyncWorkerEmitter.triggerRemoveMember(eIdentity.memberId, true)
                 } else {
                   // just delete the identity
                   await deleteMemberIdentity(
@@ -215,18 +201,13 @@ setImmediate(async () => {
                     eIdentity.type,
                     eIdentity.value,
                   )
-                  await searchSyncWorkerEmitter.triggerMemberSync(
-                    memberData.tenantId,
-                    eIdentity.memberId,
-                    true,
-                  )
+                  await searchSyncWorkerEmitter.triggerMemberSync(eIdentity.memberId, true)
                 }
 
                 if (orgResults.length > 0) {
                   for (const orgResult of orgResults) {
                     if (orgResult.organizationId) {
                       await searchSyncWorkerEmitter.triggerOrganizationSync(
-                        orgResult.tenantId,
                         orgResult.organizationId,
                         true,
                       )

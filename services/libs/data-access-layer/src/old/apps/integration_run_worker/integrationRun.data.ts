@@ -10,11 +10,6 @@ export interface IGenerateStreamsData {
   integrationRefreshToken: string | null
   runState: IntegrationRunState
   runId: string
-  tenantId: string
-  hasSampleData: boolean
-  plan: string
-  isTrialPlan: boolean
-  name: string
   integrationSettings: unknown
   streamCount: number
 }
@@ -24,12 +19,10 @@ export interface IStartIntegrationRunData {
   type: string
   state: IntegrationState
   identifier: string | null
-  tenantId: string
 }
 
 export interface IPendingDelayedRun {
   id: string
   onboarding: boolean
-  tenantId: string
   integrationType: string
 }

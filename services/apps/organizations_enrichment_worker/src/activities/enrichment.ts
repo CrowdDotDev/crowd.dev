@@ -1,9 +1,5 @@
 import { IS_DEV_ENV, IS_TEST_ENV, renameKeys } from '@crowd/common'
-import {
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
   IDbOrgIdentity,
@@ -47,25 +43,21 @@ async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
     return searchSyncWorkerEmitter
   }
 
-  const repo = new PriorityLevelContextRepository(svc.postgres.reader, svc.log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    repo.loadPriorityLevelContext(tenantId)
-
-  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(svc.queue, svc.redis, loader, svc.log)
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(svc.queue, svc.log)
 
   await searchSyncWorkerEmitter.init()
 
   return searchSyncWorkerEmitter
 }
 
-export async function syncToOpensearch(tenantId: string, organizationId: string): Promise<void> {
+export async function syncToOpensearch(organizationId: string): Promise<void> {
   const log = getChildLogger(syncToOpensearch.name, svc.log, {
     organizationId,
   })
 
   try {
     const searchSyncWorkerEmitter = await getSearchSyncWorkerEmitter()
-    await searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, organizationId, false)
+    await searchSyncWorkerEmitter.triggerOrganizationSync(organizationId, false)
   } catch (err) {
     log.error(err, 'Error while syncing organization to OpenSearch!')
     throw new Error(err)
@@ -92,7 +84,6 @@ export async function getOrganizationsToEnrich(
 
 /**
  * Attempts organization cache enrichment.
- * @param tenantId
  * @param cacheId
  * @returns true if organization was enriched, false otherwise
  */
@@ -112,7 +103,7 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
     return false
   }
 
-  const identities = await getOrgIdentities(qe, organizationId, data.tenantId)
+  const identities = await getOrgIdentities(qe, organizationId)
 
   const verifiedIdentities = identities.filter((i) => i.verified)
 
@@ -167,7 +158,7 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
       const txQe = dbStoreQx(t)
       await updateOrganization(txQe, organizationId, prepared.organization)
       await upsertOrgAttributes(txQe, organizationId, prepared.attributes)
-      await upsertOrgIdentities(txQe, organizationId, data.tenantId, finalData.identities)
+      await upsertOrgIdentities(txQe, organizationId, finalData.identities)
     })
 
     log.debug('Enrichment done!')

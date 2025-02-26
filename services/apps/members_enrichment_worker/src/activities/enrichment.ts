@@ -171,8 +171,8 @@ export async function findMemberEnrichmentCache(
   return findMemberEnrichmentCacheDb(svc.postgres.reader.connection(), memberId, sources)
 }
 
-export async function getTenantPriorityArray(tenantId: string): Promise<string[]> {
-  return getPlatformPriorityArray(dbStoreQx(svc.postgres.reader), tenantId)
+export async function getPriorityArray(): Promise<string[]> {
+  return getPlatformPriorityArray(dbStoreQx(svc.postgres.reader))
 }
 
 export async function fetchMemberDataForLLMSquashing(
@@ -242,7 +242,6 @@ export async function updateMemberUsingSquashedPayload(
         promises.push(
           upsertMemberIdentity(qx, {
             memberId,
-            tenantId: existingMemberData.tenantId,
             platform: i.platform,
             type: i.type,
             value: i.value,
@@ -292,12 +291,8 @@ export async function updateMemberUsingSquashedPayload(
       attributes = _.merge({}, attributes, squashedPayload.attributes)
 
       if (Object.keys(attributes).length > 0) {
-        const priorities = await getTenantPriorityArray(existingMemberData.tenantId)
-        attributes = await setAttributesDefaultValues(
-          existingMemberData.tenantId,
-          attributes,
-          priorities,
-        )
+        const priorities = await getPriorityArray()
+        attributes = await setAttributesDefaultValues(attributes, priorities)
       }
       updated = true
       promises.push(updateMemberAttributes(qx, memberId, attributes))
@@ -354,16 +349,11 @@ export async function updateMemberUsingSquashedPayload(
 
       for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
         orgPromises.push(
-          findOrCreateOrganization(
-            qx,
-            existingMemberData.tenantId,
-            OrganizationAttributeSource.ENRICHMENT,
-            {
-              displayName: org.name,
-              description: org.organizationDescription,
-              identities: org.identities ? org.identities : [],
-            },
-          )
+          findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
+            displayName: org.name,
+            description: org.organizationDescription,
+            identities: org.identities ? org.identities : [],
+          })
             .then((orgId) => {
               // set the organization id for later use
               org.organizationId = orgId

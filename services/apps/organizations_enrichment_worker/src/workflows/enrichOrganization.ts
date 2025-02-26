@@ -12,6 +12,6 @@ export async function enrichOrganization(org: IEnrichableOrganizationData): Prom
   const updated = await aCtx.tryEnrichOrganization(org.organizationId)
 
   if (updated) {
-    await aCtx.syncToOpensearch(org.tenantId, org.organizationId)
+    await aCtx.syncToOpensearch(org.organizationId)
   }
 }

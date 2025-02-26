@@ -12,19 +12,19 @@ export async function populateActivityRelations(
   args: IPopulateActivityRelationsArgs,
 ): Promise<void> {
   const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
-  let latestSyncedActivityCreatedAt
+  let latestSyncedActivityTimestamp
 
   if (args.deleteIndexedEntities) {
     await activity.resetIndexedIdentities()
-    latestSyncedActivityCreatedAt = null
+    latestSyncedActivityTimestamp = null
   } else {
-    latestSyncedActivityCreatedAt =
-      args.latestSyncedActivityCreatedAt || (await activity.getLatestSyncedActivityCreatedAt())
+    latestSyncedActivityTimestamp =
+      args.latestSyncedActivityTimestamp || (await activity.getLatestSyncedActivityTimestamp())
   }
 
-  const { activitiesLength, activitiesRedisKey, lastCreatedAt } =
+  const { activitiesLength, activitiesRedisKey, lastTimestamp } =
     await activity.getActivitiesToCopy(
-      latestSyncedActivityCreatedAt ?? undefined,
+      latestSyncedActivityTimestamp ?? undefined,
       BATCH_SIZE_PER_RUN,
     )
 
@@ -33,7 +33,7 @@ export async function populateActivityRelations(
   }
 
   if (activitiesLength < BATCH_SIZE_PER_RUN) {
-    if (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
+    if (lastTimestamp === args.latestSyncedActivityTimestamp) {
       return
     }
   }
@@ -44,6 +44,6 @@ export async function populateActivityRelations(
 
   await continueAsNew<typeof populateActivityRelations>({
     batchSizePerRun: args.batchSizePerRun,
-    latestSyncedActivityCreatedAt: lastCreatedAt,
+    latestSyncedActivityTimestamp: lastTimestamp,
   })
 }

@@ -43,8 +43,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             sentiment,
             "deletedAt"
     from activities
-    where "tenantId" = $(tenantId)
-      and "segmentId" = $(segmentId)
+    where "segmentId" = $(segmentId)
       and "sourceId" = $(sourceId)
       and platform = $(platform)
       and type = $(type)
@@ -52,7 +51,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     limit 1;
   `
   public async findExisting(
-    tenantId: string,
     segmentId: string,
     sourceId: string,
     platform: string,
@@ -60,7 +58,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     channel: string | null | undefined,
   ): Promise<IDbActivity | null> {
     const result = await this.db().oneOrNone(this.findExistingActivityQuery, {
-      tenantId,
       segmentId,
       sourceId,
       platform,
@@ -72,7 +69,6 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   }
 
   public async findExistingBySourceIdAndChannel(
-    tenantId: string,
     segmentId: string,
     sourceId: string,
     channel: string,
@@ -101,15 +97,13 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
               sentiment,
               "deletedAt"
       from activities
-      where "tenantId" = $(tenantId)
-        and "segmentId" = $(segmentId)
+      where "segmentId" = $(segmentId)
         and "sourceId" = $(sourceId)
         and channel = $(channel)
         and "deletedAt" IS NULL
       limit 1;
     `,
       {
-        tenantId,
         segmentId,
         sourceId,
         channel,

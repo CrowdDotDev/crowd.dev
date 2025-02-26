@@ -18,7 +18,6 @@ export interface IMemberEnrichmentSourceQueryInput {
 
 export interface IEnrichableMember {
   id: string
-  tenantId: string
   displayName: string
   location: string
   website: string
@@ -48,7 +47,6 @@ export interface IMemberOriginalData {
   displayName: string
   attributes: Record<string, Record<string, unknown>>
   manuallyChangedFields: string[]
-  tenantId: string
   reach: IMemberReach
 
   // memberIdentities table data

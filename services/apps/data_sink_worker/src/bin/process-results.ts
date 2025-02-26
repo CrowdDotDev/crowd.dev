@@ -1,9 +1,4 @@
-import {
-  DataSinkWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { getServiceLogger } from '@crowd/logging'
@@ -40,14 +35,10 @@ setImmediate(async () => {
   const store = new DbStore(log, dbConnection)
   const qdbStore = new DbStore(log, qdbConnection)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, redis, loader, log)
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, log)
   await dataSinkWorkerEmitter.init()
 
   const service = new DataSinkService(

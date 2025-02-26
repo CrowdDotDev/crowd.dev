@@ -28,15 +28,14 @@ export async function cleanupMember(db: DbStore, memberId: string) {
   )
 }
 
-export async function findMemberById(db: DbStore, primaryId: string, tenantId: string) {
+export async function findMemberById(db: DbStore, primaryId: string) {
   return db.connection().oneOrNone(
     `
       SELECT id
       FROM members
       WHERE id = $1
-        AND "tenantId" = $2
     `,
-    [primaryId, tenantId],
+    [primaryId],
   )
 }
 
@@ -44,11 +43,10 @@ export async function updateMergeActionState(
   db: DbStore,
   primaryId: string,
   secondaryId: string,
-  tenantId: string,
   data: { step?: MergeActionStep; state?: MergeActionState },
 ) {
   const setClauses = []
-  const replacements = [primaryId, secondaryId, tenantId]
+  const replacements = [primaryId, secondaryId]
 
   if (data.step) {
     setClauses.push(`step = $${replacements.length + 1}`)
@@ -66,7 +64,6 @@ export async function updateMergeActionState(
       SET ${setClauses.join(', ')}
       WHERE "primaryId" = $1
         AND "secondaryId" = $2
-        AND "tenantId" = $3
     `,
     replacements,
   )
@@ -75,16 +72,15 @@ export async function updateMergeActionState(
 export async function getIdentitiesWithActivity(
   db: DbStore,
   memberId: string,
-  tenantId: string,
   identities: IMemberIdentity[],
 ): Promise<IActivityIdentity[]> {
   if (identities.length === 0) {
     return []
   }
-  const replacements = [memberId, tenantId]
+  const replacements = [memberId]
 
   let query = `select distinct username, platform from activities a
-               where a."deletedAt" is null and a."memberId" = $1 and a."tenantId" = $2 `
+               where a."deletedAt" is null and a."memberId" = $1 `
 
   let index = 3
   const identityFilters = []
@@ -105,7 +101,6 @@ export async function moveIdentityActivitiesToNewMember(
   db: DbConnOrTx,
   pgDb: DbConnOrTx,
   queueClient: IQueue,
-  tenantId: string,
   fromId: string,
   toId: string,
   username: string,
@@ -119,14 +114,12 @@ export async function moveIdentityActivitiesToNewMember(
     formatQuery(
       `
         "memberId" = $(fromId)
-        and "tenantId" = $(tenantId)
         and "username" = $(username)
         and "platform" = $(platform)
         and "deletedAt" is null
       `,
       {
         fromId,
-        tenantId,
         username,
         platform,
       },

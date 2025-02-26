@@ -1,6 +1,6 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 
-import { generateUUIDv4, getCleanString, getDefaultTenantId, partition } from '@crowd/common'
+import { generateUUIDv4, getCleanString, partition } from '@crowd/common'
 import {
   ALL_COLUMNS_TO_SELECT,
   doesConversationWithSlugExists,
@@ -110,7 +110,6 @@ export async function createConversations(): Promise<ICreateConversationsResult>
           slug: await generateSlug(row.parent.segmentId, conversationTitle),
           published: true,
           timestamp: row.parent.timestamp || row.child.timestamp,
-          tenantId: getDefaultTenantId(),
           segmentId: row.parent.segmentId,
           createdById: null,
           updatedById: null,

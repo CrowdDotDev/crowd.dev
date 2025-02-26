@@ -4,8 +4,21 @@ import { OrganizationSyncService } from '@crowd/opensearch'
 
 import { svc } from '../../main'
 
-export async function getOrgIdsFromRedis(): Promise<string[]> {
-  return await svc.redis.sMembers('organizationIdsForAggComputation')
+interface IScanResult {
+  cursor: string
+  organizationIds: string[]
+}
+
+export async function getOrgIdsFromRedis(cursor = '0', count = 100): Promise<IScanResult> {
+  try {
+    const result = await svc.redis.sScan('organizationIdsForAggComputation', Number(cursor), {
+      COUNT: count,
+    })
+    return { organizationIds: result.members, cursor: result.cursor.toString() }
+  } catch (e) {
+    this.log.error(e, 'Failed to get organization IDs from Redis!')
+    throw e
+  }
 }
 
 export async function dropOrgIdFromRedis(orgId: string): Promise<void> {

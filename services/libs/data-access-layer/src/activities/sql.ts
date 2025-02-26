@@ -2,7 +2,7 @@
 import merge from 'lodash.merge'
 import moment from 'moment'
 
-import { RawQueryParser, getDefaultTenantId, getEnv } from '@crowd/common'
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -58,7 +58,6 @@ const s3Url = `https://${
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
-  tenantId: string,
   segmentIds: string[],
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
@@ -68,7 +67,6 @@ export async function getActivitiesById(
   const data = await queryActivities(conn, {
     filter: { and: [{ id: { in: ids } }] },
     limit: ids.length,
-    tenantId,
     segmentIds,
   })
 
@@ -138,7 +136,6 @@ export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'deletedAt',
   'memberId',
   'parentId',
-  'tenantId',
   'createdById',
   'updatedById',
   'sourceParentId',
@@ -174,8 +171,8 @@ export async function updateActivity(
   id: string,
   activity: IDbActivityUpdateData,
 ): Promise<void> {
-  if (!activity.tenantId || !activity.segmentId) {
-    throw new Error('tenantId and segmentId are required to update activity!')
+  if (!activity.segmentId) {
+    throw new Error('segmentId is required to update activity!')
   }
 
   const data: any = {}
@@ -217,7 +214,6 @@ export async function updateActivity(
 
   const params: any = {
     id,
-    tenantId: activity.tenantId,
     segmentId: activity.segmentId,
   }
 
@@ -235,7 +231,7 @@ export async function updateActivity(
   const query = `
     update activities set
     ${sets.join(', \n')}
-    where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
+    where id = $(id) and "segmentId" = $(segmentId);
   `
 
   const result = await conn.result(query, params)
@@ -273,13 +269,11 @@ export async function updateActivityParentIds(
     conn.none(
       `
       UPDATE activities SET "parentId" = $(id)
-      WHERE "tenantId" = $(tenantId)
-      AND "sourceParentId" = $(sourceId)
+      WHERE "sourceParentId" = $(sourceId)
       AND "segmentId" = $(segmentId);
     `,
       {
         id,
-        tenantId: activity.tenantId,
         segmentId: activity.segmentId,
         sourceId: activity.sourceId,
       },
@@ -295,13 +289,11 @@ export async function updateActivityParentIds(
           `
   select id from activities
   where "deletedAt" is null and
-        "tenantId" = $(tenantId) and
         "sourceId" = $(sourceParentId) and
         "segmentId" = $(segmentId)
   limit 1
 `,
           {
-            tenantId: activity.tenantId,
             segmentId: activity.segmentId,
             sourceParentId: activity.sourceParentId,
           },
@@ -312,13 +304,11 @@ export async function updateActivityParentIds(
               `
               update activities set "parentId" = $(parentId)
               where id = $(id) and
-                    "tenantId" = $(tenantId) and
                     "segmentId" = $(segmentId) and
                     "deletedAt" is null
             `,
               {
                 id,
-                tenantId: activity.tenantId,
                 segmentId: activity.segmentId,
                 parentId: res.id,
               },
@@ -384,7 +374,6 @@ export type ActivityColumn =
   | 'deletedAt'
   | 'memberId'
   | 'parentId'
-  | 'tenantId'
   | 'createdById'
   | 'updatedById'
   | 'sourceParentId'
@@ -440,7 +429,6 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'sentimentScorePositive',
   'sourceId',
   'sourceParentId',
-  'tenantId',
   'timestamp',
   'title',
   'type',
@@ -467,16 +455,10 @@ export async function queryActivities(
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
 ): Promise<PageData<IQueryActivityResult | any>> {
-  if (arg.tenantId === undefined) {
-    // fall back to default tenant
-    arg.tenantId = getDefaultTenantId()
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds are required to query activities!')
   }
 
-  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
-    throw new Error('tenantId and segmentIds are required to query activities!')
-  }
-
-  // set defaultstenant
   arg.filter = arg.filter || {}
   arg.orderBy =
     arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
@@ -552,7 +534,6 @@ export async function queryActivities(
   const orderByString = parsedOrderBys.map((o) => `"${o.column}" ${o.direction}`).join(',')
 
   const params: any = {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     lowerLimit: arg.offset,
     upperLimit: arg.offset + arg.limit,
@@ -571,8 +552,7 @@ export async function queryActivities(
 
   let baseQuery = `
     from activities a
-    where
-      ${arg.tenantId ? 'a."tenantId" = $(tenantId) and' : ''}
+    where      
       ${
         arg.segmentIds && arg.segmentIds.length > 0
           ? 'a."segmentId" in ($(segmentIds:csv)) and'
@@ -703,15 +683,13 @@ export async function findTopActivityTypes(
       a."type", COUNT(id) as count,
       a."platform"
     FROM activities a
-    WHERE a."tenantId" = $(tenantId)
-    AND a."timestamp" BETWEEN $(after) AND $(before)
+    WHERE a."timestamp" BETWEEN $(after) AND $(before)
     GROUP BY a."type", a.platform
     ORDER BY COUNT(*) DESC
     LIMIT $(limit);
   `
 
   result = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
     limit: arg.limit || 10,
@@ -750,8 +728,7 @@ export async function getMostActiveOrganizations(
   let query = `
     SELECT DISTINCT organizationId, COUNT() AS count
     FROM activities
-    WHERE tenantId = $(tenantId)
-    AND organizationId IS NOT NULL
+    WHERE organizationId IS NOT NULL
     AND "timestamp" BETWEEN $(after) AND $(before)
     ORDER BY "count" DESC;
   `
@@ -763,7 +740,6 @@ export async function getMostActiveOrganizations(
   query += ';'
 
   const result: INumberOfActivitiesPerOrganization[] = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
     limit: arg.limit || 20,
@@ -779,8 +755,7 @@ export async function getMostActiveMembers(
   let query = `
     SELECT DISTINCT memberId, COUNT() AS count
     FROM activities
-    WHERE tenantId = $(tenantId)
-    AND memberId IS NOT NULL
+    WHERE memberId IS NOT NULL
     AND "timestamp" BETWEEN $(after) AND $(before)
     ORDER BY "count" DESC;
   `
@@ -792,7 +767,6 @@ export async function getMostActiveMembers(
   query += ';'
 
   const result: INumberOfActivitiesPerMember[] = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
     limit: arg.limit,
@@ -827,7 +801,6 @@ export async function getOrgAggregates(
         activites_agg AS (
           SELECT
             a."organizationId",
-            a."tenantId",
             a."segmentId",
             count_distinct(a."memberId")      AS "memberCount",
             count_distinct(a.id)              AS "activityCount",
@@ -837,11 +810,10 @@ export async function getOrgAggregates(
           FROM activities a
           WHERE a."organizationId" = $(organizationId)
             AND a."deletedAt" IS NULL
-          GROUP BY a."organizationId", a."tenantId", a."segmentId"
+          GROUP BY a."organizationId", a."segmentId"
         )
       SELECT
         a."organizationId",
-        a."tenantId",
         a."segmentId",
         -- <option1>
         MIN(a."memberCount") AS "memberCount",
@@ -863,7 +835,7 @@ export async function getOrgAggregates(
 
       -- <option1>
       JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
-      GROUP BY a."organizationId", a."tenantId", a."segmentId"
+      GROUP BY a."organizationId", a."segmentId"
       -- </option1>
 
       -- -- <option2>
@@ -879,7 +851,6 @@ export async function getOrgAggregates(
   return result.map((r) => ({
     organizationId,
     segmentId: r.segmentId,
-    tenantId: r.tenantId,
     memberCount: parseInt(r.memberCount),
     activityCount: parseInt(r.activityCount),
     activeOn: r.activeOn.split(':'),
@@ -934,7 +905,6 @@ export async function getMemberAggregates(
       activites_agg AS (
         SELECT
           a."memberId",
-          a."tenantId",
           a."segmentId",
           count_distinct(a.id)              AS "activityCount",
           max(a.timestamp)                  AS "lastActive",
@@ -943,11 +913,10 @@ export async function getMemberAggregates(
         FROM activities a
         WHERE a."memberId" = $(memberId)
           AND a."deletedAt" IS NULL
-        GROUP BY a."memberId", a."tenantId", a."segmentId"
+        GROUP BY a."memberId", a."segmentId"
       )
     SELECT
       a."memberId",
-      a."tenantId",
       a."segmentId",
 
       a.activityCount,
@@ -973,7 +942,6 @@ export async function getMemberAggregates(
     return {
       memberId: result.memberId,
       segmentId: result.segmentId,
-      tenantId: result.tenantId,
       // --
       activityCount: parseInt(result.activityCount),
       lastActive: result.lastActive,
@@ -1036,7 +1004,6 @@ export async function countMembersWithActivities(
     SELECT COUNT(id) AS count, "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
-    AND "tenantId" = $(tenantId)
     AND "memberId" IS NOT NULL
   `
 
@@ -1063,7 +1030,6 @@ export async function countMembersWithActivities(
   query += ' ORDER BY "date" ASC;'
 
   return await qdbConn.any(query, {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     organizationId: arg.organizationId,
     after: arg.timestampFrom,
@@ -1226,12 +1192,11 @@ export async function getActiveOrganizations(
   qdbConn: DbConnOrTx,
   arg: IQueryActiveOrganizationsParameters,
 ): Promise<IActiveOrganizationData[]> {
-  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
-    throw new Error('tenantId and segmentIds are required to query active member ids!')
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds is required to query active member ids!')
   }
 
   const params: any = {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     tsFrom: arg.timestampFrom,
     tsTo: arg.timestampTo,
@@ -1240,7 +1205,6 @@ export async function getActiveOrganizations(
   }
 
   const conditions: string[] = [
-    'a."tenantId" = $(tenantId)',
     'a."segmentId" in ($(segmentIds:csv))',
     'a."deletedAt" is null',
     'a.timestamp >= $(tsFrom)',
@@ -1281,12 +1245,11 @@ export async function getActiveMembers(
   qdbConn: DbConnOrTx,
   arg: IQueryActiveMembersParameters,
 ): Promise<IActiveMemberData[]> {
-  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
-    throw new Error('tenantId and segmentIds are required to query active member ids!')
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds is required to query active member ids!')
   }
 
   const params: any = {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     tsFrom: arg.timestampFrom,
     tsTo: arg.timestampTo,
@@ -1295,7 +1258,6 @@ export async function getActiveMembers(
   }
 
   const conditions: string[] = [
-    'a."tenantId" = $(tenantId)',
     'a."segmentId" in ($(segmentIds:csv))',
     'a."deletedAt" is null',
     'a.timestamp >= $(tsFrom)',
@@ -1363,7 +1325,6 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
-  tenantId: string,
   segmentIds?: string[],
 ): Promise<IQueryActivityResult[]> {
   const query = `
@@ -1379,7 +1340,6 @@ export async function getLastActivitiesForMembers(
   return getActivitiesById(
     qdbConn,
     results.map((r) => r.id),
-    tenantId,
     segmentIds,
   )
 }
@@ -1407,7 +1367,6 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
 
 export async function findMatchingPullRequestNodeId(
   qdbConn: DbConnOrTx,
-  tenantId: string,
   activity: IActivityData,
 ): Promise<string | null> {
   if (!activity.attributes.prSha) {
@@ -1418,7 +1377,6 @@ export async function findMatchingPullRequestNodeId(
     SELECT "sourceId"
     FROM activities
     WHERE "deletedAt" IS NULL
-      AND "tenantId" = $(tenantId)
       AND "platform" = $(platform)
       AND "type" = $(type)
       AND "timestamp" > $(after)
@@ -1427,7 +1385,6 @@ export async function findMatchingPullRequestNodeId(
     LIMIT 1;
   `
   const row = await qdbConn.oneOrNone(query, {
-    tenantId,
     platform: PlatformType.GITHUB,
     type: GithubActivityType.PULL_REQUEST_OPENED,
     // assuming that the PR is open for at least 6 months
@@ -1443,23 +1400,17 @@ export async function findMatchingPullRequestNodeId(
   return row.sourceId
 }
 
-export async function findCommitsForPRSha(
-  qdbConn: DbConnOrTx,
-  tenantId: string,
-  prSha: string,
-): Promise<string[]> {
+export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): Promise<string[]> {
   const query = `
     SELECT id
     FROM activities
     WHERE "deletedAt" IS NULL
-      AND "tenantId" = $(tenantId)
       AND "platform" = $(platform)
       AND "type" = $(type)
       AND JSON_EXTRACT(attributes, '$.prSha') = $(prSha)
   `
 
   const rows = await qdbConn.any(query, {
-    tenantId,
     platform: PlatformType.GITHUB,
     type: GithubActivityType.PULL_REQUEST_OPENED,
     prSha,
@@ -1472,6 +1423,18 @@ export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
 ): Promise<void> {
+  if (data.username === undefined || data.username === null) {
+    return
+  }
+
+  if (data.platform === undefined || data.platform === null) {
+    return
+  }
+
+  if (data.segmentId === undefined || data.segmentId === null) {
+    return
+  }
+
   // check objectMember exists
   if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
     let objectMember = await qe.select(
@@ -1632,7 +1595,7 @@ export async function createOrUpdateRelations(
             now(), 
             now()
         )
-    ON CONFLICT ("activityId", "memberId") 
+    ON CONFLICT ("activityId") 
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
@@ -1778,21 +1741,22 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
-export async function getActivityRelationsSortedByCreatedAt(
+export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
-  cursorActivityCreatedAt?: string,
+  cursorActivityTimestamp?: string,
   limit = 100,
 ) {
   let cursorQuery = ''
 
-  if (cursorActivityCreatedAt) {
-    cursorQuery = `AND "createdAt" >= $(cursorActivityCreatedAt)`
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
   }
 
   const query = `
     SELECT 
       id,
       "memberId",
+      timestamp,
       "createdAt",
       "objectMemberId",
       "organizationId",
@@ -1805,12 +1769,12 @@ export async function getActivityRelationsSortedByCreatedAt(
     FROM activities
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
-    ORDER BY "createdAt" asc
+    ORDER BY "timestamp" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityCreatedAt,
+    cursorActivityTimestamp,
     limit,
   })
 

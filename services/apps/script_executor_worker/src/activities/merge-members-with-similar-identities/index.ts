@@ -4,7 +4,6 @@ import { ISimilarMember } from '@crowd/data-access-layer/src/old/apps/script_exe
 import { svc } from '../../main'
 
 export async function findMembersWithSameVerifiedEmailsInDifferentPlatforms(
-  tenantId: string,
   limit: number,
   afterHash?: number,
 ): Promise<ISimilarMember[]> {
@@ -12,11 +11,7 @@ export async function findMembersWithSameVerifiedEmailsInDifferentPlatforms(
 
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-    rows = await memberRepo.findMembersWithSameVerifiedEmailsInDifferentPlatforms(
-      tenantId,
-      limit,
-      afterHash,
-    )
+    rows = await memberRepo.findMembersWithSameVerifiedEmailsInDifferentPlatforms(limit, afterHash)
   } catch (err) {
     throw new Error(err)
   }
@@ -25,7 +20,6 @@ export async function findMembersWithSameVerifiedEmailsInDifferentPlatforms(
 }
 
 export async function findMembersWithSamePlatformIdentitiesDifferentCapitalization(
-  tenantId: string,
   platform: string,
   limit: number,
   afterHash?: number,
@@ -35,7 +29,6 @@ export async function findMembersWithSamePlatformIdentitiesDifferentCapitalizati
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
     rows = await memberRepo.findMembersWithSameGithubIdentitiesDifferentCapitalization(
-      tenantId,
       platform,
       limit,
       afterHash,

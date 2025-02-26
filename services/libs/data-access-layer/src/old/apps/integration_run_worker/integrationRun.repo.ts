@@ -1,5 +1,6 @@
 import moment from 'moment'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IntegrationRunState, IntegrationStreamState, IntegrationType } from '@crowd/types'
@@ -54,18 +55,14 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async createRun(
-    tenantId: string,
-    integrationId: string,
-    onboarding: boolean,
-  ): Promise<string> {
+  public async createRun(integrationId: string, onboarding: boolean): Promise<string> {
     const result = await this.db().one(
       `
       insert into integration.runs("tenantId", "integrationId", onboarding, state)
       values($(tenantId), $(integrationId), $(onboarding), $(state)) returning id;
       `,
       {
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         integrationId,
         onboarding,
         state: IntegrationRunState.PENDING,
@@ -75,34 +72,6 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     return result.id
   }
 
-  public async getTenantsWithIntegrations(): Promise<string[]> {
-    const results = await this.db().any(
-      `
-      select distinct "tenantId" from integrations where "deletedAt" is null;
-      `,
-    )
-
-    return results.map((r) => r.tenantId)
-  }
-
-  public async getTenantIntegrations(tenantId: string): Promise<IStartIntegrationRunData[]> {
-    const results = await this.db().any(
-      `
-      select id,
-             platform as type,
-             status as state,
-             "integrationIdentifier" as identifier,
-             "tenantId"
-      from integrations where "tenantId" = $(tenantId) and "deletedAt" is null
-    `,
-      {
-        tenantId,
-      },
-    )
-
-    return results
-  }
-
   public async getIntegrationData(integrationId: string): Promise<IStartIntegrationRunData | null> {
     const results = await this.db().oneOrNone(
       `
@@ -110,7 +79,6 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
              platform as type,
              status as state,
              "integrationIdentifier" as identifier,
-             "tenantId",
              "updatedAt"
       from integrations where id = $(integrationId) and "deletedAt" is null
     `,
@@ -142,12 +110,7 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
                          group by "runId")
     select r."integrationId",
           i."integrationIdentifier",
-          r."tenantId",
           r.onboarding,
-          t."hasSampleData",
-          t."plan",
-          t."isTrialPlan",
-          t."name",
           i.platform                  as "integrationType", 
           i.status                    as "integrationState",
           r.state                     as "runState",
@@ -158,7 +121,6 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
           coalesce(c.stream_count, 0) as "streamCount"
       from integration.runs r
               inner join integrations i on (r."integrationId" = i.id and i."deletedAt" is null)
-              inner join tenants t on r."tenantId" = t.id
               left join stream_count c on c."runId" = r.id
     where r.id = $(runId);
   `,
@@ -424,14 +386,13 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
   public async findIntegrationRunById(runId: string): Promise<{
     id: string
     state: IntegrationRunState
-    tenantId: string
     integrationId: string
     platform: string
     onboarding: boolean
   } | null> {
     const result = await this.db().oneOrNone(
       `
-      select r.id, r.state, r."tenantId", r."integrationId", i.platform, r.onboarding
+      select r.id, r.state, r."integrationId", i.platform, r.onboarding
       from integration.runs r
       inner join integrations i on r."integrationId" = i.id
       where r.id = $(runId)

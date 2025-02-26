@@ -1,6 +1,8 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
+import { schedulePopulateActivityRelations } from './schedules/schedulePopulateActivityRelations'
+
 const config: Config = {
   envvars: ['CROWD_TINYBIRD_ACCESS_TOKEN'],
   producer: {
@@ -30,5 +32,8 @@ export const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
   await svc.init()
+
+  await schedulePopulateActivityRelations()
+
   await svc.start()
 })

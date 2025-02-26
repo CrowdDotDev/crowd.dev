@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import {
   getIdentitiesExistInOtherMembers as getIdentitiesExistInOthers,
   updateMemberAttributes,
@@ -8,7 +9,6 @@ import { IAttributes, IMemberIdentity } from '@crowd/types'
 import { svc } from '../../service'
 
 export async function getIdentitiesExistInOtherMembers(
-  tenantId: string,
   excludeMemberId: string,
   identities: IMemberIdentity[],
 ): Promise<IMemberIdentity[]> {
@@ -16,7 +16,7 @@ export async function getIdentitiesExistInOtherMembers(
 
   try {
     const db = svc.postgres.reader
-    rows = await getIdentitiesExistInOthers(db, tenantId, excludeMemberId, identities)
+    rows = await getIdentitiesExistInOthers(db, excludeMemberId, identities)
   } catch (err) {
     throw new Error(err)
   }
@@ -26,7 +26,6 @@ export async function getIdentitiesExistInOtherMembers(
 
 export async function updateMemberWithEnrichmentData(
   memberId: string,
-  tenantId: string,
   identities: IMemberIdentity[],
   attributes?: IAttributes,
 ): Promise<void> {
@@ -37,14 +36,13 @@ export async function updateMemberWithEnrichmentData(
           tx,
           identity.platform,
           memberId,
-          tenantId,
           identity.value,
           identity.type,
           identity.verified || false,
         )
       }
       if (attributes) {
-        await updateMemberAttributes(tx, tenantId, memberId, attributes)
+        await updateMemberAttributes(tx, memberId, attributes)
       }
     })
   } catch (err) {
@@ -55,10 +53,9 @@ export async function updateMemberWithEnrichmentData(
 export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,
-  tenantId: string,
 ): Promise<void> {
   const res = await fetch(
-    `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`,
+    `${process.env['CROWD_API_SERVICE_URL']}/tenant/${DEFAULT_TENANT_ID}/member/${primaryMemberId}/merge`,
     {
       method: 'PUT',
       headers: {

@@ -48,7 +48,6 @@ export default class MemberService extends LoggerBase {
   }
 
   public async create(
-    tenantId: string,
     onboarding: boolean,
     segmentId: string,
     integrationId: string,
@@ -77,18 +76,15 @@ export default class MemberService extends LoggerBase {
 
         let attributes: Record<string, unknown> = {}
         if (data.attributes) {
-          attributes = await txMemberAttributeService.validateAttributes(tenantId, data.attributes)
+          attributes = await txMemberAttributeService.validateAttributes(data.attributes)
 
-          attributes = await txMemberAttributeService.setAttributesDefaultValues(
-            tenantId,
-            attributes,
-          )
+          attributes = await txMemberAttributeService.setAttributesDefaultValues(attributes)
         }
 
         // validate emails
         data.identities = this.validateEmails(data.identities)
 
-        const id = await txRepo.create(tenantId, {
+        const id = await txRepo.create({
           displayName: getProperDisplayName(data.displayName),
           joinedAt: data.joinedAt.toISOString(),
           attributes,
@@ -96,9 +92,9 @@ export default class MemberService extends LoggerBase {
           reach: MemberService.calculateReach({}, data.reach),
         })
 
-        await txRepo.addToSegment(id, tenantId, segmentId)
+        await txRepo.addToSegment(id, segmentId)
 
-        await txRepo.insertIdentities(id, tenantId, integrationId, data.identities)
+        await txRepo.insertIdentities(id, integrationId, data.identities)
 
         if (releaseMemberLock) {
           await releaseMemberLock()
@@ -108,7 +104,7 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, source, integrationId, org)
+            const id = await orgService.findOrCreate(source, integrationId, org)
             organizations.push({
               id,
               source: org.source,
@@ -121,7 +117,6 @@ export default class MemberService extends LoggerBase {
         )
         if (emailIdentities.length > 0) {
           const orgs = await this.assignOrganizationByEmailDomain(
-            tenantId,
             segmentId,
             integrationId,
             emailIdentities.map((i) => i.value),
@@ -147,7 +142,7 @@ export default class MemberService extends LoggerBase {
           ).filter((org) => org !== null)
 
           if (orgsToAdd.length > 0) {
-            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+            await orgService.addToMember(segmentId, id, orgsToAdd)
           }
         }
 
@@ -158,16 +153,11 @@ export default class MemberService extends LoggerBase {
       })
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
-          tenantId,
-          org.id,
-          onboarding,
-          segmentId,
-        )
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(org.id, onboarding, segmentId)
       }
 
       return id
@@ -179,7 +169,6 @@ export default class MemberService extends LoggerBase {
 
   public async update(
     id: string,
-    tenantId: string,
     onboarding: boolean,
     segmentId: string,
     integrationId: string,
@@ -201,14 +190,11 @@ export default class MemberService extends LoggerBase {
         )
 
         this.log.trace({ memberId: id }, 'Fetching member identities!')
-        const dbIdentities = await txRepo.getIdentities(id, tenantId)
+        const dbIdentities = await txRepo.getIdentities(id)
 
         if (data.attributes) {
           this.log.trace({ memberId: id }, 'Validating member attributes!')
-          data.attributes = await txMemberAttributeService.validateAttributes(
-            tenantId,
-            data.attributes,
-          )
+          data.attributes = await txMemberAttributeService.validateAttributes(data.attributes)
         }
 
         // prevent empty identity handles
@@ -227,7 +213,6 @@ export default class MemberService extends LoggerBase {
         if (toUpdate.attributes) {
           this.log.trace({ memberId: id }, 'Setting attribute default values!')
           toUpdate.attributes = await txMemberAttributeService.setAttributesDefaultValues(
-            tenantId,
             toUpdate.attributes,
           )
         }
@@ -253,25 +238,25 @@ export default class MemberService extends LoggerBase {
           }, {} as IDbMemberUpdateData)
 
           this.log.trace({ memberId: id }, 'Updating member data in db!')
-          await txRepo.update(id, tenantId, dateToUpdate)
+          await txRepo.update(id, dateToUpdate)
           this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
-          await txRepo.addToSegment(id, tenantId, segmentId)
+          await txRepo.addToSegment(id, segmentId)
 
           updated = true
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
-          await txRepo.addToSegment(id, tenantId, segmentId)
+          await txRepo.addToSegment(id, segmentId)
         }
 
         if (identitiesToCreate) {
           this.log.trace({ memberId: id }, 'Inserting new identities!')
-          await txRepo.insertIdentities(id, tenantId, integrationId, identitiesToCreate)
+          await txRepo.insertIdentities(id, integrationId, identitiesToCreate)
           updated = true
         }
 
         if (identitiesToUpdate) {
           this.log.trace({ memberId: id }, 'Updating identities!')
-          await txRepo.updateIdentities(id, tenantId, identitiesToUpdate)
+          await txRepo.updateIdentities(id, identitiesToUpdate)
           updated = true
         }
 
@@ -285,7 +270,7 @@ export default class MemberService extends LoggerBase {
           for (const org of data.organizations) {
             this.log.trace({ memberId: id }, 'Finding or creating organization!')
 
-            const orgId = await orgService.findOrCreate(tenantId, source, integrationId, org)
+            const orgId = await orgService.findOrCreate(source, integrationId, org)
             organizations.push({
               id: orgId,
               source: data.source,
@@ -299,7 +284,6 @@ export default class MemberService extends LoggerBase {
         if (emailIdentities.length > 0) {
           this.log.trace({ memberId: id }, 'Assigning organization by email domain!')
           const orgs = await this.assignOrganizationByEmailDomain(
-            tenantId,
             segmentId,
             integrationId,
             emailIdentities.map((i) => i.value),
@@ -327,7 +311,7 @@ export default class MemberService extends LoggerBase {
 
           if (orgsToAdd.length > 0) {
             this.log.trace({ memberId: id }, 'Adding organizations to member!')
-            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+            await orgService.addToMember(segmentId, id, orgsToAdd)
             updated = true
           }
         }
@@ -337,17 +321,12 @@ export default class MemberService extends LoggerBase {
 
       if (updated && fireSync) {
         this.log.trace({ memberId: id }, 'Triggering member sync!')
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
         this.log.trace({ memberId: id }, 'Triggering organization sync!')
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
-          tenantId,
-          org.id,
-          onboarding,
-          segmentId,
-        )
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(org.id, onboarding, segmentId)
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')
@@ -356,7 +335,6 @@ export default class MemberService extends LoggerBase {
   }
 
   public async assignOrganizationByEmailDomain(
-    tenantId: string,
     segmentId: string,
     integrationId: string,
     emails: string[],
@@ -381,7 +359,6 @@ export default class MemberService extends LoggerBase {
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
       const orgId = await orgService.findOrCreate(
-        tenantId,
         OrganizationAttributeSource.EMAIL,
         integrationId,
         {
@@ -412,14 +389,12 @@ export default class MemberService extends LoggerBase {
   }
 
   public async processMemberEnrich(
-    tenantId: string,
     integrationId: string,
     platform: PlatformType,
     member: IMemberData,
   ): Promise<void> {
     this.log = getChildLogger('MemberService.processMemberEnrich', this.log, {
       integrationId,
-      tenantId,
     })
 
     try {
@@ -457,18 +432,13 @@ export default class MemberService extends LoggerBase {
             i.sourceId !== null &&
             i.type === MemberIdentityType.USERNAME,
         )
-        let dbMember = await txRepo.findMemberByUsername(
-          tenantId,
-          segmentId,
-          platform,
-          identity.value,
-        )
+        let dbMember = await txRepo.findMemberByUsername(segmentId, platform, identity.value)
 
         if (!dbMember && emailIdentities.length > 0) {
           const email = emailIdentities[0].value
 
           // try finding the member using e-mail
-          dbMember = await txRepo.findMemberByEmail(tenantId, email)
+          dbMember = await txRepo.findMemberByEmail(email)
         }
 
         if (dbMember) {
@@ -476,7 +446,6 @@ export default class MemberService extends LoggerBase {
 
           await txService.update(
             dbMember.id,
-            tenantId,
             false,
             segmentId,
             integrationId,
@@ -502,14 +471,12 @@ export default class MemberService extends LoggerBase {
   }
 
   public async processMemberUpdate(
-    tenantId: string,
     integrationId: string,
     platform: PlatformType,
     member: IMemberData,
   ): Promise<void> {
     this.log = getChildLogger('MemberService.processMemberUpdate', this.log, {
       integrationId,
-      tenantId,
     })
 
     try {
@@ -540,19 +507,13 @@ export default class MemberService extends LoggerBase {
           member.identities,
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
-        const dbMember = await txRepo.findMemberByUsername(
-          tenantId,
-          segmentId,
-          platform,
-          identity.value,
-        )
+        const dbMember = await txRepo.findMemberByUsername(segmentId, platform, identity.value)
 
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
           await txService.update(
             dbMember.id,
-            tenantId,
             false,
             segmentId,
             integrationId,

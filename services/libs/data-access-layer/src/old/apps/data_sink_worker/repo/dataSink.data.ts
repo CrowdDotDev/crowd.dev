@@ -20,7 +20,6 @@ export interface IResultData extends IIntegrationData {
   onboarding: boolean | null
   webhookId: string | null
   streamId: string
-  tenantId: string
 
   retries: number
   delayedUntil: string | null
@@ -29,13 +28,11 @@ export interface IResultData extends IIntegrationData {
 export interface IFailedResultData extends IQueuePriorityCalculationContext {
   id: string
   onboarding: boolean | null
-  tenantId: string
   platform: string
 }
 
 export interface IDelayedResults {
   id: string
-  tenantId: string
   platform: PlatformType
   onboarding: boolean | null
 }
