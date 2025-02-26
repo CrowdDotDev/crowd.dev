@@ -15,7 +15,6 @@ const logger = getServiceChildLogger('insert-activities')
 export async function insertActivities(
   queueClient: IQueue,
   activities: IDbActivityCreateData[],
-  update = false,
 ): Promise<string[]> {
   const now = moment().toISOString()
 
@@ -37,7 +36,7 @@ export async function insertActivities(
         ...activity,
 
         id,
-        updatedAt: update || !activity.updatedAt ? now : moment(activity.updatedAt).toISOString(),
+        updatedAt: now,
         createdAt: activity.createdAt ? moment(activity.createdAt).toISOString() : now,
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
         attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
