@@ -12,19 +12,19 @@ export async function copyActivitiesFromQuestdbToTinybird(
   args: ICopyActivitiesFromQuestDbToTinybirdArgs,
 ): Promise<void> {
   const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
-  let latestSyncedActivityCreatedAt
+  let latestSyncedActivityTimestamp
 
   if (args.deleteIndexedEntities) {
     await activity.resetIndexedIdentitiesForSyncingActivitiesToTinybird()
   } else {
-    latestSyncedActivityCreatedAt =
-      args.latestSyncedActivityCreatedAt ||
-      (await activity.getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird())
+    latestSyncedActivityTimestamp =
+      args.latestSyncedActivityTimestamp ||
+      (await activity.getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird())
   }
 
-  const { activitiesLength, activitiesRedisKey, lastCreatedAt } =
+  const { activitiesLength, activitiesRedisKey, lastTimestamp } =
     await activity.getActivitiesToCopyToTinybird(
-      latestSyncedActivityCreatedAt ?? undefined,
+      latestSyncedActivityTimestamp ?? undefined,
       BATCH_SIZE_PER_RUN,
     )
 
@@ -33,7 +33,7 @@ export async function copyActivitiesFromQuestdbToTinybird(
   }
 
   if (activitiesLength < BATCH_SIZE_PER_RUN) {
-    if (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
+    if (lastTimestamp === args.latestSyncedActivityTimestamp) {
       return
     }
   }
@@ -46,6 +46,6 @@ export async function copyActivitiesFromQuestdbToTinybird(
 
   await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({
     batchSizePerRun: args.batchSizePerRun,
-    latestSyncedActivityCreatedAt: lastCreatedAt,
+    latestSyncedActivityTimestamp: lastTimestamp,
   })
 }

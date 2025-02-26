@@ -7,7 +7,7 @@ import {
 } from './activities/common'
 import {
   getActivitiesToCopyToTinybird,
-  getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird,
+  getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   resetIndexedIdentitiesForSyncingActivitiesToTinybird,
   sendActivitiesToTinybird,
@@ -60,7 +60,7 @@ export {
   isLfxMember,
   resetIndexedIdentitiesForSyncingActivitiesToTinybird,
   getActivitiesToCopy,
-  getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird,
+  getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird,
   markActivitiesAsIndexed,
   sendActivitiesToTinybird,
   createRelations,

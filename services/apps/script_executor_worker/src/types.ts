@@ -19,7 +19,7 @@ export interface IDissectMemberArgs {
 export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
   deleteIndexedEntities?: boolean
   batchSizePerRun?: number
-  latestSyncedActivityCreatedAt?: string
+  latestSyncedActivityTimestamp?: string
 }
 
 export interface IFixOrgIdentitiesWithWrongUrlsArgs {

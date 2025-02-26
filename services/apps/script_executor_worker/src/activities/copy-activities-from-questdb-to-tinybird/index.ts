@@ -1,18 +1,18 @@
 import axios from 'axios'
 
-import { getActivitiesSortedByCreatedAt } from '@crowd/data-access-layer'
+import { getActivitiesSortedByTimestamp } from '@crowd/data-access-layer'
 import { RedisCache } from '@crowd/redis'
 
 import { svc } from '../../main'
 
 export async function resetIndexedIdentitiesForSyncingActivitiesToTinybird(): Promise<void> {
   const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
-  await redisCache.delete('latest-synced-activity-created-at')
+  await redisCache.delete('latest-synced-activity-timestamp')
 }
 
-export async function getLatestSyncedActivityCreatedAtForSyncingActivitiesToTinybird(): Promise<string> {
+export async function getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird(): Promise<string> {
   const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
-  const result = await redisCache.get('latest-synced-activity-created-at')
+  const result = await redisCache.get('latest-synced-activity-timestamp')
   return result || null
 }
 
@@ -21,18 +21,18 @@ export async function markActivitiesAsIndexedForSyncingActivitiesToTinybird(
 ): Promise<void> {
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
   const redisCache = new RedisCache(`sync-activities-to-tinybird`, svc.redis, svc.log)
-  const lastSyncedCreatedAt = activities[activities.length - 1].createdAt
-  await redisCache.set('latest-synced-activity-created-at', lastSyncedCreatedAt)
-  return lastSyncedCreatedAt
+  const lastSyncedTimestamp = activities[activities.length - 1].timestamp
+  await redisCache.set('latest-synced-activity-timestamp', lastSyncedTimestamp)
+  return lastSyncedTimestamp
 }
 
 export async function getActivitiesToCopyToTinybird(
-  latestSyncedActivityCreatedAt: string,
+  latestSyncedActivityTimestamp: string,
   limit: number,
 ) {
-  const activities = await getActivitiesSortedByCreatedAt(
+  const activities = await getActivitiesSortedByTimestamp(
     svc.questdbSQL,
-    latestSyncedActivityCreatedAt,
+    latestSyncedActivityTimestamp,
     limit,
   )
 
@@ -47,7 +47,7 @@ export async function getActivitiesToCopyToTinybird(
   return {
     activitiesRedisKey: key,
     activitiesLength: activities.length,
-    lastCreatedAt: activities[activities.length - 1].createdAt,
+    lastTimestamp: activities[activities.length - 1].timestamp,
   }
 }
 
