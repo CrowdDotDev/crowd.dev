@@ -3,7 +3,7 @@ import { Logger } from '@crowd/logging'
 
 import {
   IManualAffiliationData,
-  IOrganizationIdWithMemberCount,
+  IOrganizationMemberCount,
   IWorkExperienceData,
 } from './memberAffiliation.data'
 
@@ -71,7 +71,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
 
   public async findMemberCountEstimateOfOrganizations(
     organizationIds: string[],
-  ): Promise<IOrganizationIdWithMemberCount[] | null> {
+  ): Promise<IOrganizationMemberCount[] | null> {
     const result = await this.db().manyOrNone(
       `
         SELECT
