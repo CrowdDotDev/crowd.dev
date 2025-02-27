@@ -47,7 +47,6 @@ services:
       - ../../services/libs/common_services/src:/usr/crowd/app/services/libs/common_services/src
       - ../../services/libs/data-access-layer/src:/usr/crowd/app/services/libs/data-access-layer/src
       - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
-      - ../../services/libs/feature-flags/src:/usr/crowd/app/services/libs/feature-flags/src
       - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
       - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
       - ../../services/libs/nango/src:/usr/crowd/app/services/libs/nango/src

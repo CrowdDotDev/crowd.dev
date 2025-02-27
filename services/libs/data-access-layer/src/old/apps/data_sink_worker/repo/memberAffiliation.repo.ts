@@ -93,7 +93,15 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       },
     )
 
-    return result
+    return organizationIds
+      .map((orgId) => {
+        const org = result.find((r) => r.organizationId === orgId)
+        return {
+          organizationId: orgId,
+          memberCount: org?.memberCount || 0,
+        }
+      })
+      .sort((a, b) => b.memberCount - a.memberCount)
   }
 
   public async findMostRecentUnknownDatedOrganizations(

@@ -66,6 +66,8 @@ export default class MemberAffiliationService extends LoggerBase {
 
       if (memberCounts[0].memberCount > memberCounts[1].memberCount) {
         return memberCounts[0].organizationId
+      } else if (memberCounts[0].memberCount < memberCounts[1].memberCount) {
+        return memberCounts[1].organizationId
       }
 
       // if there's a draw in the member count, use the one with the longer period
