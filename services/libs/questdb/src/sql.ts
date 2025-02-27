@@ -8,9 +8,7 @@ const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
 
-export const getClientSQL = async (
-  profileQueries?: boolean,
-): Promise<pgpromise.IDatabase<unknown>> => {
+export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
   if (client) {
     return client
   }
@@ -52,8 +50,11 @@ export const getClientSQL = async (
     max: 4,
   })
 
-  const profile = profileQueries || process.env['CROWD_QUESTDB_PROFILE_QUERIES'] !== undefined
-  const minQueryDuration = Number(process.env['CROWD_QUESTDB_PROFILE_QUERIES_MIN_DURATION'] || 0)
+  const profile = process.env['CROWD_QUESTDB_PROFILE_QUERIES'] !== undefined
+  // milliseconds
+  const minQueryDuration = Number(
+    process.env['CROWD_QUESTDB_PROFILE_QUERIES_MIN_DURATION'] || 30000,
+  )
 
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,8 +64,9 @@ export const getClientSQL = async (
     try {
       return oldQuery.apply(client, [query, options, ...args])
     } finally {
+      // milliseconds
       const duration = timer.stop()
-      if (profile && duration >= minQueryDuration) {
+      if (profile || duration >= minQueryDuration) {
         log.warn({ duration, query, replacements }, 'QuestDB query duration profiling!')
       }
     }

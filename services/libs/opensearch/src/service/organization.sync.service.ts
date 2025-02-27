@@ -13,7 +13,7 @@ import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/org
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
@@ -202,44 +202,35 @@ export class OrganizationSyncService {
     let previousBatchIds: string[] = []
     const now = new Date()
 
-    await logExecutionTime(
-      async () => {
-        let organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
-          batchSize,
-          previousBatchIds,
-        )
-
-        while (organizationIds.length > 0) {
-          const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
-            organizationIds,
-            opts,
-          )
-
-          organizationCount += organizationsSynced
-          docCount += documentsIndexed
-
-          const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
-          this.log.info(
-            `Synced ${organizationCount} organizations! Speed: ${Math.round(
-              organizationCount / diffInMinutes,
-            )} organizations/minute!`,
-          )
-
-          await this.indexingRepo.markEntitiesIndexed(
-            IndexedEntityType.ORGANIZATION,
-            organizationIds,
-          )
-
-          previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
-            batchSize,
-            previousBatchIds,
-          )
-        }
-      },
-      this.log,
-      'sync-all-organizations',
+    let organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
+      batchSize,
+      previousBatchIds,
     )
+
+    while (organizationIds.length > 0) {
+      const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
+        organizationIds,
+        opts,
+      )
+
+      organizationCount += organizationsSynced
+      docCount += documentsIndexed
+
+      const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
+      this.log.info(
+        `Synced ${organizationCount} organizations! Speed: ${Math.round(
+          organizationCount / diffInMinutes,
+        )} organizations/minute!`,
+      )
+
+      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
+
+      previousBatchIds = organizationIds
+      organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
+        batchSize,
+        previousBatchIds,
+      )
+    }
 
     this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
   }

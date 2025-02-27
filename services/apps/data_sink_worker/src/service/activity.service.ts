@@ -35,7 +35,7 @@ import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2, measureTime } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -616,14 +616,22 @@ export default class ActivityService extends LoggerBase {
         if (!segmentId) {
           if (platform === PlatformType.GITLAB) {
             this.log.trace('Finding segment for GitLab repo.')
-            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(activity.channel)
+            const gitlabRepoSegmentId = await logExecutionTimeV2(
+              () => txGitlabReposRepo.findSegmentForRepo(activity.channel),
+              this.log,
+              'activity.service -> find segment for gitlab repo',
+            )
 
             if (gitlabRepoSegmentId) {
               segmentId = gitlabRepoSegmentId
             }
           } else if (platform === PlatformType.GITHUB) {
             this.log.trace('Finding segment for Github repo.')
-            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(activity.channel)
+            const repoSegmentId = await logExecutionTimeV2(
+              () => txGithubReposRepo.findSegmentForRepo(activity.channel),
+              this.log,
+              'activity.service -> find segment for github repo',
+            )
 
             if (repoSegmentId) {
               segmentId = repoSegmentId
@@ -641,19 +649,24 @@ export default class ActivityService extends LoggerBase {
         this.log.trace('Finding existing activity.')
         const {
           rows: [dbActivity],
-        } = await queryActivities(this.qdbStore.connection(), {
-          segmentIds: [segmentId],
-          filter: {
-            and: [
-              { timestamp: { eq: activity.timestamp } },
-              { sourceId: { eq: activity.sourceId } },
-              { platform: { eq: platform } },
-              { type: { eq: activity.type } },
-              { channel: { eq: activity.channel } },
-            ],
-          },
-          limit: 1,
-        })
+        } = await logExecutionTimeV2(
+          () =>
+            queryActivities(this.qdbStore.connection(), {
+              segmentIds: [segmentId],
+              filter: {
+                and: [
+                  { timestamp: { eq: activity.timestamp } },
+                  { sourceId: { eq: activity.sourceId } },
+                  { platform: { eq: platform } },
+                  { type: { eq: activity.type } },
+                  { channel: { eq: activity.channel } },
+                ],
+              },
+              limit: 1,
+            }),
+          this.log,
+          'activity.service -> find existing activity',
+        )
 
         if (dbActivity && dbActivity?.deletedAt) {
           // we found an existing activity but it's deleted - nothing to do here
@@ -670,7 +683,11 @@ export default class ActivityService extends LoggerBase {
           this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
           // process member data
 
-          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
+          let dbMember = await logExecutionTimeV2(
+            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
+            this.log,
+            'activity.service -> find member by username',
+          )
           if (dbMember) {
             // we found a member for the identity from the activity
             this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -693,23 +710,28 @@ export default class ActivityService extends LoggerBase {
             }
 
             // update the member
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
+            await logExecutionTimeV2(
+              () =>
+                txMemberService.update(
+                  dbMember.id,
+                  onboarding,
+                  segmentId,
+                  integrationId,
+                  {
+                    attributes: member.attributes,
+                    joinedAt: member.joinedAt
+                      ? new Date(member.joinedAt)
+                      : new Date(activity.timestamp),
+                    identities: member.identities,
+                    organizations: member.organizations,
+                    reach: member.reach,
+                  },
+                  dbMember,
+                  platform,
+                  false,
+                ),
+              this.log,
+              'activity.service -> update member 1',
             )
 
             if (!createActivity) {
@@ -736,23 +758,28 @@ export default class ActivityService extends LoggerBase {
             this.log.trace('Fetching dbActivity.memberId member data from db!')
             dbMember = await txMemberRepo.findById(dbActivity.memberId)
             this.log.trace('Updating member data!')
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
+            await logExecutionTimeV2(
+              () =>
+                txMemberService.update(
+                  dbMember.id,
+                  onboarding,
+                  segmentId,
+                  integrationId,
+                  {
+                    attributes: member.attributes,
+                    joinedAt: member.joinedAt
+                      ? new Date(member.joinedAt)
+                      : new Date(activity.timestamp),
+                    identities: member.identities,
+                    organizations: member.organizations,
+                    reach: member.reach,
+                  },
+                  dbMember,
+                  platform,
+                  false,
+                ),
+              this.log,
+              'activity.service -> update member 2',
             )
 
             memberId = dbActivity.memberId
@@ -806,23 +833,28 @@ export default class ActivityService extends LoggerBase {
 
                 // update the member
                 this.log.trace('Updating object member data!')
-                await txMemberService.update(
-                  dbObjectMember.id,
-                  onboarding,
-                  segmentId,
-                  integrationId,
-                  {
-                    attributes: objectMember.attributes,
-                    joinedAt: objectMember.joinedAt
-                      ? new Date(objectMember.joinedAt)
-                      : new Date(activity.timestamp),
-                    identities: objectMember.identities,
-                    organizations: objectMember.organizations,
-                    reach: member.reach,
-                  },
-                  dbObjectMember,
-                  platform,
-                  false,
+                await logExecutionTimeV2(
+                  () =>
+                    txMemberService.update(
+                      dbObjectMember.id,
+                      onboarding,
+                      segmentId,
+                      integrationId,
+                      {
+                        attributes: objectMember.attributes,
+                        joinedAt: objectMember.joinedAt
+                          ? new Date(objectMember.joinedAt)
+                          : new Date(activity.timestamp),
+                        identities: objectMember.identities,
+                        organizations: objectMember.organizations,
+                        reach: member.reach,
+                      },
+                      dbObjectMember,
+                      platform,
+                      false,
+                    ),
+                  this.log,
+                  'activity.service -> update object member 1',
                 )
 
                 if (!createActivity) {
@@ -845,23 +877,28 @@ export default class ActivityService extends LoggerBase {
                 this.log.trace('Fetching dbActivity.objectMemberId object member data from db!')
                 dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
                 this.log.trace('Updating object member data!')
-                await txMemberService.update(
-                  dbObjectMember.id,
-                  onboarding,
-                  segmentId,
-                  integrationId,
-                  {
-                    attributes: objectMember.attributes,
-                    joinedAt: objectMember.joinedAt
-                      ? new Date(objectMember.joinedAt)
-                      : new Date(activity.timestamp),
-                    identities: objectMember.identities,
-                    organizations: objectMember.organizations,
-                    reach: member.reach,
-                  },
-                  dbObjectMember,
-                  platform,
-                  false,
+                await logExecutionTimeV2(
+                  () =>
+                    txMemberService.update(
+                      dbObjectMember.id,
+                      onboarding,
+                      segmentId,
+                      integrationId,
+                      {
+                        attributes: objectMember.attributes,
+                        joinedAt: objectMember.joinedAt
+                          ? new Date(objectMember.joinedAt)
+                          : new Date(activity.timestamp),
+                        identities: objectMember.identities,
+                        organizations: objectMember.organizations,
+                        reach: member.reach,
+                      },
+                      dbObjectMember,
+                      platform,
+                      false,
+                    ),
+                  this.log,
+                  'activity.service -> update object member 2',
                 )
 
                 objectMemberId = dbActivity.objectMemberId
@@ -871,45 +908,55 @@ export default class ActivityService extends LoggerBase {
 
           if (!createActivity) {
             this.log.trace('Fetching activity organizations affiliation...')
-            organizationId = await txMemberAffiliationService.findAffiliation(
-              dbActivity.memberId,
-              segmentId,
-              dbActivity.timestamp,
+            organizationId = await logExecutionTimeV2(
+              () =>
+                txMemberAffiliationService.findAffiliation(
+                  dbActivity.memberId,
+                  segmentId,
+                  dbActivity.timestamp,
+                ),
+              this.log,
+              'activity.service -> find member affiliation',
             )
 
             // just update the activity now
             this.log.trace('Updating activity.')
-            await txActivityService.update(
-              dbActivity.id,
-              onboarding,
-              segmentId,
-              {
-                type: activity.type,
-                isContribution: activity.isContribution,
-                score: activity.score,
-                sourceId: activity.sourceId,
-                sourceParentId: activity.sourceParentId,
-                memberId: dbActivity.memberId,
-                username,
-                objectMemberId,
-                objectMemberUsername,
-                attributes: activity.attributes || {},
-                body: activity.body,
-                title: activity.title,
-                channel: activity.channel,
-                url: activity.url,
-                organizationId,
-                platform:
-                  platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
-                    ? PlatformType.GITHUB
-                    : (dbActivity.platform as PlatformType),
-              },
-              dbActivity,
-              {
-                isBot: memberIsBot ?? false,
-                isTeamMember: memberIsTeamMember ?? false,
-              },
-              false,
+            await logExecutionTimeV2(
+              () =>
+                txActivityService.update(
+                  dbActivity.id,
+                  onboarding,
+                  segmentId,
+                  {
+                    type: activity.type,
+                    isContribution: activity.isContribution,
+                    score: activity.score,
+                    sourceId: activity.sourceId,
+                    sourceParentId: activity.sourceParentId,
+                    memberId: dbActivity.memberId,
+                    username,
+                    objectMemberId,
+                    objectMemberUsername,
+                    attributes: activity.attributes || {},
+                    body: activity.body,
+                    title: activity.title,
+                    channel: activity.channel,
+                    url: activity.url,
+                    organizationId,
+                    platform:
+                      platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
+                        ? PlatformType.GITHUB
+                        : (dbActivity.platform as PlatformType),
+                  },
+                  dbActivity,
+                  {
+                    isBot: memberIsBot ?? false,
+                    isTeamMember: memberIsTeamMember ?? false,
+                  },
+                  false,
+                ),
+              this.log,
+              'activity.service -> update activity',
             )
           }
 
@@ -921,7 +968,11 @@ export default class ActivityService extends LoggerBase {
           // we don't have the activity yet in the database
           // check if we have a member for the identity from the activity
           this.log.trace({ platform, username }, 'Finding activity member by username from db.')
-          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
+          let dbMember = await logExecutionTimeV2(
+            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
+            this.log,
+            'activity.service -> find activity member by username',
+          )
 
           // try to find a member by email if verified one is available
           if (!dbMember) {
@@ -932,7 +983,11 @@ export default class ActivityService extends LoggerBase {
             if (emails.length > 0) {
               for (const email of emails) {
                 this.log.trace({ email }, 'Finding activity member by email.')
-                dbMember = await txMemberRepo.findMemberByEmail(email)
+                dbMember = await logExecutionTimeV2(
+                  () => txMemberRepo.findMemberByEmail(email),
+                  this.log,
+                  'activity.service -> find activity member by email',
+                )
 
                 if (dbMember) {
                   break
@@ -946,23 +1001,28 @@ export default class ActivityService extends LoggerBase {
               { memberId: dbMember.id },
               'Found existing member. Updating member data.',
             )
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
+            await logExecutionTimeV2(
+              () =>
+                txMemberService.update(
+                  dbMember.id,
+                  onboarding,
+                  segmentId,
+                  integrationId,
+                  {
+                    attributes: member.attributes,
+                    joinedAt: member.joinedAt
+                      ? new Date(member.joinedAt)
+                      : new Date(activity.timestamp),
+                    identities: member.identities,
+                    organizations: member.organizations,
+                    reach: member.reach,
+                  },
+                  dbMember,
+                  platform,
+                  false,
+                ),
+              this.log,
+              'activity.service -> update member 3',
             )
             memberId = dbMember.id
             // determine isBot and isTeamMember
@@ -973,22 +1033,27 @@ export default class ActivityService extends LoggerBase {
             this.log.trace(
               'We did not find a member for the identity provided! Creating a new one.',
             )
-            memberId = await txMemberService.create(
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                displayName: member.displayName || username,
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              platform,
-              false,
+            memberId = await logExecutionTimeV2(
+              () =>
+                txMemberService.create(
+                  onboarding,
+                  segmentId,
+                  integrationId,
+                  {
+                    displayName: member.displayName || username,
+                    attributes: member.attributes,
+                    joinedAt: member.joinedAt
+                      ? new Date(member.joinedAt)
+                      : new Date(activity.timestamp),
+                    identities: member.identities,
+                    organizations: member.organizations,
+                    reach: member.reach,
+                  },
+                  platform,
+                  false,
+                ),
+              this.log,
+              'activity.service -> create member',
             )
           }
           // determine isBot and isTeamMember
@@ -1013,45 +1078,55 @@ export default class ActivityService extends LoggerBase {
                 { objectMemberId: dbObjectMember.id },
                 'Found existing object member. Updating member data.',
               )
-              await txMemberService.update(
-                dbObjectMember.id,
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  attributes: objectMember.attributes,
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: objectMember.identities,
-                  organizations: objectMember.organizations,
-                  reach: member.reach,
-                },
-                dbObjectMember,
-                platform,
-                false,
+              await logExecutionTimeV2(
+                () =>
+                  txMemberService.update(
+                    dbObjectMember.id,
+                    onboarding,
+                    segmentId,
+                    integrationId,
+                    {
+                      attributes: objectMember.attributes,
+                      joinedAt: objectMember.joinedAt
+                        ? new Date(objectMember.joinedAt)
+                        : new Date(activity.timestamp),
+                      identities: objectMember.identities,
+                      organizations: objectMember.organizations,
+                      reach: member.reach,
+                    },
+                    dbObjectMember,
+                    platform,
+                    false,
+                  ),
+                this.log,
+                'activity.service -> update object member 3',
               )
               objectMemberId = dbObjectMember.id
             } else {
               this.log.trace(
                 'We did not find a member for the identity provided! Creating a new one.',
               )
-              objectMemberId = await txMemberService.create(
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  displayName: objectMember.displayName || username,
-                  attributes: objectMember.attributes,
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: objectMember.identities,
-                  organizations: objectMember.organizations,
-                  reach: member.reach,
-                },
-                platform,
-                false,
+              objectMemberId = await logExecutionTimeV2(
+                () =>
+                  txMemberService.create(
+                    onboarding,
+                    segmentId,
+                    integrationId,
+                    {
+                      displayName: objectMember.displayName || username,
+                      attributes: objectMember.attributes,
+                      joinedAt: objectMember.joinedAt
+                        ? new Date(objectMember.joinedAt)
+                        : new Date(activity.timestamp),
+                      identities: objectMember.identities,
+                      organizations: objectMember.organizations,
+                      reach: member.reach,
+                    },
+                    platform,
+                    false,
+                  ),
+                this.log,
+                'activity.service -> create object member',
               )
             }
           }
@@ -1060,53 +1135,59 @@ export default class ActivityService extends LoggerBase {
         const activityId = dbActivity?.id ?? generateUUIDv4()
         if (createActivity) {
           this.log.trace('Finding activity organization affiliation.')
-          organizationId = await txMemberAffiliationService.findAffiliation(
-            memberId,
-            segmentId,
-            activity.timestamp,
+          organizationId = await logExecutionTimeV2(
+            () =>
+              txMemberAffiliationService.findAffiliation(memberId, segmentId, activity.timestamp),
+            this.log,
+            'activity.service -> find activity org affiliation',
           )
 
           this.log.trace('Creating activity.')
-          await txActivityService.create(
-            segmentId,
-            {
-              id: activityId,
-              type: activity.type,
-              platform,
-              timestamp: new Date(activity.timestamp),
-              sourceId: activity.sourceId,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceParentId:
-                platform === PlatformType.GITHUB &&
-                activity.type === GithubActivityType.AUTHORED_COMMIT &&
-                activity.sourceParentId
-                  ? await findMatchingPullRequestNodeId(this.qdbStore.connection(), activity)
-                  : activity.sourceParentId,
-              memberId,
-              username,
-              objectMemberId,
-              objectMemberUsername,
-              attributes:
-                IS_GITHUB_SNOWFLAKE_ENABLED &&
-                platform === PlatformType.GITHUB &&
-                activity.type === GithubActivityType.AUTHORED_COMMIT
-                  ? await this.findMatchingGitActivityAttributes({
-                      segmentId,
-                      activity,
-                      attributes: activity.attributes || {},
-                    })
-                  : activity.attributes || {},
-              body: activity.body,
-              title: activity.title,
-              channel: activity.channel,
-              url: activity.url,
-              organizationId,
-            },
-            {
-              isBot: memberIsBot ?? false,
-              isTeamMember: memberIsTeamMember ?? false,
-            },
+          await logExecutionTimeV2(
+            async () =>
+              txActivityService.create(
+                segmentId,
+                {
+                  id: activityId,
+                  type: activity.type,
+                  platform,
+                  timestamp: new Date(activity.timestamp),
+                  sourceId: activity.sourceId,
+                  isContribution: activity.isContribution,
+                  score: activity.score,
+                  sourceParentId:
+                    platform === PlatformType.GITHUB &&
+                    activity.type === GithubActivityType.AUTHORED_COMMIT &&
+                    activity.sourceParentId
+                      ? await findMatchingPullRequestNodeId(this.qdbStore.connection(), activity)
+                      : activity.sourceParentId,
+                  memberId,
+                  username,
+                  objectMemberId,
+                  objectMemberUsername,
+                  attributes:
+                    IS_GITHUB_SNOWFLAKE_ENABLED &&
+                    platform === PlatformType.GITHUB &&
+                    activity.type === GithubActivityType.AUTHORED_COMMIT
+                      ? await this.findMatchingGitActivityAttributes({
+                          segmentId,
+                          activity,
+                          attributes: activity.attributes || {},
+                        })
+                      : activity.attributes || {},
+                  body: activity.body,
+                  title: activity.title,
+                  channel: activity.channel,
+                  url: activity.url,
+                  organizationId,
+                },
+                {
+                  isBot: memberIsBot ?? false,
+                  isTeamMember: memberIsTeamMember ?? false,
+                },
+              ),
+            this.log,
+            'activity.service -> create activity',
           )
         }
 
@@ -1114,13 +1195,21 @@ export default class ActivityService extends LoggerBase {
         if (IS_GITHUB_SNOWFLAKE_ENABLED) {
           if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
             this.log.trace('Pushing attributes to matching github activity.')
-            await this.pushAttributesToMatchingGithubActivity({ segmentId, activity })
+            await logExecutionTimeV2(
+              () => this.pushAttributesToMatchingGithubActivity({ segmentId, activity }),
+              this.log,
+              'activity.service -> push attributes to github activities',
+            )
           } else if (
             platform === PlatformType.GITHUB &&
             activity.type === GithubActivityType.PULL_REQUEST_OPENED
           ) {
             this.log.trace('Pushing PR sourceId to matching github commits.')
-            await this.pushPRSourceIdToMatchingGithubCommits({ activity })
+            await logExecutionTimeV2(
+              () => this.pushPRSourceIdToMatchingGithubCommits({ activity }),
+              this.log,
+              'activity.service -> push PR sourceId to github',
+            )
           }
         }
       } finally {

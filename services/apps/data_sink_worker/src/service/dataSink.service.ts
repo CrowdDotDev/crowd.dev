@@ -6,7 +6,7 @@ import {
   IResultData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
@@ -190,20 +190,6 @@ export default class DataSinkService extends LoggerBase {
       platform: resultInfo.platform,
     })
 
-    // if (resultInfo.state !== IntegrationResultState.PENDING) {
-    //   this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
-    //   if (resultInfo.state === IntegrationResultState.PROCESSED) {
-    //     this.log.warn('Result has already been processed. Skipping...')
-    //     return false
-    //   }
-
-    //   await this.repo.resetResults([resultId])
-    //   return false
-    // }
-
-    // this.log.debug('Marking result as in progress.')
-    // await this.repo.markResultInProgress(resultId)
-
     try {
       const data = resultInfo.data
       await telemetry.measure(
@@ -224,12 +210,17 @@ export default class DataSinkService extends LoggerBase {
 
               const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
 
-              await service.processActivity(
-                resultInfo.integrationId,
-                resultInfo.onboarding === null ? true : resultInfo.onboarding,
-                platform,
-                activityData,
-                data.segmentId ?? resultInfo.segmentId,
+              await logExecutionTimeV2(
+                () =>
+                  service.processActivity(
+                    resultInfo.integrationId,
+                    resultInfo.onboarding === null ? true : resultInfo.onboarding,
+                    platform,
+                    activityData,
+                    data.segmentId ?? resultInfo.segmentId,
+                  ),
+                this.log,
+                'dataSink.service -> processActivity',
               )
               break
             }

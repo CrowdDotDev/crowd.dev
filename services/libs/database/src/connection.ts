@@ -119,5 +119,29 @@ export const getDbConnection = async (
     application_name: process.env.SERVICE ? `${process.env.SERVICE}-pg` : 'unknown-app=pg',
   })
 
-  return dbConnection[cacheKey]
+  const client = dbConnection[cacheKey]
+
+  const profile = process.env['CROWD_POSTGRESQL_PROFILE_QUERIES'] !== undefined
+  // milliseconds
+  const minQueryDuration = Number(
+    process.env['CROWD_POSTGRESQL_PROFILE_QUERIES_MIN_DURATION'] || 30000,
+  )
+
+  const oldQuery = client.query
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(client as any).query = async (query, options, ...args) => {
+    const { replacements } = options || {}
+    const now = performance.now()
+    try {
+      return oldQuery.apply(client, [query, options, ...args])
+    } finally {
+      // milliseconds
+      const duration = performance.now() - now
+      if (profile || duration >= minQueryDuration) {
+        log.warn({ duration, query, replacements }, 'PostgreSQL  query duration profiling!')
+      }
+    }
+  }
+
+  return client
 }

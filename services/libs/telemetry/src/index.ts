@@ -75,6 +75,7 @@ const telemetry = {
           ...extraTags,
         })
 
+        // milliseconds
         return duration
       },
     }
