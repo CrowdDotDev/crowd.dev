@@ -1,0 +1,10 @@
+NODE contributors_with_activity_counts
+SQL >
+
+    %
+    SELECT * FROM activities_filtered
+    {% if defined(platform) %}
+    AND activities_filtered.platform = {{String(platform, null, description="Filter activity platform", required=False)}}
+    {% end %}
+
+

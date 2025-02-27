@@ -1,0 +1,23 @@
+TOKEN "active_organizations_endpoint_read_1975" READ
+
+NODE count_distinct_organizations
+SQL >
+
+    %
+    {% if defined(granularity) %}
+      SELECT 
+          CASE 
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'daily' THEN toDate(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'weekly' THEN toStartOfWeek(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'monthly' THEN toStartOfMonth(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'quarterly' THEN toStartOfQuarter(activities_filtered.timestamp)
+          END AS time_period,
+          count(distinct activities_filtered.organizationId) AS organization_count
+        FROM activities_filtered
+        GROUP BY time_period
+        ORDER BY time_period ASC
+    {% else %}
+        SELECT count (distinct activities_filtered.organizationId) as organization_count from activities_filtered 
+    {% end %}
+
+

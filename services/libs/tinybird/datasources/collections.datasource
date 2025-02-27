@@ -1,0 +1,12 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `name` String `json:$.record.name`,
+    `description` String `json:$.record.description` DEFAULT '',
+    `isLF` UInt8 `json:$.record.isLF` DEFAULT 0,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt
