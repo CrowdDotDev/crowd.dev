@@ -76,7 +76,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT
           osa."organizationId",
-          sum(osa."memberCount") AS "memberCount
+          sum(osa."memberCount") AS "memberCount"
       FROM "organizationSegmentsAgg" osa
       WHERE osa."segmentId" IN (
           SELECT id
@@ -86,14 +86,22 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       )
       and osa."organizationId" IN ($(organizationIds:csv))
       group by osa."organizationId"
-      order by total_count desc
+      order by "memberCount" desc
       `,
       {
         organizationIds,
       },
     )
 
-    return result
+    return organizationIds
+      .map((orgId) => {
+        const org = result.find((r) => r.organizationId === orgId)
+        return {
+          organizationId: orgId,
+          memberCount: org?.memberCount || 0,
+        }
+      })
+      .sort((a, b) => b.memberCount - a.memberCount)
   }
 
   public async findMostRecentUnknownDatedOrganizations(

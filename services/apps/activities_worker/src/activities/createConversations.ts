@@ -181,7 +181,7 @@ export async function createConversations(): Promise<ICreateConversationsResult>
   if (toUpdate.length > 0) {
     for (const batch of partition(toUpdate, 100)) {
       try {
-        const results = await insertActivities(svc.queue, batch, true)
+        const results = await insertActivities(svc.queue, batch)
         activitiesAddedToConversations += results.length
       } catch (err) {
         svc.log.error(err, 'Error linking activities to conversations')
