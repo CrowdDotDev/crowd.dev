@@ -33,7 +33,6 @@ import MemberOrganizationRepository from '@/database/repositories/memberOrganiza
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 
-import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -370,12 +369,8 @@ export default class OrganizationService extends LoggerBase {
           secondaryOrganization.id,
           organization.displayName,
           secondaryOrganization.displayName,
-          this.options.currentTenant.id,
           this.options.currentUser.id,
         ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
       })
     } catch (err) {
       if (tx) {
@@ -401,7 +396,6 @@ export default class OrganizationService extends LoggerBase {
 
     let tx
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const tenantId = this.options.currentTenant.id
 
     const mergeAction = await findMergeAction(qx, originalId, toMergeId)
 
@@ -422,11 +416,9 @@ export default class OrganizationService extends LoggerBase {
           let toMerge = await OrganizationRepository.findById(toMergeId, this.options, segmentId)
 
           const originalWithLfxMembership = await hasLfxMembership(qx, {
-            tenantId,
             organizationId: originalId,
           })
           const toMergeWithLfxMembership = await hasLfxMembership(qx, {
-            tenantId,
             organizationId: toMergeId,
           })
 
@@ -650,12 +642,8 @@ export default class OrganizationService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
-          tenantId,
           this.options.currentUser.id,
         ],
-        searchAttributes: {
-          TenantId: [tenantId],
-        },
       })
 
       this.options.log.info({ originalId, toMergeId }, 'Organizations merged!')
@@ -754,7 +742,6 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = { ...this.options, transaction }
-    const tenantId = this.options.currentTenant.id
 
     if (!data.identities) {
       data.identities = []
@@ -791,10 +778,6 @@ export default class OrganizationService extends LoggerBase {
         i.value = websiteNormalizer(i.value)
       }
 
-      if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, txOptions)
-      }
-
       let record
       const existing = await OrganizationRepository.findByVerifiedIdentities(
         verifiedIdentities,
@@ -818,7 +801,7 @@ export default class OrganizationService extends LoggerBase {
           }
         }
 
-        await upsertOrgIdentities(qx, record.id, tenantId, data.identities)
+        await upsertOrgIdentities(qx, record.id, data.identities)
       } else {
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
@@ -851,7 +834,7 @@ export default class OrganizationService extends LoggerBase {
 
       if (syncOptions.doSync) {
         const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-        await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
+        await searchSyncService.triggerOrganizationSync(record.id)
       }
 
       return await this.findById(record.id)
@@ -884,10 +867,6 @@ export default class OrganizationService extends LoggerBase {
         this.options,
       )
       tx = repoOptions.transaction
-
-      if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
-      }
 
       if (data.identities) {
         // Normalize the website identities
@@ -959,7 +938,7 @@ export default class OrganizationService extends LoggerBase {
 
       await this.options.temporal.workflow.start('organizationUpdate', {
         taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
+        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${id}`,
         workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
         retry: {
           maximumAttempts: 10,
@@ -976,9 +955,6 @@ export default class OrganizationService extends LoggerBase {
             },
           },
         ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
       })
 
       return record
@@ -1013,7 +989,7 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
-        await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
+        await searchSyncService.triggerRemoveOrganization(id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -1133,7 +1109,7 @@ export default class OrganizationService extends LoggerBase {
       const searchSyncService = new SearchSyncService(this.options)
 
       for (const id of ids) {
-        await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
+        await searchSyncService.triggerRemoveOrganization(id)
       }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

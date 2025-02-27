@@ -1,4 +1,4 @@
-import { distinct, singleOrDefault } from '@crowd/common'
+import { DEFAULT_TENANT_ID, distinct, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IntegrationResultState } from '@crowd/types'
@@ -14,7 +14,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     select r.id,
            r.state,
            r.data, 
-           r."tenantId",
            r."runId",
            r."webhookId",
            r."streamId",
@@ -48,17 +47,13 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return result
   }
 
-  public async getOldResultsToProcessForTenant(
-    tenantId: string,
-    limit: number,
-    lastId?: string,
-  ): Promise<string[]> {
+  public async getOldResultsToProcessForTenant(limit: number, lastId?: string): Promise<string[]> {
     try {
       const results = await this.db().any(
         `
         select r.id
         from integration.results r
-        where r."tenantId" = $(tenantId) and (r.state = $(pendingState) 
+        where (r.state = $(pendingState) 
           or (r.state = $(delayedState) and r."delayedUntil" < now())
           or (r.state = $(errorState) and r.retries <= 5))
           ${lastId !== undefined ? 'and r.id > $(lastId)' : ''}
@@ -69,7 +64,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
           pendingState: IntegrationResultState.PENDING,
           delayedState: IntegrationResultState.DELAYED,
           errorState: IntegrationResultState.ERROR,
-          tenantId,
           lastId,
         },
       )
@@ -139,7 +133,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       values($(state), $(data), $(tenantId), $(integrationId), $(error))
       `,
         {
-          tenantId: resultToCreate.tenantId,
+          tenantId: DEFAULT_TENANT_ID,
           integrationId: resultToCreate.integrationId,
           state: IntegrationResultState.ERROR,
           data: JSON.stringify(resultToCreate.data),
@@ -191,14 +185,10 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   public async getFailedResults(page: number, perPage: number): Promise<IFailedResultData[]> {
     const results = await this.db().any(
       `select r.id,
-              r."tenantId",
               i.platform,
-              t.plan,
-              t."priorityLevel" as "dbPriority",
               run.onboarding
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
-         inner join tenants t on t.id = r."tenantId"
          left join integration.runs run on run.id = r."runId"
         where r.state = $(state)
        order by r."createdAt" asc
@@ -220,14 +210,10 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   ): Promise<IFailedResultData[]> {
     const results = await this.db().any(
       `select r.id,
-              r."tenantId",
               i.platform,
-              t.plan,
-              t."priorityLevel" as "dbPriority",
               run.onboarding
         from integration.results r
          inner join integrations i on i.id = r."integrationId"
-         inner join tenants t on t.id = r."tenantId"
          inner join integration.runs run on run.id = r."runId"
         where r."runId" = $(runId) and r.state = $(state)
        order by r."createdAt" asc
@@ -260,10 +246,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     this.checkUpdateRowCount(result.rowCount, resultIds.length)
   }
 
-  public async getSegmentIds(tenantId: string): Promise<string[]> {
-    const result = await this.db().any(`select id from "segments" where "tenantId" = $(tenantId)`, {
-      tenantId,
-    })
+  public async getSegmentIds(): Promise<string[]> {
+    const result = await this.db().any(`select id from "segments"`)
 
     return result.map((r) => r.id)
   }
@@ -281,7 +265,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
           values($(state), $(data), $(tenantId), $(integrationId), $(error), $(retries), $(until))
         `,
         {
-          tenantId: resultToCreate.tenantId,
+          tenantId: DEFAULT_TENANT_ID,
           integrationId: resultToCreate.integrationId,
           state: IntegrationResultState.DELAYED,
           data: JSON.stringify(resultToCreate.data),
@@ -319,7 +303,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       const resultData = await this.db().any(
         `
         select r.id,
-               r."tenantId",
                i.platform,
                r."runId"
         from integration.results r

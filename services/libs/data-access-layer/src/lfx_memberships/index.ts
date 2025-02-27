@@ -1,10 +1,11 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export interface LfxMembership {
   id?: string
   createdAt: Date
   updatedAt: Date
-  tenantId: string
   organizationId?: string
   segmentId?: string
   accountName: string
@@ -65,60 +66,53 @@ export async function insertLfxMembership(qx: QueryExecutor, data: LfxMembership
       )
       ON CONFLICT ("tenantId", "segmentId", "accountName") DO NOTHING
     `,
-    data,
+    { tenantId: DEFAULT_TENANT_ID, ...data },
   )
 }
 
 export async function findLfxMembership(
   qx: QueryExecutor,
-  { tenantId, organizationId }: { tenantId: string; organizationId: string },
+  { organizationId }: { organizationId: string },
 ): Promise<LfxMembership | null> {
   return qx.selectOneOrNone(
     `
       SELECT *
       FROM "lfxMemberships"
-      WHERE "tenantId" = $(tenantId)
-        AND "organizationId" = $(organizationId)
+      WHERE "organizationId" = $(organizationId)
       LIMIT 1
     `,
-    { tenantId, organizationId },
+    { organizationId },
   )
 }
 
 export async function findManyLfxMemberships(
   qx: QueryExecutor,
-  { tenantId, organizationIds }: { tenantId: string; organizationIds: string[] },
+  { organizationIds }: { organizationIds: string[] },
 ): Promise<LfxMembership[]> {
   return qx.select(
     `
       SELECT *
       FROM "lfxMemberships"
-      WHERE "tenantId" = $(tenantId)
-        AND "organizationId" = ANY($(organizationIds)::UUID[])
+      WHERE "organizationId" = ANY($(organizationIds)::UUID[])
     `,
-    { tenantId, organizationIds },
+    { organizationIds },
   )
 }
 
 export async function hasLfxMembership(
   qx: QueryExecutor,
-  {
-    tenantId,
-    organizationId,
-    segmentId,
-  }: { tenantId: string; organizationId: string; segmentId?: string },
+  { organizationId, segmentId }: { organizationId: string; segmentId?: string },
 ): Promise<boolean> {
-  const segmentClause = segmentId ? 'AND "segmentId" = $(segmentId)' : ''
+  const segmentClause = segmentId ? '"segmentId" = $(segmentId)' : '1=1'
   const result = await qx.selectOneOrNone(
     `
         SELECT 1
         FROM "lfxMemberships"
-        WHERE "tenantId" = $(tenantId)
-          ${segmentClause}
+        WHERE ${segmentClause}
           AND "organizationId" = $(organizationId)
         LIMIT 1
       `,
-    { tenantId, segmentId, organizationId },
+    { segmentId, organizationId },
   )
   return !!result
 }

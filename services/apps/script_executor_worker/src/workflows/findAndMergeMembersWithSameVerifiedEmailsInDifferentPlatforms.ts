@@ -21,7 +21,6 @@ export async function findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatfo
 
   const mergeableMemberCouples =
     await activity.findMembersWithSameVerifiedEmailsInDifferentPlatforms(
-      args.tenantId,
       PROCESS_MEMBERS_PER_RUN,
       args.afterHash || undefined,
     )
@@ -35,11 +34,10 @@ export async function findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatfo
     console.log(
       `Merging ${couple.secondaryMemberId} [${couple.secondaryMemberIdentityValue}] into ${couple.primaryMemberId} [${couple.primaryMemberIdentityValue}]! `,
     )
-    await common.mergeMembers(couple.primaryMemberId, couple.secondaryMemberId, args.tenantId)
+    await common.mergeMembers(couple.primaryMemberId, couple.secondaryMemberId)
   }
 
   await continueAsNew<typeof findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms>({
-    tenantId: args.tenantId,
     afterHash: mergeableMemberCouples[mergeableMemberCouples.length - 1]?.hash,
   })
 }

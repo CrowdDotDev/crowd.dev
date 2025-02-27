@@ -46,11 +46,7 @@ export default class IntegrationDataService extends LoggerBase {
       throw new Error('Could not find integration service to process API data!')
     }
 
-    const cache = new RedisCache(
-      `int-${stream.tenantId}-${stream.integrationType}`,
-      this.redisClient,
-      this.log,
-    )
+    const cache = new RedisCache(`int-${stream.integrationType}`, this.redisClient, this.log)
 
     const context: IProcessDataContext = {
       onboarding: stream.onboarding !== null ? stream.onboarding : undefined,
@@ -73,7 +69,6 @@ export default class IntegrationDataService extends LoggerBase {
       publishActivity: async (activity) => {
         await this.publishActivity(
           stream.id,
-          stream.tenantId,
           stream.integrationType,
           stream.onboarding === null ? true : stream.onboarding,
           activity,
@@ -83,7 +78,6 @@ export default class IntegrationDataService extends LoggerBase {
       publishCustom: async (entity, type) => {
         await this.publishCustom(
           stream.id,
-          stream.tenantId,
           stream.integrationType,
           stream.onboarding === null ? true : stream.onboarding,
           type,
@@ -93,7 +87,6 @@ export default class IntegrationDataService extends LoggerBase {
 
       publishStream: async (identifier, data) => {
         await this.publishStream(
-          stream.tenantId,
           stream.integrationType,
           stream.id,
           identifier,
@@ -147,7 +140,6 @@ export default class IntegrationDataService extends LoggerBase {
 
   private async publishCustom(
     streamId: string,
-    tenantId: string,
     platform: string,
     onboarding: boolean,
     type: IntegrationResultType,
@@ -160,22 +152,15 @@ export default class IntegrationDataService extends LoggerBase {
         type,
         data: entity,
       })
-      await this.dataSinkWorkerEmitter.triggerResultProcessing(
-        tenantId,
-        platform,
-        resultId,
-        resultId,
-        onboarding,
-      )
+      await this.dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, onboarding)
     } catch (err) {
-      this.log.error(err, { tenantId, platform }, 'Error while publishing custom result!')
+      this.log.error(err, { platform }, 'Error while publishing custom result!')
       throw new Error('Error while publishing custom result!')
     }
   }
 
   private async publishActivity(
     streamId: string,
-    tenantId: string,
     platform: string,
     onboarding: boolean,
     activity: IActivityData,
@@ -187,14 +172,12 @@ export default class IntegrationDataService extends LoggerBase {
         data: activity,
       })
       await this.dataSinkWorkerEmitter.triggerResultProcessing(
-        tenantId,
-        platform,
         resultId,
         activity.sourceId,
         onboarding,
       )
     } catch (err) {
-      this.log.error(err, { tenantId, platform }, 'Error while publishing activity!')
+      this.log.error(err, { platform }, 'Error while publishing activity!')
       throw new Error('Error while publishing activity!')
     }
   }
@@ -233,7 +216,6 @@ export default class IntegrationDataService extends LoggerBase {
   }
 
   private async publishStream(
-    tenantId: string,
     platform: string,
     parentId: string,
     identifier: string,
@@ -251,17 +233,12 @@ export default class IntegrationDataService extends LoggerBase {
       const streamId = await this.repo.publishStream(parentId, identifier, data, runId, webhookId)
       if (streamId) {
         if (runId) {
-          await this.streamWorkerEmitter.triggerStreamProcessing(
-            tenantId,
-            platform,
-            streamId,
-            onboarding,
-          )
+          await this.streamWorkerEmitter.triggerStreamProcessing(platform, streamId, onboarding)
         } else if (webhookId) {
-          await this.streamWorkerEmitter.triggerWebhookProcessing(tenantId, platform, webhookId)
+          await this.streamWorkerEmitter.triggerWebhookProcessing(platform, webhookId)
         } else {
           this.log.error(
-            { tenantId, platform, parentId, identifier, runId, webhookId },
+            { platform, parentId, identifier, runId, webhookId },
             'Need either runId or webhookId!',
           )
           throw new Error('Need either runId or webhookId!')

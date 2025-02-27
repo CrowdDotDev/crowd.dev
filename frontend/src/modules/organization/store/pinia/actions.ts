@@ -83,4 +83,8 @@ export default {
       toMergeId: null,
     };
   },
+
+  getOrganizations(this: OrganizationState) {
+    return this.organizations;
+  },
 };

@@ -1,6 +1,6 @@
 import { Sender } from '@questdb/nodejs-client'
 
-import { generateUUIDv4 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { getClientILP } from '@crowd/questdb'
 
@@ -31,7 +31,7 @@ export async function insertConversations(
 
       const row = ilp
         .table('conversations')
-        .symbol('tenantId', conversation.tenantId)
+        .symbol('tenantId', DEFAULT_TENANT_ID)
         .symbol('segmentId', conversation.segmentId)
         .stringColumn('id', id)
         .stringColumn('title', conversation.title)

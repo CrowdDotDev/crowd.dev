@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@crowd/logging": "workspace:*",
+    "@crowd/common": "workspace:*",
     "@temporalio/client": "~1.11.1",
     "@temporalio/common": "~1.11.1",
     "@temporalio/proto": "~1.11.1"

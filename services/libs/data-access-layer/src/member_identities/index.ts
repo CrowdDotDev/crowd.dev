@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -7,7 +8,6 @@ export async function insertManyMemberIdentities(
   qx: QueryExecutor,
   identities: {
     memberId: string
-    tenantId: string
     integrationId: string
     platform: string
     sourceId: string
@@ -29,7 +29,12 @@ export async function insertManyMemberIdentities(
         'type',
         'verified',
       ],
-      identities,
+      identities.map((i) => {
+        return {
+          tenantId: DEFAULT_TENANT_ID,
+          ...i,
+        }
+      }),
       'DO NOTHING',
     ),
   )
@@ -44,7 +49,6 @@ export async function createMemberIdentity(
     type: MemberIdentityType
     verified: boolean
     sourceId: string
-    tenantId: string
     integrationId: string
   },
 ) {
@@ -56,7 +60,6 @@ export async function moveToNewMember(
   p: {
     oldMemberId: string
     newMemberId: string
-    tenantId: string
     platform: string
     value: string
     type: MemberIdentityType
@@ -68,7 +71,6 @@ export async function moveToNewMember(
       set
         "memberId" = $(newMemberId)
       where
-        "tenantId" = $(tenantId) and
         "memberId" = $(oldMemberId) and
         platform = $(platform) and
         value = $(value) and
@@ -85,29 +87,25 @@ export async function deleteMemberIdentitiesByCombinations(
     platforms: string[]
     values: string[]
     types: MemberIdentityType[]
-    tenantId: string
   },
 ) {
   return qx.result(
     `
       delete from "memberIdentities"
-      where ("memberId", "tenantId", platform, value, type) in
-            (select mi."memberId", mi."tenantId", mi.platform, mi.value, mi.type
+      where ("memberId", platform, value, type) in
+            (select mi."memberId", mi.platform, mi.value, mi.type
             from "memberIdentities" mi
                       join (select $(memberId)::uuid            as memberid,
-                                  $(tenantId)::uuid            as tenantid,
                                   unnest($(platforms)::text[]) as platform,
                                   unnest($(values)::text[]) as value,
                                   unnest($(types)::text[]) as type) as combinations
                           on mi."memberId" = combinations.memberid
-                              and mi."tenantId" = combinations.tenantid
                               and mi.platform = combinations.platform
                               and mi.value = combinations.value
                               and mi.type = combinations.type);
     `,
     {
       memberId: p.memberId,
-      tenantId: p.tenantId,
       platforms: `{${p.platforms.join(',')}}`,
       values: `{${p.values.join(',')}}`,
       types: `{${p.types.join(',')}}`,
@@ -119,7 +117,6 @@ export async function updateVerifiedFlag(
   qx: QueryExecutor,
   p: {
     memberId: string
-    tenantId: string
     platform: string
     value: string
     type: MemberIdentityType
@@ -132,7 +129,6 @@ export async function updateVerifiedFlag(
       set verified = $(verified)
       where
         "memberId" = $(memberId) and
-        "tenantId" = $(tenantId) and
         platform = $(platform) and
         value = $(value) and
         type = $(type)
@@ -158,11 +154,9 @@ export async function deleteManyMemberIdentities(
   qx: QueryExecutor,
   {
     memberId,
-    tenantId,
     identities,
   }: {
     memberId: string
-    tenantId: string
     identities: {
       platform: string
       value: string
@@ -178,12 +172,10 @@ export async function deleteManyMemberIdentities(
     `
       delete from "memberIdentities"
       where "memberId" = $(memberId) and
-      "tenantId" = $(tenantId) and
       (platform, value, type) in (${formattedIdentities});
     `,
     {
       memberId,
-      tenantId,
       formattedIdentities,
     },
   )
@@ -193,7 +185,6 @@ export function upsertMemberIdentity(
   qx: QueryExecutor,
   p: {
     memberId: string
-    tenantId: string
     platform: string
     value: string
     type: MemberIdentityType
@@ -206,7 +197,7 @@ export function upsertMemberIdentity(
       values ($(memberId), $(tenantId), $(platform), $(value), $(type), $(verified))
       on conflict do nothing;
     `,
-    p,
+    { tenantId: DEFAULT_TENANT_ID, ...p },
   )
 }
 

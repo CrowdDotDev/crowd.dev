@@ -8,7 +8,6 @@ export interface IQueryNumberOfNewMembers {
 }
 
 export interface IQueryTimeseriesOfNewMembers {
-  tenantId: string
   segmentIds?: string[]
   after: Date
   before: Date
@@ -18,7 +17,6 @@ export interface IQueryTimeseriesOfNewMembers {
 export interface IMemberSegmentAggregates {
   memberId: string
   segmentId: string
-  tenantId: string
 
   activityCount: number
   lastActive: string

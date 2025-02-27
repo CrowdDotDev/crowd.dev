@@ -7,7 +7,6 @@ import {
 
 export interface IDbOrganization {
   id: string
-  tenantId: string
   description?: string
   displayName: string
   logo?: string
@@ -65,7 +64,6 @@ export interface IDbOrgAttributeInput {
 export interface IDbOrganizationAggregateData {
   organizationId: string
   segmentId?: string
-  tenantId: string
   joinedAt: string
   lastActive: string
   activeOn: string[]
@@ -85,7 +83,6 @@ export interface IDbOrgIdentity {
 
 export interface IDbOrgIdentityInsertInput {
   organizationId: string
-  tenantId: string
   platform: string
   value: string
   type: OrganizationIdentityType
@@ -96,7 +93,6 @@ export interface IDbOrgIdentityInsertInput {
 
 export interface IDbOrgIdentityUpdateInput {
   organizationId: string
-  tenantId: string
   platform: string
   value: string
   type: OrganizationIdentityType
@@ -111,11 +107,9 @@ export const ENRICHMENT_PLATFORM_PRIORITY = [
 
 export interface IEnrichableOrganizationData {
   organizationId: string
-  tenantId: string
 }
 
 export interface IQueryNumberOfNewOrganizations {
-  tenantId: string
   segmentIds?: string[]
   after?: Date
   before?: Date
@@ -123,7 +117,6 @@ export interface IQueryNumberOfNewOrganizations {
 }
 
 export interface IQueryTimeseriesOfNewOrganizations {
-  tenantId: string
   segmentIds?: string[]
   after: Date
   before: Date
@@ -131,7 +124,6 @@ export interface IQueryTimeseriesOfNewOrganizations {
 }
 
 export interface IQueryNumberOfActiveOrganizations {
-  tenantId: string
   segmentIds?: string[]
   after: Date
   before: Date

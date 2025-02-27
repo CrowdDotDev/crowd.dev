@@ -1,4 +1,4 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { WebhookState, WebhookType } from '@crowd/types'
@@ -17,7 +17,7 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
   ): Promise<IDbIntegrationData | null> {
     const result = await this.db().oneOrNone(
       `
-      select id, "tenantId", platform from integrations
+      select id, platform from integrations
       where platform = $(platform) and "integrationIdentifier" = $(identifier) and "deletedAt" is null
       order by "createdAt" desc
       limit 1
@@ -32,7 +32,6 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
   }
 
   public async createIncomingWebhook(
-    tenantId: string,
     integrationId: string,
     type: WebhookType,
     payload: unknown,
@@ -45,7 +44,7 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
       `,
       {
         id,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         integrationId,
         type,
         state: WebhookState.PENDING,
@@ -63,7 +62,7 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
   ): Promise<IDbIntegrationData | null> {
     const result = await this.db().oneOrNone(
       `
-      select id, "tenantId", platform from integrations
+      select id, platform from integrations
       where platform = $(platform) and "deletedAt" is null
       and settings -> 'groups' ? $(groupName)
       `,
@@ -76,19 +75,17 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
     return result
   }
 
-  public async findIntegrationByPlatformAndTenantId(
+  public async findIntegrationByPlatform(
     platform: PlatformType,
-    tenantId: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<(IDbIntegrationData & { settings: any }) | null> {
     const result = await this.db().oneOrNone(
       `
-      select id, "tenantId", platform, settings from integrations
-      where platform = $(platform) and "tenantId" = $(tenantId) and "deletedAt" is null
+      select id, platform, settings from integrations
+      where platform = $(platform) and "deletedAt" is null
       `,
       {
         platform,
-        tenantId,
       },
     )
 

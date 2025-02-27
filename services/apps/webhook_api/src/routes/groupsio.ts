@@ -28,19 +28,13 @@ export const installGroupsIoRoutes = async (app: express.Express) => {
       if (integration) {
         req.log.info({ integrationId: integration.id }, 'Incoming Groups.io Webhook!')
 
-        const result = await repo.createIncomingWebhook(
-          integration.tenantId,
-          integration.id,
-          WebhookType.GROUPSIO,
-          {
-            signature,
-            event,
-            data,
-          },
-        )
+        const result = await repo.createIncomingWebhook(integration.id, WebhookType.GROUPSIO, {
+          signature,
+          event,
+          data,
+        })
 
         await req.emitters.integrationStreamWorker.triggerWebhookProcessing(
-          integration.tenantId,
           integration.platform,
           result,
         )

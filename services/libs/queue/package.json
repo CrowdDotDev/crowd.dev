@@ -12,7 +12,6 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "^3.332.0",
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",

@@ -145,35 +145,6 @@ class TagRepository {
     return this._populateRelations(record, options)
   }
 
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.tag.findAll({
-      attributes: ['id'],
-      where,
-      transaction,
-    })
-
-    return records.map((record) => record.id)
-  }
-
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 

@@ -8,7 +8,15 @@ import {
   memberEditOrganizationsAction,
   memberEditProfileAction,
 } from '@crowd/audit-logs'
-import { Error400, Error404, Error409, RawQueryParser, distinct, groupBy } from '@crowd/common'
+import {
+  DEFAULT_TENANT_ID,
+  Error400,
+  Error404,
+  Error409,
+  RawQueryParser,
+  distinct,
+  groupBy,
+} from '@crowd/common'
 import {
   countMembersWithActivities,
   getActiveMembers,
@@ -118,8 +126,6 @@ class MemberRepository {
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const transaction = SequelizeRepository.getTransaction(options)
 
     const toInsert = {
@@ -136,7 +142,7 @@ class MemberRepository {
         'manuallyCreated',
         'importHash',
       ]),
-      tenantId: tenant.id,
+      tenantId: DEFAULT_TENANT_ID,
       createdById: currentUser.id,
       updatedById: currentUser.id,
     }
@@ -157,7 +163,6 @@ class MemberRepository {
       for (const i of data.identities as IMemberIdentity[]) {
         await createMemberIdentity(qx, {
           memberId: record.id,
-          tenantId: tenant.id,
           platform: i.platform,
           type: i.type,
           value: i.value,
@@ -180,7 +185,6 @@ class MemberRepository {
             verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
-            tenantId: tenant.id,
           })
         }
       }
@@ -218,7 +222,7 @@ class MemberRepository {
     let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
     const replacements = {
       memberId,
-      tenantId: options.currentTenant.id,
+      tenantId: DEFAULT_TENANT_ID,
     }
 
     for (let idx = 0; idx < options.currentSegments.length; idx++) {
@@ -450,7 +454,6 @@ class MemberRepository {
             })
 
             lfxMemberships = await findManyLfxMemberships(qx, {
-              tenantId: options.currentTenant.id,
               organizationIds: orgIds,
             })
           }
@@ -540,11 +543,8 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     for (const i of identitiesToMove) {
       await moveToNewMember(qx, {
-        tenantId: tenant.id,
         oldMemberId: fromMemberId,
         newMemberId: toMemberId,
         platform: i.platform,
@@ -566,7 +566,6 @@ class MemberRepository {
         // then we update verified flag for the identities in the new member
         await updateVerifiedFlag(qx, {
           memberId: toMemberId,
-          tenantId: tenant.id,
           platform: i.platform,
           value: i.value,
           type: i.type,
@@ -664,8 +663,6 @@ class MemberRepository {
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const seq = SequelizeRepository.getSequelize(options)
 
     const usernames: string[] = []
@@ -684,8 +681,7 @@ class MemberRepository {
       `
     select mi."memberId"
     from "memberIdentities" mi
-    where mi."tenantId" = :tenantId and
-          mi.platform = :platform and
+    where mi.platform = :platform and
           mi.type = :type and
           mi.value in (:usernames) and
           exists (select 1 from "memberSegments" ms where ms."memberId" = mi."memberId")
@@ -693,7 +689,6 @@ class MemberRepository {
       {
         type: Sequelize.QueryTypes.SELECT,
         replacements: {
-          tenantId: currentTenant.id,
           platform,
           usernames,
           type: MemberIdentityType.USERNAME,
@@ -773,7 +768,6 @@ class MemberRepository {
               m."createdAt",
               m."updatedAt",
               m."deletedAt",
-              m."tenantId",
               m."createdById",
               m."updatedById",
               i.username,
@@ -834,8 +828,6 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     const seq = SequelizeRepository.getSequelize(options)
 
     const record = await captureApiChange(
@@ -844,7 +836,6 @@ class MemberRepository {
         const record = await options.database.member.findOne({
           where: {
             id,
-            tenantId: currentTenant.id,
           },
           transaction,
         })
@@ -1004,8 +995,7 @@ class MemberRepository {
           from "memberIdentities"
           where "platform" = :platform and
                 "value" = :value and
-                "type" = :type and
-                "tenantId" = :tenantId
+                "type" = :type
         `
 
         const data: IMemberIdentity[] = await seq.query(query, {
@@ -1013,7 +1003,6 @@ class MemberRepository {
             platform: i.platform,
             value: i.value,
             type: i.type || MemberIdentityType.USERNAME,
-            tenantId: currentTenant.id,
           },
           type: QueryTypes.SELECT,
           transaction,
@@ -1063,9 +1052,9 @@ class MemberRepository {
           select s.id, pd.id as "parentId", gpd.id as "grandParentId"
           from segments s
                   inner join segments pd
-                              on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
+                              on pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
                                 pd."parentSlug" is not null
-                  inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
+                  inner join segments gpd on gpd.slug = s."grandparentSlug" and
                                               gpd."grandparentSlug" is null and gpd."parentSlug" is null
           where s.id = :segmentId;
           `,
@@ -1102,7 +1091,6 @@ class MemberRepository {
           type: i.type ? i.type : MemberIdentityType.USERNAME,
           sourceId: i.sourceId || null,
           integrationId: i.integrationId || null,
-          tenantId: currentTenant.id,
           verified: i.verified !== undefined ? i.verified : !!manualChange,
         })
       }
@@ -1115,7 +1103,6 @@ class MemberRepository {
           platform: i.platform,
           value: i.value,
           type: i.type ? i.type : MemberIdentityType.USERNAME,
-          tenantId: currentTenant.id,
           verified: i.verified !== undefined ? i.verified : !!manualChange,
         })
       }
@@ -1165,7 +1152,6 @@ class MemberRepository {
                 type: identity.type ? identity.type : MemberIdentityType.USERNAME,
                 sourceId: identity.sourceId || null,
                 integrationId: identity.integrationId || null,
-                tenantId: currentTenant.id,
                 verified: identity.verified !== undefined ? identity.verified : !!manualChange,
               })
             }
@@ -1174,7 +1160,6 @@ class MemberRepository {
 
         if (platformsToDelete.length > 0) {
           await deleteMemberIdentitiesByCombinations(qx, {
-            tenantId: currentTenant.id,
             memberId: record.id,
             platforms: platformsToDelete,
             values: valuesToDelete,
@@ -1192,8 +1177,6 @@ class MemberRepository {
   static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
     const memberSegments = await fetchAbsoluteMemberAggregates(qx, id)
@@ -1203,7 +1186,6 @@ class MemberRepository {
       const record = await options.database.member.findOne({
         where: {
           id,
-          tenantId: currentTenant.id,
         },
         transaction,
       })
@@ -1223,13 +1205,10 @@ class MemberRepository {
   static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     await MemberRepository.excludeMembersFromSegments(ids, { ...options, transaction })
     await options.database.member.destroy({
       where: {
         id: ids,
-        tenantId: currentTenant.id,
       },
       force,
       transaction,
@@ -1273,7 +1252,7 @@ class MemberRepository {
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
       const member = (
-        await queryMembersAdvanced(optionsQx(options), options.redis, options.currentTenant.id, {
+        await queryMembersAdvanced(optionsQx(options), options.redis, {
           filter: { and: [{ id: { eq: memberId } }] },
           limit: 1,
           offset: 0,
@@ -1406,46 +1385,36 @@ class MemberRepository {
     include: Record<string, boolean> = {},
   ) {
     let memberResponse = null
-    memberResponse = await queryMembersAdvanced(
-      optionsQx(options),
-      options.redis,
-      options.currentTenant.id,
-      {
-        filter: { id: { eq: id } },
-        limit: 1,
-        offset: 0,
-        segmentId,
-        include: {
-          memberOrganizations: false,
-          lfxMemberships: true,
-          identities: false,
-          segments: true,
-          onlySubProjects: true,
-          maintainers: true,
-          ...include,
-        },
+    memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+      filter: { id: { eq: id } },
+      limit: 1,
+      offset: 0,
+      segmentId,
+      include: {
+        memberOrganizations: false,
+        lfxMemberships: true,
+        identities: false,
+        segments: true,
+        onlySubProjects: true,
+        maintainers: true,
+        ...include,
       },
-    )
+    })
 
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await queryMembersAdvanced(
-        optionsQx(options),
-        options.redis,
-        options.currentTenant.id,
-        {
-          filter: { id: { eq: id } },
-          limit: 1,
-          offset: 0,
-          include: {
-            lfxMemberships: true,
-            segments: true,
-            maintainers: true,
-            ...include,
-          },
+      memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+        filter: { id: { eq: id } },
+        limit: 1,
+        offset: 0,
+        include: {
+          lfxMemberships: true,
+          segments: true,
+          maintainers: true,
+          ...include,
         },
-      )
+      })
 
       if (memberResponse.count === 0) {
         throw new Error404()
@@ -1475,44 +1444,12 @@ class MemberRepository {
     return username
   }
 
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.member.findAll({
-      attributes: ['id'],
-      where,
-      transaction,
-    })
-
-    return records.map((record) => record.id)
-  }
-
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
 
     return options.database.member.count({
       where: {
         ...filter,
-        tenantId: tenant.id,
       },
       transaction,
     })
@@ -1527,8 +1464,6 @@ class MemberRepository {
     attributesSettings = [] as AttributeData[],
     segments: string[] = [],
   ): Promise<PageData<IActiveMemberData>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     if (segments.length !== 1) {
       throw new Error400(
         `This operation can have exactly one segment. Found ${segments.length} segments.`,
@@ -1566,7 +1501,6 @@ class MemberRepository {
       isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
-      tenantId: tenant.id,
       limit: 10000,
       offset: 0,
       orderBy: orderBy.startsWith('activityCount') ? 'activityCount' : 'activeDaysCount',
@@ -1690,7 +1624,6 @@ class MemberRepository {
 
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
     const countResults = await countMembersWithActivities(options.qdb, {
-      tenantId: options.currentTenant.id,
       segmentIds,
     })
     return countResults.reduce((acc, curr: any) => {
@@ -1731,8 +1664,6 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const segment = segments[0]
 
     const translator = FieldTranslatorFactory.getTranslator(
@@ -1743,9 +1674,7 @@ class MemberRepository {
         'custom',
         'crowd',
         'enrichment',
-        ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
-          (p) => p.platform,
-        ),
+        ...(await TenantRepository.getAvailablePlatforms(options)).map((p) => p.platform),
       ],
     )
 
@@ -1758,7 +1687,7 @@ class MemberRepository {
     // add tenant filter to parsed query
     parsed.query.bool.must.push({
       term: {
-        uuid_tenantId: tenant.id,
+        uuid_tenantId: DEFAULT_TENANT_ID,
       },
     })
 
@@ -1849,7 +1778,6 @@ class MemberRepository {
         }, []),
       )
       const lfxMemberships = await findManyLfxMemberships(qx, {
-        tenantId: options.currentTenant.id,
         organizationIds,
       })
 
@@ -1859,12 +1787,7 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(
-        options.qdb,
-        memberIds,
-        options.currentTenant.id,
-        segments,
-      )
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, segments)
 
       for (const row of translatedRows) {
         const r = row as any
@@ -1983,7 +1906,6 @@ class MemberRepository {
     const params = {
       limit,
       offset,
-      tenantId: options.currentTenant.id,
       segmentId: segment?.id,
     }
 
@@ -2076,8 +1998,7 @@ class MemberRepository {
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
       ${searchJoin}
-      WHERE m."tenantId" = $(tenantId)
-        AND (${filterString})
+      WHERE (${filterString})
         AND (${searchFilter})
     `
 
@@ -2183,7 +2104,6 @@ class MemberRepository {
             return acc
           }, []),
         ),
-        tenantId: options.currentTenant.id,
       })
 
       rows.forEach((member) => {
@@ -2252,12 +2172,7 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const lastActivities = await getLastActivitiesForMembers(
-        options.qdb,
-        memberIds,
-        options.currentTenant.id,
-        [segmentId],
-      )
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, [segmentId])
 
       rows.forEach((r) => {
         r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
@@ -2288,9 +2203,7 @@ class MemberRepository {
     const availableDynamicAttributePlatformKeys = [
       'default',
       'custom',
-      ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
-        (p) => p.platform,
-      ),
+      ...(await TenantRepository.getAvailablePlatforms(options)).map((p) => p.platform),
     ]
 
     const dynamicAttributesDefaultNestedFields = memberAttributeSettings.reduce(
@@ -2353,13 +2266,7 @@ class MemberRepository {
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = [
-      {
-        tenantId: tenant.id,
-      },
-    ]
+    const whereAnd: Array<any> = [{}]
 
     if (query) {
       whereAnd.push({
@@ -2418,8 +2325,6 @@ class MemberRepository {
 
     const seq = SequelizeRepository.getSequelize(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const query = `
       insert into "memberIdentities"("memberId", platform, type, value, "tenantId", verified)
       values(:memberId, :platform, :type, :value, :tenantId, false)
@@ -2433,7 +2338,7 @@ class MemberRepository {
           value,
           type,
           platform,
-          tenantId: tenant.id,
+          tenantId: DEFAULT_TENANT_ID,
         },
         type: QueryTypes.INSERT,
         transaction,

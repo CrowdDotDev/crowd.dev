@@ -15,7 +15,14 @@ module.exports = {
     node: true,
   },
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': [
+      'error',
+      {
+        parser: 'typescript',
+        plugins: [require.resolve('@trivago/prettier-plugin-sort-imports')],
+        importOrderParserPlugins: ['typescript', 'importAssertions'],
+      },
+    ],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
 }

@@ -8,12 +8,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
   }
 
-  public async getTenantIds(): Promise<string[]> {
-    const results = await this.db().any(`select distinct "tenantId" from members;`)
-
-    return results.map((r) => r.tenantId)
-  }
-
   public async checkMembersExist(ids: string[]): Promise<IDbMemberId[]> {
     const results = await this.db().any(
       `

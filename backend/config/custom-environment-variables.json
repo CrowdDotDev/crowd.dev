@@ -127,7 +127,9 @@
   },
   "nango": {
     "url": "CROWD_NANGO_URL",
-    "secretKey": "CROWD_NANGO_SECRET_KEY"
+    "secretKey": "CROWD_NANGO_SECRET_KEY",
+    "cloudSecretKey": "NANGO_CLOUD_SECRET_KEY",
+    "cloudIntegrations": "NANGO_CLOUD_INTEGRATIONS"
   },
   "enrichment": {
     "url": "CROWD_ENRICHMENT_PROGAI_URL",

@@ -14,7 +14,6 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
 
   const mem: IMember = {
     id: '123',
-    tenantId: '123',
     segmentId: null,
     attributes: {},
     score: 0,

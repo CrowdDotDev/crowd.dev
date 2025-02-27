@@ -1,0 +1,23 @@
+{
+  "name": "@crowd/nango",
+  "main": "src/index.ts",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
+    "tsc-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@crowd/common": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@nangohq/frontend": "^0.52.4",
+    "@nangohq/node": "^0.50.0",
+    "@nangohq/types": "^0.50.0"
+  }
+}
