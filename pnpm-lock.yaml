@@ -1797,7 +1797,7 @@ importers:
         specifier: workspace:*
         version: link:../types
       redis:
-        specifier: ^4.7.0
+        specifier: ^4.6.6
         version: 4.7.0
     devDependencies:
       '@types/node':

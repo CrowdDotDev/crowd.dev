@@ -15,6 +15,6 @@
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
-    "redis": "^4.7.0"
+    "redis": "^4.6.6"
   }
 }
