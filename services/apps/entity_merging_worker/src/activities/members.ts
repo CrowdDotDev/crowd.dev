@@ -1,5 +1,6 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
@@ -30,11 +31,10 @@ export async function deleteMember(memberId: string): Promise<void> {
 
 export async function recalculateActivityAffiliationsOfMemberAsync(
   memberId: string,
-  tenantId: string,
 ): Promise<void> {
   await svc.temporal.workflow.start('memberUpdate', {
     taskQueue: 'profiles',
-    workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${tenantId}/${memberId}`,
+    workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`,
     workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
     retry: {
       maximumAttempts: 10,
@@ -46,9 +46,6 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
         },
       },
     ],
-    searchAttributes: {
-      TenantId: [tenantId],
-    },
   })
 }
 
@@ -72,7 +69,6 @@ export async function notifyFrontendMemberMergeSuccessful(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
   const emitter = new RedisPubSubEmitter(
@@ -90,7 +86,7 @@ export async function notifyFrontendMemberMergeSuccessful(
       'member-merge',
       JSON.stringify({
         success: true,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         userId,
         primaryId,
         secondaryId,
@@ -98,7 +94,7 @@ export async function notifyFrontendMemberMergeSuccessful(
         secondaryDisplayName,
       }),
       undefined,
-      tenantId,
+      DEFAULT_TENANT_ID,
     ),
   )
 }
@@ -108,7 +104,6 @@ export async function notifyFrontendMemberUnmergeSuccessful(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  tenantId: string,
   userId: string,
 ): Promise<void> {
   const emitter = new RedisPubSubEmitter(
@@ -126,7 +121,7 @@ export async function notifyFrontendMemberUnmergeSuccessful(
       'member-unmerge',
       JSON.stringify({
         success: true,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         userId,
         primaryId,
         secondaryId,
@@ -134,7 +129,7 @@ export async function notifyFrontendMemberUnmergeSuccessful(
         secondaryDisplayName,
       }),
       undefined,
-      tenantId,
+      DEFAULT_TENANT_ID,
     ),
   )
 }

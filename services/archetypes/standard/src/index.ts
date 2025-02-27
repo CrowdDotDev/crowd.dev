@@ -1,11 +1,12 @@
 import { Sender } from '@questdb/nodejs-client'
-import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import pgpromise from 'pg-promise'
 
+import { DataSinkWorkerEmitter } from '@crowd/common_services'
 import { DbConnection } from '@crowd/database'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, getServiceLogger } from '@crowd/logging'
 import { getClientILP, getClientSQL } from '@crowd/questdb'
+import { IQueue, QUEUE_CONFIG, QueueFactory } from '@crowd/queue'
 import { RedisClient, acquireLock, getRedisClient, releaseLock } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
@@ -72,7 +73,7 @@ export class Service {
   readonly config: Config
   readonly integrations: IIntegrationDescriptor[]
 
-  protected _kafka: Kafka | null
+  protected _queue: IQueue | null
   protected _temporal: TemporalClient | null
 
   protected _questdbSQL: pgpromise.IDatabase<unknown>
@@ -80,33 +81,19 @@ export class Service {
 
   protected _redisClient: RedisClient | null
 
+  readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter | null
+
   constructor(config: Config) {
     this.name = process.env['SERVICE']
     this.log = logger
     this.config = config
     this.integrations = INTEGRATION_SERVICES
 
-    // TODO: Handle SSL and SASL configuration.
-    if (config.producer.enabled && process.env['CROWD_KAFKA_BROKERS']) {
-      const brokers = process.env['CROWD_KAFKA_BROKERS']
-      this._kafka = new Kafka({
-        clientId: this.name,
-        brokers: brokers.split(','),
-        // sasl
-        // ssl
-      })
-    }
-  }
+    if (config.producer.enabled) {
+      this._queue = QueueFactory.createQueueService(QUEUE_CONFIG())
 
-  get producer(): KafkaProducer | null {
-    if (!this.config.producer.enabled) {
-      return null
+      this.dataSinkWorkerEmitter = new DataSinkWorkerEmitter(this._queue, this.log)
     }
-
-    return this._kafka.producer({
-      idempotent: this.config.producer.idempotent,
-      retry: this.config.producer.retryPolicy,
-    })
   }
 
   get temporal(): TemporalClient | null {
@@ -226,14 +213,6 @@ export class Service {
       await this.stop()
     })
 
-    if (this.config.producer.enabled) {
-      try {
-        await this.producer.connect()
-      } catch (err) {
-        throw new Error(err)
-      }
-    }
-
     if (this.config.temporal.enabled) {
       try {
         this._temporal = await getTemporalClient({
@@ -276,10 +255,6 @@ export class Service {
 
   // Stop allows to gracefully stop the service.
   protected async stop() {
-    if (this.config.producer.enabled) {
-      await this.producer.disconnect()
-    }
-
     if (this.config.temporal.enabled) {
       await this.temporal.connection.close()
     }

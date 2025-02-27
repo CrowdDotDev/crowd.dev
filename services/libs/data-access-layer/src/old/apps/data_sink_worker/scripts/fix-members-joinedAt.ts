@@ -7,7 +7,6 @@ interface Member {
 
 export async function getMembersWithJoinedAtUnixEpoch(
   db: DbConnection,
-  tenantId: string,
   { countOnly = false },
 ): Promise<{ rows: Member[]; count: number }> {
   let countResult = { count: null }
@@ -18,16 +17,14 @@ export async function getMembersWithJoinedAtUnixEpoch(
             select "memberId"
             from activities
             where "timestamp" != '1970-01-01T00:00:00.000Z'
-            and "tenantId" = $(tenantId)
             group by "memberId"
             having count(*) > 1
           )
           select count(*) 
           from members m
           join members_with_multiple_activities ma on m.id = ma."memberId"
-          where m."joinedAt" = '1970-01-01T00:00:00.000Z' and m."tenantId" = $(tenantId);
+          where m."joinedAt" = '1970-01-01T00:00:00.000Z';
           `,
-      { tenantId },
     )
   }
 
@@ -37,7 +34,6 @@ export async function getMembersWithJoinedAtUnixEpoch(
           select "memberId"
           from activities
           where "timestamp" != '1970-01-01T00:00:00.000Z'
-          and "tenantId" = $(tenantId)
           group by "memberId"
           having count(*) > 1
         )
@@ -45,10 +41,8 @@ export async function getMembersWithJoinedAtUnixEpoch(
         from members m
         join members_with_multiple_activities ma on m.id = ma."memberId"
         where m."joinedAt" = '1970-01-01T00:00:00.000Z'
-        and m."tenantId" = $(tenantId) 
         limit 100;
         `,
-    { tenantId },
   )
 
   return { rows: results, count: countResult.count }
@@ -56,7 +50,6 @@ export async function getMembersWithJoinedAtUnixEpoch(
 
 export async function getMemberRecentActivity(
   db: DbConnection,
-  tenantId: string,
   memberId: string,
 ): Promise<{ timestamp: string } | null> {
   return db.oneOrNone(
@@ -64,18 +57,16 @@ export async function getMemberRecentActivity(
         select "timestamp"
         from activities
         where "memberId" = $(memberId)
-        and "tenantId" = $(tenantId)
         and "timestamp" != '1970-01-01T00:00:00.000Z'
         order by "timestamp" asc
         limit 1;
         `,
-    { memberId, tenantId },
+    { memberId },
   )
 }
 
 export async function updateMemberJoinedAt(
   db: DbConnection,
-  tenantId: string,
   memberId: string,
   joinedAt: string,
 ): Promise<void> {
@@ -83,9 +74,8 @@ export async function updateMemberJoinedAt(
     `
       update members
       set "joinedAt" = $(joinedAt)
-      where id = $(memberId)
-      and "tenantId" = $(tenantId);
+      where id = $(memberId);
     `,
-    { memberId, tenantId, joinedAt },
+    { memberId, joinedAt },
   )
 }

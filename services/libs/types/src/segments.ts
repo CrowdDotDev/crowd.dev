@@ -33,14 +33,12 @@ export interface SegmentRawData extends SegmentBase {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customActivityTypes: any
   activityChannels: { [key: string]: string[] }
-  tenantId?: string
 }
 
 export interface SegmentData extends SegmentBase {
   id?: string
   activityTypes: ActivityTypeSettings
   activityChannels: { [key: string]: string[] }
-  tenantId?: string
 }
 
 export interface SegmentActivityTypesCreateData {

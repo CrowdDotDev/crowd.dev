@@ -1,0 +1,33 @@
+{
+  "name": "@crowd/cron-service",
+  "scripts": {
+    "start": "SERVICE=cron-service tsx src/main.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && SERVICE=cron-service LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
+    "start:debug": "SERVICE=cron-service LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
+    "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
+    "dev": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
+    "trigger-job": "SERVICE=cron-service tsx src/worker.ts",
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
+    "tsc-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crowd/common": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/nango": "workspace:*",
+    "@crowd/temporal": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "cron": "^2.1.0",
+    "cron-time-generator": "^1.3.0",
+    "p-queue": "^8.1.0",
+    "pidusage": "^3.0.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "nodemon": "^3.0.1"
+  }
+}

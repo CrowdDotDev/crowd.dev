@@ -19,18 +19,16 @@ export default class MemberAttributeService extends LoggerBase {
   }
 
   public async setAttributesDefaultValues(
-    tenantId: string,
     attributes: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const priorities = await getPlatformPriorityArray(dbStoreQx(this.store), tenantId)
-    return setAttributesDefaultValues(tenantId, attributes, priorities)
+    const priorities = await getPlatformPriorityArray(dbStoreQx(this.store))
+    return setAttributesDefaultValues(attributes, priorities)
   }
 
   public async validateAttributes(
-    tenantId: string,
     attributes: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const settings = await getMemberAttributeSettings(dbStoreQx(this.store), this.redis, tenantId)
+    const settings = await getMemberAttributeSettings(dbStoreQx(this.store), this.redis)
     const memberAttributeSettings = settings.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc

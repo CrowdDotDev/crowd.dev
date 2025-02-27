@@ -195,7 +195,6 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     // if they do, we keep track of this member, remove the identity from enrichment payload
     // and after enrichment is done, merge these two members together
     const identitiesExistInOtherMembers = await getIdentitiesExistInOtherMembers(
-      member.tenantId,
       member.id,
       identitiesToCheck,
     )
@@ -208,12 +207,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     )
 
     // update current member with enrichment data
-    await updateMemberWithEnrichmentData(
-      member.id,
-      member.tenantId,
-      identitesToAdd,
-      normalized.attributes,
-    )
+    await updateMemberWithEnrichmentData(member.id, identitesToAdd, normalized.attributes)
 
     await syncMembersToOpensearch(member.id)
 
@@ -223,7 +217,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     for (const memberIdToBeMerged of memberIdsToBeMerged) {
       console.log(`${memberIdToBeMerged} will be merged with ${member.id}`)
-      await mergeMembers(member.id, memberIdToBeMerged, member.tenantId)
+      await mergeMembers(member.id, memberIdToBeMerged)
     }
   }
 }

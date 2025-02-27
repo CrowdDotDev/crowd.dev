@@ -54,7 +54,6 @@ export default class ConversationService extends LoggerBase {
 
       await insertConversation(this.options.qdb, {
         id: record.id,
-        tenantId: this.options.currentTenant.id,
         segmentId: currentSegment.id,
         title: data.title,
         published: data.published,
@@ -254,11 +253,9 @@ export default class ConversationService extends LoggerBase {
     const offset = data.offset
     const countOnly = data.countOnly ?? false
 
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
     const page = await queryConversations(this.options.qdb, {
-      tenantId,
       segmentIds,
       filter,
       orderBy,
@@ -272,7 +269,6 @@ export default class ConversationService extends LoggerBase {
       filter: {
         and: [{ conversationId: { in: conversationIds } }],
       },
-      tenantId,
       segmentIds,
       noLimit: true,
     })
@@ -284,17 +280,12 @@ export default class ConversationService extends LoggerBase {
     const promises = []
     if (memberIds.length > 0) {
       promises.push(
-        queryMembersAdvanced(
-          optionsQx(this.options),
-          this.options.redis,
-          this.options.currentTenant.id,
-          {
-            filter: {
-              and: [{ id: { in: memberIds } }],
-            },
-            limit: memberIds.length,
+        queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+          filter: {
+            and: [{ id: { in: memberIds } }],
           },
-        ).then((members) => {
+          limit: memberIds.length,
+        }).then((members) => {
           for (const row of activities.rows) {
             ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
             if (row.objectMemberId) {
@@ -365,11 +356,9 @@ export default class ConversationService extends LoggerBase {
   }
 
   async count(filter: any) {
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
     const results = await queryConversations(this.options.qdb, {
-      tenantId,
       segmentIds,
       filter,
       countOnly: true,
@@ -385,11 +374,9 @@ export default class ConversationService extends LoggerBase {
     const offset = data.offset
     const countOnly = data.countOnly ?? false
 
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
     const results = await queryConversations(this.options.qdb, {
-      tenantId,
       segmentIds,
       filter,
       orderBy,
@@ -426,7 +413,6 @@ export default class ConversationService extends LoggerBase {
             },
           ],
         },
-        tenantId,
         segmentIds,
         noLimit: true,
       },
@@ -438,7 +424,6 @@ export default class ConversationService extends LoggerBase {
       const memberResults = await queryMembersAdvanced(
         optionsQx(this.options),
         this.options.redis,
-        this.options.currentTenant.id,
         { filter: { and: [{ id: { in: memberIds } }] }, limit: memberIds.length },
       )
 
@@ -489,11 +474,9 @@ export default class ConversationService extends LoggerBase {
    */
   async generateTitle(title: string, isHtml: boolean = false): Promise<string> {
     if (!title || getCleanString(title) === '') {
-      const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
       const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
       const results = await queryConversations(this.options.qdb, {
-        tenantId: currentTenant.id,
         segmentIds,
         countOnly: true,
       })

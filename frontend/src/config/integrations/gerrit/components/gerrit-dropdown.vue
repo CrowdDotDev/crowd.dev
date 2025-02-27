@@ -29,6 +29,6 @@ const isGerritConnectDrawerOpen = ref(false);
 
 <script lang="ts">
 export default {
-  name: 'LfGitDropdown',
+  name: 'LfGerritDropdown',
 };
 </script>

@@ -1,12 +1,10 @@
-import { SQSClient, SendMessageBatchCommandOutput, SendMessageResult } from '@aws-sdk/client-sqs'
 import { Kafka, KafkaMessage, RecordMetadata } from 'kafkajs'
 
 import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 
 import { IKafkaClientConfig } from './vendors/kafka/types'
-import { SqsMessage } from './vendors/sqs/types'
 
-export type IQueueClient = Kafka | SQSClient
+export type IQueueClient = Kafka
 
 // export type IQueueConfig = IKafkaConfig
 export interface IQueueConfig {
@@ -17,13 +15,13 @@ export interface IQueueInitChannelConfig {
   name: string
 }
 
-export type IQueueSendResult = RecordMetadata[] | SendMessageResult
+export type IQueueSendResult = RecordMetadata[]
 
-export type IQueueSendBulkResult = RecordMetadata[] | SendMessageBatchCommandOutput
+export type IQueueSendBulkResult = RecordMetadata[]
 
 export type IQueueClientConfig = IKafkaClientConfig
 
-export type IQueueReceiveResponse = KafkaMessage | SqsMessage
+export type IQueueReceiveResponse = KafkaMessage
 
 export type IQueueProcessMessageHandler = (
   message: IQueueMessage,
@@ -81,5 +79,4 @@ export enum CrowdQueue {
 
 export enum QueueVendor {
   KAFKA = 'kafka',
-  SQS = 'sqs',
 }

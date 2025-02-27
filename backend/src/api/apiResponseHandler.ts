@@ -46,9 +46,12 @@ export default class ApiResponseHandler extends LoggerBase {
     } else if (error && error.message === 'stream is not readable') {
       res.status(400).send('Request interrupted')
     } else {
-      if (!error.code) {
+      if (error.code && (!Number.isInteger(error.code) || error.code < 100 || error.code > 599)) {
+        error.code = 500
+      } else if (!error.code) {
         error.code = 500
       }
+
       req.log.error(
         error,
         { code: error.code, url: req.url, method: req.method, query: req.query, body: req.body },

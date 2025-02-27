@@ -45,7 +45,7 @@ export async function getMembersToEnrich(): Promise<void> {
     await Promise.all(
       chunk.map((member) => {
         return executeChild(enrichMember, {
-          workflowId: 'member-enrichment/' + member.tenantId + '/' + member.id,
+          workflowId: 'member-enrichment/' + member.id,
           cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
           parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
           workflowExecutionTimeout: '15 minutes',
@@ -56,9 +56,6 @@ export async function getMembersToEnrich(): Promise<void> {
             maximumInterval: 30 * 1000,
           },
           args: [member, sources],
-          searchAttributes: {
-            TenantId: [member.tenantId],
-          },
         })
       }),
     )

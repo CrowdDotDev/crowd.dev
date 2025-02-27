@@ -90,7 +90,7 @@ export async function updateActivities(
     qdb,
     async (activity) => {
       const newActivity = await mapNewActivity(activity, mapActivity)
-      await insertActivities(queueClient, [newActivity], true)
+      await insertActivities(queueClient, [newActivity])
       const changedRelations = getChangedRelationshipFields(activity, newActivity)
       if (Object.keys(changedRelations).length > 0) {
         await updateActivityRelationsById(pgQx, {

@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { OrganizationIdentityType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -25,7 +26,6 @@ export async function fetchOrgIdentities(
 export async function fetchManyOrgIdentities(
   qx: QueryExecutor,
   organizationIds: string[],
-  tenantId: string,
 ): Promise<{ organizationId: string; identities: IDbOrgIdentity[] }[]> {
   return qx.select(
     `
@@ -34,31 +34,23 @@ export async function fetchManyOrgIdentities(
           JSONB_AGG(oi ORDER BY oi."createdAt") AS "identities"
       FROM "organizationIdentities" oi
       WHERE oi."organizationId" IN ($(organizationIds:csv))
-        AND oi."tenantId" = $(tenantId)
       GROUP BY oi."organizationId"
     `,
     {
       organizationIds,
-      tenantId,
     },
   )
 }
 
-export async function cleanUpOrgIdentities(
-  qx: QueryExecutor,
-  organizationId: string,
-  tenantId: string,
-) {
+export async function cleanUpOrgIdentities(qx: QueryExecutor, organizationId: string) {
   return qx.result(
     `
       DELETE
       FROM "organizationIdentities"
       WHERE "organizationId" = $(organizationId)
-        AND "tenantId" = $(tenantId)
     `,
     {
       organizationId,
-      tenantId,
     },
   )
 }
@@ -70,7 +62,7 @@ export async function updateOrgIdentityVerifiedFlag(
   await qx.result(
     `
     update "organizationIdentities" set verified = $(verified)
-    where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+    where "organizationId" = $(organizationId) and platform = $(platform) and value = $(value) and type = $(type)
     `,
     identity,
   )
@@ -93,18 +85,17 @@ export async function addOrgIdentity(qx: QueryExecutor, identity: IDbOrgIdentity
       VALUES ($(organizationId), $(platform), $(value), $(type), $(verified), $(sourceId), $(tenantId), $(integrationId), NOW())
       ON CONFLICT DO NOTHING;
     `,
-    identity,
+    { tenantId: DEFAULT_TENANT_ID, ...identity },
   )
 }
 
 export async function upsertOrgIdentities(
   qe: QueryExecutor,
   organizationId: string,
-  tenantId: string,
   identities: IDbOrgIdentity[],
   integrationId?: string,
 ): Promise<void> {
-  const existingIdentities = await getOrgIdentities(qe, organizationId, tenantId)
+  const existingIdentities = await getOrgIdentities(qe, organizationId)
   const toCreate = []
   const toUpdate = []
 
@@ -124,7 +115,6 @@ export async function upsertOrgIdentities(
       // add the identity
       await addOrgIdentity(qe, {
         organizationId,
-        tenantId,
         platform: i.platform,
         type: i.type,
         value: i.value,
@@ -140,7 +130,6 @@ export async function upsertOrgIdentities(
       // update the identity
       await updateOrgIdentityVerifiedFlag(qe, {
         organizationId,
-        tenantId,
         platform: i.platform,
         type: i.type,
         value: i.value,
@@ -152,7 +141,6 @@ export async function upsertOrgIdentities(
 
 export async function findOrgIdByDomain(
   qx: QueryExecutor,
-  tenantId: string,
   domains: string[],
 ): Promise<string | null> {
   const domainIdentityTypes = [
@@ -164,13 +152,11 @@ export async function findOrgIdByDomain(
       SELECT "organizationId"
       FROM "organizationIdentities"
       WHERE "value" = ANY($(domains))
-        AND "tenantId" = $(tenantId)
         AND "type" = ANY($(domainIdentityTypes))
       LIMIT 1;
     `,
     {
       domains,
-      tenantId,
       domainIdentityTypes,
     },
   )
@@ -186,7 +172,6 @@ export enum OrgIdentityField {
   ORGANIZATION_ID = 'organizationId',
   PLATFORM = 'platform',
   SOURCE_ID = 'sourceId',
-  TENANT_ID = 'tenantId',
   INTEGRATION_ID = 'integrationId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',

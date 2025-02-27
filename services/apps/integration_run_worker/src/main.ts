@@ -1,11 +1,9 @@
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { ApiPubSubEmitter, getRedisClient } from '@crowd/redis'
@@ -24,13 +22,9 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
-  const runWorkerEmitter = new IntegrationRunWorkerEmitter(queueClient, redis, loader, log)
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, redis, loader, log)
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
+  const runWorkerEmitter = new IntegrationRunWorkerEmitter(queueClient, log)
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(queueClient, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
 
   const apiPubSubEmitter = new ApiPubSubEmitter(redis, log)
 

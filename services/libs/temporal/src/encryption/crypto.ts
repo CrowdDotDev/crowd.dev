@@ -16,7 +16,8 @@ export async function encrypt(data: Uint8Array, key: crypto.CryptoKey): Promise<
     data,
   )
 
-  return Buffer.concat([iv, new Uint8Array(encrypted)])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Buffer.concat([iv, new Uint8Array(encrypted)]) as any
 }
 
 export async function decrypt(

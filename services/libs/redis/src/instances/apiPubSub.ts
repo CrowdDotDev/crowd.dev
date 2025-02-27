@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { ApiWebsocketMessage } from '@crowd/types'
 
@@ -22,7 +23,7 @@ export class ApiPubSubEmitter extends LoggerBase {
     )
   }
 
-  public emitIntegrationCompleted(tenantId: string, integrationId: string, status: string) {
+  public emitIntegrationCompleted(integrationId: string, status: string) {
     this.pubsub.emit(
       'user',
       new ApiWebsocketMessage(
@@ -32,7 +33,7 @@ export class ApiPubSubEmitter extends LoggerBase {
           status,
         }),
         undefined,
-        tenantId,
+        DEFAULT_TENANT_ID,
       ),
     )
   }

@@ -1,4 +1,4 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { WebhookState, WebhookType } from '@crowd/types'
@@ -15,7 +15,6 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       `
         select
             iw.id,
-            iw."tenantId",
             iw."integrationId",
             iw.state,
             iw.type,
@@ -115,7 +114,6 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
   }
 
   public async createWebhook(
-    tenantId: string,
     integrationId: string,
     type: string,
     payload: unknown,
@@ -142,7 +140,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       `,
       {
         id,
-        tenantId,
+        tenantId: DEFAULT_TENANT_ID,
         integrationId,
         type,
         payload: JSON.stringify(payload),
@@ -158,7 +156,6 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
   public async getFailedWebhooks(limit: number): Promise<
     {
       id: string
-      tenantId: string
       platform: string
     }[]
   > {
@@ -166,7 +163,6 @@ export default class IncomingWebhookRepository extends RepositoryBase<IncomingWe
       `
         select
             iw.id,
-            iw."tenantId" as "tenantId",
             i.platform as "platform"
         from 
             "incomingWebhooks" iw
