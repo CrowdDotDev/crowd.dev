@@ -86,7 +86,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       )
       and osa."organizationId" IN ($(organizationIds:csv))
       group by osa."organizationId"
-      order by total_count desc
+      order by "memberCount" desc
       `,
       {
         organizationIds,
