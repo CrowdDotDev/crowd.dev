@@ -76,7 +76,7 @@ export default class MemberAffiliationRepository extends RepositoryBase<MemberAf
       `
         SELECT
           osa."organizationId",
-          sum(osa."memberCount") AS "memberCount
+          sum(osa."memberCount") AS "memberCount"
       FROM "organizationSegmentsAgg" osa
       WHERE osa."segmentId" IN (
           SELECT id
