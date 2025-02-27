@@ -24,7 +24,7 @@ import {
 import {
   createRelations,
   getActivitiesToCopy,
-  getLatestSyncedActivityCreatedAt,
+  getLatestSyncedActivityTimestamp,
   markActivitiesAsIndexed,
   resetIndexedIdentities,
 } from './activities/populate-activity-relations'
@@ -55,7 +55,7 @@ export {
   createRelations,
   resetIndexedIdentities,
   getActivitiesToCopy,
-  getLatestSyncedActivityCreatedAt,
+  getLatestSyncedActivityTimestamp,
   markActivitiesAsIndexed,
   syncMembersBatch,
   getMembersForSync,

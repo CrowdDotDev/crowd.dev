@@ -56,7 +56,6 @@ import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import TagRepository from '../database/repositories/tagRepository'
 import {
   BasicMemberIdentity,
   IActiveMemberFilter,
@@ -294,24 +293,6 @@ export default class MemberService extends LoggerBase {
           transaction,
         })
       }
-      if (data.tags) {
-        data.tags = await TagRepository.filterIdsInTenant(data.tags, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (data.noMerge) {
-        data.noMerge = await MemberRepository.filterIdsInTenant(data.noMerge, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (data.toMerge) {
-        data.toMerge = await MemberRepository.filterIdsInTenant(data.toMerge, {
-          ...this.options,
-          transaction,
-        })
-      }
 
       const { platform } = data
 
@@ -501,7 +482,6 @@ export default class MemberService extends LoggerBase {
       const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
       await (async function includeMemberInSegments(
         qx: QueryExecutor,
-        tenantId: string,
         memberId: string,
         segmentIds: string[],
       ) {
@@ -511,7 +491,6 @@ export default class MemberService extends LoggerBase {
             acc.push({
               memberId,
               segmentId,
-              tenantId,
 
               activityCount: 0,
               lastActive: '1970-01-01',
@@ -527,7 +506,6 @@ export default class MemberService extends LoggerBase {
         await insertMemberSegments(qx, data)
       })(
         qx,
-        this.options.currentTenant.id,
         record.id,
         this.options.currentSegments.map((s) => s.id),
       )
@@ -535,7 +513,7 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (syncToOpensearch) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
+        await searchSyncService.triggerMemberSync(record.id)
       }
 
       if (!fireCrowdWebhooks) {
@@ -1478,14 +1456,8 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       for (const suggestion of suggestions) {
-        await searchSyncService.triggerMemberSync(
-          this.options.currentTenant.id,
-          suggestion.members[0],
-        )
-        await searchSyncService.triggerMemberSync(
-          this.options.currentTenant.id,
-          suggestion.members[1],
-        )
+        await searchSyncService.triggerMemberSync(suggestion.members[0])
+        await searchSyncService.triggerMemberSync(suggestion.members[1])
       }
       return { status: 200 }
     } catch (error) {
@@ -1557,21 +1529,6 @@ export default class MemberService extends LoggerBase {
       if (data.activities) {
         data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
       }
-      if (data.tags) {
-        data.tags = await TagRepository.filterIdsInTenant(data.tags, repoOptions)
-      }
-      if (data.noMerge) {
-        data.noMerge = await MemberRepository.filterIdsInTenant(
-          data.noMerge.filter((i) => i !== id),
-          repoOptions,
-        )
-      }
-      if (data.toMerge) {
-        data.toMerge = await MemberRepository.filterIdsInTenant(
-          data.toMerge.filter((i) => i !== id),
-          repoOptions,
-        )
-      }
 
       const record = await MemberRepository.update(id, data, repoOptions, {
         manualChange,
@@ -1631,7 +1588,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncService.triggerRemoveMember(id)
     }
   }
 
@@ -1658,7 +1615,7 @@ export default class MemberService extends LoggerBase {
     }
 
     for (const id of ids) {
-      await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, id)
+      await searchSyncService.triggerRemoveMember(id)
     }
   }
 
@@ -1674,21 +1631,16 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return queryMembersAdvanced(
-      optionsQx(this.options),
-      this.options.redis,
-      this.options.currentTenant.id,
-      {
-        filter: data.filter,
-        offset: data.offset,
-        orderBy: data.orderBy,
-        limit: data.limit,
-        segmentId: data.segments[0],
-        include: {
-          segments: true,
-        },
+    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+      filter: data.filter,
+      offset: data.offset,
+      orderBy: data.orderBy,
+      limit: data.limit,
+      segmentId: data.segments[0],
+      include: {
+        segments: true,
       },
-    )
+    })
   }
 
   async findAndCountActive(
@@ -1724,24 +1676,19 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(
-      optionsQx(this.options),
-      this.options.redis,
-      this.options.currentTenant.id,
-      {
-        ...data,
-        segmentId,
-        attributesSettings: memberAttributeSettings,
-        include: {
-          memberOrganizations: true,
-          lfxMemberships: true,
-          identities: true,
-          attributes: true,
-          maintainers: true,
-        },
-        exportMode,
+    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+      ...data,
+      segmentId,
+      attributesSettings: memberAttributeSettings,
+      include: {
+        memberOrganizations: true,
+        lfxMemberships: true,
+        identities: true,
+        attributes: true,
+        maintainers: true,
       },
-    )
+      exportMode,
+    })
   }
 
   async queryForCsv(data) {

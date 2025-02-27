@@ -8,6 +8,21 @@ import { IRedisConfiguration, IRedisPubSubPair, RedisClient } from './types'
 
 const log = getServiceChildLogger('redis')
 
+let redisConfig: IRedisConfiguration | undefined = undefined
+
+export const REDIS_CONFIG = (): IRedisConfiguration => {
+  if (!redisConfig) {
+    redisConfig = {
+      username: process.env.CROWD_REDIS_USERNAME,
+      password: process.env.CROWD_REDIS_PASSWORD,
+      host: process.env.CROWD_REDIS_HOST,
+      port: process.env.CROWD_REDIS_PORT,
+    }
+  }
+
+  return redisConfig
+}
+
 let client: RedisClient | undefined
 export const getRedisClient = async (
   config: IRedisConfiguration,

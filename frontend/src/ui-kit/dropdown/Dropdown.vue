@@ -5,8 +5,9 @@
     </template>
     <template #default="{ close }">
       <div
+        v-click-outside="close"
         class="c-dropdown"
-        :style="{ 'min-width': props.width }"
+        :style="{ 'min-width': props.width, zIndex: props.zIndex }"
         @click="close"
       >
         <slot />
@@ -18,15 +19,18 @@
 <script setup lang="ts">
 import { DropdownPlacement } from '@/ui-kit/dropdown/types/DropdownPlacement';
 import LfPopover from '@/ui-kit/popover/Popover.vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
 
 const props = withDefaults(defineProps<{
   placement: DropdownPlacement;
   width?: string;
   persistent?: boolean;
+  zIndex?: number | string;
 }>(), {
   placement: 'bottom-start',
   width: 'auto',
   persistent: false,
+  zIndex: 'auto',
 });
 </script>
 

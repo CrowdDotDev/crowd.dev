@@ -1,6 +1,5 @@
 import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue } from '@crowd/queue'
-import { RedisClient } from '@crowd/redis'
 import {
   CheckRunsQueueMessage,
   GenerateRunStreamsQueueMessage,
@@ -9,28 +8,20 @@ import {
   StreamProcessedQueueMessage,
 } from '@crowd/types'
 
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import { QueuePriorityService } from '../priority.service'
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {
-  public constructor(
-    client: IQueue,
-    redis: RedisClient,
-    priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
-    parentLog: Logger,
-  ) {
+  public constructor(client: IQueue, parentLog: Logger) {
     super(
       CrowdQueue.INTEGRATION_RUN_WORKER,
       client.getQueueChannelConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
       client,
-      redis,
-      priorityLevelCalculationContextLoader,
       parentLog,
     )
   }
 
   public async checkRuns() {
     await this.sendMessage(
-      undefined,
       'global',
       new CheckRunsQueueMessage(),
       'global',
@@ -40,7 +31,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   }
 
   public async triggerIntegrationRun(
-    tenantId: string,
     platform: string,
     integrationId: string,
     onboarding: boolean,
@@ -49,7 +39,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     additionalInfo?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      tenantId,
       integrationId,
       new StartIntegrationRunQueueMessage(
         integrationId,
@@ -64,7 +53,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   }
 
   public async triggerRunProcessing(
-    tenantId: string,
     platform: string,
     runId: string,
     onboarding: boolean,
@@ -73,7 +61,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
     additionalInfo?: unknown,
   ): Promise<void> {
     await this.sendMessage(
-      tenantId,
       runId,
       new GenerateRunStreamsQueueMessage(runId, isManualRun, manualSettings, additionalInfo),
       runId,
@@ -82,12 +69,11 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   }
 
   public async streamProcessed(
-    tenantId: string,
     platform: string,
     runId: string,
     onboarding: boolean,
   ): Promise<void> {
-    await this.sendMessage(tenantId, runId, new StreamProcessedQueueMessage(runId), undefined, {
+    await this.sendMessage(runId, new StreamProcessedQueueMessage(runId), undefined, {
       onboarding,
     })
   }

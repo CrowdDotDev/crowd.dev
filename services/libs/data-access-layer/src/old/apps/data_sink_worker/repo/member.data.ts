@@ -6,7 +6,6 @@ export interface IDbMember {
   displayName: string
   joinedAt: string
   attributes: Record<string, unknown>
-  tenantId: string
   reach: Partial<Record<PlatformType | 'total', number>>
 }
 
@@ -15,7 +14,7 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'score', 'joinedAt', 'reach', 'attributes', 'displayName', 'tenantId'],
+    ['id', 'score', 'joinedAt', 'reach', 'attributes', 'displayName'],
     {
       table: {
         table: 'members',
@@ -59,25 +58,8 @@ export interface IDbMemberUpdateData {
   reach: Partial<Record<PlatformType, number>>
 }
 
-let insertMemberIdentityColumnSet: DbColumnSet
-export function getInsertMemberIdentityColumnSet(instance: DbInstance): DbColumnSet {
-  if (insertMemberIdentityColumnSet) return insertMemberIdentityColumnSet
-
-  insertMemberIdentityColumnSet = new instance.helpers.ColumnSet(
-    ['memberId', 'platform', 'value', 'type', 'sourceId', 'tenantId', 'integrationId'],
-    {
-      table: {
-        table: 'memberIdentities',
-      },
-    },
-  )
-
-  return insertMemberIdentityColumnSet
-}
-
 export interface IDbMemberSegment {
   memberId: string
-  tenantId: string
   segmentId: string
 }
 

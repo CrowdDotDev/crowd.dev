@@ -3,13 +3,11 @@ export interface IDbConversation {
   title: string
   slug: string
   published: boolean
-  tenantId: string
   segmentId: string
 }
 
 export interface IDbConversationCreateData {
   id?: string
-  tenantId: string
   segmentId: string
   activityParentId?: string
   activityChildId?: string
@@ -25,7 +23,6 @@ export interface IDbConversationCreateData {
 }
 
 export interface IDbConversationUpdateData {
-  tenantId: string
   segmentId: string
   title?: string
   slug?: string

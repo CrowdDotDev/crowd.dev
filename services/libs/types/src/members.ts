@@ -25,7 +25,6 @@ export interface IMemberIdentity {
   platform: string
   value: string
   type: MemberIdentityType
-  tenantId?: string
   integrationId?: string
   memberId?: string
   createdAt?: string
@@ -49,7 +48,6 @@ export interface IMemberData {
 
 export interface IMember {
   id: string
-  tenantId: string
   segmentId: string
   attributes: IAttributes
   name?: string // Deprecated
@@ -166,7 +164,6 @@ export interface ILLMConsumableMember {
 
 export interface IMemberBaseForMergeSuggestions {
   id: string
-  tenantId: string
   displayName: string
   attributes: IAttributes
 }

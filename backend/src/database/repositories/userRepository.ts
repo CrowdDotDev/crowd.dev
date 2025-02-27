@@ -777,42 +777,6 @@ export default class UserRepository {
     return lodash.pick(userOrUsers, ['id', 'firstName', 'lastName', 'email'])
   }
 
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-    }
-
-    const include = [
-      {
-        model: options.database.tenantUser,
-        as: 'tenants',
-        where: {
-          tenantId: currentTenant.id,
-        },
-      },
-    ]
-
-    const records = await options.database.user.findAll({
-      attributes: ['id'],
-      where,
-      include,
-    })
-
-    return records.map((record) => record.id)
-  }
-
   static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
     if (!rows) {
       return rows

@@ -17,15 +17,9 @@ export function getMemberAttributeSettingsCache(redis: RedisClient): RedisCache 
   return cache
 }
 
-export async function getPlatformPriorityArray(
-  qx: QueryExecutor,
-  tenantId: string,
-): Promise<string[] | undefined> {
+export async function getPlatformPriorityArray(qx: QueryExecutor): Promise<string[] | undefined> {
   const results = await qx.selectOneOrNone(
-    `select ("attributeSettings" -> 'priorities') as priorities from settings where "tenantId" = $(tenantId)`,
-    {
-      tenantId,
-    },
+    `select ("attributeSettings" -> 'priorities') as priorities from settings`,
   )
 
   return results?.priorities || undefined
@@ -34,20 +28,16 @@ export async function getPlatformPriorityArray(
 export async function getMemberAttributeSettings(
   qx: QueryExecutor,
   redis: RedisClient,
-  tenantId: string,
 ): Promise<IDbMemberAttributeSetting[]> {
   const cache = getMemberAttributeSettingsCache(redis)
-  const cached = await cache.get(tenantId)
+  const cached = await cache.get('default')
 
   if (!cached) {
     const results = await qx.select(
       `
     select id, type, "canDelete", show, label, name, options
-    from "memberAttributeSettings" where "tenantId" = $(tenantId)
+    from "memberAttributeSettings"
     `,
-      {
-        tenantId,
-      },
     )
 
     const data = results.map((r) => {
@@ -62,7 +52,7 @@ export async function getMemberAttributeSettings(
       }
     })
 
-    await cache.set(tenantId, JSON.stringify(data), 30 * 60)
+    await cache.set('default', JSON.stringify(data), 30 * 60)
 
     return data
   }

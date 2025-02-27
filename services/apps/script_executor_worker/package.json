@@ -14,9 +14,9 @@
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
-    "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/common": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",

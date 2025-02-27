@@ -88,6 +88,28 @@
   --lf-btn-secondary-loading-background: var(--lf-color-white);
   --lf-btn-secondary-loading-border: var(--lf-color-gray-200);
 
+  /* Danger */
+  --lf-btn-danger-text: var(--lf-color-white);
+  --lf-btn-danger-background: var(--lf-color-red-500);
+  --lf-btn-danger-border: var(--lf-color-red-500);
+  --lf-btn-danger-shadow: var(--shadow-none);
+  // Hover
+  --lf-btn-danger-hover-text: var(--lf-color-white);
+  --lf-btn-danger-hover-background: var(--lf-color-red-600);
+  --lf-btn-danger-hover-border: var(--lf-color-red-600);
+  // Active
+  --lf-btn-danger-active-text: var(--lf-color-white);
+  --lf-btn-danger-active-background: var(--lf-color-red-700);
+  --lf-btn-danger-active-border: var(--lf-color-red-700);
+  // Disabled
+  --lf-btn-danger-disabled-text: var(--lf-color-white);
+  --lf-btn-danger-disabled-background: var(--lf-color-red-200);
+  --lf-btn-danger-disabled-border: var(--lf-color-red-200);
+  // Loading
+  --lf-btn-danger-loading-text: var(--lf-color-red-100);
+  --lf-btn-danger-loading-background: var(--lf-color-red-500);
+  --lf-btn-danger-loading-border: var(--lf-color-red-500);
+  
 
   /* Primary Ghost */
   --lf-btn-primary-ghost-text: var(--lf-color-primary-500);

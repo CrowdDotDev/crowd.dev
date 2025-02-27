@@ -168,7 +168,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfProjectGroupsDropdown from '@/modules/admin/modules/projects/components/lf-project-groups-dropdown.vue';
 import AppLfStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
-import AppLfProjectCount from '@/modules/admin/modules/projects/components/fragments/lf-project-count.vue';
+import AppLfProjectCount from '@/shared/project-column/lf-project-count.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();

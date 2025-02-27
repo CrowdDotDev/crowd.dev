@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getDefaultTenantId, getLongestDateRange } from '@crowd/common'
+import { getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
@@ -14,7 +14,6 @@ import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
-const tenantId = getDefaultTenantId()
 
 type Condition = {
   when: string[]
@@ -225,9 +224,10 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   memberOrganizations = memberOrganizations.filter(
     (row) =>
-      row.title !== null &&
-      row.title !== undefined &&
-      !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase())),
+      !row.title ||
+      (row.title !== null &&
+        row.title !== undefined &&
+        !blacklistedTitles.some((t) => row.title.toLowerCase().includes(t.toLowerCase()))),
   )
 
   // clean unknown dated work experiences if there is one marked as primary
@@ -380,10 +380,7 @@ export async function getAffiliationsLastCheckedAt(db: DbStore) {
       `
       select "affiliationsLastCheckedAt"
       from tenants
-      where "id" = $(tenantId);`,
-      {
-        tenantId,
-      },
+      limit 1`,
     )
     return result?.affiliationsLastCheckedAt
   } catch (err) {
@@ -448,11 +445,8 @@ export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void
     await db.connection().any(
       `
         update tenants set "affiliationsLastCheckedAt" = now()
-        where "id" = $(tenantId);
+        limit 1
       `,
-      {
-        tenantId,
-      },
     )
   } catch (err) {
     throw new Error(err)

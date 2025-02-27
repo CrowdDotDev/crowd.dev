@@ -23,10 +23,4 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
     return results
   }
-
-  public async getTenantIds(): Promise<string[]> {
-    const results = await this.db().any(`select distinct "tenantId" from organizations;`)
-
-    return results.map((r) => r.tenantId)
-  }
 }

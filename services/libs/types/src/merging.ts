@@ -29,7 +29,6 @@ export interface IUnmergePreviewResult<T> {
 
 export interface IMergeAction {
   id: string
-  tenantId: string
   type: MergeActionType
   primaryId: string
   secondaryId: string

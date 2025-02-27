@@ -27,7 +27,6 @@ import { QUEUE_CLIENT, getDataSinkWorkerEmitter } from '@/serverless/utils/queue
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
-import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
@@ -79,10 +78,6 @@ export default class ActivityService extends LoggerBase {
     const repositoryOptions = { ...this.options, transaction }
 
     try {
-      if (data.member) {
-        data.member = await MemberRepository.filterIdInTenant(data.member, repositoryOptions)
-      }
-
       // check type exists, if doesn't exist, create a placeholder type with activity type key
       if (
         data.platform &&
@@ -174,7 +169,9 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
-        await insertActivities(QUEUE_CLIENT(), [{ ...data, id: record.id }], true)
+        await insertActivities(QUEUE_CLIENT(), [
+          { ...data, id: record.id, createdAt: record.id, createdById: record.createdById },
+        ])
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
@@ -198,7 +195,6 @@ export default class ActivityService extends LoggerBase {
           const children = await queryActivities(
             repositoryOptions.qdb,
             {
-              tenantId: record.tenantId,
               segmentIds: [record.segmentId],
               filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
             },
@@ -210,7 +206,6 @@ export default class ActivityService extends LoggerBase {
             const memberResults = await queryMembersAdvanced(
               optionsQx(repositoryOptions),
               repositoryOptions.redis,
-              repositoryOptions.currentTenant.id,
               {
                 filter: { and: [{ id: { in: memberIds } }] },
                 limit: memberIds.length,
@@ -239,7 +234,7 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
+        await searchSyncService.triggerMemberSync(record.memberId, {
           withAggs: true,
         })
       }
@@ -565,13 +560,7 @@ export default class ActivityService extends LoggerBase {
         'Sending activity with member to data-sink-worker!',
       )
 
-      await dataSinkWorkerEmitter.triggerResultProcessing(
-        this.options.currentTenant.id,
-        data.platform,
-        resultId,
-        resultId,
-        true,
-      )
+      await dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, true)
     } catch (error) {
       this.log.error(error, 'Error during activity create with member!')
       throw error
@@ -583,11 +572,6 @@ export default class ActivityService extends LoggerBase {
     const searchSyncService = new SearchSyncService(this.options)
 
     try {
-      data.member = await MemberRepository.filterIdInTenant(data.member, {
-        ...this.options,
-        transaction,
-      })
-
       if (data.parent) {
         data.parent = await ActivityRepository.filterIdInTenant(data.parent, {
           ...this.options,
@@ -602,7 +586,7 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
+      await searchSyncService.triggerMemberSync(record.memberId, {
         withAggs: true,
       })
       return record
@@ -688,13 +672,11 @@ export default class ActivityService extends LoggerBase {
     const offset = data.offset
     const countOnly = data.countOnly ?? false
 
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
     const page = await queryActivities(
       this.options.qdb,
       {
-        tenantId,
         segmentIds,
         filter,
         orderBy,
@@ -771,15 +753,10 @@ export default class ActivityService extends LoggerBase {
     // }
     if (memberIds.length > 0) {
       promises.push(
-        queryMembersAdvanced(
-          optionsQx(this.options),
-          this.options.redis,
-          this.options.currentTenant.id,
-          {
-            filter: { and: [{ id: { in: memberIds } }] },
-            limit: memberIds.length,
-          },
-        ).then((members) => {
+        queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+          filter: { and: [{ id: { in: memberIds } }] },
+          limit: memberIds.length,
+        }).then((members) => {
           for (const row of page.rows) {
             row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
 

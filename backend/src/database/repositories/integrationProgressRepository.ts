@@ -67,15 +67,13 @@ class IntegrationProgressRepository {
   }
 
   static async getDbStatsForGithub(
-    tenantId: string,
     repos: Repos,
     options: IRepositoryOptions,
   ): Promise<GitHubStats> {
     const starsQuery = `
       SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = $(tenantId)
-      AND platform = 'github' 
+      WHERE platform = 'github' 
       AND type = 'star'
       AND "deletedAt" IS NULL
       AND channel IN ($(remotes:csv))
@@ -84,8 +82,7 @@ class IntegrationProgressRepository {
     const unstarsQuery = `
       SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = $(tenantId)
-      AND platform = 'github' 
+      WHERE platform = 'github' 
       AND type = 'unstar'
       AND "deletedAt" IS NULL
       AND channel IN ($(remotes:csv))
@@ -94,8 +91,7 @@ class IntegrationProgressRepository {
     const forksQuery = `
       SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = $(tenantId)
-      AND platform = 'github' 
+      WHERE platform = 'github' 
       AND type = 'fork'
       AND "deletedAt" IS NULL
       AND "gitIsIndirectFork" != TRUE
@@ -105,8 +101,7 @@ class IntegrationProgressRepository {
     const issuesOpenedQuery = `
       SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = $(tenantId)
-      AND platform = 'github' 
+      WHERE platform = 'github' 
       AND type = 'issues-opened'
       AND "deletedAt" IS NULL
       AND channel IN ($(remotes:csv))
@@ -115,8 +110,7 @@ class IntegrationProgressRepository {
     const prOpenedQuery = `
       SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = $(tenantId)
-      AND platform = 'github' 
+      WHERE platform = 'github' 
       AND type = 'pull_request-opened'
       AND "deletedAt" IS NULL
       AND channel IN ($(remotes:csv))
@@ -126,23 +120,18 @@ class IntegrationProgressRepository {
 
     const promises: Promise<any[]>[] = [
       options.qdb.query(starsQuery, {
-        tenantId,
         remotes,
       }),
       options.qdb.query(unstarsQuery, {
-        tenantId,
         remotes,
       }),
       options.qdb.query(forksQuery, {
-        tenantId,
         remotes,
       }),
       options.qdb.query(issuesOpenedQuery, {
-        tenantId,
         remotes,
       }),
       options.qdb.query(prOpenedQuery, {
-        tenantId,
         remotes,
       }),
     ]
@@ -158,7 +147,6 @@ class IntegrationProgressRepository {
   }
 
   static async getAllIntegrationsInProgressForSegment(
-    tenantId: string,
     options: IRepositoryOptions,
   ): Promise<string[]> {
     const transaction = options.transaction
@@ -171,13 +159,11 @@ class IntegrationProgressRepository {
       from integrations
       where 
         "status" = 'in-progress'
-        and "tenantId" = :tenantId
         and "segmentId" = :segmentId
         and "deletedAt" is null
       `,
       {
         replacements: {
-          tenantId,
           segmentId: segment.id,
         },
         type: QueryTypes.SELECT,
@@ -189,7 +175,6 @@ class IntegrationProgressRepository {
   }
 
   static async getAllIntegrationsInProgressForMultipleSegments(
-    tenantId: string,
     options: IRepositoryOptions,
   ): Promise<string[]> {
     const transaction = options.transaction
@@ -202,13 +187,11 @@ class IntegrationProgressRepository {
       from integrations
       where 
         "status" = 'in-progress'
-        and "tenantId" = :tenantId
         and "segmentId" in (:segmentIds)
         and "deletedAt" is null
       `,
       {
         replacements: {
-          tenantId,
           segmentIds: segments.map((s) => s.id),
         },
         type: QueryTypes.SELECT,

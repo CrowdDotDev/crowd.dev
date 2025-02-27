@@ -1,9 +1,4 @@
-import {
-  DataSinkWorkerEmitter,
-  PriorityLevelContextRepository,
-  QueuePriorityContextLoader,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
@@ -40,18 +35,14 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
-  const loader: QueuePriorityContextLoader = (tenantId: string) =>
-    priorityLevelRepo.loadPriorityLevelContext(tenantId)
-
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(queueClient, redis, loader, log)
+  const emitter = new DataSinkWorkerEmitter(queueClient, log)
   await emitter.init()
 
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
   const memberService = new MemberService(store, searchSyncWorkerEmitter, temporal, redis, log)
@@ -65,10 +56,10 @@ setImmediate(async () => {
       process.exit(1)
     }
 
-    const identities = await memberRepo.getIdentities(memberId, member.tenantId)
+    const identities = await memberRepo.getIdentities(memberId)
     log.info(`Processing memberId: ${member.id}`)
 
-    const segmentIds = await dataSinkRepo.getSegmentIds(member.tenantId)
+    const segmentIds = await dataSinkRepo.getSegmentIds()
     const segmentId = segmentIds[segmentIds.length - 1] // leaf segment id
 
     const emailIdentities = identities.filter(
@@ -77,27 +68,17 @@ setImmediate(async () => {
     if (emailIdentities.length > 0) {
       const emails = emailIdentities.map((i) => i.value)
       log.info({ memberId, emails }, 'Member emails!')
-      const orgs = await memberService.assignOrganizationByEmailDomain(
-        member.tenantId,
-        segmentId,
-        null,
-        emails,
-      )
+      const orgs = await memberService.assignOrganizationByEmailDomain(segmentId, null, emails)
 
       if (orgs.length > 0) {
         log.info('Organizations found with matching email domains:', JSON.stringify(orgs))
-        orgService.addToMember(member.tenantId, segmentId, member.id, orgs)
+        orgService.addToMember(segmentId, member.id, orgs)
 
         for (const org of orgs) {
-          await searchSyncWorkerEmitter.triggerOrganizationSync(
-            member.tenantId,
-            org.id,
-            true,
-            segmentId,
-          )
+          await searchSyncWorkerEmitter.triggerOrganizationSync(org.id, true, segmentId)
         }
 
-        await searchSyncWorkerEmitter.triggerMemberSync(member.tenantId, member.id, true, segmentId)
+        await searchSyncWorkerEmitter.triggerMemberSync(member.id, true, segmentId)
         log.info('Done mapping member to organizations!')
       } else {
         log.info('No organizations found with matching email domains!')

@@ -12,7 +12,6 @@ class MemberRepository {
   ) {}
 
   async findMembersWithSameVerifiedEmailsInDifferentPlatforms(
-    tenantId: string,
     limit = 50,
     afterHash: number = undefined,
   ): Promise<ISimilarMember[]> {
@@ -32,18 +31,15 @@ class MemberRepository {
     from "memberIdentities" a
     join "memberIdentities" b on
         lower(a.value) = lower(b.value)
-        and a."tenantId" = b."tenantId"
         and a."memberId" != b."memberId"
         and a.verified and b.verified
         and a.type = 'email'
-        and a."tenantId" = $(tenantId)
         ${afterHashFilter}
     group by hash
     order by hash desc
     limit $(limit);
       `,
         {
-          tenantId,
           afterHash,
           limit,
         },
@@ -58,7 +54,6 @@ class MemberRepository {
   }
 
   async findMembersWithSameGithubIdentitiesDifferentCapitalization(
-    tenantId: string,
     platform: string,
     limit = 50,
     afterHash: number = undefined,
@@ -80,11 +75,9 @@ class MemberRepository {
     join "memberIdentities" b on
         lower(a.value) = lower(b.value)
         and a.platform = b.platform
-        and a."tenantId" = b."tenantId"
         and a."memberId" != b."memberId"
         and a.verified and b.verified
         and a.type = 'username'
-        and a."tenantId" = $(tenantId)
         and a.platform = $(platform)
         ${afterHashFilter}
     where a."memberId" not in ('5c1a19a0-f85f-11ee-9aad-07d434aa9110', 'c14aec30-e84e-11ee-a714-e30d1595b2e7') and
@@ -94,7 +87,6 @@ class MemberRepository {
     limit $(limit);
       `,
         {
-          tenantId,
           platform,
           afterHash,
           limit,
@@ -120,7 +112,6 @@ class MemberRepository {
           array_agg(mi.platform) as platforms, 
           array_agg(mi.type) as types,
           array_agg(mi.verified) as verified,
-          max(mi."tenantId"::text) as "tenantId",
           array_agg(mi.value) as values,
           lower(mi.value) as "groupedByValue"
         from "memberIdentities" mi

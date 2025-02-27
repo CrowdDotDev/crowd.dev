@@ -231,9 +231,15 @@ export class ServiceWorker extends Service {
         const certificate = process.env['CROWD_TEMPORAL_CERTIFICATE']
         const privateKey = process.env['CROWD_TEMPORAL_PRIVATE_KEY']
 
+        const address = process.env['CROWD_TEMPORAL_SERVER_URL']
+        const taskQueue = process.env['CROWD_TEMPORAL_TASKQUEUE']
+        const namespace = process.env['CROWD_TEMPORAL_NAMESPACE']
+
         this.log.info(
           {
-            address: process.env['CROWD_TEMPORAL_SERVER_URL'],
+            address,
+            namespace,
+            taskQueue,
             certificate: certificate ? 'yes' : 'no',
             privateKey: privateKey ? 'yes' : 'no',
           },
@@ -241,7 +247,7 @@ export class ServiceWorker extends Service {
         )
 
         const connection = await NativeConnection.connect({
-          address: process.env['CROWD_TEMPORAL_SERVER_URL'],
+          address,
           tls:
             certificate && privateKey
               ? {
@@ -269,8 +275,8 @@ export class ServiceWorker extends Service {
         this._worker = await TemporalWorker.create({
           connection: connection,
           identity: this.name,
-          namespace: process.env['CROWD_TEMPORAL_NAMESPACE'],
-          taskQueue: process.env['CROWD_TEMPORAL_TASKQUEUE'],
+          namespace,
+          taskQueue,
           enableSDKTracing: true,
           showStackTraceSources: true,
           workflowBundle,

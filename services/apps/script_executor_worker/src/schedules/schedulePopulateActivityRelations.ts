@@ -25,7 +25,7 @@ export const schedulePopulateActivityRelations = async () => {
         },
         args: [
           {
-            batchSizePerRun: 10000,
+            batchSizePerRun: 50000,
             deleteIndexedEntities: false,
           },
         ],

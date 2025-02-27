@@ -24,6 +24,7 @@ export interface IDbActivity {
   sentiment: ISentimentAnalysisResult
   organizationId?: string
   deletedAt?: string
+  createdAt?: string
 }
 
 export interface IDbActivityCreateData {
@@ -37,7 +38,6 @@ export interface IDbActivityCreateData {
   sourceParentId?: string
   importHash?: string
   parentId?: string
-  tenantId: string
   segmentId?: string
   memberId: string
   username: string
@@ -135,7 +135,6 @@ export interface IDbActivityUpdateData {
   parentId?: string
   sourceId: string
   sourceParentId?: string
-  tenantId?: string
   segmentId?: string
   memberId: string
   username: string

@@ -7,16 +7,15 @@ class OrganizationRepository {
     private readonly log: Logger,
   ) {}
 
-  async getOrgIdentitiesWithInvalidUrls(tenantId: string, limit: number) {
+  async getOrgIdentitiesWithInvalidUrls(limit: number) {
     const result = await this.connection.any(
       `
             SELECT *
             FROM "organizationIdentities"
             WHERE value LIKE '%www%' AND (type = 'alternative-domain' OR type = 'primary-domain')
-            AND "tenantId" = $(tenantId) LIMIT $(limit);
+            LIMIT $(limit);
         `,
       {
-        tenantId,
         limit,
       },
     )
@@ -24,13 +23,7 @@ class OrganizationRepository {
     return result
   }
 
-  async findOrganizationIdentity(
-    platform: string,
-    value: string,
-    type: string,
-    verified: boolean,
-    tenantId: string,
-  ) {
+  async findOrganizationIdentity(platform: string, value: string, type: string, verified: boolean) {
     let results = await this.connection.any(
       `
           SELECT *
@@ -38,10 +31,9 @@ class OrganizationRepository {
           WHERE value = $(value)
           AND platform = $(platform)
           AND type = $(type)
-          AND verified = $(verified)
-          AND "tenantId" = $(tenantId);
+          AND verified = $(verified);
         `,
-      { value, platform, type, verified, tenantId },
+      { value, platform, type, verified },
     )
 
     // Try to find the identity without the verified flag
@@ -52,10 +44,9 @@ class OrganizationRepository {
             FROM "organizationIdentities"
             WHERE value = $(value)
             AND platform = $(platform)
-            AND type = $(type)
-            AND "tenantId" = $(tenantId);
+            AND type = $(type);
           `,
-        { value, platform, type, tenantId },
+        { value, platform, type },
       )
     }
 
@@ -69,7 +60,6 @@ class OrganizationRepository {
     oldValue: string,
     type: string,
     verified: boolean,
-    tenantId: string,
   ) {
     await this.connection.none(
       `
@@ -79,10 +69,9 @@ class OrganizationRepository {
           AND platform = $(platform)
           AND value = $(oldValue)
           AND type = $(type)
-          AND verified = $(verified)
-          AND "tenantId" = $(tenantId);
+          AND verified = $(verified);
       `,
-      { orgId, platform, newValue, oldValue, type, verified, tenantId },
+      { orgId, platform, newValue, oldValue, type, verified },
     )
   }
 
@@ -92,7 +81,6 @@ class OrganizationRepository {
     type: string,
     value: string,
     verified: boolean,
-    tenantId: string,
   ) {
     await this.connection.none(
       `
@@ -101,10 +89,9 @@ class OrganizationRepository {
           AND platform = $(platform)
           AND type = $(type)
           AND value = $(value)
-          AND verified = $(verified)
-          AND "tenantId" = $(tenantId);
+          AND verified = $(verified);
       `,
-      { orgId, platform, type, value, verified, tenantId },
+      { orgId, platform, type, value, verified },
     )
   }
 }
