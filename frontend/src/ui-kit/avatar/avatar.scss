@@ -14,7 +14,7 @@
     font-size: calc(var(--lf-avatar-size) * var(--lf-avatar-text-size));
     line-height: var(--lf-avatar-size);
     color: var(--lf-avatar-color);
-    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center uppercase font-semibold;
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center uppercase font-semibold w-full;
   }
 
   img{
