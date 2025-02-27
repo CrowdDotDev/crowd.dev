@@ -57,6 +57,7 @@ export interface IQueryActivitiesParameters {
   noLimit?: boolean
   offset?: number
   countOnly?: boolean
+  noCount?: boolean
   groupBy?: string
 }
 

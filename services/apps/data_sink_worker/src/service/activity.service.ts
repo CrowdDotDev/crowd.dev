@@ -35,7 +35,7 @@ import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
-import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2, measureTime } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -662,6 +662,7 @@ export default class ActivityService extends LoggerBase {
                   { channel: { eq: activity.channel } },
                 ],
               },
+              noCount: true,
               limit: 1,
             }),
           this.log,
