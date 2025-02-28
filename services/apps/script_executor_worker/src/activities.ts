@@ -34,7 +34,6 @@ import {
   markEntitiesIndexed,
   syncMembersBatch,
 } from './activities/sync/member'
-import { calculateMemberAffiliations } from './activities/unlink-deleted-memberOrg-activities'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -61,5 +60,4 @@ export {
   getMembersForSync,
   deleteIndexedEntities,
   markEntitiesIndexed,
-  calculateMemberAffiliations,
 }
