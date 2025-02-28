@@ -644,7 +644,6 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 }
 
 .copy-icon {
-  @apply h-8 w-8 flex items-center justify-center rounded-full;
-  @apply bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer;
+  @apply h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer;
 }
 </style>
