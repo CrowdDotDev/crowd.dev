@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrl } from '@/utils/image-loader';
 
 const confluence: IdentityConfig = {
   key: 'confluence',
   name: 'Confluence',
-  image: '/src/assets/images/identities/confluence.svg',
+  image: getImageUrl('identities/confluence', 'svg'),
   member: {
     placeholder: 'Confluence username or email address',
   },
