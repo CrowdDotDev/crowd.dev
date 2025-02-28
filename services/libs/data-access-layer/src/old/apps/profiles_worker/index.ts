@@ -350,10 +350,6 @@ export async function runMemberAffiliationsUpdate(
     memberId,
   )
 
-  logger.info(`orgCases: ${JSON.stringify(orgCases)}`)
-  logger.info(`fullCase: ${fullCase}`)
-  logger.info(`fallbackOrganizationId: ${fallbackOrganizationId}`)
-
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
