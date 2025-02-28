@@ -274,7 +274,7 @@
                             </span>
                           </span>
                         </div>
-                        <div v-else class="copy-icon">
+                        <div v-else class="copy-icon group">
                           <el-tooltip
                             placement="top"
                             content="Copy to clipboard"
@@ -602,6 +602,10 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
   }
 }
 
+.copy-icon {
+  @apply h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 cursor-pointer;
+}
+
 .slide-enter-active,
 .slide-leave-active {
   transition: all 0.2s ease-out;
@@ -641,9 +645,5 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 
 .fade-leave-to {
   opacity: 0;
-}
-
-.copy-icon {
-  @apply h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer;
 }
 </style>
