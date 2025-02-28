@@ -32,3 +32,9 @@ export interface ISyncMembersArgs {
   withAggs?: boolean
   testRun?: boolean
 }
+
+export interface IFixDeletedMemberOrgAffilationsArgs {
+  date?: string
+  batchSize?: number
+  testRun?: boolean
+}

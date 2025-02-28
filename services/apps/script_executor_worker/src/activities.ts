@@ -11,6 +11,14 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  addOrgIdToRedisCache,
+  calculateMemberAffiliations,
+  createActivities,
+  findActivitiesPg,
+  getActivities,
+  getMembersWithDeletedOrgAffilations,
+} from './activities/fix-deleted-member-org-affilations'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -60,4 +68,10 @@ export {
   getMembersForSync,
   deleteIndexedEntities,
   markEntitiesIndexed,
+  getMembersWithDeletedOrgAffilations,
+  getActivities,
+  findActivitiesPg,
+  createActivities,
+  addOrgIdToRedisCache,
+  calculateMemberAffiliations,
 }
