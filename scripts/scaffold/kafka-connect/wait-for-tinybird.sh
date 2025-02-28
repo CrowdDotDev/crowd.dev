@@ -40,4 +40,5 @@ exec connect-standalone \
   /etc/kafka-connect/console-local-sink.properties \
   /etc/kafka-connect/questdb-local-sink.properties \
   "$ACTIVITIES_SINK_TEMP_FILE" \
-  "$SEQUIN_SINK_TEMP_FILE"
+  "$SEQUIN_SINK_TEMP_FILE" \
+  /etc/kafka-connect/debezium-postgres-source.properties
