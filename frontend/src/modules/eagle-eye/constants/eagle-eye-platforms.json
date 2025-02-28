@@ -9,7 +9,7 @@
   },
   "hackernews": {
     "label": "Hacker News",
-    "img": "/images/integrations/hackernews.svg"
+    "img": "/src/assets/images/integrations/hackernews.svg"
   },
   "hashnode": {
     "label": "Hashnode",
@@ -17,7 +17,7 @@
   },
   "kaggle": {
     "label": "Kaggle",
-    "img": "/images/integrations/kaggle.png"
+    "img": "/src/assets/images/integrations/kaggle.png"
   },
   "medium": {
     "label": "Medium",
@@ -25,11 +25,11 @@
   },
   "producthunt": {
     "label": "Product Hunt",
-    "img": "/images/integrations/producthunt.png"
+    "img": "/src/assets/images/integrations/producthunt.png"
   },
   "reddit": {
     "label": "Reddit",
-    "img": "/images/integrations/reddit.svg"
+    "img": "/src/assets/images/integrations/reddit.svg"
   },
   "stackoverflow": {
     "label": "Stack Overflow",
@@ -37,7 +37,7 @@
   },
   "twitter": {
     "label": "X/Twitter",
-    "img": "/images/integrations/twitter-x-black.png"
+    "img": "/src/assets/images/integrations/twitter-x-black.png"
   },
   "youtube": {
     "label": "YouTube",

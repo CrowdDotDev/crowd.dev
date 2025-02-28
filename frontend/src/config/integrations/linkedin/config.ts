@@ -7,8 +7,9 @@ import LinkedinDropdown from './components/linkedin-dropdown.vue';
 const linkedin: IntegrationConfig = {
   key: 'linkedin',
   name: 'LinkedIn',
-  image: '/images/integrations/linkedin.png',
-  description: 'Connect LinkedIn to sync comments and reactions from your organization\'s posts.',
+  image: '/src/assets/images/integrations/linkedin.png',
+  description:
+    "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   connectComponent: LinkedinConnect,
   connectedParamsComponent: LinkedinParams,
   actionComponent: LinkedinAction,

@@ -3,7 +3,7 @@ import { IdentityConfig } from '@/config/identities';
 const twitter: IdentityConfig = {
   key: 'twitter',
   name: 'X/Twitter',
-  image: '/images/identities/twitter.png',
+  image: '/src/assets/images/identities/twitter.png',
   member: {
     urlPrefix: 'twitter.com/',
     url: ({ identity }) => (identity.value ? `https://twitter.com/${identity.value}` : null),

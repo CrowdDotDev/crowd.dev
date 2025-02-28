@@ -7,8 +7,9 @@ import GitlabStatus from './components/gitlab-status.vue';
 const gitlab: IntegrationConfig = {
   key: 'gitlab',
   name: 'GitLab',
-  image: '/images/integrations/gitlab.png',
-  description: 'Connect GitLab to sync profile information, merge requests, issues, and more.',
+  image: '/src/assets/images/integrations/gitlab.png',
+  description:
+    'Connect GitLab to sync profile information, merge requests, issues, and more.',
   connectComponent: GitlabConnect,
   connectedParamsComponent: GitlabParams,
   actionComponent: GitlabAction,

@@ -3,7 +3,7 @@ import { IdentityConfig } from '@/config/identities';
 const gerrit: IdentityConfig = {
   key: 'gerrit',
   name: 'Gerrit',
-  image: '/images/identities/gerrit.png',
+  image: '/src/assets/images/identities/gerrit.png',
   member: {
     placeholder: 'Gerrit username or email address',
   },

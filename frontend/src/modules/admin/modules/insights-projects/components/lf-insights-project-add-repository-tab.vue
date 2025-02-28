@@ -42,7 +42,7 @@
           />
           <img
             v-if="platform === 'gerrit'"
-            src="/images/integrations/gerrit.png"
+            src="/src/assets/images/integrations/gerrit.png"
             alt="Gerrit"
             class="w-5 h-5"
           />

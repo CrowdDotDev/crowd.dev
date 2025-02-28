@@ -3,7 +3,7 @@ import { IdentityConfig } from '@/config/identities';
 const github: IdentityConfig = {
   key: 'github',
   name: 'GitHub',
-  image: '/images/identities/github.png',
+  image: '/src/assets/images/identities/github.png',
   icon: 'github',
   iconType: 'brands',
   color: '#24292F',

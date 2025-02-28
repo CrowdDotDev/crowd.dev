@@ -20,7 +20,10 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -63,7 +66,7 @@ const finallizeSlackConnect = () => {
     ConfirmDialog({
       vertical: true,
       type: 'custom',
-      icon: '<img src="/images/integrations/slack.png" class="h-8 w-8" alt="slack logo" />',
+      icon: '<img src="/src/assets/images/integrations/slack.png" class="h-8 w-8" alt="slack logo" />',
       title: `<span class="flex items-start gap-1">Connect Slack bot
               <span class="text-primary-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
       titleClass: 'text-lg',
@@ -77,7 +80,10 @@ const finallizeSlackConnect = () => {
       closeOnClickModal: false,
       hideCloseButton: true,
     }).then(() => {
-      window.open('https://docs.linuxfoundation.org/lfx/community-management/integrations/slack#add-slack-bots-to-channels', '_blank');
+      window.open(
+        'https://docs.linuxfoundation.org/lfx/community-management/integrations/slack#add-slack-bots-to-channels',
+        '_blank',
+      );
       router.replace({ query: null });
     });
   }

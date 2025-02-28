@@ -6,8 +6,9 @@ import RedditDropdown from './components/reddit-dropdown.vue';
 const reddit: IntegrationConfig = {
   key: 'reddit',
   name: 'Reddit',
-  image: '/images/integrations/reddit.svg',
-  description: 'Connect Reddit to sync posts and comments from selected subreddits.',
+  image: '/src/assets/images/integrations/reddit.svg',
+  description:
+    'Connect Reddit to sync posts and comments from selected subreddits.',
   connectComponent: RedditConnect,
   connectedParamsComponent: RedditParams,
   dropdownComponent: RedditDropdown,

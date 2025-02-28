@@ -6,8 +6,9 @@ import ConfluenceDropdown from './components/confluence-dropdown.vue';
 const confluence: IntegrationConfig = {
   key: 'confluence',
   name: 'Confluence',
-  image: '/images/integrations/confluence.svg',
-  description: 'Connect Confluence to sync documentation activities from your repos.',
+  image: '/src/assets/images/integrations/confluence.svg',
+  description:
+    'Connect Confluence to sync documentation activities from your repos.',
   connectComponent: ConfluenceConnect,
   connectedParamsComponent: ConfluenceParams,
   dropdownComponent: ConfluenceDropdown,

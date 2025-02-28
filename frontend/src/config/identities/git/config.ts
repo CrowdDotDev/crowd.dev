@@ -3,7 +3,7 @@ import { IdentityConfig } from '@/config/identities';
 const git: IdentityConfig = {
   key: 'git',
   name: 'Git',
-  image: '/images/identities/git.png',
+  image: '/src/assets/images/identities/git.png',
   member: {
     placeholder: 'Git email address',
   },

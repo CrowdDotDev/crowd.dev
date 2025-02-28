@@ -5,8 +5,9 @@ import DiscordParams from './components/discord-params.vue';
 const discord: IntegrationConfig = {
   key: 'discord',
   name: 'Discord',
-  image: '/images/integrations/discord.png',
-  description: 'Connect Discord to sync messages, threads, forum channels, and new joiners.',
+  image: '/src/assets/images/integrations/discord.png',
+  description:
+    'Connect Discord to sync messages, threads, forum channels, and new joiners.',
   connectComponent: DiscordConnect,
   connectedParamsComponent: DiscordParams,
   showProgress: false,

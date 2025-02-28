@@ -8,13 +8,21 @@
               Integration
             </p>
             <div class="flex items-center gap-2">
-              <img src="/images/integrations/github.png" alt="GitHub" class="h-6 w-6" />
+              <img
+                src="/src/assets/images/integrations/github.png"
+                alt="GitHub"
+                class="h-6 w-6"
+              />
               <h5 class="text-black">
                 GitHub
               </h5>
             </div>
           </div>
-          <lf-button type="secondary-ghost" icon-only @click="isDrawerVisible = false">
+          <lf-button
+            type="secondary-ghost"
+            icon-only
+            @click="isDrawerVisible = false"
+          >
             <lf-icon name="xmark" />
           </lf-button>
         </div>
@@ -24,7 +32,10 @@
         </p>
       </section>
       <div class="flex-grow overflow-auto">
-        <lf-github-settings-empty v-if="repositories.length === 0" @add="isAddRepositoryModalOpen = true" />
+        <lf-github-settings-empty
+          v-if="repositories.length === 0"
+          @add="isAddRepositoryModalOpen = true"
+        />
         <div v-else class="px-6 pt-5">
           <lf-github-settings-mapping
             v-model:repositories="repositories"
@@ -39,13 +50,20 @@
         class="border-t border-gray-100 py-5 px-6 flex justify-end gap-4"
         style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)"
       >
-        <lf-button type="secondary-ghost-light" @click="isDrawerVisible = false">
+        <lf-button
+          type="secondary-ghost-light"
+          @click="isDrawerVisible = false"
+        >
           Cancel
         </lf-button>
         <span>
           <lf-button
             type="primary"
-            :disabled="$v.$invalid || !repositories.length || props.integration?.status === 'in-progress'"
+            :disabled="
+              $v.$invalid
+                || !repositories.length
+                || props.integration?.status === 'in-progress'
+            "
             @click="connect()"
           >
             {{ props.integration ? "Update settings" : "Connect" }}
@@ -154,10 +172,11 @@ const buildSettings = (): GitHubSettings => {
         .map((r) => ({
           name: r.name,
           url: r.url,
-          updatedAt: (props.integration
-            && repoMappings.value[r.url] !== initialRepoMappings.value[r.url])
-            ? dateHelper().toISOString()
-            : r.updatedAt || dateHelper().toISOString(),
+          updatedAt:
+            props.integration
+            && repoMappings.value[r.url] !== initialRepoMappings.value[r.url]
+              ? dateHelper().toISOString()
+              : r.updatedAt || dateHelper().toISOString(),
         })),
     }),
   );
@@ -169,20 +188,30 @@ const connect = () => {
   const settings: GitHubSettings = buildSettings();
 
   (props.integration?.id
-    ? IntegrationService.update(props.integration.id, {
-      settings,
-    }, [props.segmentId])
-    : IntegrationService.create({
-      settings,
-      platform: 'github',
-      status: 'in-progress',
-    }, [props.segmentId])
+    ? IntegrationService.update(
+      props.integration.id,
+      {
+        settings,
+      },
+      [props.segmentId],
+    )
+    : IntegrationService.create(
+      {
+        settings,
+        platform: 'github',
+        status: 'in-progress',
+      },
+      [props.segmentId],
+    )
   )
     .then((res) => {
       integration = res;
-      return IntegrationService.githubMapRepos(res.id, repoMappings.value, [
-        res.segmentId,
-      ], !!props.integration?.id);
+      return IntegrationService.githubMapRepos(
+        res.id,
+        repoMappings.value,
+        [res.segmentId],
+        !!props.integration?.id,
+      );
     })
     .then(() => {
       doFetch([integration.segmentId]);

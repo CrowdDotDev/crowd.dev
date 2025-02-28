@@ -6,7 +6,7 @@ import GroupsioDropdown from './components/groupsio-dropdown.vue';
 const groupsio: IntegrationConfig = {
   key: 'groupsio',
   name: 'Groups.io',
-  image: '/images/integrations/groupsio.svg',
+  image: '/src/assets/images/integrations/groupsio.svg',
   description: 'Connect Groups.io to sync groups and topics activity.',
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,

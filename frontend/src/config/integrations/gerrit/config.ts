@@ -6,8 +6,9 @@ import GerritDropdown from './components/gerrit-dropdown.vue';
 const gerrit: IntegrationConfig = {
   key: 'gerrit',
   name: 'Gerrit',
-  image: '/images/integrations/gerrit.png',
-  description: 'Connect Gerrit to sync documentation activities from your repos.',
+  image: '/src/assets/images/integrations/gerrit.png',
+  description:
+    'Connect Gerrit to sync documentation activities from your repos.',
   connectComponent: GerritConnect,
   connectedParamsComponent: GerritParams,
   dropdownComponent: GerritDropdown,

@@ -6,8 +6,9 @@ import GithubDropdown from './components/github-dropdown.vue';
 const github: IntegrationConfig = {
   key: 'github',
   name: 'GitHub',
-  image: '/images/integrations/github.png',
-  description: 'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
+  image: '/src/assets/images/integrations/github.png',
+  description:
+    'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
   connectedParamsComponent: GithubParams,
