@@ -32,3 +32,10 @@ export interface ISyncMembersArgs {
   withAggs?: boolean
   testRun?: boolean
 }
+
+export interface IFixMemberAffilationsArgs {
+  segmentId: string
+  limit?: number
+  offset?: number
+  testRun?: boolean
+}

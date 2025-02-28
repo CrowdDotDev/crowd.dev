@@ -10,6 +10,7 @@ import {
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
+import { calculateMemberAffiliations, getSegmentMembers } from './activities/fix-member-affilations'
 import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
@@ -60,4 +61,6 @@ export {
   getMembersForSync,
   deleteIndexedEntities,
   markEntitiesIndexed,
+  getSegmentMembers,
+  calculateMemberAffiliations,
 }

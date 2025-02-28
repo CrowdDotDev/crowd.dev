@@ -1,4 +1,4 @@
-import { DbConnection, DbTransaction } from '@crowd/database'
+import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
@@ -9,6 +9,7 @@ class MemberRepository {
   constructor(
     private readonly connection: DbConnection | DbTransaction,
     private readonly log: Logger,
+    private readonly questdbSQL?: DbConnOrTx,
   ) {}
 
   async findMembersWithSameVerifiedEmailsInDifferentPlatforms(
@@ -170,6 +171,25 @@ class MemberRepository {
     )
 
     return results.map((r) => r.id)
+  }
+
+  public async getSegmentMembers(segmentId: string, limit = 200, offset = 0): Promise<string[]> {
+    const results = await this.questdbSQL.query(
+      `
+      select distinct "memberId"
+      from activities
+      where "segmentId" = $(segmentId)
+      limit $(limit)
+      offset $(offset)
+      `,
+      {
+        segmentId,
+        limit,
+        offset,
+      },
+    )
+
+    return results.map((r) => r.memberId)
   }
 }
 
