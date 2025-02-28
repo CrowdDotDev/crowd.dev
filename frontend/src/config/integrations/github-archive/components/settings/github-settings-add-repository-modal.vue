@@ -40,7 +40,7 @@
         <div v-if="!search || loading" class="flex flex-col items-center pb-6">
           <div class="py-4">
             <img
-              src="/src/assets/images/integrations/github-search.png"
+              :src="getImageUrlFromPath('integrations/github-search.png')"
               alt="GitHub Search"
               class="w-full max-w-100"
               :class="{ 'animate-pulse': loading }"
@@ -210,6 +210,7 @@ import {
 import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
 import Message from '@/shared/message/message';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const props = defineProps<{
   modelValue: boolean;

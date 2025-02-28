@@ -12,13 +12,12 @@
     >
       <img
         :alt="platformOptions[result.platform].label"
-        :src="platformOptions[result.platform].img"
+        :src="getImageUrlFromPath(platformOptions[result.platform].img)"
         class="w-6 h-6"
       />
-      <span
-        v-if="result.postedAt"
-        class="text-gray-400 text-2xs"
-      >{{ formatDateToTimeAgo(result.postedAt) }}</span>
+      <span v-if="result.postedAt" class="text-gray-400 text-2xs">{{
+        formatDateToTimeAgo(result.postedAt)
+      }}</span>
     </div>
 
     <!-- Image -->
@@ -37,7 +36,9 @@
     <div
       class="mt-4 pb-9"
       :class="{
-        'border-b border-gray-100': hasPermission(LfPermission.eagleEyeActionCreate),
+        'border-b border-gray-100': hasPermission(
+          LfPermission.eagleEyeActionCreate,
+        ),
       }"
     >
       <div
@@ -56,10 +57,7 @@
         >
           {{ subreddit }}
         </a>
-        <h6
-          v-if="result.post.title"
-          class="black mb-3 break-words"
-        >
+        <h6 v-if="result.post.title" class="black mb-3 break-words">
           {{ result.post.title }}
         </h6>
         <div
@@ -85,8 +83,7 @@
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-green-100 hover:bg-green-100':
-                  isRelevant,
+                'bg-green-100 hover:bg-green-100': isRelevant,
               }"
               @click.stop="
                 onActionClick({
@@ -100,7 +97,11 @@
                 :type="isRelevant ? 'solid' : 'light'"
                 :size="20"
                 class="group-hover:text-gray-900"
-                :class="isRelevant ? 'text-green-600 group-hover:text-green-600' : 'text-gray-400'"
+                :class="
+                  isRelevant
+                    ? 'text-green-600 group-hover:text-green-600'
+                    : 'text-gray-400'
+                "
               />
             </div>
           </span>
@@ -125,7 +126,11 @@
                 :type="isNotRelevant ? 'solid' : 'light'"
                 :size="20"
                 class="group-hover:text-gray-900"
-                :class="isNotRelevant ? 'text-red-600 group-hover:text-red-600' : 'text-gray-400'"
+                :class="
+                  isNotRelevant
+                    ? 'text-red-600 group-hover:text-red-600'
+                    : 'text-gray-400'
+                "
               />
             </div>
           </span>
@@ -140,8 +145,7 @@
             <div
               class="h-8 w-8 flex items-center mr-2 justify-center rounded-full group"
               :class="{
-                'hover:bg-gray-200':
-                  isGenerateReplyAvailable,
+                'hover:bg-gray-200': isGenerateReplyAvailable,
                 'hover:bg-white': !isGenerateReplyAvailable,
                 'cursor-auto': !isGenerateReplyAvailable,
               }"
@@ -149,7 +153,11 @@
               <lf-icon
                 name="lightbulb"
                 :size="20"
-                :class="isGenerateReplyAvailable ? 'text-gray-400 group-hover:text-gray-900' : 'text-gray-300'"
+                :class="
+                  isGenerateReplyAvailable
+                    ? 'text-gray-400 group-hover:text-gray-900'
+                    : 'text-gray-300'
+                "
               />
             </div>
           </span>
@@ -167,29 +175,25 @@
                 <div
                   class="rounded-full bg-yellow-100 flex items-center justify-center min-h-6 min-w-[1.6rem]"
                 >
-                  <lf-icon name="circle-exclamation" :size="16" class="text-yellow-500" />
+                  <lf-icon
+                    name="circle-exclamation"
+                    :size="16"
+                    class="text-yellow-500"
+                  />
                 </div>
                 <div class="text-gray-600 text-2xs">
-                  This is just a starting point. We
-                  recommend you to read the post and add
-                  genuine value to your response.
+                  This is just a starting point. We recommend you to read the
+                  post and add genuine value to your response.
                 </div>
               </div>
-              <div
-                class="p-4 flex items-center justify-center flex-wrap"
-              >
+              <div class="p-4 flex items-center justify-center flex-wrap">
                 <div class="bg-gray-50 rounded-lg w-full">
-                  <Transition
-                    name="fade-out-in"
-                    mode="out-in"
-                  >
+                  <Transition name="fade-out-in" mode="out-in">
                     <div
                       v-if="generatedReply === ''"
                       class="mx-auto text-center w-full p-4"
                     >
-                      <div
-                        class="flex flex-col gap-3 w-3/4"
-                      >
+                      <div class="flex flex-col gap-3 w-3/4">
                         <div
                           v-for="(_, dindex) in [1, 2, 3]"
                           :key="dindex"
@@ -203,9 +207,7 @@
                     <div v-else class="mx-auto">
                       <div
                         class="h-full w-full cursor-copy p-4"
-                        @click="
-                          copyToClipboard(generatedReply)
-                        "
+                        @click="copyToClipboard(generatedReply)"
                       >
                         {{ generatedReply }}
                       </div>
@@ -223,46 +225,47 @@
                       <span>Was this helpful? </span>
                       <lf-icon
                         name="thumbs-up"
-                        :type="generatedReplyThumbsUpFeedback ? 'solid' : 'light'"
+                        :type="
+                          generatedReplyThumbsUpFeedback ? 'solid' : 'light'
+                        "
                         :size="16"
                         class="cursor-pointer mx-1"
-                        :class="generatedReplyThumbsUpFeedback ? 'text-green-500' : ''"
+                        :class="
+                          generatedReplyThumbsUpFeedback ? 'text-green-500' : ''
+                        "
                         @click="
-                          generatedReplyFeedback(
-                            generatedReply,
-                            'thumbs-up',
-                          )
+                          generatedReplyFeedback(generatedReply, 'thumbs-up')
                         "
                       />
                       <lf-icon
                         name="thumbs-down"
-                        :type="generatedReplyThumbsDownFeedback ? 'solid' : 'light'"
+                        :type="
+                          generatedReplyThumbsDownFeedback ? 'solid' : 'light'
+                        "
                         :size="16"
                         class="cursor-pointer"
-                        :class="generatedReplyThumbsDownFeedback ? 'text-red-500' : ''"
+                        :class="
+                          generatedReplyThumbsDownFeedback ? 'text-red-500' : ''
+                        "
                         @click="
-                          generatedReplyFeedback(
-                            generatedReply,
-                            'thumbs-down',
-                          )
+                          generatedReplyFeedback(generatedReply, 'thumbs-down')
                         "
                       />
                     </div>
                   </Transition>
                   <Transition name="fade">
                     <div v-if="generatedReply !== ''">
-                      <Transition
-                        name="slide"
-                        mode="out-in"
-                      >
+                      <Transition name="slide" mode="out-in">
                         <div
                           v-if="replyInClipboard"
                           class="flex flex-wrap items-center"
                         >
-                          <lf-icon name="check" :size="16" class="text-primary-500" />
-                          <span
-                            class="text-xs ml-1 text-gray-600"
-                          >Copied to clipboard.
+                          <lf-icon
+                            name="check"
+                            :size="16"
+                            class="text-primary-500"
+                          />
+                          <span class="text-xs ml-1 text-gray-600">Copied to clipboard.
                             <span
                               class="font-semibold cursor-pointer text-primary-500"
                               @click="onCardClickFromDialog"
@@ -271,11 +274,7 @@
                             </span>
                           </span>
                         </div>
-                        <div
-                          v-else
-                          class="h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400
-                          hover:bg-gray-200 hover:text-gray-900 group cursor-pointer"
-                        >
+                        <div v-else class="copy-icon">
                           <el-tooltip
                             placement="top"
                             content="Copy to clipboard"
@@ -283,11 +282,7 @@
                             <lf-icon
                               name="clipboard"
                               :size="20"
-                              @click="
-                                copyToClipboard(
-                                  generatedReply,
-                                )
-                              "
+                              @click="copyToClipboard(generatedReply)"
                             />
                           </el-tooltip>
                         </div>
@@ -299,10 +294,7 @@
             </div>
           </template>
         </app-dialog>
-        <el-tooltip
-          placement="top"
-          :content="bookmarkTooltip"
-        >
+        <el-tooltip placement="top" :content="bookmarkTooltip">
           <span
             :class="{
               '!cursor-auto': isBookmarkedByTeam,
@@ -312,8 +304,7 @@
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-primary-100 hover:bg-primary-100':
-                  isBookmarked,
+                'bg-primary-100 hover:bg-primary-100': isBookmarked,
                 'pointer-events-none': isBookmarkedByTeam,
               }"
               @click.stop="
@@ -328,12 +319,10 @@
                 :type="isBookmarked || isBookmarkedByTeam ? 'solid' : 'light'"
                 class="text-gray-400 group-hover:text-gray-900"
                 :class="{
-                  'text-gray-400':
-                    !isBookmarked && !isBookmarkedByTeam,
+                  'text-gray-400': !isBookmarked && !isBookmarkedByTeam,
                   'text-primary-600 group-hover:text-primary-600':
                     isBookmarked && !isBookmarkedByTeam,
-                  'text-primary-300':
-                    isBookmarkedByTeam,
+                  'text-primary-300': isBookmarkedByTeam,
                 }"
               />
             </div>
@@ -358,6 +347,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
@@ -378,9 +368,8 @@ const { user, tenant } = storeToRefs(authStore);
 const { hasPermission } = usePermissions();
 
 const eagleEyeSettings = computed(
-  () => user?.value?.tenants.find(
-    (tu) => tu.tenantId === tenant?.value.id,
-  )?.settings.eagleEye,
+  () => user?.value?.tenants.find((tu) => tu.tenantId === tenant?.value.id)
+    ?.settings.eagleEye,
 );
 
 const generatedReply = ref('');
@@ -391,8 +380,7 @@ const generatedReplyThumbsDownFeedback = ref(false);
 const DialogHeading = h(
   'h5',
   {
-    class:
-      'text-base text-lg leading-5 font-semibold pb-4 pt-2',
+    class: 'text-base text-lg leading-5 font-semibold pb-4 pt-2',
   },
   [
     '🤖 AI reply',
@@ -406,26 +394,21 @@ const DialogHeading = h(
   ],
 );
 
-const isBookmarked = computed(() => props.result.actions.some(
-  (a) => a.type === 'bookmark' && !a.toRemove,
-));
-const isRelevant = computed(() => props.result.actions.some(
-  (a) => a.type === 'thumbs-up' && !a.toRemove,
-));
-const isNotRelevant = computed(() => props.result.actions.some(
-  (a) => a.type === 'thumbs-down' && !a.toRemove,
-));
+const isBookmarked = computed(() => props.result.actions.some((a) => a.type === 'bookmark' && !a.toRemove));
+const isRelevant = computed(() => props.result.actions.some((a) => a.type === 'thumbs-up' && !a.toRemove));
+const isNotRelevant = computed(() => props.result.actions.some((a) => a.type === 'thumbs-down' && !a.toRemove));
 const isBookmarkedByUser = computed(() => {
   const bookmarkAction = props.result.actions.find(
     (a) => a.type === 'bookmark',
   );
   return (
-    !bookmarkAction?.actionById
-    || bookmarkAction?.actionById === user.value.id
+    !bookmarkAction?.actionById || bookmarkAction?.actionById === user.value.id
   );
 });
 
-const isBookmarkedByTeam = computed(() => isBookmarked.value && !isBookmarkedByUser.value);
+const isBookmarkedByTeam = computed(
+  () => isBookmarked.value && !isBookmarkedByUser.value,
+);
 
 const bookmarkTooltip = computed(() => {
   if (isBookmarked.value && !isBookmarkedByUser.value) {
@@ -435,13 +418,15 @@ const bookmarkTooltip = computed(() => {
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark';
 });
 
-const areGeneratedRepliesActivated = computed(() => eagleEyeSettings.value?.aiReplies || false);
+const areGeneratedRepliesActivated = computed(
+  () => eagleEyeSettings.value?.aiReplies || false,
+);
 
-const isGenerateReplyAvailable = computed(() => (
-  props.result.platform !== 'github'
+const isGenerateReplyAvailable = computed(
+  () => props.result.platform !== 'github'
     && props.result.platform !== 'stackoverflow'
-    && props.result.platform !== 'youtube'
-));
+    && props.result.platform !== 'youtube',
+);
 
 const replyTooltip = computed(() => {
   if (!isGenerateReplyAvailable.value) {
@@ -514,10 +499,7 @@ const onCardClickFromDialog = async (e) => {
   }, 200);
 };
 
-const generatedReplyFeedback = async (
-  reply,
-  type,
-) => {
+const generatedReplyFeedback = async (reply, type) => {
   if (type === 'thumbs-up') {
     if (generatedReplyThumbsUpFeedback.value) {
       return;
@@ -553,8 +535,7 @@ const onGenerateReplyClick = async () => {
     return;
   }
 
-  const savedReplies = JSON.parse(localStorage.getItem('eagleEyeReplies'))
-    || {};
+  const savedReplies = JSON.parse(localStorage.getItem('eagleEyeReplies')) || {};
 
   if (savedReplies && savedReplies[props.result.url]) {
     generatedReply.value = savedReplies[props.result.url];
@@ -567,10 +548,7 @@ const onGenerateReplyClick = async () => {
   });
   generatedReply.value = generated.reply;
   savedReplies[props.result.url] = generated.reply;
-  localStorage.setItem(
-    'eagleEyeReplies',
-    JSON.stringify(savedReplies),
-  );
+  localStorage.setItem('eagleEyeReplies', JSON.stringify(savedReplies));
 
   await EagleEyeService.track({
     event: 'generatedReply',
@@ -591,9 +569,7 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
       type: actionType,
       timestamp: dateHelper(),
     }
-    : props.result.actions.find(
-      (a) => a.type === actionType,
-    );
+    : props.result.actions.find((a) => a.type === actionType);
 
   store.dispatch('eagleEye/doAddTemporaryPostAction', {
     index: props.index,
@@ -665,5 +641,10 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 
 .fade-leave-to {
   opacity: 0;
+}
+
+.copy-icon {
+  @apply h-8 w-8 flex items-center justify-center rounded-full;
+  @apply bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 group cursor-pointer;
 }
 </style>

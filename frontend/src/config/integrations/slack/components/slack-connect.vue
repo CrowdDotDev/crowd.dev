@@ -28,6 +28,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();
@@ -60,13 +61,14 @@ const connect = () => {
   window.open(connectUrl.value, '_self');
 };
 
+const slackLogo = getImageUrlFromPath('integrations/slack.png');
 const finallizeSlackConnect = () => {
   const slackSuccess = route.query['slack-success'];
   if (slackSuccess) {
     ConfirmDialog({
       vertical: true,
       type: 'custom',
-      icon: '<img src="/src/assets/images/integrations/slack.png" class="h-8 w-8" alt="slack logo" />',
+      icon: `<img src="${slackLogo}" class="h-8 w-8" alt="slack logo" />`,
       title: `<span class="flex items-start gap-1">Connect Slack bot
               <span class="text-primary-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
       titleClass: 'text-lg',

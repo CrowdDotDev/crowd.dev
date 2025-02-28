@@ -5,8 +5,8 @@
     </h4>
 
     <div class="text-gray-500 text-xs mt-1 mb-6">
-      Discover and engage with relevant content across
-      various community platforms.
+      Discover and engage with relevant content across various community
+      platforms.
     </div>
 
     <div v-if="eagleEyeFeedSettings">
@@ -21,9 +21,7 @@
       <!-- Keywords -->
       <div
         v-if="
-          keywords.length
-            || exactKeywords.length
-            || excludedKeywords.length
+          keywords.length || exactKeywords.length || excludedKeywords.length
         "
         class="mt-8 mb-6"
       >
@@ -50,10 +48,7 @@
             :key="excludedKeyword"
             class="eagle-eye-keyword excluded"
           >
-            <el-tooltip
-              placement="top"
-              content="Excluded keyword"
-            >
+            <el-tooltip placement="top" content="Excluded keyword">
               <span>
                 {{ excludedKeyword }}
               </span>
@@ -85,7 +80,7 @@
           >
             <img
               :alt="platformOptions[platform].label"
-              :src="platformOptions[platform].img"
+              :src="getImageUrlFromPath(platformOptions[platform].img)"
               class="w-5 h-5"
             />
             <span class="text-xs text-gray-900">{{
@@ -108,7 +103,7 @@
               <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
             <span class="text-xs text-gray-900">{{
-              aiRepliesEnabled ? 'Activated' : 'Deactivated'
+              aiRepliesEnabled ? "Activated" : "Deactivated"
             }}</span>
           </div>
         </div>
@@ -116,9 +111,7 @@
 
       <!-- Email Digest settings -->
       <app-eagle-eye-email-digest-card />
-      <app-eagle-eye-settings-drawer
-        v-model="settingsDrawerOpen"
-      />
+      <app-eagle-eye-settings-drawer v-model="settingsDrawerOpen" />
     </div>
   </div>
 </template>
@@ -126,6 +119,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 import AppEagleEyeEmailDigestCard from '@/modules/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
 import AppEagleEyeSettingsDrawer from '@/modules/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
@@ -140,33 +134,24 @@ const { user, tenant } = storeToRefs(authStore);
 const { hasPermission } = usePermissions();
 
 const eagleEyeSettings = computed(
-  () => user?.value?.tenants.find(
-    (tu) => tu.tenantId === tenant?.value.id,
-  )?.settings.eagleEye,
+  () => user?.value?.tenants.find((tu) => tu.tenantId === tenant?.value.id)
+    ?.settings.eagleEye,
 );
 
 const settingsDrawerOpen = ref(false);
 
 const eagleEyeFeedSettings = computed(() => eagleEyeSettings.value?.feed);
-const keywords = computed(
-  () => eagleEyeFeedSettings.value.keywords,
-);
+const keywords = computed(() => eagleEyeFeedSettings.value.keywords);
 
-const exactKeywords = computed(
-  () => eagleEyeFeedSettings.value.exactKeywords,
-);
+const exactKeywords = computed(() => eagleEyeFeedSettings.value.exactKeywords);
 
 const excludedKeywords = computed(
   () => eagleEyeFeedSettings.value.excludedKeywords,
 );
 
-const platforms = computed(
-  () => eagleEyeFeedSettings.value.platforms,
-);
+const platforms = computed(() => eagleEyeFeedSettings.value.platforms);
 
-const publishedDate = computed(
-  () => eagleEyeFeedSettings.value.publishedDate,
-);
+const publishedDate = computed(() => eagleEyeFeedSettings.value.publishedDate);
 
 const aiRepliesEnabled = computed(() => eagleEyeSettings.value?.aiReplies);
 </script>

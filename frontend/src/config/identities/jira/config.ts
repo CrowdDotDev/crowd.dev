@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const jira: IdentityConfig = {
   key: 'jira',
   name: 'Jira',
-  image: '/src/assets/images/identities/jira.png',
+  image: getImageUrlFromPath('identities/jira.png'),
   member: {
     placeholder: 'Jira username or email address',
   },

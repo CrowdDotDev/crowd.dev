@@ -9,7 +9,7 @@
             </p>
             <div class="flex items-center gap-2">
               <img
-                src="/src/assets/images/integrations/github.png"
+                :src="getImageUrlFromPath('integrations/github.png')"
                 alt="GitHub"
                 class="h-6 w-6"
               />
@@ -111,6 +111,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const props = defineProps<{
   modelValue: boolean;

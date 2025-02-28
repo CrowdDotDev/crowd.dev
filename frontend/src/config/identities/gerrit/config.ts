@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const gerrit: IdentityConfig = {
   key: 'gerrit',
   name: 'Gerrit',
-  image: '/src/assets/images/identities/gerrit.png',
+  image: getImageUrlFromPath('identities/gerrit.png'),
   member: {
     placeholder: 'Gerrit username or email address',
   },

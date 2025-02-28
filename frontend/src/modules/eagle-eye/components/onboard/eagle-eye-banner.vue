@@ -16,13 +16,14 @@
       v-if="showImage"
       alt="Community Lens banner"
       class="absolute bottom-0 right-0 w-3/5"
-      src="/src/assets/images/eagle-eye/banner.png"
+      :src="getImageUrlFromPath('eagle-eye/banner.png')"
     />
   </div>
 </template>
 
 <script setup>
 import { defineProps } from 'vue';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 defineProps({
   preTitle: {

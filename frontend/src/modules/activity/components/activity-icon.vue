@@ -10,7 +10,7 @@
     />
     <img
       v-else
-      :src="icons[platform][type].imgSrc"
+      :src="getImageUrlFromPath(icons[platform][type].imgSrc)"
       :alt="type"
       class="w-5 h-5"
     />
@@ -19,6 +19,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 defineProps({
   type: {
@@ -86,21 +87,21 @@ const icons = ref({
   },
   git: {
     commit: {
-      imgSrc: '/src/assets/images/integrations/git.png',
+      imgSrc: 'integrations/git.png',
       color: 'text-black',
       bgColor: 'bg-white',
     },
   },
   confluence: {
     page: {
-      imgSrc: '/src/assets/images/integrations/conf.jpg',
+      imgSrc: 'integrations/conf.jpg',
       color: 'text-black',
       bgColor: 'bg-white',
     },
   },
   gerrit: {
     page: {
-      imgSrc: '/src/assets/images/integrations/gerrit.jpg',
+      imgSrc: 'integrations/gerrit.jpg',
       color: 'text-black',
       bgColor: 'bg-white',
     },

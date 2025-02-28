@@ -6,7 +6,7 @@
         <div class="pt-1 flex items-center gap-2">
           <div class="border border-gray-200 rounded-md h-12 w-12 p-2">
             <img
-              src="/src/assets/images/integrations/github.png"
+              :src="getImageUrlFromPath('integrations/github.png')"
               alt="GitHub"
               class="w-8 h-8 object-contain"
             />
@@ -16,7 +16,7 @@
           </div>
           <div class="border border-gray-200 rounded-md h-12 w-12 p-2">
             <img
-              src="/src/assets/images/integrations/custom/lfx.png"
+              :src="getImageUrlFromPath('integrations/custom/lfx.png')"
               alt="LFX"
               class="w-8 h-8 object-contain"
             />
@@ -115,6 +115,7 @@ import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const props = defineProps<{
   modelValue: boolean;

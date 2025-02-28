@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const devto: IdentityConfig = {
   key: 'devto',
   name: 'DEV',
-  image: '/src/assets/images/identities/devto.png',
+  image: getImageUrlFromPath('identities/devto.png'),
   member: {
     urlPrefix: 'dev.to/',
     url: ({ identity }) => (identity.value ? `https://dev.to/${identity.value}` : null),

@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const reddit: IdentityConfig = {
   key: 'reddit',
   name: 'Reddit',
-  image: '/src/assets/images/identities/reddit.svg',
+  image: getImageUrlFromPath('identities/reddit.svg'),
   member: {
     urlPrefix: 'reddit.com/user/',
     url: ({ identity }) => (identity.value ? `https://reddit.com/user/${identity.value}` : null),

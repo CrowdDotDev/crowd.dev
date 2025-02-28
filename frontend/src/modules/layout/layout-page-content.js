@@ -5,7 +5,7 @@ export const pageContent = {
     mainContent:
       'Our Community Lens app allows you to monitor different community platforms to find relevant content to engage with, '
       + "helping you to gain developers' mindshare and grow your community organically.",
-    imageSrc: '/src/assets/images/paywall/eagle-eye.png',
+    imageSrc: 'paywall/eagle-eye.png',
     imageClass: '',
     featuresList: [
       {

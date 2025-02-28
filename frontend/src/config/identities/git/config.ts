@@ -1,9 +1,10 @@
 import { IdentityConfig } from '@/config/identities';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const git: IdentityConfig = {
   key: 'git',
   name: 'Git',
-  image: '/src/assets/images/identities/git.png',
+  image: getImageUrlFromPath('identities/git.png'),
   member: {
     placeholder: 'Git email address',
   },

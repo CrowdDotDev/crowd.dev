@@ -6,7 +6,7 @@
       >
         <img
           alt="Community Lens onboarding discover"
-          src="/src/assets/images/eagle-eye/onboard-discover.png"
+          :src="getImageUrlFromPath(eagle - eye / onboard - discover.png)"
         />
       </div>
 
@@ -27,7 +27,7 @@
       >
         <img
           alt="Engage"
-          src="/src/assets/images/eagle-eye/onboard-engage.png"
+          :src="getImageUrlFromPath('eagle-eye/onboard-engage.png')"
         />
       </div>
 
@@ -48,7 +48,7 @@
       >
         <img
           alt="Community Lens onboarding"
-          src="/src/assets/images/eagle-eye/onboard-grow.png"
+          :src="getImageUrlFromPath('eagle-eye/onboard-grow.png')"
         />
       </div>
 
@@ -75,6 +75,7 @@
 <script setup>
 import { defineEmits } from 'vue';
 import EagleEyeFooter from '@/modules/eagle-eye/components/onboard/eagle-eye-footer.vue';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const emit = defineEmits(['onStepChange', 'onSubmit']);
 </script>

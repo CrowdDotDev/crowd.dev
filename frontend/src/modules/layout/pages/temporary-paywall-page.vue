@@ -22,7 +22,7 @@
         </div>
       </div>
       <img
-        :src="`/src/assets/images/error/403.svg`"
+        :src="getImageUrlFromPath('error/403.svg')"
         alt="403 img"
         class="block w-32 h-auto"
       />
@@ -32,6 +32,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router';
+import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const route = useRoute();
 

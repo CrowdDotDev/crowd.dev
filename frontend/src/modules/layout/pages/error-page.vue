@@ -21,7 +21,7 @@
       </div>
     </div>
     <img
-      :src="`/src/assets/images/error/${code}.svg`"
+      :src="getImageUrlFromPath(`error/${code}.svg`)"
       alt="404 img"
       class="block w-32 h-auto"
     />
@@ -46,22 +46,25 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { getImageUrlFromPath } from '@/utils/image-loader';
+
+withDefaults(
+  defineProps<{
+    code: number | null;
+    title: string | null;
+    subtitle: string | null;
+  }>(),
+  {
+    code: null,
+    title: null,
+    subtitle: null,
+  },
+);
+</script>
+
+<script lang="ts">
 export default {
   name: 'AppError404Page',
-  props: {
-    code: {
-      type: Number,
-      default: null,
-    },
-    title: {
-      type: String,
-      default: null,
-    },
-    subtitle: {
-      type: String,
-      default: null,
-    },
-  },
 };
 </script>
