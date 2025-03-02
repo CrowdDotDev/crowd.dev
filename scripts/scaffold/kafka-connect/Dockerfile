@@ -11,5 +11,5 @@ COPY kafka-connect-http/ /usr/share/confluent-hub-components/kafka-connect-http/
 
 VOLUME /storage
 
-USER appuser
+USER root
 

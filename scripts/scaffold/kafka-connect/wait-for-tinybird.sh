@@ -21,17 +21,12 @@ if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] || [ "$CROWD_TINYBIRD_WORKSPAC
   echo "Error: Could not fetch Tinybird token. Exiting."
   exit 1
 fi
-ACTIVITIES_SINK_FILE="/etc/kafka-connect/tinybird-local-activities-sink.properties"
-ACTIVITIES_SINK_TEMP_FILE="/tmp/tinybird-local-activities-sink.properties"
+TINYBIRD_SINK_FILE="/etc/kafka-connect/tinybird-local-sink.properties"
+TINYBIRD_SINK_TEMP_FILE="/tmp/tinybird-local-sink.properties"
 
-SEQUIN_SINK_FILE="/etc/kafka-connect/tinybird-local-sequin-sink.properties"
-SEQUIN_SINK_TEMP_FILE="/tmp/tinybird-local-sequin-sink.properties"
+cp "$TINYBIRD_SINK_FILE" "$TINYBIRD_SINK_TEMP_FILE"
 
-cp "$ACTIVITIES_SINK_FILE" "$ACTIVITIES_SINK_TEMP_FILE"
-cp "$SEQUIN_SINK_FILE" "$SEQUIN_SINK_TEMP_FILE"
-
-sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$ACTIVITIES_SINK_TEMP_FILE"
-sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$SEQUIN_SINK_TEMP_FILE"
+sed -i "s|\${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN}|$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|g" "$TINYBIRD_SINK_TEMP_FILE"
 
 echo "✅ Using token [$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN] in Tinybird http sink of Kafka Connect."
 
@@ -39,5 +34,4 @@ exec connect-standalone \
   /etc/kafka-connect/worker-local.properties \
   /etc/kafka-connect/console-local-sink.properties \
   /etc/kafka-connect/questdb-local-sink.properties \
-  "$ACTIVITIES_SINK_TEMP_FILE" \
-  "$SEQUIN_SINK_TEMP_FILE"
+  "$TINYBIRD_SINK_TEMP_FILE" 

@@ -17,7 +17,11 @@ export abstract class QueueBase extends LoggerBase {
       queueName: queueConf.name,
     })
 
-    this.channelName = `${queueConf.name}${this.getQueueSuffix()}`
+    if (queueConf.useOnlyNameAsChannel) {
+      this.channelName = queueConf.name
+    } else {
+      this.channelName = `${queueConf.name}${this.getQueueSuffix()}`
+    }
   }
 
   public isInitialized(): boolean {
