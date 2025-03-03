@@ -17,6 +17,7 @@ import {
   findActivitiesPg,
   getActivities,
   getMembersWithDeletedOrgAffilations,
+  markMemberOrgAffiliationAsProcessed,
 } from './activities/fix-deleted-member-org-affilations'
 import {
   deleteOrganizationIdentity,
@@ -73,4 +74,5 @@ export {
   createActivities,
   addOrgIdToRedisCache,
   calculateMemberAffiliations,
+  markMemberOrgAffiliationAsProcessed,
 }
