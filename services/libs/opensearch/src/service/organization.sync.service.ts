@@ -204,7 +204,7 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
+        let organizationIds = await this.readOrgRepo.getOrganizationsForSync(
           batchSize,
           previousBatchIds,
         )
@@ -231,7 +231,7 @@ export class OrganizationSyncService {
           )
 
           previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getAllOrganizationsForSync(
+          organizationIds = await this.readOrgRepo.getOrganizationsForSync(
             batchSize,
             previousBatchIds,
           )
