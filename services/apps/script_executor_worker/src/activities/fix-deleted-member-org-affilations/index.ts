@@ -1,4 +1,4 @@
-import { insertActivities, queryActivities } from '@crowd/data-access-layer'
+import { insertActivities } from '@crowd/data-access-layer'
 import {
   IDbActivity,
   IDbActivityCreateData,
@@ -22,28 +22,13 @@ export async function getMembersWithDeletedOrgAffilations(
 }
 
 export async function getActivities(memberId: string, organizationId: string): Promise<number> {
-  const result = await queryActivities(svc.questdbSQL, {
-    countOnly: true,
-    filter: {
-      and: [
-        {
-          memberId: {
-            eq: memberId,
-          },
-          organizationId: {
-            eq: organizationId,
-          },
-        },
-      ],
-    },
-  })
-
-  return result.count
+  const repo = new ActivityRepository(svc.postgres.reader.connection(), svc.log, svc.questdbSQL)
+  return repo.findActivitiesQuestDb(memberId, organizationId)
 }
 
 export async function findActivitiesPg(memberId: string, orgId: string): Promise<IDbActivity[]> {
   const repo = new ActivityRepository(svc.postgres.reader.connection(), svc.log, svc.questdbSQL)
-  return repo.findActivities(memberId, orgId)
+  return repo.findActivitiesPg(memberId, orgId)
 }
 
 export async function createActivities(activities: IDbActivityCreateData[]): Promise<void> {

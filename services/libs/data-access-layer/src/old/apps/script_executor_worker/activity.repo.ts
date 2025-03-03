@@ -10,7 +10,7 @@ class ActivityRepository {
     private readonly questdbSQL: DbConnOrTx,
   ) {}
 
-  findActivities(memberId: string, organizationId: string): Promise<IDbActivity[]> {
+  async findActivitiesPg(memberId: string, organizationId: string): Promise<IDbActivity[]> {
     return this.connection.query(
       `select * from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
       {
@@ -18,6 +18,18 @@ class ActivityRepository {
         organizationId,
       },
     )
+  }
+
+  async findActivitiesQuestDb(memberId: string, organizationId: string): Promise<number> {
+    const result = await this.questdbSQL.query(
+      `select count(*) from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+      {
+        memberId,
+        organizationId,
+      },
+    )
+
+    return result.rows[0].count
   }
 }
 
