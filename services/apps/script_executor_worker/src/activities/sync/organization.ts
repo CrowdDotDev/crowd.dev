@@ -15,12 +15,6 @@ export async function getOrganizationsForSync(batchSize: number): Promise<string
   }
 }
 
-// todo: support organization sync by segment
-// export async function getSegmentOrganizations(segmentId: string): Promise<string[]> {
-//   const organizationRepo = new OrganizationRepository(svc.postgres.reader, svc.log)
-//   return organizationRepo.getSegmentOrganizations(segmentId)
-// }
-
 export async function syncOrganizationsBatch(
   organizationIds: string[],
   withAggs: boolean,

@@ -4,6 +4,7 @@ import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
 import * as entityIndexActivities from '../activities/sync/entity-index'
 import * as orgSyncActivities from '../activities/sync/organization'
+import { svc } from '../main'
 import { ISyncArgs } from '../types'
 
 const orgSyncActivity = proxyActivities<typeof orgSyncActivities>({
@@ -22,13 +23,13 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
 
   if (args.clean) {
     await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
-    console.log('Deleted indexed entities for organizations!')
+    svc.log.info('Deleted indexed entities for organizations!')
   }
 
   const organizationIds = await orgSyncActivity.getOrganizationsForSync(BATCH_SIZE)
 
   if (organizationIds.length === 0) {
-    console.log('No more organizations to sync!')
+    svc.log.info('No more organizations to sync!')
     return
   }
 
@@ -41,7 +42,7 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
 
   const diffInSeconds = (new Date().getTime() - batchStartTime.getTime()) / 1000
 
-  console.log(
+  svc.log.info(
     `Synced ${organizationCount} organizations! Speed: ${Math.round(
       organizationCount / diffInSeconds,
     )} organizations/second!`,
@@ -50,7 +51,7 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   await entityIndexActivity.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
 
   if (args.testRun) {
-    console.log('Test run completed - stopping after first batch!')
+    svc.log.info('Test run completed - stopping after first batch!')
     return
   }
 
