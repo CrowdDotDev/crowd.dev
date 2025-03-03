@@ -8,7 +8,7 @@ export async function getSegmentMembers(
   limit: number,
   offset: number,
 ): Promise<string[]> {
-  const memberRepo = new MemberRepository(svc.questdbSQL, svc.log)
+  const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
   return memberRepo.getSegmentMembers(segmentId, limit, offset)
 }
 
