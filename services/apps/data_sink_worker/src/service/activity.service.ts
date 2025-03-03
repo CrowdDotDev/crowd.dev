@@ -77,66 +77,91 @@ export default class ActivityService extends LoggerBase {
     try {
       this.log.debug('Creating an activity.')
 
-      const sentiment = await this.getActivitySentiment({
-        body: activity.body,
-        title: activity.title,
-        type: activity.type,
-        platform: activity.platform,
-      })
+      const sentiment = await logExecutionTimeV2(
+        () =>
+          this.getActivitySentiment({
+            body: activity.body,
+            title: activity.title,
+            type: activity.type,
+            platform: activity.platform,
+          }),
+        this.log,
+        'activity.service -> create -> get sentiment',
+      )
 
       const id = await this.pgStore.transactionally(async (txStore) => {
         const queryExecutor = dbStoreQx(txStore)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
-        await txSettingsRepo.createActivityType(
-          activity.platform as PlatformType,
-          activity.type,
-          segmentId,
+        await logExecutionTimeV2(
+          () =>
+            txSettingsRepo.createActivityType(
+              activity.platform as PlatformType,
+              activity.type,
+              segmentId,
+            ),
+          this.log,
+          'activity.service -> create -> create activity type',
         )
 
         if (activity.channel) {
-          await txSettingsRepo.createActivityChannel(segmentId, activity.platform, activity.channel)
+          await logExecutionTimeV2(
+            () =>
+              txSettingsRepo.createActivityChannel(segmentId, activity.platform, activity.channel),
+            this.log,
+            'activity.service -> create -> create activity channel',
+          )
         }
 
         this.log.debug('Creating an activity in QuestDB!')
         try {
-          await insertActivities(this.client, [
-            {
-              id: activity.id,
-              timestamp: activity.timestamp.toISOString(),
-              platform: activity.platform,
-              type: activity.type,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceId: activity.sourceId,
-              sourceParentId: activity.sourceParentId,
-              memberId: activity.memberId,
-              attributes: activity.attributes,
-              sentiment: sentiment,
-              title: activity.title,
-              body: escapeNullByte(activity.body),
-              channel: activity.channel,
-              url: activity.url,
-              username: activity.username,
-              objectMemberId: activity.objectMemberId,
-              objectMemberUsername: activity.objectMemberUsername,
-              segmentId: segmentId,
-              organizationId: activity.organizationId,
-              isBotActivity: memberInfo.isBot,
-              isTeamMemberActivity: memberInfo.isTeamMember,
-              importHash: activity.importHash,
-            },
-          ])
-          await createOrUpdateRelations(queryExecutor, {
-            activityId: activity.id,
-            segmentId,
-            memberId: activity.memberId,
-            objectMemberId: activity.objectMemberId,
-            organizationId: activity.organizationId,
-            platform: activity.platform,
-            username: activity.username,
-            objectMemberUsername: activity.objectMemberUsername,
-          })
+          await logExecutionTimeV2(
+            () =>
+              insertActivities(this.client, [
+                {
+                  id: activity.id,
+                  timestamp: activity.timestamp.toISOString(),
+                  platform: activity.platform,
+                  type: activity.type,
+                  isContribution: activity.isContribution,
+                  score: activity.score,
+                  sourceId: activity.sourceId,
+                  sourceParentId: activity.sourceParentId,
+                  memberId: activity.memberId,
+                  attributes: activity.attributes,
+                  sentiment: sentiment,
+                  title: activity.title,
+                  body: escapeNullByte(activity.body),
+                  channel: activity.channel,
+                  url: activity.url,
+                  username: activity.username,
+                  objectMemberId: activity.objectMemberId,
+                  objectMemberUsername: activity.objectMemberUsername,
+                  segmentId: segmentId,
+                  organizationId: activity.organizationId,
+                  isBotActivity: memberInfo.isBot,
+                  isTeamMemberActivity: memberInfo.isTeamMember,
+                  importHash: activity.importHash,
+                },
+              ]),
+            this.log,
+            'activity.service -> create -> insert activity',
+          )
+          await logExecutionTimeV2(
+            () =>
+              createOrUpdateRelations(queryExecutor, {
+                activityId: activity.id,
+                segmentId,
+                memberId: activity.memberId,
+                objectMemberId: activity.objectMemberId,
+                organizationId: activity.organizationId,
+                platform: activity.platform,
+                username: activity.username,
+                objectMemberUsername: activity.objectMemberUsername,
+              }),
+            this.log,
+            'activity.service -> create -> create or update relations',
+          )
         } catch (error) {
           this.log.error('Error creating activity in QuestDB:', error)
           throw error
@@ -647,9 +672,7 @@ export default class ActivityService extends LoggerBase {
 
         // find existing activity
         this.log.trace('Finding existing activity.')
-        const {
-          rows: [dbActivity],
-        } = await logExecutionTimeV2(
+        const { rows } = await logExecutionTimeV2(
           () =>
             queryActivities(this.qdbStore.connection(), {
               segmentIds: [segmentId],
@@ -657,16 +680,21 @@ export default class ActivityService extends LoggerBase {
                 and: [
                   { timestamp: { eq: activity.timestamp } },
                   { sourceId: { eq: activity.sourceId } },
-                  { platform: { eq: platform } },
-                  { type: { eq: activity.type } },
-                  { channel: { eq: activity.channel } },
+                  // { platform: { eq: platform } },
+                  // { type: { eq: activity.type } },
+                  // { channel: { eq: activity.channel } },
                 ],
               },
               noCount: true,
-              limit: 1,
             }),
           this.log,
           'activity.service -> find existing activity',
+        )
+
+        let dbActivity = singleOrDefault(
+          rows,
+          (a) =>
+            a.platform === platform && a.type === activity.type && a.channel === activity.channel,
         )
 
         if (dbActivity && dbActivity?.deletedAt) {

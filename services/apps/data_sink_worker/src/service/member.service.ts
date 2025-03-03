@@ -18,7 +18,7 @@ import {
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
@@ -190,11 +190,19 @@ export default class MemberService extends LoggerBase {
         )
 
         this.log.trace({ memberId: id }, 'Fetching member identities!')
-        const dbIdentities = await txRepo.getIdentities(id)
+        const dbIdentities = await logExecutionTimeV2(
+          () => txRepo.getIdentities(id),
+          this.log,
+          'member.service -> update -> getIdentities',
+        )
 
         if (data.attributes) {
           this.log.trace({ memberId: id }, 'Validating member attributes!')
-          data.attributes = await txMemberAttributeService.validateAttributes(data.attributes)
+          data.attributes = await logExecutionTimeV2(
+            () => txMemberAttributeService.validateAttributes(data.attributes),
+            this.log,
+            'member.service -> update -> validateAttributes',
+          )
         }
 
         // prevent empty identity handles
@@ -212,8 +220,10 @@ export default class MemberService extends LoggerBase {
 
         if (toUpdate.attributes) {
           this.log.trace({ memberId: id }, 'Setting attribute default values!')
-          toUpdate.attributes = await txMemberAttributeService.setAttributesDefaultValues(
-            toUpdate.attributes,
+          toUpdate.attributes = await logExecutionTimeV2(
+            () => txMemberAttributeService.setAttributesDefaultValues(toUpdate.attributes),
+            this.log,
+            'member.service -> update -> setAttributesDefaultValues',
           )
         }
 
@@ -238,25 +248,45 @@ export default class MemberService extends LoggerBase {
           }, {} as IDbMemberUpdateData)
 
           this.log.trace({ memberId: id }, 'Updating member data in db!')
-          await txRepo.update(id, dateToUpdate)
+          await logExecutionTimeV2(
+            () => txRepo.update(id, dateToUpdate),
+            this.log,
+            'member.service -> update -> update',
+          )
           this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
-          await txRepo.addToSegment(id, segmentId)
+          await logExecutionTimeV2(
+            () => txRepo.addToSegment(id, segmentId),
+            this.log,
+            'member.service -> update -> addToSegment',
+          )
 
           updated = true
         } else {
           this.log.debug({ memberId: id }, 'Nothing to update in a member!')
-          await txRepo.addToSegment(id, segmentId)
+          await logExecutionTimeV2(
+            () => txRepo.addToSegment(id, segmentId),
+            this.log,
+            'member.service -> update -> addToSegment',
+          )
         }
 
         if (identitiesToCreate) {
           this.log.trace({ memberId: id }, 'Inserting new identities!')
-          await txRepo.insertIdentities(id, integrationId, identitiesToCreate)
+          await logExecutionTimeV2(
+            () => txRepo.insertIdentities(id, integrationId, identitiesToCreate),
+            this.log,
+            'member.service -> update -> insertIdentities',
+          )
           updated = true
         }
 
         if (identitiesToUpdate) {
           this.log.trace({ memberId: id }, 'Updating identities!')
-          await txRepo.updateIdentities(id, identitiesToUpdate)
+          await logExecutionTimeV2(
+            () => txRepo.updateIdentities(id, identitiesToUpdate),
+            this.log,
+            'member.service -> update -> updateIdentities',
+          )
           updated = true
         }
 
@@ -270,7 +300,11 @@ export default class MemberService extends LoggerBase {
           for (const org of data.organizations) {
             this.log.trace({ memberId: id }, 'Finding or creating organization!')
 
-            const orgId = await orgService.findOrCreate(source, integrationId, org)
+            const orgId = await logExecutionTimeV2(
+              () => orgService.findOrCreate(source, integrationId, org),
+              this.log,
+              'member.service -> update -> findOrCreateOrg',
+            )
             organizations.push({
               id: orgId,
               source: data.source,
@@ -283,10 +317,15 @@ export default class MemberService extends LoggerBase {
         )
         if (emailIdentities.length > 0) {
           this.log.trace({ memberId: id }, 'Assigning organization by email domain!')
-          const orgs = await this.assignOrganizationByEmailDomain(
-            segmentId,
-            integrationId,
-            emailIdentities.map((i) => i.value),
+          const orgs = await logExecutionTimeV2(
+            () =>
+              this.assignOrganizationByEmailDomain(
+                segmentId,
+                integrationId,
+                emailIdentities.map((i) => i.value),
+              ),
+            this.log,
+            'member.service -> update -> assignOrganizationByEmailDomain',
           )
           if (orgs.length > 0) {
             organizations.push(...orgs)
@@ -303,7 +342,11 @@ export default class MemberService extends LoggerBase {
               uniqOrgs.map(async (org) => {
                 // Check if the org was already added to the member in the past, including deleted ones.
                 // If it was, we ignore this org to prevent from adding it again.
-                const existingMemberOrgs = await orgService.findMemberOrganizations(id, org.id)
+                const existingMemberOrgs = await logExecutionTimeV2(
+                  () => orgService.findMemberOrganizations(id, org.id),
+                  this.log,
+                  'member.service -> update -> findMemberOrganizations',
+                )
                 return existingMemberOrgs.length > 0 ? null : org
               }),
             )
@@ -311,7 +354,11 @@ export default class MemberService extends LoggerBase {
 
           if (orgsToAdd.length > 0) {
             this.log.trace({ memberId: id }, 'Adding organizations to member!')
-            await orgService.addToMember(segmentId, id, orgsToAdd)
+            await logExecutionTimeV2(
+              () => orgService.addToMember(segmentId, id, orgsToAdd),
+              this.log,
+              'member.service -> update -> addOrgToMember',
+            )
             updated = true
           }
         }
