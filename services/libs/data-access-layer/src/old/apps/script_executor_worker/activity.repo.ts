@@ -29,7 +29,7 @@ class ActivityRepository {
       },
     )
 
-    return results[0].count
+    return Number(results[0].count)
   }
 }
 
