@@ -15,8 +15,8 @@ const syncActivity = proxyActivities<typeof syncActivities>({
 })
 
 export async function fixMemberAffilations(args: IFixMemberAffilationsArgs): Promise<void> {
-  const limit = args.limit || 200
-  const offset = args.offset || 0
+  const limit = args.limit ?? 200
+  const offset = args.offset ?? 0
 
   console.log(
     `Fixing member affiliations for segment ${args.segmentId} with limit ${limit} and offset ${offset}`,

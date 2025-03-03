@@ -174,7 +174,7 @@ class MemberRepository {
   }
 
   public async getSegmentMembers(segmentId: string, limit = 200, offset = 0): Promise<string[]> {
-    const results = await this.questdbSQL.query(
+    const results = await this.questdbSQL.any(
       `
       select distinct "memberId"
       from activities
