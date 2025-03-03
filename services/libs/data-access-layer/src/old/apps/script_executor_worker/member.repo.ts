@@ -175,10 +175,9 @@ class MemberRepository {
   public async getSegmentMembers(segmentId: string, limit = 200, offset = 0): Promise<string[]> {
     const results = await this.connection.query(
       `
-      select "memberId"
+      select distinct "memberId"
       from activities
       where "segmentId" = $(segmentId)
-      group by "memberId"
       order by "memberId"
       limit $(limit)
       offset $(offset)
