@@ -21,15 +21,15 @@ class ActivityRepository {
   }
 
   async findActivitiesQuestDb(memberId: string, organizationId: string): Promise<number> {
-    const result = await this.questdbSQL.query(
-      `select count(*) from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+    const results = await this.questdbSQL.query(
+      `select count(*) as count from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
       {
         memberId,
         organizationId,
       },
     )
 
-    return result.count
+    return results[0].count
   }
 }
 
