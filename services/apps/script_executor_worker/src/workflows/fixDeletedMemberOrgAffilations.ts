@@ -26,6 +26,11 @@ export async function fixDeletedMemberOrgAffilations(
   // 1. Find affected memberId and orgId
   const affectedMembers = await activity.getMembersWithDeletedOrgAffilations(BATCH_SIZE, args.date)
 
+  if (affectedMembers.length === 0) {
+    console.log('No affected members found!')
+    return
+  }
+
   for (const { memberId, organizationId } of affectedMembers) {
     // 2. Check if they have activity in questDb
     const activityCount = await activity.getActivities(memberId, organizationId)

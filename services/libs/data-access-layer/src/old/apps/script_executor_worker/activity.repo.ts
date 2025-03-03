@@ -29,7 +29,7 @@ class ActivityRepository {
       },
     )
 
-    return result.rows[0].count
+    return result.count
   }
 }
 
