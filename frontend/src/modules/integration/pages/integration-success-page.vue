@@ -30,10 +30,7 @@
         class="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center ml-4"
       >
         <div>
-          <img
-            alt="LFX logo"
-            :src="getImageUrlFromPath('logo', 'lfx', 'svg')"
-          />
+          <img alt="LFX logo" :src="lfxImage" />
         </div>
       </div>
     </section>
@@ -62,7 +59,8 @@
 <script lang="ts" setup>
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSvg from '@/shared/svg/svg.vue';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const lfxImage = new URL('@/assets/images/logo/lfx.svg', import.meta.url).href;
 </script>
 
 <script lang="ts">

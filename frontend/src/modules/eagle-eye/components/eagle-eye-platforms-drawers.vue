@@ -11,11 +11,7 @@
         class="h-12 flex items-center border-b last:border-none border-gray-200 hover:bg-gray-50 hover:cursor-pointer"
       >
         <div>
-          <img
-            :src="getImageUrlFromPath(platform.img)"
-            :alt="platform.label"
-            class="w-6 h-6"
-          />
+          <img :src="platform.img" :alt="platform.label" class="w-6 h-6" />
         </div>
         <el-switch
           :model-value="platforms.includes(name)"
@@ -36,8 +32,7 @@ import {
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 
 const emit = defineEmits(['update:platforms']);
 const props = defineProps({

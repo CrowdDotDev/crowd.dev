@@ -20,11 +20,7 @@
         </router-link>
       </div>
     </div>
-    <img
-      :src="getImageUrlFromPath(`error/${code}.svg`)"
-      alt="404 img"
-      class="block w-32 h-auto"
-    />
+    <img :src="imageUrl(code)" alt="404 img" class="block w-32 h-auto" />
     <div class="absolute right-0 bottom-0 mb-16 flex items-center">
       <a
         href="https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54"
@@ -47,8 +43,6 @@
 </template>
 
 <script setup lang="ts">
-import { getImageUrlFromPath } from '@/utils/image-loader';
-
 withDefaults(
   defineProps<{
     code: number | null;
@@ -61,6 +55,17 @@ withDefaults(
     subtitle: null,
   },
 );
+
+const imageUrl = (code: number | null) => {
+  switch (code) {
+    case 403:
+      return new URL('@/assets/images/error/403.svg', import.meta.url).href;
+    case 500:
+      return new URL('@/assets/images/error/500.svg', import.meta.url).href;
+    default:
+      return new URL('@/assets/images/error/404.svg', import.meta.url).href;
+  }
+};
 </script>
 
 <script lang="ts">

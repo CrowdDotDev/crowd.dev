@@ -12,7 +12,7 @@
     >
       <img
         :alt="platformOptions[result.platform].label"
-        :src="getImageUrlFromPath(platformOptions[result.platform].img)"
+        :src="platformOptions[result.platform].img"
         class="w-6 h-6"
       />
       <span v-if="result.postedAt" class="text-gray-400 text-2xs">{{
@@ -339,7 +339,7 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { formatDateToTimeAgo } from '@/utils/date';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 import { withHttp } from '@/utils/string';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
@@ -347,7 +347,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({

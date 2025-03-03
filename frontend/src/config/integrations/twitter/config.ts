@@ -1,13 +1,17 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import TwitterConnect from './components/twitter-connect.vue';
 import TwitterParams from './components/twitter-params.vue';
 import TwitterDropdown from './components/twitter-dropdown.vue';
 
+const image = new URL(
+  '@/assets/images/integrations/twitter-x-black.png',
+  import.meta.url,
+).href;
+
 const twitter: IntegrationConfig = {
   key: 'twitter',
   name: 'X/Twitter',
-  image: getImageUrlFromPath('integrations/twitter-x-black.png'),
+  image,
   description:
     'Connect X/Twitter to sync profile information, followers, and relevant tweets.',
   connectComponent: TwitterConnect,

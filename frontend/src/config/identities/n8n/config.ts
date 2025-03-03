@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/n8n.svg', import.meta.url)
+  .href;
 
 const n8n: IdentityConfig = {
   key: 'n8n',
   name: 'n8n',
-  image: getImageUrlFromPath('identities/n8n.svg'),
+  image,
 };
 
 export default n8n;

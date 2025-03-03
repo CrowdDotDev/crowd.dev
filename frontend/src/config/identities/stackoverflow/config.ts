@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/stackoverflow.png',
+  import.meta.url,
+).href;
 
 const stackoverflow: IdentityConfig = {
   key: 'stackoverflow',
   name: 'Stack Overflow',
-  image: getImageUrlFromPath('identities/stackoverflow.png'),
+  image,
   member: {
     urlPrefix: 'stackoverflow.com/users/',
     url: ({ attributes }) => attributes?.url?.stackoverflow || null,

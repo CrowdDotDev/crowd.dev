@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/groupsio.svg',
+  import.meta.url,
+).href;
 
 const groupsio: IdentityConfig = {
   key: 'groupsio',
   name: 'Groups.io',
-  image: getImageUrlFromPath('identities/groupsio.svg'),
+  image,
   member: {
     placeholder: 'Groups.io email address',
   },

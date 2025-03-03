@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/tnc.png', import.meta.url)
+  .href;
 
 const tnc: IdentityConfig = {
   key: 'tnc',
   name: 'Training & Certification',
-  image: getImageUrlFromPath('identities/tnc.png'),
+  image,
   member: {
     placeholder: 'Linux Foundation ID',
   },

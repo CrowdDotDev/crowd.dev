@@ -21,18 +21,13 @@
           </a>
         </div>
       </div>
-      <img
-        :src="getImageUrlFromPath('error/403.svg')"
-        alt="403 img"
-        class="block w-32 h-auto"
-      />
+      <img :src="errorImage" alt="403 img" class="block w-32 h-auto" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const route = useRoute();
 
@@ -41,6 +36,9 @@ const onCtaClick = () => {
     route: route.path,
   });
 };
+
+const errorImage = new URL('@/assets/images/error/403.svg', import.meta.url)
+  .href;
 </script>
 
 <script>

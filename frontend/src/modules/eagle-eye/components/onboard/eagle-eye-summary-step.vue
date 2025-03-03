@@ -6,7 +6,7 @@
       >
         <img
           alt="Community Lens onboarding discover"
-          :src="getImageUrlFromPath(eagle - eye / onboard - discover.png)"
+          :src="eagleEyeDiscoverImage"
         />
       </div>
 
@@ -25,10 +25,7 @@
       <div
         class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
       >
-        <img
-          alt="Engage"
-          :src="getImageUrlFromPath('eagle-eye/onboard-engage.png')"
-        />
+        <img alt="Engage" :src="eagleEyeEngageImage" />
       </div>
 
       <div class="basis-3/5">
@@ -46,10 +43,7 @@
       <div
         class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
       >
-        <img
-          alt="Community Lens onboarding"
-          :src="getImageUrlFromPath('eagle-eye/onboard-grow.png')"
-        />
+        <img alt="Community Lens onboarding" :src="eagleEyeGrowImage" />
       </div>
 
       <div class="basis-3/5">
@@ -75,7 +69,21 @@
 <script setup>
 import { defineEmits } from 'vue';
 import EagleEyeFooter from '@/modules/eagle-eye/components/onboard/eagle-eye-footer.vue';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const emit = defineEmits(['onStepChange', 'onSubmit']);
+
+const eagleEyeDiscoverImage = new URL(
+  '@/assets/images/eagle-eye/onboard-discover.png',
+  import.meta.url,
+).href;
+
+const eagleEyeEngageImage = new URL(
+  '@/assets/images/eagle-eye/onboard-engage.png',
+  import.meta.url,
+).href;
+
+const eagleEyeGrowImage = new URL(
+  '@/assets/images/eagle-eye/onboard-grow.png',
+  import.meta.url,
+).href;
 </script>

@@ -1,13 +1,17 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import RedditConnect from './components/reddit-connect.vue';
 import RedditParams from './components/reddit-params.vue';
 import RedditDropdown from './components/reddit-dropdown.vue';
 
+const image = new URL(
+  '@/assets/images/integrations/reddit.svg',
+  import.meta.url,
+).href;
+
 const reddit: IntegrationConfig = {
   key: 'reddit',
   name: 'Reddit',
-  image: getImageUrlFromPath('integrations/reddit.svg'),
+  image,
   description:
     'Connect Reddit to sync posts and comments from selected subreddits.',
   connectComponent: RedditConnect,

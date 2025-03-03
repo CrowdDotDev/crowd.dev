@@ -1,12 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import HackernewsConnect from './components/hackernews-connect.vue';
 import HackernewsParams from './components/hackernews-params.vue';
+
+const image = new URL(
+  '@/assets/images/integrations/hackernews.svg',
+  import.meta.url,
+).href;
 
 const hackernews: IntegrationConfig = {
   key: 'hackernews',
   name: 'Hacker News',
-  image: getImageUrlFromPath('integrations/hackernews.svg'),
+  image,
   description:
     'Connect Hacker News to get posts as well as their comments mentioning your community.',
   connectComponent: HackernewsConnect,

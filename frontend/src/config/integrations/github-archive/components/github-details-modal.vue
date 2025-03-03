@@ -6,7 +6,7 @@
         <div class="pt-1 flex items-center gap-2">
           <div class="border border-gray-200 rounded-md h-12 w-12 p-2">
             <img
-              :src="getImageUrlFromPath('integrations/github.png')"
+              :src="githubImage"
               alt="GitHub"
               class="w-8 h-8 object-contain"
             />
@@ -15,11 +15,7 @@
             <lf-icon name="angle-right" :size="20" class="text-gray-500" />
           </div>
           <div class="border border-gray-200 rounded-md h-12 w-12 p-2">
-            <img
-              :src="getImageUrlFromPath('integrations/custom/lfx.png')"
-              alt="LFX"
-              class="w-8 h-8 object-contain"
-            />
+            <img :src="lfxImage" alt="LFX" class="w-8 h-8 object-contain" />
           </div>
         </div>
         <lf-button
@@ -115,7 +111,6 @@ import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -129,6 +124,16 @@ const isModalOpen = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
 });
+
+const githubImage = new URL(
+  '@/assets/images/integrations/github.png',
+  import.meta.url,
+).href;
+
+const lfxImage = new URL(
+  '@/assets/images/integrations/custom/lfx.png',
+  import.meta.url,
+).href;
 </script>
 
 <script lang="ts">

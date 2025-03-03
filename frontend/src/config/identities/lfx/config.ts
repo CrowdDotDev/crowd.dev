@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/lfx.png', import.meta.url)
+  .href;
 
 const lfx: IdentityConfig = {
   key: 'lfx',
   name: 'Linux Foundation ID',
-  image: getImageUrlFromPath('identities/lfx.png'),
+  image,
   member: {
     placeholder: 'Linux Foundation ID',
   },

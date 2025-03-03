@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/discourse.png',
+  import.meta.url,
+).href;
 
 const discourse: IdentityConfig = {
   key: 'discourse',
   name: 'Discourse',
-  image: getImageUrlFromPath('identities/discourse.png'),
+  image,
   member: {
     urlPrefix: 'https://meta.discourse.org/u/',
     url: ({ attributes }) => attributes?.url?.discourse,

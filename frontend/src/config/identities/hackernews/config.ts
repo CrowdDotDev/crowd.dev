@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/hackernews.svg',
+  import.meta.url,
+).href;
 
 const hackernews: IdentityConfig = {
   key: 'hackernews',
   name: 'Hacker News',
-  image: getImageUrlFromPath('identities/hackernews.svg'),
+  image,
   member: {
     urlPrefix: 'news.ycombinator.com/user?id=',
     url: ({ identity }) => (identity.value

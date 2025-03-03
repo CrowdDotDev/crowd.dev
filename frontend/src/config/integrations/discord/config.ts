@@ -1,12 +1,16 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import DiscordConnect from './components/discord-connect.vue';
 import DiscordParams from './components/discord-params.vue';
+
+const image = new URL(
+  '@/assets/images/integrations/discord.png',
+  import.meta.url,
+).href;
 
 const discord: IntegrationConfig = {
   key: 'discord',
   name: 'Discord',
-  image: getImageUrlFromPath('integrations/discord.png'),
+  image,
   description:
     'Connect Discord to sync messages, threads, forum channels, and new joiners.',
   connectComponent: DiscordConnect,

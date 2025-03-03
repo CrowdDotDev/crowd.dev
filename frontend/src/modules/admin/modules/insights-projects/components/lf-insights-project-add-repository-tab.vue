@@ -42,7 +42,7 @@
           />
           <img
             v-if="platform === 'gerrit'"
-            :src="getImageUrlFromPath('integrations/gerrit.png')"
+            :src="gerritImage"
             alt="Gerrit"
             class="w-5 h-5"
           />
@@ -66,7 +66,6 @@ import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import { reactive } from 'vue';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 
 const props = defineProps<{
@@ -74,6 +73,11 @@ const props = defineProps<{
 }>();
 
 const cForm = reactive(props.form);
+
+const gerritImage = new URL(
+  '@/assets/images/integrations/gerrit.png',
+  import.meta.url,
+).href;
 </script>
 
 <script lang="ts">

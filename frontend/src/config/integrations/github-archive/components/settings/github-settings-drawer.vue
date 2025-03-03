@@ -8,11 +8,7 @@
               Integration
             </p>
             <div class="flex items-center gap-2">
-              <img
-                :src="getImageUrlFromPath('integrations/github.png')"
-                alt="GitHub"
-                class="h-6 w-6"
-              />
+              <img :src="githubImage" alt="GitHub" class="h-6 w-6" />
               <h5 class="text-black">
                 GitHub
               </h5>
@@ -111,7 +107,6 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -301,6 +296,11 @@ watch(
 onMounted(() => {
   fetchSubProjects();
 });
+
+const githubImage = new URL(
+  '@/assets/images/integrations/github.png',
+  import.meta.url,
+).href;
 </script>
 
 <script lang="ts">

@@ -1,13 +1,17 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import GerritConnect from './components/gerrit-connect.vue';
 import GerritParams from './components/gerrit-params.vue';
 import GerritDropdown from './components/gerrit-dropdown.vue';
 
+const image = new URL(
+  '@/assets/images/integrations/gerrit.png',
+  import.meta.url,
+).href;
+
 const gerrit: IntegrationConfig = {
   key: 'gerrit',
   name: 'Gerrit',
-  image: getImageUrlFromPath('integrations/gerrit.png'),
+  image,
   description:
     'Connect Gerrit to sync documentation activities from your repos.',
   connectComponent: GerritConnect,

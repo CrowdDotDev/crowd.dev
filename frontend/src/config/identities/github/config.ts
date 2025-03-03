@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/github.png', import.meta.url)
+  .href;
 
 const github: IdentityConfig = {
   key: 'github',
   name: 'GitHub',
-  image: getImageUrlFromPath('identities/github.png'),
+  image,
   icon: 'github',
   iconType: 'brands',
   color: '#24292F',

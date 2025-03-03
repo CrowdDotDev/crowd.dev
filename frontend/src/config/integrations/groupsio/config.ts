@@ -1,13 +1,17 @@
 import { IntegrationConfig } from '@/config/integrations';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 import GroupsioConnect from './components/groupsio-connect.vue';
 import GroupsioParams from './components/groupsio-params.vue';
 import GroupsioDropdown from './components/groupsio-dropdown.vue';
 
+const image = new URL(
+  '@/assets/images/integrations/groupsio.svg',
+  import.meta.url,
+).href;
+
 const groupsio: IntegrationConfig = {
   key: 'groupsio',
   name: 'Groups.io',
-  image: getImageUrlFromPath('integrations/groupsio.svg'),
+  image,
   description: 'Connect Groups.io to sync groups and topics activity.',
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,

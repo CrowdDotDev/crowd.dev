@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/twitter.png', import.meta.url)
+  .href;
 
 const twitter: IdentityConfig = {
   key: 'twitter',
   name: 'X/Twitter',
-  image: getImageUrlFromPath('identities/twitter.png'),
+  image,
   member: {
     urlPrefix: 'twitter.com/',
     url: ({ identity }) => (identity.value ? `https://twitter.com/${identity.value}` : null),

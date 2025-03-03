@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/facebook.png',
+  import.meta.url,
+).href;
 
 const facebook: IdentityConfig = {
   key: 'facebook',
   name: 'Facebook',
-  image: getImageUrlFromPath('identities/facebook.png'),
+  image,
 };
 
 export default facebook;

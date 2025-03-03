@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/gitlab.png', import.meta.url)
+  .href;
 
 const gitlab: IdentityConfig = {
   key: 'gitlab',
   name: 'GitLab',
-  image: getImageUrlFromPath('identities/gitlab.png'),
+  image,
   member: {
     urlPrefix: 'gitlab.com/',
     url: ({ identity }) => (identity.value ? `https://gitlab.com/${identity.value}` : null),

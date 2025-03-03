@@ -28,7 +28,6 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { getImageUrlFromPath } from '@/utils/image-loader';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();
@@ -61,7 +60,11 @@ const connect = () => {
   window.open(connectUrl.value, '_self');
 };
 
-const slackLogo = getImageUrlFromPath('integrations/slack.png');
+const slackLogo = new URL(
+  '@/assets/images/integrations/slack.png',
+  import.meta.url,
+).href;
+
 const finallizeSlackConnect = () => {
   const slackSuccess = route.query['slack-success'];
   if (slackSuccess) {

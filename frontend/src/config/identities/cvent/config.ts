@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/cvent.png', import.meta.url)
+  .href;
 
 const cvent: IdentityConfig = {
   key: 'cvent',
   name: 'Cvent',
-  image: getImageUrlFromPath('identities/cvent.png'),
+  image,
   member: {
     placeholder: 'Cvent username or email address',
   },

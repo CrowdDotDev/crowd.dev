@@ -1,10 +1,14 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL(
+  '@/assets/images/identities/linkedin.png',
+  import.meta.url,
+).href;
 
 const linkedin: IdentityConfig = {
   key: 'linkedin',
   name: 'LinkedIn',
-  image: getImageUrlFromPath('identities/linkedin.png'),
+  image,
   icon: 'linkedin',
   iconType: 'brands',
   color: '#2867B2',

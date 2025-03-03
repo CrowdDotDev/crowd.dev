@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/discord.png', import.meta.url)
+  .href;
 
 const discord: IdentityConfig = {
   key: 'discord',
   name: 'Discord',
-  image: getImageUrlFromPath('identities/discord.png'),
+  image,
   member: {
     placeholder: 'Discord username',
     url: ({ identity }) => (identity.value ? `https://discord.com/${identity.value}` : null),

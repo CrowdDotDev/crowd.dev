@@ -1,10 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+
+const image = new URL('@/assets/images/identities/slack.png', import.meta.url)
+  .href;
 
 const slack: IdentityConfig = {
   key: 'slack',
   name: 'Slack',
-  image: getImageUrlFromPath('identities/slack.png'),
+  image,
   member: {
     placeholder: 'Slack username or email address',
     url: ({ identity }) => (identity.value ? `https://slack.com/${identity.value}` : null),

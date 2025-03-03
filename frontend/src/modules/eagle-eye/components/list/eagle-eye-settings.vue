@@ -80,7 +80,7 @@
           >
             <img
               :alt="platformOptions[platform].label"
-              :src="getImageUrlFromPath(platformOptions[platform].img)"
+              :src="platformOptions[platform].img"
               class="w-5 h-5"
             />
             <span class="text-xs text-gray-900">{{
@@ -118,8 +118,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
-import { getImageUrlFromPath } from '@/utils/image-loader';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 import AppEagleEyeEmailDigestCard from '@/modules/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
 import AppEagleEyeSettingsDrawer from '@/modules/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
