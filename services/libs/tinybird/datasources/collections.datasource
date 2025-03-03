@@ -1,6 +1,7 @@
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name`,
+    `slug` String `json:$.record.slug`,
     `description` String `json:$.record.description` DEFAULT '',
     `isLF` UInt8 `json:$.record.isLF` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
