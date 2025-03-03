@@ -35,6 +35,10 @@ export async function fixDeletedMemberOrgAffilations(
     // 2. Check if they have activity in questDb
     const activityCount = await activity.getActivities(memberId, organizationId)
 
+    console.log(
+      `Found ${activityCount} activities for member ${memberId} and org ${organizationId}`,
+    )
+
     // 2.1 If no activities found, we need to get and insert them
     if (activityCount === 0) {
       console.log(
@@ -52,8 +56,11 @@ export async function fixDeletedMemberOrgAffilations(
     await syncActivity.syncMembersBatch([memberId], true)
 
     // 5. Add organizationId to redisCache for sync
-    console.log(`Adding org ${organizationId} to redisCache for sync`)
+    console.log(`Adding org ${organizationId} to redisCache`)
     await activity.addOrgIdToRedisCache(organizationId)
+
+    // 6. Mark member-org affiliation as processed
+    await activity.markMemberOrgAffiliationAsProcessed(memberId, organizationId)
   }
 
   if (args.testRun) {

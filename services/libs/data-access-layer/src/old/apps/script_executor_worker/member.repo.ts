@@ -179,11 +179,16 @@ class MemberRepository {
     // Finds activities where:
     // 1. Member had a work experience (now deleted)
     // 2. Member has NO active work experience at same org
+    // 3. Member-Org pair hasn't been processed yet
     const query = `
       select distinct a."memberId", a."organizationId"
       from activities a
+      left join "processedMemberOrgAffiliations" p on
+        p."memberId" = a."memberId"
+        and p."organizationId" = a."organizationId"
       where a."updatedAt" < $(date)
       and a."organizationId" is not null
+      and p."memberId" is null
       and exists (
           select 1
           from "memberOrganizations" mo

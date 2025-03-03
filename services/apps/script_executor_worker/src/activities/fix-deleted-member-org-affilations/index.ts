@@ -6,6 +6,7 @@ import {
 import { runMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
+import TempRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/temp.repo'
 
 import { svc } from '../../main'
 
@@ -49,4 +50,12 @@ export async function calculateMemberAffiliations(memberId: string): Promise<voi
 
 export async function addOrgIdToRedisCache(orgId: string): Promise<void> {
   await svc.redis.sAdd('organizationIdsForAggComputation', orgId)
+}
+
+export async function markMemberOrgAffiliationAsProcessed(
+  memberId: string,
+  organizationId: string,
+): Promise<void> {
+  const repo = new TempRepository(svc.postgres.writer.connection())
+  await repo.markMemberOrgAffiliationAsProcessed(memberId, organizationId)
 }
