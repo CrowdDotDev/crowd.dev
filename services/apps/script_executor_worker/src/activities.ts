@@ -36,12 +36,9 @@ import {
   markActivitiesAsIndexed,
   resetIndexedIdentities,
 } from './activities/populate-activity-relations'
-import {
-  deleteIndexedEntities,
-  getMembersForSync,
-  markEntitiesIndexed,
-  syncMembersBatch,
-} from './activities/sync/member'
+import { deleteIndexedEntities, markEntitiesIndexed } from './activities/sync/entity-index'
+import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
+import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -66,6 +63,8 @@ export {
   markActivitiesAsIndexed,
   syncMembersBatch,
   getMembersForSync,
+  getOrganizationsForSync,
+  syncOrganizationsBatch,
   deleteIndexedEntities,
   markEntitiesIndexed,
   getMembersWithDeletedOrgAffilations,

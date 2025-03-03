@@ -1,4 +1,4 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberAttribute } from '@crowd/types'
@@ -40,6 +40,7 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
             id: generateUUIDv1(),
             createdAt: now,
             updatedAt: now,
+            tenantId: DEFAULT_TENANT_ID,
           }
         }),
         this.insertMemberAttributeSettingColumnSet,
