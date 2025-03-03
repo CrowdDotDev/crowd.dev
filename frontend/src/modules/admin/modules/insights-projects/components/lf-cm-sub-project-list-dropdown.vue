@@ -11,16 +11,29 @@
     <span class="text-2xs text-gray-500">
       Select an active project from Community Management
     </span>
-    <el-input
-      ref="inputRef"
-      v-model="inputValue"
-      class="subprojects-select-input"
-      placeholder="Select option"
-      readonly
-      :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
-      @blur="$v.projectId.$touch"
-      @click="isPopoverVisible = true"
-    />
+    <div class="relative">
+      <div v-if="form.projectId" class="absolute top-2 left-2 z-10">
+        <lf-avatar
+          :src="form.project.url"
+          :name="form.project.name"
+          :size="24"
+          class="!rounded-md border border-gray-200"
+        />
+      </div>
+      <el-input
+        ref="inputRef"
+        v-model="inputValue"
+        class="subprojects-select-input"
+        :class="{
+          'subprojects-select-active': form.projectId,
+        }"
+        placeholder="Select option"
+        readonly
+        :suffix-icon="isPopoverVisible ? ArrowUpIcon : ArrowDownIcon"
+        @blur="$v.projectId.$touch"
+        @click="isPopoverVisible = true"
+      />
+    </div>
   </app-form-item>
 
   <el-popover
@@ -55,7 +68,13 @@
           }"
           @click="onOptionClick(project)"
         >
-          {{ project.name }}
+          <lf-avatar
+            :src="project.url"
+            :name="project.name"
+            :size="24"
+            class="!rounded-md border border-gray-200"
+          />
+          <span class="ml-2 text-gray-900 text-sm">{{ project.name }}</span>
         </div>
       </div>
       <div
@@ -81,6 +100,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
 import { debounce } from 'lodash';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -100,8 +120,7 @@ const ArrowUpIcon = h(
   [],
 );
 
-const emit = defineEmits<{(e: 'onChange', value: any): void;
-}>();
+const emit = defineEmits<{(e: 'onChange', value: any): void }>();
 
 const props = defineProps<{
   selectedProjectId: string;
@@ -116,6 +135,11 @@ const isPopoverVisible = ref(false);
 const inputValue = ref('');
 const form = reactive({
   projectId: '',
+  project: {
+    id: undefined,
+    name: '',
+    url: '',
+  },
 });
 
 const rules = {
@@ -166,6 +190,7 @@ const onOptionClick = (project: any) => {
   isPopoverVisible.value = false;
 
   form.projectId = project.id;
+  form.project = project;
   inputValue.value = project.name;
   emit('onChange', {
     project,
@@ -194,5 +219,9 @@ export default {
   .el-input__inner {
     @apply cursor-pointer;
   }
+}
+
+.subprojects-select-active .el-input__inner {
+  @apply pl-6;
 }
 </style>

@@ -1,12 +1,12 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 
 import { svc } from '../main'
-import { dailyGetAndComputeOrgAggs } from '../workflows'
+import { spawnOrganizationAggregatesComputation } from '../workflows'
 
 export const scheduleComputeOrgAggsDaily = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'compute-org-aggs-daily',
+      scheduleId: 'computeOrgAggsDaily',
       spec: {
         cronExpressions: ['0 8 * * *'],
       },
@@ -16,9 +16,8 @@ export const scheduleComputeOrgAggsDaily = async () => {
       },
       action: {
         type: 'startWorkflow',
-        workflowType: dailyGetAndComputeOrgAggs,
+        workflowType: spawnOrganizationAggregatesComputation,
         taskQueue: 'cache',
-        workflowExecutionTimeout: '5 minutes',
       },
     })
   } catch (err) {

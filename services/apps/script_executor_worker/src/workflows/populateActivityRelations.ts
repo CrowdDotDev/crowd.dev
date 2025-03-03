@@ -22,19 +22,33 @@ export async function populateActivityRelations(
       args.latestSyncedActivityTimestamp || (await activity.getLatestSyncedActivityTimestamp())
   }
 
-  const { activitiesLength, activitiesRedisKey, lastTimestamp } =
-    await activity.getActivitiesToCopy(
-      latestSyncedActivityTimestamp ?? undefined,
-      BATCH_SIZE_PER_RUN,
-    )
+  let { activitiesLength, activitiesRedisKey, lastTimestamp } = await activity.getActivitiesToCopy(
+    latestSyncedActivityTimestamp ?? undefined,
+    BATCH_SIZE_PER_RUN,
+  )
 
   if (activitiesLength === 0) {
     return
   }
 
-  if (activitiesLength < BATCH_SIZE_PER_RUN) {
-    if (lastTimestamp === args.latestSyncedActivityTimestamp) {
+  if (lastTimestamp === args.latestSyncedActivityTimestamp) {
+    if (activitiesLength < BATCH_SIZE_PER_RUN) {
       return
+    }
+
+    // All activities returned have the same timestamp, we need a bigger batch size
+    // then the default one to pass this point
+    let batchSizeMultiplier = 2
+
+    while (lastTimestamp === args.latestSyncedActivityTimestamp) {
+      const result = await activity.getActivitiesToCopy(
+        lastTimestamp,
+        BATCH_SIZE_PER_RUN * batchSizeMultiplier,
+      )
+      activitiesLength = result.activitiesLength
+      activitiesRedisKey = result.activitiesRedisKey
+      lastTimestamp = result.lastTimestamp
+      batchSizeMultiplier += 1
     }
   }
 

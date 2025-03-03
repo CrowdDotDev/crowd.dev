@@ -9,7 +9,10 @@
         @blur="$v.name.$touch()"
         @change="$v.name.$touch()"
       />
-      <lf-field-messages :validation="$v.name" :error-messages="{ required: 'This field is required' }" />
+      <lf-field-messages
+        :validation="$v.name"
+        :error-messages="{ required: 'This field is required' }"
+      />
     </lf-field>
   </article>
 
@@ -22,7 +25,10 @@
         @blur="$v.description.$touch()"
         @change="$v.description.$touch()"
       />
-      <lf-field-messages :validation="$v.description" :error-messages="{ required: 'This field is required' }" />
+      <lf-field-messages
+        :validation="$v.description"
+        :error-messages="{ required: 'This field is required' }"
+      />
     </lf-field>
   </article>
 
@@ -36,15 +42,28 @@
         @blur="$v.logoUrl.$touch()"
         @change="$v.logoUrl.$touch()"
       />
-      <lf-field-messages :validation="$v.logoUrl" :error-messages="{ required: 'This field is required' }" />
+      <lf-field-messages
+        :validation="$v.logoUrl"
+        :error-messages="{ required: 'This field is required' }"
+      />
     </lf-field>
   </article>
 
   <!-- Collections -->
   <article class="mb-5">
     <lf-field label-text="Collections">
-      <el-select v-model="cForm.collectionsIds" multiple placeholder="Select collection(s)" class="w-full">
-        <el-option v-for="item in collectionsOptions" :key="item.id" :label="item.name" :value="item.id" />
+      <el-select
+        v-model="cForm.collectionsIds"
+        multiple
+        placeholder="Select collection(s)"
+        class="w-full"
+      >
+        <el-option
+          v-for="item in collectionsOptions"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"
+        />
       </el-select>
     </lf-field>
   </article>
@@ -52,12 +71,30 @@
   <!-- Associated company -->
   <article class="mb-5">
     <lf-field label-text="Associated company">
-      <el-select v-model="cForm.organizationId" placeholder="Select company" class="w-full">
+      <el-select
+        v-model="cForm.organizationId"
+        placeholder="Select company"
+        class="w-full"
+        @change="onOrganizationChange"
+      >
+        <template v-if="cForm.organizationId" #prefix>
+          <lf-avatar
+            :src="cForm.organization.logo"
+            :name="cForm.organization.displayName"
+            :size="24"
+            class="!rounded-md border border-gray-200"
+          />
+        </template>
         <template #label="{ label, value }">
           <span>{{ label }}: </span>
           <span style="font-weight: bold">{{ value }}</span>
         </template>
-        <el-option v-for="item in organizations" :key="item.id" :label="item.displayName" :value="item.id">
+        <el-option
+          v-for="item in organizations"
+          :key="item.id"
+          :label="item.displayName"
+          :value="item.id"
+        >
           <lf-avatar
             :src="item.logo"
             :name="item.displayName"
@@ -87,7 +124,10 @@
         @blur="$v.website.$touch()"
         @change="$v.website.$touch()"
       />
-      <lf-field-messages :validation="$v.website" :error-messages="{ required: 'This field is required' }" />
+      <lf-field-messages
+        :validation="$v.website"
+        :error-messages="{ required: 'This field is required' }"
+      />
     </lf-field>
     <div class="flex items-center mt-6">
       <lf-icon class="mr-2.5" name="github" :size="25" type="brands" />
@@ -98,7 +138,12 @@
       />
     </div>
     <div class="flex items-center mt-3">
-      <lf-icon class="mr-2.5 text-[#2867B2]" name="linkedin" :size="25" type="brands" />
+      <lf-icon
+        class="mr-2.5 text-[#2867B2]"
+        name="linkedin"
+        :size="25"
+        type="brands"
+      />
       <lf-input
         v-model="cForm.linkedin"
         class="h-10 flex-grow"
@@ -133,14 +178,27 @@ const organizationStore = useOrganizationStore();
 const collectionStore = useCollectionsStore();
 
 const props = defineProps<{
-    form: InsightsProjectAddFormModel;
-    rules: any;
+  form: InsightsProjectAddFormModel;
+  rules: any;
 }>();
 const cForm = reactive(props.form);
 const $v = useVuelidate(props.rules, cForm);
 
-const collectionsOptions = computed(() => collectionStore.getCollections() || []);
-const organizations = computed(() => organizationStore.getOrganizations() || []);
+const collectionsOptions = computed(
+  () => collectionStore.getCollections() || [],
+);
+const organizations = computed(
+  () => organizationStore.getOrganizations() || [],
+);
+
+const onOrganizationChange = (value: string) => {
+  const organization = organizations.value.find(
+    (organization) => organization.id === value,
+  );
+  if (organization) {
+    Object.assign(cForm.organization, organization);
+  }
+};
 </script>
 
 <script lang="ts">

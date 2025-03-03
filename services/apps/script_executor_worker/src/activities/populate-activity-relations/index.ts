@@ -1,4 +1,6 @@
+import { partition } from '@crowd/common'
 import {
+  IActivityRelationsCreateData,
   createOrUpdateRelations,
   getActivityRelationsSortedByTimestamp,
 } from '@crowd/data-access-layer'
@@ -49,23 +51,30 @@ export async function getActivitiesToCopy(latestSyncedActivityTimestamp: string,
 }
 
 export async function createRelations(activitiesRedisKey): Promise<void> {
-  const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
-  const promises = activities.map(async (activity) =>
-    createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), {
-      activityId: activity.id,
-      memberId: activity.memberId,
-      platform: activity.platform,
-      segmentId: activity.segmentId,
-      username: activity.username,
-      conversationId: activity.conversationId,
-      objectMemberId: activity.objectMemberId,
-      objectMemberUsername: activity.objectMemberUsername,
-      organizationId: activity.organizationId,
-      parentId: activity.parentId,
-    }),
-  )
+  const activities: IActivityRelationsCreateData[] =
+    await getActivitiyDataFromRedis(activitiesRedisKey)
 
-  await Promise.all(promises)
+  const chunkSize = 1000
+  const activityChunks = partition(activities, chunkSize)
+
+  for (const chunk of activityChunks) {
+    const promises = chunk.map((activity) =>
+      createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), {
+        activityId: activity.id,
+        memberId: activity.memberId,
+        platform: activity.platform,
+        segmentId: activity.segmentId,
+        username: activity.username,
+        conversationId: activity.conversationId,
+        objectMemberId: activity.objectMemberId,
+        objectMemberUsername: activity.objectMemberUsername,
+        organizationId: activity.organizationId,
+        parentId: activity.parentId,
+      }),
+    )
+
+    await Promise.all(promises)
+  }
 }
 
 export async function saveActivityDataToRedis(key: string, activities): Promise<void> {

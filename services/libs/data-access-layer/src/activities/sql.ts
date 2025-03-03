@@ -1741,11 +1741,26 @@ export async function moveActivityRelationsToAnotherOrganization(
   } while (rowsUpdated === batchSize)
 }
 
+export interface IActivityRelationsCreateData {
+  id: string
+  memberId: string
+  timestamp: string
+  createdAt: string
+  objectMemberId?: string
+  organizationId?: string
+  conversationId?: string
+  parentId?: string
+  segmentId: string
+  platform: string
+  username: string
+  objectMemberUsername?: string
+}
+
 export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
   cursorActivityTimestamp?: string,
   limit = 100,
-) {
+): Promise<IActivityRelationsCreateData[]> {
   let cursorQuery = ''
 
   if (cursorActivityTimestamp) {

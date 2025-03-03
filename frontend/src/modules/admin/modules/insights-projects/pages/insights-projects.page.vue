@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div class="flex gap-4 pt-6 pb-4">
+    <div
+      v-if="projects.length > 0 || search.length > 0"
+      class="flex gap-4 pt-6 pb-4"
+    >
       <!-- Search input -->
       <lf-search
         v-model="search"
@@ -24,8 +27,9 @@
         @on-edit-project="onEditInsightsProject($event)"
         @on-delete-project="onDeleteProject($event)"
       />
-      <div v-if="projects.length < total" class="pt-4">
+      <div class="pt-4">
         <lf-button
+          v-if="projects.length < total && !loading"
           type="primary-ghost"
           loading-text="Loading projects..."
           :loading="loading"
@@ -33,6 +37,18 @@
         >
           Load more
         </lf-button>
+        <div
+          v-else-if="loading && projects.length > 0"
+          class="flex items-center justify-center"
+        >
+          <span class="text-xs text-gray-400 mr-4">
+            {{ offset }} out of {{ total }} projects
+          </span>
+          <div class="flex items-center text-xs text-primary-200">
+            <lf-spinner :size="'1rem'" class="mr-1 border-primary-200" />
+            Loading projects...
+          </div>
+        </div>
       </div>
     </div>
 
@@ -41,6 +57,7 @@
         v-if="search.length"
         class="w-full !pb-0"
         icon="laptop-code"
+        :icon-size="100"
         title="No projects found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
@@ -48,6 +65,7 @@
         <app-empty-state-cta
           class="w-full !pb-0"
           icon="laptop-code"
+          :icon-size="100"
           title="No projects yet"
           description="Add projects to Insights and organize them within collections"
         />
@@ -62,7 +80,10 @@
         </lf-button>
       </template>
     </div>
-    <div v-if="loading" class="pt-8 flex justify-center">
+    <div
+      v-if="loading && projects.length === 0"
+      class="pt-8 flex justify-center"
+    >
       <lf-spinner />
     </div>
   </div>

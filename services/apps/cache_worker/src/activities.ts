@@ -1,7 +1,7 @@
 import {
   checkOrganizationExists,
   dropOrgIdFromRedis,
-  getOrgIdsFromRedis,
+  getOrganizationIdsFromRedis,
   syncOrganization,
 } from './activities/computeAggs/organization'
 import {
@@ -44,7 +44,7 @@ export {
   getActivePlatforms,
   findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
-  getOrgIdsFromRedis,
+  getOrganizationIdsFromRedis,
   dropOrgIdFromRedis,
   checkOrganizationExists,
   syncOrganization,
