@@ -31,8 +31,6 @@ export async function syncMembersBatch(
 
     const CHUNK_SIZE = chunkSize || 10
 
-    svc.log.info(`Syncing members in chunks of ${CHUNK_SIZE}!`)
-
     const results = []
     for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
       const chunk = memberIds.slice(i, i + CHUNK_SIZE)
