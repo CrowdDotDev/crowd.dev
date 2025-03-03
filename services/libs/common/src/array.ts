@@ -134,11 +134,3 @@ export const hasIntersection = (arr1: string[], arr2: string[]): boolean => {
   const set1 = new Set(arr1)
   return arr2.some((item) => set1.has(item))
 }
-
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks = []
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize))
-  }
-  return chunks
-}

@@ -1,4 +1,4 @@
-import { chunkArray } from '@crowd/common'
+import { partition } from '@crowd/common'
 import {
   IActivityRelationsCreateData,
   createOrUpdateRelations,
@@ -55,7 +55,7 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
     await getActivitiyDataFromRedis(activitiesRedisKey)
 
   const chunkSize = 1000
-  const activityChunks = chunkArray(activities, chunkSize)
+  const activityChunks = partition(activities, chunkSize)
 
   for (const chunk of activityChunks) {
     const promises = chunk.map((activity) =>
