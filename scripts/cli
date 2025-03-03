@@ -704,7 +704,10 @@ function up_scaffold() {
         profile='--profile nginx'
     fi
 
-    if [[ ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" ]]; then
+    if [[ ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" || 
+          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")"  || 
+          ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
+          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")" ]]; then
         download_kafka_connect_http
     fi
 
