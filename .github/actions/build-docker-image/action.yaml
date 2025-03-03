@@ -9,7 +9,7 @@ inputs:
 outputs:
   image:
     description: Image that was built
-    value: crowddotdev/${{ inputs.image }}:${{ steps.version-generator.outputs.IMAGE_VERSION }}
+    value: sjc.ocir.io/axbydjxa5zuh/${{ inputs.image }}:${{ steps.version-generator.outputs.IMAGE_VERSION }}
 
 runs:
   using: composite
@@ -26,7 +26,7 @@ runs:
 
     - name: Login to docker repository
       shell: bash
-      run: echo ${{ env.DOCKERHUB_PASSWORD }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
+      run: echo ${{ env.ORACLE_DOCKER_PASSWORD }} | docker login sjc.ocir.io -u ${{ env.ORACLE_DOCKER_USERNAME }} --password-stdin
 
     - name: Build and push docker image
       shell: bash
