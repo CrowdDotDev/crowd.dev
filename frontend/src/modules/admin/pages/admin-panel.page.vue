@@ -6,11 +6,11 @@
       </h4>
       <div
         v-if="isAdminUser && config.env !== 'production'"
-        class="flex h-fit border border-gray-200 rounded-md p-1 gap-0.5"
+        class="flex h-fit border border-gray-200 rounded-md p-1 gap-2"
       >
         <lf-button
           size="medium"
-          class="!text-gray-500 text-xs"
+          class="!text-gray-500 text-xs !px-2"
           :class="{ '!bg-gray-100 !text-gray-900': isCommunityManagement }"
           type="secondary-ghost"
           @click="changeAdminPanelView('community')"
@@ -19,7 +19,7 @@
         </lf-button>
         <lf-button
           size="medium"
-          class="!text-gray-500 text-xs"
+          class="!text-gray-500 text-xs !px-2"
           :class="{ '!bg-gray-100 !text-gray-900': !isCommunityManagement }"
           type="secondary-ghost"
           @click="changeAdminPanelView('insights')"
