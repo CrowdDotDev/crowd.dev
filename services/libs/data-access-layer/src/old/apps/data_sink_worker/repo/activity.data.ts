@@ -24,6 +24,7 @@ export interface IDbActivity {
   sentiment: ISentimentAnalysisResult
   organizationId?: string
   deletedAt?: string
+  createdAt?: string
 }
 
 export interface IDbActivityCreateData {

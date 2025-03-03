@@ -38,7 +38,13 @@
             class="h-10 flex items-center px-3 text-xs text-gray-900 hover:bg-gray-50 rounded cursor-pointer"
             @click="onOptionClick(project)"
           >
-            {{ project.name }}
+            <lf-avatar
+              :src="project.url"
+              :name="project.name"
+              :size="24"
+              class="!rounded-md border border-gray-200"
+            />
+            <span class="ml-2 text-gray-900 text-sm">{{ project.name }}</span>
           </div>
         </div>
       </div>
@@ -52,6 +58,7 @@
 <script setup lang="ts">
 import { h, ref, computed } from 'vue';
 import { InsightsProjectModel } from '@/modules/admin/modules/insights-projects/models/insights-project.model';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
 const SearchIcon = h(

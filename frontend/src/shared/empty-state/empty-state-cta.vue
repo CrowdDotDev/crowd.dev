@@ -1,15 +1,20 @@
 <template>
-  <div
-    class="flex flex-col items-center justify-center pt-20 pb-10"
-  >
-    <lf-icon :name="icon" class="text-gray-200" :size="160" />
+  <div class="flex flex-col items-center justify-center pt-20 pb-10">
+    <lf-icon :name="icon" class="text-gray-200" :size="iconSize" />
 
-    <h5>{{ title }}</h5>
+    <h5 class="mt-3.5">
+      {{ title }}
+    </h5>
     <div
       v-if="description"
       class="text-gray-600 text-sm mt-4 w-6/12 text-center"
     >
-      <lf-icon v-if="hasWarningIcon" name="circle-info" :size="16" class="text-primary-500 mr-2" />
+      <lf-icon
+        v-if="hasWarningIcon"
+        name="circle-info"
+        :size="16"
+        class="text-primary-500 mr-2"
+      />
       <span v-html="description" />
     </div>
     <div class="flex gap-6 mt-8">
@@ -40,6 +45,10 @@ defineProps({
   icon: {
     type: String,
     required: true,
+  },
+  iconSize: {
+    type: Number,
+    default: () => 160,
   },
   title: {
     type: String,

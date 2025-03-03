@@ -12,10 +12,10 @@
       </lf-dropdown-item>
       <lf-dropdown-item @click="featuredProject()">
         <lf-icon :name="props.starred ? 'bookmark-slash' : 'bookmark'" />
-        {{ props.starred ? 'Unfeature project' : 'Featured project' }}
+        {{ props.starred ? "Unfeature project" : "Featured project" }}
       </lf-dropdown-item>
       <lf-dropdown-separator />
-      <lf-dropdown-item type="danger" @click="removeProject()">
+      <lf-dropdown-item @click="removeProject()">
         <lf-icon name="circle-minus" />
         Remove from collection
       </lf-dropdown-item>
@@ -30,14 +30,14 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 
-const emit = defineEmits<{(e: 'onEditProject', id: string): void,
-  (e: 'onFeaturedProject', id: string): void,
-  (e: 'onRemoveProject', id: string): void,
+const emit = defineEmits<{(e: 'onEditProject', id: string): void;
+  (e: 'onFeaturedProject', id: string): void;
+  (e: 'onRemoveProject', id: string): void;
 }>();
 
 const props = defineProps<{
-  id: string,
-  starred: boolean,
+  id: string;
+  starred: boolean;
 }>();
 
 const editProject = () => {
