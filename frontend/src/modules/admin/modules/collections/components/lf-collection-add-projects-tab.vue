@@ -1,7 +1,6 @@
 <template>
   <div>
     <div v-if="cForm.projects.length > 0">
-      <!-- TODO: Add projects table -->
       <lf-button
         class="w-fit mb-2"
         size="medium"
@@ -12,10 +11,12 @@
         Add a new project
       </lf-button>
       <!-- Search input -->
-      <lf-insights-projects-list-dropdown
-        :selected-projects="cForm.projects"
-        @on-add-project="onAddProject"
-      />
+      <div class="w-full relative">
+        <lf-insights-projects-list-dropdown
+          :selected-projects="cForm.projects"
+          @on-add-project="onAddProject"
+        />
+      </div>
 
       <lf-table class="!overflow-visible" show-hover>
         <thead>
@@ -81,10 +82,12 @@
         Add a new project
       </lf-button>
       <!-- Search input -->
-      <lf-insights-projects-list-dropdown
-        :selected-projects="cForm.projects"
-        @on-add-project="onAddProject"
-      />
+      <div class="w-3/5 relative">
+        <lf-insights-projects-list-dropdown
+          :selected-projects="cForm.projects"
+          @on-add-project="onAddProject"
+        />
+      </div>
     </div>
   </div>
 

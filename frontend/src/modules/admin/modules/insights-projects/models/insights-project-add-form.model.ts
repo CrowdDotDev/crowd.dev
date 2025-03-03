@@ -5,6 +5,11 @@ export interface InsightsProjectAddFormModel {
   logoUrl: string;
   collectionsIds: string[];
   organizationId: string | undefined;
+  organization: {
+    id: string | undefined;
+    displayName: string;
+    logo: string;
+  };
   website: string;
   github: string;
   twitter: string;

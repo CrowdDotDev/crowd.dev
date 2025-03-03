@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div class="flex gap-4 pt-6 pb-4">
+    <div
+      v-if="collections.length > 0 || search.length > 0"
+      class="flex gap-4 pt-6 pb-4"
+    >
       <!-- Search input -->
       <lf-search
         v-model="search"
@@ -52,6 +55,7 @@
         v-if="search.length"
         class="w-full !pb-0"
         icon="rectangle-history"
+        :icon-size="100"
         title="No collections found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
@@ -59,6 +63,7 @@
         <app-empty-state-cta
           class="w-full !pb-0"
           icon="rectangle-history"
+          :icon-size="100"
           title="No collections yet"
           description="Start creating project collections of a certain area or tech stack"
         />
