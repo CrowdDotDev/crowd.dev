@@ -1,8 +1,5 @@
 import { insertActivities } from '@crowd/data-access-layer'
-import {
-  IDbActivity,
-  IDbActivityCreateData,
-} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
+import { IDbActivity } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import { runMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
@@ -27,16 +24,25 @@ export async function getActivities(memberId: string, organizationId: string): P
   return repo.findActivitiesQuestDb(memberId, organizationId)
 }
 
-export async function findActivitiesPg(memberId: string, orgId: string): Promise<IDbActivity[]> {
-  const repo = new ActivityRepository(svc.postgres.reader.connection(), svc.log, svc.questdbSQL)
-  return repo.findActivitiesPg(memberId, orgId)
-}
+export async function copyActivitiesFromPgToQuestDb(
+  memberId: string,
+  orgId: string,
+): Promise<void> {
+  let offset = 0
+  let activities: IDbActivity[] = []
 
-export async function createActivities(activities: IDbActivityCreateData[]): Promise<void> {
-  try {
+  const repo = new ActivityRepository(svc.postgres.reader.connection(), svc.log, svc.questdbSQL)
+
+  // Get first batch
+  activities = await repo.findActivitiesPg(memberId, orgId, { offset: 0 })
+
+  while (activities.length > 0) {
+    // Insert current batch
     await insertActivities(svc.queue, activities)
-  } catch (err) {
-    throw new Error(err)
+
+    // Move to next batch
+    offset += activities.length
+    activities = await repo.findActivitiesPg(memberId, orgId, { offset })
   }
 }
 

@@ -41,11 +41,9 @@ export async function fixDeletedMemberOrgAffilations(
 
         // 2.1 If no activities found, we need to get and insert them
         if (activityCount === 0) {
-          console.log(
-            `No activities found for member ${memberId} and org ${organizationId}, creating from postgres!`,
-          )
-          const activities = await activity.findActivitiesPg(memberId, organizationId)
-          await activity.createActivities(activities)
+          console.log(`Copying activities for member ${memberId} and org ${organizationId}`)
+
+          await activity.copyActivitiesFromPgToQuestDb(memberId, organizationId)
         }
 
         // 3. Calculate affiliation

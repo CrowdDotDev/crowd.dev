@@ -10,12 +10,18 @@ class ActivityRepository {
     private readonly questdbSQL: DbConnOrTx,
   ) {}
 
-  async findActivitiesPg(memberId: string, organizationId: string): Promise<IDbActivity[]> {
+  async findActivitiesPg(
+    memberId: string,
+    organizationId: string,
+    { limit = 100, offset = 0 },
+  ): Promise<IDbActivity[]> {
     return this.connection.query(
-      `select * from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+      `select * from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId) limit $(limit) offset $(offset)`,
       {
         memberId,
         organizationId,
+        limit,
+        offset,
       },
     )
   }
