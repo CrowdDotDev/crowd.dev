@@ -19,9 +19,12 @@ export async function getMembersWithDeletedOrgAffilations(
   }
 }
 
-export async function getActivities(memberId: string, organizationId: string): Promise<number> {
+export async function hasActivityInQuestDb(
+  memberId: string,
+  organizationId: string,
+): Promise<boolean> {
   const repo = new ActivityRepository(svc.postgres.reader.connection(), svc.log, svc.questdbSQL)
-  return repo.findActivitiesQuestDb(memberId, organizationId)
+  return repo.hasActivity(memberId, organizationId)
 }
 
 export async function copyActivitiesFromPgToQuestDb(

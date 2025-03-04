@@ -14,8 +14,8 @@ import {
   addOrgIdToRedisCache,
   calculateMemberAffiliations,
   copyActivitiesFromPgToQuestDb,
-  getActivities,
   getMembersWithDeletedOrgAffilations,
+  hasActivityInQuestDb,
   markMemberOrgAffiliationAsProcessed,
 } from './activities/fix-deleted-member-org-affilations'
 import {
@@ -68,7 +68,7 @@ export {
   deleteIndexedEntities,
   markEntitiesIndexed,
   getMembersWithDeletedOrgAffilations,
-  getActivities,
+  hasActivityInQuestDb,
   copyActivitiesFromPgToQuestDb,
   addOrgIdToRedisCache,
   calculateMemberAffiliations,

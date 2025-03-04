@@ -26,16 +26,28 @@ class ActivityRepository {
     )
   }
 
-  async findActivitiesQuestDb(memberId: string, organizationId: string): Promise<number> {
-    const results = await this.questdbSQL.query(
-      `select count(*) as count from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+  // async findActivitiesQuestDb(memberId: string, organizationId: string): Promise<number> {
+  //   const results = await this.questdbSQL.query(
+  //     `select count(*) as count from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+  //     {
+  //       memberId,
+  //       organizationId,
+  //     },
+  //   )
+
+  //   return Number(results[0].count)
+  // }
+
+  async hasActivity(memberId: string, organizationId: string): Promise<boolean> {
+    const results = await this.connection.query(
+      `select 1 from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId) limit 1`,
       {
         memberId,
         organizationId,
       },
     )
 
-    return Number(results[0].count)
+    return results.length > 0
   }
 }
 

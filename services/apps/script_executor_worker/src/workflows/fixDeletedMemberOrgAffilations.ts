@@ -37,10 +37,14 @@ export async function fixDeletedMemberOrgAffilations(
     await Promise.all(
       chunk.map(async ({ memberId, organizationId }) => {
         // 2. Check if they have activity in questDb
-        const activityCount = await activity.getActivities(memberId, organizationId)
+        const hasActivity = await activity.hasActivityInQuestDb(memberId, organizationId)
+
+        console.log(
+          `Member ${memberId} and org ${organizationId} has activity in questDb: ${hasActivity}`,
+        )
 
         // 2.1 If no activities found, we need to get and insert them
-        if (activityCount === 0) {
+        if (!hasActivity) {
           console.log(`Copying activities for member ${memberId} and org ${organizationId}`)
 
           await activity.copyActivitiesFromPgToQuestDb(memberId, organizationId)
