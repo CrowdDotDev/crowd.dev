@@ -42,7 +42,7 @@
           />
           <img
             v-if="platform === 'gerrit'"
-            src="/images/integrations/gerrit.png"
+            :src="gerritImage"
             alt="Gerrit"
             class="w-5 h-5"
           />
@@ -73,6 +73,11 @@ const props = defineProps<{
 }>();
 
 const cForm = reactive(props.form);
+
+const gerritImage = new URL(
+  '@/assets/images/integrations/gerrit.png',
+  import.meta.url,
+).href;
 </script>
 
 <script lang="ts">

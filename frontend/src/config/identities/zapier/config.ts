@@ -1,9 +1,12 @@
 import { IdentityConfig } from '@/config/identities';
 
+const image = new URL('@/assets/images/identities/zapier.png', import.meta.url)
+  .href;
+
 const zapier: IdentityConfig = {
   key: 'zapier',
   name: 'Zapier',
-  image: '/images/identities/zapier.png',
+  image,
 };
 
 export default zapier;

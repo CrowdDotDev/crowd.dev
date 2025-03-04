@@ -1,26 +1,19 @@
 <template>
-  <app-drawer
-    v-model="drawerModel"
-    title="Email Digest"
-    size="600px"
-  >
+  <app-drawer v-model="drawerModel" title="Email Digest" size="600px">
     <template #beforeTitle>
-      <lf-icon name="envelope-open" :size="24" class="text-gray-900  mr-3" />
+      <lf-icon name="envelope-open" :size="24" class="text-gray-900 mr-3" />
     </template>
     <template #content>
       <div class="pb-8">
         <!-- active header -->
-        <div
-          class="bg-gray-100 px-6 py-4 -mx-6 flex justify-between -mt-5"
-        >
+        <div class="bg-gray-100 px-6 py-4 -mx-6 flex justify-between -mt-5">
           <div>
             <h5 class="text-sm font-medium mb-1">
               Active
             </h5>
             <p class="text-2xs text-gray-500">
-              If active, you will receive an email with up
-              to 10 most relevant results from Community Lens,
-              based on your settings.
+              If active, you will receive an email with up to 10 most relevant
+              results from Community Lens, based on your settings.
             </p>
           </div>
           <div>
@@ -52,25 +45,17 @@
               />
             </app-form-item>
             <app-form-item class="mb-6" label="Frequency">
-              <el-radio-group
-                v-model="form.frequency"
-                :disabled="!form.active"
-              >
+              <el-radio-group v-model="form.frequency" :disabled="!form.active">
                 <el-radio
                   label="daily"
                   size="large"
                   class="frequency-radio !flex items-start mb-3"
                 >
-                  <h6
-                    class="text-sm leading-5 font-medium mb-1"
-                  >
+                  <h6 class="text-sm leading-5 font-medium mb-1">
                     Daily
                   </h6>
-                  <p
-                    class="text-2xs leading-4.5 text-gray-500"
-                  >
-                    From Monday to Friday (results from
-                    previous day)
+                  <p class="text-2xs leading-4.5 text-gray-500">
+                    From Monday to Friday (results from previous day)
                   </p>
                 </el-radio>
                 <el-radio
@@ -78,16 +63,11 @@
                   size="large"
                   class="frequency-radio !flex items-start"
                 >
-                  <h6
-                    class="text-sm leading-5 font-medium mb-1"
-                  >
+                  <h6 class="text-sm leading-5 font-medium mb-1">
                     Weekly
                   </h6>
-                  <p
-                    class="text-2xs leading-4.5 text-gray-500"
-                  >
-                    Every Monday (results from previous
-                    week)
+                  <p class="text-2xs leading-4.5 text-gray-500">
+                    Every Monday (results from previous week)
                   </p>
                 </el-radio>
               </el-radio-group>
@@ -112,16 +92,13 @@
               class="filter-checkbox"
               :disabled="!form.active"
             >
-              <span class="text-sm text-gray-900">Update email results based on your current
-                feed settings</span>
+              <span class="text-sm text-gray-900">Update email results based on your current feed settings</span>
             </el-checkbox>
           </el-form>
           <hr />
           <!-- Results summary -->
           <div v-if="results">
-            <h4
-              class="text-base font-semibold text-gray-900 py-6"
-            >
+            <h4 class="text-base font-semibold text-gray-900 py-6">
               Results summary
             </h4>
             <!-- update feed warning -->
@@ -130,10 +107,14 @@
               class="bg-yellow-50 border border-yellow-100 rounded-md py-2.5 px-3 flex items-center justify-between mb-4"
             >
               <div class="flex items-center">
-                <lf-icon name="triangle-exclamation" type="solid" :size="16" class="text-yellow-500 mr-2" />
+                <lf-icon
+                  name="triangle-exclamation"
+                  type="solid"
+                  :size="16"
+                  class="text-yellow-500 mr-2"
+                />
                 <p class="text-2xs leading-5">
-                  Current feed settings don’t match the
-                  digest results
+                  Current feed settings don’t match the digest results
                 </p>
               </div>
               <p
@@ -143,12 +124,8 @@
                 Update
               </p>
             </div>
-            <section
-              class="pt-3 pb-1 border-b border-gray-200"
-            >
-              <h6
-                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-              >
+            <section class="pt-3 pb-1 border-b border-gray-200">
+              <h6 class="text-2xs font-medium leading-4.5 text-gray-400 pb-2">
                 Keywords
               </h6>
               <div class="flex flex-wrap">
@@ -168,12 +145,8 @@
                 </div>
               </div>
             </section>
-            <section
-              class="pt-3 pb-1 border-b border-gray-200"
-            >
-              <h6
-                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-              >
+            <section class="pt-3 pb-1 border-b border-gray-200">
+              <h6 class="text-2xs font-medium leading-4.5 text-gray-400 pb-2">
                 Platforms
               </h6>
               <div class="flex flex-wrap">
@@ -187,9 +160,7 @@
               </div>
             </section>
             <section class="pt-3 pb-1">
-              <h6
-                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-              >
+              <h6 class="text-2xs font-medium leading-4.5 text-gray-400 pb-2">
                 Date published
               </h6>
               <div class="text-xs leading-5">
@@ -213,10 +184,7 @@
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
-          :disabled="
-            $v.$invalid
-              || (!hasFormChanged && !hasElementChanged)
-          "
+          :disabled="$v.$invalid || (!hasFormChanged && !hasElementChanged)"
           @click="doSubmit()"
         >
           Update
@@ -239,12 +207,9 @@ import {
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import {
-  mapActions,
-  mapState,
-} from '@/shared/vuex/vuex.helpers';
+import { mapActions, mapState } from '@/shared/vuex/vuex.helpers';
 import Message from '@/shared/message/message';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import elementChangeDetector from '@/shared/form/element-change';
@@ -264,9 +229,8 @@ const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
 
 const eagleEyeSettings = computed(
-  () => user?.value?.tenants.find(
-    (tu) => tu.tenantId === tenant?.value.id,
-  )?.settings.eagleEye,
+  () => user?.value?.tenants.find((tu) => tu.tenantId === tenant?.value.id)
+    ?.settings.eagleEye,
 );
 
 const { doUpdateSettings } = mapActions('eagleEye');
@@ -319,8 +283,7 @@ const displayFeedWarning = computed(() => {
   }
   if (eagleEyeSettings.value.feed && feed.value) {
     return (
-      JSON.stringify(eagleEyeSettings.value.feed)
-      !== JSON.stringify(feed.value)
+      JSON.stringify(eagleEyeSettings.value.feed) !== JSON.stringify(feed.value)
     );
   }
   return false;
@@ -336,10 +299,7 @@ const fillForm = (user) => {
   form.frequency = eagleEyeSettings.value.emailDigest?.frequency || 'daily';
   form.time = eagleEyeSettings.value.emailDigest?.time
     ? dateHelper
-      .utc(
-        eagleEyeSettings.value.emailDigest?.time,
-        'HH:mm',
-      )
+      .utc(eagleEyeSettings.value.emailDigest?.time, 'HH:mm')
       .local()
       .format('HH:mm')
     : '09:00';
@@ -358,9 +318,7 @@ const doSubmit = async () => {
     const data = {
       email: form.email,
       frequency: form.frequency,
-      time: dateHelper(form.time, 'HH:mm')
-        .utc()
-        .format('HH:mm'),
+      time: dateHelper(form.time, 'HH:mm').utc().format('HH:mm'),
       matchFeedSettings: form.updateResults,
       feed: !form.updateResults ? feed.value : undefined,
     };
@@ -372,9 +330,7 @@ const doSubmit = async () => {
       },
       fetchNewResults: false,
     }).then(() => {
-      Message.success(
-        'Email Digest settings successfully updated',
-      );
+      Message.success('Email Digest settings successfully updated');
       emit('update:modelValue', false);
     });
   }
