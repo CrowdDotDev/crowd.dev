@@ -6,6 +6,7 @@ import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
+import { executeHTTPQuery } from '@crowd/questdb'
 import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
@@ -619,6 +620,9 @@ export async function queryActivities(
       qdbConn.any(query, params),
       arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(countQuery, params),
     ])
+
+    const test = await executeHTTPQuery(query, params)
+    logger.info(`Questdb http results: ${JSON.stringify(test)}`)
 
     activities = results
     count = countResults[0] ? countResults[0].count : 0

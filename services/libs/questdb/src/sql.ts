@@ -1,3 +1,4 @@
+import https from 'https'
 import pgpromise from 'pg-promise'
 
 import { IS_PROD_ENV } from '@crowd/common'
@@ -7,6 +8,39 @@ import telemetry from '@crowd/telemetry'
 const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        let data = ''
+
+        // A chunk of data has been received
+        res.on('data', (chunk) => {
+          data += chunk
+        })
+
+        // The whole response has been received
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data)
+            resolve(jsonData)
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+      .on('error', (err) => {
+        reject(err)
+      })
+  })
+}
+
+export const executeHTTPQuery = async (query: string, params: any): Promise<unknown> => {
+  const formattedQuery = pgpromise.as.format(query, params)
+  const url = `https://${process.env.CROWD_QUESTDB_SQL_HOST}/exec?query=${encodeURIComponent(formattedQuery)}&timings=true`
+  return fetchJson(url)
+}
 
 export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
   if (client) {
@@ -58,16 +92,18 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
 
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(client as any).query = async (query, options, ...args) => {
-    const { replacements } = options || {}
+  ;(client as any).query = async (query, values, ...args) => {
     const timer = telemetry.timer('questdb.query_duration')
     try {
-      return oldQuery.apply(client, [query, options, ...args])
+      const result = await oldQuery.apply(client, [query, values, ...args])
+      return result
     } finally {
       // milliseconds
       const duration = timer.stop()
+      const seconds = duration / 1000.0
+
       if (profile || duration >= minQueryDuration) {
-        log.warn({ duration, query, replacements }, 'QuestDB query duration profiling!')
+        log.warn({ durationSeconds: seconds, query, values }, 'QuestDB query duration profiling!')
       }
     }
   }
