@@ -169,6 +169,7 @@ export default class MemberOrganizationsService extends LoggerBase {
         memberId,
         [memberOrganizationToBeDeleted.organizationId],
         repositoryOptions,
+        true,
       )
 
       const result = await this.list(memberId)

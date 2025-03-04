@@ -21,10 +21,10 @@ export async function updateMemberAffiliations(input: MemberUpdateInput): Promis
   }
 }
 
-export async function syncMember(memberId: string): Promise<void> {
+export async function syncMember(memberId: string, withAggs: boolean): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId)
+  await syncApi.triggerMemberSync(memberId, { withAggs })
 }

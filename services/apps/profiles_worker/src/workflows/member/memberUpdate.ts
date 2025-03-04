@@ -20,7 +20,7 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
     await updateMemberAffiliations(input)
     if (input.syncToOpensearch) {
       // sync member
-      await syncMember(input.member.id)
+      await syncMember(input.member.id, input.syncToOpensearch)
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {
