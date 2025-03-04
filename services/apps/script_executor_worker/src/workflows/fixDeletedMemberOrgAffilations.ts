@@ -47,14 +47,14 @@ export async function fixDeletedMemberOrgAffilations(
         }
 
         // 3. Calculate affiliation
-        await activity.calculateMemberAffiliations(memberId)
+        // await activity.calculateMemberAffiliations(memberId)
 
         // 4. Sync member
-        await syncActivity.syncMembersBatch([memberId], true)
+        // await syncActivity.syncMembersBatch([memberId], true)
 
         // 5. Add orgId to redisCache
         // It will be picked up by the spawnOrganizationAggregatesComputation workflow
-        await activity.addOrgIdToRedisCache(organizationId)
+        // await activity.addOrgIdToRedisCache(organizationId)
 
         // 6. Mark member-org affiliation as processed
         await activity.markMemberOrgAffiliationAsProcessed(memberId, organizationId)
