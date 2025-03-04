@@ -4,6 +4,7 @@ import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from '.
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
 import { syncMembers } from './workflows/syncMembers'
+import { syncOrganizations } from './workflows/syncOrganizations'
 
 export {
   findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -12,4 +13,5 @@ export {
   fixOrgIdentitiesWithWrongUrls,
   populateActivityRelations,
   syncMembers,
+  syncOrganizations,
 }

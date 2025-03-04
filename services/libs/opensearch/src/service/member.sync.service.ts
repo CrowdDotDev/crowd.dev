@@ -332,10 +332,6 @@ export class MemberSyncService {
       try {
         memberData = await getMemberAggregates(this.qdbStore.connection(), memberId)
 
-        if (memberData.length === 0) {
-          return
-        }
-
         // get segment data to aggregate for projects and project groups
         const subprojectSegmentIds = memberData.map((m) => m.segmentId)
         const segmentData = await fetchManySegments(qx, subprojectSegmentIds)
@@ -374,7 +370,10 @@ export class MemberSyncService {
         throw e
       }
 
-      if (memberData.length > 0) {
+      if (memberData.length === 0) {
+        this.log.info({ memberId }, 'No aggregates found for member - cleaned old data')
+        await cleanupMemberAggregates(qx, memberId)
+      } else {
         // dedup memberData so no same member-segment duplicates
         memberData = distinctBy(memberData, (m) => `${m.memberId}-${m.segmentId}`)
         try {

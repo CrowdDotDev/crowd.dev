@@ -26,21 +26,26 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async getAllOrganizationsForSync(
+  public async getOrganizationsForSync(
     perPage: number,
-    previousBatchIds: string[],
+    previousBatchIds?: string[],
   ): Promise<string[]> {
     const notInClause =
-      previousBatchIds.length > 0 ? `o.id NOT IN ($(previousBatchIds:csv)) and` : ''
+      previousBatchIds?.length > 0 ? `AND o.id NOT IN ($(previousBatchIds:csv))` : ''
     const results = await this.db().any(
       `
-      select o.id
-      from organizations o
-      left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
-      where o."deletedAt" is null and
-            ${notInClause}
-            ie.entity_id is null
-      limit ${perPage}`,
+      SELECT o.id
+      FROM organizations o
+      WHERE o."deletedAt" is null
+      ${notInClause}
+      AND NOT EXISTS (
+        SELECT 1
+        FROM indexed_entities ie 
+        WHERE ie.entity_id = o.id
+          AND ie.type = $(type)
+      )
+      ORDER BY o.id
+      LIMIT ${perPage}`,
       {
         type: IndexedEntityType.ORGANIZATION,
         previousBatchIds,

@@ -1,28 +1,18 @@
 import { sumBy } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { MemberSyncService } from '@crowd/opensearch'
-import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
-import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { MemberRepository } from '@crowd/opensearch/src/repo/member.repo'
 
 import { svc } from '../../main'
 
-export async function deleteIndexedEntities(entityType: IndexedEntityType): Promise<void> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.deleteIndexedEntities(entityType)
-}
-
-export async function markEntitiesIndexed(
-  entityType: IndexedEntityType,
-  entityIds: string[],
-): Promise<void> {
-  const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-  await indexingRepo.markEntitiesIndexed(entityType, entityIds)
-}
-
 export async function getMembersForSync(batchSize: number): Promise<string[]> {
-  const memberRepo = new MemberRepository(svc.redis, svc.postgres.reader, svc.log)
-  return memberRepo.getMembersForSync(batchSize)
+  try {
+    const memberRepo = new MemberRepository(svc.redis, svc.postgres.reader, svc.log)
+    return memberRepo.getMembersForSync(batchSize)
+  } catch (error) {
+    svc.log.error(error, 'Error getting members for sync')
+    throw error
+  }
 }
 
 export async function syncMembersBatch(
@@ -41,7 +31,7 @@ export async function syncMembersBatch(
 
     const CHUNK_SIZE = chunkSize || 10
 
-    svc.log.info(`Syncing members in chunks of ${CHUNK_SIZE} members!`)
+    svc.log.info(`Syncing members in chunks of ${CHUNK_SIZE}!`)
 
     const results = []
     for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
