@@ -9,10 +9,12 @@ export type IQueueClient = Kafka
 // export type IQueueConfig = IKafkaConfig
 export interface IQueueConfig {
   name: string
+  useOnlyNameAsChannel?: boolean
 }
 
 export interface IQueueInitChannelConfig {
   name: string
+  useOnlyNameAsChannel?: boolean
 }
 
 export type IQueueSendResult = RecordMetadata[]
