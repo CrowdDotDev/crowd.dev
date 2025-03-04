@@ -9,9 +9,10 @@ const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
 
-function fetchJson(url) {
+function fetchJson(url, timeoutMs = 3600000) {
+  // Default 1 hour timeout
   return new Promise((resolve, reject) => {
-    https
+    const req = https
       .get(url, (res) => {
         let data = ''
 
@@ -33,11 +34,22 @@ function fetchJson(url) {
       .on('error', (err) => {
         reject(err)
       })
+      .on('timeout', () => {
+        req.destroy()
+        reject(new Error(`Request timed out after ${timeoutMs}ms`))
+      })
+
+    // Set the timeout (use 0 to disable timeout completely)
+    req.setTimeout(timeoutMs)
   })
 }
 
-export const executeHTTPQuery = async (query: string, params: any): Promise<unknown> => {
-  const formattedQuery = pgpromise.as.format(query, params)
+export const executeHTTPQuery = async (query: string, params?: any): Promise<unknown> => {
+  let formattedQuery = query
+  if (params) {
+    formattedQuery = pgpromise.as.format(query, params)
+  }
+
   const url = `https://${process.env.CROWD_QUESTDB_SQL_HOST}/exec?query=${encodeURIComponent(formattedQuery)}&timings=true`
   return fetchJson(url)
 }
