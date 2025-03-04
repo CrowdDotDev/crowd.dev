@@ -39,7 +39,7 @@ class ActivityRepository {
   // }
 
   async hasActivity(memberId: string, organizationId: string): Promise<boolean> {
-    const results = await this.connection.query(
+    const results = await this.questdbSQL.query(
       `select 1 from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId) limit 1`,
       {
         memberId,

@@ -39,10 +39,6 @@ export async function fixDeletedMemberOrgAffilations(
         // 2. Check if they have activity in questDb
         const hasActivity = await activity.hasActivityInQuestDb(memberId, organizationId)
 
-        console.log(
-          `Member ${memberId} and org ${organizationId} has activity in questDb: ${hasActivity}`,
-        )
-
         // 2.1 If no activities found, we need to get and insert them
         if (!hasActivity) {
           console.log(`Copying activities for member ${memberId} and org ${organizationId}`)
