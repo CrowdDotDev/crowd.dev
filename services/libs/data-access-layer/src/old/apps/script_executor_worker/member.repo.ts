@@ -171,6 +171,48 @@ class MemberRepository {
 
     return results.map((r) => r.id)
   }
+
+  public async getMembersWithDeletedOrgAffilations(
+    limit: number,
+    date: string,
+  ): Promise<{ memberId: string; organizationId: string }[]> {
+    // Finds activities where:
+    // 1. Member had a work experience (now deleted)
+    // 2. Member has NO active work experience at same org
+    // 3. Member-Org pair hasn't been processed yet
+    const query = `
+      select distinct a."memberId", a."organizationId"
+      from activities a
+      left join "processedMemberOrgAffiliations" p on
+        p."memberId" = a."memberId"
+        and p."organizationId" = a."organizationId"
+      where a."updatedAt" < $(date)
+      and a."organizationId" is not null
+      and p."memberId" is null
+      and exists (
+          select 1
+          from "memberOrganizations" mo
+          where mo."memberId" = a."memberId"
+          and mo."organizationId" = a."organizationId"
+          and mo."deletedAt" is not null
+      )
+      and not exists (
+          select 1
+          from "memberOrganizations" mo_active
+          where mo_active."memberId" = a."memberId"
+          and mo_active."organizationId" = a."organizationId"
+          and mo_active."deletedAt" is null
+      )
+      limit $(limit);
+    `
+
+    const results = await this.connection.any(query, {
+      limit,
+      date,
+    })
+
+    return results
+  }
 }
 
 export default MemberRepository
