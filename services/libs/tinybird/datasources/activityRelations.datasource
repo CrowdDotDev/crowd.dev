@@ -1,3 +1,4 @@
+
 SCHEMA >
     `activityId` String `json:$.record.activityId`,
     `conversationId` String `json:$.record.conversationId` DEFAULT '',
@@ -12,7 +13,7 @@ SCHEMA >
     `segmentId` String `json:$.record.segmentId`,
     `username` String `json:$.record.username`
 
-ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY activityId
-ENGINE_VER updatedAt
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "segmentId, organizationId, activityId"
+ENGINE_VER "updatedAt"

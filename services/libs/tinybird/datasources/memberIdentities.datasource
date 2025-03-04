@@ -1,3 +1,4 @@
+
 SCHEMA >
     `id` String `json:$.id`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
@@ -10,7 +11,7 @@ SCHEMA >
     `value` String `json:$.record.value`,
     `verified` UInt8 `json:$.record.verified`
 
-ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY verified, platform, type, value
-ENGINE_VER updatedAt
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "memberId, platform, type"
+ENGINE_VER "updatedAt"

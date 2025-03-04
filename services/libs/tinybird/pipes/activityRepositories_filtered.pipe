@@ -1,0 +1,16 @@
+TOKEN "activity_repositories_filtered_endpoint_read_9088" READ
+
+NODE activity_repositories_filtered_0
+SQL >
+
+    %
+    SELECT * FROM activityRepositories final
+    where 1=1
+    {% if defined(repo) %}
+    AND activityRepositories.repo = {{String(repo, description="Filter activity repo", required=False)}}
+    {% end %}
+    {% if defined(search) %}
+    AND activityRepositories.repo like 'https://%' || {{String(search, description="Search repos open ended wildcard ", required=False)}} || '%'
+    {% end %}
+
+

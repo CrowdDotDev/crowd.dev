@@ -7,17 +7,38 @@ SQL >
     {% if defined(granularity) %}
       SELECT 
           CASE 
-            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'daily' THEN toDate(activities_filtered.timestamp)
-            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'weekly' THEN toStartOfWeek(activities_filtered.timestamp)
-            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'monthly' THEN toStartOfMonth(activities_filtered.timestamp)
-            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'quarterly' THEN toStartOfQuarter(activities_filtered.timestamp)
-          END AS time_period,
-          count(distinct activities_filtered.organizationId) AS organization_count
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'daily' 
+              THEN toDate(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'weekly' 
+              THEN toStartOfWeek(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'monthly' 
+              THEN toStartOfMonth(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'quarterly' 
+              THEN toStartOfQuarter(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'yearly' 
+              THEN toStartOfYear(activities_filtered.timestamp)
+          END AS "fromDate",
+      
+          CASE 
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'daily' 
+              THEN toDate(activities_filtered.timestamp)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'weekly' 
+              THEN toDate(toStartOfWeek(activities_filtered.timestamp) + INTERVAL 6 DAY)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'monthly' 
+              THEN toDate(toStartOfMonth(activities_filtered.timestamp) + INTERVAL 1 MONTH - INTERVAL 1 DAY)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'quarterly' 
+              THEN toDate(toStartOfQuarter(activities_filtered.timestamp) + INTERVAL 3 MONTH - INTERVAL 1 DAY)
+            WHEN {{String(granularity, null, description="Granularity of timeseries data", required=False)}} = 'yearly' 
+              THEN toDate(toStartOfYear(activities_filtered.timestamp) + INTERVAL 1 YEAR - INTERVAL 1 DAY)
+          END AS "toDate",
+
+          count(distinct activities_filtered.organizationId) AS "organizationCount"
         FROM activities_filtered
-        GROUP BY time_period
-        ORDER BY time_period ASC
+        GROUP BY "fromDate", "toDate"
+        ORDER BY "fromDate" ASC
     {% else %}
-        SELECT count (distinct activities_filtered.organizationId) as organization_count from activities_filtered 
+        SELECT count(distinct activities_filtered.organizationId) AS "organizationCount" FROM activities_filtered
     {% end %}
+
 
 
