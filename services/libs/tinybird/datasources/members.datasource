@@ -3,6 +3,7 @@ SCHEMA >
     `id` String `json:$.record.id`,
     `attributes` String `json:$.record.attributes` DEFAULT '',
     `location` String `json:$.record.attributes.location.default` DEFAULT '',
+    `avatar` String `json:$.record.attributes.avatarUrl.default` DEFAULT '',
     `contributions` String `json:$.record.contributions` DEFAULT '',
     `joinedAt` DateTime64(3) `json:$.record.joinedAt`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
