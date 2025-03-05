@@ -1,4 +1,11 @@
 import {
+  deleteOrganization,
+  excludeOrgFromCleanup,
+  getOrganizationsToCleanup,
+  hasActivityRecords,
+  queueOrgForAggComputation,
+} from './activities/cleanup/organization'
+import {
   mergeMembers,
   mergeOrganizations,
   unmergeMembers,
@@ -53,6 +60,11 @@ export {
   getActivitiesToCopy,
   getLatestSyncedActivityTimestamp,
   markActivitiesAsIndexed,
+  deleteOrganization,
+  excludeOrgFromCleanup,
+  getOrganizationsToCleanup,
+  hasActivityRecords,
+  queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,

@@ -33,6 +33,7 @@ export interface ISyncArgs {
   testRun?: boolean
 }
 
-export interface IUnlinkDeletedMemberOrgArgs {
-  memberId: string
+export interface IOrganizationCleanupArgs {
+  batchSize: number
+  testRun?: boolean
 }

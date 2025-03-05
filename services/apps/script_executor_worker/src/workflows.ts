@@ -1,3 +1,4 @@
+import { cleanupOrganizations } from './workflows/cleanup/organizations'
 import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
@@ -14,4 +15,5 @@ export {
   populateActivityRelations,
   syncMembers,
   syncOrganizations,
+  cleanupOrganizations,
 }
