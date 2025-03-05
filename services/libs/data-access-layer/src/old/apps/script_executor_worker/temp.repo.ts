@@ -8,7 +8,9 @@ class TempRepository {
     organizationId: string,
   ): Promise<void> {
     await this.connection.none(
-      `insert into "processedMemberOrgAffiliations" ("memberId", "organizationId") values ($(memberId), $(organizationId))`,
+      `insert into "processedMemberOrgAffiliations" ("memberId", "organizationId") 
+       values ($(memberId), $(organizationId))
+       ON CONFLICT ("memberId", "organizationId") DO NOTHING`,
       {
         memberId,
         organizationId,
