@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { throws } from 'assert'
 import { createHash } from 'crypto'
 import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
 
@@ -403,7 +402,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
       await consumer.run({
         autoCommitInterval: 10000, // 10 seconds
-        autoCommitThreshold: 100, // or 100 messages
         eachMessage: async ({ message }) => {
           if (message && message.value) {
             const data = JSON.parse(message.value.toString())
