@@ -2,7 +2,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { CleanupExcludeListType } from './types'
+import { EntityType } from './types'
 
 class CleanupExcludeListRepository {
   constructor(
@@ -10,7 +10,7 @@ class CleanupExcludeListRepository {
     private readonly log: Logger,
   ) {}
 
-  async addToExcludeList(entityId: string, type: CleanupExcludeListType): Promise<void> {
+  async addToExcludeList(entityId: string, type: EntityType): Promise<void> {
     await this.connection.none(
       `
       insert into "cleanupExcludeList" (entityid, type)
@@ -21,7 +21,7 @@ class CleanupExcludeListRepository {
     )
   }
 
-  async purgeCleanupExcludeList(type: CleanupExcludeListType): Promise<void> {
+  async purgeCleanupExcludeList(type: EntityType): Promise<void> {
     await this.connection.none(
       `
       delete from "cleanupExcludeList" where type = $(type)

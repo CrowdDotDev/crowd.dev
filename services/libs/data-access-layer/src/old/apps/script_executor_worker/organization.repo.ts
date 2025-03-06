@@ -162,6 +162,14 @@ class OrganizationRepository {
 
       await tx.none(
         `
+        DELETE FROM "memberSegmentAffiliations"
+        WHERE "organizationId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
         DELETE FROM "organizationSegments"
         WHERE "organizationId" = $(organizationId)
       `,

@@ -1,8 +1,8 @@
+import { excludeEntityFromCleanup, hasActivityRecords } from './activities/cleanup/helpers'
+import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
 import {
   deleteOrganization,
-  excludeOrgFromCleanup,
   getOrganizationsToCleanup,
-  hasActivityRecords,
   queueOrgForAggComputation,
 } from './activities/cleanup/organization'
 import {
@@ -60,8 +60,10 @@ export {
   getActivitiesToCopy,
   getLatestSyncedActivityTimestamp,
   markActivitiesAsIndexed,
+  deleteMember,
+  getMembersToCleanup,
   deleteOrganization,
-  excludeOrgFromCleanup,
+  excludeEntityFromCleanup,
   getOrganizationsToCleanup,
   hasActivityRecords,
   queueOrgForAggComputation,

@@ -1,14 +1,22 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as cleanupActivities from '../../activities/cleanup/organization'
-import { IOrganizationCleanupArgs } from '../../types'
+import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
-const activity = proxyActivities<typeof cleanupActivities>({
+import * as cleanupHelpers from '../../activities/cleanup/helpers'
+import * as activities from '../../activities/cleanup/organization'
+import { ICleanupArgs } from '../../types'
+
+const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function cleanupOrganizations(args: IOrganizationCleanupArgs): Promise<void> {
+const cleanupHelper = proxyActivities<typeof cleanupHelpers>({
+  startToCloseTimeout: '30 minutes',
+  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
+})
+
+export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
   const organizationIds = await activity.getOrganizationsToCleanup(BATCH_SIZE)
@@ -24,11 +32,11 @@ export async function cleanupOrganizations(args: IOrganizationCleanupArgs): Prom
     const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
 
     const cleanupTasks = chunk.map(async (orgId) => {
-      const isInQuestDb = await activity.hasActivityRecords(orgId)
+      const isInQuestDb = await cleanupHelper.hasActivityRecords(orgId, EntityType.ORGANIZATION)
 
       if (isInQuestDb) {
         console.log(`Organization ${orgId} is in QuestDB, skipping!`)
-        return activity.excludeOrgFromCleanup(orgId)
+        return cleanupHelper.excludeEntityFromCleanup(orgId, EntityType.ORGANIZATION)
       }
 
       console.log(`Deleting organization ${orgId} from database!`)

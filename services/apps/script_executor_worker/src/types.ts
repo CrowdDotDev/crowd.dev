@@ -33,7 +33,7 @@ export interface ISyncArgs {
   testRun?: boolean
 }
 
-export interface IOrganizationCleanupArgs {
+export interface ICleanupArgs {
   batchSize: number
   testRun?: boolean
 }

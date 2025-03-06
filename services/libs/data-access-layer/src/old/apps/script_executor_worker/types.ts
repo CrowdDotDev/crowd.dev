@@ -22,7 +22,7 @@ export interface IFindMemberIdentitiesGroupedByPlatformResult {
   groupedByValue: string
 }
 
-export enum CleanupExcludeListType {
+export enum EntityType {
   MEMBER = 'member',
   ORGANIZATION = 'organization',
 }
