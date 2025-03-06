@@ -133,13 +133,34 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         this.log.warn('Consumer disconnected, attempting reconnection')
         await this.handleConsumerError(groupId, consumer)
       })
+      consumer.on(consumer.events.COMMIT_OFFSETS, (event) => {
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer committed offsets: ${JSON.stringify(event, null, 2)}`)
+        }
+      })
       consumer.on(consumer.events.CRASH, async (event) => {
         this.log.error({ error: event.payload.error }, 'Consumer crashed')
         await this.handleConsumerError(groupId, consumer)
       })
       this.consumers.set(groupId, consumer)
       await this.connectConsumer(consumer)
+
+      const origCommit = consumer.commitOffsets.bind(consumer)
+      consumer.commitOffsets = async function (data) {
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer committing offsets: ${JSON.stringify(data, null, 2)}`)
+        }
+
+        const res = await origCommit(data)
+
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer commited offsets: ${JSON.stringify(data, null, 2)}`)
+        }
+
+        return res
+      }
     }
+
     return this.consumers.get(groupId)
   }
 
@@ -381,6 +402,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
 
       await consumer.run({
+        autoCommitInterval: 10000, // 10 seconds
+        autoCommitThreshold: 100, // or 100 messages
         eachMessage: async ({ message }) => {
           if (message && message.value) {
             const data = JSON.parse(message.value.toString())
