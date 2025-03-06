@@ -155,16 +155,20 @@ export default class ActivityService extends LoggerBase {
               )
               await logExecutionTimeV2(
                 () =>
-                  createOrUpdateRelations(queryExecutor, {
-                    activityId: activity.id,
-                    segmentId,
-                    memberId: activity.memberId,
-                    objectMemberId: activity.objectMemberId,
-                    organizationId: activity.organizationId,
-                    platform: activity.platform,
-                    username: activity.username,
-                    objectMemberUsername: activity.objectMemberUsername,
-                  }),
+                  createOrUpdateRelations(
+                    queryExecutor,
+                    {
+                      activityId: activity.id,
+                      segmentId,
+                      memberId: activity.memberId,
+                      objectMemberId: activity.objectMemberId,
+                      organizationId: activity.organizationId,
+                      platform: activity.platform,
+                      username: activity.username,
+                      objectMemberUsername: activity.objectMemberUsername,
+                    },
+                    true,
+                  ),
                 this.log,
                 'activityService.create -> createOrUpdateRelations',
               )
@@ -751,6 +755,7 @@ export default class ActivityService extends LoggerBase {
               },
               limit: 1,
               noCount: true,
+              useHttp: true,
             }),
           this.log,
           'processActivity -> queryActivities',

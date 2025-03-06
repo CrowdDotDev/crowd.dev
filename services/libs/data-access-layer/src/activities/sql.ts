@@ -1429,6 +1429,7 @@ export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): P
 export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
+  skipCheck = false,
 ): Promise<void> {
   if (data.username === undefined || data.username === null) {
     return
@@ -1441,9 +1442,8 @@ export async function createOrUpdateRelations(
   if (data.segmentId === undefined || data.segmentId === null) {
     return
   }
-
   // check objectMember exists
-  if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
+  if (!skipCheck && data.objectMemberId !== undefined && data.objectMemberId !== null) {
     let objectMember = await qe.select(
       `
       SELECT id
@@ -1482,7 +1482,7 @@ export async function createOrUpdateRelations(
   }
 
   // check conversation exists
-  if (data.conversationId !== undefined && data.conversationId !== null) {
+  if (!skipCheck && data.conversationId !== undefined && data.conversationId !== null) {
     const conversation = await qe.select(
       `
       SELECT id
@@ -1505,57 +1505,61 @@ export async function createOrUpdateRelations(
   }
 
   // check segmentId exists
-  const segment = await qe.select(
-    `
-    SELECT id
-    FROM segments
-    WHERE id = $(segmentId)
-  `,
-    {
-      segmentId: data.segmentId,
-    },
-  )
-
-  if (segment.length === 0) {
-    // segment not found, skip adding this activity relation
-    return
-  }
-
-  // check member exists
-  let member = await qe.select(
-    `
-    SELECT id
-    FROM members
-    WHERE id = $(memberId)
-  `,
-    {
-      memberId: data.memberId,
-    },
-  )
-
-  if (member.length === 0) {
-    // find member using identity
-    member = await qe.select(
+  if (!skipCheck) {
+    const segment = await qe.select(
       `
-      SELECT "memberId"
-      FROM "memberIdentities"
-      WHERE value = $(value) and platform = $(platform) and verified = true
-      limit 1
+      SELECT id
+      FROM segments
+      WHERE id = $(segmentId)
     `,
       {
-        value: data.username,
-        platform: data.platform,
+        segmentId: data.segmentId,
       },
     )
-    if (member.length === 0) {
-      // member not found, skip adding this activity relation
+
+    if (segment.length === 0) {
+      // segment not found, skip adding this activity relation
       return
-    } else {
-      data.memberId = member[0].memberId
     }
   }
 
-  if (data.organizationId !== undefined && data.organizationId !== null) {
+  // check member exists
+  if (!skipCheck) {
+    let member = await qe.select(
+      `
+      SELECT id
+      FROM members
+      WHERE id = $(memberId)
+    `,
+      {
+        memberId: data.memberId,
+      },
+    )
+
+    if (member.length === 0) {
+      // find member using identity
+      member = await qe.select(
+        `
+        SELECT "memberId"
+        FROM "memberIdentities"
+        WHERE value = $(value) and platform = $(platform) and verified = true
+        limit 1
+      `,
+        {
+          value: data.username,
+          platform: data.platform,
+        },
+      )
+      if (member.length === 0) {
+        // member not found, skip adding this activity relation
+        return
+      } else {
+        data.memberId = member[0].memberId
+      }
+    }
+  }
+
+  if (!skipCheck && data.organizationId !== undefined && data.organizationId !== null) {
     const organization = await qe.select(
       `
       SELECT id

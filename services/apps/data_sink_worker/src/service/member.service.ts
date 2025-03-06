@@ -303,11 +303,17 @@ export default class MemberService extends LoggerBase {
               }, {} as IDbMemberUpdateData)
 
               this.log.trace({ memberId: id }, 'Updating member data in db!')
-              await logExecutionTimeV2(
-                () => txRepo.update(id, dataToUpdate),
-                this.log,
-                'memberService -> update -> update',
-              )
+
+              // TODO uros - temp hack to prevent updating just joinedAt
+              const keys = Object.keys(dataToUpdate)
+              if (!(keys.length === 1 && dataToUpdate.joinedAt)) {
+                await logExecutionTimeV2(
+                  () => txRepo.update(id, dataToUpdate),
+                  this.log,
+                  'memberService -> update -> update',
+                )
+              }
+
               this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
               await logExecutionTimeV2(
                 () => txRepo.addToSegment(id, segmentId),
