@@ -17,9 +17,7 @@
           :model-value="platforms.includes(name)"
           :inactive-text="platform.label"
           class="h-full"
-          @update:model-value="
-            handlePlatformChange($event, name)
-          "
+          @update:model-value="handlePlatformChange($event, name)"
           @change="$v.platforms.$touch"
         />
       </article>
@@ -29,15 +27,12 @@
 
 <script setup>
 import {
-  defineProps,
-  defineEmits,
-  computed,
-  onMounted,
+  defineProps, defineEmits, computed, onMounted,
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 
 const emit = defineEmits(['update:platforms']);
 const props = defineProps({
@@ -68,9 +63,7 @@ const handlePlatformChange = (enabled, platform) => {
   if (enabled) {
     platforms.value.push(platform);
   } else {
-    platforms.value = platforms.value.filter(
-      (p) => p !== platform,
-    );
+    platforms.value = platforms.value.filter((p) => p !== platform);
   }
 };
 

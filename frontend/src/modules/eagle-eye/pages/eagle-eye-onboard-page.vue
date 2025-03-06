@@ -10,10 +10,7 @@
 
       <!-- Content -->
       <div class="px-8 pb-8 pt-9">
-        <eagle-eye-intro
-          v-if="step === 1"
-          @on-step-change="onStepChange"
-        />
+        <eagle-eye-intro v-if="step === 1" @on-step-change="onStepChange" />
         <eagle-eye-keywords
           v-if="step === 2"
           v-model="form.keywords"
@@ -37,11 +34,7 @@
 
 <script setup>
 import {
-  computed,
-  reactive,
-  ref,
-  onMounted,
-  onBeforeUnmount,
+  computed, reactive, ref, onMounted, onBeforeUnmount,
 } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -51,7 +44,7 @@ import EagleEyeKeywords from '@/modules/eagle-eye/components/onboard/eagle-eye-k
 import EagleEyePlatforms from '@/modules/eagle-eye/components/onboard/eagle-eye-platforms-step.vue';
 import EagleEyeSummary from '@/modules/eagle-eye/components/onboard/eagle-eye-summary-step.vue';
 import publishedDateOptions from '@/modules/eagle-eye/constants/eagle-eye-date-published.json';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import config from '@/config';
@@ -70,10 +63,13 @@ const form = reactive({
     },
   ],
   datePublished: publishedDateOptions[1].label,
-  platforms: Object.keys(platformOptions).reduce((a, b) => ({
-    ...a,
-    [b]: true,
-  }), {}),
+  platforms: Object.keys(platformOptions).reduce(
+    (a, b) => ({
+      ...a,
+      [b]: true,
+    }),
+    {},
+  ),
 });
 
 const isPremiumFeatureCopy = () => {
@@ -119,10 +115,7 @@ onBeforeRouteLeave((to) => {
 
 onMounted(() => {
   storeUnsubscribe.value = store.subscribe((mutation) => {
-    if (
-      mutation.type
-      === 'eagleEye/UPDATE_EAGLE_EYE_SETTINGS_SUCCESS'
-    ) {
+    if (mutation.type === 'eagleEye/UPDATE_EAGLE_EYE_SETTINGS_SUCCESS') {
       wasFormSubmittedSuccessfully.value = true;
       router.go(0);
     }
@@ -138,9 +131,7 @@ const onStepChange = (increment) => {
 };
 
 const onSubmit = async () => {
-  const formattedKeywords = form.keywords.map(
-    (s) => s.value,
-  );
+  const formattedKeywords = form.keywords.map((s) => s.value);
   const formattedPlatforms = Object.entries(form.platforms)
     .filter(([, value]) => value)
     .map(([key]) => key);
