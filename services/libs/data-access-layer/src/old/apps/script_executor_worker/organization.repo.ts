@@ -117,7 +117,7 @@ class OrganizationRepository {
               )
               AND NOT EXISTS (
                 SELECT 1
-                FROM cleanupexcludelist cel
+                FROM "cleanupExcludeList" cel
                 WHERE cel."entityId" = o.id
                   AND cel."type" = 'organization'
               )
