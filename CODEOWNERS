@@ -3,10 +3,6 @@
 # frontend
 /frontend/                                                  @gaspergrom @Sameh16
 
-# backend and services
-/backend/                                                   @epipav @skwowet @themarolt @joanreyero @sausage-todd
-/services/                                                  @epipav @skwowet @themarolt @joanreyero @sausage-todd
-
 # infra
 /.github/                                                   @themarolt
 /.husky/                                                    @themarolt

@@ -8,6 +8,7 @@ import { Logger, logExecutionTimeV2, timer } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 import { PlatformType } from '@crowd/types'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DB_CONFIG } from '@/conf'
 
 import { CrowdJob } from '../../types/jobTypes'
@@ -49,16 +50,21 @@ async function syncActivitiesBatch({
 
   for (const activity of activities) {
     const existingActivity = await activityRepo.existsWithId(activity.id)
+    const tenantId = DEFAULT_TENANT_ID
 
     try {
       if (existingActivity) {
         await activityRepo.rawUpdate(activity.id, {
           ...activity,
+          tenantId,
           platform: activity.platform as PlatformType,
         })
         result.updated++
       } else {
-        await activityRepo.rawInsert(activity)
+        await activityRepo.rawInsert({
+          ...activity,
+          tenantId,
+        })
         result.inserted++
       }
     } catch (error) {
