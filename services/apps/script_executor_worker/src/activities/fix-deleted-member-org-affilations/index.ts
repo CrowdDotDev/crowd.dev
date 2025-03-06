@@ -9,11 +9,10 @@ import { svc } from '../../main'
 
 export async function getMembersWithDeletedOrgAffilations(
   limit: number,
-  date: string,
 ): Promise<{ memberId: string; organizationId: string }[]> {
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-    return memberRepo.getMembersWithDeletedOrgAffilations(limit, date)
+    return memberRepo.getMembersWithDeletedOrgAffilations(limit)
   } catch (err) {
     throw new Error(err)
   }

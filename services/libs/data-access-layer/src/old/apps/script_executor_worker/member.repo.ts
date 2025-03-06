@@ -174,7 +174,6 @@ class MemberRepository {
 
   public async getMembersWithDeletedOrgAffilations(
     limit: number,
-    date: string,
   ): Promise<{ memberId: string; organizationId: string }[]> {
     // Finds activities where:
     // 1. Member had a work experience (now deleted)
@@ -186,8 +185,7 @@ class MemberRepository {
       left join "processedMemberOrgAffiliations" p on
         p."memberId" = a."memberId"
         and p."organizationId" = a."organizationId"
-      where a."updatedAt" < $(date)
-      and a."organizationId" is not null
+      where a."organizationId" is not null
       and p."memberId" is null
       and exists (
           select 1
@@ -208,7 +206,6 @@ class MemberRepository {
 
     const results = await this.connection.any(query, {
       limit,
-      date,
     })
 
     return results

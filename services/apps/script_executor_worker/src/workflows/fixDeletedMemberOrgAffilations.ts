@@ -1,7 +1,7 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities/fix-deleted-member-org-affilations'
-import * as syncActivities from '../activities/sync/member'
+// import * as syncActivities from '../activities/sync/member'
 import { IFixDeletedMemberOrgAffilationsArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
@@ -9,10 +9,10 @@ const activity = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-const syncActivity = proxyActivities<typeof syncActivities>({
-  startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-})
+// const syncActivity = proxyActivities<typeof syncActivities>({
+//   startToCloseTimeout: '30 minutes',
+//   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
+// })
 
 export async function fixDeletedMemberOrgAffilations(
   args: IFixDeletedMemberOrgAffilationsArgs,
@@ -20,11 +20,11 @@ export async function fixDeletedMemberOrgAffilations(
   const BATCH_SIZE = args.batchSize ?? 100
 
   console.log(
-    `Fixing deleted member org affiliations with params: testRun=${args.testRun}, date=${args.date}, batchSize=${args.batchSize}`,
+    `Fixing deleted member org affiliations with params: testRun=${args.testRun}, batchSize=${args.batchSize}`,
   )
 
   // 1. Find affected memberId and orgId
-  const affectedMembers = await activity.getMembersWithDeletedOrgAffilations(BATCH_SIZE, args.date)
+  const affectedMembers = await activity.getMembersWithDeletedOrgAffilations(BATCH_SIZE)
 
   if (affectedMembers.length === 0) {
     console.log('No affected members found!')
