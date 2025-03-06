@@ -59,6 +59,7 @@ export interface IQueryActivitiesParameters {
   countOnly?: boolean
   noCount?: boolean
   groupBy?: string
+  useHttp?: boolean
 }
 
 export interface IQueryGroupedActivitiesParameters {
