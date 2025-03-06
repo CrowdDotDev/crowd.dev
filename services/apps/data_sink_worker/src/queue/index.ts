@@ -1,6 +1,6 @@
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger } from '@crowd/logging'
+import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -55,14 +55,23 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
       switch (message.type) {
         case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
-          await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
+          await logExecutionTimeV2(
+            () => service.processResult((message as ProcessIntegrationResultQueueMessage).resultId),
+            this.log,
+            'processResult',
+          )
           break
         case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
           const msg = message as CreateAndProcessActivityResultQueueMessage
-          await service.processActivityInMemoryResult(
-            msg.segmentId,
-            msg.integrationId,
-            msg.activityData,
+          await logExecutionTimeV2(
+            () =>
+              service.processActivityInMemoryResult(
+                msg.segmentId,
+                msg.integrationId,
+                msg.activityData,
+              ),
+            this.log,
+            'processActivityInMemoryResult',
           )
           break
         }

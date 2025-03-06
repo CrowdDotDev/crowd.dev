@@ -35,7 +35,7 @@ import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -641,19 +641,24 @@ export default class ActivityService extends LoggerBase {
         this.log.trace('Finding existing activity.')
         const {
           rows: [dbActivity],
-        } = await queryActivities(this.qdbStore.connection(), {
-          segmentIds: [segmentId],
-          filter: {
-            and: [
-              { timestamp: { eq: activity.timestamp } },
-              { sourceId: { eq: activity.sourceId } },
-              { platform: { eq: platform } },
-              { type: { eq: activity.type } },
-              { channel: { eq: activity.channel } },
-            ],
-          },
-          limit: 1,
-        })
+        } = await logExecutionTimeV2(
+          () =>
+            queryActivities(this.qdbStore.connection(), {
+              segmentIds: [segmentId],
+              filter: {
+                and: [
+                  { timestamp: { eq: activity.timestamp } },
+                  { sourceId: { eq: activity.sourceId } },
+                  { platform: { eq: platform } },
+                  { type: { eq: activity.type } },
+                  { channel: { eq: activity.channel } },
+                ],
+              },
+              limit: 1,
+            }),
+          this.log,
+          'processActivity -> queryActivities',
+        )
 
         if (dbActivity && dbActivity?.deletedAt) {
           // we found an existing activity but it's deleted - nothing to do here
@@ -1208,20 +1213,25 @@ export default class ActivityService extends LoggerBase {
     platform: PlatformType
     activity: IActivityData
   }): Promise<IDbActivityCreateData | null> {
-    const { rows } = await queryActivities(this.qdbStore.connection(), {
-      segmentIds: [segmentId],
-      filter: {
-        platform: { eq: platform },
-        sourceId: { eq: activity.sourceId },
-        type: { eq: activity.type },
-        channel: { eq: activity.channel },
-        and: [
-          { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
-          { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
-        ],
-      },
-      limit: 1,
-    })
+    const { rows } = await logExecutionTimeV2(
+      () =>
+        queryActivities(this.qdbStore.connection(), {
+          segmentIds: [segmentId],
+          filter: {
+            platform: { eq: platform },
+            sourceId: { eq: activity.sourceId },
+            type: { eq: activity.type },
+            channel: { eq: activity.channel },
+            and: [
+              { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
+              { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
+            ],
+          },
+          limit: 1,
+        }),
+      this.log,
+      'findMatchingActivity -> queryActivities',
+    )
 
     if (rows.length > 0) {
       return rows[0]
