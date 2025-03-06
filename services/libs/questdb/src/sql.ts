@@ -58,14 +58,19 @@ export const getClientSQL = async (
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(client as any).query = async (query, options, ...args) => {
-    const { replacements } = options || {}
+    // milliseconds
     const timer = telemetry.timer('questdb.query_duration')
     try {
-      return oldQuery.apply(client, [query, options, ...args])
+      const result = await oldQuery.apply(client, [query, options, ...args])
+      return result
     } finally {
       const duration = timer.stop()
       if (profile && duration >= minQueryDuration) {
-        log.warn({ duration, query, replacements }, 'QuestDB query duration profiling!')
+        const durationSeconds = duration / 1000.0
+        log.warn(
+          { durationSeconds: durationSeconds.toFixed(2), query, values: options },
+          'QuestDB query duration profiling!',
+        )
       }
     }
   }
