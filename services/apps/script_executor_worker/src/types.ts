@@ -34,7 +34,6 @@ export interface ISyncArgs {
 }
 
 export interface IFixDeletedMemberOrgAffilationsArgs {
-  date?: string
   batchSize?: number
   testRun?: boolean
 }
