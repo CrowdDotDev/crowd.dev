@@ -1,5 +1,6 @@
 import cronGenerator from 'cron-time-generator'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
@@ -8,7 +9,6 @@ import { Logger, logExecutionTimeV2, timer } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 import { PlatformType } from '@crowd/types'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DB_CONFIG } from '@/conf'
 
 import { CrowdJob } from '../../types/jobTypes'
