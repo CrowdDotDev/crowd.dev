@@ -137,6 +137,7 @@ class OrganizationRepository {
         `
         DELETE FROM "organizationNoMerge"
         WHERE "organizationId" = $(organizationId)
+        OR "noMergeId" = $(organizationId)
       `,
         { organizationId },
       )
@@ -145,6 +146,7 @@ class OrganizationRepository {
         `
         DELETE FROM "organizationToMerge"
         WHERE "organizationId" = $(organizationId)
+        OR "toMergeId" = $(organizationId)
       `,
         { organizationId },
       )
@@ -153,6 +155,7 @@ class OrganizationRepository {
         `
         DELETE FROM "organizationToMergeRaw"
         WHERE "organizationId" = $(organizationId)
+        OR "toMergeId" = $(organizationId)
       `,
         { organizationId },
       )

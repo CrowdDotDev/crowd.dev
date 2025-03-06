@@ -31,6 +31,8 @@ export async function cleanupOrganizations(args: IOrganizationCleanupArgs): Prom
         return activity.excludeOrgFromCleanup(orgId)
       }
 
+      console.log(`Deleting organization ${orgId} from database!`)
+
       await activity.deleteOrganization(orgId)
       return activity.queueOrgForAggComputation(orgId)
     })
