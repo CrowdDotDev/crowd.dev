@@ -8,6 +8,8 @@ const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
 
+export const queryOverHttp = async <T>(query: string): Promise<T> => {}
+
 export const getClientSQL = async (
   profileQueries?: boolean,
 ): Promise<pgpromise.IDatabase<unknown>> => {

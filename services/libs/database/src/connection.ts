@@ -131,7 +131,7 @@ export const getDbConnection = async (
       const result = await oldQuery.apply(client, [query, options, ...args])
       return result
     } finally {
-      const duration = start - performance.now()
+      const duration = performance.now() - start
       if (profile && duration >= minQueryDuration) {
         const durationSeconds = duration / 1000.0
         log.warn(
