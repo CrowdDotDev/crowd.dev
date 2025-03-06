@@ -403,40 +403,47 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       await consumer.run({
         autoCommitInterval: 10000, // 10 seconds
         eachMessage: async ({ message }) => {
-          if (message && message.value) {
-            const data = JSON.parse(message.value.toString())
+          try {
+            if (message && message.value) {
+              const data = JSON.parse(message.value.toString())
 
-            const startWait = performance.now()
-            while (!this.isAvailable(maxConcurrentMessageProcessing)) {
-              const diff = performance.now() - startWait
+              const startWait = performance.now()
+              while (!this.isAvailable(maxConcurrentMessageProcessing)) {
+                const diff = performance.now() - startWait
 
-              if (diff >= 5000 && diff % 10000 <= 100) {
-                this.log.warn(
-                  { topic: queueConf.name },
-                  `Consumer is waiting for ${diff.toFixed(2)}ms to process the message! Message type '${data.type}'!`,
-                )
+                if (diff >= 5000 && diff % 10000 <= 100) {
+                  this.log.warn(
+                    { topic: queueConf.name },
+                    `Consumer is waiting for ${diff.toFixed(2)}ms to process the message! Message type '${data.type}'!`,
+                  )
+                }
+
+                await timeout(100)
               }
+              const now = performance.now()
 
-              await timeout(100)
+              this.addJob()
+
+              processMessage(data)
+                .then(() => {
+                  const duration = performance.now() - now
+                  timings.push(duration)
+                  this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                })
+                .catch((err) => {
+                  const duration = performance.now() - now
+                  timings.push(duration)
+                  this.log.error(
+                    err,
+                    `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`,
+                  )
+                })
+                .finally(() => {
+                  this.removeJob()
+                })
             }
-            const now = performance.now()
-
-            this.addJob()
-
-            processMessage(data)
-              .then(() => {
-                const duration = performance.now() - now
-                timings.push(duration)
-                this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-              })
-              .catch((err) => {
-                const duration = performance.now() - now
-                timings.push(duration)
-                this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-              })
-              .finally(() => {
-                this.removeJob()
-              })
+          } catch (err) {
+            this.log.error(err, 'Failed to process the message')
           }
         },
       })
