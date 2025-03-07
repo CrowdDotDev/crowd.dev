@@ -1,7 +1,5 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
-
 import * as memberActivities from '../activities/memberMergeSuggestions'
 import { ITestMemberOpenSearchResultsArgs } from '../types'
 
@@ -13,6 +11,8 @@ export async function testMemberOpenSearchResults(
   args: ITestMemberOpenSearchResultsArgs,
 ): Promise<void> {
   console.log(`Testing OpenSearch results for member: ${args.memberId}`)
+
+  const DEFAULT_TENANT_ID = '875c38bd-2b1b-4e91-ad07-0cfbabb4c49f'
 
   // First get the member details
   const results = await memberActivitiesProxy.getMembers(DEFAULT_TENANT_ID, 1, args.memberId, null)
