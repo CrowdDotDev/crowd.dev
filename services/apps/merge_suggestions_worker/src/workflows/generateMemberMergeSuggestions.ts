@@ -52,10 +52,26 @@ export async function generateMemberMergeSuggestions(
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
   }
 
-  console.log(allMergeSuggestions)
-
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
+    const memberIdsToCheck = [
+      '91157df0-4bea-11ef-ad53-b9a7b82f79f3',
+      '7c392f00-cfb4-11ef-8a7e-077cc09af72d',
+      '5d848a60-4bf6-11ef-ac2e-a53cd2b54633',
+      '9e0602a0-91ef-11ef-aa37-87428b07a701',
+      '640ddc20-cfa8-11ef-ad29-45103991cb8e',
+    ]
+
+    const mergeSuggestionsToAdd = allMergeSuggestions.filter((s) =>
+      s.members.some((memberId) => memberIdsToCheck.includes(memberId)),
+    )
+
+    if (mergeSuggestionsToAdd.length > 0) {
+      console.log('Found merge suggestions with specified member IDs:', mergeSuggestionsToAdd)
+    }
+
+    console.log(mergeSuggestionsToAdd)
+
     await activity.addMemberToMerge(
       allMergeSuggestions,
       MemberMergeSuggestionTable.MEMBER_TO_MERGE_RAW,
