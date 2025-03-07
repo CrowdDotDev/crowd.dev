@@ -44,10 +44,12 @@ export async function generateMemberMergeSuggestions(
 
   // Check if any of our target IDs are in the initial result
   const foundInitialMembers = result.filter((member) => memberIdsToCheck.includes(member.id))
-  console.log(
-    '[getMembers] Target members found in initial results:',
-    foundInitialMembers.map((member) => member.id),
-  )
+  if (foundInitialMembers.length > 0) {
+    console.log(
+      '[getMembers] Target members found in initial results:',
+      foundInitialMembers.map((member) => member.id),
+    )
+  }
 
   if (result.length === 0) {
     await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.tenantId)
@@ -98,10 +100,6 @@ export async function generateMemberMergeSuggestions(
         mergeSuggestionsToAdd,
       )
     }
-
-    allMergeSuggestions.forEach((s) => {
-      console.log(s.members)
-    })
 
     await activity.addMemberToMerge(
       allMergeSuggestions,
