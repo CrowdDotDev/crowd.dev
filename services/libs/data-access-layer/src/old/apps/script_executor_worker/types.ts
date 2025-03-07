@@ -21,3 +21,8 @@ export interface IFindMemberIdentitiesGroupedByPlatformResult {
   values: string[]
   groupedByValue: string
 }
+
+export enum EntityType {
+  MEMBER = 'member',
+  ORGANIZATION = 'organization',
+}
