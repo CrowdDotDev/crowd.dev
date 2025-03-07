@@ -4,7 +4,7 @@ import { Options, ServiceWorker } from '@crowd/archetype-worker'
 import { schedulePopulateActivityRelations } from './schedules/schedulePopulateActivityRelations'
 
 const config: Config = {
-  envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],
+  envvars: ['CROWD_TINYBIRD_ACCESS_TOKEN'],
   producer: {
     enabled: false,
   },
