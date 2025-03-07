@@ -166,6 +166,7 @@ export interface IMemberBaseForMergeSuggestions {
   id: string
   displayName: string
   attributes: IAttributes
+  createdAt: string
 }
 
 export interface IMemberWithAggregatesForMergeSuggestions extends IMemberBaseForMergeSuggestions {

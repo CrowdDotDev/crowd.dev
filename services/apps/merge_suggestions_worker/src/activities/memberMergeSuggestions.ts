@@ -267,7 +267,7 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(tenantId: stri
 export async function getMembers(
   tenantId: string,
   batchSize: number,
-  afterMemberId?: string,
+  // afterMemberId?: string,
   lastGeneratedAt?: string,
   exactMemberId?: string,
 ): Promise<IMemberBaseForMergeSuggestions[]> {
@@ -278,7 +278,7 @@ export async function getMembers(
         and: [
           { [MemberField.TENANT_ID]: { eq: tenantId } },
           exactMemberId ? { [MemberField.ID]: { eq: exactMemberId } } : null,
-          afterMemberId ? { [MemberField.ID]: { gt: afterMemberId } } : null,
+          // afterMemberId ? { [MemberField.ID]: { gt: afterMemberId } } : null,
           lastGeneratedAt ? { [MemberField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
         ],
       },
@@ -287,6 +287,7 @@ export async function getMembers(
         MemberField.TENANT_ID,
         MemberField.DISPLAY_NAME,
         MemberField.ATTRIBUTES,
+        MemberField.CREATED_AT,
       ],
       limit: batchSize,
     })

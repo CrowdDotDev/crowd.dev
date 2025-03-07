@@ -19,15 +19,18 @@ export async function generateMemberMergeSuggestions(
   const PARALLEL_SUGGESTION_PROCESSING = 10
   const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.75
 
-  let lastUuid: string = args.lastUuid || null
+  let lastGeneratedAt: string = args.lastGeneratedAt || null
 
   // get the latest generation time of tenant's member suggestions, we'll only get members created after that for new suggestions
-  const lastGeneratedAt = await activity.findTenantsLatestMemberSuggestionGeneratedAt(args.tenantId)
+  if (!lastGeneratedAt) {
+    lastGeneratedAt = await activity.findTenantsLatestMemberSuggestionGeneratedAt(args.tenantId)
+  }
+
+  console.log('[generateMemberMergeSuggestions] Last generated at:', lastGeneratedAt)
 
   const result: IMemberBaseForMergeSuggestions[] = await activity.getMembers(
     args.tenantId,
     PAGE_SIZE,
-    lastUuid,
     lastGeneratedAt,
   )
 
@@ -51,7 +54,9 @@ export async function generateMemberMergeSuggestions(
     return
   }
 
-  lastUuid = result.length > 0 ? result[result.length - 1]?.id : null
+  const lastProcessedAt = result.length > 0 ? result[result.length - 1]?.createdAt : null
+
+  console.log('[generateMemberMergeSuggestions] Last processed member createdAt:', lastProcessedAt)
 
   const allMergeSuggestions: IMemberMergeSuggestion[] = []
 
@@ -109,5 +114,15 @@ export async function generateMemberMergeSuggestions(
     )
   }
 
-  await continueAsNew<typeof generateMemberMergeSuggestions>({ tenantId: args.tenantId, lastUuid })
+  // if testRun > 3, we'll stop the workflow
+  // todo: remove this
+  if (args.testRun > 3) {
+    return
+  }
+
+  await continueAsNew<typeof generateMemberMergeSuggestions>({
+    tenantId: args.tenantId,
+    lastGeneratedAt: lastProcessedAt,
+    testRun: args.testRun + 1,
+  })
 }

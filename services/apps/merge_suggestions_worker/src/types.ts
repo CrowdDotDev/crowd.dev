@@ -70,7 +70,8 @@ export interface ILLMBody {
 
 export interface IProcessGenerateMemberMergeSuggestionsArgs {
   tenantId: string
-  lastUuid?: string
+  lastGeneratedAt?: string
+  testRun?: number
 }
 
 export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
