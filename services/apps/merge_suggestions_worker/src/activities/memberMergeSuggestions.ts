@@ -269,6 +269,7 @@ export async function getMembers(
   batchSize: number,
   afterMemberId?: string,
   lastGeneratedAt?: string,
+  exactMemberId?: string,
 ): Promise<IMemberBaseForMergeSuggestions[]> {
   try {
     const qx = pgpQx(svc.postgres.reader.connection())
@@ -276,6 +277,7 @@ export async function getMembers(
       filter: {
         and: [
           { [MemberField.TENANT_ID]: { eq: tenantId } },
+          exactMemberId ? { [MemberField.ID]: { eq: exactMemberId } } : null,
           afterMemberId ? { [MemberField.ID]: { gt: afterMemberId } } : null,
           lastGeneratedAt ? { [MemberField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
         ],

@@ -15,7 +15,13 @@ export async function testMemberOpenSearchResults(
   const DEFAULT_TENANT_ID = '875c38bd-2b1b-4e91-ad07-0cfbabb4c49f'
 
   // First get the member details
-  const results = await memberActivitiesProxy.getMembers(DEFAULT_TENANT_ID, 1, args.memberId, null)
+  const results = await memberActivitiesProxy.getMembers(
+    DEFAULT_TENANT_ID,
+    1,
+    null,
+    null,
+    args.memberId,
+  )
 
   if (results.length === 0) {
     console.log('Member not found!')
