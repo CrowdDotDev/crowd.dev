@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createHash } from 'crypto'
-import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
+import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage, Producer } from 'kafkajs'
 
 import { timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -28,6 +28,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private processingMessages: number
   private started: boolean
 
+  private producer: Producer
+
   public constructor(
     public readonly client: Kafka,
     parentLog: Logger,
@@ -40,7 +42,10 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.consumers = new Map<string, Consumer>()
     this.reconnectAttempts = new Map<string, number>()
     this.consumerStatus = new Map<string, boolean>()
+
+    this.producer = this.client.producer()
   }
+
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const groupId = conf.name
     const topic = conf.name
@@ -80,9 +85,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     groupId: string,
   ): Promise<IQueueSendResult> {
     // send message to kafka
-    const producer = this.client.producer()
-    await producer.connect()
-    const result = await producer.send({
+    const result = await this.producer.send({
       topic: channel.name,
       messages: [
         {
@@ -94,7 +97,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.trace({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
 
@@ -217,6 +219,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   public async init(config: IKafkaChannelConfig, level?: QueuePriorityLevel): Promise<string> {
     this.log.info({ config }, 'Initializing queue!')
 
+    await this.producer.connect()
+
     const admin = this.client.admin()
     await admin.connect()
 
@@ -320,9 +324,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
   ): Promise<IQueueSendBulkResult> {
-    const producer = this.client.producer()
-    await producer.connect()
-    const result = await producer.send({
+    const result = await this.producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
         value: JSON.stringify(m.payload),
@@ -332,7 +334,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
   public async start(
