@@ -43,6 +43,7 @@ class MemberSimilarityCalculator {
     // return a small confidence score when there's clashing identities
     // clashing identities are username identities in same platform and different values
     if (this.hasClashingMemberIdentities(primaryMember, similarMember)) {
+      console.log('hasClashingMemberIdentities!')
       return 0.2
     }
 
@@ -111,6 +112,7 @@ class MemberSimilarityCalculator {
     if (
       similarMember.keyword_displayName.toLowerCase() === primaryMember.displayName.toLowerCase()
     ) {
+      console.log('displayName match!')
       return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
     }
 
@@ -118,6 +120,7 @@ class MemberSimilarityCalculator {
     const identityLength = similarPrimaryIdentity?.value.length || 0
 
     if (identityLength < smallestEditDistance) {
+      console.log('smallestEditDistance!')
       return this.LOW_CONFIDENCE_SCORE
     }
 
