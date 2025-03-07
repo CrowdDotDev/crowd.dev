@@ -26,7 +26,7 @@ runs:
 
     - name: Login to docker repository
       shell: bash
-      run: echo ${{ env.ORACLE_DOCKER_PASSWORD }} | docker login sjc.ocir.io -u ${{ env.ORACLE_DOCKER_USERNAME }} --password-stdin
+      run: echo '${{ env.ORACLE_DOCKER_PASSWORD }}' | docker login sjc.ocir.io -u '${{ env.ORACLE_DOCKER_USERNAME }}' --password-stdin
 
     - name: Build and push docker image
       shell: bash
