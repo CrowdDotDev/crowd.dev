@@ -52,6 +52,8 @@ export async function generateMemberMergeSuggestions(
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
   }
 
+  console.log(allMergeSuggestions)
+
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
     await activity.addMemberToMerge(
