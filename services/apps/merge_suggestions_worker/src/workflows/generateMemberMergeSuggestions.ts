@@ -70,7 +70,9 @@ export async function generateMemberMergeSuggestions(
       console.log('Found merge suggestions with specified member IDs:', mergeSuggestionsToAdd)
     }
 
-    console.log(mergeSuggestionsToAdd)
+    allMergeSuggestions.forEach((s) => {
+      console.log(s.members)
+    })
 
     await activity.addMemberToMerge(
       allMergeSuggestions,
