@@ -11,17 +11,17 @@ interface MergedOrganization {
 
 async function getMergedOrganizations(pgQx: QueryExecutor): Promise<MergedOrganization[]> {
   return pgQx.select(`
-    SELECT ma."secondaryId", ma."primaryId"
+    SELECT "secondaryId", "primaryId"
     FROM (
-      SELECT DISTINCT ON ("secondaryId") "secondaryId", "primaryId", "createdAt"
-      FROM "mergeActions"
-      WHERE type = 'organization' AND state = 'merged'
-      ORDER BY "secondaryId", "createdAt" DESC
-    ) ma
+        SELECT DISTINCT ON ("secondaryId") "secondaryId", "primaryId"
+        FROM "mergeActions"
+        WHERE type = 'org' AND state = 'merged'
+        ORDER BY "secondaryId", "createdAt" DESC
+    ) latest_merges
     WHERE NOT EXISTS (
-      SELECT 1 
-      FROM organizations
-      WHERE organizations.id = ma."secondaryId"
+        SELECT 1 
+        FROM organizations 
+        WHERE organizations.id = latest_merges."secondaryId"
     );
   `)
 }
