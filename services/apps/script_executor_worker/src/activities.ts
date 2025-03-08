@@ -10,6 +10,7 @@ import {
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
+import { fixForeignKeys } from './activities/fix-foreign-keys'
 import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
@@ -59,4 +60,5 @@ export {
   syncOrganizationsBatch,
   deleteIndexedEntities,
   markEntitiesIndexed,
+  fixForeignKeys,
 }
