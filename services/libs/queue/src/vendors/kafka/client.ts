@@ -45,7 +45,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.producer = this.client.producer()
   }
-
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const groupId = conf.name
     const topic = conf.name
@@ -225,10 +224,10 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   public async init(config: IKafkaChannelConfig, level?: QueuePriorityLevel): Promise<string> {
     this.log.info({ config }, 'Initializing queue!')
 
-    await this.producer.connect()
-
     const admin = this.client.admin()
     await admin.connect()
+
+    await this.producer.connect()
 
     let partitionCount
 
