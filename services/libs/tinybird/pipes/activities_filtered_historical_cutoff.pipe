@@ -1,18 +1,18 @@
-TOKEN "activities_filtered_endpoint_read_8708" READ
-
-TOKEN "raul_dev_access_token" READ
+TOKEN "activities_filtered_historical_cutoff_endpoint_read_5308" READ
 
 NODE activities_filtered_by_timestamp_and_channel
+DESCRIPTION >
+    only difference between activities_filtered and this pipe is that, this'll count all activities until startDate (so the timerange filter is reverted) it's useful because it'll also support other filters and it'll be mainly used in activitird_cumulative_counts pipe to get the historical total
+
 SQL >
 
     %
     SELECT id, type, timestamp, channel, platform FROM activities final
     where 1=1
     {% if defined(startDate) %}
-    AND activities.timestamp > {{DateTime(startDate, description="Filter activity timestamp after", required=False)}}
-    {% end %}
-    {% if defined(endDate) %}
-    AND activities.timestamp < {{DateTime(endDate, description="Filter activity timestamp before", required=False)}}
+    AND activities.timestamp <= {{DateTime(startDate, description="Filter activity timestamp after", required=False)}}
+    {% else %}
+    AND false
     {% end %}
     {% if defined(repo) %}
     AND activities.channel = {{String(repo, description="Filter activity repo", required=False)}}
@@ -38,8 +38,6 @@ SQL >
     SELECT "segmentId" as id FROM insightsProjects FINAL
     {% if defined(project) %}
     where slug = {{String(project, description="Filter by project slug", required=True)}}
-    {% else %}
-    where false
     {% end %}  
 
 
@@ -56,7 +54,7 @@ SQL >
     {% if defined(project) %}
     and activityRelations.segmentId in (select id from segments_filtered)
     {% end %}
-  
+    order by timestamp desc
 
 
 

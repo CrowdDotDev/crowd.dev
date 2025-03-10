@@ -3,6 +3,7 @@ SCHEMA >
     `id` String `json:$.record.id`,
     `attributes` String `json:$.record.attributes` DEFAULT '',
     `location` String `json:$.record.attributes.location.default` DEFAULT '',
+    `country` String `json:$.record.attributes.country.default` DEFAULT '',
     `avatar` String `json:$.record.attributes.avatarUrl.default` DEFAULT '',
     `isBot` UInt8 `json:$.record.attributes.isBot.default` DEFAULT 0,
     `isTeamMember` UInt8 `json:$.record.attributes.isTeamMember.default` DEFAULT 0,

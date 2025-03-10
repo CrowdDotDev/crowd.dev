@@ -1,5 +1,7 @@
 TOKEN "activity_repositories_filtered_endpoint_read_9088" READ
 
+TOKEN "raul_dev_access_token" READ
+
 NODE activity_repositories_filtered_0
 SQL >
 
@@ -11,6 +13,9 @@ SQL >
     {% end %}
     {% if defined(search) %}
     AND activityRepositories.repo like 'https://%' || {{String(search, description="Search repos open ended wildcard ", required=False)}} || '%'
+    {% end %}
+    {% if defined(projectSlug) %}
+    AND activityRepositories.projectSlug = {{String(projectSlug, description="Search repos using projectSlug", required=False)}}
     {% end %}
 
 

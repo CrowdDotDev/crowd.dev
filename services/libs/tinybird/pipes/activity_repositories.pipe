@@ -1,3 +1,5 @@
+TOKEN "raul_dev_access_token" READ
+
 NODE project_slug_segment_id_mapping
 SQL >
 

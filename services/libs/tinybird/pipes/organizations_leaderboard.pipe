@@ -1,0 +1,32 @@
+TOKEN "organizations_leaderboard_endpoint_read_1189" READ
+
+TOKEN "raul_dev_access_token" READ
+
+NODE total_activity_count
+SQL >
+
+    %
+    SELECT count(activities_filtered.id) as "totalContributions" FROM activities_filtered
+
+
+
+NODE organizations_leaderboard_1
+SQL >
+
+    %
+    SELECT
+        organizations.id as id,
+        organizations.logo as logo,
+        organizations.displayName as displayName,
+        count(activities_filtered.id) as "contributionCount",
+    
+            round( count(activities_filtered.id) / (select "totalContributions" from total_activity_count) * 100 )
+        
+         as "contributionPercentage"
+    FROM activities_filtered
+    join organizations final on organizations.id = activities_filtered.organizationId
+    group by organizations.id, organizations.logo, organizations.displayName
+    order by count(activities_filtered.id) as "activityCount" desc
+    limit {{ Int32(limit, 10) }}
+
+

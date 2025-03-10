@@ -1,16 +1,21 @@
 TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
 
+TOKEN "raul_dev_access_token" READ
+
 NODE insighsProjects_filtered_0
 SQL >
 
     %
-    SELECT insightsProjects.*  EXCEPT (logoUrl), insightsProjects.logoUrl as logo FROM insightsProjects FINAL 
+    SELECT projectsAggregatedMV.*  FROM projectsAggregatedMV FINAL 
     where 1=1
     {% if defined(slug) %}
-    AND insightsProjects.slug = {{String(slug, description="Filter collection by slug", required=False)}}
+    AND projectsAggregatedMV.slug = {{String(slug, description="Filter collection by slug", required=False)}}
     {% end %}
     {% if defined(search) %}
-    AND insightsProjects.slug like {{String(search, description="Search collection open ended wildcard using slug", required=False)}} || '%'
+    AND projectsAggregatedMV.slug like {{String(search, description="Search collection open ended wildcard using slug", required=False)}} || '%'
+    {% end %}
+    {% if defined(collectionSlug) %}
+    AND projectsAggregatedMV.collectionSlug = {{String(collectionSlug, description="Filter collection by slug", required=False)}}
     {% end %}
 
 

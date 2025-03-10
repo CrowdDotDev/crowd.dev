@@ -1,10 +1,30 @@
-NODE contributors_with_activity_counts
+TOKEN "contributors_leaderboard_endpoint_read_3484" READ
+
+TOKEN "raul_dev_access_token" READ
+
+NODE total_activity_count
 SQL >
 
     %
-    SELECT * FROM activities_filtered
-    {% if defined(platform) %}
-    AND activities_filtered.platform = {{String(platform, null, description="Filter activity platform", required=False)}}
-    {% end %}
+    SELECT count(activities_filtered.id) as "totalContributions" FROM activities_filtered
+
+
+
+NODE contributors_leaderboard_1
+SQL >
+
+    %
+    SELECT
+        members.id as id,
+        members.avatar as avatar,
+        members.displayName as displayName,
+        count(activities_filtered.id) as "contributionCount",
+        round((count(activities_filtered.id)/ (select "totalContributions" from total_activity_count))*100) as "contributionPercentage"
+        FROM activities_filtered
+    join members final on members.id = activities_filtered.memberId
+    where not members.isTeamMember and not members.isBot
+    group by   members.id, members.avatar, members.displayName
+    order by count(activities_filtered.id) as "activityCount" desc
+    limit {{Int32(limit, 10)}}
 
 

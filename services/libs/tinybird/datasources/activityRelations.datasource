@@ -1,19 +1,18 @@
 
 SCHEMA >
-    `activityId` String `json:$.record.activityId`,
-    `conversationId` String `json:$.record.conversationId` DEFAULT '',
-    `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
-    `memberId` String `json:$.record.memberId`,
-    `objectMemberId` String `json:$.record.objectMemberId` DEFAULT '',
-    `objectMemberUsername` String `json:$.record.objectMemberUsername` DEFAULT '',
-    `organizationId` String `json:$.record.organizationId` DEFAULT '',
-    `parentId` String `json:$.record.parentId` DEFAULT '',
-    `platform` LowCardinality(String) `json:$.record.platform`,
-    `segmentId` String `json:$.record.segmentId`,
-    `username` String `json:$.record.username`
+    `activityId` String,
+    `conversationId` String,
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `memberId` String,
+    `objectMemberId` String,
+    `objectMemberUsername` String,
+    `organizationId` String,
+    `parentId` String,
+    `platform` LowCardinality(String),
+    `segmentId` String,
+    `username` String
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "segmentId, organizationId, activityId"
-ENGINE_VER "updatedAt"
+ENGINE_SORTING_KEY "segmentId, platform, activityId"
