@@ -283,17 +283,21 @@ export default class ActivityService extends LoggerBase {
                 )
                 await logExecutionTimeV2(
                   () =>
-                    createOrUpdateRelations(queryExecutor, {
-                      activityId: id,
-                      segmentId,
-                      memberId: toUpdate.memberId || original.memberId,
-                      objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
-                      organizationId: toUpdate.organizationId || original.organizationId,
-                      platform: toUpdate.platform || (original.platform as PlatformType),
-                      username: toUpdate.username || original.username,
-                      objectMemberUsername:
-                        toUpdate.objectMemberUsername || original.objectMemberUsername,
-                    }),
+                    createOrUpdateRelations(
+                      queryExecutor,
+                      {
+                        activityId: id,
+                        segmentId,
+                        memberId: toUpdate.memberId || original.memberId,
+                        objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+                        organizationId: toUpdate.organizationId || original.organizationId,
+                        platform: toUpdate.platform || (original.platform as PlatformType),
+                        username: toUpdate.username || original.username,
+                        objectMemberUsername:
+                          toUpdate.objectMemberUsername || original.objectMemberUsername,
+                      },
+                      true,
+                    ),
                   this.log,
                   'activityService.update -> createOrUpdateRelations',
                 )

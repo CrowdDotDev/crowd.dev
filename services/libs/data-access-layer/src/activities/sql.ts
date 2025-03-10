@@ -1429,7 +1429,7 @@ export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): P
 export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
-  skipCheck = false,
+  skipChecks = false,
 ): Promise<void> {
   if (data.username === undefined || data.username === null) {
     return
@@ -1442,76 +1442,72 @@ export async function createOrUpdateRelations(
   if (data.segmentId === undefined || data.segmentId === null) {
     return
   }
-  // check objectMember exists
-  if (!skipCheck && data.objectMemberId !== undefined && data.objectMemberId !== null) {
-    let objectMember = await qe.select(
-      `
-      SELECT id
-      FROM members
-      WHERE id = $(objectMemberId)
-    `,
-      {
-        objectMemberId: data.objectMemberId,
-      },
-    )
 
-    if (objectMember.length === 0) {
-      if (data.objectMemberUsername && data.platform) {
-        objectMember = await qe.select(
-          `
-          SELECT "memberId"
-          FROM "memberIdentities"
-          WHERE value = $(value) and platform = $(platform) and verified = true
-          limit 1
-        `,
-          {
-            value: data.objectMemberUsername,
-            platform: data.platform,
-          },
-        )
+  if (!skipChecks) {
+    // check objectMember exists
+    if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
+      let objectMember = await qe.select(
+        `
+    SELECT id
+    FROM members
+    WHERE id = $(objectMemberId)
+  `,
+        {
+          objectMemberId: data.objectMemberId,
+        },
+      )
 
-        if (objectMember.length === 0) {
-          data.objectMemberId = null
+      if (objectMember.length === 0) {
+        if (data.objectMemberUsername && data.platform) {
+          objectMember = await qe.select(
+            `
+        SELECT "memberId"
+        FROM "memberIdentities"
+        WHERE value = $(value) and platform = $(platform) and verified = true
+        limit 1
+      `,
+            {
+              value: data.objectMemberUsername,
+              platform: data.platform,
+            },
+          )
+
+          if (objectMember.length === 0) {
+            data.objectMemberId = null
+          } else {
+            data.objectMemberId = objectMember[0].memberId
+          }
         } else {
-          data.objectMemberId = objectMember[0].memberId
+          data.objectMemberId = null
         }
-      } else {
-        data.objectMemberId = null
       }
     }
-  }
 
-  // check conversation exists
-  if (!skipCheck && data.conversationId !== undefined && data.conversationId !== null) {
-    const conversation = await qe.select(
-      `
-      SELECT id
-      FROM conversations
-      WHERE id = $(conversationId)
-    `,
-      {
-        conversationId: data.conversationId,
-      },
-    )
+    // check conversation exists
+    if (data.conversationId !== undefined && data.conversationId !== null) {
+      const conversation = await qe.select(
+        `
+    SELECT id
+    FROM conversations
+    WHERE id = $(conversationId)
+  `,
+        {
+          conversationId: data.conversationId,
+        },
+      )
 
-    if (conversation.length === 0) {
-      data.conversationId = null
+      if (conversation.length === 0) {
+        data.conversationId = null
+      }
     }
-  }
 
-  // if segmentId is empty, skip adding this activity relation
-  if (data.segmentId == undefined || data.segmentId == null) {
-    return
-  }
-
-  // check segmentId exists
-  if (!skipCheck) {
+    // check segmentId exists
     const segment = await qe.select(
       `
-      SELECT id
-      FROM segments
-      WHERE id = $(segmentId)
-    `,
+    SELECT id
+    FROM segments
+    WHERE id = $(segmentId)
+  `,
       {
         segmentId: data.segmentId,
       },
@@ -1521,16 +1517,14 @@ export async function createOrUpdateRelations(
       // segment not found, skip adding this activity relation
       return
     }
-  }
 
-  // check member exists
-  if (!skipCheck) {
+    // check member exists
     let member = await qe.select(
       `
-      SELECT id
-      FROM members
-      WHERE id = $(memberId)
-    `,
+    SELECT id
+    FROM members
+    WHERE id = $(memberId)
+  `,
       {
         memberId: data.memberId,
       },
@@ -1540,11 +1534,11 @@ export async function createOrUpdateRelations(
       // find member using identity
       member = await qe.select(
         `
-        SELECT "memberId"
-        FROM "memberIdentities"
-        WHERE value = $(value) and platform = $(platform) and verified = true
-        limit 1
-      `,
+      SELECT "memberId"
+      FROM "memberIdentities"
+      WHERE value = $(value) and platform = $(platform) and verified = true
+      limit 1
+    `,
         {
           value: data.username,
           platform: data.platform,
@@ -1557,22 +1551,22 @@ export async function createOrUpdateRelations(
         data.memberId = member[0].memberId
       }
     }
-  }
 
-  if (!skipCheck && data.organizationId !== undefined && data.organizationId !== null) {
-    const organization = await qe.select(
-      `
+    if (data.organizationId !== undefined && data.organizationId !== null) {
+      const organization = await qe.select(
+        `
       SELECT id
       FROM organizations
       WHERE id = $(organizationId)
     `,
-      {
-        organizationId: data.organizationId,
-      },
-    )
+        {
+          organizationId: data.organizationId,
+        },
+      )
 
-    if (organization.length === 0) {
-      data.organizationId = null
+      if (organization.length === 0) {
+        data.organizationId = null
+      }
     }
   }
 

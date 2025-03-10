@@ -2,8 +2,9 @@
 import { createHash } from 'crypto'
 import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage, Producer } from 'kafkajs'
 
-import { timeout } from '@crowd/common'
+import { SERVICE, groupBy, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
+import telemetry from '@crowd/telemetry'
 import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 
 import {
@@ -27,7 +28,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
-
   private producer: Producer
 
   public constructor(
@@ -84,6 +84,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     message: IQueueMessage,
     groupId: string,
   ): Promise<IQueueSendResult> {
+    telemetry.increment('kafka.send', 1, {
+      topic: channel.name,
+      type: message.type,
+      service: SERVICE,
+    })
+
     // send message to kafka
     const result = await this.producer.send({
       topic: channel.name,
@@ -324,6 +330,14 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
   ): Promise<IQueueSendBulkResult> {
+    for (const [type, data] of groupBy(messages, (m) => m.payload.type)) {
+      telemetry.increment('kafka.send', data.length, {
+        topic: channel.name,
+        type,
+        service: SERVICE,
+      })
+    }
+
     const result = await this.producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
@@ -336,6 +350,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     return result
   }
+
   public async start(
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,
