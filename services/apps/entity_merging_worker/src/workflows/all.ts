@@ -24,13 +24,19 @@ const {
   startToCloseTimeout: '60 minutes',
 })
 
-export async function finishMemberMerging(
-  primaryId: string,
-  secondaryId: string,
-  primaryDisplayName: string,
-  secondaryDisplayName: string,
-  userId: string,
-): Promise<void> {
+export async function finishMemberMerging({
+  primaryId,
+  secondaryId,
+  primaryDisplayName,
+  secondaryDisplayName,
+  userId,
+}: {
+  primaryId: string
+  secondaryId: string
+  primaryDisplayName: string
+  secondaryDisplayName: string
+  userId: string
+}): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })

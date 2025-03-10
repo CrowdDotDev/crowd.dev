@@ -1359,12 +1359,13 @@ export default class MemberService extends LoggerBase {
           maximumAttempts: 10,
         },
         args: [
-          originalId,
-          toMergeId,
-          original.displayName,
-          toMerge.displayName,
-          this.options.currentTenant.id,
-          this.options.currentUser.id,
+          {
+            primaryId: originalId,
+            secondaryId: toMergeId,
+            primaryDisplayName: original.displayName,
+            secondaryDisplayName: toMerge.displayName,
+            userId: this.options.currentUser.id,
+          },
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
