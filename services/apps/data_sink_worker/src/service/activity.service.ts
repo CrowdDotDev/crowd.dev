@@ -74,86 +74,121 @@ export default class ActivityService extends LoggerBase {
     activity: IActivityCreateData,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
   ): Promise<string> {
-    try {
-      this.log.debug('Creating an activity.')
-
-      const sentiment = await this.getActivitySentiment({
-        body: activity.body,
-        title: activity.title,
-        type: activity.type,
-        platform: activity.platform,
-      })
-
-      const id = await this.pgStore.transactionally(async (txStore) => {
-        const queryExecutor = dbStoreQx(txStore)
-        const txSettingsRepo = new SettingsRepository(txStore, this.log)
-
-        await txSettingsRepo.createActivityType(
-          activity.platform as PlatformType,
-          activity.type,
-          segmentId,
-        )
-
-        if (activity.channel) {
-          await txSettingsRepo.createActivityChannel(segmentId, activity.platform, activity.channel)
-        }
-
-        this.log.debug('Creating an activity in QuestDB!')
+    return logExecutionTimeV2(
+      async () => {
         try {
-          await insertActivities(this.client, [
-            {
-              id: activity.id,
-              timestamp: activity.timestamp.toISOString(),
-              platform: activity.platform,
-              type: activity.type,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceId: activity.sourceId,
-              sourceParentId: activity.sourceParentId,
-              memberId: activity.memberId,
-              attributes: activity.attributes,
-              sentiment: sentiment,
-              title: activity.title,
-              body: escapeNullByte(activity.body),
-              channel: activity.channel,
-              url: activity.url,
-              username: activity.username,
-              objectMemberId: activity.objectMemberId,
-              objectMemberUsername: activity.objectMemberUsername,
-              segmentId: segmentId,
-              organizationId: activity.organizationId,
-              isBotActivity: memberInfo.isBot,
-              isTeamMemberActivity: memberInfo.isTeamMember,
-              importHash: activity.importHash,
-            },
-          ])
-          await createOrUpdateRelations(
-            queryExecutor,
-            {
-              activityId: activity.id,
-              segmentId,
-              memberId: activity.memberId,
-              objectMemberId: activity.objectMemberId,
-              organizationId: activity.organizationId,
-              platform: activity.platform,
-              username: activity.username,
-              objectMemberUsername: activity.objectMemberUsername,
-            },
-            true,
+          this.log.debug('Creating an activity.')
+
+          const sentiment = await logExecutionTimeV2(
+            () =>
+              this.getActivitySentiment({
+                body: activity.body,
+                title: activity.title,
+                type: activity.type,
+                platform: activity.platform,
+              }),
+            this.log,
+            'activityService.create -> getActivitySentiment',
           )
-        } catch (error) {
-          this.log.error('Error creating activity in QuestDB:', error)
-          throw error
+
+          const id = await this.pgStore.transactionally(async (txStore) => {
+            const queryExecutor = dbStoreQx(txStore)
+            const txSettingsRepo = new SettingsRepository(txStore, this.log)
+
+            await logExecutionTimeV2(
+              () =>
+                txSettingsRepo.createActivityType(
+                  activity.platform as PlatformType,
+                  activity.type,
+                  segmentId,
+                ),
+              this.log,
+              'activityService.create -> txSettingsRepo.createActivityType',
+            )
+
+            if (activity.channel) {
+              await logExecutionTimeV2(
+                () =>
+                  txSettingsRepo.createActivityChannel(
+                    segmentId,
+                    activity.platform,
+                    activity.channel,
+                  ),
+                this.log,
+                'activityService.create -> txSettingsRepo.createActivityChannel',
+              )
+            }
+
+            this.log.debug('Creating an activity in QuestDB!')
+            try {
+              await logExecutionTimeV2(
+                () =>
+                  insertActivities(this.client, [
+                    {
+                      id: activity.id,
+                      timestamp: activity.timestamp.toISOString(),
+                      platform: activity.platform,
+                      type: activity.type,
+                      isContribution: activity.isContribution,
+                      score: activity.score,
+                      sourceId: activity.sourceId,
+                      sourceParentId: activity.sourceParentId,
+                      memberId: activity.memberId,
+                      attributes: activity.attributes,
+                      sentiment: sentiment,
+                      title: activity.title,
+                      body: escapeNullByte(activity.body),
+                      channel: activity.channel,
+                      url: activity.url,
+                      username: activity.username,
+                      objectMemberId: activity.objectMemberId,
+                      objectMemberUsername: activity.objectMemberUsername,
+                      segmentId: segmentId,
+                      organizationId: activity.organizationId,
+                      isBotActivity: memberInfo.isBot,
+                      isTeamMemberActivity: memberInfo.isTeamMember,
+                      importHash: activity.importHash,
+                    },
+                  ]),
+                this.log,
+                'activityService.create -> insertActivities',
+              )
+              await logExecutionTimeV2(
+                () =>
+                  createOrUpdateRelations(
+                    queryExecutor,
+                    {
+                      activityId: activity.id,
+                      segmentId,
+                      memberId: activity.memberId,
+                      objectMemberId: activity.objectMemberId,
+                      organizationId: activity.organizationId,
+                      platform: activity.platform,
+                      username: activity.username,
+                      objectMemberUsername: activity.objectMemberUsername,
+                    },
+                    true,
+                  ),
+                this.log,
+                'activityService.create -> createOrUpdateRelations',
+              )
+            } catch (error) {
+              this.log.error('Error creating activity in QuestDB:', error)
+              throw error
+            }
+
+            return activity.id
+          })
+
+          return id
+        } catch (err) {
+          this.log.error(err, 'Error while creating an activity!')
+          throw err
         }
-
-        return activity.id
-      })
-
-      return id
-    } catch (err) {
-      this.log.error(err, 'Error while creating an activity!')
-      throw err
-    }
+      },
+      this.log,
+      'activityService.create',
+    )
   }
 
   public async update(
@@ -165,123 +200,162 @@ export default class ActivityService extends LoggerBase {
     memberInfo: { isBot: boolean; isTeamMember: boolean },
     fireSync = true,
   ): Promise<void> {
-    try {
-      let toUpdate: IDbActivityUpdateData
-      const updated = await this.pgStore.transactionally(async (txStore) => {
-        const queryExecutor = dbStoreQx(txStore)
-        const txSettingsRepo = new SettingsRepository(txStore, this.log)
+    await logExecutionTimeV2(
+      async () => {
+        try {
+          let toUpdate: IDbActivityUpdateData
+          const updated = await this.pgStore.transactionally(async (txStore) => {
+            const queryExecutor = dbStoreQx(txStore)
+            const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
-        toUpdate = await this.mergeActivityData(activity, original)
-
-        if (toUpdate.type) {
-          await txSettingsRepo.createActivityType(
-            original.platform as PlatformType,
-            toUpdate.type,
-            segmentId,
-          )
-        }
-
-        if (toUpdate.channel) {
-          await txSettingsRepo.createActivityChannel(segmentId, original.platform, toUpdate.channel)
-        }
-
-        if (!isObjectEmpty(toUpdate)) {
-          this.log.debug(
-            { activityId: id, createdAt: original.createdAt },
-            'Updating activity in database.',
-          )
-
-          // use insert instead of update to avoid using pg protocol with questdb
-          try {
-            await insertActivities(this.client, [
-              {
-                id,
-                memberId: toUpdate.memberId || original.memberId,
-                timestamp: original.timestamp,
-                platform: toUpdate.platform || (original.platform as PlatformType),
-                type: toUpdate.type || original.type,
-                isContribution: toUpdate.isContribution || original.isContribution,
-                score: toUpdate.score || original.score,
-                sourceId: toUpdate.sourceId || original.sourceId,
-                sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-                attributes: toUpdate.attributes || original.attributes,
-                sentiment: toUpdate.sentiment || original.sentiment,
-                body: escapeNullByte(toUpdate.body || original.body),
-                title: escapeNullByte(toUpdate.title || original.title),
-                channel: toUpdate.channel || original.channel,
-                url: toUpdate.url || original.url,
-                username: toUpdate.username || original.username,
-                objectMemberId: activity.objectMemberId,
-                objectMemberUsername: activity.objectMemberUsername,
-                segmentId: segmentId,
-                organizationId: toUpdate.organizationId || original.organizationId,
-                isBotActivity: memberInfo.isBot,
-                isTeamMemberActivity: memberInfo.isTeamMember,
-                importHash: original.importHash,
-                createdAt: original.createdAt,
-              },
-            ])
-            await createOrUpdateRelations(
-              queryExecutor,
-              {
-                activityId: id,
-                segmentId,
-                memberId: toUpdate.memberId || original.memberId,
-                objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
-                organizationId: toUpdate.organizationId || original.organizationId,
-                platform: toUpdate.platform || (original.platform as PlatformType),
-                username: toUpdate.username || original.username,
-                objectMemberUsername:
-                  toUpdate.objectMemberUsername || original.objectMemberUsername,
-              },
-              true,
+            toUpdate = await logExecutionTimeV2(
+              () => this.mergeActivityData(activity, original),
+              this.log,
+              'activityService.update -> mergeActivityData',
             )
-          } catch (error) {
-            this.log.error('Error updating (by inserting) activity in QuestDB:', error)
-            throw error
+
+            if (toUpdate.type) {
+              await logExecutionTimeV2(
+                () =>
+                  txSettingsRepo.createActivityType(
+                    original.platform as PlatformType,
+                    toUpdate.type,
+                    segmentId,
+                  ),
+                this.log,
+                'activityService.update -> txSettingsRepo.createActivityType',
+              )
+            }
+
+            if (toUpdate.channel) {
+              await logExecutionTimeV2(
+                () =>
+                  txSettingsRepo.createActivityChannel(
+                    segmentId,
+                    original.platform,
+                    toUpdate.channel,
+                  ),
+                this.log,
+                'activityService.update -> txSettingsRepo.createActivityChannel',
+              )
+            }
+
+            if (!isObjectEmpty(toUpdate)) {
+              this.log.debug(
+                { activityId: id, createdAt: original.createdAt },
+                'Updating activity in database.',
+              )
+
+              // use insert instead of update to avoid using pg protocol with questdb
+              try {
+                await logExecutionTimeV2(
+                  () =>
+                    insertActivities(this.client, [
+                      {
+                        id,
+                        memberId: toUpdate.memberId || original.memberId,
+                        timestamp: original.timestamp,
+                        platform: toUpdate.platform || (original.platform as PlatformType),
+                        type: toUpdate.type || original.type,
+                        isContribution: toUpdate.isContribution || original.isContribution,
+                        score: toUpdate.score || original.score,
+                        sourceId: toUpdate.sourceId || original.sourceId,
+                        sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+                        attributes: toUpdate.attributes || original.attributes,
+                        sentiment: toUpdate.sentiment || original.sentiment,
+                        body: escapeNullByte(toUpdate.body || original.body),
+                        title: escapeNullByte(toUpdate.title || original.title),
+                        channel: toUpdate.channel || original.channel,
+                        url: toUpdate.url || original.url,
+                        username: toUpdate.username || original.username,
+                        objectMemberId: activity.objectMemberId,
+                        objectMemberUsername: activity.objectMemberUsername,
+                        segmentId: segmentId,
+                        organizationId: toUpdate.organizationId || original.organizationId,
+                        isBotActivity: memberInfo.isBot,
+                        isTeamMemberActivity: memberInfo.isTeamMember,
+                        importHash: original.importHash,
+                        createdAt: original.createdAt,
+                      },
+                    ]),
+                  this.log,
+                  'activityService.update -> insertActivities',
+                )
+                await logExecutionTimeV2(
+                  () =>
+                    createOrUpdateRelations(
+                      queryExecutor,
+                      {
+                        activityId: id,
+                        segmentId,
+                        memberId: toUpdate.memberId || original.memberId,
+                        objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+                        organizationId: toUpdate.organizationId || original.organizationId,
+                        platform: toUpdate.platform || (original.platform as PlatformType),
+                        username: toUpdate.username || original.username,
+                        objectMemberUsername:
+                          toUpdate.objectMemberUsername || original.objectMemberUsername,
+                      },
+                      true,
+                    ),
+                  this.log,
+                  'activityService.update -> createOrUpdateRelations',
+                )
+              } catch (error) {
+                this.log.error('Error updating (by inserting) activity in QuestDB:', error)
+                throw error
+              }
+
+              return true
+            } else {
+              this.log.debug({ activityId: id }, 'No changes to update in an activity.')
+              return false
+            }
+          })
+
+          if (updated) {
+            // const activityToProcess: IQueryActivityResult = {
+            //   id: id,
+            //   segmentId: segmentId,
+            //   type: toUpdate.type || original.type,
+            //   isContribution: toUpdate.isContribution || original.isContribution,
+            //   score: toUpdate.score || original.score,
+            //   sourceId: toUpdate.sourceId || original.sourceId,
+            //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+            //   memberId: toUpdate.memberId || original.memberId,
+            //   username: toUpdate.username || original.username,
+            //   sentiment: toUpdate.sentiment || original.sentiment,
+            //   attributes: toUpdate.attributes || original.attributes,
+            //   body: escapeNullByte(toUpdate.body || original.body),
+            //   title: escapeNullByte(toUpdate.title || original.title),
+            //   channel: toUpdate.channel || original.channel,
+            //   url: toUpdate.url || original.url,
+            //   organizationId: toUpdate.organizationId || original.organizationId,
+            //   platform: toUpdate.platform || (original.platform as PlatformType),
+            //   timestamp: original.timestamp,
+            // }
+
+            if (fireSync) {
+              await logExecutionTimeV2(
+                () =>
+                  this.searchSyncWorkerEmitter.triggerMemberSync(
+                    activity.memberId,
+                    onboarding,
+                    segmentId,
+                  ),
+                this.log,
+                'activityService.update -> searchSyncWorkerEmitter.triggerMemberSync',
+              )
+            }
           }
-
-          return true
-        } else {
-          this.log.debug({ activityId: id }, 'No changes to update in an activity.')
-          return false
+        } catch (err) {
+          this.log.error(err, { activityId: id }, 'Error while updating an activity!')
+          throw err
         }
-      })
-
-      if (updated) {
-        // const activityToProcess: IQueryActivityResult = {
-        //   id: id,
-        //   segmentId: segmentId,
-        //   type: toUpdate.type || original.type,
-        //   isContribution: toUpdate.isContribution || original.isContribution,
-        //   score: toUpdate.score || original.score,
-        //   sourceId: toUpdate.sourceId || original.sourceId,
-        //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-        //   memberId: toUpdate.memberId || original.memberId,
-        //   username: toUpdate.username || original.username,
-        //   sentiment: toUpdate.sentiment || original.sentiment,
-        //   attributes: toUpdate.attributes || original.attributes,
-        //   body: escapeNullByte(toUpdate.body || original.body),
-        //   title: escapeNullByte(toUpdate.title || original.title),
-        //   channel: toUpdate.channel || original.channel,
-        //   url: toUpdate.url || original.url,
-        //   organizationId: toUpdate.organizationId || original.organizationId,
-        //   platform: toUpdate.platform || (original.platform as PlatformType),
-        //   timestamp: original.timestamp,
-        // }
-
-        if (fireSync) {
-          await this.searchSyncWorkerEmitter.triggerMemberSync(
-            activity.memberId,
-            onboarding,
-            segmentId,
-          )
-        }
-      }
-    } catch (err) {
-      this.log.error(err, { activityId: id }, 'Error while updating an activity!')
-      throw err
-    }
+      },
+      this.log,
+      'activityService.update',
+    )
   }
 
   private async mergeActivityData(
@@ -498,7 +572,11 @@ export default class ActivityService extends LoggerBase {
     // check if member or object member have identities that were requested to be erased by the user
     if (member && member.identities.length > 0) {
       this.log.trace('Checking member identities for erasue!')
-      const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+      const toErase = await logExecutionTimeV2(
+        () => repo.someIdentitiesWereErasedByUserRequest(member.identities),
+        this.log,
+        'processActivity -> someIdentitiesWereErasedByUserRequest',
+      )
       if (toErase.length > 0) {
         // prevent member/activity creation of one of the identities that are marked to be erased are verified
         if (toErase.some((i) => i.verified)) {
@@ -532,7 +610,11 @@ export default class ActivityService extends LoggerBase {
 
     if (objectMember && objectMember.identities.length > 0) {
       this.log.trace('Checking object member identities for erasue!')
-      const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+      const toErase = await logExecutionTimeV2(
+        () => repo.someIdentitiesWereErasedByUserRequest(objectMember.identities),
+        this.log,
+        'processActivity -> objectMember someIdentitiesWereErasedByUserRequest',
+      )
       if (toErase.length > 0) {
         // prevent member/activity creation of one of the identities that are marked to be erased are verified
         if (toErase.some((i) => i.verified)) {
@@ -625,14 +707,22 @@ export default class ActivityService extends LoggerBase {
         if (!segmentId) {
           if (platform === PlatformType.GITLAB) {
             this.log.trace('Finding segment for GitLab repo.')
-            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(activity.channel)
+            const gitlabRepoSegmentId = await logExecutionTimeV2(
+              () => txGitlabReposRepo.findSegmentForRepo(activity.channel),
+              this.log,
+              'processActivity -> txGitlabReposRepo.findSegmentForRepo',
+            )
 
             if (gitlabRepoSegmentId) {
               segmentId = gitlabRepoSegmentId
             }
           } else if (platform === PlatformType.GITHUB) {
             this.log.trace('Finding segment for Github repo.')
-            const repoSegmentId = await txGithubReposRepo.findSegmentForRepo(activity.channel)
+            const repoSegmentId = await logExecutionTimeV2(
+              () => txGithubReposRepo.findSegmentForRepo(activity.channel),
+              this.log,
+              'processActivity -> txGithubReposRepo.findSegmentForRepo',
+            )
 
             if (repoSegmentId) {
               segmentId = repoSegmentId
@@ -641,7 +731,11 @@ export default class ActivityService extends LoggerBase {
 
           if (!segmentId) {
             this.log.trace('Finding segment for integration.')
-            const dbIntegration = await txIntegrationRepo.findById(integrationId)
+            const dbIntegration = await logExecutionTimeV2(
+              () => txIntegrationRepo.findById(integrationId),
+              this.log,
+              'processActivity -> txIntegrationRepo.findById',
+            )
             segmentId = dbIntegration.segmentId
           }
         }
@@ -665,6 +759,7 @@ export default class ActivityService extends LoggerBase {
               },
               limit: 1,
               noCount: true,
+              useHttp: true,
             }),
           this.log,
           'processActivity -> queryActivities',
@@ -685,7 +780,11 @@ export default class ActivityService extends LoggerBase {
           this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
           // process member data
 
-          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
+          let dbMember = await logExecutionTimeV2(
+            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
+            this.log,
+            'processActivity -> txMemberRepo.findMemberByUsername',
+          )
           if (dbMember) {
             // we found a member for the identity from the activity
             this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -749,7 +848,11 @@ export default class ActivityService extends LoggerBase {
             // leave activity.memberId as is
 
             this.log.trace('Fetching dbActivity.memberId member data from db!')
-            dbMember = await txMemberRepo.findById(dbActivity.memberId)
+            dbMember = await logExecutionTimeV2(
+              () => txMemberRepo.findById(dbActivity.memberId),
+              this.log,
+              'processActivity -> txMemberRepo.findById',
+            )
             this.log.trace('Updating member data!')
             await txMemberService.update(
               dbMember.id,
@@ -789,10 +892,10 @@ export default class ActivityService extends LoggerBase {
           if (objectMember) {
             if (dbActivity.objectMemberId) {
               this.log.trace('Finding object member id by username.')
-              let dbObjectMember = await txMemberRepo.findMemberByUsername(
-                segmentId,
-                platform,
-                objectMemberUsername,
+              let dbObjectMember = await logExecutionTimeV2(
+                () => txMemberRepo.findMemberByUsername(segmentId, platform, objectMemberUsername),
+                this.log,
+                'processActivity -> object member txMemberRepo.findMemberByUsername',
               )
 
               if (dbObjectMember) {
@@ -858,7 +961,11 @@ export default class ActivityService extends LoggerBase {
                 // leave activity.memberId as is
 
                 this.log.trace('Fetching dbActivity.objectMemberId object member data from db!')
-                dbObjectMember = await txMemberRepo.findById(dbActivity.objectMemberId)
+                dbObjectMember = await logExecutionTimeV2(
+                  () => txMemberRepo.findById(dbActivity.objectMemberId),
+                  this.log,
+                  'processActivity -> object member txMemberRepo.findById',
+                )
                 this.log.trace('Updating object member data!')
                 await txMemberService.update(
                   dbObjectMember.id,
@@ -886,10 +993,15 @@ export default class ActivityService extends LoggerBase {
 
           if (!createActivity) {
             this.log.trace('Fetching activity organizations affiliation...')
-            organizationId = await txMemberAffiliationService.findAffiliation(
-              dbActivity.memberId,
-              segmentId,
-              dbActivity.timestamp,
+            organizationId = await logExecutionTimeV2(
+              () =>
+                txMemberAffiliationService.findAffiliation(
+                  dbActivity.memberId,
+                  segmentId,
+                  dbActivity.timestamp,
+                ),
+              this.log,
+              'processActivity -> txMemberAffiliationService.findAffiliation',
             )
 
             // just update the activity now
@@ -936,7 +1048,11 @@ export default class ActivityService extends LoggerBase {
           // we don't have the activity yet in the database
           // check if we have a member for the identity from the activity
           this.log.trace({ platform, username }, 'Finding activity member by username from db.')
-          let dbMember = await txMemberRepo.findMemberByUsername(segmentId, platform, username)
+          let dbMember = await logExecutionTimeV2(
+            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
+            this.log,
+            'processActivity -> txMemberRepo.findMemberByUsername',
+          )
 
           // try to find a member by email if verified one is available
           if (!dbMember) {
@@ -947,7 +1063,11 @@ export default class ActivityService extends LoggerBase {
             if (emails.length > 0) {
               for (const email of emails) {
                 this.log.trace({ email }, 'Finding activity member by email.')
-                dbMember = await txMemberRepo.findMemberByEmail(email)
+                dbMember = await logExecutionTimeV2(
+                  () => txMemberRepo.findMemberByEmail(email),
+                  this.log,
+                  'processActivity -> txMemberRepo.findMemberByEmail',
+                )
 
                 if (dbMember) {
                   break
@@ -1018,10 +1138,10 @@ export default class ActivityService extends LoggerBase {
               { platform, objectMemberUsername },
               'Finding existing db object member by username.',
             )
-            const dbObjectMember = await txMemberRepo.findMemberByUsername(
-              segmentId,
-              platform,
-              objectMemberUsername,
+            const dbObjectMember = await logExecutionTimeV2(
+              () => txMemberRepo.findMemberByUsername(segmentId, platform, objectMemberUsername),
+              this.log,
+              'processActivity -> object member txMemberRepo.findMemberByUsername',
             )
             if (dbObjectMember) {
               this.log.trace(
@@ -1075,10 +1195,11 @@ export default class ActivityService extends LoggerBase {
         const activityId = dbActivity?.id ?? generateUUIDv4()
         if (createActivity) {
           this.log.trace('Finding activity organization affiliation.')
-          organizationId = await txMemberAffiliationService.findAffiliation(
-            memberId,
-            segmentId,
-            activity.timestamp,
+          organizationId = await logExecutionTimeV2(
+            () =>
+              txMemberAffiliationService.findAffiliation(memberId, segmentId, activity.timestamp),
+            this.log,
+            'processActivity -> txMemberAffiliationService.findAffiliation',
           )
 
           this.log.trace('Creating activity.')
@@ -1096,7 +1217,11 @@ export default class ActivityService extends LoggerBase {
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT &&
                 activity.sourceParentId
-                  ? await findMatchingPullRequestNodeId(this.qdbStore.connection(), activity)
+                  ? await logExecutionTimeV2(
+                      () => findMatchingPullRequestNodeId(this.qdbStore.connection(), activity),
+                      this.log,
+                      'processActivity -> findMatchingPullRequestNodeId',
+                    )
                   : activity.sourceParentId,
               memberId,
               username,
@@ -1106,11 +1231,16 @@ export default class ActivityService extends LoggerBase {
                 IS_GITHUB_SNOWFLAKE_ENABLED &&
                 platform === PlatformType.GITHUB &&
                 activity.type === GithubActivityType.AUTHORED_COMMIT
-                  ? await this.findMatchingGitActivityAttributes({
-                      segmentId,
-                      activity,
-                      attributes: activity.attributes || {},
-                    })
+                  ? await logExecutionTimeV2(
+                      () =>
+                        this.findMatchingGitActivityAttributes({
+                          segmentId,
+                          activity,
+                          attributes: activity.attributes || {},
+                        }),
+                      this.log,
+                      'processActivity -> findMatchingGitActivityAttributes',
+                    )
                   : activity.attributes || {},
               body: activity.body,
               title: activity.title,
@@ -1129,13 +1259,21 @@ export default class ActivityService extends LoggerBase {
         if (IS_GITHUB_SNOWFLAKE_ENABLED) {
           if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
             this.log.trace('Pushing attributes to matching github activity.')
-            await this.pushAttributesToMatchingGithubActivity({ segmentId, activity })
+            await logExecutionTimeV2(
+              () => this.pushAttributesToMatchingGithubActivity({ segmentId, activity }),
+              this.log,
+              'processActivity -> pushAttributesToMatchingGithubActivity',
+            )
           } else if (
             platform === PlatformType.GITHUB &&
             activity.type === GithubActivityType.PULL_REQUEST_OPENED
           ) {
             this.log.trace('Pushing PR sourceId to matching github commits.')
-            await this.pushPRSourceIdToMatchingGithubCommits({ activity })
+            await logExecutionTimeV2(
+              () => this.pushPRSourceIdToMatchingGithubCommits({ activity }),
+              this.log,
+              'processActivity -> pushPRSourceIdToMatchingGithubCommits',
+            )
           }
         }
       } finally {
@@ -1145,15 +1283,27 @@ export default class ActivityService extends LoggerBase {
 
     if (memberId) {
       this.log.trace('Triggering member sync.')
-      await this.searchSyncWorkerEmitter.triggerMemberSync(memberId, onboarding, segmentId)
+      await logExecutionTimeV2(
+        () => this.searchSyncWorkerEmitter.triggerMemberSync(memberId, onboarding, segmentId),
+        this.log,
+        'processActivity -> triggerMemberSync',
+      )
     }
     if (objectMemberId) {
       this.log.trace('Triggering object member sync.')
-      await this.searchSyncWorkerEmitter.triggerMemberSync(objectMemberId, onboarding, segmentId)
+      await logExecutionTimeV2(
+        () => this.searchSyncWorkerEmitter.triggerMemberSync(objectMemberId, onboarding, segmentId),
+        this.log,
+        'processActivity -> triggerObjectMemberSync',
+      )
     }
 
     if (organizationId) {
-      await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
+      await logExecutionTimeV2(
+        () => this.redisClient.sAdd('organizationIdsForAggComputation', organizationId),
+        this.log,
+        'processActivity -> redisClient.sAdd',
+      )
     }
   }
 
