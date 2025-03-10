@@ -15,6 +15,7 @@
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "kafkajs": "^2.2.4"
   }
 }

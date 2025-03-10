@@ -1949,6 +1949,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
+      '@crowd/telemetry':
+        specifier: workspace:*
+        version: link:../telemetry
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
