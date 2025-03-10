@@ -127,16 +127,20 @@ export default class ActivityService extends LoggerBase {
               importHash: activity.importHash,
             },
           ])
-          await createOrUpdateRelations(queryExecutor, {
-            activityId: activity.id,
-            segmentId,
-            memberId: activity.memberId,
-            objectMemberId: activity.objectMemberId,
-            organizationId: activity.organizationId,
-            platform: activity.platform,
-            username: activity.username,
-            objectMemberUsername: activity.objectMemberUsername,
-          })
+          await createOrUpdateRelations(
+            queryExecutor,
+            {
+              activityId: activity.id,
+              segmentId,
+              memberId: activity.memberId,
+              objectMemberId: activity.objectMemberId,
+              organizationId: activity.organizationId,
+              platform: activity.platform,
+              username: activity.username,
+              objectMemberUsername: activity.objectMemberUsername,
+            },
+            true,
+          )
         } catch (error) {
           this.log.error('Error creating activity in QuestDB:', error)
           throw error
@@ -217,16 +221,21 @@ export default class ActivityService extends LoggerBase {
                 createdAt: original.createdAt,
               },
             ])
-            await createOrUpdateRelations(queryExecutor, {
-              activityId: id,
-              segmentId,
-              memberId: toUpdate.memberId || original.memberId,
-              objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
-              organizationId: toUpdate.organizationId || original.organizationId,
-              platform: toUpdate.platform || (original.platform as PlatformType),
-              username: toUpdate.username || original.username,
-              objectMemberUsername: toUpdate.objectMemberUsername || original.objectMemberUsername,
-            })
+            await createOrUpdateRelations(
+              queryExecutor,
+              {
+                activityId: id,
+                segmentId,
+                memberId: toUpdate.memberId || original.memberId,
+                objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
+                organizationId: toUpdate.organizationId || original.organizationId,
+                platform: toUpdate.platform || (original.platform as PlatformType),
+                username: toUpdate.username || original.username,
+                objectMemberUsername:
+                  toUpdate.objectMemberUsername || original.objectMemberUsername,
+              },
+              true,
+            )
           } catch (error) {
             this.log.error('Error updating (by inserting) activity in QuestDB:', error)
             throw error
