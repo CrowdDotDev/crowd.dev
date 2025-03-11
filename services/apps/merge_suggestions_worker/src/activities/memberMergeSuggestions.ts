@@ -286,7 +286,7 @@ export async function getMembers(
         MemberField.DISPLAY_NAME,
         MemberField.ATTRIBUTES,
       ],
-      orderBy: `${MemberField.ID}_ASC`,
+      orderBy: `${MemberField.ID} asc`,
       limit: batchSize,
     })
 
