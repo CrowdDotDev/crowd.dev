@@ -26,6 +26,7 @@ SQL >
                   THEN toStartOfYear(af.timestamp)
           END = ds."startDate"
       GROUP BY ds."startDate", "endDate"
+      ORDER BY ds."startDate" ASC
 
     {% else %}
     select 1

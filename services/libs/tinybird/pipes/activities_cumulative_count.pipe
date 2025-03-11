@@ -1,3 +1,5 @@
+TOKEN "activities_cumulative_count_endpoint_read_5317" READ
+
 NODE historical_activity_count
 SQL >
 
@@ -46,12 +48,11 @@ SQL >
       SELECT 
           "startDate",
           "endDate",
-          "activityCount",
           COALESCE(
             sumMerge(cumulativeState) OVER (ORDER BY "startDate" ASC),
             0
           )
-          + (select count(*) from activities_filtered_historical_cutoff) AS "cumulativeCount"
+          + (select count(*) from activities_filtered_historical_cutoff) AS "cumulativeActivityCount"
 
       FROM rolling_cumulative
       ORDER BY "startDate" ASC

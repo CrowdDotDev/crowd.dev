@@ -1,0 +1,55 @@
+TOKEN "raul_dev_access_token" READ
+
+TOKEN "member_retention_endpoint_read_0213" READ
+
+NODE member_retention_1
+SQL >
+
+    %
+    with aggregated_members AS (
+        SELECT 
+            CASE 
+                WHEN {{granularity}} = 'daily' THEN toDate(timestamp)
+                WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(timestamp)
+                WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(timestamp)
+                WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(timestamp)
+                WHEN {{granularity}} = 'yearly' THEN toStartOfYear(timestamp)
+            END AS period,
+            groupUniqArray(memberId) AS mems
+        FROM activities_filtered_retention
+        GROUP BY period
+    ),
+    retention AS (
+        SELECT 
+            ts."startDate" AS "startDate",
+            ts."endDate" as "endDate",
+            -- coalesce(prev.mems, []) AS previous_member_ids,
+            -- coalesce(curr.mems, []) AS current_member_ids,
+            -- arrayIntersect(coalesce(curr.mems, []), coalesce(prev.mems, [])) AS retained_member_ids,
+            length(arrayIntersect(coalesce(curr.mems, []), coalesce(prev.mems, []))) AS retained_members,
+            length(coalesce(prev.mems, [])) AS previous_period_total,
+            if(previous_period_total > 0, 
+               round(100 * retained_members / previous_period_total, 2), 
+               0) AS "retentionRate"
+        FROM generate_timeseries ts
+        LEFT JOIN aggregated_members AS curr 
+            ON ts."startDate" = curr.period
+        LEFT JOIN aggregated_members AS prev  
+            ON prev.period = 
+                CASE 
+                    WHEN {{granularity}} = 'daily' THEN ts."startDate" - INTERVAL 1 DAY
+                    WHEN {{granularity}} = 'weekly' THEN ts."startDate" - INTERVAL 1 WEEK
+                    WHEN {{granularity}} = 'monthly' THEN ts."startDate" - INTERVAL 1 MONTH
+                    WHEN {{granularity}} = 'quarterly' THEN ts."startDate" - INTERVAL 1 QUARTER
+                    WHEN {{granularity}} = 'yearly' THEN ts."startDate" - INTERVAL 1 YEAR
+                END
+      )  
+    SELECT 
+      "startDate",
+      "endDate",
+      "retentionRate"
+    FROM retention
+    ORDER BY "startDate"
+
+
+

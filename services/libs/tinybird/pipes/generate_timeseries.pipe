@@ -42,6 +42,6 @@ SQL >
         actual_end_date
       FROM generate_timeseries_bounds
     ) generate_timeseries_bounds
-    WHERE "startDate" >= actual_start_date AND "startDate" <= actual_end_date
+    WHERE "startDate" >= actual_start_date AND "startDate" < actual_end_date
 
 

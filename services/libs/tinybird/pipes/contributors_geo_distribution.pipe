@@ -15,7 +15,7 @@ SQL >
                 m.id,
                 m.location,
                 arrayFilter(
-                    x -> position(upper(m.location), upper(x.1)) > 0, 
+                    x -> position(coalesce(nullIf(m.country, ''), m.location), upper(x.1)) > 0, 
                     (SELECT country_data FROM country_mapping_array)
                 ) AS matched_countries,
                 arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data

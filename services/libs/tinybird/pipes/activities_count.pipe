@@ -1,7 +1,10 @@
+TOKEN "activities_count_endpoint_read_4271" READ
+
 NODE timeseries_generation_for_activity_count
 SQL >
 
     %
+    {% set onlyContributions = False %}
     {% if defined(granularity) %}
         SELECT
             ds."startDate",
@@ -24,6 +27,7 @@ SQL >
             END
             = ds."startDate"
         GROUP BY ds."startDate", ds."endDate"
+        order by ds."startDate"
     {% else %} SELECT 1
     {% end %}
 

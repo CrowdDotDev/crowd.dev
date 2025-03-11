@@ -20,8 +20,8 @@ SQL >
     {% if defined(platform) %}
     AND activities.platform = {{String(platform, description="Filter activity platform", required=False)}}
     {% end %}
-    {% if Boolean(onlyContributions, true) %}
-    AND activities.isContribution = {{Boolean(onlyContributions, true)}}
+    {% if not defined (onlyContributions) or (defined(onlyContributions) and onlyContributions ==  1) %}
+    AND activities.isContribution
     {% end %}
     {% if defined(activity_type) %}
     AND activities.type = {{String(activity_type, description="Filter activity type", required=False)}}
