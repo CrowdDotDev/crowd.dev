@@ -26,6 +26,7 @@ export async function copyActivitiesFromQuestdbToTinybird(
     await activity.getActivitiesToCopyToTinybird(
       latestSyncedActivityTimestamp ?? undefined,
       BATCH_SIZE_PER_RUN,
+      args.segmentIds ?? [],
     )
 
   if (activitiesLength === 0) {

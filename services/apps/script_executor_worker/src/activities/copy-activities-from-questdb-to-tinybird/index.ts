@@ -29,10 +29,12 @@ export async function markActivitiesAsIndexedForSyncingActivitiesToTinybird(
 export async function getActivitiesToCopyToTinybird(
   latestSyncedActivityTimestamp: string,
   limit: number,
+  segmentIds: string[],
 ) {
   const activities = await getActivitiesSortedByTimestamp(
     svc.questdbSQL,
     latestSyncedActivityTimestamp,
+    segmentIds,
     limit,
   )
 
