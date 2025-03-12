@@ -14,6 +14,7 @@ export class QueueFactory {
     log.info({ config }, 'Creating kafka queue service...')
     const kafkaClient = new Kafka({
       clientId: config.clientId,
+      logLevel: process.env.KAFKA_LOG_LEVEL ? Number(process.env.KAFKA_LOG_LEVEL) : undefined,
       brokers: config.brokers.split(','),
       retry: {
         initialRetryTime: 100,

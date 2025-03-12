@@ -12,6 +12,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
+    "axios": "^1.8.1",
     "pg-promise": "^11.4.3"
   },
   "devDependencies": {

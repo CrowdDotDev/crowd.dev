@@ -1,12 +1,19 @@
 <template>
   <div
     v-if="icons[platform]?.[type]"
-    class="absolute z-10 -top-1.5 -right-1.5 outline outline-2 outline-offset-0
-  outline-white rounded-full h-5 w-5 flex items-center justify-center"
+    class="absolute z-10 -top-1.5 -right-1.5 outline outline-2 outline-offset-0 outline-white rounded-full h-5 w-5 flex items-center justify-center"
     :class="icons[platform][type].bgColor"
   >
-    <i v-if="icons[platform][type].iconClass" :class="`${icons[platform][type].iconClass} ${icons[platform][type].color} text-2xs leading-3`" />
-    <img v-else :src="icons[platform][type].imgSrc" :alt="type" class="w-5 h-5" />
+    <i
+      v-if="icons[platform][type].iconClass"
+      :class="`${icons[platform][type].iconClass} ${icons[platform][type].color} text-2xs leading-3`"
+    />
+    <img
+      v-else
+      :src="icons[platform][type].imgSrc"
+      :alt="type"
+      class="w-5 h-5"
+    />
   </div>
 </template>
 
@@ -79,21 +86,26 @@ const icons = ref({
   },
   git: {
     commit: {
-      imgSrc: '/images/integrations/git.png',
+      imgSrc: new URL('@/assets/images/integrations/git.png', import.meta.url)
+        .href,
       color: 'text-black',
       bgColor: 'bg-white',
     },
   },
   confluence: {
     page: {
-      imgSrc: '/images/integrations/conf.jpg',
+      imgSrc: new URL('@/assets/images/integrations/conf.jpg', import.meta.url)
+        .href,
       color: 'text-black',
       bgColor: 'bg-white',
     },
   },
   gerrit: {
     page: {
-      imgSrc: '/images/integrations/gerrit.jpg',
+      imgSrc: new URL(
+        '@/assets/images/integrations/gerrit.jpg',
+        import.meta.url,
+      ).href,
       color: 'text-black',
       bgColor: 'bg-white',
     },

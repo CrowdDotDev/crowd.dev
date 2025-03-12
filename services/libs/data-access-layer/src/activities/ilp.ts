@@ -41,10 +41,14 @@ export async function insertActivities(
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
         attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
         body: activity.body?.slice(0, 2000),
-        tenantId: DEFAULT_TENANT_ID,
       }
     })
-    .map((activity) => pick(activity, ACTIVITY_ALL_COLUMNS)) // otherwise QuestDB insert fails
+    .map((activity) => {
+      return {
+        ...pick(activity, ACTIVITY_ALL_COLUMNS),
+        tenantId: DEFAULT_TENANT_ID,
+      }
+    }) // otherwise QuestDB insert fails
 
   const emitter = new QueueEmitter(queueClient, ACTIVITIES_QUEUE_SETTINGS, logger)
 
