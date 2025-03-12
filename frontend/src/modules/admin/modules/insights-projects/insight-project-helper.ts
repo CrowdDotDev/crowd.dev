@@ -14,7 +14,7 @@ export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   github: form.github,
   twitter: form.twitter,
   linkedin: form.linkedin,
-  repositories: null,
+  repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
   widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key]),
 });
 
@@ -41,14 +41,33 @@ export const buildForm = (
   ),
 });
 
-export const buildRepositories = (res: any) => {
-  const repositories: any[] = [];
-  Object.keys(res).forEach((repoUrl: string) => {
-    repositories.push({
-      url: repoUrl,
-      enabled: true,
-      platforms: res[repoUrl],
+export const buildRepositories = (res: Record<string, Array<{ url: string; label: string }>>) => {
+  const urlMap = new Map<string, {
+    url: string;
+    label: string;
+    enabled: boolean;
+    platforms: string[];
+  }>();
+
+  // Iterate through each platform (git, github, gitlab, gerrit)
+  Object.entries(res).forEach(([platform, repos]) => {
+    // Process each repository from the platform
+    repos.forEach((repo) => {
+      if (urlMap.has(repo.url)) {
+        // If URL exists, add the platform to its platforms array
+        const existing = urlMap.get(repo.url)!;
+        existing.platforms.push(platform);
+      } else {
+        // If URL is new, create a new entry
+        urlMap.set(repo.url, {
+          url: repo.url,
+          label: repo.label,
+          enabled: true,
+          platforms: [platform],
+        });
+      }
     });
   });
-  return repositories;
+
+  return Array.from(urlMap.values());
 };
