@@ -1,0 +1,10 @@
+# Data Source created from Pipe 'activity_repositories'
+
+SCHEMA >
+    `projectId` String,
+    `projectName` String,
+    `projectSlug` String,
+    `repo` String
+
+ENGINE "ReplacingMergeTree"
+ENGINE_SORTING_KEY "projectName, projectSlug, repo"

@@ -1,0 +1,20 @@
+
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `attributes` String `json:$.record.attributes` DEFAULT '',
+    `location` String `json:$.record.attributes.location.default` DEFAULT '',
+    `country` String `json:$.record.attributes.country.default` DEFAULT '',
+    `avatar` String `json:$.record.attributes.avatarUrl.default` DEFAULT '',
+    `isBot` UInt8 `json:$.record.attributes.isBot.default` DEFAULT 0,
+    `isTeamMember` UInt8 `json:$.record.attributes.isTeamMember.default` DEFAULT 0,
+    `contributions` String `json:$.record.contributions` DEFAULT '',
+    `joinedAt` DateTime64(3) `json:$.record.joinedAt`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `displayName` String `json:$.record.displayName`,
+    `score` Int32 `json:$.record.score` DEFAULT -1
+
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id"
+ENGINE_VER "updatedAt"

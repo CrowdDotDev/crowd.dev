@@ -1,0 +1,36 @@
+TOKEN "search_collections_projects_repos_endpoint_read_0215" READ
+
+TOKEN "raul_dev_access_token" READ
+
+NODE merge_results_from_collections_projects_repos_filtered
+SQL >
+
+    %
+    select 
+      'collection' as type, 
+      collections_filtered.slug, 
+      null as logo, 
+      null as projectSlug,
+      collections_filtered.name
+    from collections_filtered
+    limit {{Integer(limit, 10, description="Limit number of records for each type", required=False)}}
+      union all
+    select 
+      'project' as type, 
+      insightsProjects_filtered.slug, 
+      insightsProjects_filtered.logo, 
+      insightsProjects_filtered.slug as "projectSlug",
+      insightsProjects_filtered.name
+    from insightsProjects_filtered
+    limit {{Integer(limit, 10, description="Limit number of records for each type", required=False)}}
+      union all
+    select 
+      'repository' as type, 
+      activityRepositories_filtered.repo as slug, 
+      null as logo,
+      activityRepositories_filtered.projectSlug as "projectSlug",
+      null as name
+    from activityRepositories_filtered
+    limit {{Integer(limit, 10, description="Limit number of records for each type", required=False)}}
+
+

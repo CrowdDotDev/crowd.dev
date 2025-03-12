@@ -2,6 +2,7 @@ import { CollectionModel } from '../../collections/models/collection.model';
 
 export interface InsightsProjectModel {
   id: string;
+  slug: string;
   segmentId: string;
   segment: {
     id: string;

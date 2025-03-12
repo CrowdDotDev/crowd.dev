@@ -5,6 +5,7 @@ import { defaultWidgetsValues } from './widgets';
 export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   segmentId: form.segmentId,
   name: form.name,
+  slug: form.slug,
   description: form.description,
   logoUrl: form.logoUrl,
   collections: form.collectionsIds,

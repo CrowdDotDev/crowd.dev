@@ -1,0 +1,19 @@
+TOKEN "raul_dev_access_token" READ
+
+TOKEN "contributor_dependency_endpoint_read_4095" READ
+
+NODE contributions_percentage_running_total
+SQL >
+
+
+    SELECT t.*, active_contributors.contributorCount as "totalContributorCount"
+    FROM (
+    SELECT id, displayName, contributionPercentage,
+               sum(contributionPercentage) OVER (ORDER BY contributionPercentage DESC, id) AS contributionPercentageRunningTotal
+        FROM contributors_leaderboard
+    ) t
+    left join active_contributors on 1=1
+    WHERE contributionPercentageRunningTotal <= 51 OR (contributionPercentageRunningTotal - contributionPercentage < 51)
+
+
+
