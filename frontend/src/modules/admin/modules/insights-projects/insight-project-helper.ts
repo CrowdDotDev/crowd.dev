@@ -28,9 +28,9 @@ export const buildForm = (
   repositories:
     repositories?.map((repository: any) => ({
       ...repository,
-      enabled: result.repositories?.some(
+      enabled: result.repositories ? Object.values(result.repositories)?.some(
         (repo: any) => repo.url === repository.url,
-      ),
+      ) : false,
     })) || [],
   widgets: Object.keys(defaultWidgetsValues).reduce(
     (acc, key: string) => ({
