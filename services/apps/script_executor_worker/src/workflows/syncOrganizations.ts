@@ -3,10 +3,10 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
 import * as entityIndexActivities from '../activities/sync/entity-index'
-import * as memberSyncActivities from '../activities/sync/member'
+import * as orgSyncActivities from '../activities/sync/organization'
 import { ISyncArgs } from '../types'
 
-const memberSyncActivity = proxyActivities<typeof memberSyncActivities>({
+const orgSyncActivity = proxyActivities<typeof orgSyncActivities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -16,25 +16,25 @@ const entityIndexActivity = proxyActivities<typeof entityIndexActivities>({
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function syncMembers(args: ISyncArgs): Promise<void> {
+export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
   const WITH_AGGS = args.withAggs ?? true
 
   if (args.clean) {
-    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.MEMBER)
-    console.log('Deleted indexed entities for members!')
+    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
+    console.log('Deleted indexed entities for organizations!')
   }
 
-  const memberIds = await memberSyncActivity.getMembersForSync(BATCH_SIZE)
+  const organizationIds = await orgSyncActivity.getOrganizationsForSync(BATCH_SIZE)
 
-  if (memberIds.length === 0) {
-    console.log('No more members to sync!')
+  if (organizationIds.length === 0) {
+    console.log('No more organizations to sync!')
     return
   }
 
   const batchStartTime = new Date()
-  const { memberCount } = await memberSyncActivity.syncMembersBatch(
-    memberIds,
+  const { organizationCount } = await orgSyncActivity.syncOrganizationsBatch(
+    organizationIds,
     WITH_AGGS,
     args.chunkSize,
   )
@@ -42,10 +42,12 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
   const diffInSeconds = (new Date().getTime() - batchStartTime.getTime()) / 1000
 
   console.log(
-    `Synced ${memberCount} members! Speed: ${Math.round(memberCount / diffInSeconds)} members/second!`,
+    `Synced ${organizationCount} organizations! Speed: ${Math.round(
+      organizationCount / diffInSeconds,
+    )} organizations/second!`,
   )
 
-  await entityIndexActivity.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
+  await entityIndexActivity.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
@@ -53,5 +55,5 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
   }
 
   // Continue as new for the next batch
-  await continueAsNew<typeof syncMembers>(args)
+  await continueAsNew<typeof syncOrganizations>(args)
 }

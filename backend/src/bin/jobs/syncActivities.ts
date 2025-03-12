@@ -1,5 +1,6 @@
 import cronGenerator from 'cron-time-generator'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
@@ -49,16 +50,21 @@ async function syncActivitiesBatch({
 
   for (const activity of activities) {
     const existingActivity = await activityRepo.existsWithId(activity.id)
+    const tenantId = DEFAULT_TENANT_ID
 
     try {
       if (existingActivity) {
         await activityRepo.rawUpdate(activity.id, {
           ...activity,
+          tenantId,
           platform: activity.platform as PlatformType,
         })
         result.updated++
       } else {
-        await activityRepo.rawInsert(activity)
+        await activityRepo.rawInsert({
+          ...activity,
+          tenantId,
+        })
         result.inserted++
       }
     } catch (error) {

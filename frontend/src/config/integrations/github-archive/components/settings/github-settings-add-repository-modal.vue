@@ -3,10 +3,12 @@
     <div class="pb-6 px-6">
       <div class="sticky pt-5 bg-white z-10 top-0">
         <div class="flex justify-between items-center pb-5">
-          <h5>
-            Add repositories
-          </h5>
-          <lf-button type="secondary-ghost" icon-only @click="isModalOpen = false">
+          <h5>Add repositories</h5>
+          <lf-button
+            type="secondary-ghost"
+            icon-only
+            @click="isModalOpen = false"
+          >
             <lf-icon name="xmark" />
           </lf-button>
         </div>
@@ -38,7 +40,7 @@
         <div v-if="!search || loading" class="flex flex-col items-center pb-6">
           <div class="py-4">
             <img
-              src="/images/integrations/github-search.png"
+              :src="githubSearchImage"
               alt="GitHub Search"
               class="w-full max-w-100"
               :class="{ 'animate-pulse': loading }"
@@ -56,7 +58,11 @@
           <!-- Repositories -->
           <div v-if="tab === 'repositories'" class="flex flex-col gap-5 mt-6">
             <!-- Repository list item -->
-            <article v-for="repo of resultRepositories" :key="repo.url" class="flex justify-between items-center">
+            <article
+              v-for="repo of resultRepositories"
+              :key="repo.url"
+              class="flex justify-between items-center"
+            >
               <div>
                 <div class="flex items-center gap-1.5 mb-0.5">
                   <lf-svg name="git-repository" class="w-4 h-4 text-gray-900" />
@@ -80,14 +86,25 @@
                   <lf-icon name="check" type="regular" />
                   <span>Added</span>
                 </lf-button>
-                <lf-button v-else type="primary-ghost" size="small" @click="addRepository(repo)">
+                <lf-button
+                  v-else
+                  type="primary-ghost"
+                  size="small"
+                  @click="addRepository(repo)"
+                >
                   Add repository
                 </lf-button>
               </div>
             </article>
-            <div v-if="resultRepositories.length === 0" class="flex justify-center">
+            <div
+              v-if="resultRepositories.length === 0"
+              class="flex justify-center"
+            >
               <div class="pt-12 flex flex-col items-center w-full max-w-100">
-                <lf-svg name="git-repository" class="w-16 h-16 text-gray-300 mb-6" />
+                <lf-svg
+                  name="git-repository"
+                  class="w-16 h-16 text-gray-300 mb-6"
+                />
                 <h6 class="text-center pb-3">
                   No repositories found
                 </h6>
@@ -99,12 +116,27 @@
           <div v-else-if="tab === 'organizations'" class="pt-6">
             <div class="flex flex-col gap-5">
               <!-- Organization list item -->
-              <article v-for="org of resultOrganizations" :key="org.url" class="flex justify-between items-center">
+              <article
+                v-for="org of resultOrganizations"
+                :key="org.url"
+                class="flex justify-between items-center"
+              >
                 <div class="flex items-center gap-3">
-                  <lf-avatar :name="org.name" :src="org.logo" :size="32" class="!rounded border border-gray-200">
+                  <lf-avatar
+                    :name="org.name"
+                    :src="org.logo"
+                    :size="32"
+                    class="!rounded border border-gray-200"
+                  >
                     <template #placeholder>
-                      <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                        <lf-icon name="house-building" :size="12" class="text-gray-400" />
+                      <div
+                        class="w-full h-full bg-gray-50 flex items-center justify-center"
+                      >
+                        <lf-icon
+                          name="house-building"
+                          :size="12"
+                          class="text-gray-400"
+                        />
                       </div>
                     </template>
                   </lf-avatar>
@@ -125,14 +157,27 @@
                     <lf-icon name="check" type="regular" />
                     <span>Synced</span>
                   </lf-button>
-                  <lf-button v-else type="primary-ghost" size="small" @click="addOrganizations(org)">
+                  <lf-button
+                    v-else
+                    type="primary-ghost"
+                    size="small"
+                    @click="addOrganizations(org)"
+                  >
                     Sync organization
                   </lf-button>
                 </div>
               </article>
-              <div v-if="resultOrganizations.length === 0" class="flex justify-center">
+              <div
+                v-if="resultOrganizations.length === 0"
+                class="flex justify-center"
+              >
                 <div class="pt-12 flex flex-col items-center w-full max-w-100">
-                  <lf-icon name="building" type="regular" :size="64" class="text-gray-300 mb-6" />
+                  <lf-icon
+                    name="building"
+                    type="regular"
+                    :size="64"
+                    class="text-gray-300 mb-6"
+                  />
                   <h6 class="text-center pb-3">
                     No Github organizations found
                   </h6>
@@ -167,59 +212,87 @@ import Message from '@/shared/message/message';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
-  modelValue: boolean,
-  organizations: GitHubOrganization[],
-  repositories: GitHubSettingsRepository[],
+  modelValue: boolean;
+  organizations: GitHubOrganization[];
+  repositories: GitHubSettingsRepository[];
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void,
-  (e: 'update:organizations', value: GitHubOrganization[]): void,
-  (e: 'update:repositories', value: GitHubSettingsRepository[]): void }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
+  (e: 'update:organizations', value: GitHubOrganization[]): void;
+  (e: 'update:repositories', value: GitHubSettingsRepository[]): void;
+}>();
 
 const search = ref('');
 const loading = ref(false);
 const tab = ref('repositories');
 
 const isModalOpen = computed({
-  get() { return props.modelValue; },
-  set(val) { emit('update:modelValue', val); },
+  get() {
+    return props.modelValue;
+  },
+  set(val) {
+    emit('update:modelValue', val);
+  },
 });
 
 const repositories = computed<GitHubSettingsRepository[]>({
-  get() { return props.repositories; },
-  set(value) { emit('update:repositories', value); },
+  get() {
+    return props.repositories;
+  },
+  set(value) {
+    emit('update:repositories', value);
+  },
 });
 
 const organizations = computed<GitHubOrganization[]>({
-  get() { return props.organizations; },
-  set(value) { emit('update:organizations', value); },
+  get() {
+    return props.organizations;
+  },
+  set(value) {
+    emit('update:organizations', value);
+  },
 });
 
 const isRepositoryAdded = (repo: GitHubSettingsRepository) => repositories.value.some((r: GitHubSettingsRepository) => r.url === repo.url);
 const isOrganizationSynced = (org: GitHubOrganization) => organizations.value.some((o: GitHubOrganization) => o.url === org.url);
 
 const addRepository = (repo: GitHubSettingsRepository) => {
-  if (!repositories.value.some((r: GitHubSettingsRepository) => repo.url === r.url)) {
+  if (
+    !repositories.value.some(
+      (r: GitHubSettingsRepository) => repo.url === r.url,
+    )
+  ) {
     repositories.value.push({ ...repo, updatedAt: dateHelper().toISOString() });
   }
 };
 
 const addOrganizations = (org: GitHubOrganization) => {
   organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
-  GithubApiService.getOrganizationRepositories(org.name)
-    .then((res) => {
-      const newRepositories = (res as GitHubSettingsRepository[])
-        .filter((r: GitHubSettingsRepository) => !repositories.value.some((repo: GitHubSettingsRepository) => repo.url === r.url))
-        .map((r: GitHubSettingsRepository) => ({ ...r, org, updatedAt: dateHelper().toISOString() }));
-      repositories.value = [...repositories.value, ...newRepositories];
-    });
+  GithubApiService.getOrganizationRepositories(org.name).then((res) => {
+    const newRepositories = (res as GitHubSettingsRepository[])
+      .filter(
+        (r: GitHubSettingsRepository) => !repositories.value.some(
+          (repo: GitHubSettingsRepository) => repo.url === r.url,
+        ),
+      )
+      .map((r: GitHubSettingsRepository) => ({
+        ...r,
+        org,
+        updatedAt: dateHelper().toISOString(),
+      }));
+    repositories.value = [...repositories.value, ...newRepositories];
+  });
 };
 
 const removeRepository = (repo: any) => {
-  repositories.value = repositories.value.filter((r: any) => r.url !== repo.url);
+  repositories.value = repositories.value.filter(
+    (r: any) => r.url !== repo.url,
+  );
 };
 const removeOrganizations = (org: any) => {
-  organizations.value = organizations.value.filter((o: any) => o.url !== org.url);
+  organizations.value = organizations.value.filter(
+    (o: any) => o.url !== org.url,
+  );
 };
 
 const resultRepositories = ref<GitHubRepository[]>([]);
@@ -228,7 +301,9 @@ const resultOrganizations = ref<GitHubOrganization[]>([]);
 
 const searchForResults = () => {
   loading.value = true;
-  (tab.value === 'repositories' ? GithubApiService.searchRepositories : GithubApiService.searchOrganizations)(search.value)
+  (tab.value === 'repositories'
+    ? GithubApiService.searchRepositories
+    : GithubApiService.searchOrganizations)(search.value)
     .then((res) => {
       if (tab.value === 'repositories') {
         resultRepositories.value = res as GitHubRepository[];
@@ -246,15 +321,26 @@ const searchForResults = () => {
 
 const debouncedSearch = debouncedRef(search, 500);
 
-watch(() => debouncedSearch.value, (value: string) => {
-  if (value.length > 0) {
-    searchForResults();
-  }
-});
+watch(
+  () => debouncedSearch.value,
+  (value: string) => {
+    if (value.length > 0) {
+      searchForResults();
+    }
+  },
+);
 
-watch(() => tab.value, () => {
-  search.value = '';
-});
+watch(
+  () => tab.value,
+  () => {
+    search.value = '';
+  },
+);
+
+const githubSearchImage = new URL(
+  '@/assets/images/integrations/github-search.png',
+  import.meta.url,
+).href;
 </script>
 
 <script lang="ts">

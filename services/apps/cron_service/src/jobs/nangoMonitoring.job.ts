@@ -93,7 +93,7 @@ const job: IJobDefinition = {
       }
     }
 
-    ctx.log.info({ slackNotify: true }, slackMessage)
+    ctx.log.warn({ slackNotify: true }, slackMessage)
   },
 }
 

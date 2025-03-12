@@ -27,6 +27,9 @@ const options: Options = {
   opensearch: {
     enabled: true,
   },
+  queue: {
+    enabled: true,
+  },
 }
 
 export const svc = new ServiceWorker(config, options)
