@@ -105,8 +105,8 @@ export async function createCollection(
 ): Promise<ICollection> {
   return qx.selectOne(
     `
-      INSERT INTO collections (name, description, "isLF")
-      VALUES ($(name), $(description), $(isLF))
+      INSERT INTO collections (name, description, "isLF", slug)
+      VALUES ($(name), $(description), $(isLF), $(slug))
       RETURNING *
     `,
     collection,
@@ -137,6 +137,7 @@ export enum InsightsProjectField {
   TWITTER = 'twitter',
   WIDGETS = 'widgets',
   REPOSITORIES = 'repositories',
+  SLUG = 'slug',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(

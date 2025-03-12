@@ -5,6 +5,7 @@ export interface InsightsProjectAddFormModel {
   logoUrl: string;
   collectionsIds: string[];
   organizationId: string | undefined;
+  slug: string;
   organization: {
     id: string | undefined;
     displayName: string;
@@ -14,11 +15,7 @@ export interface InsightsProjectAddFormModel {
   github: string;
   twitter: string;
   linkedin: string;
-  repositories: {
-    url: string;
-    enabled: boolean;
-    platforms: string[];
-  }[];
+  repositories: string[];
   widgets: {
     [key: string]: boolean;
   };

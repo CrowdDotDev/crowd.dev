@@ -39,7 +39,7 @@
             @click="onOptionClick(project)"
           >
             <lf-avatar
-              :src="project.url"
+              :src="project.logoUrl"
               :name="project.name"
               :size="24"
               class="!rounded-md border border-gray-200"
