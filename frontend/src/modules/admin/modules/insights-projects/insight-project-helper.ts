@@ -5,6 +5,7 @@ import { defaultWidgetsValues } from './widgets';
 export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   segmentId: form.segmentId,
   name: form.name,
+  slug: form.slug,
   description: form.description,
   logoUrl: form.logoUrl,
   collections: form.collectionsIds,
@@ -13,13 +14,7 @@ export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   github: form.github,
   twitter: form.twitter,
   linkedin: form.linkedin,
-  repositories:
-    form.repositories
-      ?.filter((repository: any) => repository.enabled)
-      ?.map((repository: any) => ({
-        url: repository.url,
-        platforms: repository.platforms,
-      })) || [],
+  repositories: null,
   widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key]),
 });
 
