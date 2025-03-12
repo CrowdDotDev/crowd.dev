@@ -16,6 +16,7 @@ export interface InsightsProjectAddFormModel {
   linkedin: string;
   repositories: {
     url: string;
+    label: string;
     enabled: boolean;
     platforms: string[];
   }[];

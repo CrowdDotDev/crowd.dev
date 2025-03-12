@@ -25,6 +25,7 @@ export interface InsightsProjectModel {
   enabled: boolean;
   repositories: {
     url: string;
+    label: string;
     enabled: boolean;
     platforms: string[];
   }[];

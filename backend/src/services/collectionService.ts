@@ -367,13 +367,18 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
 
-    const result = {}
-    const addToResult = (platform: PlatformType, url: string) => {
-      if (!result[url]) {
-        result[url] = []
-      }
-      if (!result[url].includes(platform)) {
-        result[url].push(platform)
+    // Initialize result with platform arrays
+    const result: Record<string, Array<{ url: string; label: string }>> = {
+      git: [],
+      github: [],
+      gitlab: [],
+      gerrit: []
+    }
+
+    const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
+      const platformKey = platform.toLowerCase()
+      if (!result[platformKey].some(item => item.url === fullUrl)) {
+        result[platformKey].push({ url: fullUrl, label })
       }
     }
 
@@ -381,34 +386,38 @@ export class CollectionService extends LoggerBase {
       if (i.platform === PlatformType.GITHUB) {
         for (const org of (i.settings as any).orgs) {
           for (const repo of org.repos) {
-            addToResult(i.platform, `${org.name}/${repo.name}`)
+            const label = `${org.name}/${repo.name}`
+            const fullUrl = `https://github.com/${label}`
+            addToResult(i.platform, fullUrl, label)
           }
         }
       }
 
       if (i.platform === PlatformType.GIT) {
         for (const r of (i.settings as any).remotes) {
-          if (r.includes('https://gitlab.com')) {
-            addToResult(i.platform, r.replace('https://gitlab.com/', ''))
-          } else if (r.includes('https://github.com')) {
-            addToResult(i.platform, r.replace('https://github.com/', ''))
-          } else {
-            addToResult(i.platform, r)
+          let label = r
+          if (r.includes('https://gitlab.com/')) {
+            label = r.replace('https://gitlab.com/', '')
+          } else if (r.includes('https://github.com/')) {
+            label = r.replace('https://github.com/', '')
           }
+          addToResult(i.platform, r, label)
         }
       }
 
       if (i.platform === PlatformType.GITLAB) {
         for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
           for (const r of group) {
-            addToResult(i.platform, r.path_with_namespace)
+            const label = r.path_with_namespace
+            const fullUrl = `https://gitlab.com/${label}`
+            addToResult(i.platform, fullUrl, label)
           }
         }
       }
 
       if (i.platform === PlatformType.GERRIT) {
         for (const r of (i.settings as any).remote.repos) {
-          addToResult(i.platform, r)
+          addToResult(i.platform, r, r)
         }
       }
     }
