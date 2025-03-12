@@ -20,17 +20,22 @@ export const buildRequest = (form: InsightsProjectAddFormModel) => ({
 
 export const buildForm = (
   result: InsightsProjectModel,
-  repositories: any[],
+  repositories: {
+    url: string;
+    label: string;
+    enabled: boolean;
+    platforms: string[];
+  }[],
 ): InsightsProjectAddFormModel => ({
   ...result,
   organizationId: result.organization.id,
   collectionsIds: result.collections.map((collection: any) => collection.id),
   repositories:
-    repositories?.map((repository: any) => ({
+    repositories?.map((repository) => ({
       ...repository,
-      enabled: result.repositories ? Object.values(result.repositories)?.some(
-        (repo: any) => repo.url === repository.url,
-      ) : false,
+      enabled: result.repositories?.some(
+        (repo: string) => repo === repository.url,
+      ) || false,
     })) || [],
   widgets: Object.keys(defaultWidgetsValues).reduce(
     (acc, key: string) => ({

@@ -24,11 +24,6 @@ export interface InsightsProjectModel {
   linkedin: string;
   starred: boolean;
   enabled: boolean;
-  repositories: {
-    url: string;
-    label: string;
-    enabled: boolean;
-    platforms: string[];
-  }[];
+  repositories: string[];
   widgets: string[];
 }
