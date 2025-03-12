@@ -159,6 +159,7 @@ const initialFormState: InsightsProjectAddFormModel = {
   name: '',
   description: '',
   logoUrl: '',
+  slug: '',
   collectionsIds: [],
   organizationId: undefined,
   organization: {
@@ -258,7 +259,10 @@ const onSubmit = () => {
 };
 
 const handleCreate = () => {
-  const request = buildRequest(form);
+  const request = buildRequest({
+    ...form,
+    slug: form.name.toLowerCase().replace(/ /g, '-'),
+  });
   Message.info(null, {
     title: 'Insights project is being created',
   });

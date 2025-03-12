@@ -4,6 +4,7 @@ export interface CollectionModel {
   id: string;
   name: string;
   description: string;
+  slug: string;
   isLF: boolean;
   projects: InsightsProjectModel[];
 }
