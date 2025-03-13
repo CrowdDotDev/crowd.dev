@@ -87,6 +87,14 @@ export const getDbInstance = (): DbInstance => {
   return dbInstance
 }
 
+export const formatQuery = (query: string, values: Record<string, unknown>): string => {
+  if (!dbInstance) {
+    throw new Error('Database instance not initialized!')
+  }
+
+  return dbInstance.as.format(query, values)
+}
+
 const dbConnection: Record<string, DbConnection | undefined> = {}
 
 export const getDbConnection = async (
@@ -106,7 +114,7 @@ export const getDbConnection = async (
 
   const dbInstance = getDbInstance()
 
-  dbConnection[cacheKey] = dbInstance({
+  const client = dbInstance({
     ...config,
     ssl: IS_CLOUD_ENV
       ? {
@@ -119,5 +127,30 @@ export const getDbConnection = async (
     application_name: process.env.SERVICE ? `${process.env.SERVICE}-pg` : 'unknown-app=pg',
   })
 
-  return dbConnection[cacheKey]
+  const profile = process.env['CROWD_POSTGRESQL_PROFILE_QUERIES'] !== undefined
+  const minQueryDuration = Number(process.env['CROWD_POSTGRESQL_PROFILE_QUERIES_MIN_DURATION'] || 0)
+
+  const oldQuery = client.query
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(client as any).query = async (query, options, ...args) => {
+    // milliseconds
+    const start = performance.now()
+    try {
+      const result = await oldQuery.apply(client, [query, options, ...args])
+      return result
+    } finally {
+      const duration = performance.now() - start
+      if (profile && duration >= minQueryDuration) {
+        const durationSeconds = duration / 1000.0
+        log.warn(
+          { durationSeconds: durationSeconds.toFixed(2), query, values: options },
+          'PostgreSQL query duration profiling!',
+        )
+      }
+    }
+  }
+
+  dbConnection[cacheKey] = client
+
+  return client
 }

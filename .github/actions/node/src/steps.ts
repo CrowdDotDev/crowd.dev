@@ -71,6 +71,7 @@ export const pushStep = async (): Promise<void> => {
   // do a docker login
   const exitCode = await exec.exec('docker', [
     'login',
+    'sjc.ocir.io',
     '--username',
     pushInput.dockerUsername,
     '--password',
