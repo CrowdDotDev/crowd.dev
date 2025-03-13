@@ -1,6 +1,6 @@
 TOKEN "insights-staging-app-token" READ
 
-NODE segmentId_activity_aggregates
+NODE segment_activity_aggregates
 SQL >
 
     SELECT
@@ -8,6 +8,11 @@ SQL >
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
     FROM activityRelations
+    where activityId in (
+        select id from activities where channel in (
+          select arrayJoin(repositories) from insightsProjects
+        )
+    )
     GROUP BY segmentId
 
 TYPE materialized
