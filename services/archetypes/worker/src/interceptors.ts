@@ -36,7 +36,7 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       const duration = end.getTime() - start.getTime()
 
       // Only send telemetry if duration is more than 2 hours
-      if (duration > 2 * 60 * 60 * 1000) {
+      if (duration > 3 * 60 * 60 * 1000) {
         await activity.telemetryDistribution('temporal.workflow_execution_duration', duration, tags)
       }
     }
