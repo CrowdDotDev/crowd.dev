@@ -25,7 +25,7 @@ export const scheduleCopyActivitiesFromQuestdbToTinybird = async () => {
         },
         args: [
           {
-            batchSizePerRun: 50000,
+            batchSizePerRun: 5000,
             deleteIndexedEntities: false,
             segmentIds: [
               '1da9d822-d1a9-41e3-9d68-199275a51522',
