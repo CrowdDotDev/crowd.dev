@@ -28,7 +28,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
-  private producer: Producer
+  private producer?: Producer | undefined = undefined
 
   public constructor(
     public readonly client: Kafka,
@@ -42,9 +42,18 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.consumers = new Map<string, Consumer>()
     this.reconnectAttempts = new Map<string, number>()
     this.consumerStatus = new Map<string, boolean>()
-
-    this.producer = this.client.producer()
   }
+
+  async getProducer(): Promise<Producer> {
+    if (!this.producer) {
+      const producer = this.client.producer()
+      await producer.connect()
+      this.producer = producer
+    }
+
+    return this.producer
+  }
+
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const groupId = conf.name
     const topic = conf.name
@@ -89,8 +98,9 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       service: SERVICE,
     })
 
+    const producer = await this.getProducer()
     // send message to kafka
-    const result = await this.producer.send({
+    const result = await producer.send({
       topic: channel.name,
       messages: [
         {
@@ -227,8 +237,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     const admin = this.client.admin()
     await admin.connect()
 
-    await this.producer.connect()
-
     let partitionCount
 
     if (level && config.partitions[level]) {
@@ -337,7 +345,9 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       })
     }
 
-    const result = await this.producer.send({
+    const producer = await this.getProducer()
+
+    const result = await producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
         value: JSON.stringify(m.payload),
