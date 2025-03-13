@@ -372,12 +372,12 @@ export class CollectionService extends LoggerBase {
       git: [],
       github: [],
       gitlab: [],
-      gerrit: []
+      gerrit: [],
     }
 
     const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
       const platformKey = platform.toLowerCase()
-      if (!result[platformKey].some(item => item.url === fullUrl)) {
+      if (!result[platformKey].some((item) => item.url === fullUrl)) {
         result[platformKey].push({ url: fullUrl, label })
       }
     }
