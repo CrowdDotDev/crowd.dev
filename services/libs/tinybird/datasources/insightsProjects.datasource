@@ -1,0 +1,22 @@
+
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `name` String `json:$.record.name`,
+    `slug` String `json:$.record.slug`,
+    `description` String `json:$.record.description` DEFAULT '',
+    `segmentId` String `json:$.record.segmentId` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `logoUrl` String `json:$.record.logoUrl` DEFAULT '',
+    `organizationId` String `json:$.record.organizationId` DEFAULT '',
+    `website` String `json:$.record.website` DEFAULT '',
+    `github` String `json:$.record.github` DEFAULT '',
+    `linkedin` String `json:$.record.linkedin` DEFAULT '',
+    `twitter` String `json:$.record.twitter` DEFAULT '',
+    `widgets` Array(String) `json:$.record.widgets[:]` DEFAULT [],
+    `repositories` Array(String) `json:$.record.repositories[:]` DEFAULT []
+
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id"
+ENGINE_VER "updatedAt"

@@ -536,7 +536,87 @@ function migrate_env() {
         -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
-function migrate_local() {
+function wait_for_tinybird() {
+    say "Waiting for Tinybird to get ready.."
+    until curl -s -f http://localhost:80/tokens >/dev/null 2>&1; do
+        yell "Tinybird is not ready yet. Retrying in 5 seconds.."
+        sleep 5
+    done
+    say "Tinybird is ready!"
+}
+
+function fetch_tinybird_tokens() {
+    wait_for_tinybird
+    read -r CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN CROWD_TINYBIRD_USER_TOKEN < <(curl -s http://localhost:80/tokens | jq -r '[.workspace_admin_token, .user_token] | @tsv')
+    progress "Workspace Admin Token=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
+    progress "User Token=$CROWD_TINYBIRD_USER_TOKEN"
+    export CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN
+    export CROWD_TINYBIRD_USER_TOKEN
+}
+
+function run_tinybird_cli_command() {
+    fetch_tinybird_tokens
+    yell "Running Tinybird CLI command: sh -c '$@'"
+    docker run --rm --network "${PROJECT_NAME}-bridge" \
+        -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
+        -v "$CLI_HOME/../services/libs/tinybird:/mnt/data:rw" \
+        -w /mnt/data \
+        tinybirdco/tinybird-cli-docker:latest \
+        sh -c "$@"
+}
+
+function migrate_tinybird_local() {
+    set +e +o pipefail
+
+    say "Applying Tinybird project!"
+    fetch_tinybird_tokens
+
+    if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ] ||
+        [ -z "$CROWD_TINYBIRD_USER_TOKEN" ] ||
+        [ "$CROWD_TINYBIRD_USER_TOKEN" = "null" ]; then
+        echo "Error: Could not fetch Tinybird tokens. Exiting."
+        return 1
+    fi
+
+    say "Pushing Tinybird project!"
+
+    MAX_RETRIES=5
+    RETRY_DELAY=5
+    attempt=1
+
+    while [ $attempt -le $MAX_RETRIES ]; do
+        whisper "Attempt $attempt/$MAX_RETRIES to deploy Tinybird project.."
+
+        OUTPUT=$(docker run --rm --network "${PROJECT_NAME}-bridge" \
+            -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
+            -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
+            -w /mnt/data \
+            tinybirdco/tinybird-cli-docker \
+            sh -c 'tb auth --host http://tinybird:80 && tb push')
+
+        STATUS=$?
+
+        whisper "$OUTPUT"
+
+        if [[ "$OUTPUT" == *"502 error responses"* ]] || [[ "$OUTPUT" == *"Max retries exceeded"* ]] || [ $STATUS -ne 0 ]; then
+            yell "Tinybird push failed (Attempt: $attempt/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+        else
+            say "Tinybird project deployed successfully!"
+            return 0
+        fi
+
+        attempt=$((attempt + 1))
+    done
+
+    set -eo pipefail
+
+    error "Tinybird push failed after $MAX_RETRIES attempts. Exiting."
+    return 1
+}
+
+function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying PostgreSQL migrations!"
@@ -547,15 +627,19 @@ function migrate_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=crowd-web \
         crowd_flyway
+}
 
+function migrate_questdb_local() {
     say "Applying QuestDB migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
         postgres psql postgresql://admin:quest@questdb:8812/qdb \
         -f /tmp/migrations/V1716382997__init-questdb.sql
+}
 
+function migrate_productdb_local() {
     say "Building product flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product --load
+    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product
     say "Applying product database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=product \
@@ -564,6 +648,13 @@ function migrate_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=product-db \
         product_flyway
+}
+
+function migrate_local() {
+    migrate_postgres_local
+    migrate_questdb_local
+    migrate_productdb_local
+    migrate_tinybird_local
 }
 
 function up_test_scaffold() {
@@ -597,12 +688,27 @@ function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
+function download_kafka_connect_http() {
+    say "Downloading Kafka Connect HTTP plugin..."
+    wget -nv https://github.com/lensesio/stream-reactor/releases/download/8.1.28/kafka-connect-http-8.1.28.zip -O $CLI_HOME/kafka-connect-http.zip
+    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
+    rm $CLI_HOME/kafka-connect-http.zip
+    say "Kafka Connect HTTP plugin downloaded."
+}
+
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
     local profile=''
     if [[ -n "${WITH_NGINX}" ]]; then
         profile='--profile nginx'
+    fi
+
+    if [[ ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" || 
+          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")"  || 
+          ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
+          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")" ]]; then
+        download_kafka_connect_http
     fi
 
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
@@ -895,6 +1001,10 @@ while test $# -gt 0; do
         ;;
     lint-services)
         (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
+        exit
+        ;;
+    tb)
+        run_tinybird_cli_command "$*"
         exit
         ;;
     *)

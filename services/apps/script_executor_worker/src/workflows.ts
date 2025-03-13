@@ -1,3 +1,4 @@
+import { copyActivitiesFromQuestdbToTinybird } from './workflows/copyActivitiesFromQuestdbToTinybird'
 import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
@@ -11,6 +12,7 @@ export {
   findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization,
   dissectMember,
   fixOrgIdentitiesWithWrongUrls,
+  copyActivitiesFromQuestdbToTinybird,
   populateActivityRelations,
   syncMembers,
   syncOrganizations,

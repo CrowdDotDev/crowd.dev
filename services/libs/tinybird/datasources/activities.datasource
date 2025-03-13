@@ -1,0 +1,34 @@
+
+SCHEMA >
+    `id` String `json:$.id`,
+    `type` LowCardinality(String) `json:$.type`,
+    `timestamp` DateTime `json:$.timestamp`,
+    `platform` LowCardinality(String) `json:$.platform`,
+    `isContribution` UInt8 `json:$.isContribution`,
+    `score` Int8 `json:$.score` DEFAULT -1,
+    `sourceId` String `json:$.sourceId`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `sourceParentId` String `json:$.sourceParentId` DEFAULT '',
+    `attributes` String `json:$.attributes`,
+    `title` String `json:$.title` DEFAULT '',
+    `body` String `json:$.body` DEFAULT '',
+    `channel` String `json:$.channel` DEFAULT '',
+    `url` String `json:$.url` DEFAULT '',
+    `sentimentLabel` String `json:$.sentimentLabel` DEFAULT '',
+    `sentimentScore` Int8 `json:$.sentimentScore` DEFAULT -1,
+    `sentimentScoreMixed` Int8 `json:$.sentimentScoreMixed` DEFAULT -1,
+    `sentimentScoreNeutral` Int8 `json:$.sentimentScoreNeutral` DEFAULT -1,
+    `sentimentScoreNegative` Int8 `json:$.sentimentScoreNegative` DEFAULT -1,
+    `sentimentScorePositive` Int8 `json:$.sentimentScorePositive` DEFAULT -1,
+    `gitIsMainBranch` UInt8 `json:$.gitIsMainBranch` DEFAULT 0,
+    `gitIsIndirectFork` UInt8 `json:$.gitIsIndirectFork` DEFAULT 0,
+    `gitLines` Int32 `json:$.gitLines` DEFAULT 0,
+    `gitInsertions` Int32 `json:$.gitInsertions` DEFAULT 0,
+    `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
+    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0
+
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "isContribution, platform, type, channel, sourceId, timestamp"
+ENGINE_VER "updatedAt"
