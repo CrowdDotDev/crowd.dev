@@ -11,6 +11,14 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  addOrgIdToRedisCache,
+  calculateMemberAffiliations,
+  copyActivitiesFromPgToQuestDb,
+  getMembersWithDeletedOrgAffilations,
+  hasActivityInQuestDb,
+  markMemberOrgAffiliationAsProcessed,
+} from './activities/fix-deleted-member-org-affilations'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -59,4 +67,10 @@ export {
   syncOrganizationsBatch,
   deleteIndexedEntities,
   markEntitiesIndexed,
+  getMembersWithDeletedOrgAffilations,
+  hasActivityInQuestDb,
+  copyActivitiesFromPgToQuestDb,
+  addOrgIdToRedisCache,
+  calculateMemberAffiliations,
+  markMemberOrgAffiliationAsProcessed,
 }

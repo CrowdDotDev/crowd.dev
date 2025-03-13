@@ -33,6 +33,8 @@ export interface ISyncArgs {
   testRun?: boolean
 }
 
-export interface IUnlinkDeletedMemberOrgArgs {
-  memberId: string
+export interface IFixDeletedMemberOrgAffilationsArgs {
+  date?: string
+  batchSize?: number
+  testRun?: boolean
 }
