@@ -24,6 +24,7 @@ import {
 import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
+  IActivityRelation,
   IActivityRelationCreateOrUpdateData,
   IActivityRelationUpdateById,
   IDbActivityCreateData,
@@ -1799,4 +1800,42 @@ export async function getActivityRelationsSortedByTimestamp(
   })
 
   return rows
+}
+
+export type ActivityRelationsFilter = Partial<
+  Record<
+    'memberId' | 'organizationId' | 'conversationId' | 'segmentId' | 'platform' | 'activityId',
+    string
+  >
+>
+
+export async function getActivityRelations(
+  qe: QueryExecutor,
+  opts: { filter: ActivityRelationsFilter; countOnly?: boolean },
+): Promise<{ rows: IActivityRelation[]; count: number }> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const filterEntries = Object.entries(opts.filter).filter(([_, value]) => value !== undefined)
+
+  if (filterEntries.length === 0) {
+    throw new Error('At least one filter must be provided!')
+  }
+
+  const conditions = filterEntries.map(([key]) => `"${key}" = $(${key})`)
+  const whereClause = conditions.join(' AND ')
+
+  const result = await qe.selectOne(
+    `SELECT COUNT(*) FROM "activityRelations" WHERE ${whereClause}`,
+    opts.filter,
+  )
+
+  if (opts.countOnly) {
+    return { rows: [], count: result.count }
+  }
+
+  const rows = await qe.select(
+    `SELECT * FROM "activityRelations" WHERE ${whereClause}`,
+    opts.filter,
+  )
+
+  return { rows, count: result.count }
 }
