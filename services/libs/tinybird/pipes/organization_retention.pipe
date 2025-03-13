@@ -2,6 +2,8 @@ TOKEN "raul_dev_access_token" READ
 
 TOKEN "organization_retention_endpoint_read_0731" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE organization_retention_0
 SQL >
 

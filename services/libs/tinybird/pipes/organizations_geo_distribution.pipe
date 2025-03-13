@@ -2,6 +2,8 @@ TOKEN "raul_dev_access_token" READ
 
 TOKEN "organizations_geo_distribution_endpoint_read_0957" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE organizations_geo_distribution_0
 SQL >
 

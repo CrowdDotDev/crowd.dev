@@ -1,5 +1,7 @@
 TOKEN "generate_timeseries_endpoint_read_3418" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE generate_timeseriez
 SQL >
 

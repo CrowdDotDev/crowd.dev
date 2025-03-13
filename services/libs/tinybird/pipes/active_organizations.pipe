@@ -2,6 +2,8 @@ TOKEN "active_organizations_endpoint_read_1975" READ
 
 TOKEN "raul_dev_access_token" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE timeseries_generation_for_active_organizations
 SQL >
 

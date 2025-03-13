@@ -1,3 +1,26 @@
+DESCRIPTION >
+	The only difference compared to the activities_filtered pipeline is that this version also returns data starting from one period before the specified startDate. The period is determined by the provided granularity—if daily, it includes data from startDate - 1 day; if monthly, it includes data from startDate - 1 month. This adjustment ensures that retention rate calculations for startDate have the necessary data from the preceding period for comparison of distinct members.
+
+
+TOKEN "insights-staging-app-token" READ
+
+NODE segments_filtered
+SQL >
+
+    %
+    SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
+    where 1=1
+    {% if defined(project) %}
+    AND slug = {{String(project, description="Filter by project slug", required=True)}}
+    {% else %}
+    AND false
+    {% end %}  
+    {% if defined(repo) %}
+    AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+    {% end %}
+
+
+
 NODE activities_filtered_by_timestamp_and_channel
 SQL >
 
@@ -25,6 +48,8 @@ SQL >
     {% end %}
     {% if defined(repo) %}
     AND activities.channel = {{String(repo, description="Filter activity repo", required=False)}}
+    {% else %}
+    AND activities.channel in (select arrayJoin(repositories) from segments_filtered)
     {% end %}
     {% if defined(platform) %}
     AND activities.platform = {{String(platform, description="Filter activity platform", required=False)}}
@@ -40,20 +65,6 @@ SQL >
 
 
 
-NODE segments_filtered
-SQL >
-
-    %
-    SELECT "segmentId" as id FROM insightsProjects FINAL
-    {% if defined(project) %}
-    where slug = {{String(project, description="Filter by project slug", required=True)}}
-    {% else %}
-    where false
-    {% end %}  
-
-
-
-
 NODE activity_relations_filtered
 SQL >
 
@@ -62,9 +73,8 @@ SQL >
     join activityRelations final on activityRelations.activityId = activities_filtered_by_timestamp_and_channel.id
     where 1=1
     and activityRelations.memberId in (select id from members where not members.isBot and not members.isTeamMember)
-    {% if defined(project) %}
     and activityRelations.segmentId in (select id from segments_filtered)
-    {% end %}
+
   
 
 

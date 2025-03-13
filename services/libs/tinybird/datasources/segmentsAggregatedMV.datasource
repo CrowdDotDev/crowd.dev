@@ -1,0 +1,9 @@
+# Data Source created from Pipe 'segmentId_aggregates_mv'
+
+SCHEMA >
+    `segmentId` String,
+    `contributorCount` AggregateFunction(countDistinct, String),
+    `organizationCount` AggregateFunction(countDistinct, String)
+
+ENGINE "AggregatingMergeTree"
+ENGINE_SORTING_KEY "segmentId"

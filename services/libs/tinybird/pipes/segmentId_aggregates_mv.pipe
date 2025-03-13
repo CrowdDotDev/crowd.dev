@@ -1,0 +1,16 @@
+TOKEN "insights-staging-app-token" READ
+
+NODE segmentId_activity_aggregates
+SQL >
+
+    SELECT
+        segmentId,
+        countDistinctState(memberId) AS contributorCount,
+        countDistinctState(organizationId) AS organizationCount
+    FROM activityRelations
+    GROUP BY segmentId
+
+TYPE materialized
+DATASOURCE segmentsAggregatedMV
+
+

@@ -2,6 +2,8 @@ TOKEN "active_contributors_endpoint_read_4407" READ
 
 TOKEN "raul_dev_access_token" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE timeseries_generation_for_active_contributors
 SQL >
 

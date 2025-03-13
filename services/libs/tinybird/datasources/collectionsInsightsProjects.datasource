@@ -9,5 +9,5 @@ SCHEMA >
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "id"
+ENGINE_SORTING_KEY "insightsProjectId, collectionId"
 ENGINE_VER "updatedAt"

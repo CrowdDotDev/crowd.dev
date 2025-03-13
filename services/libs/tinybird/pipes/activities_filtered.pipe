@@ -2,6 +2,26 @@ TOKEN "activities_filtered_endpoint_read_8708" READ
 
 TOKEN "raul_dev_access_token" READ
 
+TOKEN "insights-staging-app-token" READ
+
+NODE segments_filtered
+SQL >
+
+    %
+    SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
+    where 1=1
+    {% if defined(project) %}
+    AND slug = {{String(project, description="Filter by project slug", required=True)}}
+    {% else %}
+    AND false
+    {% end %}  
+    {% if defined(repo) %}
+    AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+    {% end %}
+
+
+
+
 NODE activities_filtered_by_timestamp_and_channel
 SQL >
 
@@ -16,6 +36,8 @@ SQL >
     {% end %}
     {% if defined(repo) %}
     AND activities.channel = {{String(repo, description="Filter activity repo", required=False)}}
+    {% else %}
+    AND activities.channel in (select arrayJoin(repositories) from segments_filtered)
     {% end %}
     {% if defined(platform) %}
     AND activities.platform = {{String(platform, description="Filter activity platform", required=False)}}
@@ -26,22 +48,6 @@ SQL >
     {% if defined(activity_type) %}
     AND activities.type = {{String(activity_type, description="Filter activity type", required=False)}}
     {% end %}
-
-
-
-
-
-NODE segments_filtered
-SQL >
-
-    %
-    SELECT "segmentId" as id FROM insightsProjects FINAL
-    {% if defined(project) %}
-    where slug = {{String(project, description="Filter by project slug", required=True)}}
-    {% else %}
-    where false
-    {% end %}  
-
 
 
 

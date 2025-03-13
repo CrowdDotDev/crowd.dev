@@ -1,5 +1,7 @@
 TOKEN "activities_cumulative_count_endpoint_read_5317" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE historical_activity_count
 SQL >
 

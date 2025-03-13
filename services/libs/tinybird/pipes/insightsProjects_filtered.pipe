@@ -2,21 +2,59 @@ TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
 
 TOKEN "raul_dev_access_token" READ
 
-NODE insighsProjects_filtered_0
+TOKEN "insights-staging-app-token" READ
+
+NODE collection_info
+SQL >
+
+    SELECT cip.insightsProjectId, c.slug as "collectionSlug" FROM  collectionsInsightsProjects cip final
+    join collections c on c.id = cip.collectionId
+
+
+
+
+NODE insightsProjects_filtered_1
 SQL >
 
     %
-    SELECT projectsAggregatedMV.*  FROM projectsAggregatedMV FINAL 
-    where 1=1
-    {% if defined(slug) %}
-    AND projectsAggregatedMV.slug = {{String(slug, description="Filter collection by slug", required=False)}}
-    {% end %}
-    {% if defined(search) %}
-    AND projectsAggregatedMV.slug like {{String(search, description="Search collection open ended wildcard using slug", required=False)}} || '%'
-    {% end %}
-    {% if defined(collectionSlug) %}
-    AND projectsAggregatedMV.collectionSlug = {{String(collectionSlug, description="Filter collection by slug", required=False)}}
-    {% end %}
-
+    SELECT
+        insightsProjects.id,
+        insightsProjects.name,
+        insightsProjects.slug,
+        insightsProjects.description,
+        insightsProjects.logoUrl as logo,
+        collection_info.collectionSlug,
+        coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
+        coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
+    FROM insightsProjects FINAL
+    left join collection_info on collection_info.insightsProjectId = insightsProjects.id
+    left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
+    where
+        1 = 1
+        {% if defined(slug) %}
+            AND insightsProjects.slug
+            = {{ String(slug, description="Filter collection by slug", required=False) }}
+        {% end %}
+        {% if defined(search) %}
+            AND insightsProjects.slug
+            like {{
+                String(
+                    search,
+                    description="Search collection open ended wildcard using slug",
+                    required=False,
+                )
+            }} || '%'
+        {% end %}
+        {% if defined(collectionSlug) %}
+            AND collection_info.collectionSlug
+            = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+        {% end %}
+    group by
+        insightsProjects.id,
+        insightsProjects.name,
+        insightsProjects.slug,
+        insightsProjects.description,
+        insightsProjects.logoUrl,
+        collection_info.collectionSlug
 
 

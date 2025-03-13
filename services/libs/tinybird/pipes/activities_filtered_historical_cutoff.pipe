@@ -1,9 +1,31 @@
+DESCRIPTION >
+	The only difference between the activities_filtered pipeline and this pipeline is that this version returns all activities up until the specified startDate, effectively reversing the time range filter. This approach is useful as it retains support for additional filters and is primarily used in the activities_cumulative_counts pipeline to obtain the historical total.
+
+
 TOKEN "activities_filtered_historical_cutoff_endpoint_read_5308" READ
 
-NODE activities_filtered_by_timestamp_and_channel
-DESCRIPTION >
-    only difference between activities_filtered and this pipe is that, this'll count all activities until startDate (so the timerange filter is reverted) it's useful because it'll also support other filters and it'll be mainly used in activitird_cumulative_counts pipe to get the historical total
+TOKEN "insights-staging-app-token" READ
 
+NODE segments_filtered
+SQL >
+
+    %
+    SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
+    where 1=1
+    {% if defined(project) %}
+    AND slug = {{String(project, description="Filter by project slug", required=True)}}
+    {% else %}
+    AND false
+    {% end %}  
+    {% if defined(repo) %}
+    AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+    {% end %}
+
+
+
+
+
+NODE activities_filtered_by_timestamp_and_channel
 SQL >
 
     %
@@ -16,6 +38,8 @@ SQL >
     {% end %}
     {% if defined(repo) %}
     AND activities.channel = {{String(repo, description="Filter activity repo", required=False)}}
+    {% else %}
+    AND activities.channel in (select arrayJoin(repositories) from segments_filtered)
     {% end %}
     {% if defined(platform) %}
     AND activities.platform = {{String(platform, description="Filter activity platform", required=False)}}
@@ -30,19 +54,6 @@ SQL >
 
 
 
-
-NODE segments_filtered
-SQL >
-
-    %
-    SELECT "segmentId" as id FROM insightsProjects FINAL
-    {% if defined(project) %}
-    where slug = {{String(project, description="Filter by project slug", required=True)}}
-    {% end %}  
-
-
-
-
 NODE activity_relations_filtered
 SQL >
 
@@ -51,9 +62,7 @@ SQL >
     join activityRelations final on activityRelations.activityId = activities_filtered_by_timestamp_and_channel.id
     where 1=1
     and activityRelations.memberId in (select id from members where not members.isBot and not members.isTeamMember)
-    {% if defined(project) %}
     and activityRelations.segmentId in (select id from segments_filtered)
-    {% end %}
     order by timestamp desc
 
 

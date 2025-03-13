@@ -1,5 +1,7 @@
 TOKEN "activities_count_endpoint_read_4271" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE timeseries_generation_for_activity_count
 SQL >
 

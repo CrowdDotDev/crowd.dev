@@ -2,6 +2,8 @@ TOKEN "contributors_leaderboard_endpoint_read_3484" READ
 
 TOKEN "raul_dev_access_token" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE total_activity_count
 SQL >
 

@@ -1,5 +1,7 @@
 TOKEN "country_mapping_endpoint_read_0281" READ
 
+TOKEN "insights-staging-app-token" READ
+
 NODE map_country_name_flag_code
 SQL >
 
