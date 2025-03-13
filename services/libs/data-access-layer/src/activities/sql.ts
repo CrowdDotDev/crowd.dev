@@ -1802,6 +1802,43 @@ export async function getActivityRelationsSortedByTimestamp(
   return rows
 }
 
+export async function getActivitiesSortedByTimestamp(
+  qdbConn: DbConnOrTx,
+  cursorActivityTimestamp?: string,
+  segmentIds?: string[],
+  limit = 100,
+) {
+  let cursorQuery = ''
+  let segmentQuery = ''
+
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
+  }
+
+  if (segmentIds && segmentIds.length > 0) {
+    segmentQuery = `AND "segmentId" IN ($(segmentIds:csv))`
+  }
+
+  const query = `
+    SELECT 
+      *
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    ${cursorQuery}
+    ${segmentQuery}
+    ORDER BY "timestamp" asc
+    LIMIT ${limit}
+  `
+
+  const rows = await qdbConn.any(query, {
+    cursorActivityTimestamp,
+    limit,
+    segmentIds,
+  })
+
+  return rows
+}
+
 export type ActivityRelationsFilter = Partial<
   Record<
     'memberId' | 'organizationId' | 'conversationId' | 'segmentId' | 'platform' | 'activityId',

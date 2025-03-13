@@ -182,6 +182,7 @@ const onSubmit = () => {
       starred: project?.starred || false,
     })),
     isLF: true,
+    slug: form.name.toLowerCase().replace(/ /g, '-'),
   };
   if (isEditForm.value) {
     handleCollectionUpdate(request);
