@@ -759,10 +759,9 @@ export default class ActivityService extends LoggerBase {
               },
               limit: 1,
               noCount: true,
-              useHttp: true,
             }),
           this.log,
-          'processActivity -> queryActivities',
+          `processActivity -> queryActivities`,
         )
 
         if (dbActivity && dbActivity?.deletedAt) {
