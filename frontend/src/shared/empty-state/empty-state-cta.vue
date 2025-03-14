@@ -18,20 +18,22 @@
       <span v-html="description" />
     </div>
     <div class="flex gap-6 mt-8">
-      <el-button
+      <lf-button
         v-if="ctaBtn"
-        class="btn btn--primary btn--md"
+        type="primary"
+        size="medium"
         @click="emit('ctaClick')"
       >
         {{ ctaBtn }}
-      </el-button>
-      <el-button
+      </lf-button>
+      <lf-button
         v-if="secondaryBtn"
-        class="btn btn--secondary btn--md"
+        type="secondary"
+        size="medium"
         @click="emit('secondaryClick')"
       >
         {{ secondaryBtn }}
-      </el-button>
+      </lf-button>
     </div>
   </div>
 </template>
@@ -39,6 +41,7 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['ctaClick', 'secondaryClick']);
 defineProps({

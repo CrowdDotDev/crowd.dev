@@ -12,19 +12,22 @@
       <div
         class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
       >
-        <el-button
-          class="btn btn--secondary btn--md mr-3"
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-3"
           @click="model = false"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
+          type="primary"
+          size="medium"
           :disabled="!isSubmitEnabled"
-          class="btn btn--primary btn--md"
           @click="onSubmit"
         >
           Continue
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-dialog>
@@ -34,6 +37,7 @@
 import {
   computed, ref,
 } from 'vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppLfSubProjectsListDropdown from './lf-sub-projects-list-dropdown.vue';
 
 const emit = defineEmits(['update:modelValue', 'onSubmit']);

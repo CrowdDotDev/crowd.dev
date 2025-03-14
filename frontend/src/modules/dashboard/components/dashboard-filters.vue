@@ -16,8 +16,10 @@
       trigger="click"
       size="large"
     >
-      <el-button
-        class="btn btn--secondary bg-white !py-1.5 !px-3 outline-none"
+      <lf-button
+        type="secondary"
+        size="medium"
+        class="bg-white !py-1.5 !px-3 outline-none"
       >
         <div class="flex items-center text-xs">
           <lf-icon name="grid-round-2" :size="16" class="text-gray-900 mr-2" />
@@ -26,7 +28,7 @@
             getPlatformName
           }}</span>
         </div>
-      </el-button>
+      </lf-button>
 
       <template #dropdown>
         <el-dropdown-menu class="w-42">
@@ -52,7 +54,7 @@
             <img
               :alt="lfIdentities[integration]?.name"
               :src="lfIdentities[integration]?.image"
-              class="w-4 h-4 mr-2"
+              class="min-w-4 h-4 mr-2"
             />
             {{ lfIdentities[integration]?.name }}
           </el-dropdown-item>
@@ -78,6 +80,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import AppWidgetPeriod from '@/modules/dashboard/components/widget/widget-period.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 export default {
   name: 'AppDashboardFilters',
@@ -85,6 +88,7 @@ export default {
     LfIcon,
     AppWidgetPeriod,
     AppLfProjectFilterButton,
+    LfButton,
   },
   data() {
     return {

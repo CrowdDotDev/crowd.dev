@@ -13,17 +13,23 @@
     </template>
     <template #headerActions>
       <div class="flex justify-end -my-1">
-        <el-button class="btn btn--bordered btn--md mr-4" @click="emit('update:modelValue', null)">
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-4"
+          @click="emit('update:modelValue', null)"
+        >
           Cancel
-        </el-button>
-        <el-button
-          class="btn btn--primary btn--md"
+        </lf-button>
+        <lf-button
+          type="primary"
+          size="medium"
           :disabled="!selectedIdentity || !preview"
           :loading="unmerging"
           @click="unmerge()"
         >
           Unmerge identity
-        </el-button>
+        </lf-button>
       </div>
     </template>
     <template #content>
@@ -116,7 +122,7 @@
                               />
                               <img
                                 v-else-if="lfIdentities[i.platform]"
-                                class="h-5 w-5 mr-2"
+                                class="h-5 min-w-5 mr-2"
                                 :alt="lfIdentities[i.platform]?.name"
                                 :src="lfIdentities[i.platform]?.image"
                               />
@@ -166,7 +172,7 @@
                     />
                     <img
                       v-else-if="lfIdentities[i.platform]"
-                      class="h-5 w-5 mr-2"
+                      class="h-5 min-w-5 mr-2"
                       :alt="lfIdentities[i.platform]?.name"
                       :src="lfIdentities[i.platform]?.image"
                     />
@@ -202,6 +208,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { lfIdentities } from '@/config/identities';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {

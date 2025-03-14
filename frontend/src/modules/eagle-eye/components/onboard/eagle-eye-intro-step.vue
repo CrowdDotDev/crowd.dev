@@ -19,13 +19,15 @@
     </div>
   </div>
 
-  <el-button
+  <lf-button
     v-if="hasPermission(LfPermission.eagleEyeCreate)"
-    class="btn btn--primary btn--full btn--md"
+    type="primary"
+    size="medium"
+    class="w-full"
     @click="emit('onStepChange', 1)"
   >
     Set up your feed
-  </el-button>
+  </lf-button>
   <a
     href="https://docs.crowd.dev/docs/eagle-eye"
     target="_blank"
@@ -40,6 +42,7 @@ import { pageContent } from '@/modules/layout/layout-page-content';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['onStepChange']);
 

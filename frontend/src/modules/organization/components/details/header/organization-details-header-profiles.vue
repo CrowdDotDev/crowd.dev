@@ -60,7 +60,7 @@
             <img
               :alt="platform"
               :src="lfIdentities[platform]?.image"
-              class="h-4 w-4"
+              class="h-4 min-w-4"
             />
             <p class="pl-2 text-small">
               {{ identity.value }}

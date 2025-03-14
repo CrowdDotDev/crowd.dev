@@ -45,17 +45,23 @@
           </div>
         </div>
         <div class="pt-6 flex justify-end">
-          <el-button class="btn btn--secondary btn--lg mr-4" @click="emit('update:modelValue', null)">
+          <lf-button
+            type="secondary"
+            size="large"
+            class="mr-4"
+            @click="emit('update:modelValue', null)"
+          >
             Cancel
-          </el-button>
-          <el-button
-            class="btn btn--primary btn--lg"
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="large"
             :disabled="!memberToMerge"
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
             Merge profile
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -74,6 +80,7 @@ import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeM
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 

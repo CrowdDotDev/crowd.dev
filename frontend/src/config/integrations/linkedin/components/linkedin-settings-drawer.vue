@@ -10,7 +10,7 @@
   >
     <template #beforeTitle>
       <img
-        class="w-6 h-6 mr-2"
+        class="min-w-6 h-6 mr-2"
         :src="logoUrl"
         alt="LinkedIn logo"
       />
@@ -70,26 +70,26 @@
           hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button
+        <lf-button
           v-if="hasFormChanged"
-          class="btn btn-link btn-link--primary"
+          type="primary-link"
           @click="doReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button
-            class="btn btn--md btn--secondary"
+          <lf-button
+            type="secondary"
+            size="medium"
             @click="isVisible = false"
           >
             Cancel
-          </el-button>
-          <el-button
-            class="btn btn--md btn--primary"
-            :class="{
-              disabled: !hasFormChanged || loading,
-            }"
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="medium"
+            :disabled="!hasFormChanged || loading"
             :loading="loading"
             @click="hasFormChanged ? connect() : undefined"
           >
@@ -98,7 +98,7 @@
                 ? 'Update'
                 : 'Connect'
             }}
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -119,6 +119,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const store = useStore();
 

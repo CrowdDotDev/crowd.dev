@@ -40,13 +40,14 @@
                 </component>
               </span>
             </el-tooltip>
-            <el-button
+            <lf-button
               v-if="hasPermission(LfPermission.organizationCreate)"
-              class="btn btn--primary btn--md"
+              type="primary"
+              size="medium"
               @click="organizationCreate = true"
             >
               Add organization
-            </el-button>
+            </lf-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -98,6 +99,7 @@ import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';

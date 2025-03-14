@@ -90,9 +90,14 @@
 
             <div class="flex grow" />
 
-            <el-button class="btn btn--md btn--full btn--primary mb-4" @click="updateSelectedProjectGroup(projectGroup.id)">
+            <lf-button
+              type="primary"
+              size="medium"
+              class="mb-4 w-full"
+              @click="updateSelectedProjectGroup(projectGroup.id)"
+            >
               View project(s)
-            </el-button>
+            </lf-button>
 
             <router-link
               v-if="hasPermission(LfPermission.projectGroupEdit) && hasAccessToProjectGroup(projectGroup.id)"
@@ -103,11 +108,13 @@
                 },
               }"
             >
-              <el-button
-                class="btn btn--md btn--full btn--secondary"
+              <lf-button
+                type="secondary"
+                size="medium"
+                class="w-full"
               >
                 Settings
-              </el-button>
+              </lf-button>
             </router-link>
           </div>
         </div>
@@ -132,6 +139,7 @@ import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const router = useRouter();
 const route = useRoute();

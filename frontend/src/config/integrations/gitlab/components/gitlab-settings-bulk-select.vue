@@ -54,12 +54,12 @@
         </article>
       </div>
       <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-4">
-        <el-button
-          class="btn btn--md btn--bordered"
+        <lf-button
+          type="secondary"
           @click="closeModal"
         >
           Cancel
-        </el-button>
+        </lf-button>
         <lf-button
           type="primary"
           :disabled="$v.$invalid"

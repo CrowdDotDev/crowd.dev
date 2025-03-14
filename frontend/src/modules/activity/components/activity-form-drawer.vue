@@ -144,20 +144,23 @@
       </div>
     </template>
     <template #footer>
-      <el-button
-        class="btn btn--secondary btn--md mr-4"
+      <lf-button
+        type="secondary"
+        size="medium"
+        class="mr-4"
         @click="emit('update:modelValue', false)"
       >
         Cancel
-      </el-button>
-      <el-button
-        class="btn btn--primary btn--md"
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
         :disabled="$v.$invalid || !hasFormChanged"
         @click="submit()"
       >
         <span v-if="isEdit">Update</span>
         <span v-else>Add activity</span>
-      </el-button>
+      </lf-button>
     </template>
   </app-drawer>
 </template>
@@ -186,6 +189,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 // Props & emits
 const props = defineProps({

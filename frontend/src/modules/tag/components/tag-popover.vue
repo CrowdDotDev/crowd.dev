@@ -14,12 +14,22 @@
       </div>
 
       <div class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6">
-        <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-3"
+          @click="handleCancel"
+        >
           Cancel
-        </el-button>
-        <el-button class="btn btn--primary btn--md" :disabled="isSubmitDisabled" @click="handleSubmit">
+        </lf-button>
+        <lf-button
+          type="primary"
+          size="medium"
+          :disabled="isSubmitDisabled"
+          @click="handleSubmit"
+        >
           Submit
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-dialog>
@@ -38,6 +48,7 @@ import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const { trackEvent } = useProductTracking();
 
@@ -49,7 +60,7 @@ const formSchema = new FormSchema([fields.tags]);
 
 export default {
   name: 'AppTagPopover',
-  components: { AppTagAutocompleteInput, AppDialog },
+  components: { AppTagAutocompleteInput, AppDialog, LfButton },
 
   props: {
     modelValue: {

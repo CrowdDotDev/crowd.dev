@@ -10,7 +10,7 @@
   >
     <template #beforeTitle>
       <img
-        class="w-6 h-6 mr-2"
+        class="min-w-6 h-6 mr-2"
         :src="logoUrl"
         alt="Git logo"
       />
@@ -52,13 +52,16 @@
                   />
                 </template>
               </el-input>
-              <el-button
+              <lf-button
                 v-if="model.length > 1"
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                type="primary-link"
+                size="medium"
+                icon-only
+                class="w-10 h-10"
                 @click="deleteItem(index)"
               >
                 <lf-icon name="trash-can" :size="20" class="text-black" />
-              </el-button>
+              </lf-button>
             </div>
             <span
               v-if="subreddit.touched && !subreddit.valid"
@@ -76,26 +79,27 @@
           hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button
+        <lf-button
           v-if="hasFormChanged"
-          class="btn btn-link btn-link--primary"
+          type="primary-link"
+          size="medium"
           @click="doReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button
-            class="btn btn--md btn--secondary"
+          <lf-button
+            type="secondary"
+            size="medium"
             @click="isVisible = false"
           >
             Cancel
-          </el-button>
-          <el-button
-            class="btn btn--md btn--primary"
-            :class="{
-              disabled: !hasFormChanged || connectDisabled,
-            }"
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="medium"
+            :disabled="!hasFormChanged || connectDisabled"
             @click="hasFormChanged ? connect() : undefined"
           >
             {{
@@ -103,7 +107,7 @@
                 ? 'Update'
                 : 'Connect'
             }}
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -129,6 +133,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import reddit from '@/config/integrations/reddit/config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const store = useStore();
 

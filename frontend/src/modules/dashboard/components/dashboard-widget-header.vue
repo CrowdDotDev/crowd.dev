@@ -26,11 +26,13 @@
           },
         }"
       >
-        <el-button
-          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-primary-500"
+        <lf-button
+          type="primary-link"
+          size="small"
+          class="w-full leading-5 text-primary-500"
         >
           {{ props.buttonTitle }}
-        </el-button>
+        </lf-button>
       </router-link>
     </div>
   </div>
@@ -41,6 +43,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { formatNumberToCompact } from '@/utils/number';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   title: {

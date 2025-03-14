@@ -9,7 +9,7 @@
     @close="isDrawerVisible = false"
   >
     <template #beforeTitle>
-      <img :src="gitlabDetails.image" class="w-6 h-6 mr-2" alt="GitLab logo" />
+      <img :src="gitlabDetails.image" class="min-w-6 h-6 mr-2" alt="GitLab logo" />
     </template>
     <template #content>
       <div>
@@ -20,7 +20,7 @@
           </p>
           <div class="flex items-center">
             <div v-if="connectedUser.avatar_url" class="h-5 w-5 rounded border border-gray-200 mr-2">
-              <img :src="connectedUser.avatar_url" class="object-cover" :alt="connectedUser.name" />
+              <img :src="connectedUser.avatar_url" class="min-w-5 object-cover" :alt="connectedUser.name" />
             </div>
             <p class="text-xs font-medium leading-5">
               {{ connectedUser.name }} ({{ connectedUser.username }})
@@ -157,24 +157,24 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button class="btn btn--md btn--bordered mr-3" @click="isDrawerVisible = false">
+        <lf-button type="secondary" size="medium" class="mr-3" @click="isDrawerVisible = false">
           Cancel
-        </el-button>
+        </lf-button>
         <el-tooltip
           content="Select at least one repository in order to connect GitLab"
           placement="top"
           :disabled="!(sending || $v.$invalid || !hasSelectedRepos)"
         >
           <span>
-            <el-button
+            <lf-button
               type="primary"
-              class="btn btn--md btn--primary"
+              size="medium"
               :disabled="sending || $v.$invalid || !hasSelectedRepos"
               :loading="sending"
               @click="connect()"
             >
               Connect
-            </el-button>
+            </lf-button>
           </span>
         </el-tooltip>
       </div>
@@ -206,6 +206,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{

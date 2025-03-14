@@ -135,7 +135,7 @@ export const externalTooltipHandler = (
     );
 
     if (!footerBtn && tooltip.footer) {
-      footerBtn = document.createElement('el-button');
+      footerBtn = document.createElement('button');
       footerBtn.id = 'custom-tooltip-footer-btn';
       tooltip.footer.forEach((lines) => {
         footerBtn.className = 'btn btn--sm btn--full btn--secondary mt-4';

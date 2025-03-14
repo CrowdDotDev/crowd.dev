@@ -15,14 +15,16 @@
     <template #header="{ close, titleId, titleClass }">
       <div class="flex grow justify-between items-center">
         <div>
-          <el-button
+          <lf-button
             v-if="isEditingAttributes"
-            class="btn btn-link btn-link--md btn-link--secondary mb-2"
+            type="secondary-link"
+            size="medium"
+            class="mb-2"
             @click="onCloseManageAttributes"
           >
             <lf-icon name="chevron-left" :size="16" />
             <span>Edit attributes</span>
-          </el-button>
+          </lf-button>
           <h5
             :id="titleId"
             class="text-black"
@@ -34,21 +36,25 @@
                 : 'Manage global attributes'
             }}
           </h5>
-          <el-button
+          <lf-button
             v-if="!isEditingAttributes"
-            class="btn btn-link btn-link--sm btn-link--primary"
+            type="primary-link"
+            size="small"
             @click="onOpenManageAttributes"
           >
             Manage global attributes
-          </el-button>
+          </lf-button>
         </div>
 
-        <el-button
-          class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8"
+        <lf-button
+          type="primary-link"
+          size="tiny"
+          class="w-8 !h-8"
+          icon-only
           @click="close"
         >
           <lf-icon name="xmark" :size="20" class="text-gray-400" />
-        </el-button>
+        </lf-button>
       </div>
     </template>
     <template #default>
@@ -72,31 +78,32 @@
           hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button
+        <lf-button
           v-if="hasFormChanged"
-          class="btn btn-link btn-link--primary"
+          type="primary-link"
           @click="handleReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button
+          <lf-button
             :disabled="loading"
-            class="btn btn--md btn--secondary"
+            type="secondary"
+            size="medium"
             @click="handleCancel"
           >
             Cancel
-          </el-button>
-          <el-button
+          </lf-button>
+          <lf-button
             :disabled="!hasFormChanged || loading"
             type="primary"
-            class="btn btn--md btn--primary"
+            size="medium"
             :loading="loading"
             @click="handleSubmit"
           >
             Update
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -120,6 +127,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { useRoute } from 'vue-router';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 import AppMemberFormAttributes from './form/member-form-attributes.vue';
 

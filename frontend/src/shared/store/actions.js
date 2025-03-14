@@ -120,7 +120,7 @@ export default (moduleName, moduleService = null) => {
             const contactId = response.id;
             const successMessageAction = 'View profile';
             const message = h(
-              'el-button',
+              'button',
               {
                 class: 'btn btn--xs btn--bordered !h-6',
                 onClick: () => {

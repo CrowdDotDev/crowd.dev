@@ -32,19 +32,22 @@
       <div
         class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
       >
-        <el-button
-          class="btn btn--secondary btn--md mr-3"
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-3"
           @click="model = false"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           :disabled="$v.subproject.$invalid"
-          class="btn btn--primary btn--md"
+          type="primary"
+          size="medium"
           @click="onSubmit"
         >
           Continue
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-dialog>
@@ -57,6 +60,7 @@ import {
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue', 'onSubmit']);
 const props = defineProps({

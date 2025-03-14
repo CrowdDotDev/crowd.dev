@@ -89,12 +89,22 @@
       </div>
 
       <div class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6">
-        <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-3"
+          @click="handleCancel"
+        >
           Cancel
-        </el-button>
-        <el-button class="btn btn--primary btn--md" :disabled="!hasFormChanged" @click="handleSubmit">
+        </lf-button>
+        <lf-button
+          type="primary"
+          size="medium"
+          :disabled="!hasFormChanged"
+          @click="handleSubmit"
+        >
           Submit
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-dialog>
@@ -121,6 +131,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const CalendarIcon = h(
   'i', // type

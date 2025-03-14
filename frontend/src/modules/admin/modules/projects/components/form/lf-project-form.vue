@@ -93,19 +93,22 @@
       </div>
     </template>
     <template #footer>
-      <el-button
-        class="btn btn--md btn--secondary mr-4"
+      <lf-button
+        type="secondary"
+        size="medium"
+        class="mr-4"
         @click="onCancel"
       >
         Cancel
-      </el-button>
-      <el-button
-        class="btn btn--md btn--primary"
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
         :disabled="!hasFormChanged || $v.$invalid || loading"
         @click="onSubmit"
       >
         {{ isEditForm ? 'Update' : 'Add project' }}
-      </el-button>
+      </lf-button>
     </template>
   </app-drawer>
 </template>
@@ -123,6 +126,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

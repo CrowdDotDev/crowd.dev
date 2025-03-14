@@ -8,7 +8,7 @@
     @close="cancel()"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="DEV logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="DEV logo" />
     </template>
     <template #content>
       <el-form class="form integration-devto-form" @submit.prevent>
@@ -79,27 +79,29 @@
                   />
                 </template>
               </el-input>
-              <el-button
+              <lf-button
                 v-if="!isLastOrganization"
                 :disabled="!isAPIConnectionValid"
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
                 @click="removeOrganization(org.id)"
               >
                 <lf-icon name="trash-can" :size="20" class="text-black" />
-              </el-button>
+              </lf-button>
             </div>
             <span
               v-if="org.touched && !org.valid"
               class="el-form-item__error"
             >Organization slug is not valid</span>
           </el-form-item>
-          <el-button
-            class="btn btn-link btn-link--primary"
+          <lf-button
+            type="primary-link"
             :disabled="!isAPIConnectionValid"
             @click="addNewOrganization"
           >
             + Add organization link
-          </el-button>
+          </lf-button>
           <span class="text-sm font-medium mt-8">Track user articles</span>
           <span
             class="text-2xs font-light mb-2 text-gray-600"
@@ -136,42 +138,47 @@
                   />
                 </template>
               </el-input>
-              <el-button
+              <lf-button
                 v-if="!isLastUser"
                 :disabled="!isAPIConnectionValid"
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
                 @click="removeUser(user.id)"
               >
                 <lf-icon name="trash-can" :size="20" class="text-black" />
-              </el-button>
+              </lf-button>
             </div>
             <span
               v-if="user.touched && !user.valid"
               class="el-form-item__error"
             >User slug is not valid</span>
           </el-form-item>
-          <el-button
-            class="btn btn-link btn-link--primary"
+          <lf-button
+            type="primary-link"
             :disabled="!isAPIConnectionValid"
             @click="addNewUser"
           >
             + Add user link
-          </el-button>
+          </lf-button>
         </div>
       </el-form>
     </template>
     <template #footer>
       <div>
-        <el-button
-          class="btn btn--md btn--secondary mr-4"
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="devConnect"
-          class="btn btn--md btn--primary"
+          type="primary"
+          size="medium"
           :disabled="
             connectDisabled || loading || !isAPIConnectionValid || isValidating
           "
@@ -179,7 +186,7 @@
           @click="save"
         >
           Connect
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -206,6 +213,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const { doDevtoConnect } = mapActions('integration');
 

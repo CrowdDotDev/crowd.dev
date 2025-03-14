@@ -8,7 +8,7 @@
     @close="cancel"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Git logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Git logo" />
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
@@ -26,39 +26,48 @@
           placeholder="https://github.com/CrowdDotDev/crowd.dev.git"
         >
           <template #after>
-            <el-button
-              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+            <lf-button
+              type="primary-link"
+              size="medium"
+              class="w-10 h-10"
               @click="removeRemote(ii)"
             >
               <lf-icon name="trash-can" :size="20" />
-            </el-button>
+            </lf-button>
           </template>
         </app-array-input>
       </el-form>
 
-      <el-button class="btn btn-link btn-link--primary" @click="addRemote()">
+      <lf-button
+        type="primary-link"
+        size="medium"
+        @click="addRemote()"
+      >
         + Add remote URL
-      </el-button>
+      </lf-button>
     </template>
 
     <template #footer>
       <div>
-        <el-button
-          class="btn btn--md btn--secondary mr-4"
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="gitConnect"
+          type="primary"
+          size="medium"
           :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="connect"
         >
           {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -76,6 +85,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

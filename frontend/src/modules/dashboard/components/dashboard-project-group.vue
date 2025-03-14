@@ -25,12 +25,14 @@
     </div>
 
     <div class="mt-8">
-      <el-button
-        class="btn btn--md btn--secondary btn--full mb-4"
+      <lf-button
+        type="secondary"
+        size="medium"
+        class="w-full mb-4"
         @click="isDrawerOpen = true"
       >
         Projects list
-      </el-button>
+      </lf-button>
       <router-link
         v-if="hasPermission(LfPermission.projectEdit) && hasAccessToProjectGroup(selectedProjectGroup.id)"
         :to="{
@@ -40,12 +42,14 @@
           },
         }"
       >
-        <el-button
-          class="btn btn-link btn-link--md btn-link--primary btn--full"
+        <lf-button
+          type="primary-link"
+          size="medium"
+          class="w-full"
         >
           <lf-icon name="arrow-up-right-from-square" :size="14" />
           <span>Settings</span>
-        </el-button>
+        </lf-button>
       </router-link>
     </div>
 
@@ -67,6 +71,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();

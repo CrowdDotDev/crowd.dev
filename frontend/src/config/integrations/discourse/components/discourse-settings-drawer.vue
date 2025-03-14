@@ -11,7 +11,7 @@
   >
     <template #beforeTitle>
       <img
-        class="w-6 h-6 mr-2"
+        class="min-w-6 h-6 mr-2"
         :src="logoUrl"
         alt="Discourse logo"
       />
@@ -96,13 +96,16 @@
                 content="Copy to clipboard"
                 placement="top"
               >
-                <el-button
-                  class="append-icon"
+                <lf-button
+                  type="secondary-ghost"
+                  size="tiny"
+                  class="-mx-5"
+                  icon-only
                   :disabled="!isAPIConnectionValid"
                   @click="copyToClipboard('url')"
                 >
                   <lf-icon name="copy" />
-                </el-button>
+                </lf-button>
               </el-tooltip>
             </template>
           </el-input>
@@ -121,22 +124,32 @@
                 content="Show Webhook Secret"
                 placement="top"
               >
-                <el-button
-                  class="append-icon"
+                <lf-button
+                  type="secondary-ghost"
+                  size="tiny"
+                  class="-mx-5"
+                  icon-only
                   :disabled="!isAPIConnectionValid"
                   @click="onShowToken"
                 >
                   <lf-icon name="eye" />
-                </el-button>
+                </lf-button>
               </el-tooltip>
               <el-tooltip
                 v-else
                 content="Copy to clipboard"
                 placement="top"
               >
-                <el-button :disabled="!isAPIConnectionValid" @click="copyToClipboard('secret')">
+                <lf-button
+                  type="secondary-ghost"
+                  size="tiny"
+                  class="-mx-5"
+                  icon-only
+                  :disabled="!isAPIConnectionValid"
+                  @click="copyToClipboard('secret')"
+                >
                   <lf-icon name="copy" />
-                </el-button>
+                </lf-button>
               </el-tooltip>
             </template>
           </el-input>
@@ -144,9 +157,14 @@
       </el-form>
       <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
         <div class="mb-3 flex flex-row w-full justify-between">
-          <el-button :disabled="isWebhookVerifying" class="btn btn--secondary" @click="verifyWebhook()">
+          <lf-button
+            type="secondary"
+            size="medium"
+            :disabled="!!isWebhookVerifying"
+            @click="verifyWebhook()"
+          >
             Verify webhook
-          </el-button>
+          </lf-button>
           <div v-if="isWebhookVerifying == null" />
           <div v-else-if="isWebhookVerifying">
             <lf-icon name="circle-notch" :size="14" class="animate-spin text-gray-900 mr-2" />
@@ -171,16 +189,18 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--secondary mr-3"
+        <lf-button
+          type="secondary"
+          size="medium"
+          class="mr-3"
           :disabled="loading"
           @click="handleCancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :disabled="
             $v.$invalid
               || !hasFormChanged || loading"
@@ -188,7 +208,7 @@
           @click="connect()"
         >
           {{ integration?.settings?.forumHostname ? "Update" : "Connect" }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -212,6 +232,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const { trackEvent } = useProductTracking();
 

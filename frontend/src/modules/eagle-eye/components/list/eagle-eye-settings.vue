@@ -11,13 +11,15 @@
 
     <div v-if="eagleEyeFeedSettings">
       <!-- Feed Settings-->
-      <el-button
+      <lf-button
         v-if="hasPermission(LfPermission.eagleEyeEdit)"
-        class="btn btn--full btn--md btn--secondary"
+        type="secondary"
+        size="medium"
+        class="w-full"
         @click="settingsDrawerOpen = true"
       >
         <lf-icon name="sliders" :size="20" /><span>Feed settings</span>
-      </el-button>
+      </lf-button>
       <!-- Keywords -->
       <div
         v-if="
@@ -81,7 +83,7 @@
             <img
               :alt="platformOptions[platform].label"
               :src="platformOptions[platform].img"
-              class="w-5 h-5"
+              class="min-w-5 h-5"
             />
             <span class="text-xs text-gray-900">{{
               platformOptions[platform].label
@@ -126,6 +128,7 @@ import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
