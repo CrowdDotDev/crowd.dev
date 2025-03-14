@@ -61,6 +61,21 @@ export interface IDbActivityCreateData {
   tenantId?: string
 }
 
+export interface IActivityRelation {
+  activityId: string
+  memberId: string
+  objectMemberId?: string
+  organizationId?: string
+  conversationId?: string
+  parentId?: string
+  segmentId: string
+  platform: string
+  username: string
+  objectMemberUsername?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface IActivityRelationCreateOrUpdateData {
   activityId: string
   memberId: string

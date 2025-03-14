@@ -40,7 +40,12 @@ export async function streamActivities(
 
           const activity = item as unknown as IDbActivityCreateData
 
-          await onActivity(activity)
+          try {
+            await onActivity(activity)
+          } catch (error) {
+            reject(error)
+            return
+          }
         }
 
         processedAllRows = true
