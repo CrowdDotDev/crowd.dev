@@ -1,4 +1,3 @@
-# Data Source created from Pipe 'segmentId_aggregates_mv'
 
 SCHEMA >
     `segmentId` String,
