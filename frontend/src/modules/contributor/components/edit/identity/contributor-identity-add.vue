@@ -182,7 +182,7 @@ const addIdentities = () => {
               h(
                 'button',
                 {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary !h-6 !w-fit',
                   onClick: () => {
                     const { memberId, grandParentId } = error.response.data;
 

@@ -122,7 +122,7 @@ export default (moduleName, moduleService = null) => {
             const message = h(
               'button',
               {
-                class: 'btn btn--xs btn--bordered !h-6',
+                class: 'c-btn c-btn--tiny c-btn--bordered !h-6',
                 onClick: () => {
                   router.push({
                     name: 'memberView',

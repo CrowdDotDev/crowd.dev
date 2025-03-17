@@ -41,7 +41,7 @@
         <div class="mt-4">
           <lf-button
             size="medium"
-            type="secondary"
+            type="bordered"
             @click="searchContactOnGoogle"
           >
             Not a match? Search Google instead
@@ -61,7 +61,7 @@
     <template #footer>
       <div style="flex: auto">
         <lf-button
-          type="secondary"
+          type="bordered"
           size="medium"
           class="mr-3"
           @click="handleCancel"

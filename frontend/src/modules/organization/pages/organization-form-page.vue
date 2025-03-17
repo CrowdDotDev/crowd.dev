@@ -48,7 +48,7 @@
               <div class="flex gap-4">
                 <lf-button
                   :disabled="isFormSubmitting"
-                  type="secondary"
+                  type="bordered"
                   size="medium"
                   @click="onCancel"
                 >
@@ -463,7 +463,7 @@ async function onSubmit() {
               h(
                 'button',
                 {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary !h-6 !w-fit',
                   onClick: () => {
                     organizationsStore.addToMergeOrganizations(payload.id, error.response.data);
                     Message.closeAll();

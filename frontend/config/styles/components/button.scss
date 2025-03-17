@@ -88,6 +88,30 @@
   --lf-btn-secondary-loading-background: var(--lf-color-white);
   --lf-btn-secondary-loading-border: var(--lf-color-gray-200);
 
+
+  /* Bordered */
+  --lf-btn-bordered-text: var(--lf-color-gray-500);
+  --lf-btn-bordered-background: var(--lf-color-white);
+  --lf-btn-bordered-border: var(--lf-color-gray-250);
+  --lf-btn-bordered-shadow: var(--shadow-default);
+  // Hover
+  --lf-btn-bordered-hover-text: var(--lf-color-primary-500);
+  --lf-btn-bordered-hover-background: var(--lf-color-primary-125);
+  --lf-btn-bordered-hover-border: var(--lf-color-primary-150);
+  // Active
+  --lf-btn-bordered-active-text: var(--lf-color-primary-500);
+  --lf-btn-bordered-active-background: var(--lf-color-primary-125);
+  --lf-btn-bordered-active-border: var(--lf-color-primary-500);
+  // Disabled
+  --lf-btn-bordered-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-bordered-disabled-background: var(--lf-color-white);
+  --lf-btn-bordered-disabled-border: var(--lf-color-gray-100);
+  // Loading
+  --lf-btn-bordered-loading-text: var(--lf-color-gray-400);
+  --lf-btn-bordered-loading-background: var(--lf-color-white);
+  --lf-btn-bordered-loading-border: var(--lf-color-gray-200);
+  
+
   /* Danger */
   --lf-btn-danger-text: var(--lf-color-white);
   --lf-btn-danger-background: var(--lf-color-red-500);

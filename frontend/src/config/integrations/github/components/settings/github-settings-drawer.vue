@@ -134,7 +134,7 @@
     <template #footer>
       <div style="flex: auto">
         <lf-button
-          type="secondary"
+          type="bordered"
           size="medium"
           class="mr-3"
           @click="isDrawerVisible = false"

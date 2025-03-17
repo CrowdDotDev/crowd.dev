@@ -55,7 +55,8 @@
       </div>
       <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-4">
         <lf-button
-          type="secondary"
+          type="bordered"
+          size="medium"
           @click="closeModal"
         >
           Cancel

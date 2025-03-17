@@ -45,15 +45,16 @@
             placement="top"
           >
             <span>
-              <button
-                type="button"
-                class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+              <lf-button
+                type="bordered"
+                size="small"
+                class="leading-5 !px-4 !py-1"
                 :disabled="!!props.compareOrganization.lfxMembership"
                 @click="emit('makePrimary')"
               >
                 <lf-icon name="arrow-right-arrow-left" type="solid" :size="16" class="text-gray-600 mr-2" />
                 <span>Make primary</span>
-              </button>
+              </lf-button>
             </span>
           </el-tooltip>
           <slot name="action" />
@@ -323,6 +324,7 @@ import { getOrganizationWebsite } from '@/utils/organization';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   organization: {

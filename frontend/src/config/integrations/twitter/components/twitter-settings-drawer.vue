@@ -43,7 +43,7 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="secondary"
+            type="bordered"
             size="medium"
             @click="isVisible = false"
           >

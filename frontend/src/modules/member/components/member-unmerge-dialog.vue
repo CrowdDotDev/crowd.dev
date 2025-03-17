@@ -14,7 +14,7 @@
     <template #headerActions>
       <div class="flex justify-end -my-1">
         <lf-button
-          type="secondary"
+          type="bordered"
           size="medium"
           class="mr-4"
           @click="emit('update:modelValue', null)"
