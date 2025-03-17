@@ -180,28 +180,24 @@ class MemberRepository {
     // 2. Member has NO active work experience at same org
     // 3. Member-Org pair hasn't been processed yet
     const query = `
-      select distinct a."memberId", a."organizationId"
-      from activities a
-      left join "processedMemberOrgAffiliations" p on
-        p."memberId" = a."memberId"
-        and p."organizationId" = a."organizationId"
-      where a."organizationId" is not null
-      and p."memberId" is null
-      and exists (
-          select 1
-          from "memberOrganizations" mo
-          where mo."memberId" = a."memberId"
-          and mo."organizationId" = a."organizationId"
-          and mo."deletedAt" is not null
-      )
-      and not exists (
-          select 1
-          from "memberOrganizations" mo_active
-          where mo_active."memberId" = a."memberId"
-          and mo_active."organizationId" = a."organizationId"
-          and mo_active."deletedAt" is null
-      )
-      limit $(limit);
+      SELECT DISTINCT a."memberId", a."organizationId"
+      FROM activities a
+      INNER JOIN "memberOrganizations" mo_del
+          ON mo_del."memberId" = a."memberId"
+          AND mo_del."organizationId" = a."organizationId"
+          AND mo_del."deletedAt" IS NOT NULL
+      LEFT JOIN "memberOrganizations" mo_active
+          ON mo_active."memberId" = a."memberId"
+          AND mo_active."organizationId" = a."organizationId"
+          AND mo_active."deletedAt" IS NULL
+      LEFT JOIN "processedMemberOrgAffiliations" p
+          ON p."memberId" = a."memberId"
+          AND p."organizationId" = a."organizationId"
+      WHERE
+          a."organizationId" IS NOT NULL
+          AND mo_active."memberId" IS NULL
+          AND p."memberId" IS NULL
+      LIMIT $(limit);
     `
 
     const results = await this.connection.any(query, {
