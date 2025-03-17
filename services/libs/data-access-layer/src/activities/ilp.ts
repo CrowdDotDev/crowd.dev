@@ -55,10 +55,13 @@ export async function insertActivities(
 
   for (const row of toInsert) {
     if (enableLogging) {
-      logger.info(`Dispatching activity ${row.id} to ${ACTIVITIES_QUEUE_SETTINGS.name} queue`, {
-        activityId: row.id,
-        queue: ACTIVITIES_QUEUE_SETTINGS.name,
-      })
+      logger.info(
+        {
+          activityId: row.id,
+          queue: ACTIVITIES_QUEUE_SETTINGS.name,
+        },
+        'Dispatching activity to queue!',
+      )
     }
     await emitter.sendMessage(generateUUIDv4(), row, generateUUIDv4())
   }
