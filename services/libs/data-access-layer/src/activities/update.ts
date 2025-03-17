@@ -35,21 +35,19 @@ export async function streamActivities(
 
     qdb
       .stream(qs, async (stream) => {
-        for await (const item of stream) {
-          t.end()
+        try {
+          for await (const item of stream) {
+            t.end()
 
-          const activity = item as unknown as IDbActivityCreateData
-
-          try {
+            const activity = item as unknown as IDbActivityCreateData
             await onActivity(activity)
-          } catch (error) {
-            reject(error)
-            return
           }
-        }
 
-        processedAllRows = true
-        tryFinish()
+          processedAllRows = true
+          tryFinish()
+        } catch (error) {
+          reject(error)
+        }
       })
       .then((res) => {
         streamResult = res
