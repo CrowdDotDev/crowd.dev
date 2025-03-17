@@ -2,6 +2,7 @@ import { CollectionModel } from '../../collections/models/collection.model';
 
 export interface InsightsProjectModel {
   id: string;
+  slug: string;
   segmentId: string;
   segment: {
     id: string;
@@ -23,10 +24,6 @@ export interface InsightsProjectModel {
   linkedin: string;
   starred: boolean;
   enabled: boolean;
-  repositories: {
-    url: string;
-    enabled: boolean;
-    platforms: string[];
-  }[];
+  repositories: string[];
   widgets: string[];
 }

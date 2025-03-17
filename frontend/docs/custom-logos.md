@@ -22,13 +22,13 @@ The following steps provide a possible approach to add custom logos to custom pl
          ```
             export default {
                 name: 'Luma',
-                image: '/images/integrations/custom/luma.png',
+                image: '/src/assets/images/integrations/custom/luma.png',
                 url: () => null,
             };
          ```
 
 2. Add the new images to the project:
-   1. If you choose to add an image via a directory, add it to the `frontend/public/images/integrations/custom` folder. Create a`/custom` folder _if it's the first time adding a custom logo_.
+   1. If you choose to add an image via a directory, add it to the `frontend/public/src/assets/images/integrations/custom` folder. Create a`/custom` folder _if it's the first time adding a custom logo_.
    2. Support the svg logo by adding it to the `frontend/public/icons/crowd-icons.svg` file. E.g.:
       ```
       <symbol id="luma">

@@ -21,16 +21,20 @@ const getBuildInputs = (): IBuildInput => {
 }
 
 const getPushInputs = (): IPushInput => {
-  const username = process.env.DOCKERHUB_USERNAME
+  const username = process.env.ORACLE_DOCKER_USERNAME
   if (!username) {
-    core.error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!')
-    throw new Error('No DockerHub username found in DOCKERHUB_USERNAME environment variable!')
+    core.error('No Oracle Docker username found in ORACLE_DOCKER_USERNAME environment variable!')
+    throw new Error(
+      'No Oracle Docker username found in ORACLE_DOCKER_USERNAME environment variable!',
+    )
   }
 
-  const password = process.env.DOCKERHUB_PASSWORD
+  const password = process.env.ORACLE_DOCKER_PASSWORD
   if (!password) {
-    core.error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!')
-    throw new Error('No DockerHub password found in DOCKERHUB_PASSWORD environment variable!')
+    core.error('No Oracle Docker password found in ORACLE_DOCKER_PASSWORD environment variable!')
+    throw new Error(
+      'No Oracle Docker password found in ORACLE_DOCKER_PASSWORD environment variable!',
+    )
   }
 
   return {

@@ -1,9 +1,5 @@
 <template>
-  <el-form-item
-    prop="platforms"
-    :rules="rules"
-    class="mb-0"
-  >
+  <el-form-item prop="platforms" :rules="rules" class="mb-0">
     <div class="w-full">
       <article
         v-for="(platform, name) in platformOptions"
@@ -25,7 +21,7 @@
 
 <script setup>
 import { computed, defineProps, defineEmits } from 'vue';
-import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms.json';
+import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 
 const emit = defineEmits(['update:platforms']);
 const props = defineProps({

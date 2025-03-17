@@ -49,6 +49,11 @@ export interface IActivityCreateData {
 
 export interface IActivityData {
   /**
+   * Unique identifier of the activity.
+   */
+  id?: string
+
+  /**
    * Type of activity.
    * For example: comment, like, post, etc.
    */
