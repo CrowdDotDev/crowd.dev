@@ -89,7 +89,7 @@
         <div class="flex gap-4">
           <lf-button
             :disabled="loading"
-            type="secondary"
+            type="secondary-gray"
             size="medium"
             @click="handleCancel"
           >

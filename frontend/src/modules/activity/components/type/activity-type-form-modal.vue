@@ -26,7 +26,7 @@
         class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md"
       >
         <lf-button
-          type="secondary"
+          type="secondary-gray"
           size="medium"
           class="mr-4"
           @click="emit('update:modelValue', false)"

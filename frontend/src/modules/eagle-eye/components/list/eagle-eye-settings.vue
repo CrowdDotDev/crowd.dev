@@ -13,7 +13,7 @@
       <!-- Feed Settings-->
       <lf-button
         v-if="hasPermission(LfPermission.eagleEyeEdit)"
-        type="secondary"
+        type="secondary-gray"
         size="medium"
         class="w-full"
         @click="settingsDrawerOpen = true"

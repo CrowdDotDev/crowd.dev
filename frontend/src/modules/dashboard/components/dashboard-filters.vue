@@ -17,7 +17,7 @@
       size="large"
     >
       <lf-button
-        type="secondary"
+        type="secondary-gray"
         size="medium"
         class="bg-white !py-1.5 !px-3 outline-none"
       >

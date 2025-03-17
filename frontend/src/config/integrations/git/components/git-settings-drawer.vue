@@ -50,7 +50,7 @@
     <template #footer>
       <div>
         <lf-button
-          type="secondary"
+          type="secondary-gray"
           size="medium"
           class="mr-4"
           :disabled="loading"

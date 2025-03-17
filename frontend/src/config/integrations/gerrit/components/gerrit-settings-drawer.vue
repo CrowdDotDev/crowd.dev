@@ -78,7 +78,7 @@
     <template #footer>
       <div>
         <lf-button
-          type="secondary"
+          type="secondary-gray"
           class="mr-4"
           :disabled="loading"
           @click="cancel"

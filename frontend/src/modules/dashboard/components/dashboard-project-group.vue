@@ -26,7 +26,7 @@
 
     <div class="mt-8">
       <lf-button
-        type="secondary"
+        type="secondary-gray"
         size="medium"
         class="w-full mb-4"
         @click="isDrawerOpen = true"

@@ -46,7 +46,7 @@
         </div>
         <div class="pt-6 flex justify-end">
           <lf-button
-            type="secondary"
+            type="secondary-gray"
             size="large"
             class="mr-4"
             @click="emit('update:modelValue', null)"

@@ -142,7 +142,7 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="secondary"
+            type="secondary-gray"
             size="medium"
             @click="doCancel"
           >

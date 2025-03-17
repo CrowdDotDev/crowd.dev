@@ -28,7 +28,7 @@
       </lf-button>
       <lf-button
         v-if="secondaryBtn"
-        type="secondary"
+        type="secondary-gray"
         size="medium"
         @click="emit('secondaryClick')"
       >

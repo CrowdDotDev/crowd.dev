@@ -109,7 +109,7 @@
               }"
             >
               <lf-button
-                type="secondary"
+                type="secondary-gray"
                 size="medium"
                 class="w-full"
               >

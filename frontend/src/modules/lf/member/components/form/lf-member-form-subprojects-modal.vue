@@ -33,7 +33,7 @@
         class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
       >
         <lf-button
-          type="secondary"
+          type="secondary-gray"
           size="medium"
           class="mr-3"
           @click="model = false"

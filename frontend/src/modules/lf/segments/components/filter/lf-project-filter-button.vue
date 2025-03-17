@@ -2,7 +2,7 @@
   <span :data-tooltip="filterLabel.showTooltip ? filterLabel.text : null" data-tooltip-placement="top">
     <lf-button
       ref="buttonRef"
-      type="secondary"
+      type="secondary-gray"
       :class="btnClass || 'bg-white !py-1.5 !px-3 outline-none'"
       @click="openFilterPopover"
     >

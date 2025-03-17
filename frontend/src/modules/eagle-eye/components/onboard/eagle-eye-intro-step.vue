@@ -32,7 +32,7 @@
     href="https://docs.crowd.dev/docs/eagle-eye"
     target="_blank"
     rel="noopener noreferrer"
-    class="btn btn--secondary btn--full btn--md mt-5 hover:!text-gray-600"
+    class="c-btn c-btn--secondary-gray w-full c-btn--medium mt-5 hover:!text-gray-600"
   ><lf-icon name="book-open" :size="16" /><span>Read more</span></a>
 </template>
 

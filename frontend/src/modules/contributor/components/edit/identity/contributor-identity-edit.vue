@@ -150,7 +150,7 @@ const updateIdentity = () => {
               h(
                 'button',
                 {
-                  class: 'c-btn c-btn--tiny c-btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary-gray !h-6 !w-fit',
                   onClick: () => {
                     const { memberId, grandParentId } = error.response.data;
 

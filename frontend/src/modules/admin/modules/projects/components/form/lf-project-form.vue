@@ -94,7 +94,7 @@
     </template>
     <template #footer>
       <lf-button
-        type="secondary"
+        type="secondary-gray"
         size="medium"
         class="mr-4"
         @click="onCancel"

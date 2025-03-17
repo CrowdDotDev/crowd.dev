@@ -68,7 +68,7 @@
         <div class="flex flex-row gap-2">
           <lf-button
             v-if="!isAPIConnectionValid"
-            type="secondary"
+            type="secondary-gray"
             size="medium"
             :disabled="!isVerificationEnabled"
             :loading="isVerifyingAccount"
@@ -77,7 +77,7 @@
             Verify Account
           </lf-button>
 
-          <lf-button v-if="isAPIConnectionValid" type="secondary" size="medium" @click="reverifyAccount()">
+          <lf-button v-if="isAPIConnectionValid" type="secondary-gray" size="medium" @click="reverifyAccount()">
             Reverify Account
           </lf-button>
 
@@ -190,7 +190,7 @@
 
     <template #footer>
       <div style="flex: auto">
-        <lf-button type="secondary" size="medium" class="mr-3" :disabled="loading" @click="handleCancel">
+        <lf-button type="secondary-gray" size="medium" class="mr-3" :disabled="loading" @click="handleCancel">
           Cancel
         </lf-button>
         <lf-button

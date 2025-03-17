@@ -158,7 +158,7 @@
       <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
         <div class="mb-3 flex flex-row w-full justify-between">
           <lf-button
-            type="secondary"
+            type="secondary-gray"
             size="medium"
             :disabled="!!isWebhookVerifying"
             @click="verifyWebhook()"
@@ -190,7 +190,7 @@
     <template #footer>
       <div style="flex: auto">
         <lf-button
-          type="secondary"
+          type="secondary-gray"
           size="medium"
           class="mr-3"
           :disabled="loading"

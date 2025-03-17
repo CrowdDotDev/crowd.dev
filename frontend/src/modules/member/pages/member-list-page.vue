@@ -14,9 +14,10 @@
                 query: { projectGroup: selectedProjectGroup?.id },
               }"
             >
-              <button
-                type="button"
-                class="btn btn--secondary btn--md flex items-center"
+              <lf-button
+                type="secondary-gray"
+                size="medium"
+                class="flex items-center"
               >
                 <lf-icon name="shuffle" :size="16" class="text-gray-900 mr-2" />
                 <span class="text-gray-900">Merge suggestions</span>
@@ -24,7 +25,7 @@
                   v-if="membersToMergeCount > 0"
                   class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                 >{{ Math.ceil(membersToMergeCount) }}</span>
-              </button>
+              </lf-button>
             </router-link>
 
             <lf-button
