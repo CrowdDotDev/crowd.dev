@@ -18,7 +18,7 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       activity_type: this.ctx.info.activityType,
     }
 
-    const timer = telemetry.timer('temporal.activity_execution_duration', tags)
+    const start = new Date()
 
     try {
       const res = await next(input)
@@ -36,7 +36,13 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       log.error(err, 'Error while processing an activity!')
       throw err
     } finally {
-      timer.stop()
+      const end = new Date()
+      const duration = end.getTime() - start.getTime()
+
+      // Only send telemetry if duration is more than 2 hours
+      if (duration > 2 * 60 * 60 * 1000) {
+        telemetry.distribution('temporal.activity_execution_duration', duration, tags)
+      }
     }
   }
 }

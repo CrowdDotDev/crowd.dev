@@ -36,6 +36,10 @@ export const logExecutionTimeV2 = async <T>(
     return durationInSeconds.toFixed(2)
   }
   try {
+    if (process.env.CROWD_LOG_EXECUTION_START) {
+      log.info(`Starting process ${name}...`)
+    }
+
     const result = await toProcess()
     log.info(`Process ${name} took ${end()} seconds!`)
     return result

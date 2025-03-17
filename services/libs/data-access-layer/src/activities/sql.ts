@@ -2,10 +2,11 @@
 import merge from 'lodash.merge'
 import moment from 'moment'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
+import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
+import { queryOverHttp } from '@crowd/questdb'
 import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
@@ -29,7 +30,7 @@ import {
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { IDbOrganizationAggregateData } from '../organizations'
-import { QueryExecutor } from '../queryExecutor'
+import { QueryExecutor, formatQuery } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
 import {
@@ -615,13 +616,19 @@ export async function queryActivities(
 
     logger.debug('QuestDB activity query', query)
 
-    const [results, countResults] = await Promise.all([
-      qdbConn.any(query, params),
-      arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(countQuery, params),
-    ])
+    if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
+      const formatted = formatQuery(query, params)
+      activities = await queryOverHttp(formatted)
+      count = 0
+    } else {
+      const [results, countResults] = await Promise.all([
+        qdbConn.any(query, params),
+        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(countQuery, params),
+      ])
 
-    activities = results
-    count = countResults[0] ? countResults[0].count : 0
+      activities = results
+      count = countResults[0] ? countResults[0].count : 0
+    }
   }
 
   const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
@@ -1422,6 +1429,7 @@ export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): P
 export async function createOrUpdateRelations(
   qe: QueryExecutor,
   data: IActivityRelationCreateOrUpdateData,
+  skipChecks = false,
 ): Promise<void> {
   if (data.username === undefined || data.username === null) {
     return
@@ -1435,133 +1443,130 @@ export async function createOrUpdateRelations(
     return
   }
 
-  // check objectMember exists
-  if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
-    let objectMember = await qe.select(
-      `
-      SELECT id
-      FROM members
-      WHERE id = $(objectMemberId)
-    `,
-      {
-        objectMemberId: data.objectMemberId,
-      },
-    )
+  if (!skipChecks) {
+    // check objectMember exists
+    if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
+      let objectMember = await qe.select(
+        `
+    SELECT id
+    FROM members
+    WHERE id = $(objectMemberId)
+  `,
+        {
+          objectMemberId: data.objectMemberId,
+        },
+      )
 
-    if (objectMember.length === 0) {
-      if (data.objectMemberUsername && data.platform) {
-        objectMember = await qe.select(
-          `
-          SELECT "memberId"
-          FROM "memberIdentities"
-          WHERE value = $(value) and platform = $(platform) and verified = true
-          limit 1
-        `,
-          {
-            value: data.objectMemberUsername,
-            platform: data.platform,
-          },
-        )
+      if (objectMember.length === 0) {
+        if (data.objectMemberUsername && data.platform) {
+          objectMember = await qe.select(
+            `
+        SELECT "memberId"
+        FROM "memberIdentities"
+        WHERE value = $(value) and platform = $(platform) and verified = true
+        limit 1
+      `,
+            {
+              value: data.objectMemberUsername,
+              platform: data.platform,
+            },
+          )
 
-        if (objectMember.length === 0) {
-          data.objectMemberId = null
+          if (objectMember.length === 0) {
+            data.objectMemberId = null
+          } else {
+            data.objectMemberId = objectMember[0].memberId
+          }
         } else {
-          data.objectMemberId = objectMember[0].memberId
+          data.objectMemberId = null
         }
-      } else {
-        data.objectMemberId = null
       }
     }
-  }
 
-  // check conversation exists
-  if (data.conversationId !== undefined && data.conversationId !== null) {
-    const conversation = await qe.select(
-      `
-      SELECT id
-      FROM conversations
-      WHERE id = $(conversationId)
-    `,
-      {
-        conversationId: data.conversationId,
-      },
-    )
+    // check conversation exists
+    if (data.conversationId !== undefined && data.conversationId !== null) {
+      const conversation = await qe.select(
+        `
+    SELECT id
+    FROM conversations
+    WHERE id = $(conversationId)
+  `,
+        {
+          conversationId: data.conversationId,
+        },
+      )
 
-    if (conversation.length === 0) {
-      data.conversationId = null
+      if (conversation.length === 0) {
+        data.conversationId = null
+      }
     }
-  }
 
-  // if segmentId is empty, skip adding this activity relation
-  if (data.segmentId == undefined || data.segmentId == null) {
-    return
-  }
-
-  // check segmentId exists
-  const segment = await qe.select(
-    `
+    // check segmentId exists
+    const segment = await qe.select(
+      `
     SELECT id
     FROM segments
     WHERE id = $(segmentId)
   `,
-    {
-      segmentId: data.segmentId,
-    },
-  )
+      {
+        segmentId: data.segmentId,
+      },
+    )
 
-  if (segment.length === 0) {
-    // segment not found, skip adding this activity relation
-    return
-  }
+    if (segment.length === 0) {
+      // segment not found, skip adding this activity relation
+      return
+    }
 
-  // check member exists
-  let member = await qe.select(
-    `
+    // check member exists
+    let member = await qe.select(
+      `
     SELECT id
     FROM members
     WHERE id = $(memberId)
   `,
-    {
-      memberId: data.memberId,
-    },
-  )
+      {
+        memberId: data.memberId,
+      },
+    )
 
-  if (member.length === 0) {
-    // find member using identity
-    member = await qe.select(
-      `
+    if (member.length === 0) {
+      // find member using identity
+      member = await qe.select(
+        `
       SELECT "memberId"
       FROM "memberIdentities"
       WHERE value = $(value) and platform = $(platform) and verified = true
       limit 1
     `,
-      {
-        value: data.username,
-        platform: data.platform,
-      },
-    )
-    if (member.length === 0) {
-      // member not found, skip adding this activity relation
-      return
-    } else {
-      data.memberId = member[0].memberId
+        {
+          value: data.username,
+          platform: data.platform,
+        },
+      )
+      if (member.length === 0) {
+        // member not found, skip adding this activity relation
+        return
+      } else {
+        data.memberId = member[0].memberId
+      }
     }
-  }
 
-  if (data.organizationId !== undefined && data.organizationId !== null) {
-    const organization = await qe.select(
-      `
+    if (data.organizationId !== undefined && data.organizationId !== null) {
+      const organization = await qe.select(
+        `
       SELECT id
       FROM organizations
       WHERE id = $(organizationId)
     `,
-      {
-        organizationId: data.organizationId,
-      },
-    )
+        {
+          organizationId: data.organizationId,
+        },
+      )
 
-    if (organization.length === 0) {
-      data.organizationId = null
+      if (organization.length === 0) {
+        data.organizationId = null
+      }
     }
   }
 
@@ -1791,6 +1796,43 @@ export async function getActivityRelationsSortedByTimestamp(
   const rows = await qdbConn.any(query, {
     cursorActivityTimestamp,
     limit,
+  })
+
+  return rows
+}
+
+export async function getActivitiesSortedByTimestamp(
+  qdbConn: DbConnOrTx,
+  cursorActivityTimestamp?: string,
+  segmentIds?: string[],
+  limit = 100,
+) {
+  let cursorQuery = ''
+  let segmentQuery = ''
+
+  if (cursorActivityTimestamp) {
+    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
+  }
+
+  if (segmentIds && segmentIds.length > 0) {
+    segmentQuery = `AND "segmentId" IN ($(segmentIds:csv))`
+  }
+
+  const query = `
+    SELECT 
+      *
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    ${cursorQuery}
+    ${segmentQuery}
+    ORDER BY "timestamp" asc
+    LIMIT ${limit}
+  `
+
+  const rows = await qdbConn.any(query, {
+    cursorActivityTimestamp,
+    limit,
+    segmentIds,
   })
 
   return rows

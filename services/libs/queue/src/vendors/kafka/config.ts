@@ -47,6 +47,7 @@ export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
 
 export const ACTIVITIES_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.ACTIVITIES,
+  useOnlyNameAsChannel: true,
   replicationFactor: 1,
   partitions: {
     default: 1,

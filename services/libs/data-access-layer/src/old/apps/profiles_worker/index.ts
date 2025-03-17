@@ -440,8 +440,7 @@ export async function updateAffiliationsLastCheckedAt(db: DbStore): Promise<void
   try {
     await db.connection().any(
       `
-        update tenants set "affiliationsLastCheckedAt" = now()
-        limit 1
+        update tenants set "affiliationsLastCheckedAt" = now();
       `,
     )
   } catch (err) {

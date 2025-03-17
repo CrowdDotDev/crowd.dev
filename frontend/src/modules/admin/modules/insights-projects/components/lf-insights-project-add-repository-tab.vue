@@ -15,7 +15,7 @@
           name="git-repository"
           class="!block w-5 h-5 text-gray-900 mr-3"
         />
-        <span class="text-gray-900 text-sm">{{ repository.url }}</span>
+        <span class="text-gray-900 text-sm">{{ repository.label }}</span>
       </div>
       <div
         class="flex items-center gap-2 border border-gray-200 rounded-[100px] px-2 ml-3"

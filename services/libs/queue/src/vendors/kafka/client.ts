@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createHash } from 'crypto'
-import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
+import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage, Producer } from 'kafkajs'
 
-import { timeout } from '@crowd/common'
+import { SERVICE, groupBy, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
+import telemetry from '@crowd/telemetry'
 import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 
 import {
@@ -27,6 +28,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
+  private producer?: Producer | undefined = undefined
 
   public constructor(
     public readonly client: Kafka,
@@ -41,6 +43,17 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.reconnectAttempts = new Map<string, number>()
     this.consumerStatus = new Map<string, boolean>()
   }
+
+  async getProducer(): Promise<Producer> {
+    if (!this.producer) {
+      const producer = this.client.producer()
+      await producer.connect()
+      this.producer = producer
+    }
+
+    return this.producer
+  }
+
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const groupId = conf.name
     const topic = conf.name
@@ -79,9 +92,14 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     message: IQueueMessage,
     groupId: string,
   ): Promise<IQueueSendResult> {
+    telemetry.increment('kafka.send', 1, {
+      topic: channel.name,
+      type: message.type,
+      service: SERVICE,
+    })
+
+    const producer = await this.getProducer()
     // send message to kafka
-    const producer = this.client.producer()
-    await producer.connect()
     const result = await producer.send({
       topic: channel.name,
       messages: [
@@ -94,7 +112,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.trace({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
 
@@ -320,8 +337,16 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
   ): Promise<IQueueSendBulkResult> {
-    const producer = this.client.producer()
-    await producer.connect()
+    for (const [type, data] of groupBy(messages, (m) => m.payload.type)) {
+      telemetry.increment('kafka.send', data.length, {
+        topic: channel.name,
+        type,
+        service: SERVICE,
+      })
+    }
+
+    const producer = await this.getProducer()
+
     const result = await producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
@@ -332,9 +357,9 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
+
   public async start(
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,

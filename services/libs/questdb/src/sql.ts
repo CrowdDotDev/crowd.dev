@@ -1,3 +1,4 @@
+import axios from 'axios'
 import pgpromise from 'pg-promise'
 
 import { IS_PROD_ENV } from '@crowd/common'
@@ -7,6 +8,38 @@ import telemetry from '@crowd/telemetry'
 const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
+
+export const queryOverHttp = async <T>(query: string): Promise<T[]> => {
+  try {
+    const response = await axios.get(`https://${process.env.CROWD_QUESTDB_ILP_HOST}/exec`, {
+      params: {
+        query,
+        timings: true,
+      },
+      auth: {
+        username: process.env.CROWD_QUESTDB_SQL_USERNAME,
+        password: process.env.CROWD_QUESTDB_SQL_PASSWORD,
+      },
+    })
+
+    const rows: T[] = []
+    const columns = response.data.columns.map((c) => c.name)
+
+    for (const row of response.data.dataset) {
+      const res: T = {} as T
+      for (let i = 0; i < row.length; i++) {
+        res[columns[i]] = row[i]
+      }
+
+      rows.push(res)
+    }
+
+    return rows
+  } catch (err) {
+    log.error(err, 'Error executing a QuestDB HTTP query!')
+    throw err
+  }
+}
 
 export const getClientSQL = async (
   profileQueries?: boolean,

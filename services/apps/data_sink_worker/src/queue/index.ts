@@ -1,6 +1,6 @@
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
@@ -42,27 +42,37 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     try {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
-      const service = new DataSinkService(
-        new DbStore(this.log, this.pgConn, undefined, false),
-        new DbStore(this.log, this.qdbConn, undefined, false),
-        this.searchSyncWorkerEmitter,
-        this.dataSinkWorkerEmitter,
-        this.redisClient,
-        this.temporal,
-        this.client,
-        this.log,
-      )
-
       switch (message.type) {
-        case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
-          await logExecutionTimeV2(
-            () => service.processResult((message as ProcessIntegrationResultQueueMessage).resultId),
-            this.log,
-            'processResult',
+        case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT: {
+          const resultId = (message as ProcessIntegrationResultQueueMessage).resultId
+          const logger = getChildLogger('processIntegrationResult', this.log, { resultId })
+          const service = new DataSinkService(
+            new DbStore(logger, this.pgConn, undefined, false),
+            new DbStore(logger, this.qdbConn, undefined, false),
+            this.searchSyncWorkerEmitter,
+            this.dataSinkWorkerEmitter,
+            this.redisClient,
+            this.temporal,
+            this.client,
+            logger,
           )
+
+          await logExecutionTimeV2(() => service.processResult(resultId), logger, 'processResult')
           break
+        }
+
         case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
           const msg = message as CreateAndProcessActivityResultQueueMessage
+          const service = new DataSinkService(
+            new DbStore(this.log, this.pgConn, undefined, false),
+            new DbStore(this.log, this.qdbConn, undefined, false),
+            this.searchSyncWorkerEmitter,
+            this.dataSinkWorkerEmitter,
+            this.redisClient,
+            this.temporal,
+            this.client,
+            this.log,
+          )
           await logExecutionTimeV2(
             () =>
               service.processActivityInMemoryResult(
@@ -76,6 +86,16 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
           break
         }
         case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+          const service = new DataSinkService(
+            new DbStore(this.log, this.pgConn, undefined, false),
+            new DbStore(this.log, this.qdbConn, undefined, false),
+            this.searchSyncWorkerEmitter,
+            this.dataSinkWorkerEmitter,
+            this.redisClient,
+            this.temporal,
+            this.client,
+            this.log,
+          )
           await service.checkResults()
           break
         }

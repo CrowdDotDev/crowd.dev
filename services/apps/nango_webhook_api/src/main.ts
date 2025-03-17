@@ -12,11 +12,12 @@ import { HttpStatusError } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { ALL_NANGO_INTEGRATIONS, INangoWebhookPayload, NangoIntegration } from '@crowd/nango'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  // const temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
 
   const app = express()
 
@@ -49,15 +50,15 @@ setImmediate(async () => {
         'Received nango webhook!',
       )
 
-      // await temporal.workflow.start('processNangoWebhook', {
-      //   taskQueue: 'nango',
-      //   workflowId: `nango-webhook/${payload.providerConfigKey}/${payload.connectionId}/${payload.model}`,
-      //   workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-      //   retry: {
-      //     maximumAttempts: 10,
-      //   },
-      //   args: [payload],
-      // })
+      await temporal.workflow.start('processNangoWebhook', {
+        taskQueue: 'nango',
+        workflowId: `nango-webhook/${payload.providerConfigKey}/${payload.connectionId}/${payload.model}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [payload],
+      })
 
       res.sendStatus(204)
     }),

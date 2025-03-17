@@ -17,7 +17,11 @@ export abstract class QueueBase extends LoggerBase {
       queueName: queueConf.name,
     })
 
-    this.channelName = `${queueConf.name}${this.getQueueSuffix()}`
+    if (queueConf.useOnlyNameAsChannel) {
+      this.channelName = queueConf.name
+    } else {
+      this.channelName = `${queueConf.name}${this.getQueueSuffix()}`
+    }
   }
 
   public isInitialized(): boolean {
@@ -132,7 +136,7 @@ export class QueueEmitter extends QueueBase {
     if (messages.length > 10) {
       throw new Error('Maximum number of messages to send is 10!')
     }
-    this.queue.sendBulk(this.getChannel(), messages)
+    await this.queue.sendBulk(this.getChannel(), messages)
   }
 
   public async setMessageVisibilityTimeout(
