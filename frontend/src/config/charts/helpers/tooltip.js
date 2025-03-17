@@ -138,7 +138,7 @@ export const externalTooltipHandler = (
       footerBtn = document.createElement('button');
       footerBtn.id = 'custom-tooltip-footer-btn';
       tooltip.footer.forEach((lines) => {
-        footerBtn.className = 'btn btn--sm btn--full btn--secondary mt-4';
+        footerBtn.className = 'c-btn c-btn--small w-full c-btn--secondary-gray mt-4';
         footerBtn.innerText = lines;
         tooltipEl.appendChild(footerBtn);
       });
