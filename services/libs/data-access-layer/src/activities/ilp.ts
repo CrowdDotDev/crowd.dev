@@ -15,6 +15,7 @@ const logger = getServiceChildLogger('insert-activities')
 export async function insertActivities(
   queueClient: IQueue,
   activities: IDbActivityCreateData[],
+  enableLogging = false,
 ): Promise<string[]> {
   const now = moment().toISOString()
 
@@ -53,6 +54,12 @@ export async function insertActivities(
   const emitter = new QueueEmitter(queueClient, ACTIVITIES_QUEUE_SETTINGS, logger)
 
   for (const row of toInsert) {
+    if (enableLogging) {
+      logger.info(`Dispatching activity ${row.id} to ${ACTIVITIES_QUEUE_SETTINGS.name} queue`, {
+        activityId: row.id,
+        queue: ACTIVITIES_QUEUE_SETTINGS.name,
+      })
+    }
     await emitter.sendMessage(generateUUIDv4(), row, generateUUIDv4())
   }
   telemetry.increment('questdb.insert_activity', activities.length)
