@@ -24,11 +24,13 @@
               },
             }"
           >
-            <el-button
-              class="btn btn--sm btn--primary ml-3"
+            <lf-button
+              type="primary"
+              size="small"
+              class="ml-3"
             >
               Manage integrations
-            </el-button>
+            </lf-button>
           </router-link>
         </div>
       </banner>
@@ -52,11 +54,13 @@
               },
             }"
           >
-            <el-button
-              class="btn btn--sm btn--primary ml-3"
+            <lf-button
+              type="primary"
+              size="small"
+              class="ml-3"
             >
               Project group settings
-            </el-button>
+            </lf-button>
           </router-link>
         </div>
       </banner>
@@ -82,11 +86,13 @@
               },
             }"
           >
-            <el-button
-              class="btn btn--sm btn--primary ml-3"
+            <lf-button
+              type="primary"
+              size="small"
+              class="ml-3"
             >
               Manage integrations
-            </el-button>
+            </lf-button>
           </router-link>
         </div>
       </banner>
@@ -110,11 +116,13 @@
               },
             }"
           >
-            <el-button
-              class="btn btn--sm btn--primary ml-3"
+            <lf-button
+              type="primary"
+              size="small"
+              class="ml-3"
             >
               Project group settings
-            </el-button>
+            </lf-button>
           </router-link>
         </div>
       </banner>
@@ -134,6 +142,7 @@ import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { useRoute } from 'vue-router';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 

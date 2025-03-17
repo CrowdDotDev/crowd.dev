@@ -38,15 +38,16 @@
           >
             Primary profile
           </div>
-          <button
+          <lf-button
             v-else
-            type="button"
-            class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
+            type="secondary-gray"
+            size="small"
+            class="leading-5 !px-4 !py-1"
             @click="emit('makePrimary')"
           >
             <lf-icon name="arrow-right-arrow-left" type="solid" :size="16" class="text-gray-600 mr-2" />
             <span>Make primary</span>
-          </button>
+          </lf-button>
           <slot name="action" />
         </div>
       </slot>
@@ -297,6 +298,7 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   member: {

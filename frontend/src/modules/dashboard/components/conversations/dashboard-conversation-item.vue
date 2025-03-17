@@ -52,7 +52,7 @@
                 >
                   <img
                     :alt="platform.name"
-                    class="w-4 h-4"
+                    class="min-w-4 h-4"
                     :src="platform.image"
                   />
                 </el-tooltip>

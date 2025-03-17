@@ -16,7 +16,7 @@
         <div class="flex flex-col gap-4">
           <article v-for="repo of currentRepos" :key="repo.id" class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="w-4 h-4" />
+              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="min-w-4 h-4" />
               <a
                 :href="repo.url"
                 target="_blank"
@@ -41,7 +41,7 @@
         <div v-for="repo of previousRepos" :key="repo.id" class="flex flex-col gap-4">
           <article class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="w-4 h-4" />
+              <img :src="lfIdentities[repo.repoType]?.image" :alt="repo.repoType" class="min-w-4 h-4" />
               <a
                 :href="repo.url"
                 target="_blank"

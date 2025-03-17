@@ -79,7 +79,7 @@
                       <div class="flex items-center flex-nowrap whitespace-nowrap">
                         <div class="min-w-5">
                           <lf-tooltip :content="identity.platform">
-                            <img :src="lfIdentities[identity.platform]?.image" class="h-5 w-5" :alt="identity.platform" />
+                            <img :src="lfIdentities[identity.platform]?.image" class="h-5 min-w-5" :alt="identity.platform" />
                           </lf-tooltip>
                         </div>
                         <p

@@ -13,13 +13,14 @@
       automatically in your inbox.
     </div>
 
-    <el-button
+    <lf-button
       v-if="hasPermission(LfPermission.eagleEyeEdit)"
-      class="btn btn--primary btn--full !h-8"
+      type="primary"
+      class="w-full !h-8"
       @click="isEmailDigestDrawerOpen = true"
     >
       Activate Email Digest
-    </el-button>
+    </lf-button>
   </div>
 
   <div
@@ -44,12 +45,13 @@
       </div>
     </div>
 
-    <el-button
-      class="btn btn-link btn-link--primary !h-8 !w-8"
+    <lf-button
+      type="primary-link"
+      class="!h-8 !w-8"
       @click="isEmailDigestDrawerOpen = true"
     >
       <lf-icon name="gear" :size="16" />
-    </el-button>
+    </lf-button>
   </div>
 
   <app-eagle-eye-email-digest-drawer
@@ -65,6 +67,7 @@ import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);

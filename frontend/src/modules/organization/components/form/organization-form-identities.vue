@@ -10,7 +10,7 @@
           <img
             :src="lfIdentities[key].image"
             :alt="lfIdentities[key].name"
-            class="w-6"
+            class="min-w-6"
           />
         </div>
         <div class="flex-grow">
@@ -21,39 +21,57 @@
             >
               <el-input
                 v-model="model[ii].value"
-                :placeholder="identity.value.length ? identity.value : 'johndoe'"
+                :placeholder="
+                  identity.value.length ? identity.value : 'johndoe'
+                "
               >
                 <template #prepend>
-                  <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
+                  <span class="font-medium text-gray-500">{{
+                    value.urlPrefix
+                  }}</span>
                 </template>
               </el-input>
 
               <el-tooltip
-                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 "
-                :disabled="!staticModel[ii]?.valye || staticModel[ii]?.valye === model[ii].valye"
+                v-if="
+                  props.showUnmerge && Object.entries(identitiesForm).length > 1
+                "
+                :disabled="
+                  !staticModel[ii]?.valye
+                    || staticModel[ii]?.valye === model[ii].valye
+                "
                 content="Not possible to unmerge an unsaved identity"
                 placement="top"
               >
                 <div>
-                  <el-button
-                    class="btn btn--md btn--transparent block w-8 !h-8 p-0"
-                    :disabled="!staticModel[ii]?.valye || staticModel[ii]?.valye !== model[ii].valye"
-                    @click="emit('unmerge', {
-                      platform: key,
-                      valye: staticModel[ii]?.value,
-                    })"
+                  <lf-button
+                    type="secondary-ghost"
+                    size="medium"
+                    class="block w-8 !h-8 p-0"
+                    :disabled="
+                      !staticModel[ii]?.valye
+                        || staticModel[ii]?.valye !== model[ii].valye
+                    "
+                    @click="
+                      emit('unmerge', {
+                        platform: key,
+                        valye: staticModel[ii]?.value,
+                      })
+                    "
                   >
                     <lf-icon name="link-slash" :size="20" />
-                  </el-button>
+                  </lf-button>
                 </div>
               </el-tooltip>
-              <el-button
+              <lf-button
                 :disabled="editingDisabled(key)"
-                class="btn btn--md btn--transparent w-8 !h-8"
+                type="secondary-ghost"
+                size="medium"
+                class="w-8 !h-8"
                 @click="removeUsername(ii)"
               >
                 <lf-icon name="trash-can" :size="20" />
-              </el-button>
+              </lf-button>
             </article>
           </template>
         </div>
@@ -68,6 +86,7 @@ import {
 } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { OrganizationIdentityType } from '../../types/Organization';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
@@ -110,20 +129,19 @@ watch(
   (organization, previous) => {
     if (!previous) {
       const { identities } = organization;
-      const platforms = [...new Set(organization.identities.map((i) => i.platform))];
+      const platforms = [
+        ...new Set(organization.identities.map((i) => i.platform)),
+      ];
       const noIdentity = Object.keys(identitiesForm)
         .filter((platform) => !platforms.includes(platform))
-        .map((platform) => (reactive({
+        .map((platform) => reactive({
           value: '',
           type: OrganizationIdentityType.USERNAME,
           verified: true,
           platform,
-        })));
+        }));
 
-      model.value = [
-        ...identities,
-        ...noIdentity,
-      ];
+      model.value = [...identities, ...noIdentity];
     }
   },
   { deep: true, immediate: true },
@@ -134,8 +152,10 @@ watch(
   (value) => {
     // Parse username object
 
-    const identities = value
-      .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.value?.trim().length);
+    const identities = value.filter(
+      (i) => !Object.keys(identitiesForm).includes(i.platform)
+        || !!i.value?.trim().length,
+    );
 
     // Emit updated member
     emit('update:modelValue', {

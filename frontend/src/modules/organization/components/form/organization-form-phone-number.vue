@@ -9,12 +9,14 @@
         class="pb-3"
       >
         <template #actions>
-          <el-button
-            class="btn btn--md btn--transparent w-10 h-10"
+          <lf-button
+            type="secondary-ghost"
+            size="medium"
+            class="w-10 h-10"
             @click="removePhoneNumber(ei)"
           >
             <lf-icon name="trash-can" :size="20" />
-          </el-button>
+          </lf-button>
         </template>
       </app-organization-form-phone-number-item>
       <div class="flex">
@@ -33,6 +35,7 @@ import {
 import AppOrganizationFormPhoneNumberItem
   from '@/modules/organization/components/form/organization-form-phone-number-item.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 

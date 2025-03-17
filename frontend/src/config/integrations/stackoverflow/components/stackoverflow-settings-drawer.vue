@@ -10,7 +10,7 @@
   >
     <template #beforeTitle>
       <img
-        class="w-6 h-6 mr-2"
+        class="min-w-6 h-6 mr-2"
         :src="logoUrl"
         alt="Stack Overflow logo"
       />
@@ -56,13 +56,16 @@
                   />
                 </template>
               </el-input>
-              <el-button
+              <lf-button
                 v-if="model.length > 1"
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                type="primary-link"
+                size="medium"
+                icon-only
+                class="w-10 h-10"
                 @click="deleteItem(index)"
               >
                 <lf-icon name="trash-can" :size="20" class="text-black" />
-              </el-button>
+              </lf-button>
             </div>
             <span
               v-if="tag.touched && !tag.valid"
@@ -88,13 +91,14 @@
             placement="top-start"
           >
             <div>
-              <el-button
+              <lf-button
+                type="primary-link"
+                size="medium"
                 :disabled="isMaxTagsReached"
-                class="btn btn-link btn-link--primary"
                 @click="addNewTag"
               >
                 + Add Tag
-              </el-button>
+              </lf-button>
             </div>
           </el-tooltip>
           <span class="text-sm font-medium mt-6">Track keywords</span>
@@ -127,27 +131,28 @@
           hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button
+        <lf-button
           v-if="hasFormChanged"
-          class="btn btn-link btn-link--primary"
+          type="primary-link"
+          size="medium"
           @click="doReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button
-            class="btn btn--md btn--secondary"
+          <lf-button
+            type="secondary-gray"
+            size="medium"
             @click="doCancel"
           >
             Cancel
-          </el-button>
-          <el-button
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="medium"
+            :disabled="!hasFormChanged || connectDisabled"
             :loading="isVolumeUpdating"
-            class="btn btn--md btn--primary"
-            :class="{
-              disabled: !hasFormChanged || connectDisabled,
-            }"
             @click="
               hasFormChanged && !connectDisabled
                 ? connect()
@@ -159,7 +164,7 @@
                 ? 'Update'
                 : 'Connect'
             }}
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -181,6 +186,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;

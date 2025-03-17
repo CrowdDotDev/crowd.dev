@@ -44,7 +44,7 @@
             v-if="platform === 'gerrit'"
             :src="gerritImage"
             alt="Gerrit"
-            class="w-5 h-5"
+            class="min-w-5 h-5"
           />
         </template>
       </div>

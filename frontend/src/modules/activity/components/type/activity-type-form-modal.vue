@@ -25,20 +25,23 @@
       <footer
         class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md"
       >
-        <el-button
-          class="btn btn--secondary btn--md mr-4"
+        <lf-button
+          type="secondary-gray"
+          size="medium"
+          class="mr-4"
           @click="emit('update:modelValue', false)"
         >
           Cancel
-        </el-button>
-        <el-button
-          class="btn btn--primary btn--md"
+        </lf-button>
+        <lf-button
+          type="primary"
+          size="medium"
           :disabled="$v.$invalid || !hasFormChanged"
           @click="submit()"
         >
           <span v-if="isEdit">Update</span>
           <span v-else>Add activity type</span>
-        </el-button>
+        </lf-button>
       </footer>
     </template>
   </app-dialog>
@@ -59,6 +62,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 // Props & Emits
 const props = defineProps({

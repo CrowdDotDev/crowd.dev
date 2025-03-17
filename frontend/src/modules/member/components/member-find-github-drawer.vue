@@ -39,12 +39,13 @@
           </div>
         </div>
         <div class="mt-4">
-          <el-button
-            class="btn btn--md btn--bordered"
+          <lf-button
+            size="medium"
+            type="bordered"
             @click="searchContactOnGoogle"
           >
             Not a match? Search Google instead
-          </el-button>
+          </lf-button>
         </div>
       </div>
       <div v-else-if="!loading">
@@ -59,21 +60,23 @@
     </template>
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
+        <lf-button
+          type="bordered"
+          size="medium"
+          class="mr-3"
           @click="handleCancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
+          size="medium"
           :disabled="isSubmitBtnDisabled || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
         >
           Update
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -92,6 +95,7 @@ import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const store = useStore();
 const props = defineProps({

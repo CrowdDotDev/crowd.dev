@@ -31,7 +31,7 @@ export default class Message {
         message: options.title ? message : null,
         customClass: 'success',
         icon: successIcon,
-        duration: 6000,
+        duration: 116000,
         dangerouslyUseHTMLString: true,
         position: 'bottom-right',
         offset: 24,
