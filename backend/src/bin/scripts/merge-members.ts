@@ -82,8 +82,6 @@ if (parameters.help || !parameters.originalId || !parameters.targetId || !parame
 
     options.currentTenant = { id: originalMember.tenantId }
 
-    options.currentUser = { id: parameters.actionBy }
-
     for (const targetId of targetIds) {
       const targetMember = await findMemberById(qx, targetId, [
         MemberField.ID,
