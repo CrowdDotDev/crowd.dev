@@ -46,13 +46,6 @@ class MemberSimilarityCalculator {
       return 0.2
     }
 
-    // check displayName match
-    if (
-      similarMember.keyword_displayName.toLowerCase() === primaryMember.displayName.toLowerCase()
-    ) {
-      return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
-    }
-
     // We check if there are any verified<->unverified email matches between primary & similar members
     if (
       (similarMemberUnverifiedEmails &&
@@ -112,6 +105,13 @@ class MemberSimilarityCalculator {
           similarPrimaryIdentity = primaryIdentity
         }
       }
+    }
+
+    // check displayName match
+    if (
+      similarMember.keyword_displayName.toLowerCase() === primaryMember.displayName.toLowerCase()
+    ) {
+      return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
     }
 
     // calculate similarity percentage

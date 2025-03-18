@@ -186,22 +186,23 @@
     </template>
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
+        <lf-button
+          type="bordered"
+          size="medium"
+          class="mr-3"
           @click="isDrawerOpen = false"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :loading="sending"
-          :disabled="$v.$invalid
-            || (isEdit && !hasFormChanged)"
+          :disabled="$v.$invalid || (!!isEdit && !hasFormChanged)"
           @click="submit()"
         >
           {{ isEdit ? 'Update' : 'Add view' }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -227,6 +228,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   modelValue: boolean,

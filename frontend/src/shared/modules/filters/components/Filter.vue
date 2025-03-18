@@ -9,14 +9,15 @@
         :custom-config="props.customConfig || {}"
         @open="open = $event"
       />
-      <el-button
+      <lf-button
         v-if="isDeveloperModeActive"
-        class="btn btn-primary--secondary !bg-purple-100 !text-purple-600"
+        type="secondary"
+        class="!bg-purple-100 !text-purple-600"
         @click="copyToClipboard"
       >
         <lf-icon name="clipboard" />
         <span>Copy JSON query</span>
-      </el-button>
+      </lf-button>
       <slot name="actions" />
     </div>
     <div class="flex items-center flex-wrap">
@@ -72,6 +73,7 @@ import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   modelValue: Filter,

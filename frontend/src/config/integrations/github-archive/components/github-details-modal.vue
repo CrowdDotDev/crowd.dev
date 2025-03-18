@@ -8,14 +8,14 @@
             <img
               :src="githubImage"
               alt="GitHub"
-              class="w-8 h-8 object-contain"
+              class="min-w-8 h-8 object-contain"
             />
           </div>
           <div>
             <lf-icon name="angle-right" :size="20" class="text-gray-500" />
           </div>
           <div class="border border-gray-200 rounded-md h-12 w-12 p-2">
-            <img :src="lfxImage" alt="LFX" class="w-8 h-8 object-contain" />
+            <img :src="lfxImage" alt="LFX" class="min-w-8 h-8 object-contain" />
           </div>
         </div>
         <lf-button

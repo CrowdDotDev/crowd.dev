@@ -11,10 +11,10 @@
     </span>
 
     <el-dropdown trigger="click" @command="handleCommand">
-      <button type="button" class="btn btn--secondary btn--sm">
+      <lf-button type="secondary-gray" size="small">
         <span class="mr-2">Actions</span>
         <lf-icon name="chevron-down" :size="24" />
-      </button>
+      </lf-button>
       <template #dropdown>
         <el-dropdown-item :command="{ action: 'export' }">
           <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
@@ -94,6 +94,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();

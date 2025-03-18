@@ -11,7 +11,7 @@
       <lf-tooltip v-else-if="lfIdentities[props.identity.platform]" placement="top-start" :content="lfIdentities[props.identity.platform].name">
         <img
           :src="lfIdentities[props.identity.platform].image"
-          class="h-5 w-5 object-contain"
+          class="h-5 min-w-5 object-contain"
           :alt="props.identity.value"
         />
       </lf-tooltip>

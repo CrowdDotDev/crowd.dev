@@ -18,7 +18,7 @@
                   <img
                     v-else-if="platform"
                     :src="platform?.image"
-                    class="h-5 w-5 object-contain"
+                    class="h-5 min-w-5 object-contain"
                     :alt="form.value"
                   />
                   <lf-icon
@@ -148,9 +148,9 @@ const updateIdentity = () => {
             },
             [
               h(
-                'el-button',
+                'button',
                 {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary-gray !h-6 !w-fit',
                   onClick: () => {
                     const { memberId, grandParentId } = error.response.data;
 

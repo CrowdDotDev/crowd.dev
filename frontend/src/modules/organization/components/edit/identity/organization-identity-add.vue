@@ -26,7 +26,7 @@
                         <img
                           v-if="lfIdentities[identity.platform]"
                           :src="lfIdentities[identity.platform]?.image"
-                          class="h-5 w-5 object-contain"
+                          class="h-5 min-w-5 object-contain"
                           :alt="identity.value"
                         />
                         <lf-icon

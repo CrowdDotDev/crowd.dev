@@ -29,7 +29,7 @@
                   v-if="lfIdentities[platform]"
                   :alt="lfIdentities[platform].name"
                   :src="lfIdentities[platform].image"
-                  class="w-4 h-4"
+                  class="min-w-4 h-4"
                 />
                 <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400" />
               </template>
@@ -43,7 +43,7 @@
                 <img
                   :alt="enabledPlatform.name"
                   :src="enabledPlatform.image"
-                  class="w-4 h-4 mr-2"
+                  class="min-w-4 h-4 mr-2"
                 />
                 {{ enabledPlatform.label }}
               </el-option>
@@ -186,7 +186,7 @@
                     lfIdentities[activity.platform].image
                   "
                   :alt="`${activity.platform}-icon`"
-                  class="w-4 h-4"
+                  class="min-w-4 h-4"
                 />
                 <lf-icon name="satellite-dish" :size="16" class="text-gray-400" />
               </span>

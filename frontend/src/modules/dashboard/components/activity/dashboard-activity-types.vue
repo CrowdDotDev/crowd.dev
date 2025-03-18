@@ -27,7 +27,7 @@
       <div class="flex items-center">
         <img
           v-if="lfIdentities[platform]"
-          class="w-4 h-4 mr-3"
+          class="min-w-4 h-4 mr-3"
           :src="lfIdentities[platform]?.image"
           :alt="lfIdentities[platform]?.name"
         />

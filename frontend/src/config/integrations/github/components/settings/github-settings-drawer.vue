@@ -11,7 +11,7 @@
     <template #beforeTitle>
       <img
         :src="githubDetails.image"
-        class="w-6 h-6 mr-2"
+        class="min-w-6 h-6 mr-2"
         alt="GitHub logo"
       />
     </template>
@@ -24,7 +24,7 @@
           </p>
           <div class="flex items-center">
             <div v-if="owner.logo" class="h-5 w-5 rounded border border-gray-200 mr-2">
-              <img :src="owner.logo" class="object-cover" :alt="owner.logo">
+              <img :src="owner.logo" class="min-w-5 object-cover" :alt="owner.logo">
             </div>
             <p class="text-xs font-medium leading-5">
               {{ owner.name }}
@@ -133,21 +133,23 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
+        <lf-button
+          type="bordered"
+          size="medium"
+          class="mr-3"
           @click="isDrawerVisible = false"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :disabled="sending || $v.$invalid"
           :loading="sending"
           @click="connect()"
         >
           Connect
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -182,6 +184,7 @@ import AppGithubSettingsBulkSelect
   from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   modelValue: boolean,

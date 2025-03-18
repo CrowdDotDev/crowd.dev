@@ -71,7 +71,7 @@ const finallizeSlackConnect = () => {
     ConfirmDialog({
       vertical: true,
       type: 'custom',
-      icon: `<img src="${slackLogo}" class="h-8 w-8" alt="slack logo" />`,
+      icon: `<img src="${slackLogo}" class="h-8 min-w-8" alt="slack logo" />`,
       title: `<span class="flex items-start gap-1">Connect Slack bot
               <span class="text-primary-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
       titleClass: 'text-lg',

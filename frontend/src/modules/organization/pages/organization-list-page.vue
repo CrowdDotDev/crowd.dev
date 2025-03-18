@@ -25,10 +25,11 @@
                     },
                   }"
                 >
-                  <button
+                  <lf-button
                     :disabled="!hasPermission(LfPermission.mergeOrganizations)"
-                    type="button"
-                    class="btn btn--secondary btn--md flex items-center"
+                    type="secondary-gray"
+                    size="medium"
+                    class="flex items-center"
                   >
                     <lf-icon name="shuffle" :size="16" class="mr-2 text-gray-900" />
                     <span class="text-gray-900">Merge suggestions</span>
@@ -36,17 +37,18 @@
                       v-if="organizationsToMergeCount > 0"
                       class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                     >{{ Math.ceil(organizationsToMergeCount) }}</span>
-                  </button>
+                  </lf-button>
                 </component>
               </span>
             </el-tooltip>
-            <el-button
+            <lf-button
               v-if="hasPermission(LfPermission.organizationCreate)"
-              class="btn btn--primary btn--md"
+              type="primary"
+              size="medium"
               @click="organizationCreate = true"
             >
               Add organization
-            </el-button>
+            </lf-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -98,6 +100,7 @@ import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';

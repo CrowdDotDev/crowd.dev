@@ -56,21 +56,26 @@
                 </div>
               </template>
             </el-form-item>
-            <el-button
-              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+            <lf-button
+              type="primary-link"
+              size="medium"
+              class="w-10 h-10"
+              icon-only
               @click="deleteAttribute(attribute.name)"
             >
               <lf-icon name="trash-can" :size="20" class="text-black" />
-            </el-button>
+            </lf-button>
           </div>
         </div>
       </el-form>
-      <el-button
-        class="btn btn-link btn-link--md btn-link--primary mt-5"
+      <lf-button
+        type="primary-link"
+        size="medium"
+        class="mt-5"
         @click="addAttribute"
       >
         + Add attribute
-      </el-button>
+      </lf-button>
     </div>
 
     <div class="el-drawer__footer">
@@ -80,28 +85,31 @@
           hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button
+        <lf-button
           v-if="hasFormChanged"
-          class="btn btn-link btn-link--primary"
+          type="primary-link"
+          size="medium"
           @click="onReset"
         >
           <lf-icon name="arrow-turn-left" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button
-            class="btn btn--md btn--secondary"
+          <lf-button
+            type="secondary-gray"
+            size="medium"
             @click="() => (isDrawerOpen = false)"
           >
             Cancel
-          </el-button>
-          <el-button
+          </lf-button>
+          <lf-button
             :disabled="!hasFormChanged || isFormInvalid"
-            class="btn btn--md btn--primary"
+            type="primary"
+            size="medium"
             @click="onSubmit"
           >
             Update
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </div>
@@ -130,6 +138,7 @@ import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

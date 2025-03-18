@@ -174,21 +174,23 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn-link btn-link--md btn-link--primary mr-3"
+        <lf-button
+          type="primary-link"
+          size="medium"
+          class="mr-3"
           @click="handleCancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :loading="loadingUpdateSettings"
           :disabled="$v.$invalid || (!hasFormChanged && !hasElementChanged)"
           @click="doSubmit()"
         >
           Update
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -217,6 +219,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {

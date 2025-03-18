@@ -8,7 +8,7 @@
               Integration
             </p>
             <div class="flex items-center gap-2">
-              <img :src="githubImage" alt="GitHub" class="h-6 w-6" />
+              <img :src="githubImage" alt="GitHub" class="h-6 min-w-6" />
               <h5 class="text-black">
                 GitHub
               </h5>

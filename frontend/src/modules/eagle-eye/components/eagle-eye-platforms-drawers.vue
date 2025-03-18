@@ -11,7 +11,7 @@
         class="h-12 flex items-center border-b last:border-none border-gray-200 hover:bg-gray-50 hover:cursor-pointer"
       >
         <div>
-          <img :src="platform.img" :alt="platform.label" class="w-6 h-6" />
+          <img :src="platform.img" :alt="platform.label" class="min-w-6 h-6" />
         </div>
         <el-switch
           :model-value="platforms.includes(name)"
