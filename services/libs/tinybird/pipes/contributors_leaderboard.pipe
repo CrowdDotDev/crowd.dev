@@ -1,32 +1,27 @@
-TOKEN "contributors_leaderboard_endpoint_read_3484" READ
+DESCRIPTION >
+	Serves contributors leaderboard widget.
+
+
+TOKEN "insights-app-token" READ
 
 TOKEN "raul_dev_access_token" READ
 
-TOKEN "insights-staging-app-token" READ
-
-NODE total_activity_count
-SQL >
-
-    %
-    SELECT count(activities_filtered.id) as "totalContributions" FROM activities_filtered
-
-
+TOKEN "contributors_leaderboard_endpoint_read_3484" READ
 
 NODE contributors_leaderboard_1
 SQL >
 
     %
-    SELECT
-        members.id as id,
-        members.avatar as avatar,
-        members.displayName as displayName,
-        count(activities_filtered.id) as "contributionCount",
-        round((count(activities_filtered.id)/ (select "totalContributions" from total_activity_count))*100) as "contributionPercentage"
-        FROM activities_filtered
-    join members final on members.id = activities_filtered.memberId
-    where not members.isTeamMember and not members.isBot
-    group by   members.id, members.avatar, members.displayName
-    order by count(activities_filtered.id) as "activityCount" desc
-    limit {{Int32(limit, 10)}}
+        SELECT
+            members.id as id,
+            members.avatar as avatar,
+            members.displayName as displayName,
+            count(af.id) as "contributionCount",
+            ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER(), 0) as "contributionPercentage"
+            FROM activities_filtered af
+        join members on members.id = activities_filtered.memberId
+        group by   members.id, members.avatar, members.displayName
+        order by contributionCount desc
+        limit {{Int32(limit, 10)}}
 
 
