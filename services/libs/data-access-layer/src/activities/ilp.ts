@@ -53,6 +53,13 @@ export async function insertActivities(
   const emitter = new QueueEmitter(queueClient, ACTIVITIES_QUEUE_SETTINGS, logger)
 
   for (const row of toInsert) {
+    logger.debug(
+      {
+        activityId: row.id,
+        queue: ACTIVITIES_QUEUE_SETTINGS.name,
+      },
+      'Dispatching activity to queue!',
+    )
     await emitter.sendMessage(generateUUIDv4(), row, generateUUIDv4())
   }
   telemetry.increment('questdb.insert_activity', activities.length)
