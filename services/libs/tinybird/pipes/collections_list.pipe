@@ -80,7 +80,7 @@ SQL >
                 collections_paginated.description as description,
                 collections_paginated.projectCount as "projectCount",
                 arrayFilter(
-                    x -> x['name'] != '',  -- ✅ Removes objects with empty 'name'
+                    x -> x['name'] != '',
                     groupArray(
                         map(
                             'name',
