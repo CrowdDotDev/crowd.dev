@@ -13,7 +13,7 @@ const {
   recalculateActivityAffiliationsOfMemberAsync,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
   setMergeAction,
-  checkIfActivitiesAreMoved,
+  // checkIfActivitiesAreMoved,
   syncMember,
   syncOrganization,
   notifyFrontendMemberMergeSuccessful,
@@ -37,7 +37,7 @@ export async function finishMemberMerging(
   })
 
   await finishMemberMergingUpdateActivities(secondaryId, primaryId)
-  await checkIfActivitiesAreMoved(secondaryId, 'member')
+  // await checkIfActivitiesAreMoved(secondaryId, 'member')
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
@@ -100,7 +100,7 @@ export async function finishOrganizationMerging(
   })
 
   await moveActivitiesBetweenOrgs(primaryId, secondaryId)
-  await checkIfActivitiesAreMoved(secondaryId, 'organization')
+  // await checkIfActivitiesAreMoved(secondaryId, 'organization')
 
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)
