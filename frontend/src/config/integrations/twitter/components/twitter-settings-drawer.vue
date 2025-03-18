@@ -32,26 +32,33 @@
         :class="hasFormChanged ? 'justify-between' : 'justify-end'
         "
       >
-        <el-button v-if="hasFormChanged" class="btn btn-link btn-link--primary" @click="doReset">
+        <lf-button
+          v-if="hasFormChanged"
+          type="primary-link"
+          size="medium"
+          @click="doReset"
+        >
           <lf-icon name="arrow-turn-left" :size="16" />
           <span>Reset changes</span>
-        </el-button>
+        </lf-button>
         <div class="flex gap-4">
-          <el-button class="btn btn--md btn--bordered" @click="isVisible = false">
+          <lf-button
+            type="bordered"
+            size="medium"
+            @click="isVisible = false"
+          >
             Cancel
-          </el-button>
-          <a
-            class="btn btn--md btn--primary"
-            :class="{
-              disabled: !hasFormChanged,
-            }"
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="medium"
+            :disabled="!hasFormChanged"
             :href="hasFormChanged
               ? computedConnectUrl
-              : undefined
-            "
+              : undefined"
           >
             Update
-          </a>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -69,6 +76,7 @@ import isEqual from 'lodash/isEqual';
 import { FormSchema } from '@/shared/form/form-schema';
 import StringField from '@/shared/fields/string-field';
 import twitter from '@/config/integrations/twitter/config';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {

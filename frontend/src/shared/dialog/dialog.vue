@@ -51,12 +51,14 @@
           <div class="flex gap-3 items-center">
             <slot name="actionBtn" />
             <div class="ml-3">
-              <el-button
-                class="btn btn-link btn-link--xs btn-link--primary w-8 !h-8 hover:!no-underline group"
+              <lf-button
+                type="primary-link"
+                size="tiny"
+                class="w-8 !h-8 hover:!no-underline group"
                 @click="close"
               >
                 <lf-icon name="xmark" :size="20" class="text-gray-400 group-hover:text-primary-500" />
-              </el-button>
+              </lf-button>
             </div>
           </div>
         </slot>
@@ -69,6 +71,7 @@
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue', 'close']);
 const props = defineProps({

@@ -10,7 +10,7 @@
     @close="cancel"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Jira logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Jira logo" />
     </template>
     <template #content>
       <div class="w-full flex flex-col mb-6">
@@ -103,43 +103,49 @@
             :disabled="!isAPIConnectionValid"
           >
             <template #after>
-              <el-button
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+              <lf-button
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
+                icon-only
                 @click="removeProject(ii)"
               >
                 <lf-icon name="trash-can" :size="20" />
-              </el-button>
+              </lf-button>
             </template>
           </app-array-input>
 
-          <el-button
-            class="btn btn-link btn-link--primary"
+          <lf-button
+            type="primary-link"
             @click="addProject()"
           >
             + Add project Key
-          </el-button>
+          </lf-button>
         </div>
       </el-form>
     </template>
 
     <template #footer>
       <div>
-        <el-button
-          class="btn btn--md btn--secondary mr-4"
+        <lf-button
+          type="secondary-gray"
+          size="medium"
+          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="jiraConnect"
+          type="primary"
+          size="medium"
           :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="connect"
         >
           {{ integration?.settings?.url ? "Update" : "Connect" }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -158,6 +164,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { required } from '@vuelidate/validators';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 
 const emit = defineEmits(['update:modelValue']);

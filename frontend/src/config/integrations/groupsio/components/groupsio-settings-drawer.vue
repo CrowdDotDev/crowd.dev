@@ -10,7 +10,7 @@
     @close="handleCancel()"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Groups.io logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Groups.io logo" />
     </template>
     <template #content>
       <div class="w-full flex flex-col mb-6">
@@ -66,19 +66,20 @@
         </app-form-item>
 
         <div class="flex flex-row gap-2">
-          <el-button
+          <lf-button
             v-if="!isAPIConnectionValid"
-            class="btn btn--secondary btn--md"
+            type="secondary-gray"
+            size="medium"
             :disabled="!isVerificationEnabled"
             :loading="isVerifyingAccount"
             @click="validateAccount()"
           >
             Verify Account
-          </el-button>
+          </lf-button>
 
-          <el-button v-if="isAPIConnectionValid" class="btn btn--secondary btn--md" @click="reverifyAccount()">
+          <lf-button v-if="isAPIConnectionValid" type="secondary-gray" size="medium" @click="reverifyAccount()">
             Reverify Account
-          </el-button>
+          </lf-button>
 
           <div v-if="accountVerificationFailed" class="mt-1">
             <lf-icon name="circle-exclamation" :size="14" class="text-red-500 mr-2" />
@@ -189,18 +190,18 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button class="btn btn--md btn--secondary mr-3" :disabled="loading" @click="handleCancel">
+        <lf-button type="secondary-gray" size="medium" class="mr-3" :disabled="loading" @click="handleCancel">
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :disabled="cantConnect || !hasSelectedGroups"
           :loading="loading"
           @click="connect()"
         >
           {{ integration?.settings?.email ? "Update" : "Connect" }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -225,6 +226,7 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 

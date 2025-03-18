@@ -29,22 +29,26 @@
           <el-input v-model="keyword.value" />
         </el-form-item>
 
-        <el-button
-          class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+        <lf-button
+          type="primary-link"
+          size="medium"
+          class="w-10 h-10"
           :disabled="keywords.length === 1"
           @click="deleteKeyword(index)"
         >
           <lf-icon name="trash-can" :size="20" />
-        </el-button>
+        </lf-button>
       </div>
     </el-form>
 
-    <el-button
-      class="btn btn-link btn-link--md btn-link--primary mt-3"
+    <lf-button
+      type="primary-link"
+      size="medium"
+      class="mt-3"
       @click="addKeyword"
     >
       + Add keyword
-    </el-button>
+    </lf-button>
   </div>
 
   <eagle-eye-footer
@@ -59,6 +63,7 @@
 import { defineEmits, computed, defineProps } from 'vue';
 import EagleEyeFooter from '@/modules/eagle-eye/components/onboard/eagle-eye-footer.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits([
   'update:modelValue',

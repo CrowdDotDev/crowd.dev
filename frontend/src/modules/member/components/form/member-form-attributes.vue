@@ -5,12 +5,14 @@
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Add custom data points to enhance the person profile
       </p>
-      <el-button
-        class="btn btn-link btn-link--sm btn-link--primary mt-3"
+      <lf-button
+        type="primary-link"
+        size="small"
+        class="mt-3"
         @click="() => emit('openDrawer')"
       >
         Manage global attributes
-      </el-button>
+      </lf-button>
     </div>
     <div :class="showHeader ? 'col-span-3' : 'col-span-4'">
       <div class="flex gap-3 border-b h-8 items-center">
@@ -132,9 +134,12 @@
                   : 'Show attribute'
               "
             >
-              <el-button
+              <lf-button
                 v-if="!attribute.canDelete"
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
+                icon-only
                 @click="
                   updateAttribute(attribute.id, {
                     show: !attribute.show,
@@ -146,7 +151,7 @@
                   :size="16"
                   class="text-black"
                 />
-              </el-button>
+              </lf-button>
             </el-tooltip>
           </div>
         </div>
@@ -178,6 +183,7 @@ import LfSvg from '@/shared/svg/svg.vue';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const CalendarIcon = h(
   'i', // type

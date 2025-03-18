@@ -18,21 +18,23 @@
     </template>
     <template #footer>
       <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
+        <lf-button
+          type="bordered"
+          size="medium"
+          class="mr-3"
           @click="handleCancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
+          size="medium"
           :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
         >
           Update
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -50,6 +52,7 @@ import useVuelidate from '@vuelidate/core';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {
