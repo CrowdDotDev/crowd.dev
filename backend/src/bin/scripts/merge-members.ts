@@ -33,6 +33,14 @@ const options = [
       'The unique ID of a member that will be merged into the first one. This one will be destroyed. You can provide multiple ids here separated by comma.',
   },
   {
+    name: 'actionBy',
+    alias: 'a',
+    typeLabel: '{underline actionBy}',
+    type: String,
+    description:
+      'The unique ID of a user that will be used as actionBy in the merge operation.',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -57,7 +65,7 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.originalId || !parameters.targetId) {
+if (parameters.help || !parameters.originalId || !parameters.targetId || !parameters.actionBy) {
   console.log(usage)
 } else {
   setImmediate(async () => {
@@ -73,6 +81,8 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
     ])
 
     options.currentTenant = { id: originalMember.tenantId }
+
+    options.currentUser = { id: parameters.actionBy }
 
     for (const targetId of targetIds) {
       const targetMember = await findMemberById(qx, targetId, [
