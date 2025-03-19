@@ -212,6 +212,8 @@ services:
       - kafka
     networks:
       - crowd-bridge
+    profiles:
+      - insights
 
   tinybird:
     image: tinybirdco/tinybird-local:latest
@@ -224,6 +226,8 @@ services:
       start_period: 10s
     networks:
       - crowd-bridge
+    profiles:
+      - insights
 
 networks:
   crowd-bridge:
