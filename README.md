@@ -57,8 +57,8 @@ cd scripts
 ./cli clean-start-dev
 ```
 
-For starting services required for insights infra (tinybird and sequin)
-you can use the `WITH_INSIGHTS=1` env variable while running cli commands
+For starting services required for insights infra (Tinybird and Sequin),
+you can use the `WITH_INSIGHTS` env variable while running cli commands
 ```
 WITH_INSIGHTS=1 ./cli scaffold up
 ```
