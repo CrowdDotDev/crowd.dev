@@ -39,12 +39,12 @@
         />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">
-        <el-button class="btn btn-link btn-link--sm btn-link--primary !h-8 mr-2" data-qa="filter-close" @click="close">
+        <lf-button type="primary-link" size="small" class="!h-8 mr-2" data-qa="filter-close" @click="close">
           Cancel
-        </el-button>
-        <el-button class="btn btn--primary btn--sm !h-8" :disabled="$v.$invalid" data-qa="filter-apply" @click="apply">
+        </lf-button>
+        <lf-button type="primary" size="small" :disabled="$v.$invalid" data-qa="filter-apply" @click="apply">
           Apply
-        </el-button>
+        </lf-button>
       </div>
     </el-popover>
 
@@ -66,6 +66,7 @@ import { FilterConfig, FilterConfigType } from '@/shared/modules/filters/types/F
 import { filterComponentByType } from '@/shared/modules/filters/config/filterComponentByType';
 import useVuelidate from '@vuelidate/core';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   modelValue: string,

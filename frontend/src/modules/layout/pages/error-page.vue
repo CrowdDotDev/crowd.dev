@@ -14,9 +14,9 @@
       </div>
       <div class="mt-10">
         <router-link :to="{ path: '/' }">
-          <el-button class="btn btn--primary btn--md">
+          <lf-button type="primary" size="medium">
             Back to Home
-          </el-button>
+          </lf-button>
         </router-link>
       </div>
     </div>
@@ -43,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+import LfButton from '@/ui-kit/button/Button.vue';
+
 withDefaults(
   defineProps<{
     code: number | null;

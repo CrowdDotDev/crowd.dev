@@ -133,14 +133,14 @@
             v-loading="loading"
             class="app-page-spinner h-16 w-16 !relative !min-h-fit"
           />
-          <el-button
+          <lf-button
             v-else
-            class="btn btn-link btn-link--primary"
+            type="primary-link"
             @click="onLoadMore"
           >
             <lf-icon name="arrow-down" :size="14" />
             <span class="text-xs">Load more</span>
-          </el-button>
+          </lf-button>
         </div>
       </div>
       <app-empty-state
@@ -165,6 +165,7 @@ import {
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({

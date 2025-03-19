@@ -1,3 +1,4 @@
+import axios from 'axios'
 import pgpromise from 'pg-promise'
 
 import { IS_PROD_ENV } from '@crowd/common'
@@ -7,6 +8,38 @@ import telemetry from '@crowd/telemetry'
 const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
+
+export const queryOverHttp = async <T>(query: string): Promise<T[]> => {
+  try {
+    const response = await axios.get(`https://${process.env.CROWD_QUESTDB_ILP_HOST}/exec`, {
+      params: {
+        query,
+        timings: true,
+      },
+      auth: {
+        username: process.env.CROWD_QUESTDB_SQL_USERNAME,
+        password: process.env.CROWD_QUESTDB_SQL_PASSWORD,
+      },
+    })
+
+    const rows: T[] = []
+    const columns = response.data.columns.map((c) => c.name)
+
+    for (const row of response.data.dataset) {
+      const res: T = {} as T
+      for (let i = 0; i < row.length; i++) {
+        res[columns[i]] = row[i]
+      }
+
+      rows.push(res)
+    }
+
+    return rows
+  } catch (err) {
+    log.error(err, 'Error executing a QuestDB HTTP query!')
+    throw err
+  }
+}
 
 export const getClientSQL = async (
   profileQueries?: boolean,
@@ -58,14 +91,19 @@ export const getClientSQL = async (
   const oldQuery = client.query
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(client as any).query = async (query, options, ...args) => {
-    const { replacements } = options || {}
+    // milliseconds
     const timer = telemetry.timer('questdb.query_duration')
     try {
-      return oldQuery.apply(client, [query, options, ...args])
+      const result = await oldQuery.apply(client, [query, options, ...args])
+      return result
     } finally {
       const duration = timer.stop()
       if (profile && duration >= minQueryDuration) {
-        log.warn({ duration, query, replacements }, 'QuestDB query duration profiling!')
+        const durationSeconds = duration / 1000.0
+        log.warn(
+          { durationSeconds: durationSeconds.toFixed(2), query, values: options },
+          'QuestDB query duration profiling!',
+        )
       }
     }
   }

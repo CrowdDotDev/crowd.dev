@@ -1,10 +1,11 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
+import { scheduleCopyActivitiesFromQuestdbToTinybird } from './schedules/scheduleCopyActivitiesFromQuestdbToTinybird'
 import { schedulePopulateActivityRelations } from './schedules/schedulePopulateActivityRelations'
 
 const config: Config = {
-  envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],
+  envvars: ['CROWD_TINYBIRD_ACCESS_TOKEN'],
   producer: {
     enabled: false,
   },
@@ -37,6 +38,7 @@ setImmediate(async () => {
   await svc.init()
 
   await schedulePopulateActivityRelations()
+  await scheduleCopyActivitiesFromQuestdbToTinybird()
 
   await svc.start()
 })

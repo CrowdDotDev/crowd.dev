@@ -8,7 +8,7 @@
   >
     <template #header>
       <div v-if="!loading" class="flex items-center gap-1.5">
-        <img :alt="platform?.name" class="w-6 h-6" :src="platform?.image" />
+        <img :alt="platform?.name" class="min-w-6 h-6" :src="platform?.image" />
         <span class="text-lg font-medium text-black">{{
           configuration?.conversationTitle
         }}</span>

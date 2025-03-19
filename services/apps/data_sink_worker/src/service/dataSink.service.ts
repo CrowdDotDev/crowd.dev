@@ -6,7 +6,7 @@ import {
   IResultData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
@@ -224,12 +224,17 @@ export default class DataSinkService extends LoggerBase {
 
               const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
 
-              await service.processActivity(
-                resultInfo.integrationId,
-                resultInfo.onboarding === null ? true : resultInfo.onboarding,
-                platform,
-                activityData,
-                data.segmentId ?? resultInfo.segmentId,
+              await logExecutionTimeV2(
+                () =>
+                  service.processActivity(
+                    resultInfo.integrationId,
+                    resultInfo.onboarding === null ? true : resultInfo.onboarding,
+                    platform,
+                    activityData,
+                    data.segmentId ?? resultInfo.segmentId,
+                  ),
+                this.log,
+                'dataSinkService -> processResult -> processActivity',
               )
               break
             }

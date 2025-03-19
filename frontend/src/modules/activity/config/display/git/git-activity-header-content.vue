@@ -23,7 +23,7 @@
             >
               <img
                 :alt="platform.name"
-                class="w-3.5 3.5"
+                class="min-w-3.5 h-3.5"
                 :src="platform.image"
               />
             </el-tooltip>

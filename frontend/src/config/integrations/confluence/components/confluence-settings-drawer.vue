@@ -8,7 +8,7 @@
     @close="cancel"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Confluence logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Confluence logo" />
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
@@ -55,22 +55,25 @@
 
     <template #footer>
       <div>
-        <el-button
-          class="btn btn--md btn--secondary mr-4"
+        <lf-button
+          type="secondary-gray"
+          size="medium"
+          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="confluenceConnect"
+          type="primary"
+          size="medium"
           :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="connect"
         >
           {{ integration?.settings ? 'Update' : 'Connect' }}
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -87,6 +90,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

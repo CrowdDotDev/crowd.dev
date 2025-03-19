@@ -14,9 +14,10 @@
                 query: { projectGroup: selectedProjectGroup?.id },
               }"
             >
-              <button
-                type="button"
-                class="btn btn--secondary btn--md flex items-center"
+              <lf-button
+                type="secondary-gray"
+                size="medium"
+                class="flex items-center"
               >
                 <lf-icon name="shuffle" :size="16" class="text-gray-900 mr-2" />
                 <span class="text-gray-900">Merge suggestions</span>
@@ -24,19 +25,20 @@
                   v-if="membersToMergeCount > 0"
                   class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                 >{{ Math.ceil(membersToMergeCount) }}</span>
-              </button>
+              </lf-button>
             </router-link>
 
-            <el-button
+            <lf-button
               v-if="
                 hasPermission(LfPermission.memberCreate)
                   && (hasIntegrations || membersCount > 0)
               "
-              class="btn btn--primary btn--md"
+              type="primary"
+              size="medium"
               @click="memberCreate = true"
             >
               Add person
-            </el-button>
+            </lf-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
@@ -98,6 +100,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 

@@ -27,7 +27,7 @@
                         <img
                           v-else-if="lfIdentities[identity.platform]"
                           :src="lfIdentities[identity.platform]?.image"
-                          class="h-5 w-5 object-contain"
+                          class="h-5 min-w-5 object-contain"
                           :alt="identity.value"
                         />
                         <lf-icon
@@ -180,9 +180,9 @@ const addIdentities = () => {
             },
             [
               h(
-                'el-button',
+                'button',
                 {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary-gray !h-6 !w-fit',
                   onClick: () => {
                     const { memberId, grandParentId } = error.response.data;
 

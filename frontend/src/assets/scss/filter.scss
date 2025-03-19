@@ -37,11 +37,11 @@
     }
   }
 
-  &-trigger.el-button,
-  &-trigger.el-button:focus:not(.is-expanded),
-  .el-input-group__append &-trigger.el-button,
+  &-trigger.c-btn,
+  &-trigger.c-btn:focus:not(.is-expanded),
+  .el-input-group__append &-trigger.c-btn,
   .el-input-group__append
-    &-trigger.el-button:focus:not(.is-expanded) {
+    &-trigger.c-btn:focus:not(.is-expanded) {
     @apply h-10 flex justify-center items-center py-0 px-4 bg-white border border-l-0 rounded-l-none border-gray-300 outline-none text-gray-600;
     transition: all 0.2s ease;
 
@@ -56,7 +56,7 @@
 .filter-list-operator {
   @apply text-xs mb-4;
 
-  &-btn.el-button {
+  &-btn.c-btn {
     @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600 text-xs;
     transition: all 0.2s ease;
 

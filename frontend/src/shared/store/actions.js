@@ -120,9 +120,9 @@ export default (moduleName, moduleService = null) => {
             const contactId = response.id;
             const successMessageAction = 'View profile';
             const message = h(
-              'el-button',
+              'button',
               {
-                class: 'btn btn--xs btn--bordered !h-6',
+                class: 'c-btn c-btn--tiny c-btn--bordered !h-6',
                 onClick: () => {
                   router.push({
                     name: 'memberView',

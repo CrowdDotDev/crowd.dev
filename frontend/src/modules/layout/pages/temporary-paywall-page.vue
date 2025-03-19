@@ -15,11 +15,11 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <el-button class="btn btn--primary btn--md" @click="onCtaClick">
+            <lf-button type="primary" size="medium" @click="onCtaClick">
               Contact us
-            </el-button>
+            </lf-button>
           </a>
-        </div>
+        </div>s
       </div>
       <img :src="errorImage" alt="403 img" class="block w-32 h-auto" />
     </div>
@@ -28,6 +28,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const route = useRoute();
 

@@ -20,10 +20,13 @@ export const logExecutionTime = async <T>(
 }
 
 export const logExecutionTimeV2 = async <T>(
-  process: () => Promise<T>,
+  toProcess: () => Promise<T>,
   log: Logger,
   name: string,
 ): Promise<T> => {
+  if (!process.env.CROWD_LOG_EXECUTION_TIME) {
+    return toProcess()
+  }
   const start = performance.now()
 
   const end = () => {
@@ -33,7 +36,11 @@ export const logExecutionTimeV2 = async <T>(
     return durationInSeconds.toFixed(2)
   }
   try {
-    const result = await process()
+    if (process.env.CROWD_LOG_EXECUTION_START) {
+      log.info(`Starting process ${name}...`)
+    }
+
+    const result = await toProcess()
     log.info(`Process ${name} took ${end()} seconds!`)
     return result
   } catch (e) {

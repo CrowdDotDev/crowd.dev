@@ -3,15 +3,17 @@
     <div class="organization-form-page">
       <div class="sticky -top-5 z-20 bg-white -mx-2 px-2 -mt-6 pt-6 block">
         <div class="border-b border-gray-200">
-          <el-button
+          <lf-button
             key="organizations"
             link
             :icon="ArrowPrevIcon"
-            class="text-gray-600 btn-link--md btn-link--secondary p-0"
+            type="secondary-link"
+            size="medium"
+            class="text-gray-600 p-0"
             @click="onCancel"
           >
             Organizations
-          </el-button>
+          </lf-button>
           <div class="flex justify-between">
             <div class="flex items-center gap-4 mt-4 mb-6">
               <h4>
@@ -29,32 +31,35 @@
               </div>
             </div>
             <div class="flex items-center">
-              <el-button
+              <lf-button
                 v-if="isEditPage && hasFormChanged"
-                class="btn btn-link btn-link--primary !px-3"
+                type="primary-link"
+                class="!px-3"
                 :disabled="isFormSubmitting"
                 @click="onReset"
               >
                 <lf-icon name="arrow-turn-left" />
                 <span>Reset changes</span>
-              </el-button>
+              </lf-button>
               <div
                 v-if="isEditPage && hasFormChanged"
                 class="mx-4 border-x border-gray-200 h-10"
               />
               <div class="flex gap-4">
-                <el-button
+                <lf-button
                   :disabled="isFormSubmitting"
-                  class="btn btn--md btn--bordered"
+                  type="bordered"
+                  size="medium"
                   @click="onCancel"
                 >
                   Cancel
-                </el-button>
-                <el-button
+                </lf-button>
+                <lf-button
                   :disabled="isSubmitBtnDisabled"
                   :loading="isFormSubmitting"
                   :loading-icon="LoaderIcon"
-                  class="btn btn--md btn--primary"
+                  type="primary"
+                  size="medium"
                   @click="onSubmit"
                 >
                   {{
@@ -62,7 +67,7 @@
                       ? 'Update organization'
                       : 'Add organization'
                   }}
-                </el-button>
+                </lf-button>
               </div>
             </div>
           </div>
@@ -164,6 +169,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { useOrganizationStore } from '../store/pinia';
 
 const LoaderIcon = h(
@@ -455,9 +461,9 @@ async function onSubmit() {
             },
             [
               h(
-                'el-button',
+                'button',
                 {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  class: 'c-btn c-btn--tiny c-btn--secondary-gray !h-6 !w-fit',
                   onClick: () => {
                     organizationsStore.addToMergeOrganizations(payload.id, error.response.data);
                     Message.closeAll();
@@ -516,9 +522,6 @@ export default {
 
 <style lang="scss">
 .organization-form-page {
-  .el-button [class*="el-icon"] + span {
-    @apply ml-1;
-  }
 
   .el-main {
     @apply max-h-fit;

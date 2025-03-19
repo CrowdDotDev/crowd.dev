@@ -25,13 +25,15 @@
               v-model="form.include[ii]"
             >
               <template #after>
-                <el-button
-                  class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                <lf-button
+                  type="primary"
+                  size="medium"
+                  class="w-10 h-10"
                   :disabled="form.include.length === 1"
                   @click="removeInclude(ii)"
                 >
                   <lf-icon name="trash-can" :size="20" />
-                </el-button>
+                </lf-button>
               </template>
             </app-eagle-eye-settings-include>
             <div class="flex">
@@ -64,12 +66,14 @@
                   placeholder="Keyword"
                 />
               </app-form-item>
-              <el-button
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+              <lf-button
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
                 @click="removeExclude(ei)"
               >
                 <lf-icon name="trash-can" :size="20" />
-              </el-button>
+              </lf-button>
             </article>
             <div class="flex">
               <p
@@ -159,21 +163,23 @@
 
     <template #footer>
       <div style="flex: auto" class="-my-2">
-        <el-button
-          class="btn btn-link btn-link--md btn-link--primary mr-3"
+        <lf-button
+          type="primary-link"
+          size="medium"
+          class="mr-3"
           @click="emit('update:modelValue', false)"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           type="primary"
-          class="btn btn--md btn--primary"
+          size="medium"
           :loading="loadingUpdateSettings"
           :disabled="$v.$invalid || !hasFormChanged"
           @click="onSubmit()"
         >
           Update
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -204,6 +210,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {

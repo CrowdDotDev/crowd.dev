@@ -58,6 +58,7 @@ export interface IDbActivityCreateData {
   createdAt?: string
   updatedAt?: string
   deletedAt?: string
+  tenantId?: string
 }
 
 export interface IActivityRelationCreateOrUpdateData {
@@ -154,6 +155,7 @@ export interface IDbActivityUpdateData {
   updatedById?: string
   updatedAt?: string
   createdAt?: string
+  tenantId?: string
 }
 
 let updateActivityColumnSet: DbColumnSet

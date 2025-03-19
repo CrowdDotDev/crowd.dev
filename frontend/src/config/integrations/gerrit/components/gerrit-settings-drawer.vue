@@ -8,7 +8,7 @@
     @close="cancel"
   >
     <template #beforeTitle>
-      <img class="w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
+      <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
@@ -48,18 +48,24 @@
           placeholder="Enter Project Name"
         >
           <template #after>
-            <el-button
-              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+            <lf-button
+              type="primary-link"
+              size="medium"
+              class="w-10 h-10"
               @click="removeRepoName(ii)"
             >
               <lf-icon name="trash-can" :size="20" />
-            </el-button>
+            </lf-button>
           </template>
         </app-array-input>
       </el-form>
-      <el-button class="btn btn-link btn-link--primary" @click="addRepoName()">
+      <lf-button
+        type="primary-link"
+        size="medium"
+        @click="addRepoName()"
+      >
         + Add Repository Name
-      </el-button>
+      </lf-button>
       <br />
       <el-checkbox id="enableAllRepos" v-model="form.enableAllRepos">
         Enable All Projects
@@ -71,22 +77,23 @@
 
     <template #footer>
       <div>
-        <el-button
-          class="btn btn--md btn--secondary mr-4"
+        <lf-button
+          type="secondary-gray"
+          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="gerritConnect"
+          type="primary"
           :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
           :loading="loading"
           @click="connect"
         >
           Connect
-        </el-button>
+        </lf-button>
       </div>
     </template>
   </app-drawer>
@@ -108,6 +115,7 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

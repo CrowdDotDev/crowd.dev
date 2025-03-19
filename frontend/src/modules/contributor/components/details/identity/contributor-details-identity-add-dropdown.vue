@@ -30,7 +30,7 @@
         })"
       >
         <div class="w-full flex items-center gap-2">
-          <img :src="platform.image" :alt="platform.key" class="h-4 w-4 object-contain" /> {{ platform.name || platform.key }}
+          <img :src="platform.image" :alt="platform.key" class="h-4 min-w-4 object-contain" /> {{ platform.name || platform.key }}
         </div>
       </lf-dropdown-item>
       <template v-if="showEmail">

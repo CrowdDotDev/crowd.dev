@@ -12,7 +12,7 @@
       v-else
       :src="icons[platform][type].imgSrc"
       :alt="type"
-      class="w-5 h-5"
+      class="min-w-5 h-5"
     />
   </div>
 </template>

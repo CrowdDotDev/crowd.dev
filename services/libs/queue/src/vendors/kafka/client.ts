@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { throws } from 'assert'
 import { createHash } from 'crypto'
-import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
+import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage, Producer } from 'kafkajs'
 
-import { timeout } from '@crowd/common'
+import { SERVICE, groupBy, timeout } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
+import telemetry from '@crowd/telemetry'
 import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 
 import {
@@ -28,6 +28,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
+  private producer?: Producer | undefined = undefined
 
   public constructor(
     public readonly client: Kafka,
@@ -42,6 +43,17 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.reconnectAttempts = new Map<string, number>()
     this.consumerStatus = new Map<string, boolean>()
   }
+
+  async getProducer(): Promise<Producer> {
+    if (!this.producer) {
+      const producer = this.client.producer()
+      await producer.connect()
+      this.producer = producer
+    }
+
+    return this.producer
+  }
+
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const groupId = conf.name
     const topic = conf.name
@@ -80,9 +92,14 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     message: IQueueMessage,
     groupId: string,
   ): Promise<IQueueSendResult> {
+    telemetry.increment('kafka.send', 1, {
+      topic: channel.name,
+      type: message.type,
+      service: SERVICE,
+    })
+
+    const producer = await this.getProducer()
     // send message to kafka
-    const producer = this.client.producer()
-    await producer.connect()
     const result = await producer.send({
       topic: channel.name,
       messages: [
@@ -95,7 +112,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.trace({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
 
@@ -133,13 +149,34 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         this.log.warn('Consumer disconnected, attempting reconnection')
         await this.handleConsumerError(groupId, consumer)
       })
+      consumer.on(consumer.events.COMMIT_OFFSETS, (event) => {
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer committed offsets: ${JSON.stringify(event, null, 2)}`)
+        }
+      })
       consumer.on(consumer.events.CRASH, async (event) => {
         this.log.error({ error: event.payload.error }, 'Consumer crashed')
         await this.handleConsumerError(groupId, consumer)
       })
       this.consumers.set(groupId, consumer)
       await this.connectConsumer(consumer)
+
+      const origCommit = consumer.commitOffsets.bind(consumer)
+      consumer.commitOffsets = async function (data) {
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer committing offsets: ${JSON.stringify(data, null, 2)}`)
+        }
+
+        const res = await origCommit(data)
+
+        if (process.env.KAFKA_LOG_COMMITS) {
+          this.log.info(`Consumer commited offsets: ${JSON.stringify(data, null, 2)}`)
+        }
+
+        return res
+      }
     }
+
     return this.consumers.get(groupId)
   }
 
@@ -300,8 +337,16 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
   ): Promise<IQueueSendBulkResult> {
-    const producer = this.client.producer()
-    await producer.connect()
+    for (const [type, data] of groupBy(messages, (m) => m.payload.type)) {
+      telemetry.increment('kafka.send', data.length, {
+        topic: channel.name,
+        type,
+        service: SERVICE,
+      })
+    }
+
+    const producer = await this.getProducer()
+
     const result = await producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
@@ -312,9 +357,9 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
     this.log.debug({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
-    await producer.disconnect()
     return result
   }
+
   public async start(
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,
@@ -381,41 +426,49 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
 
       await consumer.run({
+        autoCommitInterval: 10000, // 10 seconds
         eachMessage: async ({ message }) => {
-          if (message && message.value) {
-            const data = JSON.parse(message.value.toString())
+          try {
+            if (message && message.value) {
+              const data = JSON.parse(message.value.toString())
 
-            const startWait = performance.now()
-            while (!this.isAvailable(maxConcurrentMessageProcessing)) {
-              const diff = performance.now() - startWait
+              const startWait = performance.now()
+              while (!this.isAvailable(maxConcurrentMessageProcessing)) {
+                const diff = performance.now() - startWait
 
-              if (diff >= 5000 && diff % 10000 <= 100) {
-                this.log.warn(
-                  { topic: queueConf.name },
-                  `Consumer is waiting for ${diff.toFixed(2)}ms to process the message! Message type '${data.type}'!`,
-                )
+                if (diff >= 5000 && diff % 10000 <= 100) {
+                  this.log.warn(
+                    { topic: queueConf.name },
+                    `Consumer is waiting for ${diff.toFixed(2)}ms to process the message! Message type '${data.type}'!`,
+                  )
+                }
+
+                await timeout(100)
               }
+              const now = performance.now()
 
-              await timeout(100)
+              this.addJob()
+
+              processMessage(data)
+                .then(() => {
+                  const duration = performance.now() - now
+                  timings.push(duration)
+                  this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                })
+                .catch((err) => {
+                  const duration = performance.now() - now
+                  timings.push(duration)
+                  this.log.error(
+                    err,
+                    `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`,
+                  )
+                })
+                .finally(() => {
+                  this.removeJob()
+                })
             }
-            const now = performance.now()
-
-            this.addJob()
-
-            processMessage(data)
-              .then(() => {
-                const duration = performance.now() - now
-                timings.push(duration)
-                this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-              })
-              .catch((err) => {
-                const duration = performance.now() - now
-                timings.push(duration)
-                this.log.error(err, `Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-              })
-              .finally(() => {
-                this.removeJob()
-              })
+          } catch (err) {
+            this.log.error(err, 'Failed to process the message')
           }
         },
       })

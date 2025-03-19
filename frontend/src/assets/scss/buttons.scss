@@ -180,9 +180,6 @@
     @apply mr-2;
   }
 
-  &.el-button + &.el-button {
-    @apply ml-0;
-  }
 }
 
 .btn-group {
@@ -191,8 +188,4 @@
 
 .btn-group > .btn:not(:last-child) {
   @apply -mr-0.5;
-}
-
-.el-button {
-  --el-button-outline-color: transparent !important;
 }

@@ -88,6 +88,30 @@
   --lf-btn-secondary-loading-background: var(--lf-color-white);
   --lf-btn-secondary-loading-border: var(--lf-color-gray-200);
 
+
+  /* Bordered */
+  --lf-btn-bordered-text: var(--lf-color-gray-500);
+  --lf-btn-bordered-background: var(--lf-color-white);
+  --lf-btn-bordered-border: var(--lf-color-gray-250);
+  --lf-btn-bordered-shadow: var(--shadow-default);
+  // Hover
+  --lf-btn-bordered-hover-text: var(--lf-color-primary-500);
+  --lf-btn-bordered-hover-background: var(--lf-color-primary-125);
+  --lf-btn-bordered-hover-border: var(--lf-color-primary-150);
+  // Active
+  --lf-btn-bordered-active-text: var(--lf-color-primary-500);
+  --lf-btn-bordered-active-background: var(--lf-color-primary-125);
+  --lf-btn-bordered-active-border: var(--lf-color-primary-500);
+  // Disabled
+  --lf-btn-bordered-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-bordered-disabled-background: var(--lf-color-white);
+  --lf-btn-bordered-disabled-border: var(--lf-color-gray-100);
+  // Loading
+  --lf-btn-bordered-loading-text: var(--lf-color-gray-400);
+  --lf-btn-bordered-loading-background: var(--lf-color-white);
+  --lf-btn-bordered-loading-border: var(--lf-color-gray-200);
+  
+
   /* Danger */
   --lf-btn-danger-text: var(--lf-color-white);
   --lf-btn-danger-background: var(--lf-color-red-500);
@@ -156,6 +180,30 @@
   --lf-btn-secondary-ghost-loading-background: var(--lf-color-transparent);
   --lf-btn-secondary-ghost-loading-border: var(--lf-color-transparent);
 
+
+  /* Secondary Gray */
+  --lf-btn-secondary-gray-text: var(--lf-color-primary-500);
+  --lf-btn-secondary-gray-background: linear-gradient(180deg, var(--lf-color-white) 0%, var(--lf-color-gray-250) 100%);
+  --lf-btn-secondary-gray-border: var(--lf-color-gray-250);
+  --lf-btn-secondary-gray-shadow: var(--shadow-none);
+  // Hover
+  --lf-btn-secondary-gray-hover-text: var(--lf-color-primary-500);
+  --lf-btn-secondary-gray-hover-background:  linear-gradient(180deg, var(--lf-color-white) 0%, var(--lf-color-gray-250) 100%);
+  --lf-btn-secondary-gray-hover-border: var(--lf-color-gray-250);
+  // Active
+  --lf-btn-secondary-gray-active-text: var(--lf-color-primary-500);
+  --lf-btn-secondary-gray-active-background: linear-gradient(180deg, var(--lf-color-white) 0%, var(--lf-color-gray-250) 100%);
+  --lf-btn-secondary-gray-active-border: var(--lf-color-gray-250);
+  // Disabled
+  --lf-btn-secondary-gray-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-gray-disabled-background: linear-gradient(180deg, var(--lf-color-white) 0%, var(--lf-color-gray-100) 100%);
+  --lf-btn-secondary-gray-disabled-border: var(--lf-color-gray-100);
+  // Loading
+  --lf-btn-secondary-gray-loading-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-gray-loading-background: var(--lf-color-transparent);
+  --lf-btn-secondary-gray-loading-border: var(--lf-color-transparent);
+  
+  
 
   /* Secondary Ghost Light */
   --lf-btn-secondary-ghost-light-text: var(--lf-color-gray-500);

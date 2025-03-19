@@ -47,17 +47,23 @@
           </div>
         </div>
         <div class="pt-6 flex justify-end">
-          <el-button class="btn btn--bordered btn--lg mr-4" @click="emit('update:modelValue', null)">
+          <lf-button
+            type="bordered"
+            size="large"
+            class="mr-4"
+            @click="emit('update:modelValue', null)"
+          >
             Cancel
-          </el-button>
-          <el-button
-            class="btn btn--primary btn--lg"
+          </lf-button>
+          <lf-button
+            type="primary"
+            size="large"
             :disabled="!organizationToMerge"
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
             Merge organizations
-          </el-button>
+          </lf-button>
         </div>
       </div>
     </template>
@@ -77,6 +83,7 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   modelValue: {

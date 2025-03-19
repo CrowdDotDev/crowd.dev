@@ -45,7 +45,7 @@
                 <div class="flex flex-col gap-1 items-start">
                   <div class="flex items-center gap-1.5">
                     <div>
-                      <img :src="lfIntegrations[integration.platform]?.image" :alt="lfIntegrations[integration.platform]?.name" class="w-4 h-4" />
+                      <img :src="lfIntegrations[integration.platform]?.image" :alt="lfIntegrations[integration.platform]?.name" class="min-w-4 h-4" />
                     </div>
                     <p class="text-medium font-semibold">
                       {{ lfIntegrations[integration.platform]?.name }}
