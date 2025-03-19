@@ -7,7 +7,7 @@
           All integrations
         </template>
         <template v-else>
-          <img :src="lfIntegrations[model]?.image" :alt="lfIntegrations[model]?.name" class="w-4 h-4 object-contain">
+          <img :src="lfIntegrations[model]?.image" :alt="lfIntegrations[model]?.name" class="min-w-4 h-4 object-contain">
           {{ lfIntegrations[model]?.name }}
         </template>
         <lf-icon name="chevron-down" :size="16" />
@@ -29,7 +29,7 @@
         @click="model = key"
       >
         <div class="flex items-center gap-2">
-          <img :src="integration.image" :alt="integration.name" class="w-4 h-4 object-contain">
+          <img :src="integration.image" :alt="integration.name" class="min-w-4 h-4 object-contain">
           {{ integration.name }}
         </div>
       </lf-dropdown-item>

@@ -30,21 +30,29 @@
               content="Show Auth Token"
               placement="top"
             >
-              <el-button
-                class="append-icon"
+              <lf-button
+                type="secondary-ghost"
+                size="tiny"
+                class="-mx-5"
                 @click="onShowToken"
               >
                 <lf-icon name="eye" :size="16" class="!text-large" />
-              </el-button>
+              </lf-button>
             </el-tooltip>
             <el-tooltip
               v-else
               content="Copy to clipboard"
               placement="top"
             >
-              <el-button @click="copyToClipboard()">
+              <lf-button
+                type="secondary-ghost"
+                size="tiny"
+                class="-mx-5"
+                icon-only
+                @click="copyToClipboard()"
+              >
                 <lf-icon name="copy" :size="16" class="!text-large" />
-              </el-button>
+              </lf-button>
             </el-tooltip>
           </template>
         </el-input>
@@ -60,6 +68,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import Message from '@/shared/message/message';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const inputRef = ref();
 const showToken = ref(false);

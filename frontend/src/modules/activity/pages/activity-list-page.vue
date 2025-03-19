@@ -9,21 +9,25 @@
             Activities are all interactions with your company brand, community, and product
           </div>
         </div>
-        <div class="flex">
-          <el-button
-            class="btn btn-link btn-link--md btn-link--primary text-gray-600 mr-4"
+        <div class="flex h-fit">
+          <lf-button
+            type="primary-link"
+            size="medium"
+            class="text-gray-600 mr-4"
             @click="onActivityTypesClick"
           >
-            <lf-icon name="gear" :size="20" class="mr-2" />
+            <lf-icon name="gear" :size="20" />
             Activity types
-          </el-button>
-          <el-button
+          </lf-button>
+          <lf-button
             v-if="hasPermission(LfPermission.activityCreate)"
-            class="btn btn--primary btn--md text-gray-600"
+            type="primary"
+            size="medium"
+            class="text-gray-600"
             @click="onAddActivity"
           >
             Add activity
-          </el-button>
+          </lf-button>
         </div>
       </div>
 
@@ -89,6 +93,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppLfSubProjectsListModal from '@/modules/admin/modules/projects/components/lf-sub-projects-list-modal.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const route = useRoute();
 const router = useRouter();

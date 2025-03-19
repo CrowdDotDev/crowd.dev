@@ -34,7 +34,7 @@
             >
               <img
                 :alt="platform.name"
-                class="w-4 h-4 mr-2"
+                class="min-w-4 h-4 mr-2"
                 :src="platform.image"
               />
             </el-tooltip>

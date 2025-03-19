@@ -2,9 +2,14 @@
   <div class="flex items-end justify-between mb-6 h-8">
     <div v-if="scrollableTabs" class="border-b-2 border-r border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
       <el-dropdown placement="bottom-start">
-        <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2">
+        <lf-button
+          type="primary-ghost"
+          size="small"
+          class="inset-y-0 !border-0 mr-2"
+        >
           <lf-icon name="list-ul" :size="20" class="text-gray-400 flex items-center" />
-        </el-button>
+        </lf-button>
+
         <template #dropdown>
           <el-dropdown-item
             :class="selectedTab === '' ? 'bg-primary-50' : ''"
@@ -53,13 +58,23 @@
       </el-tabs>
     </div>
     <div class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
-      <el-button v-if="hasChanged" class="btn btn-brand btn-primary--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
+      <lf-button
+        v-if="hasChanged"
+        type="primary-ghost"
+        size="small"
+        class="!leading-5 !h-8 mr-2"
+        @click="reset()"
+      >
         Reset view
-      </el-button>
+      </lf-button>
       <el-dropdown v-if="hasChanged" placement="bottom-end">
-        <el-button class="btn btn-brand btn-primary--transparent btn--sm !h-8 !leading-5 mr-2">
+        <lf-button
+          type="primary-ghost"
+          size="small"
+          class="!leading-5 !h-8 mr-2"
+        >
           Save as...
-        </el-button>
+        </lf-button>
         <template #dropdown>
           <el-dropdown-item
             v-if="
@@ -69,12 +84,12 @@
                 && (currentView.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage))"
             @click="update()"
           >
-            <div class="w-40">
+            <div class="w-40 flex items-center">
               <lf-icon name="arrows-rotate-reverse" :size="16" class="text-gray-400 mr-2" />Update view
             </div>
           </el-dropdown-item>
           <el-dropdown-item v-if="hasPermission(LfPermission.customViewsCreate)" @click="createNewView()">
-            <div class="w-40">
+            <div class="w-40 flex items-center">
               <lf-icon name="plus" class="text-gray-400 mr-2" />Create new view
             </div>
           </el-dropdown-item>
@@ -82,15 +97,27 @@
       </el-dropdown>
 
       <el-tooltip v-if="hasPermission(LfPermission.customViewsCreate)" content="Add view" placement="top">
-        <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2" @click="isFormOpen = true">
+        <lf-button
+          type="primary-ghost"
+          size="small"
+          icon-only
+          class="inset-y-0 !border-0 mr-2"
+          @click="isFormOpen = true"
+        >
           <lf-icon name="plus" :size="20" class="text-gray-400 flex items-center" />
-        </el-button>
+        </lf-button>
       </el-tooltip>
       <el-popover trigger="click" placement="bottom-end" popper-class="!p-0" width="320px">
         <template #reference>
-          <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0" data-tooltip="Manage views">
+          <lf-button
+            type="primary-ghost"
+            size="small"
+            icon-only
+            class="inset-y-0 !border-0 mr-2"
+            data-tooltip="Manage views"
+          >
             <lf-icon name="gear" :size="20" class="text-gray-400 flex items-center" />
-          </el-button>
+          </lf-button>
         </template>
         <lf-saved-views-management
           v-model:views="views"
@@ -130,6 +157,7 @@ import Message from '@/shared/message/message';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   modelValue: Filter,

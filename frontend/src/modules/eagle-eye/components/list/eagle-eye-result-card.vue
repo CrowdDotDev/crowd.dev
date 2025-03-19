@@ -13,7 +13,7 @@
       <img
         :alt="platformOptions[result.platform].label"
         :src="platformOptions[result.platform].img"
-        class="w-6 h-6"
+        class="min-w-6 h-6"
       />
       <span v-if="result.postedAt" class="text-gray-400 text-2xs">{{
         formatDateToTimeAgo(result.postedAt)

@@ -19,7 +19,10 @@ export async function streamActivities(
   params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
   const whereClause = formatQuery(where, params)
-  const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`)
+  const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`, [], {
+    batchSize: 1000,
+    highWaterMark: 250,
+  })
 
   const t = timer(logger, `query activities with ${whereClause}`)
 
@@ -35,16 +38,19 @@ export async function streamActivities(
 
     qdb
       .stream(qs, async (stream) => {
-        for await (const item of stream) {
-          t.end()
+        try {
+          for await (const item of stream) {
+            t.end()
 
-          const activity = item as unknown as IDbActivityCreateData
+            const activity = item as unknown as IDbActivityCreateData
+            await onActivity(activity)
+          }
 
-          await onActivity(activity)
+          processedAllRows = true
+          tryFinish()
+        } catch (error) {
+          reject(error)
         }
-
-        processedAllRows = true
-        tryFinish()
       })
       .then((res) => {
         streamResult = res

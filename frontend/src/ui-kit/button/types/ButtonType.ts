@@ -2,6 +2,8 @@ export const buttonTypes = [
   'primary',
   'danger',
   'secondary',
+  'secondary-gray',
+  'bordered',
   'primary-ghost',
   'secondary-ghost',
   'secondary-ghost-light',

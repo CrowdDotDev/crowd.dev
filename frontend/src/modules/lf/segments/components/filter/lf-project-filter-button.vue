@@ -1,8 +1,9 @@
 <template>
   <span :data-tooltip="filterLabel.showTooltip ? filterLabel.text : null" data-tooltip-placement="top">
-    <el-button
+    <lf-button
       ref="buttonRef"
-      :class="btnClass || 'btn btn--secondary bg-white !py-1.5 !px-3 outline-none'"
+      type="secondary-gray"
+      :class="btnClass || 'bg-white !py-1.5 !px-3 outline-none'"
       @click="openFilterPopover"
     >
       <div class="flex items-center text-xs">
@@ -10,7 +11,7 @@
         <span class="font-medium text-gray-900">Projects:</span>
         <span class="text-gray-600 pl-1">{{ filterLabel.trimmedText }}</span>
       </div>
-    </el-button>
+    </lf-button>
   </span>
 
   <el-popover
@@ -32,34 +33,37 @@
       v-if="!shouldApplyImmeadiately"
       class="border-t border-gray-200 flex items-center justify-between -mx-2 py-3 px-4"
     >
-      <el-button
+      <lf-button
         v-if="shouldShowReset"
         id="resetFilter"
-        class="btn btn-link btn-link--primary"
+        type="primary-link"
         @click="handleReset"
       >
         Reset filter
-      </el-button>
+      </lf-button>
       <div v-else>
           &nbsp;
       </div>
       <div class="flex items-center">
-        <el-button
+        <lf-button
           id="closeFilter"
-          class="btn btn-link btn-link--sm btn-link--primary mr-3"
+          type="primary-link"
+          size="small"
+          class="mr-3"
           @click="handleCancel"
         >
           Cancel
-        </el-button>
-        <el-button
+        </lf-button>
+        <lf-button
           id="applyFilter"
-          class="btn btn--primary btn--sm"
+          type="primary"
+          size="small"
           :disabled="shouldDisableApplyButton"
           data-qa="filter-apply"
           @click="handleApply"
         >
           Apply
-        </el-button>
+        </lf-button>
       </div>
     </div>
   </el-popover>
@@ -76,6 +80,7 @@ import AppLfProjectFilter from '@/modules/lf/segments/components/filter/lf-proje
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   segments: {

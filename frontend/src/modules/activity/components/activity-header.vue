@@ -25,7 +25,7 @@
           <div class="flex items-center gap-1">
             <img
               v-if="activity.organization.logo"
-              class="w-3.5 h-3.5"
+              class="min-w-3.5 h-3.5"
               :src="activity.organization.logo"
               :alt="`${activity.organization.displayName} logo`"
             />

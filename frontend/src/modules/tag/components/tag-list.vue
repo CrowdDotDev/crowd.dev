@@ -12,15 +12,16 @@
       >
         {{ getTagName(tag) }}
       </span>
-      <el-button
+      <lf-button
         v-if="editable && showEdit"
-        class="text-gray-400 btn btn-link text-2xs bg-transparent hover:bg-transparent focus:bg-transparent"
+        type="secondary-ghost-light"
+        class="text-gray-400 text-2xs bg-transparent hover:bg-transparent focus:bg-transparent"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click.prevent.stop="$emit('edit')"
       >
         <lf-icon name="pen" :size="14" class="!mr-1" />
         <span>{{ member.tags.length ? 'Edit' : 'Add' }} tags</span>
-      </el-button>
+      </lf-button>
     </div>
   </div>
 </template>
@@ -29,10 +30,11 @@
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 export default {
   name: 'AppTags',
-  components: { LfIcon },
+  components: { LfIcon, LfButton },
   props: {
     member: {
       type: Object,

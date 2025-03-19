@@ -132,7 +132,7 @@ export default ({
               'button',
               {
                 class:
-                  'btn btn-link btn-link--xs btn-link--primary w-8 !h-8 hover:!no-underline group',
+                  'c-btn c-btn--tiny c-btn--primary-link w-8 !h-8 hover:!no-underline group',
                 type: 'button',
                 onClick: () => {
                   document
