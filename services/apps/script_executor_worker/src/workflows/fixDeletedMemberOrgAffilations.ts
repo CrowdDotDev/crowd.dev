@@ -7,17 +7,14 @@ import { IFixDeletedMemberOrgAffilationsArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '45 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 const syncActivity = proxyActivities<typeof syncActivities>({
   startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 const commonActivity = proxyActivities<typeof commonActivities>({
   startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 export async function fixDeletedMemberOrgAffilations(
