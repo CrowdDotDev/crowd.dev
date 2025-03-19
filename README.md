@@ -57,6 +57,12 @@ cd scripts
 ./cli clean-start-dev
 ```
 
+For starting services required for insights infra (Tinybird and Sequin),
+you can use the `WITH_INSIGHTS` env variable while running cli commands
+```
+WITH_INSIGHTS=1 ./cli scaffold up
+```
+
 This app will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
