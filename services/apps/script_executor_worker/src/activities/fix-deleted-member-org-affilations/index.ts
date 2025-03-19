@@ -67,3 +67,18 @@ export async function markMemberOrgAffiliationAsProcessed(
   const repo = new TempRepository(svc.postgres.writer.connection())
   await repo.markMemberOrgAffiliationAsProcessed(memberId, organizationId)
 }
+
+export async function getProcessedMemberOrgAffiliations(
+  limit: number,
+): Promise<{ memberId: string; organizationId: string }[]> {
+  const repo = new TempRepository(svc.postgres.writer.connection())
+  return repo.getProcessedMemberOrgAffiliations(limit)
+}
+
+export async function deleteProcessedMemberOrgAffiliations(
+  memberId: string,
+  organizationId: string,
+): Promise<void> {
+  const repo = new TempRepository(svc.postgres.writer.connection())
+  await repo.deleteProcessedMemberOrgAffiliations(memberId, organizationId)
+}

@@ -1,7 +1,7 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities/fix-deleted-member-org-affilations'
-// import * as syncActivities from '../activities/sync/member'
+import * as syncActivities from '../activities/sync/member'
 import { IFixDeletedMemberOrgAffilationsArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
@@ -9,10 +9,10 @@ const activity = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-// const syncActivity = proxyActivities<typeof syncActivities>({
-//   startToCloseTimeout: '30 minutes',
-//   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-// })
+const syncActivity = proxyActivities<typeof syncActivities>({
+  startToCloseTimeout: '30 minutes',
+  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
+})
 
 export async function fixDeletedMemberOrgAffilations(
   args: IFixDeletedMemberOrgAffilationsArgs,
@@ -24,10 +24,10 @@ export async function fixDeletedMemberOrgAffilations(
   )
 
   // 1. Find affected memberId and orgId
-  const affectedMembers = await activity.getMembersWithDeletedOrgAffilations(BATCH_SIZE)
+  const affectedMembers = await activity.getProcessedMemberOrgAffiliations(BATCH_SIZE)
 
   if (affectedMembers.length === 0) {
-    console.log('No affected members found!')
+    console.log('No processed member org affiliations found!')
     return
   }
 
@@ -37,27 +37,26 @@ export async function fixDeletedMemberOrgAffilations(
     await Promise.all(
       chunk.map(async ({ memberId, organizationId }) => {
         // 2. Check if they have activity in questDb
-        const hasActivity = await activity.hasActivityInQuestDb(memberId, organizationId)
+        // const hasActivity = await activity.hasActivityInQuestDb(memberId, organizationId)
 
         // 2.1 If no activities found, we need to get and insert them
-        if (!hasActivity) {
-          console.log(`Copying activities for member ${memberId} and org ${organizationId}`)
+        // if (!hasActivity) {
+        //   console.log(`Copying activities for member ${memberId} and org ${organizationId}`)
 
-          await activity.copyActivitiesFromPgToQuestDb(memberId, organizationId)
-        }
+        //   await activity.copyActivitiesFromPgToQuestDb(memberId, organizationId)
+        // }
 
-        // 3. Calculate affiliation
-        // await activity.calculateMemberAffiliations(memberId)
+        // Calculate affiliation
+        await activity.calculateMemberAffiliations(memberId)
 
-        // 4. Sync member
-        // await syncActivity.syncMembersBatch([memberId], true)
+        // Sync member
+        await syncActivity.syncMembersBatch([memberId], true)
 
-        // 5. Add orgId to redisCache
+        // Add orgId to redisCache
         // It will be picked up by the spawnOrganizationAggregatesComputation workflow
-        // await activity.addOrgIdToRedisCache(organizationId)
+        await activity.addOrgIdToRedisCache(organizationId)
 
-        // 6. Mark member-org affiliation as processed
-        await activity.markMemberOrgAffiliationAsProcessed(memberId, organizationId)
+        await activity.deleteProcessedMemberOrgAffiliations(memberId, organizationId)
       }),
     )
   }

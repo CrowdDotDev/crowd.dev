@@ -17,6 +17,30 @@ class TempRepository {
       },
     )
   }
+
+  async getProcessedMemberOrgAffiliations(
+    limit: number,
+  ): Promise<{ memberId: string; organizationId: string }[]> {
+    return this.connection.any(
+      `select "memberId", "organizationId" from "processedMemberOrgAffiliations" limit $(limit)`,
+      {
+        limit,
+      },
+    )
+  }
+
+  async deleteProcessedMemberOrgAffiliations(
+    memberId: string,
+    organizationId: string,
+  ): Promise<void> {
+    await this.connection.none(
+      `delete from "processedMemberOrgAffiliations" where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
+      {
+        memberId,
+        organizationId,
+      },
+    )
+  }
 }
 
 export default TempRepository
