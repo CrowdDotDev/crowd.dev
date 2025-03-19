@@ -1,3 +1,5 @@
+import { cleanupMembers } from './workflows/cleanup/members'
+import { cleanupOrganizations } from './workflows/cleanup/organizations'
 import { copyActivitiesFromQuestdbToTinybird } from './workflows/copyActivitiesFromQuestdbToTinybird'
 import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
@@ -16,4 +18,6 @@ export {
   populateActivityRelations,
   syncMembers,
   syncOrganizations,
+  cleanupMembers,
+  cleanupOrganizations,
 }

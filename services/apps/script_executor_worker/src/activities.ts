@@ -1,3 +1,10 @@
+import { excludeEntityFromCleanup, hasActivityRecords } from './activities/cleanup/helpers'
+import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
+import {
+  deleteOrganization,
+  getOrganizationsToCleanup,
+  queueOrgForAggComputation,
+} from './activities/cleanup/organization'
 import {
   mergeMembers,
   mergeOrganizations,
@@ -63,6 +70,13 @@ export {
   createRelations,
   resetIndexedIdentities,
   getLatestSyncedActivityTimestamp,
+  deleteMember,
+  getMembersToCleanup,
+  deleteOrganization,
+  excludeEntityFromCleanup,
+  getOrganizationsToCleanup,
+  hasActivityRecords,
+  queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,
