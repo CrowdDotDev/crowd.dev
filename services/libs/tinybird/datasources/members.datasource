@@ -7,7 +7,7 @@ SCHEMA >
     `avatar` String `json:$.record.attributes.avatarUrl.default` DEFAULT '',
     `isBot` UInt8 `json:$.record.attributes.isBot.default` DEFAULT 0,
     `isTeamMember` UInt8 `json:$.record.attributes.isTeamMember.default` DEFAULT 0,
-    `contributions` String `json:$.record.contributions` DEFAULT '',
+    `contributions` Array(String) `json:$.record.contributions[:]` DEFAULT [],
     `joinedAt` DateTime64(3) `json:$.record.joinedAt`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,

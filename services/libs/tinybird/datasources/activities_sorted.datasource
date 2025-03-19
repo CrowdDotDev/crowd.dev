@@ -1,0 +1,33 @@
+
+SCHEMA >
+    `id` String,
+    `type` LowCardinality(String),
+    `timestamp` DateTime,
+    `platform` LowCardinality(String),
+    `isContribution` UInt8,
+    `score` Int8,
+    `sourceId` String,
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `sourceParentId` String,
+    `attributes` String,
+    `title` String,
+    `body` String,
+    `channel` String,
+    `url` String,
+    `sentimentLabel` String,
+    `sentimentScore` Float32,
+    `sentimentScoreMixed` Float32,
+    `sentimentScoreNeutral` Float32,
+    `sentimentScoreNegative` Float32,
+    `sentimentScorePositive` Float32,
+    `gitIsMainBranch` UInt8,
+    `gitIsIndirectFork` UInt8,
+    `gitLines` Int32,
+    `gitInsertions` Int32,
+    `gitDeletions` Int32,
+    `gitIsMerge` UInt8
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
+ENGINE_SORTING_KEY "timestamp, channel, platform, type, isContribution"

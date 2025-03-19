@@ -1,4 +1,6 @@
-TOKEN "insights-staging-app-token" READ
+DESCRIPTION >
+	Aggregates activities using segmentIds calculation `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
+
 
 NODE segment_activity_aggregates
 SQL >
@@ -7,11 +9,15 @@ SQL >
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
-    FROM activityRelations
+    FROM activityRelations_sorted
     where activityId in (
-        select id from activities where channel in (
+        select id from activities where 
+        isContribution and
+        ((platform in ('git', 'gerrit', 'github', 'gitlab') and channel in (
           select arrayJoin(repositories) from insightsProjects
-        )
+        )) 
+        or
+        (platform not in ('git', 'gerrit', 'github', 'gitlab')))
     )
     GROUP BY segmentId
 

@@ -1,32 +1,36 @@
-TOKEN "generate_timeseries_bounds_endpoint_read_4511" READ
+DESCRIPTION >
+	Provides timeseries bounds for generate_timeseries pipe. If `startDate` is not sent, then the first existing activity timestamp from sent filters are used as startDate. If endDate is not sent, then `now()` is used as endDate
 
-TOKEN "insights-staging-app-token" READ
+
+TOKEN "insights-app-token" READ
+
+TOKEN "generate_timeseries_bounds_endpoint_read_4511" READ
 
 NODE generate_timeseries_boundz_0
 SQL >
 
     %
-    {% if defined(startDate) and not defined(endDate) %}
-        select 
-            toDate({{startDate}}) as actual_start_date,
-            toDate(now()) as actual_end_date
-    {% end %}
-    {% if not defined(startDate) and defined(endDate) %}
-        select 
-            min(toDate(activities_filtered.timestamp)) as actual_start_date,
-            toDate({{endDate}}) as actual_end_date
-            from activities_filtered 
-    {% end %}
-    {% if not defined(startDate) and not defined(endDate) %}
-        select 
-            min(toDate(activities_filtered.timestamp)) as actual_start_date,
-            toDate(now())  as actual_end_date
-            from activities_filtered 
-    {% end %}
-    {% if defined(startDate) and defined(endDate) %}
-       select 
-            toDate({{startDate}}) as actual_start_date,
-            toDate({{endDate}}) as actual_end_date
-    {% end %}
+        {% if defined(startDate) and not defined(endDate) %}
+            select 
+                toDate({{startDate}}) as actual_start_date,
+                toDate(now()) as actual_end_date
+        {% end %}
+        {% if not defined(startDate) and defined(endDate) %}
+            select 
+                min(toDate(activities_filtered.timestamp)) as actual_start_date,
+                toDate({{endDate}}) as actual_end_date
+                from activities_filtered 
+        {% end %}
+        {% if not defined(startDate) and not defined(endDate) %}
+            select 
+                min(toDate(activities_filtered.timestamp)) as actual_start_date,
+                toDate(now())  as actual_end_date
+                from activities_filtered 
+        {% end %}
+        {% if defined(startDate) and defined(endDate) %}
+           select 
+                toDate({{startDate}}) as actual_start_date,
+                toDate({{endDate}}) as actual_end_date
+        {% end %}
 
 
