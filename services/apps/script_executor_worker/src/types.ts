@@ -40,6 +40,11 @@ export interface ISyncArgs {
   testRun?: boolean
 }
 
+export interface ICleanupArgs {
+  batchSize: number
+  testRun?: boolean
+}
+
 export interface IFixDeletedMemberOrgAffilationsArgs {
   batchSize?: number
   testRun?: boolean

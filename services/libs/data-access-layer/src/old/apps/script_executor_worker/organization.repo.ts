@@ -94,6 +94,123 @@ class OrganizationRepository {
       { orgId, platform, type, value, verified },
     )
   }
+
+  public async getOrganizationsForCleanup(batchSize: number): Promise<string[]> {
+    // No activities linked to this organization
+    // No members linked to this organization (considering soft delete)
+    const results = await this.connection.any(
+      `
+        SELECT o.id as "orgId"
+            FROM organizations o
+            WHERE
+              NOT EXISTS (
+                SELECT 1
+                FROM activities a
+                WHERE a."organizationId" = o.id
+                  AND a."deletedAt" IS NULL
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "memberOrganizations" mo
+                WHERE mo."organizationId" = o.id
+                  AND mo."deletedAt" IS NULL
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM "cleanupExcludeList" cel
+                WHERE cel."entityId" = o.id
+                  AND cel."type" = 'organization'
+              )
+            LIMIT $(batchSize);
+      `,
+      {
+        batchSize,
+      },
+    )
+
+    return results.map((r) => r.orgId)
+  }
+
+  public async cleanupOrganization(organizationId: string): Promise<void> {
+    await this.connection.tx(async (tx) => {
+      await tx.none(
+        `
+        DELETE FROM "organizationNoMerge"
+        WHERE "organizationId" = $(organizationId)
+        OR "noMergeId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "organizationToMerge"
+        WHERE "organizationId" = $(organizationId)
+        OR "toMergeId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "organizationToMergeRaw"
+        WHERE "organizationId" = $(organizationId)
+        OR "toMergeId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberSegmentAffiliations"
+        WHERE "organizationId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "organizationSegments"
+        WHERE "organizationId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "orgAttributes"
+        WHERE "organizationId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "organizationIdentities"
+        WHERE "organizationId" = $(organizationId)
+      `,
+        { organizationId },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM organizations
+        WHERE id = $(organizationId)
+      `,
+        { organizationId },
+      )
+    })
+  }
+
+  public async addEntityToCleanupExcludeList(entityId: string, type: string): Promise<void> {
+    await this.connection.none(
+      `
+      INSERT INTO "cleanupExcludeList" ("entityId", "type") VALUES ($(entityId), $(type))
+      ON CONFLICT DO NOTHING
+      `,
+      { entityId, type },
+    )
+  }
 }
 
 export default OrganizationRepository

@@ -1,7 +1,7 @@
 import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IDbActivity } from '../data_sink_worker/repo/activity.data'
+import { EntityType } from './types'
 
 class ActivityRepository {
   constructor(
@@ -10,40 +10,12 @@ class ActivityRepository {
     private readonly questdbSQL: DbConnOrTx,
   ) {}
 
-  async findActivitiesPg(
-    memberId: string,
-    organizationId: string,
-    { limit = 100, offset = 0 },
-  ): Promise<IDbActivity[]> {
-    return this.connection.query(
-      `select * from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId) limit $(limit) offset $(offset)`,
-      {
-        memberId,
-        organizationId,
-        limit,
-        offset,
-      },
-    )
-  }
-
-  // async findActivitiesQuestDb(memberId: string, organizationId: string): Promise<number> {
-  //   const results = await this.questdbSQL.query(
-  //     `select count(*) as count from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId)`,
-  //     {
-  //       memberId,
-  //       organizationId,
-  //     },
-  //   )
-
-  //   return Number(results[0].count)
-  // }
-
-  async hasActivity(memberId: string, organizationId: string): Promise<boolean> {
+  async hasActivitiesInQuestDb(id: string, type: EntityType): Promise<boolean> {
+    const columnName = `${type}Id`
     const results = await this.questdbSQL.query(
-      `select 1 from activities where "memberId" = $(memberId) and "organizationId" = $(organizationId) limit 1`,
+      `select 1 from activities where "${columnName}" = $(id) limit 1`,
       {
-        memberId,
-        organizationId,
+        id,
       },
     )
 

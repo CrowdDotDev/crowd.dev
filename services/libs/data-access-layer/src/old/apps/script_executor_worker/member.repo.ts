@@ -172,6 +172,128 @@ class MemberRepository {
     return results.map((r) => r.id)
   }
 
+  public async getMembersForCleanup(batchSize: number): Promise<string[]> {
+    const results = await this.connection.query(
+      `
+        SELECT m.id as "memberId"
+        FROM members m
+        WHERE NOT EXISTS (SELECT 1
+                          FROM activities a
+                          WHERE a."memberId" = m.id)
+          AND NOT EXISTS (SELECT 1
+                          FROM "memberOrganizations" mo
+                          WHERE mo."memberId" = m.id)
+          AND NOT EXISTS (SELECT 1
+                          FROM "memberIdentities" mi
+                          WHERE mi."memberId" = m.id)
+          AND NOT EXISTS (SELECT 1
+                          FROM "cleanupExcludeList" cel
+                          WHERE cel."entityId" = m.id
+                            AND cel."type" = 'member')
+        limit $(batchSize);
+      `,
+      {
+        batchSize,
+      },
+    )
+
+    return results.map((r) => r.memberId)
+  }
+
+  public async deleteMember(memberId: string): Promise<void> {
+    await this.connection.tx(async (tx) => {
+      await tx.none(
+        `
+        DELETE FROM "memberEnrichmentCache"
+        WHERE "memberId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberEnrichments"
+        WHERE "memberId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberNoMerge"
+        WHERE "memberId" = $(memberId) OR "noMergeId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberSegmentAffiliations"
+        WHERE "memberId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberSegments"
+        WHERE "memberId" = $(memberId)
+        `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberTags"
+        WHERE "memberId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberToMerge"
+        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "memberToMergeRaw"
+        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+
+      await tx.none(
+        `
+        DELETE FROM "members"
+        WHERE id = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+    })
+  }
+
   public async getMembersWithDeletedOrgAffilations(
     limit: number,
   ): Promise<{ memberId: string; organizationId: string }[]> {
