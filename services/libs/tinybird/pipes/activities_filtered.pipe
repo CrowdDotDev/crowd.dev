@@ -1,5 +1,5 @@
 DESCRIPTION >
-	Base pipe for all activity based aggregations. Has all filters we can make on activities and activityRelations. Filters are applied and relation data is merged in the last pipe.
+	Base pipe for all activity based aggregations. Has all filters we can make on activities and activityRelations. Filters are applied and relation data is merged in the last node.
 
 
 TOKEN "insights-app-token" READ

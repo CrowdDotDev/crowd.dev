@@ -8,15 +8,17 @@ TOKEN "raul_dev_access_token" READ
 
 TOKEN "organizations_geo_distribution_endpoint_read_0957" READ
 
-NODE organizations_geo_distribution_0
+NODE country_mapping_array
 SQL >
 
-    WITH 
-        country_mapping_array AS (
-            SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-        ),
-        parsed_country AS (
-            SELECT 
+    SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
+
+
+
+NODE parsed_country
+SQL >
+
+    SELECT 
                 o.id,
                 o.location,
                 arrayFilter(
@@ -26,7 +28,12 @@ SQL >
                 arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data
             FROM organizations AS o
             WHERE o.id IN (SELECT "organizationId" FROM activities_filtered)
-        )
+
+
+
+NODE organizations_geo_distribution_result
+SQL >
+
     SELECT 
         country_data.1 AS country,
         country_data.2 AS flag,

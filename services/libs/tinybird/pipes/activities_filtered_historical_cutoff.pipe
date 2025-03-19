@@ -1,5 +1,5 @@
 DESCRIPTION >
-	The only difference between the activities_filtered pipeline and this pipeline is that this version returns all activities up until the specified startDate, effectively reversing the time range filter. This approach is useful as it retains support for additional filters and is primarily used in the activities_cumulative_counts pipeline to obtain the historical total.
+	The only difference between the activities_filtered pipe and this pipe is that this version returns all activities up until the specified startDate, effectively reversing the time range filter. This approach is useful as it retains support for additional filters and is primarily used in the activities_cumulative_counts pipeline to obtain the historical total.
 
 
 TOKEN "insights-app-token" READ

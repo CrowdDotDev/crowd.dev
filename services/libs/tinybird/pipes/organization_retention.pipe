@@ -8,7 +8,25 @@ TOKEN "raul_dev_access_token" READ
 
 TOKEN "organization_retention_endpoint_read_0731" READ
 
-NODE organization_retention_0
+NODE aggregated_organizations
+SQL >
+
+    %
+    SELECT 
+                CASE 
+                    WHEN {{granularity}} = 'daily' THEN toDate(timestamp)
+                    WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(timestamp)
+                    WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(timestamp)
+                    WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(timestamp)
+                    WHEN {{granularity}} = 'yearly' THEN toStartOfYear(timestamp)
+                END AS period,
+                groupUniqArray(organizationId) AS orgs
+            FROM activities_filtered_retention
+            GROUP BY period
+
+
+
+NODE retention
 SQL >
 
     %
@@ -51,6 +69,18 @@ SQL >
                     END
           )  
         SELECT 
+          "startDate",
+          "endDate",
+          "retentionRate"
+        FROM retention
+        ORDER BY "startDate"
+
+
+
+NODE organization_retention_result
+SQL >
+
+    SELECT 
           "startDate",
           "endDate",
           "retentionRate"
