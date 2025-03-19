@@ -58,7 +58,7 @@ cd scripts
 ```
 
 For starting services required for insights infra (tinybird and sequin)
-you can use the `WITH_INSIGHTS=1` env variable while running scaffold commands
+you can use the `WITH_INSIGHTS=1` env variable while running cli commands
 ```
 WITH_INSIGHTS=1 ./cli scaffold up
 ```
