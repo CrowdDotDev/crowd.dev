@@ -61,6 +61,35 @@ class MergeActionRepository {
 
     return rows
   }
+
+  async findMergeActionsWithDeletedSecondaryEntities(
+    limit: number,
+    offset: number,
+    entityType: 'member' | 'org',
+  ): Promise<IMergeAction[]> {
+    const tableMap = {
+      member: 'members',
+      org: 'organizations',
+    }
+
+    const tableName = tableMap[entityType]
+
+    return this.connection.query(
+      `
+      select * from "mergeActions" ma
+      where ma."state" = 'merged' and ma."type" = $(entityType)
+      and not exists (
+        select 1 from "${tableName}" e where e.id = ma."secondaryId" and e."deletedAt" is null
+      )
+      limit $(limit) offset $(offset)
+      `,
+      {
+        limit,
+        offset,
+        entityType,
+      },
+    )
+  }
 }
 
 export default MergeActionRepository
