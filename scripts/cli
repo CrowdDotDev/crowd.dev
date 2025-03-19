@@ -654,7 +654,9 @@ function migrate_local() {
     migrate_postgres_local
     migrate_questdb_local
     migrate_productdb_local
-    migrate_tinybird_local
+    if [[ "$WITH_INSIGHTS" == "1" ]]; then
+        migrate_tinybird_local
+    fi
 }
 
 function up_test_scaffold() {
@@ -702,16 +704,19 @@ function up_scaffold() {
     local profile=''
     if [[ -n "${WITH_NGINX}" ]]; then
         profile='--profile nginx'
+    elif [[ -n "${WITH_INSIGHTS}" ]]; then
+        profile='--profile insights'
     fi
 
-    if [[ ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" || 
-          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")"  || 
-          ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
-          -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")" ]]; then
+if [[ "$WITH_INSIGHTS" == "1" && ( 
+        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" || 
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")"  || 
+        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")" 
+    ) ]]; then
         download_kafka_connect_http
     fi
-
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build 
 }
 
 function post_up_scaffold() {
