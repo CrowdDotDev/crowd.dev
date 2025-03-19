@@ -2,9 +2,9 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
-import * as entityIndexActivities from '../activities/sync/entity-index'
-import * as orgSyncActivities from '../activities/sync/organization'
-import { ISyncArgs } from '../types'
+import * as entityIndexActivities from '../../activities/sync/entity-index'
+import * as orgSyncActivities from '../../activities/sync/organization'
+import { ISyncArgs } from '../../types'
 
 const orgSyncActivity = proxyActivities<typeof orgSyncActivities>({
   startToCloseTimeout: '30 minutes',

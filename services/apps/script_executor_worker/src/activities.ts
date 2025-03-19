@@ -1,13 +1,10 @@
 import { excludeEntityFromCleanup, hasActivityRecords } from './activities/cleanup/helpers'
 import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
-import {
-  deleteOrganization,
-  getOrganizationsToCleanup,
-  queueOrgForAggComputation,
-} from './activities/cleanup/organization'
+import { deleteOrganization, getOrganizationsToCleanup } from './activities/cleanup/organization'
 import {
   mergeMembers,
   mergeOrganizations,
+  queueOrganizationForAggComputation,
   unmergeMembers,
   unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
@@ -25,13 +22,10 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
-  addOrgIdToRedisCache,
   calculateMemberAffiliations,
-  copyActivitiesFromPgToQuestDb,
   deleteProcessedMemberOrgAffiliations,
   getMembersWithDeletedOrgAffilations,
   getProcessedMemberOrgAffiliations,
-  hasActivityInQuestDb,
   markMemberOrgAffiliationAsProcessed,
 } from './activities/fix-deleted-member-org-affilations'
 import {
@@ -86,19 +80,16 @@ export {
   excludeEntityFromCleanup,
   getOrganizationsToCleanup,
   hasActivityRecords,
-  queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,
   syncOrganizationsBatch,
   deleteIndexedEntities,
   markEntitiesIndexed,
+  queueOrganizationForAggComputation,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   getMembersWithDeletedOrgAffilations,
-  hasActivityInQuestDb,
-  copyActivitiesFromPgToQuestDb,
-  addOrgIdToRedisCache,
   calculateMemberAffiliations,
   markMemberOrgAffiliationAsProcessed,
   getProcessedMemberOrgAffiliations,

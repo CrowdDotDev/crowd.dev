@@ -3,10 +3,11 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
 import * as cleanupHelpers from '../../activities/cleanup/helpers'
-import * as activities from '../../activities/cleanup/organization'
+import * as cleanupActivities from '../../activities/cleanup/organization'
+import * as commonActivities from '../../activities/common'
 import { ICleanupArgs } from '../../types'
 
-const activity = proxyActivities<typeof activities>({
+const cleanupActivity = proxyActivities<typeof cleanupActivities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -16,10 +17,15 @@ const cleanupHelper = proxyActivities<typeof cleanupHelpers>({
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
+const commonActivity = proxyActivities<typeof commonActivities>({
+  startToCloseTimeout: '30 minutes',
+  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
+})
+
 export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
-  const organizationIds = await activity.getOrganizationsToCleanup(BATCH_SIZE)
+  const organizationIds = await cleanupActivity.getOrganizationsToCleanup(BATCH_SIZE)
 
   if (organizationIds.length === 0) {
     console.log('No more organizations to cleanup!')
@@ -41,8 +47,8 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
 
       console.log(`Deleting organization ${orgId} from database!`)
 
-      await activity.deleteOrganization(orgId)
-      return activity.queueOrgForAggComputation(orgId)
+      await cleanupActivity.deleteOrganization(orgId)
+      return commonActivity.queueOrganizationForAggComputation(orgId)
     })
 
     await Promise.all(cleanupTasks)

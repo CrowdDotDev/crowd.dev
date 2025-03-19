@@ -7,8 +7,8 @@ import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from '.
 import { fixDeletedMemberOrgAffilations } from './workflows/fixDeletedMemberOrgAffilations'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
-import { syncMembers } from './workflows/syncMembers'
-import { syncOrganizations } from './workflows/syncOrganizations'
+import { syncMembers } from './workflows/sync/members'
+import { syncOrganizations } from './workflows/sync/organizations'
 
 export {
   findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms,

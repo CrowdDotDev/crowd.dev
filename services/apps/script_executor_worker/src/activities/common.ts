@@ -134,3 +134,12 @@ export function timeout(ms: number, workflowId: string): Promise<void> {
     }, ms)
   })
 }
+
+export async function queueOrganizationForAggComputation(orgId: string): Promise<void> {
+  try {
+    await svc.redis.sAdd('organizationIdsForAggComputation', orgId)
+  } catch (error) {
+    svc.log.error(error, 'Error adding organization to redis set!')
+    throw error
+  }
+}
