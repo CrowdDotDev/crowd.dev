@@ -2,22 +2,16 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
-import * as cleanupHelpers from '../../activities/cleanup/helpers'
-import * as activities from '../../activities/cleanup/member'
-import * as syncActivities from '../../activities/sync/member'
+import * as activities from '../../activities'
 import { ICleanupArgs } from '../../types'
 
-const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-})
-
-const cleanupHelper = proxyActivities<typeof cleanupHelpers>({
-  startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-})
-
-const syncActivity = proxyActivities<typeof syncActivities>({
+const {
+  getMembersToCleanup,
+  deleteMember,
+  syncMembersBatch,
+  hasActivityRecords,
+  excludeEntityFromCleanup,
+} = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -25,7 +19,7 @@ const syncActivity = proxyActivities<typeof syncActivities>({
 export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
-  const memberIds = await activity.getMembersToCleanup(BATCH_SIZE)
+  const memberIds = await getMembersToCleanup(BATCH_SIZE)
 
   if (memberIds.length === 0) {
     console.log('No more members to cleanup!')
@@ -38,17 +32,17 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
     const chunk = memberIds.slice(i, i + CHUNK_SIZE)
 
     const cleanupTasks = chunk.map(async (memberId) => {
-      const isInQuestDb = await cleanupHelper.hasActivityRecords(memberId, EntityType.MEMBER)
+      const isInQuestDb = await hasActivityRecords(memberId, EntityType.MEMBER)
 
       if (isInQuestDb) {
         console.log(`Member ${memberId} is in QuestDB, skipping!`)
-        return cleanupHelper.excludeEntityFromCleanup(memberId, EntityType.MEMBER)
+        return excludeEntityFromCleanup(memberId, EntityType.MEMBER)
       }
 
       console.log(`Deleting member ${memberId} from database!`)
+      await deleteMember(memberId)
 
-      await activity.deleteMember(memberId)
-      return syncActivity.syncMembersBatch([memberId], true)
+      return syncMembersBatch([memberId], true)
     })
 
     await Promise.all(cleanupTasks)
