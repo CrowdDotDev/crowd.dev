@@ -14,7 +14,7 @@ export async function getMembersToCleanup(batchSize: number): Promise<string[]> 
 
 export async function deleteMember(memberId: string): Promise<void> {
   try {
-    const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
+    const memberRepo = new MemberRepository(svc.postgres.writer.connection(), svc.log)
     return memberRepo.deleteMember(memberId)
   } catch (error) {
     svc.log.error(error, 'Error cleaning up member!')

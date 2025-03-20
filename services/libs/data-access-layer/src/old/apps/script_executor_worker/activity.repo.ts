@@ -10,13 +10,12 @@ class ActivityRepository {
     private readonly questdbSQL: DbConnOrTx,
   ) {}
 
-  async hasActivitiesInQuestDb(id: string, type: EntityType): Promise<boolean> {
-    const columnName = `${type}Id`
+  async doesActivityExistInQuestDb(id: string, type: EntityType): Promise<boolean> {
+    const columnName = type === EntityType.MEMBER ? 'memberId' : 'organizationId'
+
     const results = await this.questdbSQL.query(
       `select 1 from activities where "${columnName}" = $(id) limit 1`,
-      {
-        id,
-      },
+      { id },
     )
 
     return results.length > 0
