@@ -55,6 +55,8 @@ function prepare_dev_env() {
     fi
 
     set -eo pipefail
+
+    mkdir -p $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
 }
 
 prepare_dev_env
@@ -708,15 +710,15 @@ function up_scaffold() {
         profile='--profile insights'
     fi
 
-if [[ "$WITH_INSIGHTS" == "1" && ( 
-        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" || 
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")"  || 
+    if [[ "$WITH_INSIGHTS" == "1" && (
+        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" ||
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")" ||
         ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")" 
-    ) ]]; then
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")") ]] \
+        ; then
         download_kafka_connect_http
     fi
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build 
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
 }
 
 function post_up_scaffold() {
