@@ -1,4 +1,4 @@
-import { excludeEntityFromCleanup, hasActivityRecords } from './activities/cleanup/helpers'
+import { excludeEntityFromCleanup } from './activities/cleanup/exlcudeEntity'
 import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -6,6 +6,7 @@ import {
   queueOrgForAggComputation,
 } from './activities/cleanup/organization'
 import {
+  doesActivityExistInQuestDb,
   mergeMembers,
   mergeOrganizations,
   unmergeMembers,
@@ -75,7 +76,7 @@ export {
   deleteOrganization,
   excludeEntityFromCleanup,
   getOrganizationsToCleanup,
-  hasActivityRecords,
+  doesActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
