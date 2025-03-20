@@ -9,7 +9,7 @@ const {
   getMembersToCleanup,
   deleteMember,
   syncMembersBatch,
-  doesActivityExist,
+  doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
@@ -32,7 +32,7 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
     const chunk = memberIds.slice(i, i + CHUNK_SIZE)
 
     const cleanupTasks = chunk.map(async (memberId) => {
-      const isInQuestDb = await doesActivityExist(memberId, EntityType.MEMBER)
+      const isInQuestDb = await doesActivityExistInQuestDb(memberId, EntityType.MEMBER)
 
       if (isInQuestDb) {
         console.log(`Member ${memberId} is in QuestDB, skipping!`)

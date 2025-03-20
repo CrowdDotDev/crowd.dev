@@ -9,7 +9,7 @@ const {
   getOrganizationsToCleanup,
   deleteOrganization,
   queueOrgForAggComputation,
-  doesActivityExist,
+  doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
@@ -32,7 +32,7 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
     const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
 
     const cleanupTasks = chunk.map(async (orgId) => {
-      const isInQuestDb = await doesActivityExist(orgId, EntityType.ORGANIZATION)
+      const isInQuestDb = await doesActivityExistInQuestDb(orgId, EntityType.ORGANIZATION)
 
       if (isInQuestDb) {
         console.log(`Organization ${orgId} is in QuestDB, skipping!`)

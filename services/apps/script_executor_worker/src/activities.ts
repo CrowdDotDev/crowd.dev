@@ -6,7 +6,7 @@ import {
   queueOrgForAggComputation,
 } from './activities/cleanup/organization'
 import {
-  doesActivityExist,
+  doesActivityExistInQuestDb,
   mergeMembers,
   mergeOrganizations,
   unmergeMembers,
@@ -76,7 +76,7 @@ export {
   deleteOrganization,
   excludeEntityFromCleanup,
   getOrganizationsToCleanup,
-  doesActivityExist,
+  doesActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
