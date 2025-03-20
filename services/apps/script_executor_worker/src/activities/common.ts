@@ -137,7 +137,7 @@ export function timeout(ms: number, workflowId: string): Promise<void> {
   })
 }
 
-export async function hasActivityRecords(
+export async function doesActivityExist(
   entityId: string,
   entityType: EntityType,
 ): Promise<boolean> {
