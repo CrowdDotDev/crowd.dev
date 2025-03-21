@@ -212,27 +212,27 @@ class MemberMergeSuggestionsRepository {
       const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
         `
         select
-            mem.attributes,
-            mem."displayName",
-            mem."joinedAt",
-            jsonb_agg(distinct mI) as identities,
-            coalesce(
-                (
-                    select jsonb_agg(
-                        jsonb_build_object(
-                            'displayName', o."displayName",
-                            'logo', o.logo,
-                            'dateStart', mo."dateStart",
-                            'dateEnd', mo."dateEnd",
-                            'title', mo.title
-                        )
-                    )
-                    from "memberOrganizations" mo
-                    join organizations o on o.id = mo."organizationId"
-                    where mo."memberId" = mem.id
-                ),
-                '[]'::jsonb
-            ) as organizations
+          mem.attributes,
+          mem."displayName",
+          mem."joinedAt",
+          jsonb_agg(distinct mI) as identities,
+          coalesce(
+            (
+              select jsonb_agg(
+                jsonb_build_object(
+                  'displayName', o."displayName",
+                  'logo', o.logo,
+                  'dateStart', mo."dateStart",
+                  'dateEnd', mo."dateEnd",
+                  'title', mo.title
+                )
+              )
+              from "memberOrganizations" mo
+              join organizations o on o.id = mo."organizationId"
+              where mo."memberId" = mem.id
+            ),
+            '[]'::jsonb
+          ) as organizations
         from members mem
         join "memberIdentities" mI on mem.id = mI."memberId"
         where mem.id in ($(memberIds:csv))
