@@ -21,3 +21,12 @@ export async function deleteOrganization(orgId: string): Promise<void> {
     throw error
   }
 }
+
+export async function queueOrgForAggComputation(orgId: string): Promise<void> {
+  try {
+    await svc.redis.sAdd('organizationIdsForAggComputation', orgId)
+  } catch (error) {
+    svc.log.error(error, 'Error adding organization to redis set!')
+    throw error
+  }
+}
