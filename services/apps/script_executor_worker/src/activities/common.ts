@@ -1,6 +1,8 @@
 import axios from 'axios'
 
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
+import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 import {
   IMemberIdentity,
   IMemberUnmergeBackup,
@@ -135,11 +137,19 @@ export function timeout(ms: number, workflowId: string): Promise<void> {
   })
 }
 
-export async function queueOrganizationForAggComputation(orgId: string): Promise<void> {
+export async function doesActivityExistInQuestDb(
+  entityId: string,
+  entityType: EntityType,
+): Promise<boolean> {
   try {
-    await svc.redis.sAdd('organizationIdsForAggComputation', orgId)
+    const activityRepo = new ActivityRepository(
+      svc.postgres.reader.connection(),
+      svc.log,
+      svc.questdbSQL,
+    )
+    return activityRepo.doesActivityExistInQuestDb(entityId, entityType)
   } catch (error) {
-    svc.log.error(error, 'Error adding organization to redis set!')
+    svc.log.error(error, 'Error checking if entity has activities in questDb!')
     throw error
   }
 }

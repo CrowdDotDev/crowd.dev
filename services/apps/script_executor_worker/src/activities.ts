@@ -1,10 +1,14 @@
-import { excludeEntityFromCleanup, hasActivityRecords } from './activities/cleanup/helpers'
+import { excludeEntityFromCleanup } from './activities/cleanup/exlcudeEntity'
 import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
-import { deleteOrganization, getOrganizationsToCleanup } from './activities/cleanup/organization'
 import {
+  deleteOrganization,
+  getOrganizationsToCleanup,
+  queueOrgForAggComputation,
+} from './activities/cleanup/organization'
+import {
+  doesActivityExistInQuestDb,
   mergeMembers,
   mergeOrganizations,
-  queueOrganizationForAggComputation,
   unmergeMembers,
   unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
@@ -79,14 +83,14 @@ export {
   deleteOrganization,
   excludeEntityFromCleanup,
   getOrganizationsToCleanup,
-  hasActivityRecords,
+  doesActivityExistInQuestDb,
+  queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,
   syncOrganizationsBatch,
   deleteIndexedEntities,
   markEntitiesIndexed,
-  queueOrganizationForAggComputation,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   getMembersWithDeletedOrgAffilations,
