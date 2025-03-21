@@ -212,20 +212,31 @@ class MemberMergeSuggestionsRepository {
       const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
         `
         select
-          mem.attributes,
-          mem."displayName",
-          mem."joinedAt",
-          jsonb_agg(distinct mI)            as identities,
-          coalesce(jsonb_agg(distinct organizations)  filter (where organizations is not null), '[]'::jsonb) as organizations
+            mem.attributes,
+            mem."displayName",
+            mem."joinedAt",
+            jsonb_agg(distinct mI) as identities,
+            coalesce(
+                (
+                    select jsonb_agg(
+                        jsonb_build_object(
+                            'displayName', o."displayName",
+                            'logo', o.logo,
+                            'dateStart', mo."dateStart",
+                            'dateEnd', mo."dateEnd",
+                            'title', mo.title
+                        )
+                    )
+                    from "memberOrganizations" mo
+                    join organizations o on o.id = mo."organizationId"
+                    where mo."memberId" = mem.id
+                ),
+                '[]'::jsonb
+            ) as organizations
         from members mem
-          join "memberIdentities" mI on mem.id = mI."memberId"
-          left join "memberOrganizations" mo on mem.id = mo."memberId"
-          left join (select o."displayName", o.logo, mox."dateStart", mox."dateEnd", mox.title, mox."memberId"
-                from "memberOrganizations" mox
-                         join organizations o on mox."organizationId" = o.id) as organizations
-               on organizations."memberId" = mo."memberId"
+        join "memberIdentities" mI on mem.id = mI."memberId"
         where mem.id in ($(memberIds:csv))
-        group by mI."memberId", mem.attributes, mem."displayName", mem."joinedAt"`,
+        group by mem.id, mem.attributes, mem."displayName", mem."joinedAt";`,
         {
           memberIds,
         },
