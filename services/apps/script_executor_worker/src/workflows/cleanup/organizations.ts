@@ -42,6 +42,7 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
       console.log(`Deleting organization ${orgId} from database!`)
       await deleteOrganization(orgId)
 
+      await deleteOrganization(orgId)
       return queueOrgForAggComputation(orgId)
     })
 

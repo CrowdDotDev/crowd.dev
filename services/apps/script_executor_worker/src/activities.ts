@@ -26,6 +26,13 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  calculateMemberAffiliations,
+  deleteProcessedMemberOrgAffiliations,
+  getMembersWithDeletedOrgAffilations,
+  getProcessedMemberOrgAffiliations,
+  markMemberOrgAffiliationAsProcessed,
+} from './activities/fix-deleted-member-org-affilations'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -86,4 +93,9 @@ export {
   markEntitiesIndexed,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
+  getMembersWithDeletedOrgAffilations,
+  calculateMemberAffiliations,
+  markMemberOrgAffiliationAsProcessed,
+  getProcessedMemberOrgAffiliations,
+  deleteProcessedMemberOrgAffiliations,
 }
