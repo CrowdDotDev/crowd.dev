@@ -40,7 +40,7 @@
       </h4>
       <p class="text-medium text-center pb-10 max-w-148">
         To finalize the process of connecting this GitHub organization to LFX
-        Community Management, each repository must be mapped to its
+        Community Data Platform, each repository must be mapped to its
         corresponding sub-project.
       </p>
       <div

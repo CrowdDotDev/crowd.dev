@@ -1,12 +1,12 @@
 
 <!-- BODY -->
 
-# LFX Community Management (fka crowd.dev) 
+# LFX Community Data Platform (fka crowd.dev) 
 ## Background story
-This project was launched as part of the startup crowd.dev. crowd.dev was acquired by the Linux Foundation in April 2024. Following the acquisition, crowd.dev was renamed to "Community Management" and is now part of the [LFX platform](https://lfx.linuxfoundation.org/).
+This project was launched as part of the startup crowd.dev. crowd.dev was acquired by the Linux Foundation in April 2024. Following the acquisition, crowd.dev was renamed to "Community Data Platform" and is now part of the [LFX platform](https://lfx.linuxfoundation.org/).
 
 ## About this project
-LFX Community Management is a Customer Data Platform (CDP) that collects and stores customer data from across the communities in a single database for data unification, identity resolution, analysis, and activation. By utilizing this tool, the Linux Foundation can effectively identify key contributors and organizations, facilitating more efficient community support.
+LFX Community Data Platform collects and stores data from across the communities in a single database for data unification, identity resolution, analysis, and activation. By utilizing this tool, the Linux Foundation can effectively identify key contributors and organizations, facilitating more efficient community support.
 
 Key features:
 * It consolidates developers' touchpoints with a company or brand.
