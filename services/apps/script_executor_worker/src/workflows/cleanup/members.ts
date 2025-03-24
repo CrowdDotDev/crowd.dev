@@ -39,7 +39,7 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
         return excludeEntityFromCleanup(memberId, EntityType.MEMBER)
       }
 
-      console.log(`Deleting member ${memberId} from database!`)
+      console.log(`Deleting member ${memberId} from opensearch and database!`)
       await syncRemoveMember(memberId)
       return deleteMember(memberId)
     })

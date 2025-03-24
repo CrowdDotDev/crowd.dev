@@ -201,106 +201,24 @@ class MemberRepository {
   }
 
   public async deleteMember(memberId: string): Promise<void> {
+    const tablesToDelete = [
+      { name: 'memberEnrichmentCache', conditions: ['memberId'] },
+      { name: 'memberEnrichments', conditions: ['memberId'] },
+      { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
+      { name: 'memberSegmentsAgg', conditions: ['memberId'] },
+      { name: 'memberSegments', conditions: ['memberId'] },
+      { name: 'memberTags', conditions: ['memberId'] },
+      { name: 'memberToMerge', conditions: ['memberId', 'toMergeId'] },
+      { name: 'memberToMergeRaw', conditions: ['memberId', 'toMergeId'] },
+      { name: 'members', conditions: ['id'] },
+    ]
+
     await this.connection.tx(async (tx) => {
-      await tx.none(
-        `
-        DELETE FROM "memberEnrichmentCache"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberEnrichments"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberNoMerge"
-        WHERE "memberId" = $(memberId) OR "noMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegmentAffiliations"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegmentsAgg"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegments"
-        WHERE "memberId" = $(memberId)
-        `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberTags"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberToMerge"
-        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberToMergeRaw"
-        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "members"
-        WHERE id = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
+      for (const table of tablesToDelete) {
+        const whereClause = table.conditions.map((field) => `"${field}" = $(memberId)`).join(' OR ')
+        await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { memberId })
+      }
     })
   }
 }
