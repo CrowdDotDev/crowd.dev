@@ -132,73 +132,28 @@ class OrganizationRepository {
   }
 
   public async cleanupOrganization(organizationId: string): Promise<void> {
+    const tables = [
+      'organizationNoMerge',
+      'organizationToMerge',
+      'organizationToMergeRaw',
+      'memberSegmentAffiliations',
+      'organizationSegmentsAgg',
+      'organizationSegments',
+      'orgAttributes',
+      'organizationIdentities',
+      'organizations',
+    ]
+
     await this.connection.tx(async (tx) => {
-      await tx.none(
-        `
-        DELETE FROM "organizationNoMerge"
-        WHERE "organizationId" = $(organizationId)
-        OR "noMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationToMerge"
-        WHERE "organizationId" = $(organizationId)
-        OR "toMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationToMergeRaw"
-        WHERE "organizationId" = $(organizationId)
-        OR "toMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegmentAffiliations"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationSegments"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "orgAttributes"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationIdentities"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM organizations
-        WHERE id = $(organizationId)
-      `,
-        { organizationId },
-      )
+      for (const table of tables) {
+        await tx.none(
+          `DELETE FROM "${table}" WHERE "organizationId" = $(organizationId) 
+          ${table === 'organizationNoMerge' ? 'OR "noMergeId" = $(organizationId)' : ''}
+          ${table === 'organizationToMerge' || table === 'organizationToMergeRaw' ? 'OR "toMergeId" = $(organizationId)' : ''}
+          `,
+          { organizationId },
+        )
+      }
     })
   }
 

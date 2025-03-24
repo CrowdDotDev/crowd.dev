@@ -1,4 +1,6 @@
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import OrganizationRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
+import { OrganizationSyncService } from '@crowd/opensearch'
 
 import { svc } from '../../main'
 
@@ -17,7 +19,22 @@ export async function deleteOrganization(orgId: string): Promise<void> {
     const orgRepo = new OrganizationRepository(svc.postgres.writer.connection(), svc.log)
     await orgRepo.cleanupOrganization(orgId)
   } catch (error) {
-    svc.log.error(error, 'Error cleaning up organization!')
+    svc.log.error(error, 'Error cleaning up organization in database!')
+    throw error
+  }
+}
+
+export async function syncRemoveOrganization(organizationId: string): Promise<void> {
+  try {
+    const service = new OrganizationSyncService(
+      new DbStore(svc.log, svc.questdbSQL),
+      svc.postgres.writer,
+      svc.opensearch,
+      svc.log,
+    )
+    await service.removeOrganization(organizationId)
+  } catch (error) {
+    svc.log.error(error, 'Error removing organization in opensearch!')
     throw error
   }
 }

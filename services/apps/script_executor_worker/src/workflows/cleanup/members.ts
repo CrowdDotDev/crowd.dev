@@ -8,9 +8,9 @@ import { ICleanupArgs } from '../../types'
 const {
   getMembersToCleanup,
   deleteMember,
-  syncMembersBatch,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
+  syncRemoveMember,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -40,9 +40,8 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
       }
 
       console.log(`Deleting member ${memberId} from database!`)
-      await deleteMember(memberId)
-
-      return syncMembersBatch([memberId], true)
+      await syncRemoveMember(memberId)
+      return deleteMember(memberId)
     })
 
     await Promise.all(cleanupTasks)

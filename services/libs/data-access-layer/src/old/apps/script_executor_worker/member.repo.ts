@@ -201,96 +201,29 @@ class MemberRepository {
   }
 
   public async deleteMember(memberId: string): Promise<void> {
+    const tables = [
+      'memberEnrichmentCache',
+      'memberEnrichments',
+      'memberNoMerge',
+      'memberSegmentAffiliations',
+      'memberSegmentsAgg',
+      'memberSegments',
+      'memberTags',
+      'memberToMerge',
+      'memberToMergeRaw',
+      'members',
+    ]
+
     await this.connection.tx(async (tx) => {
-      await tx.none(
-        `
-        DELETE FROM "memberEnrichmentCache"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberEnrichments"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberNoMerge"
-        WHERE "memberId" = $(memberId) OR "noMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegmentAffiliations"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegments"
-        WHERE "memberId" = $(memberId)
-        `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberTags"
-        WHERE "memberId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberToMerge"
-        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberToMergeRaw"
-        WHERE "memberId" = $(memberId) OR "toMergeId" = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "members"
-        WHERE id = $(memberId)
-      `,
-        {
-          memberId,
-        },
-      )
+      for (const table of tables) {
+        await tx.none(
+          `DELETE FROM "${table}" WHERE "memberId" = $(memberId) 
+          ${table === 'memberNoMerge' ? 'OR "noMergeId" = $(memberId)' : ''}
+          ${table === 'memberToMerge' || table === 'memberToMergeRaw' ? 'OR "toMergeId" = $(memberId)' : ''}
+          `,
+          { memberId },
+        )
+      }
     })
   }
 }
