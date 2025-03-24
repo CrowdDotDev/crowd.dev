@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: CM API Docs
   version: 1.0.0
-  description: API endpoints for Community Management application
+  description: API endpoints for LFX Community Data Platform application
 
 servers:
   - url: https://cm.lfx.dev/api

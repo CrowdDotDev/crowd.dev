@@ -32,7 +32,7 @@
         </h6>
         <p class="text-medium text-gray-600 pb-6">
           As an admin member of the organization you want to connect,
-          you can give access to Community Management and select the repositories you want to track.
+          you can give access to Community Data Platform and select the repositories you want to track.
         </p>
         <lf-button type="primary" class="w-full" @click="openGithubInstallation">
           Choose organization to connect
@@ -44,7 +44,7 @@
             I'm not the admin of the GitHub organization
           </h6>
           <p class="text-medium text-gray-600">
-            Request the installation of Community Management App from an admin member.
+            Request the installation of Community Data Platform App from an admin member.
           </p>
         </article>
         <article class="flex mb-8">
@@ -53,7 +53,7 @@
           </div>
           <div class="pl-3">
             <p class="text-medium text-gray-600 pb-3">
-              Share the <span class="font-semibold">Community Management App</span> installation link
+              Share the <span class="font-semibold">Community Data Platform App</span> installation link
               with an admin member of your GitHub organization.
             </p>
             <lf-button type="primary-link" size="small" @click="copy()">
