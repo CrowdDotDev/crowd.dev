@@ -79,6 +79,6 @@ export async function updateMemberReach(
   )
 }
 
-export async function setMemberUpdatedAt(qx: QueryExecutor, memberId: string): Promise<void> {
+export async function touchMemberUpdatedAt(qx: QueryExecutor, memberId: string): Promise<void> {
   await qx.result(`UPDATE members SET updatedAt = NOW() WHERE id = $(memberId)`, { memberId })
 }

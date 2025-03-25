@@ -9,7 +9,7 @@ import {
   deleteMemberIdentity,
   fetchMemberIdentities,
   findMemberIdentityById,
-  setMemberUpdatedAt,
+  touchMemberUpdatedAt,
   updateMemberIdentity,
 } from '@crowd/data-access-layer/src/members'
 import { LoggerBase } from '@crowd/logging'
@@ -74,7 +74,7 @@ export default class MemberIdentityService extends LoggerBase {
           // Create member identity
           await createMemberIdentity(qx, tenantId, memberId, data)
 
-          await setMemberUpdatedAt(qx, memberId)
+          await touchMemberUpdatedAt(qx, memberId)
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
@@ -152,7 +152,7 @@ export default class MemberIdentityService extends LoggerBase {
             await createMemberIdentity(qx, tenantId, memberId, identity)
           }
 
-          await setMemberUpdatedAt(qx, memberId)
+          await touchMemberUpdatedAt(qx, memberId)
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
@@ -217,7 +217,7 @@ export default class MemberIdentityService extends LoggerBase {
           // Update member identity with new data
           await updateMemberIdentity(qx, memberId, id, data)
 
-          await setMemberUpdatedAt(qx, memberId)
+          await touchMemberUpdatedAt(qx, memberId)
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
@@ -255,7 +255,7 @@ export default class MemberIdentityService extends LoggerBase {
       // Delete member identity
       await deleteMemberIdentity(qx, memberId, id)
 
-      await setMemberUpdatedAt(qx, memberId)
+      await touchMemberUpdatedAt(qx, memberId)
 
       // List all member identities
       const list = await fetchMemberIdentities(qx, memberId)
