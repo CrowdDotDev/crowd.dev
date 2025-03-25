@@ -10,6 +10,7 @@ DOCKER_TEST_NETWORK_GATEWAY="${CROWD_TEST_NETWORK_GATEWAY:-10.91.0.1}"
 
 CLI_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source $CLI_HOME/utils
+source $CLI_HOME/scaffold/kafka-connect/build-docker-image.sh
 
 CONTAINERS=$(ls -p $CLI_HOME/services | grep -v / | sed 's/\.[^.]*$//')
 BUILDERS=$(ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//')
@@ -56,7 +57,8 @@ function prepare_dev_env() {
 
     set -eo pipefail
 
-    mkdir -p $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
+    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
+    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
 }
 
 prepare_dev_env
@@ -692,23 +694,6 @@ function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
-function download_kafka_connect_http() {
-    say "Downloading Kafka Connect HTTP plugin..."
-    wget -nv https://github.com/lensesio/stream-reactor/releases/download/8.1.28/kafka-connect-http-8.1.28.zip -O $CLI_HOME/kafka-connect-http.zip
-    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
-    rm $CLI_HOME/kafka-connect-http.zip
-    say "Kafka Connect HTTP plugin downloaded."
-}
-
-function download_kafka_connect_questdb_connector() {
-    say "Downloading Kafka Connect questdb-connector..."
-    wget -nv https://github.com/questdb/kafka-questdb-connector/releases/download/v0.14/kafka-questdb-connector-0.14-bin.zip -O $CLI_HOME/kafka-connect-questdb-connector.zip
-    unzip -q $CLI_HOME/kafka-connect-questdb-connector.zip -d $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
-    rm $CLI_HOME/kafka-connect-questdb-connector.zip
-    say "Kafka Connect QuestDB connector downloaded."
-}
-
-
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
@@ -719,22 +704,11 @@ function up_scaffold() {
         profile='--profile insights'
     fi
 
-    if [[ (
-        ! -d "$CLI_HOME/scaffold/kafka-connect/questdb-connector" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/questdb-connector")" ||
-        ! -d "$CLI_HOME/scaffold/kafka-connect/questdb-connector/kafka-questdb-connector" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/questdb-connector/kafka-questdb-connector")") ]] \
-        ; then
-        download_kafka_connect_questdb_connector
-    fi
+    download_kafka_connect_questdb_connector "$CLI_HOME/scaffold/kafka-connect"
 
-    if [[ "$WITH_INSIGHTS" == "1" && (
-        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")" ||
-        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")") ]] \
+    if [[ "$WITH_INSIGHTS" == "1" ]] \
         ; then
-        download_kafka_connect_http
+        download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
     fi
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
 }
