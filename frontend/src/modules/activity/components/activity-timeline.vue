@@ -19,19 +19,19 @@
               class="w-40"
               @clear="reloadActivities"
             >
-              <template
-                v-if="
-                  platform && lfIdentities[platform]
-                "
-                #prefix
-              >
+              <template v-if="platform && lfIdentities[platform]" #prefix>
                 <img
                   v-if="lfIdentities[platform]"
                   :alt="lfIdentities[platform].name"
                   :src="lfIdentities[platform].image"
                   class="min-w-4 h-4"
                 />
-                <lf-icon v-else name="satellite-dish" :size="16" class="text-gray-400" />
+                <lf-icon
+                  v-else
+                  name="satellite-dish"
+                  :size="16"
+                  class="text-gray-400"
+                />
               </template>
               <el-option
                 v-for="enabledPlatform of enabledPlatforms"
@@ -52,7 +52,11 @@
                 label="Other"
                 @mouseleave="onSelectMouseLeave"
               >
-                <lf-icon name="satellite-dish" :size="16" class="text-gray-400 mr-2" />
+                <lf-icon
+                  name="satellite-dish"
+                  :size="16"
+                  class="text-gray-400 mr-2"
+                />
                 Other
               </el-option>
             </el-select>
@@ -78,13 +82,10 @@
       </div>
     </div>
     <div>
-      <el-timeline>
+      <lf-timeline width="2.25rem">
         <template v-if="activities.length">
-          <el-timeline-item
-            v-for="activity in activities"
-            :key="activity.id"
-          >
-            <div class="-mt-1.5">
+          <lf-timeline-item v-for="activity in activities" :key="activity.id">
+            <div class="text-sm pb-5 pl-4">
               <app-member-display-name
                 v-if="entityType === 'organization'"
                 :member="activity.member"
@@ -93,7 +94,7 @@
                 class="bl"
               />
               <div
-                class="flex gap-4 justify-between min-h-9 -mt-1"
+                class="flex gap-4 justify-between min-h-9"
                 :class="{
                   'items-center': !isMemberEntity,
                   'items-start': isMemberEntity,
@@ -109,23 +110,28 @@
 
                 <div class="flex items-center flex-nowrap">
                   <a
-                    v-if="
-                      activity.conversationId && isMemberEntity
-                    "
+                    v-if="activity.conversationId && isMemberEntity"
                     class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
                     target="_blank"
-                    @click="
-                      conversationId = activity.conversationId
-                    "
+                    @click="conversationId = activity.conversationId"
                   >
                     <lf-icon name="eye" :size="14" class="mr-1" />
-                    <span class="block whitespace-nowrap">View {{ activity.platform !== Platform.GIT ? 'conversation' : 'commit' }}</span>
+                    <span class="block whitespace-nowrap">View
+                      {{
+                        activity.platform !== Platform.GIT
+                          ? "conversation"
+                          : "commit"
+                      }}</span>
                   </a>
                   <app-activity-dropdown
                     v-if="showAffiliations"
                     :show-affiliations="true"
                     :activity="activity"
-                    :organizations="entity.organizations ?? activity.member.organizations ?? []"
+                    :organizations="
+                      entity.organizations
+                        ?? activity.member.organizations
+                        ?? []
+                    "
                     :disable-edit="true"
                     @on-update="fetchActivities({ reset: true })"
                   />
@@ -134,10 +140,7 @@
 
               <!-- For now only render a special UI for Git -->
               <div v-if="activity.platform === Platform.GIT">
-                <lf-activity-display
-                  :activity="activity"
-                  in-profile
-                />
+                <lf-activity-display :activity="activity" in-profile />
               </div>
               <div v-else>
                 <app-lf-activity-parent
@@ -151,25 +154,36 @@
                   :activity="activity"
                   :show-more="true"
                 >
-                  <template v-if="lfIdentities[activity.platform]?.activity?.showContentDetails" #details>
+                  <template
+                    v-if="
+                      lfIdentities[activity.platform]?.activity
+                        ?.showContentDetails
+                    "
+                    #details
+                  >
                     <div v-if="activity.attributes">
                       <app-activity-content-footer
-                        :source-id="isMemberEntity && activity.parent ? activity.parent?.sourceId : activity.sourceId"
+                        :source-id="
+                          isMemberEntity && activity.parent
+                            ? activity.parent?.sourceId
+                            : activity.sourceId
+                        "
                         :changes="activity.attributes.lines"
                         changes-copy="line"
                         :insertions="activity.attributes.insertions"
                         :deletions="activity.attributes.deletions"
-                        :display-source-id="isMemberEntity && activity.parent
-                          ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
+                        :display-source-id="
+                          isMemberEntity && activity.parent
+                            ? activity.parent?.type === 'authored-commit'
+                            : activity.type === 'authored-commit'
+                        "
                       />
                     </div>
                   </template>
 
                   <template #bottomLink>
                     <div v-if="activity.url" class="pt-6">
-                      <app-activity-link
-                        :activity="activity"
-                      />
+                      <app-activity-link :activity="activity" />
                     </div>
                   </template>
                 </app-activity-content>
@@ -182,16 +196,19 @@
               >
                 <img
                   v-if="lfIdentities[activity.platform]"
-                  :src="
-                    lfIdentities[activity.platform].image
-                  "
+                  :src="lfIdentities[activity.platform].image"
                   :alt="`${activity.platform}-icon`"
                   class="min-w-4 h-4"
                 />
-                <lf-icon name="satellite-dish" :size="16" class="text-gray-400" />
+                <lf-icon
+                  v-else
+                  name="satellite-dish"
+                  :size="16"
+                  class="text-gray-400"
+                />
               </span>
             </template>
-          </el-timeline-item>
+          </lf-timeline-item>
         </template>
 
         <app-empty-state-cta
@@ -200,12 +217,8 @@
           title="No activities found"
           description="We couldn't find any results that match your search criteria, please try a different query"
         />
-      </el-timeline>
-      <div
-        v-if="loading"
-        v-loading="loading"
-        class="app-page-spinner"
-      />
+      </lf-timeline>
+      <div v-if="loading" v-loading="loading" class="app-page-spinner" />
       <div v-if="!noMore" class="flex justify-center pt-4">
         <lf-button
           type="primary-ghost"
@@ -228,11 +241,7 @@
 <script setup lang="ts">
 import { useStore } from 'vuex';
 import {
-  computed,
-  ref,
-  h,
-  onMounted,
-  watch,
+  computed, ref, h, onMounted, watch,
 } from 'vue';
 import debounce from 'lodash/debounce';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
@@ -253,6 +262,9 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { IdentityConfig, lfIdentities } from '@/config/identities';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
+import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -313,15 +325,23 @@ const subprojects = computed(() => projectGroups.value.list.reduce((acc, project
 
 const segments = computed(() => {
   if (!props.entity.segments) {
-    return getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map((s) => subprojects.value[s]) || [];
+    return (
+      getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map(
+        (s) => subprojects.value[s],
+      ) || []
+    );
   }
-  return props.entity.segments?.map((s) => {
-    if (typeof s === 'string') {
-      return subprojects.value[s];
-    }
+  return (
+    props.entity.segments
+      ?.map((s) => {
+        if (typeof s === 'string') {
+          return subprojects.value[s];
+        }
 
-    return s;
-  }).filter((s) => !!s) || [];
+        return s;
+      })
+      .filter((s) => !!s) || []
+  );
 });
 
 const fetchActivities = async ({ reset } = { reset: false }) => {
@@ -361,11 +381,17 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
         lte: timestamp.value,
       },
     },
-    ...(timestamp.value ? [{
-      timestamp: {
-        gte: dateHelper(timestamp.value).subtract(1, 'month').toISOString(),
-      },
-    }] : []),
+    ...(timestamp.value
+      ? [
+        {
+          timestamp: {
+            gte: dateHelper(timestamp.value)
+              .subtract(1, 'month')
+              .toISOString(),
+          },
+        },
+      ]
+      : []),
   ];
 
   if (reset) {
@@ -384,7 +410,9 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
-    segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
+    segments: selectedSegment.value
+      ? [selectedSegment.value]
+      : segments.value.map((s) => s.id),
   });
 
   loading.value = false;
@@ -397,7 +425,9 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   activities.value = reset ? rows : [...activities.value, ...rows];
 
   if (data.rows.length === 0) {
-    timestamp.value = dateHelper(timestamp.value).subtract(1, 'month').toISOString();
+    timestamp.value = dateHelper(timestamp.value)
+      .subtract(1, 'month')
+      .toISOString();
   } else {
     timestamp.value = dateHelper(data.rows.at(-1).timestamp).toISOString();
   }
@@ -425,7 +455,10 @@ watch(platform, async (newValue, oldValue) => {
 });
 
 onMounted(async () => {
-  await store.dispatch('integration/doFetch', segments.value.map((s) => s.id));
+  await store.dispatch(
+    'integration/doFetch',
+    segments.value.map((s) => s.id),
+  );
   await fetchActivities();
 });
 
@@ -452,14 +485,8 @@ export default {
   .activity-header {
     @apply max-w-full overflow-visible;
   }
-  .el-timeline-item__dot {
-    @apply relative;
-  }
-  .el-timeline-item__wrapper {
-    @apply top-1 pl-4;
-  }
-  .el-timeline-item__tail {
-    @apply left-4;
+  .c-timeline__prefix:after {
+    width: 1.2px;
   }
 }
 </style>
