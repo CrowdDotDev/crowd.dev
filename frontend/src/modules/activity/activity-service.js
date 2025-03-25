@@ -69,8 +69,7 @@ export class ActivityService {
     );
 
     return response.data;
-  }
-  
+  }  
 
   static async listActivityTypes(segments) {
     const response = await authAxios.get(
