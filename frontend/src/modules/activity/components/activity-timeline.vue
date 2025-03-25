@@ -116,23 +116,21 @@
                     @click="conversationId = activity.conversationId"
                   >
                     <lf-icon name="eye" :size="14" class="mr-1" />
-                    <span class="block whitespace-nowrap"
-                      >View
+                    <span class="block whitespace-nowrap">View
                       {{
                         activity.platform !== Platform.GIT
                           ? "conversation"
                           : "commit"
-                      }}</span
-                    >
+                      }}</span>
                   </a>
                   <app-activity-dropdown
                     v-if="showAffiliations"
                     :show-affiliations="true"
                     :activity="activity"
                     :organizations="
-                      entity.organizations ??
-                      activity.member.organizations ??
-                      []
+                      entity.organizations
+                        ?? activity.member.organizations
+                        ?? []
                     "
                     :disable-edit="true"
                     @on-update="fetchActivities({ reset: true })"
@@ -241,36 +239,38 @@
 </template>
 
 <script setup lang="ts">
-import { useStore } from "vuex";
-import { computed, ref, h, onMounted, watch } from "vue";
-import debounce from "lodash/debounce";
-import AppActivityHeader from "@/modules/activity/components/activity-header.vue";
-import AppActivityContent from "@/modules/activity/components/activity-content.vue";
-import { onSelectMouseLeave } from "@/utils/select";
-import AppMemberDisplayName from "@/modules/member/components/member-display-name.vue";
-import AppActivityLink from "@/modules/activity/components/activity-link.vue";
-import AppActivityContentFooter from "@/modules/activity/components/activity-content-footer.vue";
-import AppLfActivityParent from "@/modules/lf/activity/components/lf-activity-parent.vue";
-import AppConversationDrawer from "@/modules/conversation/components/conversation-drawer.vue";
-import AppActivityDropdown from "@/modules/activity/components/activity-dropdown.vue";
-import { storeToRefs } from "pinia";
-import { useLfSegmentsStore } from "@/modules/lf/segments/store";
-import { getSegmentsFromProjectGroup } from "@/utils/segments";
-import { Platform } from "@/shared/modules/platform/types/Platform";
-import LfActivityDisplay from "@/shared/modules/activity/components/activity-display.vue";
-import LfButton from "@/ui-kit/button/Button.vue";
-import { IdentityConfig, lfIdentities } from "@/config/identities";
-import AppEmptyStateCta from "@/shared/empty-state/empty-state-cta.vue";
-import { dateHelper } from "@/shared/date-helper/date-helper";
-import { ActivityService } from "../activity-service";
-import LfTimeline from "@/ui-kit/timeline/Timeline.vue";
-import LfTimelineItem from "@/ui-kit/timeline/TimelineItem.vue";
-import LfIcon from "@/ui-kit/icon/Icon.vue";
+import { useStore } from 'vuex';
+import {
+  computed, ref, h, onMounted, watch,
+} from 'vue';
+import debounce from 'lodash/debounce';
+import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import { onSelectMouseLeave } from '@/utils/select';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppActivityLink from '@/modules/activity/components/activity-link.vue';
+import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
+import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import { IdentityConfig, lfIdentities } from '@/config/identities';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
+import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
-  "i", // type
-  { class: "fa-magnifying-glass fa-light" }, // props
-  []
+  'i', // type
+  { class: 'fa-magnifying-glass fa-light' }, // props
+  [],
 );
 
 const store = useStore();
@@ -301,42 +301,40 @@ const enabledPlatforms: IdentityConfig[] = Object.values(lfIdentities);
 
 const loading = ref(false);
 const platform = ref(null);
-const query = ref("");
+const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
 const timestamp = ref(dateHelper(props.entity.lastActive).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
-const isMemberEntity = computed(() => props.entityType === "member");
+const isMemberEntity = computed(() => props.entityType === 'member');
 
-const subprojects = computed(() =>
-  projectGroups.value.list.reduce((acc, projectGroup) => {
-    projectGroup.projects.forEach((project) => {
-      project.subprojects.forEach((subproject) => {
-        acc[subproject.id] = {
-          id: subproject.id,
-          name: subproject.name,
-        };
-      });
+const subprojects = computed(() => projectGroups.value.list.reduce((acc, projectGroup) => {
+  projectGroup.projects.forEach((project) => {
+    project.subprojects.forEach((subproject) => {
+      acc[subproject.id] = {
+        id: subproject.id,
+        name: subproject.name,
+      };
     });
+  });
 
-    return acc;
-  }, {})
-);
+  return acc;
+}, {}));
 
 const segments = computed(() => {
   if (!props.entity.segments) {
     return (
       getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map(
-        (s) => subprojects.value[s]
+        (s) => subprojects.value[s],
       ) || []
     );
   }
   return (
     props.entity.segments
       ?.map((s) => {
-        if (typeof s === "string") {
+        if (typeof s === 'string') {
           return subprojects.value[s];
         }
 
@@ -354,14 +352,14 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     platform: platform.value ? { in: [platform.value] } : undefined,
   };
 
-  if (props.entityType === "member") {
+  if (props.entityType === 'member') {
     filterToApply.memberId = { in: [props.entity.id] };
   } else {
     filterToApply.organizationId = { in: [props.entity.id] };
   }
 
   if (props.entity.id) {
-    if (query.value && query.value !== "") {
+    if (query.value && query.value !== '') {
       filterToApply.or = [
         {
           channel: {
@@ -385,14 +383,14 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     },
     ...(timestamp.value
       ? [
-          {
-            timestamp: {
-              gte: dateHelper(timestamp.value)
-                .subtract(1, "month")
-                .toISOString(),
-            },
+        {
+          timestamp: {
+            gte: dateHelper(timestamp.value)
+              .subtract(1, 'month')
+              .toISOString(),
           },
-        ]
+        },
+      ]
       : []),
   ];
 
@@ -410,7 +408,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   const data = await ActivityService.query({
     filter: filterToApply,
-    orderBy: "timestamp_DESC",
+    orderBy: 'timestamp_DESC',
     limit: limit.value,
     segments: selectedSegment.value
       ? [selectedSegment.value]
@@ -428,7 +426,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   if (data.rows.length === 0) {
     timestamp.value = dateHelper(timestamp.value)
-      .subtract(1, "month")
+      .subtract(1, 'month')
       .toISOString();
   } else {
     timestamp.value = dateHelper(data.rows.at(-1).timestamp).toISOString();
@@ -458,8 +456,8 @@ watch(platform, async (newValue, oldValue) => {
 
 onMounted(async () => {
   await store.dispatch(
-    "integration/doFetch",
-    segments.value.map((s) => s.id)
+    'integration/doFetch',
+    segments.value.map((s) => s.id),
   );
   await fetchActivities();
 });
@@ -471,7 +469,7 @@ defineExpose({
 
 <script lang="ts">
 export default {
-  name: "AppMemberViewActivities",
+  name: 'AppMemberViewActivities',
 };
 </script>
 
