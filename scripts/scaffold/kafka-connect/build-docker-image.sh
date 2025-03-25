@@ -10,9 +10,6 @@ readonly TAG
 
 function download_kafka_connect_http() {
 	local base_dir="${1:-.}"
-	echo "BASE DIR: ${base_dir}"
-	#echo "arg is $1"
-
 	mkdir -p ${base_dir}/tmp
 
 	if [[ (
@@ -34,9 +31,6 @@ function download_kafka_connect_http() {
 
 function download_kafka_connect_questdb_connector() {
 	local base_dir="${1:-.}"
-	echo "BASE DIR: ${base_dir}"
-	#echo "arg is $1"
-
 	mkdir -p ${base_dir}/tmp
 
 
@@ -62,7 +56,6 @@ function download_kafka_connect_questdb_connector() {
 function download_dependencies() {
 	download_kafka_connect_http
 	download_kafka_connect_questdb_connector
-
 }
 
 function main() {
