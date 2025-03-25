@@ -1,4 +1,5 @@
 <template>
+  {{ 'isVisible' + isVisible }}
   <app-drawer
     v-model="isVisible"
     custom-class="integration-reddit-drawer"
@@ -318,8 +319,9 @@ async function validate() {
   try {
     await IntegrationService.discourseValidateAPI(form.discourseURL, form.apiKey);
     isAPIConnectionValid.value = true;
+
     if (!payloadURL.value) {
-      payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+      payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     }
     if (!webhookSecret.value) {
       webhookSecret.value = generateRandomSecret(32);
@@ -352,6 +354,7 @@ const logoUrl = discourse.image;
 
 const isVisible = computed({
   get() {
+    console.log('isVisible', props);
     return props.modelValue;
   },
   set(value) {
@@ -375,7 +378,7 @@ const handleCancel = () => {
     form.discourseURL = props.integration?.settings?.forumHostname;
     form.apiKey = props.integration?.settings.apiKey;
     webhookSecret.value = props.integration?.settings.webhookSecret;
-    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     isAPIConnectionValid.value = true;
     isWebhookVerifying.value = null;
     isWebhookValid.value = false;
@@ -390,8 +393,9 @@ onMounted(() => {
     form.discourseURL = props.integration?.settings.forumHostname;
     form.apiKey = props.integration?.settings.apiKey;
     webhookSecret.value = props.integration?.settings.webhookSecret;
-    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     isAPIConnectionValid.value = true;
+    console.log(props);
   }
   formSnapshot();
 });
