@@ -695,10 +695,19 @@ function install_libs() {
 function download_kafka_connect_http() {
     say "Downloading Kafka Connect HTTP plugin..."
     wget -nv https://github.com/lensesio/stream-reactor/releases/download/8.1.28/kafka-connect-http-8.1.28.zip -O $CLI_HOME/kafka-connect-http.zip
-    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
+    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
     rm $CLI_HOME/kafka-connect-http.zip
     say "Kafka Connect HTTP plugin downloaded."
 }
+
+function download_kafka_connect_questdb_connector() {
+    say "Downloading Kafka Connect questdb-connector..."
+    wget -nv https://github.com/questdb/kafka-questdb-connector/releases/download/v0.14/kafka-questdb-connector-0.14-bin.zip -O $CLI_HOME/kafka-connect-questdb-connector.zip
+    unzip -q $CLI_HOME/kafka-connect-questdb-connector.zip -d $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
+    rm $CLI_HOME/kafka-connect-questdb-connector.zip
+    say "Kafka Connect QuestDB connector downloaded."
+}
+
 
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
@@ -708,6 +717,15 @@ function up_scaffold() {
         profile='--profile nginx'
     elif [[ -n "${WITH_INSIGHTS}" ]]; then
         profile='--profile insights'
+    fi
+
+    if [[ (
+        ! -d "$CLI_HOME/scaffold/kafka-connect/questdb-connector" ||
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/questdb-connector")" ||
+        ! -d "$CLI_HOME/scaffold/kafka-connect/questdb-connector/kafka-questdb-connector" ||
+        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/questdb-connector/kafka-questdb-connector")") ]] \
+        ; then
+        download_kafka_connect_questdb_connector
     fi
 
     if [[ "$WITH_INSIGHTS" == "1" && (
