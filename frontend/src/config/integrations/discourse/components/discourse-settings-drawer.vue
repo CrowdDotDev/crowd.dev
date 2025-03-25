@@ -1,5 +1,4 @@
 <template>
-  {{ 'isVisible' + isVisible }}
   <app-drawer
     v-model="isVisible"
     custom-class="integration-reddit-drawer"
