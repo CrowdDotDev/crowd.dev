@@ -727,7 +727,14 @@ function post_up_scaffold() {
 }
 
 function down_scaffold() {
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    local profile=''
+    if [[ -n "${WITH_NGINX}" ]]; then
+        profile='--profile nginx'
+    elif [[ -n "${WITH_INSIGHTS}" ]]; then
+        profile='--profile insights'
+    fi
+    
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} down
 }
 
 function scaffold_destroy() {
@@ -790,8 +797,15 @@ function service_start() {
 }
 
 function scaffold_destroy_confirmed() {
+    local profile=''
+    if [[ -n "${WITH_NGINX}" ]]; then
+        profile='--profile nginx'
+    elif [[ -n "${WITH_INSIGHTS}" ]]; then
+        profile='--profile insights'
+    fi
+
     kill_all_containers
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail

@@ -1,29 +1,40 @@
+DESCRIPTION >
+	Serves contributor geographic distribution widget.
+
+
+TOKEN "insights-app-token" READ
+
 TOKEN "raul_dev_access_token" READ
 
 TOKEN "contributors_geo_distribution_endpoint_read_8966" READ
 
-TOKEN "insights-staging-app-token" READ
-
-NODE contributors_geo_distribution_2
+NODE country_mapping_array
 SQL >
 
-    WITH 
-        country_mapping_array AS (
-            SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-        ),
+     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
 
-        parsed_country AS (
-            SELECT 
-                m.id,
-                m.location,
-                arrayFilter(
-                    x -> position(coalesce(nullIf(m.country, ''), m.location), upper(x.1)) > 0, 
-                    (SELECT country_data FROM country_mapping_array)
-                ) AS matched_countries,
-                arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data
-            FROM members AS m
-            WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
-        )
+
+
+NODE parsed_country
+SQL >
+
+    SELECT
+        m.id,
+        m.location,
+        arrayFilter(
+            x -> position(coalesce(nullIf(m.country, ''), m.location), upper(x .1)) > 0,
+            (SELECT country_data FROM country_mapping_array)
+        ) AS matched_countries,
+        arrayJoin(
+            if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)
+        ) AS country_data
+    FROM members_sorted AS m
+    WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
+
+
+
+NODE contributors_geo_distribution_result
+SQL >
 
     SELECT 
         country_data.1 AS country,
