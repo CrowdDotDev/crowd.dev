@@ -28,7 +28,7 @@ SQL >
         arrayJoin(
             if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)
         ) AS country_data
-    FROM members AS m
+    FROM members_sorted AS m
     WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
 
 

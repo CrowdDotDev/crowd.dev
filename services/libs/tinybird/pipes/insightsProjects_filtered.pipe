@@ -27,7 +27,6 @@ SQL >
             insightsProjects.description,
             insightsProjects.logoUrl as logo,
             insightsProjects.repositories,
-            collection_info.collectionSlug,
             coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
             coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
         FROM insightsProjects FINAL
@@ -59,7 +58,6 @@ SQL >
             insightsProjects.slug,
             insightsProjects.description,
             insightsProjects.logoUrl,
-            insightsProjects.repositories,
-            collection_info.collectionSlug
+            insightsProjects.repositories
 
 

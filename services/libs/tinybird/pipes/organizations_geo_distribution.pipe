@@ -26,7 +26,7 @@ SQL >
                     (SELECT country_data FROM country_mapping_array)
                 ) AS matched_countries,
                 arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data
-            FROM organizations AS o
+            FROM organizations AS o final
             WHERE o.id IN (SELECT "organizationId" FROM activities_filtered)
 
 

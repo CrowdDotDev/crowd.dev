@@ -1,74 +1,52 @@
-DESCRIPTION >
-	Base pipe for all activity based aggregations. Has all filters we can make on activities and activityRelations. Filters are applied and relation data is merged in the last node.
-
-
-TOKEN "insights-app-token" READ
-
-TOKEN "raul_dev_access_token" READ
-
-TOKEN "activities_filtered_endpoint_read_8708" READ
-
 NODE segments_filtered
 SQL >
 
     %
-        SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
-        where 1=1
+    SELECT "segmentId" as id, repositories
+    FROM insightsProjects FINAL
+    where
+        1 = 1
         {% if defined(project) %}
-        AND slug = {{String(project, description="Filter by project slug", required=True)}}
-        {% else %}
-        AND false
-        {% end %}  
+            AND slug = {{ String(project, description="Filter by project slug", required=True) }}
+        {% else %} AND false
+        {% end %}
         {% if defined(repo) %}
-        AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+            AND has(
+                insightsProjects.repositories,
+                {{ String(repo, description="Filter activity repo", required=False) }}
+            )
         {% end %}
 
 
 
-NODE activities_filtered_by_timestamp_and_channel
+NODE activities_filtered_v2_1
 SQL >
 
     %
-        SELECT id, type, timestamp, channel, platform FROM activities_sorted a
-        where 1=1
+    SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
+    FROM activities_with_relations_sorted_ds a
+    where
+        segmentId = (SELECT id FROM segments_filtered) 
         {% if defined(startDate) %}
-        AND a.timestamp > {{DateTime(startDate, description="Filter activity timestamp after", required=False)}}
+            AND a.timestamp
+            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
         {% end %}
         {% if defined(endDate) %}
-        AND a.timestamp < {{DateTime(endDate, description="Filter activity timestamp before", required=False)}}
+            AND a.timestamp
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
         {% if defined(repo) %}
-        AND a.channel = {{String(repo, description="Filter activity repo", required=False)}}
+            AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
         {% end %}
         {% if defined(platform) %}
-        AND a.platform = {{String(platform, description="Filter activity platform", required=False)}}
+            AND a.platform
+            = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined (onlyContributions) or (defined(onlyContributions) and onlyContributions ==  1) %}
-        AND a.isContribution
-        {% end %}
+        {% if not defined(onlyContributions) or (
+            defined(onlyContributions) and onlyContributions == 1
+        ) %} AND a.isContribution {% end %}
         {% if defined(activity_type) %}
-        AND a.type = {{String(activity_type, description="Filter activity type", required=False)}}
+            AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
-
-
-
-NODE activity_relations_filtered
-SQL >
-
-    %
-    SELECT
-        a.id,
-        a.timestamp,
-        a.type,
-        a.platform,
-        ar.memberId,
-        ar.organizationId,
-        ar.segmentId
-    FROM activities_filtered_by_timestamp_and_channel a
-    ANY INNER JOIN (
-        SELECT activityId, memberId, organizationId, segmentId
-        FROM activityRelations_sorted
-        WHERE segmentId = (SELECT id FROM segments_filtered) 
-    ) ar ON ar.activityId = a.id
 
 

@@ -19,7 +19,7 @@ SQL >
         COUNT(af.id) AS contributionCount,
         ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER(), 0) AS contributionPercentage
     FROM activities_filtered af
-    JOIN organizations org ON org.id = af.organizationId
+    JOIN organizations org final ON org.id = af.organizationId
     GROUP BY org.id, org.logo, org.displayName
     ORDER BY contributionCount DESC
     LIMIT {{ Int32(limit, 10) }}

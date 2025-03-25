@@ -4,6 +4,8 @@ DESCRIPTION >
 
 TOKEN "insights-app-token" READ
 
+TOKEN "activities_filtered_retention_endpoint_read_8765" READ
+
 NODE segments_filtered
 SQL >
 
@@ -25,60 +27,47 @@ NODE activities_filtered_by_timestamp_and_channel
 SQL >
 
     %
-        SELECT id, type, timestamp, channel, platform FROM activities_sorted a
-        where 1=1
+    SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
+    FROM activities_with_relations_sorted_ds a
+    where
+        segmentId = (SELECT id FROM segments_filtered)
         {% if defined(startDate) %}
-        AND a.timestamp > 
-            {% if defined(granularity) and granularity == "daily" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }} - INTERVAL 1 DAY
+            AND a.timestamp
+            > {% if defined(granularity) and granularity == "daily" %}
+                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                - INTERVAL 1 DAY
             {% elif defined(granularity) and granularity == "weekly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}  - INTERVAL 7 DAY
+                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                - INTERVAL 7 DAY
             {% elif defined(granularity) and granularity == "monthly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}  - INTERVAL 1 MONTH
+                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                - INTERVAL 1 MONTH
             {% elif defined(granularity) and granularity == "quarterly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }} - INTERVAL 3 MONTH
+                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                - INTERVAL 3 MONTH
             {% elif defined(granularity) and granularity == "yearly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }} - INTERVAL 1 YEAR
+                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                - INTERVAL 1 YEAR
             {% else %}
                 {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
             {% end %}
         {% end %}
         {% if defined(endDate) %}
-        AND a.timestamp < {{DateTime(endDate, description="Filter activity timestamp before", required=False)}}
+            AND a.timestamp
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
         {% if defined(repo) %}
-        AND a.channel = {{String(repo, description="Filter activity repo", required=False)}}
+            AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
         {% end %}
         {% if defined(platform) %}
-        AND a.platform = {{String(platform, description="Filter activity platform", required=False)}}
+            AND a.platform
+            = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined (onlyContributions) or (defined(onlyContributions) and onlyContributions ==  1) %}
-        AND a.isContribution
-        {% end %}
+        {% if not defined(onlyContributions) or (
+            defined(onlyContributions) and onlyContributions == 1
+        ) %} AND a.isContribution {% end %}
         {% if defined(activity_type) %}
-        AND a.type = {{String(activity_type, description="Filter activity type", required=False)}}
+            AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
-
-
-
-NODE activity_relations_filtered
-SQL >
-
-    %
-    SELECT
-        a.id,
-        a.timestamp,
-        a.type,
-        a.platform,
-        ar.memberId,
-        ar.organizationId,
-        ar.segmentId
-    FROM activities_filtered_by_timestamp_and_channel a
-    ANY INNER JOIN (
-        SELECT activityId, memberId, organizationId, segmentId
-        FROM activityRelations_sorted
-        WHERE segmentId IN (SELECT id FROM segments_filtered) 
-    ) ar ON ar.activityId = a.id
-
 
 
