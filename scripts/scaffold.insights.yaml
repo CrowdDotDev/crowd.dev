@@ -1,0 +1,58 @@
+services:
+  
+  kafka-connect:
+    build:
+      context: scaffold/kafka-connect
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c", "/configure-tinybird-sink.sh"]
+    volumes:
+      - kafka-connect-dev:/storage
+      - ./scaffold/kafka-connect/configure-tinybird-sink.sh:/configure-tinybird-sink.sh
+      - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
+      - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
+      - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
+      - ./scaffold/kafka-connect/tinybird-local-sink.properties:/etc/kafka-connect/tinybird-local-sink.properties
+    profiles:
+      - insights
+    environment:
+      - CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN:-}
+
+  sequin:
+    image: sequin/sequin:latest
+    restart: unless-stopped
+    ports:
+      - "7376:7376"
+    environment:
+      - PG_HOSTNAME=db
+      - PG_DATABASE=sequin
+      - PG_PORT=5432
+      - PG_USERNAME=postgres
+      - PG_PASSWORD=example
+      - PG_POOL_SIZE=10
+      - SECRET_KEY_BASE=${CROWD_SEQUIN_SECRET_KEY_BASE:-WyPLiGs0pvD6qJhKJICO4dauYPXfO/Yl782Zjtpew5qRBDp7CZvbWtQmY0eB13If}
+      - VAULT_KEY=${CROWD_SEQUIN_VAULT_KEY:-2Sig69bIpuSm2kv0VQfDekET2qy8qUZGI8v3/h3ASiY=}
+      - REDIS_URL=redis://default:crowdtest@redis:6379
+      - SERVER_HOST=${CROWD_SEQUIN_SERVER_HOST:-localhost}
+      - SERVER_PORT=${CROWD_SEQUIN_SERVER_PORT:-7376}
+      - CONFIG_FILE_PATH=/config/sequin.yml
+    volumes:
+      - ./scaffold/sequin.yml:/config/sequin.yml
+    depends_on:
+      - db
+      - redis
+      - kafka
+    networks:
+      - crowd-bridge
+    profiles:
+      - insights
+
+  tinybird:
+    container_name: tinybird-local
+    image: tinybirdco/tinybird-local:beta
+    ports:
+      - "80:80"
+      - "7181:7181"
+    networks:
+      - crowd-bridge
+    profiles:
+      - insights

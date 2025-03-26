@@ -8,6 +8,10 @@
   &__content {
     @apply absolute z-[2090] w-max transition-all overflow-visible;
 
+    &.popover-box {
+      @apply text-sm bg-white min-w-34 p-3 rounded-md border-gray-200 border;
+
+    }
     &.is-hidden {
       @apply invisible opacity-0 pointer-events-none;
     }

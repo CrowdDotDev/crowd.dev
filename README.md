@@ -57,7 +57,7 @@ cd scripts
 ./cli clean-start-dev
 ```
 
-For starting services required for insights infra (Tinybird and Sequin),
+For starting services required for insights infra (Tinybird, Sequin and Kafka Connect sink),
 you can use the `WITH_INSIGHTS` env variable while running cli commands
 ```
 WITH_INSIGHTS=1 ./cli scaffold up

@@ -49,4 +49,4 @@ SQL >
         select * from timeseries_generation_for_active_contributors
         {% end %}
 
-
+TYPE endpoint

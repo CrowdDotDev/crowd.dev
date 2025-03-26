@@ -2,6 +2,148 @@ account:
   name: "LFX Insights"
 
 users:
-  - account: "LFX Insights"
-    email: "admin@sequinstream.com"
+  - email: "admin@sequinstream.com"
     password: "sequinpassword!"
+
+databases:
+  - id: f3dc317f-5f15-4574-9aba-07eb0e38e8eb
+    name: cm-local
+    port: 5432
+    ssl: false
+    ipv6: false
+    hostname: db
+    tables:
+      - table_name: members
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: activityRelations
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: segments
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: collections
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: collectionsInsightsProjects
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: insightsProjects
+        table_schema: public
+        sort_column_name: updatedAt
+      - table_name: organizations
+        table_schema: public
+        sort_column_name: updatedAt
+    password: 'example'
+    username: postgres
+    pool_size: 10
+    database: crowd-web
+    use_local_tunnel: false
+    slot_name: sequin_slot
+    publication_name: sequin_pub
+sinks:
+  - name: members_sink
+    status: active
+    table: public.members
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: members
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
+  - name: activityRelations_sink
+    status: active
+    table: public.activityRelations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: activityRelations
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - activityId
+    consumer_start:
+      position: beginning
+  - name: segments_sink
+    status: active
+    table: public.segments
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: segments
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
+  - name: collections_sink
+    status: active
+    table: public.collections
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: collections
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
+  - name: insightsProjects_sink
+    status: active
+    table: public.insightsProjects
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: insightsProjects
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
+  - name: collectionsInsightsProjects_sink
+    status: active
+    table: public.collectionsInsightsProjects
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: collectionsInsightsProjects
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
+  - name: organizations_sink
+    status: active
+    table: public.organizations
+    filters: []
+    destination:
+      type: kafka
+      hosts: kafka:9092
+      tls: false
+      topic: organizations
+    database: cm-local
+    max_deliver:
+    group_column_names:
+      - id
+    consumer_start:
+      position: beginning
