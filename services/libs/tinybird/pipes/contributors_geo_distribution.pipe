@@ -46,4 +46,4 @@ SQL >
     GROUP BY country, flag, country_code
     ORDER BY contributorCount DESC
 
-
+TYPE endpoint

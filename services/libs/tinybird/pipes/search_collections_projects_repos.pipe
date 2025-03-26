@@ -39,4 +39,4 @@ SQL >
         from activityRepositories_filtered
         limit {{Integer(limit, 10, description="Limit number of records for each type", required=False)}}
 
-
+TYPE endpoint

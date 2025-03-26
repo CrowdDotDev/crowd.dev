@@ -1,9 +1,10 @@
 import { excludeEntityFromCleanup } from './activities/cleanup/exlcudeEntity'
-import { deleteMember, getMembersToCleanup } from './activities/cleanup/member'
+import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
   getOrganizationsToCleanup,
   queueOrgForAggComputation,
+  syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
   doesActivityExistInQuestDb,
@@ -72,8 +73,10 @@ export {
   resetIndexedIdentities,
   getLatestSyncedActivityTimestamp,
   deleteMember,
+  syncRemoveMember,
   getMembersToCleanup,
   deleteOrganization,
+  syncRemoveOrganization,
   excludeEntityFromCleanup,
   getOrganizationsToCleanup,
   doesActivityExistInQuestDb,

@@ -24,4 +24,4 @@ SQL >
     ORDER BY contributionCount DESC
     LIMIT {{ Int32(limit, 10) }}
 
-
+TYPE endpoint

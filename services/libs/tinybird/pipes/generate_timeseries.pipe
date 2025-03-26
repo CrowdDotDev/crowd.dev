@@ -50,4 +50,4 @@ SQL >
         ) generate_timeseries_bounds
         WHERE "startDate" >= actual_start_date AND "startDate" < actual_end_date
 
-
+TYPE endpoint

@@ -1,5 +1,5 @@
 <template>
-  <lf-popover :placement="props.placement" :persistent="props.persistent">
+  <lf-popover :placement="props.placement" :persistent="props.persistent" :is-dropdown="true">
     <template #trigger>
       <slot name="trigger" />
     </template>

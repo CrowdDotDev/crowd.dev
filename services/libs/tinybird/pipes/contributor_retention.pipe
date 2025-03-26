@@ -76,4 +76,4 @@ SQL >
     %
     SELECT "startDate", "endDate", "retentionRate" FROM retention ORDER BY "startDate"
 
-
+TYPE endpoint

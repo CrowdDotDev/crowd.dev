@@ -8,7 +8,7 @@ import { ICleanupArgs } from '../../types'
 const {
   getOrganizationsToCleanup,
   deleteOrganization,
-  queueOrgForAggComputation,
+  syncRemoveOrganization,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
 } = proxyActivities<typeof activities>({
@@ -39,10 +39,9 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
         return excludeEntityFromCleanup(orgId, EntityType.ORGANIZATION)
       }
 
-      console.log(`Deleting organization ${orgId} from database!`)
-      await deleteOrganization(orgId)
-
-      return queueOrgForAggComputation(orgId)
+      console.log(`Deleting organization ${orgId} from opensearch and database!`)
+      await syncRemoveOrganization(orgId)
+      return deleteOrganization(orgId)
     })
 
     await Promise.all(cleanupTasks)

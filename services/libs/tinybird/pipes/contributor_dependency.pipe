@@ -21,4 +21,4 @@ SQL >
     cross join active_contributors
     WHERE contributionPercentageRunningTotal <= 51
 
-
+TYPE endpoint
