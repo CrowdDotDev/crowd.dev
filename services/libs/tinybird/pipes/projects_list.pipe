@@ -30,4 +30,4 @@ SQL >
         OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
         {% end %}
 
-
+TYPE endpoint

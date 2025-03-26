@@ -60,4 +60,4 @@ SQL >
             insightsProjects.logoUrl,
             insightsProjects.repositories
 
-
+TYPE endpoint

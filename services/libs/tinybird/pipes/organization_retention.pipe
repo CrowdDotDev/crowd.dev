@@ -70,4 +70,4 @@ SQL >
         FROM retention
         ORDER BY "startDate"
 
-
+TYPE endpoint
