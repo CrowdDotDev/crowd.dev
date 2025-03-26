@@ -1,12 +1,15 @@
+DESCRIPTION >
+	Serves organization dependency widget
+
+
+TOKEN "insights-app-token" READ
+
 TOKEN "raul_dev_access_token" READ
 
 TOKEN "organization_dependency_endpoint_read_6465" READ
 
-TOKEN "insights-staging-app-token" READ
-
 NODE organization_dependency_0
 SQL >
-
 
     SELECT t.*, active_organizations.organizationCount as "totalOrganizationCount"
     FROM (
@@ -14,8 +17,7 @@ SQL >
                sum(contributionPercentage) OVER (ORDER BY contributionPercentage DESC, id) AS contributionPercentageRunningTotal
         FROM organizations_leaderboard
     ) t
-    left join active_organizations on 1=1
+    cross join active_organizations
     WHERE contributionPercentageRunningTotal <= 51 OR (contributionPercentageRunningTotal - contributionPercentage < 51)
 
-
-
+TYPE endpoint

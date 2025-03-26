@@ -10,9 +10,20 @@ DOCKER_TEST_NETWORK_GATEWAY="${CROWD_TEST_NETWORK_GATEWAY:-10.91.0.1}"
 
 CLI_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source $CLI_HOME/utils
+source $CLI_HOME/scaffold/kafka-connect/build-docker-image.sh
 
 CONTAINERS=$(ls -p $CLI_HOME/services | grep -v / | sed 's/\.[^.]*$//')
 BUILDERS=$(ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//')
+
+DOCKER_COMPOSE_PROFILE=''
+DOCKER_COMPOSE_SCAFFOLD_FILES="-f $CLI_HOME/scaffold.yaml"
+
+if [[ -n "${WITH_NGINX}" ]]; then
+    DOCKER_COMPOSE_PROFILE='--profile nginx'
+elif [[ "$WITH_INSIGHTS" == "1" ]]; then
+    DOCKER_COMPOSE_PROFILE='--profile insights'
+    DOCKER_COMPOSE_SCAFFOLD_FILES="-f $CLI_HOME/scaffold.yaml -f $CLI_HOME/scaffold.insights.yaml"
+fi
 
 _DC="docker compose"
 
@@ -56,7 +67,8 @@ function prepare_dev_env() {
 
     set -eo pipefail
 
-    mkdir -p $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
+    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
+    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
 }
 
 prepare_dev_env
@@ -540,83 +552,47 @@ function migrate_env() {
 
 function wait_for_tinybird() {
     say "Waiting for Tinybird to get ready.."
-    until curl -s -f http://localhost:80/tokens >/dev/null 2>&1; do
-        yell "Tinybird is not ready yet. Retrying in 5 seconds.."
-        sleep 5
-    done
-    say "Tinybird is ready!"
-}
 
-function fetch_tinybird_tokens() {
-    wait_for_tinybird
-    read -r CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN CROWD_TINYBIRD_USER_TOKEN < <(curl -s http://localhost:80/tokens | jq -r '[.workspace_admin_token, .user_token] | @tsv')
-    progress "Workspace Admin Token=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
-    progress "User Token=$CROWD_TINYBIRD_USER_TOKEN"
-    export CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN
-    export CROWD_TINYBIRD_USER_TOKEN
-}
-
-function run_tinybird_cli_command() {
-    fetch_tinybird_tokens
-    yell "Running Tinybird CLI command: sh -c '$@'"
-    docker run --rm --network "${PROJECT_NAME}-bridge" \
-        -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
-        -v "$CLI_HOME/../services/libs/tinybird:/mnt/data:rw" \
-        -w /mnt/data \
-        tinybirdco/tinybird-cli-docker:latest \
-        sh -c "$@"
-}
-
-function migrate_tinybird_local() {
-    set +e +o pipefail
-
-    say "Applying Tinybird project!"
-    fetch_tinybird_tokens
-
-    if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] ||
-        [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ] ||
-        [ -z "$CROWD_TINYBIRD_USER_TOKEN" ] ||
-        [ "$CROWD_TINYBIRD_USER_TOKEN" = "null" ]; then
-        echo "Error: Could not fetch Tinybird tokens. Exiting."
-        return 1
-    fi
-
-    say "Pushing Tinybird project!"
-
-    MAX_RETRIES=5
+    MAX_RETRIES=10
     RETRY_DELAY=5
     attempt=1
 
     while [ $attempt -le $MAX_RETRIES ]; do
-        whisper "Attempt $attempt/$MAX_RETRIES to deploy Tinybird project.."
+        OUTPUT=$(tb local status)
 
-        OUTPUT=$(docker run --rm --network "${PROJECT_NAME}-bridge" \
-            -e TB_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN \
-            -v $CLI_HOME/../services/libs/tinybird:/mnt/data:rw \
-            -w /mnt/data \
-            tinybirdco/tinybird-cli-docker \
-            sh -c 'tb auth --host http://tinybird:80 && tb push')
+        echo "$OUTPUT"
 
-        STATUS=$?
-
-        whisper "$OUTPUT"
-
-        if [[ "$OUTPUT" == *"502 error responses"* ]] || [[ "$OUTPUT" == *"Max retries exceeded"* ]] || [ $STATUS -ne 0 ]; then
-            yell "Tinybird push failed (Attempt: $attempt/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
-            sleep $RETRY_DELAY
+        if [[ "$OUTPUT" == *"✓ Tinybird Local is ready!"* ]]; then
+            say "Tinybird is ready!"
+            break
         else
-            say "Tinybird project deployed successfully!"
-            return 0
+            whisper "Not ready yet. Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
         fi
 
         attempt=$((attempt + 1))
     done
 
-    set -eo pipefail
+    if [ $attempt -gt $MAX_RETRIES ]; then
+        error "Tinybird was not ready after $MAX_RETRIES attempts. Exiting."
+        return 1
+    fi
+}
 
-    error "Tinybird push failed after $MAX_RETRIES attempts. Exiting."
+function migrate_tinybird_local() {
+    set +e +o pipefail
+
+    say "Waiting for Tinybird to be ready..."
+    wait_for_tinybird
+
+    say "Authenticating to tinybird staging..."
+    cd "$CLI_HOME/../services/libs/tinybird" && tb auth --region us-west-2
+        
+    set -eo pipefail
     return 1
 }
+
+
 
 function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
@@ -692,33 +668,37 @@ function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
-function download_kafka_connect_http() {
-    say "Downloading Kafka Connect HTTP plugin..."
-    wget -nv https://github.com/lensesio/stream-reactor/releases/download/8.1.28/kafka-connect-http-8.1.28.zip -O $CLI_HOME/kafka-connect-http.zip
-    unzip -q $CLI_HOME/kafka-connect-http.zip -d $CLI_HOME/scaffold/kafka-connect/kafka-connect-http
-    rm $CLI_HOME/kafka-connect-http.zip
-    say "Kafka Connect HTTP plugin downloaded."
+function install_tinybird_cli() {
+        if ! tb --version &> /dev/null; then
+            echo "Tinybird CLI not found. Installing..."
+            curl -s https://tinybird.co | sh
+        fi
+}
+
+function set_tinybird_workspace_admin_token() {
+    export CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(tb --local token ls --match "admin token" | awk '/^token: / {print $2}')
 }
 
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
-    local profile=''
-    if [[ -n "${WITH_NGINX}" ]]; then
-        profile='--profile nginx'
-    elif [[ -n "${WITH_INSIGHTS}" ]]; then
-        profile='--profile insights'
+    download_kafka_connect_questdb_connector "$CLI_HOME/scaffold/kafka-connect"
+
+    if [[ "$WITH_INSIGHTS" == "1" ]]; then
+        download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
+        install_tinybird_cli
     fi
 
-    if [[ "$WITH_INSIGHTS" == "1" && (
-        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http")" ||
-        ! -d "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28" ||
-        -z "$(ls -A "$CLI_HOME/scaffold/kafka-connect/kafka-connect-http/kafka-connect-http-8.1.28")") ]] \
-        ; then
-        download_kafka_connect_http
+    
+    if [[ "$WITH_INSIGHTS" == "1" ]]; then
+        # first up tinybird, then wait for it to be ready, then set the token env for kafka connect
+        $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build tinybird
+        wait_for_tinybird
+        set_tinybird_workspace_admin_token
     fi
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
+    
+    $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build --no-recreate
+
 }
 
 function post_up_scaffold() {
@@ -726,8 +706,8 @@ function post_up_scaffold() {
     bash $CLI_HOME/nango-integrations.sh
 }
 
-function down_scaffold() {
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+function down_scaffold() {    
+    $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE down
 }
 
 function scaffold_destroy() {
@@ -791,7 +771,7 @@ function service_start() {
 
 function scaffold_destroy_confirmed() {
     kill_all_containers
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
@@ -1008,10 +988,6 @@ while test $# -gt 0; do
         ;;
     lint-services)
         (cd $CLI_HOME/../services/scripts && ./lint_apps.sh && ./lint_libs.sh)
-        exit
-        ;;
-    tb)
-        run_tinybird_cli_command "$*"
         exit
         ;;
     *)

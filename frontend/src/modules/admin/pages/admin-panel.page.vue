@@ -15,7 +15,7 @@
           type="secondary-ghost"
           @click="changeAdminPanelView('community')"
         >
-          Community Management
+          Community Data Platform
         </lf-button>
         <lf-button
           size="medium"
