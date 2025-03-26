@@ -33,4 +33,4 @@ SQL >
                 toDate({{endDate}}) as actual_end_date
         {% end %}
 
-
+TYPE endpoint

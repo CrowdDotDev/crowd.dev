@@ -29,4 +29,4 @@ SQL >
         AND projectSlug = {{String(projectSlug, description="Search repos using projectSlug", required=False)}}
         {% end %}
 
-
+TYPE endpoint

@@ -21,4 +21,4 @@ SQL >
         AND collections.name ilike '%' || {{String(search, description="Search collection open ended wildcard using slug", required=False)}} || '%'
         {% end %}
 
-
+TYPE endpoint

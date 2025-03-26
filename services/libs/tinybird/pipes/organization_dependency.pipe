@@ -20,4 +20,4 @@ SQL >
     cross join active_organizations
     WHERE contributionPercentageRunningTotal <= 51 OR (contributionPercentageRunningTotal - contributionPercentage < 51)
 
-
+TYPE endpoint

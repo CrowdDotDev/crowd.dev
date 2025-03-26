@@ -49,4 +49,4 @@ SQL >
         select * from timeseries_generation_for_activity_count
         {% end %}
 
-
+TYPE endpoint

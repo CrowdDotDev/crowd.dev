@@ -44,4 +44,4 @@ SQL >
     GROUP BY country, flag, country_code
     ORDER BY organizationCount DESC
 
-
+TYPE endpoint
