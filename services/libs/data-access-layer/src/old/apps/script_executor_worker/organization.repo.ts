@@ -132,73 +132,25 @@ class OrganizationRepository {
   }
 
   public async cleanupOrganization(organizationId: string): Promise<void> {
+    const tablesToDelete = [
+      { name: 'organizationNoMerge', conditions: ['organizationId', 'noMergeId'] },
+      { name: 'organizationToMerge', conditions: ['organizationId', 'toMergeId'] },
+      { name: 'organizationToMergeRaw', conditions: ['organizationId', 'toMergeId'] },
+      { name: 'memberSegmentAffiliations', conditions: ['organizationId'] },
+      { name: 'organizationSegmentsAgg', conditions: ['organizationId'] },
+      { name: 'organizationSegments', conditions: ['organizationId'] },
+      { name: 'orgAttributes', conditions: ['organizationId'] },
+      { name: 'organizationIdentities', conditions: ['organizationId'] },
+      { name: 'organizations', conditions: ['id'] },
+    ]
+
     await this.connection.tx(async (tx) => {
-      await tx.none(
-        `
-        DELETE FROM "organizationNoMerge"
-        WHERE "organizationId" = $(organizationId)
-        OR "noMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationToMerge"
-        WHERE "organizationId" = $(organizationId)
-        OR "toMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationToMergeRaw"
-        WHERE "organizationId" = $(organizationId)
-        OR "toMergeId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "memberSegmentAffiliations"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationSegments"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "orgAttributes"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM "organizationIdentities"
-        WHERE "organizationId" = $(organizationId)
-      `,
-        { organizationId },
-      )
-
-      await tx.none(
-        `
-        DELETE FROM organizations
-        WHERE id = $(organizationId)
-      `,
-        { organizationId },
-      )
+      for (const table of tablesToDelete) {
+        const whereClause = table.conditions
+          .map((field) => `"${field}" = $(organizationId)`)
+          .join(' OR ')
+        await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { organizationId })
+      }
     })
   }
 
