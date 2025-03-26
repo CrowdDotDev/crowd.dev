@@ -1,6 +1,8 @@
-import { IIntegration } from '@crowd/types'
+import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Fetches a list of global integrations based on the provided filters.
@@ -205,6 +207,7 @@ export async function fetchGlobalIntegrationsStatusCount(
 export interface INangoIntegrationData {
   id: string
   platform: string
+  settings: any
 }
 
 export async function fetchNangoIntegrationData(
@@ -213,7 +216,7 @@ export async function fetchNangoIntegrationData(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform
+      select id, platform, settings
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
     `,
@@ -238,10 +241,11 @@ export async function findIntegrationDataForNangoWebhookProcessing(
              "segmentId",
              settings
       from integrations
-      where id = $(id)
+      where id = $(id) or (platform = $(platform) and (settings -> 'nangoMapping') ? $(id))
     `,
     {
       id,
+      platform: `${PlatformType.GITHUB}-nango`,
     },
   )
 }

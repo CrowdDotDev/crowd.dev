@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_CLOUD_ENV, IS_DEV_ENV, IS_PROD_ENV, singleOrDefault } from '@crowd/common'
+import { IS_DEV_ENV, IS_PROD_ENV, singleOrDefault } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   INangoIntegrationData,
@@ -11,9 +11,10 @@ import {
   ALL_NANGO_INTEGRATIONS,
   NangoIntegration,
   SyncStatus,
-  getNangoConnectionIds,
   getNangoConnectionStatus,
+  getNangoConnections,
   initNangoCloudClient,
+  nangoIntegrationToPlatform,
 } from '@crowd/nango'
 
 import { IJobDefinition } from '../types'
@@ -24,7 +25,8 @@ const job: IJobDefinition = {
   name: 'nango-monitor',
   cronTime: IS_DEV_ENV ? CronTime.everyMinute() : CronTime.everyDayAt(8, 0),
   timeout: 5 * 60,
-  enabled: async () => IS_CLOUD_ENV,
+  // TODO uros fix for github and use slack webhook
+  enabled: async () => false,
   process: async (ctx) => {
     ctx.log.info('Running nango-monitor job...')
 
@@ -33,23 +35,23 @@ const job: IJobDefinition = {
 
     const allIntegrations = await fetchNangoIntegrationData(
       pgpQx(dbConnection),
-      ALL_NANGO_INTEGRATIONS,
+      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
     )
 
-    const nangoConnections = await getNangoConnectionIds()
+    const nangoConnections = await getNangoConnections()
 
     const disconnectedIntegrations: INangoIntegrationData[] = []
     const statusMap = new Map<INangoIntegrationData, SyncStatus[]>()
 
     for (const int of allIntegrations) {
-      const nangoConnection = singleOrDefault(nangoConnections, (c) => c.connectionId === int.id)
+      const nangoConnection = singleOrDefault(nangoConnections, (c) => c.connection_id === int.id)
       if (!nangoConnection) {
         ctx.log.warn(`${int.platform} integration with id "${int.id}" is not connected to Nango!`)
         disconnectedIntegrations.push(int)
       } else {
         const results = await getNangoConnectionStatus(
           int.platform as NangoIntegration,
-          nangoConnection.connectionId,
+          nangoConnection.connection_id,
         )
 
         statusMap.set(int, results)

@@ -1,20 +1,11 @@
 import { request } from '@octokit/request'
 
-import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
-
 import { GITHUB_TOKEN_CONFIG } from '@/conf'
 
 import { IServiceOptions } from './IServiceOptions'
 
 export default class GithubIntegrationService {
   constructor(private readonly options: IServiceOptions) {}
-
-  public async getGithubRepositories(org: string) {
-    const client = SnowflakeClient.fromEnv({ parentLog: this.options.log })
-    this.options.log.info(`Getting GitHub repositories for org: ${org}`)
-    const githubClient = new GithubSnowflakeClient(client)
-    return githubClient.getOrgRepositories({ org, perPage: 10000 })
-  }
 
   public async findGithubRepos(query: string) {
     const auth = GITHUB_TOKEN_CONFIG.token

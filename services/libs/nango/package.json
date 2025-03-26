@@ -14,10 +14,11 @@
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
-    "@crowd/types": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@nangohq/frontend": "^0.52.4",
     "@nangohq/node": "^0.50.0",
-    "@nangohq/types": "^0.50.0"
+    "@nangohq/types": "^0.50.0",
+    "axios": "^1.8.4"
   }
 }

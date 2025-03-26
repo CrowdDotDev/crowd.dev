@@ -2,10 +2,33 @@
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
-  JIRA = 'jira',
+  // JIRA = 'jira',
+  GITHUB = 'github',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
+
+export const nangoIntegrationToPlatform = (integration: NangoIntegration): string => {
+  switch (integration) {
+    case NangoIntegration.GERRIT:
+      return 'gerrit'
+    case NangoIntegration.GITHUB:
+      return 'github-nango'
+    default:
+      throw new Error('Unknown integration')
+  }
+}
+
+export const platformToNangoIntegration = (platform: string): NangoIntegration => {
+  switch (platform) {
+    case 'gerrit':
+      return NangoIntegration.GERRIT
+    case 'github-nango':
+      return NangoIntegration.GITHUB
+    default:
+      throw new Error('Unknown platform')
+  }
+}
 
 export const NANGO_INTEGRATION_CONFIG = {
   [NangoIntegration.GERRIT]: {
@@ -20,10 +43,31 @@ export const NANGO_INTEGRATION_CONFIG = {
       PATCHSETS: 'patchsets',
     },
   },
-  [NangoIntegration.JIRA]: {
-    models: {},
-    syncs: {},
+  [NangoIntegration.GITHUB]: {
+    models: {
+      COMMIT: 'GithubCommit',
+      DISCUSSION: 'GithubDiscussion',
+      FORK: 'GithubFork',
+      ISSUE_COMMENT: 'GithubIssueComment',
+      ISSUE: 'GithubIssue',
+      PULL_REQUEST_COMMENT: 'GithubPullRequestComment',
+      PULL_REQUEST_REVIEW_THREAD_COMMENT: 'GithubPullRequestReviewThreadComment',
+      PULL_REQUEST: 'GithubPullRequest',
+      STAR: 'GithubStar',
+    },
+    syncs: {
+      COMMITS: 'commits',
+      DISCUSSIONS: 'discussions',
+      FORKS: 'forks',
+      ISSUES: 'issues',
+      PULL_REQUESTS: 'pull-requests',
+      STARS: 'stars',
+    },
   },
+  // [NangoIntegration.JIRA]: {
+  //   models: {},
+  //   syncs: {},
+  // },
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {

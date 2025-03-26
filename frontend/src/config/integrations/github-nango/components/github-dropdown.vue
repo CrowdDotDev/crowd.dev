@@ -16,10 +16,10 @@
 import { defineProps, ref } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfGithubSettingsDrawer from '@/config/integrations/github-archive/components/settings/github-settings-drawer.vue';
+import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue';
 
 const props = defineProps<{
-  integration: any,
+  integration: any;
   segmentId: string | null;
   grandparentId: string | null;
 }>();

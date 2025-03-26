@@ -5,11 +5,21 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import {
+  DEFAULT_TENANT_ID,
+  EDITION,
+  Error400,
+  Error404,
+  Error542,
+  singleOrDefault,
+} from '@crowd/common'
 import {
   NangoIntegration,
-  createNangoIntegration,
+  createNangoConnection,
+  createNangoGithubConnection,
   deleteNangoConnection,
+  getNangoConnectionData,
+  getNangoConnections,
   setNangoMetadata,
   startNangoSync,
 } from '@crowd/nango'
@@ -583,229 +593,195 @@ export default class IntegrationService {
     }
   }
 
-  async mapGithubReposSnowflake(
-    integrationId,
-    mapping,
-    fireOnboarding = true,
-    isUpdateTransaction = false,
-  ) {
+  async githubNangoConnect(settings, mapping, integrationId?: string) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     const txOptions = {
       ...this.options,
       transaction,
     }
 
-    let reposToAdd: Record<string, string[]> = {}
-    let reposToRemove: Record<string, string[]> = {}
-    let urlsWithChangedSegment: { url: string; oldSegmentId: string; newSegmentId: unknown }[] = []
+    const txService = new IntegrationService(txOptions)
 
     try {
-      const oldMapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-      await GithubReposRepository.updateMappingSnowflake(
-        integrationId,
-        mapping,
-        oldMapping,
-        txOptions,
-      )
-
-      // add the repos to the git integration
-      if (EDITION === Edition.LFX) {
-        // Convert old mapping to URL -> segmentId format
-        const oldMappingDict = oldMapping.reduce((acc, item) => {
-          acc[item.url] = item.segment.id
-          return acc
-        }, {})
-
-        // Find URLs to add, remove and those that changed segments
-        const urlsToAdd = Object.entries(mapping).filter(([url]) => !oldMappingDict[url])
-        const urlsToRemove = oldMapping
-          .filter((item) => !mapping[item.url])
-          .map((item) => ({ url: item.url, segmentId: item.segment.id }))
-        urlsWithChangedSegment = Object.entries(mapping)
-          .filter(([url, segmentId]) => oldMappingDict[url] && oldMappingDict[url] !== segmentId)
-          .map(([url, newSegmentId]) => ({
-            url,
-            oldSegmentId: oldMappingDict[url],
-            newSegmentId,
-          }))
-
-        // Group new URLs by segment
-        reposToAdd = urlsToAdd.reduce((acc, [url, segmentId]) => {
-          if (!acc[segmentId as string]) {
-            acc[segmentId as string] = []
-          }
-          acc[segmentId as string].push(url)
-          return acc
-        }, {})
-
-        // Group URLs to remove by segment
-        reposToRemove = urlsToRemove.reduce((acc, { url, segmentId }) => {
-          if (!acc[segmentId]) {
-            acc[segmentId] = []
-          }
-          acc[segmentId].push(url)
-          return acc
-        }, {})
-
-        // Handle segment changes
-        for (const { url, oldSegmentId, newSegmentId } of urlsWithChangedSegment) {
-          // Remove from old segment
-          const oldSegmentOptions: IRepositoryOptions = {
-            ...this.options,
-            currentSegments: [
-              {
-                ...this.options.currentSegments[0],
-                id: oldSegmentId,
-              },
-            ],
-          }
-
-          try {
-            const oldGitInfo = await this.gitGetRemotes(oldSegmentOptions)
-            const oldGitRemotes = oldGitInfo[oldSegmentId].remotes
-            await this.gitConnectOrUpdate(
-              {
-                remotes: oldGitRemotes.filter((remote) => remote !== url),
-              },
-              oldSegmentOptions,
-            )
-          } catch (err) {
-            this.options.log.error(err, `Failed to remove repo from old segment ${oldSegmentId}`)
-          }
-
-          // Add to new segment
-          const newSegmentOptions: IRepositoryOptions = {
-            ...this.options,
-            currentSegments: [
-              {
-                ...this.options.currentSegments[0],
-                id: newSegmentId as string,
-              },
-            ],
-          }
-
-          let isGitIntegrationConfigured
-          try {
-            await IntegrationRepository.findByPlatform(PlatformType.GIT, newSegmentOptions)
-            isGitIntegrationConfigured = true
-          } catch (err) {
-            isGitIntegrationConfigured = false
-          }
-
-          if (isGitIntegrationConfigured) {
-            const gitInfo = await this.gitGetRemotes(newSegmentOptions)
-            const gitRemotes = gitInfo[newSegmentId as string].remotes
-            await this.gitConnectOrUpdate(
-              {
-                remotes: Array.from(new Set([...gitRemotes, url])),
-              },
-              newSegmentOptions,
-            )
-          } else {
-            await this.gitConnectOrUpdate(
-              {
-                remotes: [url],
-              },
-              newSegmentOptions,
-            )
-          }
-        }
-
-        // Handle additions
-        for (const [segmentId, urls] of Object.entries(reposToAdd)) {
-          let isGitintegrationConfigured
-          const segmentOptions: IRepositoryOptions = {
-            ...this.options,
-            currentSegments: [
-              {
-                ...this.options.currentSegments[0],
-                id: segmentId as string,
-              },
-            ],
-          }
-          try {
-            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
-            isGitintegrationConfigured = true
-          } catch (err) {
-            isGitintegrationConfigured = false
-          }
-
-          if (isGitintegrationConfigured) {
-            const gitInfo = await this.gitGetRemotes(segmentOptions)
-            const gitRemotes = gitInfo[segmentId as string].remotes
-            await this.gitConnectOrUpdate(
-              {
-                remotes: Array.from(new Set([...gitRemotes, ...urls])),
-              },
-              segmentOptions,
-            )
-          } else {
-            await this.gitConnectOrUpdate(
-              {
-                remotes: urls,
-              },
-              segmentOptions,
-            )
-          }
-        }
-
-        // Handle removals
-        for (const [segmentId, urls] of Object.entries(reposToRemove)) {
-          const segmentOptions: IRepositoryOptions = {
-            ...this.options,
-            currentSegments: [
-              {
-                ...this.options.currentSegments[0],
-                id: segmentId,
-              },
-            ],
-          }
-
-          try {
-            const gitInfo = await this.gitGetRemotes(segmentOptions)
-            const gitRemotes = gitInfo[segmentId].remotes
-            const remainingRemotes = gitRemotes.filter((remote) => !urls.includes(remote))
-
-            await this.gitConnectOrUpdate(
-              {
-                remotes: remainingRemotes,
-              },
-              segmentOptions,
-            )
-          } catch (err) {
-            this.options.log.error(err, `Failed to remove repos for segment ${segmentId}`)
+      // settings.orgs[x].repos and settings.repos contain repositories to sync
+      const repos = new Set<{ owner: string; repoName: string }>()
+      if (settings.orgs) {
+        for (const org of settings.orgs) {
+          for (const repo of org.repos) {
+            repos.add(IntegrationService.parseGithubUrl(repo.url))
           }
         }
       }
+      if (settings.repos) {
+        for (const repo of settings.repos) {
+          repos.add(IntegrationService.parseGithubUrl(repo.url))
+        }
+      }
 
-      const hasAddedRepos = Object.values(reposToAdd).some((urls) => urls.length > 0)
-      const hasChangedSegments = urlsWithChangedSegment.length > 0
+      if (repos.size === 0) {
+        throw new Error('No github repositories to sync!')
+      }
 
-      if (fireOnboarding && (hasAddedRepos || hasChangedSegments)) {
-        const integration = await IntegrationRepository.update(
-          integrationId,
-          { status: 'in-progress' },
-          txOptions,
+      const allNangoConnections = await getNangoConnections()
+
+      const tokenConnectionIds = allNangoConnections
+        .filter(
+          (c) =>
+            c.provider_config_key === NangoIntegration.GITHUB &&
+            c.connection_id.toLowerCase().startsWith('github-token-'),
+        )
+        .map((c) => c.connection_id)
+
+      if (tokenConnectionIds.length === 0) {
+        throw new Error('No github token connections found!')
+      }
+
+      const connectionData = await getNangoConnectionData(
+        NangoIntegration.GITHUB,
+        tokenConnectionIds[0],
+      )
+
+      const tryCreateNangoConnection = async (
+        repoName: string,
+        owner: string,
+      ): Promise<string | undefined> => {
+        let connectionId: string | undefined
+        try {
+          connectionId = await createNangoGithubConnection(
+            repoName,
+            owner,
+            tokenConnectionIds,
+            connectionData.connection_config.app_id,
+            connectionData.connection_config.installation_id,
+          )
+
+          await startNangoSync(NangoIntegration.GITHUB, connectionId)
+          return connectionId
+        } catch (err) {
+          if (connectionId) {
+            await deleteNangoConnection(NangoIntegration.GITHUB, connectionId)
+          }
+
+          // don't rethrow just log the error because we are gonna check later if all connections have been created
+          this.options.log.error(err, 'Error while creating github nango connection!')
+          return undefined
+        }
+      }
+
+      let integration
+
+      if (!integrationId) {
+        // create new integration
+        integration = await txService.createOrUpdate(
+          {
+            platform: `${PlatformType.GITHUB}-nango`,
+            settings,
+            status: 'done',
+          },
+          transaction,
         )
 
-        this.options.log.info('Sending GitHub message to int-run-worker!')
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          integration.platform,
-          integration.id,
-          true,
-          null,
-          null,
-          isUpdateTransaction ? { messageSentAt: new Date().toISOString() } : null,
+        // create github mapping - this also creates git integration
+        await txService.mapGithubRepos(integration.id, mapping, false)
+
+        // create nango connections per repository
+        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
+        const promises = []
+        for (const repo of repos) {
+          promises.push(
+            (async () => {
+              const connectionId = await tryCreateNangoConnection(repo.repoName, repo.owner)
+              if (connectionId) {
+                nangoMapping[connectionId] = repo
+              }
+            })(),
+          )
+        }
+
+        await Promise.all(promises)
+
+        // check if all connections have been created
+        if (Object.keys(nangoMapping).length !== repos.size) {
+          this.options.log.error('Not all github nango connections have been created!')
+
+          throw new Error('Not all github nango connections have been created!')
+        }
+
+        // update integration settings to include nango connection ids for repos
+        integration = await txService.createOrUpdate(
+          {
+            id: integrationId,
+            platform: `${PlatformType.GITHUB}-nango`,
+            settings: {
+              ...settings,
+              nangoMapping,
+            },
+            status: 'done',
+          },
+          transaction,
         )
-      } else if (hasAddedRepos || hasChangedSegments) {
-        this.options.log.debug(
-          'No onboarding message sent because no repos to add or change segments for!',
-        )
+      } else {
+        // update existing integration
+        integration = await txService.findById(integrationId)
+
+        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
+
+        const reposToCreate = new Set<{ owner: string; repoName: string }>()
+
+        // we don't need to remove connections because we are gonna do that with a job periodically
+
+        // check all repos to see if some need to be added
+        for (const repo of repos) {
+          const conn = singleOrDefault(
+            allNangoConnections,
+            (c) =>
+              c.provider_config_key === NangoIntegration.GITHUB &&
+              c.metadata &&
+              c.metadata.integrationId === integrationId &&
+              c.metadata.owner === repo.owner &&
+              c.metadata.repoName === repo.repoName,
+          )
+
+          if (!conn) {
+            reposToCreate.add(repo)
+          }
+        }
+
+        const promises = []
+        for (const toCreate of reposToCreate) {
+          promises.push(
+            (async () => {
+              const connectionId = await tryCreateNangoConnection(toCreate.repoName, toCreate.owner)
+              if (connectionId) {
+                nangoMapping[connectionId] = toCreate
+              }
+            })(),
+          )
+        }
+
+        await Promise.all(promises)
+
+        if (Object.keys(nangoMapping).length !== repos.size) {
+          this.options.log.error('Not all github nango connections have been created!')
+
+          throw new Error('Not all github nango connections have been created!')
+        }
+
+        // create github mapping - this also creates git integration
+        await txService.mapGithubRepos(integrationId, mapping, false)
+
+        integration = await txService.createOrUpdate({
+          id: integrationId,
+          settings: {
+            ...integration.settings,
+            nangoMapping,
+          },
+          transaction,
+        })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+      return integration
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
@@ -824,54 +800,52 @@ export default class IntegrationService {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
       // add the repos to the git integration
-      if (EDITION === Edition.LFX) {
-        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
-          (acc, [url, segmentId]) => {
-            if (!acc[segmentId as string]) {
-              acc[segmentId as string] = []
-            }
-            acc[segmentId as string].push(url)
-            return acc
-          },
-          {},
-        )
-
-        for (const [segmentId, urls] of Object.entries(repos)) {
-          let isGitintegrationConfigured
-          const segmentOptions: IRepositoryOptions = {
-            ...this.options,
-            currentSegments: [
-              {
-                ...this.options.currentSegments[0],
-                id: segmentId as string,
-              },
-            ],
+      const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+        (acc, [url, segmentId]) => {
+          if (!acc[segmentId as string]) {
+            acc[segmentId as string] = []
           }
-          try {
-            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+          acc[segmentId as string].push(url)
+          return acc
+        },
+        {},
+      )
 
-            isGitintegrationConfigured = true
-          } catch (err) {
-            isGitintegrationConfigured = false
-          }
+      for (const [segmentId, urls] of Object.entries(repos)) {
+        let isGitintegrationConfigured
+        const segmentOptions: IRepositoryOptions = {
+          ...this.options,
+          currentSegments: [
+            {
+              ...this.options.currentSegments[0],
+              id: segmentId as string,
+            },
+          ],
+        }
+        try {
+          await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
 
-          if (isGitintegrationConfigured) {
-            const gitInfo = await this.gitGetRemotes(segmentOptions)
-            const gitRemotes = gitInfo[segmentId as string].remotes
-            await this.gitConnectOrUpdate(
-              {
-                remotes: Array.from(new Set([...gitRemotes, ...urls])),
-              },
-              segmentOptions,
-            )
-          } else {
-            await this.gitConnectOrUpdate(
-              {
-                remotes: urls,
-              },
-              segmentOptions,
-            )
-          }
+          isGitintegrationConfigured = true
+        } catch (err) {
+          isGitintegrationConfigured = false
+        }
+
+        if (isGitintegrationConfigured) {
+          const gitInfo = await this.gitGetRemotes(segmentOptions)
+          const gitRemotes = gitInfo[segmentId as string].remotes
+          await this.gitConnectOrUpdate(
+            {
+              remotes: Array.from(new Set([...gitRemotes, ...urls])),
+            },
+            segmentOptions,
+          )
+        } else {
+          await this.gitConnectOrUpdate(
+            {
+              remotes: urls,
+            },
+            segmentOptions,
+          )
         }
       }
 
@@ -1223,7 +1197,7 @@ export default class IntegrationService {
         integrationData.remote.repoNames = res
       }
 
-      connectionId = await createNangoIntegration(NangoIntegration.GERRIT, {
+      connectionId = await createNangoConnection(NangoIntegration.GERRIT, {
         params: {
           host,
         },
@@ -2193,5 +2167,26 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
+  }
+
+  private static parseGithubUrl(url: string): { owner: string; repoName: string } {
+    // Create URL object
+    const parsedUrl = new URL(url)
+
+    // Get pathname (e.g., "/islet-project/3rd-kvmtool")
+    const pathname = parsedUrl.pathname
+
+    // Split by '/' and remove empty elements
+    const parts = pathname.split('/').filter(Boolean)
+
+    // First part is owner, second is repo
+    if (parts.length >= 2) {
+      return {
+        owner: parts[0],
+        repoName: parts[1],
+      }
+    }
+
+    throw new Error('Invalid GitHub URL format')
   }
 }
