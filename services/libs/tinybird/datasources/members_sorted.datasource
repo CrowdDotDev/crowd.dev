@@ -1,0 +1,19 @@
+
+SCHEMA >
+    `id` String,
+    `attributes` String,
+    `location` String,
+    `country` String,
+    `avatar` String,
+    `isBot` UInt8,
+    `isTeamMember` UInt8,
+    `contributions` Array(String),
+    `joinedAt` DateTime64(3),
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `displayName` String,
+    `score` Int32
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(joinedAt)"
+ENGINE_SORTING_KEY "id"

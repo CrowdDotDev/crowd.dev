@@ -155,7 +155,7 @@
           </el-input>
         </app-form-item>
       </el-form>
-      <el-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px]">
+      <lf-card v-if="isAPIConnectionValid && props.integration?.settings?.forumHostname" shadow="never" class="rounded-[6px] p-5">
         <div class="mb-3 flex flex-row w-full justify-between">
           <lf-button
             type="secondary-gray"
@@ -184,7 +184,7 @@
         >
           Confirm if your webhooks are properly configured and LFX is receiving data from Discourse.
         </div>
-      </el-card>
+      </lf-card>
     </template>
 
     <template #footer>
@@ -233,6 +233,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfCard from '@/ui-kit/card/Card.vue';
 
 const { trackEvent } = useProductTracking();
 
@@ -318,8 +319,9 @@ async function validate() {
   try {
     await IntegrationService.discourseValidateAPI(form.discourseURL, form.apiKey);
     isAPIConnectionValid.value = true;
+
     if (!payloadURL.value) {
-      payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+      payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     }
     if (!webhookSecret.value) {
       webhookSecret.value = generateRandomSecret(32);
@@ -352,6 +354,7 @@ const logoUrl = discourse.image;
 
 const isVisible = computed({
   get() {
+    console.log('isVisible', props);
     return props.modelValue;
   },
   set(value) {
@@ -375,7 +378,7 @@ const handleCancel = () => {
     form.discourseURL = props.integration?.settings?.forumHostname;
     form.apiKey = props.integration?.settings.apiKey;
     webhookSecret.value = props.integration?.settings.webhookSecret;
-    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     isAPIConnectionValid.value = true;
     isWebhookVerifying.value = null;
     isWebhookValid.value = false;
@@ -390,8 +393,9 @@ onMounted(() => {
     form.discourseURL = props.integration?.settings.forumHostname;
     form.apiKey = props.integration?.settings.apiKey;
     webhookSecret.value = props.integration?.settings.webhookSecret;
-    payloadURL.value = `${window.location.origin}/api/webhooks/discourse/${tenantId}`;
+    payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     isAPIConnectionValid.value = true;
+    console.log(props);
   }
   formSnapshot();
 });

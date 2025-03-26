@@ -75,12 +75,12 @@ export async function sendActivitiesToTinybird(activitiesRedisKey: string): Prom
     console.log(`Data sent to tinybird ->  ${JSON.stringify(response)}`)
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      this.log.warn(
+      svc.log.warn(
         `Axios error occurred while sending activities to tinybird. ${err.response?.status} - ${err.response?.statusText}`,
       )
       throw new Error(`Sending data to tinybird failed with status: ${err.response?.status}`)
     } else {
-      this.log.error(`Unexpected error while sending data to tinybird: ${err}`)
+      svc.log.error(`Unexpected error while sending data to tinybird: ${err}`)
       throw new Error('An unexpected error occurred')
     }
   }
