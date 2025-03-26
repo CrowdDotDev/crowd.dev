@@ -54,4 +54,4 @@ SQL >
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
 
-
+TYPE endpoint
