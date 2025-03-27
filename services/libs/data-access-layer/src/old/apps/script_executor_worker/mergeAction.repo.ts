@@ -2,7 +2,7 @@ import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMergeAction } from '@crowd/types'
 
-import { IFindMemberMergeActionReplacement } from './types'
+import { EntityType, IFindMemberMergeActionReplacement } from './types'
 
 class MergeActionRepository {
   constructor(
@@ -60,6 +60,26 @@ class MergeActionRepository {
     }
 
     return rows
+  }
+
+  async getUnmergedLLMApprovedSuggestions(
+    batchSize: number,
+    type: EntityType,
+  ): Promise<{ primaryId: string; secondaryId: string }[]> {
+    return this.connection.query(
+      `
+      select l."primaryId", l."secondaryId"
+      from "llmSuggestionVerdicts" l
+      left join "mergeActions" ma on l."primaryId" = ma."primaryId" and l."secondaryId" = ma."secondaryId"
+      where l."type" = $(type) and l.verdict = 'true'
+      and (ma."primaryId" is null and ma."secondaryId" is null)
+      limit $(batchSize)
+    `,
+      {
+        type,
+        batchSize,
+      },
+    )
   }
 }
 

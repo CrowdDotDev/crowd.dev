@@ -6,6 +6,7 @@ import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } 
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
+import { processLLMVerifiedMerges } from './workflows/processLlmVerifiedMerges'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -20,4 +21,5 @@ export {
   syncOrganizations,
   cleanupMembers,
   cleanupOrganizations,
+  processLLMVerifiedMerges,
 }
