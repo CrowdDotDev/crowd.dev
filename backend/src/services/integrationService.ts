@@ -674,7 +674,7 @@ export default class IntegrationService {
         // create new integration
         integration = await txService.createOrUpdate(
           {
-            platform: `${PlatformType.GITHUB}-nango`,
+            platform: PlatformType.GITHUB_NANGO,
             settings,
             status: 'done',
           },
@@ -711,7 +711,7 @@ export default class IntegrationService {
         integration = await txService.createOrUpdate(
           {
             id: integrationId,
-            platform: `${PlatformType.GITHUB}-nango`,
+            platform: PlatformType.GITHUB_NANGO,
             settings: {
               ...settings,
               nangoMapping,
@@ -1662,7 +1662,10 @@ export default class IntegrationService {
     const segments = SequelizeRepository.getCurrentSegments(this.options)
 
     // special case for github
-    if (integration.platform === PlatformType.GITHUB) {
+    if (
+      integration.platform === PlatformType.GITHUB ||
+      integration.platform === PlatformType.GITHUB_NANGO
+    ) {
       if (integration.status !== 'in-progress') {
         return {
           type: 'github',

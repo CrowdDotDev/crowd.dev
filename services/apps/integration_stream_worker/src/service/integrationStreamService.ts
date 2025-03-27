@@ -19,7 +19,6 @@ import {
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
-  PlatformType,
   RateLimitError,
   WebhookType,
 } from '@crowd/types'
@@ -27,9 +26,6 @@ import {
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
 
 import IntegrationDataService from './integrationDataService'
-
-const isSnowflakeEnabled =
-  (PLATFORM_CONFIG('github') as Record<string, unknown>)?.isSnowflakeEnabled === 'true'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
@@ -243,17 +239,10 @@ export default class IntegrationStreamService extends LoggerBase {
       platform: streamInfo.integrationType,
     })
 
-    let integrationService = singleOrDefault(
+    const integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === streamInfo.integrationType,
     )
-
-    if (isSnowflakeEnabled && streamInfo.integrationType === PlatformType.GITHUB) {
-      integrationService = singleOrDefault(
-        INTEGRATION_SERVICES,
-        (i) => i.type === PlatformType.GITHUB_SNOWFLAKE,
-      )
-    }
 
     if (!integrationService) {
       this.log.error({ type: streamInfo.integrationType }, 'Could not find integration service!')
@@ -429,17 +418,10 @@ export default class IntegrationStreamService extends LoggerBase {
       platform: streamInfo.integrationType,
     })
 
-    let integrationService = singleOrDefault(
+    const integrationService = singleOrDefault(
       INTEGRATION_SERVICES,
       (i) => i.type === streamInfo.integrationType,
     )
-
-    if (isSnowflakeEnabled && streamInfo.integrationType === PlatformType.GITHUB) {
-      integrationService = singleOrDefault(
-        INTEGRATION_SERVICES,
-        (i) => i.type === PlatformType.GITHUB_SNOWFLAKE,
-      )
-    }
 
     if (!integrationService) {
       this.log.error({ type: streamInfo.integrationType }, 'Could not find integration service!')
