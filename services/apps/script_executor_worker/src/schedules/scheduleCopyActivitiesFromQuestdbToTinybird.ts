@@ -27,7 +27,7 @@ export const scheduleCopyActivitiesFromQuestdbToTinybird = async () => {
           {
             batchSizePerRun: 5000,
             deleteIndexedEntities: false,
-            segmentIds: process.env['CROWD_COPY_ACTIVITIES_TO_TINYBIRD_SEGMENT_IDS'].split(','),
+            segmentIds: process.env['CROWD_COPY_ACTIVITIES_TO_TINYBIRD_SEGMENT_IDS']?.split(','),
           },
         ],
       },
