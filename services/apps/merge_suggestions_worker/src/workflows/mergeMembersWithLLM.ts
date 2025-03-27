@@ -95,6 +95,9 @@ export async function mergeMembersWithLLM(
     })
 
     if (llmResult.body.content[0].text === 'true') {
+      console.log(
+        `LLM verdict says these two members are the same. Merging members: ${suggestion[0]} and ${suggestion[1]}!`,
+      )
       await commonActivitiesProxy.mergeMembers(suggestion[0], suggestion[1], args.tenantId)
     } else {
       console.log(
