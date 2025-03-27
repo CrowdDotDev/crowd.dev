@@ -13,11 +13,12 @@ const { getUnmergedLLMApprovedSuggestions, mergeMembers, mergeOrganizations } = 
 })
 
 export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesArgs): Promise<void> {
-  const BATCH_SIZE = args.batchSize ?? 100
+  const SUGGESTIONS_PER_RUN = args.batchSize ?? 10
 
-  console.log(`Processing LLM verified merges for ${args.type} with batch size ${BATCH_SIZE}!`)
-
-  const suggestions = await getUnmergedLLMApprovedSuggestions(BATCH_SIZE, args.type as EntityType)
+  const suggestions = await getUnmergedLLMApprovedSuggestions(
+    SUGGESTIONS_PER_RUN,
+    args.type as EntityType,
+  )
 
   if (suggestions.length === 0) {
     console.log('No more LLM verified suggestions to process!')
