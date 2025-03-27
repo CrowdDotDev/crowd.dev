@@ -94,9 +94,8 @@ export async function saveLLMVerdict(verdict: ILLMSuggestionVerdict): Promise<st
 export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,
-  tenantId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${primaryMemberId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
@@ -118,9 +117,8 @@ export async function mergeMembers(
 export async function mergeOrganizations(
   primaryOrganizationId: string,
   secondaryOrganizationId: string,
-  tenantId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrganizationId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/organization/${primaryOrganizationId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
