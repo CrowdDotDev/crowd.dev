@@ -73,6 +73,7 @@ class MergeActionRepository {
       left join "mergeActions" ma on l."primaryId" = ma."primaryId" and l."secondaryId" = ma."secondaryId"
       where l."type" = $(type) and l.verdict = 'true'
       and (ma."primaryId" is null and ma."secondaryId" is null)
+      ${type === EntityType.ORGANIZATION ? 'and not exists (select 1 from "lfxMemberships" lm where lm."organizationId" = l."secondaryId")' : ''}
       limit $(batchSize)
     `,
       {
