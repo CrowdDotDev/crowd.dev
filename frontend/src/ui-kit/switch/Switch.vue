@@ -4,7 +4,13 @@
     :class="[
       `c-switch--${props.size}`,
     ]"
+    :style="{
+      '--lf-switch-checked-background': props.checkedBackground,
+    }"
   >
+    <span v-if="$slots.inactive" class="flex flex-col">
+      <slot name="inactive" />
+    </span>
     <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
     <span v-if="$slots.default" class="flex flex-col">
       <slot />
@@ -21,10 +27,12 @@ const props = withDefaults(defineProps<{
   modelValue: string | boolean,
   value?: string | boolean,
   disabled?: boolean,
+  checkedBackground?: string,
 }>(), {
-  size: 'medium',
+  size: 'small',
   value: true,
   disabled: false,
+  checkedBackground: 'var(--lf-color-primary-500)',
 });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean): any}>();
