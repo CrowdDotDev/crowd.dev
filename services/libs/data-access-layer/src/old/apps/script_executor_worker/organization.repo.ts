@@ -121,6 +121,7 @@ class OrganizationRepository {
                 WHERE cel."entityId" = o.id
                   AND cel."type" = 'organization'
               )
+              AND o."manuallyCreated" != true
             LIMIT $(batchSize);
       `,
       {
