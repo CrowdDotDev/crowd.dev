@@ -1,3 +1,5 @@
+import config from '@/config';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import github from './github/config';
 import githubNango from './github-nango/config';
 import git from './git/config';
@@ -29,9 +31,15 @@ export interface IntegrationConfig {
   showProgress: boolean; // Show progress bar when connecting
 }
 
-export const lfIntegrations: Record<string, IntegrationConfig> = {
-  githubNango,
-  github,
+export const getGithubIntegration = () => {
+  const authStore = useAuthStore();
+  const userId = authStore.user?.id;
+
+  return config.permissions.teamUserIds?.includes(userId) ? githubNango : github;
+};
+
+export const lfIntegrations: () => Record<string, IntegrationConfig> = () => ({
+  github: getGithubIntegration(),
   git,
   groupsio,
   confluence,
@@ -47,4 +55,4 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   gerrit,
   discourse,
   devto,
-};
+});

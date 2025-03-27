@@ -5,7 +5,7 @@ import { ElNotification } from 'element-plus';
 import { lfIntegrations } from '@/config/integrations';
 
 export const showIntegrationProgressNotification = (platform, segmentId) => {
-  const label = lfIntegrations[platform]?.name;
+  const label = lfIntegrations()[platform]?.name;
   const defaultSlot = ({ progress }) => {
     const integrationProgress = (progress || []).find((p) => p.platform === platform);
     const text = h('p', {

@@ -34,7 +34,7 @@ export default {
     list: (state) => Object.keys(state.byId).reduce((acc, key) => {
       acc[key] = {
         ...state.byId[key],
-        ...lfIntegrations[state.byId[key].platform],
+        ...lfIntegrations()[state.byId[key].platform],
       };
       return acc;
     }, {}),
@@ -42,7 +42,7 @@ export default {
     listByPlatform: (state) => Object.keys(state.byId).reduce((acc, key) => {
       acc[state.byId[key].platform] = {
         ...state.byId[key],
-        ...lfIntegrations[state.byId[key].platform],
+        ...lfIntegrations()[state.byId[key].platform],
       };
       return acc;
     }, {}),
