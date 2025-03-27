@@ -151,11 +151,11 @@
             >
               <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
-            <el-switch
-              v-model="form.aiReplies"
-              inactive-text="AI replies"
-              class="h-full"
-            />
+            <lf-switch v-model="form.aiReplies" class="ml-4 flex-grow justify-between" :checked-background="'var(--lf-color-secondary-500)'">
+              <template #inactive>
+                AI replies
+              </template>
+            </lf-switch>
           </div>
         </el-form>
       </div>
@@ -211,6 +211,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const props = defineProps({
   modelValue: {

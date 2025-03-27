@@ -1,12 +1,14 @@
 <template>
   <div class="flex justify-start items-center border-b border-gray-100 p-4">
-    <el-switch
+    <lf-switch
       v-model="model"
-      :active-text="modelValue ? 'Include' : 'Exclude'"
-      class="w-fit flex !justify-start !m-0 filter-include-switch"
-      size="small"
+      class="w-fit flex !justify-start filter-include-switch"
+      size="tiny"
+      :checked-background="'var(--lf-color-secondary-500)'"
       data-qa="filter-include-switch"
-    />
+    >
+      {{ modelValue ? 'Include' : 'Exclude' }}
+    </lf-switch>
 
     <el-tooltip
       content="If excluded, turns the filter into a negative condition"
@@ -20,6 +22,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -45,10 +48,5 @@ export default {
 <style lang="scss">
 .filter-include-switch{
    @apply grow-0;
-
- .el-switch__label{
-   @apply mr-2;
-   font-weight: normal !important;
- }
 }
 </style>

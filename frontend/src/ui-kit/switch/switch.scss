@@ -24,7 +24,7 @@
       content: '';
       background: var(--lf-switch-handle);
       margin-left: 0;
-      @apply relative h-full w-1/2 rounded-full block transition-all;
+      @apply relative h-full w-[44.45%] rounded-full block transition-all;
     }
 
     // Checked
@@ -33,19 +33,19 @@
       --lf-switch-background: var(--lf-switch-checked-background);
 
       &:before{
-        margin-left: 50%;
+        margin-left: 55%;
       }
     }
 
     // Disabled
     &:disabled {
       --lf-switch-handle: var(--lf-switch-disabled-unchecked-handle);
-      --lf-switch-background: var(--lf-switch-disabled-unchecked-background);
-      @apply cursor-not-allowed;
+      --lf-switch-background: var(--lf-switch-unchecked-background);
+      @apply cursor-not-allowed opacity-60;
 
       &:checked {
         --lf-switch-handle: var(--lf-switch-disabled-checked-handle);
-        --lf-switch-background: var(--lf-switch-disabled-checked-background);
+        --lf-switch-background: var(--lf-switch-checked-background);
       }
 
       & + span{
@@ -55,6 +55,13 @@
   }
 
   // Checkbox sizes
+  &--tiny {
+    --lf-switch-height: var(--lf-switch-tiny-height);
+    --lf-switch-width: var(--lf-switch-tiny-width);
+    --lf-switch-font-size: var(--lf-switch-tiny-font-size);
+    --lf-switch-line-height: var(--lf-switch-tiny-line-height);
+  }
+
   &--small {
     --lf-switch-height: var(--lf-switch-small-height);
     --lf-switch-width: var(--lf-switch-small-width);
