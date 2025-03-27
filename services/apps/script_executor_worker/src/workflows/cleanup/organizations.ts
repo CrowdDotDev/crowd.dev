@@ -26,7 +26,7 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 25
 
   for (let i = 0; i < organizationIds.length; i += CHUNK_SIZE) {
     const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
