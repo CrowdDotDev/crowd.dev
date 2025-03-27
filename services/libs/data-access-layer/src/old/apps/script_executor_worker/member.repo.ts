@@ -190,6 +190,7 @@ class MemberRepository {
                           FROM "cleanupExcludeList" cel
                           WHERE cel."entityId" = m.id
                             AND cel."type" = 'member')
+          AND m."manuallyCreated" != true
         limit $(batchSize);
       `,
       {
