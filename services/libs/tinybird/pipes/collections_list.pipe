@@ -27,21 +27,21 @@ SQL >
         collections_filtered.description
     order by
         {{
-                        column(
-                            String(orderByField, "name", description="Order by collection field.", required=False)
-                        )
-                    }}
+            column(
+                String(orderByField, "name", description="Order by collection field.", required=False)
+            )
+        }}
         {% if String(
-                        orderByDirection,
-                        'asc',
-                        description="Order by direction. ASC or DESC",
-                        required=False,
-                    ) == 'asc' or String(
-                        orderByDirection,
-                        'asc',
-                        description="Order by direction. ASC or DESC",
-                        required=False,
-                    ) == 'ASC' %} ASC
+            orderByDirection,
+            'asc',
+            description="Order by direction. ASC or DESC",
+            required=False,
+        ) == 'asc' or String(
+            orderByDirection,
+            'asc',
+            description="Order by direction. ASC or DESC",
+            required=False,
+        ) == 'ASC' %} ASC
         {% else %} DESC
         {% end %}
     LIMIT {{ Int32(pageSize, 10) }}
@@ -94,23 +94,23 @@ SQL >
             collections_paginated.projectCount as "projectCount"
         order by
             {{
-                            column(
-                                String(
-                                    orderByField, "name", description="Order by collection field.", required=False
-                                )
-                            )
-                        }}
+                column(
+                    String(
+                        orderByField, "name", description="Order by collection field.", required=False
+                    )
+                )
+            }}
             {% if String(
-                            orderByDirection,
-                            'asc',
-                            description="Order by direction. ASC or DESC",
-                            required=False,
-                        ) == 'asc' or String(
-                            orderByDirection,
-                            'asc',
-                            description="Order by direction. ASC or DESC",
-                            required=False,
-                        ) == 'ASC' %} ASC
+                orderByDirection,
+                'asc',
+                description="Order by direction. ASC or DESC",
+                required=False,
+            ) == 'asc' or String(
+                orderByDirection,
+                'asc',
+                description="Order by direction. ASC or DESC",
+                required=False,
+            ) == 'ASC' %} ASC
             {% else %} DESC
             {% end %}
     {% end %}
