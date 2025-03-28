@@ -32,10 +32,14 @@ export interface IntegrationConfig {
 }
 
 export const getGithubIntegration = () => {
+  if (config.env === 'local') return githubNango;
+
   const authStore = useAuthStore();
   const userId = authStore.user?.id;
 
-  return config.permissions.teamUserIds?.includes(userId) ? githubNango : github;
+  return config.permissions.teamUserIds?.includes(userId)
+    ? githubNango
+    : github;
 };
 
 export const lfIntegrations: () => Record<string, IntegrationConfig> = () => ({

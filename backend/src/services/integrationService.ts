@@ -45,14 +45,7 @@ import {
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 
-import {
-  DISCORD_CONFIG,
-  GITHUB_CONFIG,
-  GITHUB_TOKEN_CONFIG,
-  GITLAB_CONFIG,
-  IS_TEST_ENV,
-  KUBE_MODE,
-} from '../conf/index'
+import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -70,6 +63,7 @@ import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
+import { getGithubInstallationToken } from './helpers/githubToken'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1676,7 +1670,7 @@ export default class IntegrationService {
         }
       }
 
-      const githubToken = GITHUB_TOKEN_CONFIG.token
+      const githubToken = await getGithubInstallationToken()
 
       const repos = integration.settings.orgs.flatMap((org) => org.repos) as {
         url: string
