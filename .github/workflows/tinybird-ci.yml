@@ -1,45 +1,20 @@
-# Taken from https://github.com/tinybirdco/ci/blob/main/.github/workflows/ci.yml 
-
-name: Tinybird CI
+name: Tinybird CI (Testable)
 
 on:
-  workflow_call:
-    inputs:
-      data_project_dir:
-        description: "relative path of the folder containing the data project"
-        required: false
-        type: string
-        default: services/libs/tinybird
-      tb_format:
-        description: "true to force formatting of Datafiles"
-        required: false
-        type: boolean
-        default: false
-      git_depth:
-        description: "Number of commits to fetch. 0 indicates all history for all branches and tags"
-        required: false
-        type: number
-        default: 300
-      use_last_partition:
-        description: "true to include --last-partition flag when creating branches"
-        required: false
-        type: boolean
-        default: true
-      tb_env:
-        description: "a global environment variable to replace inside the jobs and run conditional workflows (e.g. staging/production deployments)"
-        required: false
-        type: string
-    secrets:
-      tb_admin_token:
-        required: true
-      tb_host:
-        required: true
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DATA_PROJECT_DIR: services/libs/tinybird
+  GIT_DEPTH: 300
+  USE_LAST_PARTITION: true
 
 jobs:
   check:
     name: Datafiles checks
     runs-on: ubuntu-latest
-    if: ${{ inputs.tb_format && github.event.action != 'closed' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,8 +23,8 @@ jobs:
 
       - name: Install Tinybird CLI
         run: |
-          if [ -f "${{ inputs.data_project_dir }}/requirements.txt" ]; then
-            pip install -r ${{ inputs.data_project_dir }}/requirements.txt
+          if [ -f "${{ env.DATA_PROJECT_DIR }}/requirements.txt" ]; then
+            pip install -r ${{ env.DATA_PROJECT_DIR }}/requirements.txt
           else
             pip install tinybird-cli
           fi
@@ -74,34 +49,29 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ inputs.data_project_dir }}
-    if: ${{ github.event.action != 'closed' }}
+        working-directory: ${{ env.DATA_PROJECT_DIR }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: ${{ inputs.git_depth }}
+          fetch-depth: ${{ env.GIT_DEPTH }}
           ref: ${{ github.event.pull_request.head.sha }}
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           architecture: "x64"
-          cache: 'pip'
-
-      - name: Validate input
-        run: |
-          [[ "${{ secrets.tb_admin_token }}" ]] || { echo "Go to the tokens section in your Workspace, copy the 'admin token' and set TB_ADMIN_TOKEN as a Secret in your Git repository"; exit 1; }
+          cache: pip
 
       - name: Set environment variables
         run: |
-          [[ -z "${_ENV_FLAGS}" ]] && _ENV_FLAGS="${{ inputs.use_last_partition && '--last-partition ' || '' }}--wait"
+          _ENV_FLAGS="${{ env.USE_LAST_PARTITION == 'true' && '--last-partition ' || '' }}--wait"
           _NORMALIZED_BRANCH_NAME=$(echo $DATA_PROJECT_DIR | rev | cut -d "/" -f 1 | rev | tr '.-' '_')
           GIT_BRANCH=${GITHUB_HEAD_REF}
           echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
           echo "_ENV_FLAGS=$_ENV_FLAGS" >> $GITHUB_ENV
           echo "_NORMALIZED_BRANCH_NAME=$_NORMALIZED_BRANCH_NAME" >> $GITHUB_ENV
-          echo "TB_ENV=${{ inputs.tb_env }}" >> $GITHUB_ENV
-          grep -v '^#' .tinyenv >> $GITHUB_ENV
-          echo >> $GITHUB_ENV # Ensures new line at the end of the file
+          if [ -f .tinyenv ]; then grep -v '^#' .tinyenv >> $GITHUB_ENV; fi
+          echo >> $GITHUB_ENV
 
       - name: Install Tinybird CLI
         run: |
@@ -118,20 +88,14 @@ jobs:
         run: tb check
 
       - name: Check auth
-        run: tb --host ${{ secrets.tb_host }} --token ${{ secrets.tb_admin_token }} auth info
+        run: tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} auth info
 
       - name: Try delete previous Branch
         run: |
-          output=$(tb --host ${{ secrets.tb_host }} --token ${{ secrets.tb_admin_token }} branch ls)
+          output=$(tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} branch ls)
           BRANCH_NAME="tmp_ci_${_NORMALIZED_BRANCH_NAME}_${{ github.event.pull_request.number }}"
-
-          # Check if the branch name exists in the output
           if echo "$output" | grep -q "\b$BRANCH_NAME\b"; then
-              tb \
-                --host ${{ secrets.tb_host }} \
-                --token ${{ secrets.tb_admin_token }} \
-                branch rm $BRANCH_NAME \
-                --yes
+              tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} branch rm $BRANCH_NAME --yes
           else
               echo "Skipping clean up: The Branch '$BRANCH_NAME' does not exist."
           fi
@@ -139,36 +103,36 @@ jobs:
       - name: Create new test Branch
         run: |
           tb \
-          --host ${{ secrets.tb_host }} \
-          --token ${{ secrets.tb_admin_token }} \
+          --host ${{ secrets.TB_HOST }} \
+          --token ${{ secrets.TB_ADMIN_TOKEN }} \
           branch create tmp_ci_${_NORMALIZED_BRANCH_NAME}_${{ github.event.pull_request.number }} \
           ${_ENV_FLAGS}
 
       - name: Deploy changes to the test Branch
         run: |
-            source .tinyenv
-            DEPLOY_FILE=./deploy/${VERSION}/deploy.sh
-            if [ ! -f "$DEPLOY_FILE" ]; then
-              echo "$DEPLOY_FILE not found, running default tb deploy command"
-              tb deploy ${CI_FLAGS}
-              tb release ls
-            fi
+          source .tinyenv || true
+          DEPLOY_FILE=./deploy/${VERSION}/deploy.sh
+          if [ ! -f "$DEPLOY_FILE" ]; then
+            echo "$DEPLOY_FILE not found, running default tb deploy command"
+            tb deploy ${CI_FLAGS}
+            tb release ls
+          fi
 
       - name: Custom deployment to the test Branch
         run: |
-            source .tinyenv
-            DEPLOY_FILE=./deploy/${VERSION}/deploy.sh
-            if [ -f "$DEPLOY_FILE" ]; then
-              echo "$DEPLOY_FILE found"
-              if ! [ -x "$DEPLOY_FILE" ]; then
-                echo "Error: You do not have permission to execute '$DEPLOY_FILE'. Run:"
-                echo "> chmod +x $DEPLOY_FILE"
-                echo "and commit your changes"
-                exit 1
-              else
-                $DEPLOY_FILE
-              fi
+          source .tinyenv || true
+          DEPLOY_FILE=./deploy/${VERSION}/deploy.sh
+          if [ -f "$DEPLOY_FILE" ]; then
+            echo "$DEPLOY_FILE found"
+            if ! [ -x "$DEPLOY_FILE" ]; then
+              echo "Error: You do not have permission to execute '$DEPLOY_FILE'. Run:"
+              echo "> chmod +x $DEPLOY_FILE"
+              echo "and commit your changes"
+              exit 1
+            else
+              $DEPLOY_FILE
             fi
+          fi
 
   test:
     name: Run tests
@@ -177,32 +141,30 @@ jobs:
       - deploy
     defaults:
       run:
-        working-directory: ${{ inputs.data_project_dir }}
-    if: ${{ github.event.action != 'closed' }}
+        working-directory: ${{ env.DATA_PROJECT_DIR }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: ${{ inputs.data_project_dir }}
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           architecture: "x64"
-          cache: 'pip'
+          cache: pip
 
-      - name: Validate input
-        run: |
-          [[ "${{ secrets.tb_admin_token }}" ]] || { echo "Go to the tokens section in your Workspace, copy the 'admin token (user@domain.com)' associated to a user account and set TB_ADMIN_TOKEN as a Secret in your Git repository"; exit 1; }
       - name: Set environment variables
         run: |
-          _ENV_FLAGS="${ENV_FLAGS:=--last-partition --wait}"
-          _NORMALIZED_ENV_NAME=$(echo $DATA_PROJECT_DIR | rev | cut -d "/" -f 1 | rev | tr '.-' '_')
+          _ENV_FLAGS="--last-partition --wait"
+          _NORMALIZED_BRANCH_NAME=$(echo $DATA_PROJECT_DIR | rev | cut -d "/" -f 1 | rev | tr '.-' '_')
           GIT_BRANCH=${GITHUB_HEAD_REF}
           echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_ENV
           echo "_ENV_FLAGS=$_ENV_FLAGS" >> $GITHUB_ENV
-          echo "_NORMALIZED_ENV_NAME=$_NORMALIZED_ENV_NAME" >> $GITHUB_ENV
-          grep -v '^#' .tinyenv >> $GITHUB_ENV
-          echo >> $GITHUB_ENV # Ensures new line at the end of the file
+          echo "_NORMALIZED_BRANCH_NAME=$_NORMALIZED_BRANCH_NAME" >> $GITHUB_ENV
+          if [ -f .tinyenv ]; then grep -v '^#' .tinyenv >> $GITHUB_ENV; fi
+          echo >> $GITHUB_ENV
+
       - name: Install Tinybird CLI
         run: |
           if [ -f "requirements.txt" ]; then
@@ -210,22 +172,17 @@ jobs:
           else
             pip install tinybird-cli
           fi
+
       - name: Tinybird version
         run: tb --version
 
       - name: Check auth
-        run: tb --host ${{ secrets.tb_host }} --token ${{ secrets.tb_admin_token }} auth info
+        run: tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} auth info
 
       - name: Use Branch
         run: |
           BRANCH_NAME="tmp_ci_${_NORMALIZED_BRANCH_NAME}_${{ github.event.pull_request.number }}"
-          tb --host ${{ secrets.tb_host }} --token ${{ secrets.tb_admin_token }} branch use $BRANCH_NAME
-
-      - name: Get env token
-        run: |
-          ENV_TOKEN=$(python -c "import json; print(json.load(open('.tinyb'))['token'])")
-          echo "::add-mask::$ENV_TOKEN"
-          echo "TB_ENV_TOKEN=$ENV_TOKEN" >> $GITHUB_ENV
+          tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} branch use $BRANCH_NAME
 
       - name: Post deploy
         run: |
@@ -247,10 +204,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           label_key: regression
-  
+
       - name: Run pipe regression tests
         run: |
-          source .tinyenv
+          source .tinyenv || true
           echo ${{ steps.regression_labels.outputs.labels }}
           REGRESSION_LABELS=$(echo "${{ steps.regression_labels.outputs.labels }}" | awk -F, '{for (i=1; i<=NF; i++) if ($i ~ /^--/) print $i}' ORS=',' | sed 's/,$//')
           echo "Regression labels: ${REGRESSION_LABELS}"
@@ -264,66 +221,4 @@ jobs:
           else
               echo "Config file not found at '${CONFIG_FILE}', running with default values"
               ${BASE_CMD} coverage --wait ${LABELS_CMD}
-          fi
-
-      # - name: Append fixtures
-      #   run: |
-      #     if [ -f ./scripts/append_fixtures.sh ]; then
-      #       echo "append_fixtures script found"
-      #       ./scripts/append_fixtures.sh
-      #     fi
-
-      # - name: Run fixture tests
-      #   run: |
-      #     if [ -f ./scripts/exec_test.sh ]; then
-      #       ./scripts/exec_test.sh
-      #     fi
-
-      # - name: Run data quality tests
-      #   run: |
-      #     tb test run -v -c 4
-
-  cleanup:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.data_project_dir }}
-    if: ${{ github.event.action == 'closed' }}
-    steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          architecture: "x64"
-          cache: 'pip'
-
-      - name: Validate input
-        run: |
-          [[ "${{ secrets.tb_admin_token }}" ]] || { echo "Go to the tokens section in your Workspace, copy the 'admin token' and set TB_ADMIN_TOKEN as a Secret in your Git repository"; exit 1; }
-
-      - name: Install Tinybird CLI
-        run: |
-          if [ -f "requirements.txt" ]; then
-            pip install -r requirements.txt
-          else
-            pip install tinybird-cli
-          fi
-
-      - name: Tinybird version
-        run: tb --version       
-
-      - name: Try delete previous Branch
-        run: |
-          output=$(tb --host ${{ secrets.tb_host }} --token ${{ secrets.tb_admin_token }} branch ls)
-          BRANCH_NAME="tmp_ci_${_NORMALIZED_BRANCH_NAME}_${{ github.event.pull_request.number }}"
-
-          # Check if the branch name exists in the output
-          if echo "$output" | grep -q "\b$BRANCH_NAME\b"; then
-              tb \
-                --host ${{ secrets.tb_host }} \
-                --token ${{ secrets.tb_admin_token }} \
-                branch rm $BRANCH_NAME \
-                --yes
-          else
-              echo "Skipping clean up: The Branch '$BRANCH_NAME' does not exist."
           fi
