@@ -39,8 +39,8 @@ SQL >
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
         {% if not defined(onlyContributions) or (
-                    defined(onlyContributions) and onlyContributions == 1
-                ) %} AND a.isContribution {% end %}
+                        defined(onlyContributions) and onlyContributions == 1
+                    ) %} AND a.isContribution {% end %}
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
