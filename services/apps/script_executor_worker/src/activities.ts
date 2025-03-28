@@ -8,6 +8,7 @@ import {
 } from './activities/cleanup/organization'
 import {
   doesActivityExistInQuestDb,
+  getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
   unmergeMembers,
@@ -91,4 +92,5 @@ export {
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   getUnprocessedLLMApprovedSuggestions,
+  getWorkflowsCount,
 }
