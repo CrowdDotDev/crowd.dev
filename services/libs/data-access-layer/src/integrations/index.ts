@@ -245,7 +245,7 @@ export async function findIntegrationDataForNangoWebhookProcessing(
     `,
     {
       id,
-      platform: `${PlatformType.GITHUB}-nango`,
+      platform: PlatformType.GITHUB_NANGO,
     },
   )
 }
