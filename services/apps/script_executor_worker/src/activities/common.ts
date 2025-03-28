@@ -153,3 +153,24 @@ export async function doesActivityExistInQuestDb(
     throw error
   }
 }
+
+export async function getWorkflowsCount(workflowType: string, status: string): Promise<number> {
+  try {
+    let totalCount = 0
+
+    const handle = svc.temporal.workflow.list({
+      query: `WorkflowType = '${workflowType}' AND ExecutionStatus = '${status}'`,
+      pageSize: 1000,
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _ of handle) {
+      totalCount++
+    }
+
+    return totalCount
+  } catch (error) {
+    svc.log.error(error, 'Error getting workflows count!')
+    throw error
+  }
+}

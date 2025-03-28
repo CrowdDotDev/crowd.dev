@@ -1263,19 +1263,19 @@ export default class MemberService extends LoggerBase {
             },
           }
 
-          const repoOptions: IRepositoryOptions =
-            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-          tx = repoOptions.transaction
-
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
             originalId,
             toMergeId,
-            repoOptions,
+            this.options,
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
+
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
 
           const identitiesToUpdate = []
           const identitiesToMove = []
@@ -1337,17 +1337,19 @@ export default class MemberService extends LoggerBase {
             currentSegments: secondMemberSegments,
           })
 
+          await SequelizeRepository.commitTransaction(tx)
+
+          this.log.info({ originalId, toMergeId }, '[Merge Members] - Transaction commited! ')
+
           await MergeActionsRepository.setMergeAction(
             MergeActionType.MEMBER,
             originalId,
             toMergeId,
-            repoOptions,
+            this.options,
             {
               step: MergeActionStep.MERGE_SYNC_DONE,
             },
           )
-
-          await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
       )
@@ -1374,10 +1376,22 @@ export default class MemberService extends LoggerBase {
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
-      this.options.log.error(err, 'Error while merging members!')
+      this.options.log.error(err, 'Error while merging members!', { originalId, toMergeId })
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        {
+          state: MergeActionState.ERROR,
+        },
+      )
+
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
       }
+
       throw err
     }
   }

@@ -235,7 +235,7 @@ class MemberRepository {
       }
     }
 
-    bulkInsertMemberSegments += ` ON CONFLICT DO NOTHING`
+    bulkInsertMemberSegments += ` ON CONFLICT ("memberId", "segmentId", "tenantId") DO NOTHING`
 
     await seq.query(bulkInsertMemberSegments, {
       replacements,

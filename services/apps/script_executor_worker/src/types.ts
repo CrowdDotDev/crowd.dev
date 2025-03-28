@@ -32,15 +32,18 @@ export interface IPopulateActivityRelationsArgs {
   deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
 }
-export interface ISyncArgs {
+
+export interface IBatchTestRunArgs {
   batchSize?: number
-  chunkSize?: number
-  clean?: boolean
-  withAggs?: boolean
   testRun?: boolean
 }
 
-export interface ICleanupArgs {
-  batchSize: number
-  testRun?: boolean
+export interface ISyncArgs extends IBatchTestRunArgs {
+  chunkSize?: number
+  clean?: boolean
+  withAggs?: boolean
+}
+
+export interface IProcessLLMVerifiedMergesArgs extends IBatchTestRunArgs {
+  type: string
 }
