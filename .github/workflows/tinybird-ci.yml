@@ -1,4 +1,4 @@
-name: Tinybird CI (Testable)
+name: Tinybird CI
 
 on:
   pull_request:
