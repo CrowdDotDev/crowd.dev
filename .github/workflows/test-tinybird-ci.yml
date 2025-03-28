@@ -1,0 +1,16 @@
+# .github/workflows/test-ci-call.yml
+
+name: Test Tinybird CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-ci:
+    uses: .github/workflows/ci.yml@your-branch-name
+    with:
+      tb_env: staging
+      data_project_dir: services/libs/tinybird
+    secrets:
+      tb_admin_token: ${{ secrets.TB_ADMIN_TOKEN }}
+      tb_host: ${{ secrets.TB_HOST }}
