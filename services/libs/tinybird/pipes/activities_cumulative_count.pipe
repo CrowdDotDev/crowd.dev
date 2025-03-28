@@ -1,46 +1,43 @@
 DESCRIPTION >
-	Serves popularity forks and stars widgets
-
+    Serves popularity forks and stars widgets
 
 TOKEN "insights-app-token" READ
-
 TOKEN "activities_cumulative_count_endpoint_read_5317" READ
 
 NODE historical_activity_count
 SQL >
-
     %
-            select count(*) from activities_filtered_historical_cutoff
-
-
+    select count(*) from activities_filtered_historical_cutoff
 
 NODE cumulative_activity_count
 SQL >
-
     %
-            {% if defined(granularity) %}
-              WITH base AS (
-                SELECT 
+    {% if defined(granularity) %}
+        WITH
+            base AS (
+                SELECT
                     ds."startDate",
                     ds."endDate",
-                    count(case when af.id != '' then af.id else null end) AS "activityCount" 
+                    count(case when af.id != '' then af.id else null end) AS "activityCount"
                 FROM generate_timeseries ds
-                LEFT JOIN activities_filtered af ON 
-                    CASE 
-                        WHEN {{granularity}} = 'daily' 
-                            THEN toDate(af.timestamp)
-                        WHEN {{granularity}} = 'weekly'
-                            THEN toStartOfWeek(af.timestamp)
-                        WHEN {{granularity}} = 'monthly' 
-                            THEN toStartOfMonth(af.timestamp)
-                        WHEN {{granularity}} = 'quarterly' 
-                            THEN toStartOfQuarter(af.timestamp)
-                        WHEN {{granularity}} = 'yearly' 
-                            THEN toStartOfYear(af.timestamp)
-                    END = ds."startDate"
+                LEFT JOIN
+                    activities_filtered af
+                    ON CASE
+                        WHEN {{ granularity }} = 'daily'
+                        THEN toDate(af.timestamp)
+                        WHEN {{ granularity }} = 'weekly'
+                        THEN toStartOfWeek(af.timestamp)
+                        WHEN {{ granularity }} = 'monthly'
+                        THEN toStartOfMonth(af.timestamp)
+                        WHEN {{ granularity }} = 'quarterly'
+                        THEN toStartOfQuarter(af.timestamp)
+                        WHEN {{ granularity }} = 'yearly'
+                        THEN toStartOfYear(af.timestamp)
+                    END
+                    = ds."startDate"
                 GROUP BY ds."startDate", ds."endDate"
-              ),
-              rolling_cumulative AS (
+            ),
+            rolling_cumulative AS (
                 SELECT
                     "startDate",
                     "endDate",
@@ -48,19 +45,13 @@ SQL >
                     sumState("activityCount") AS "cumulativeState"
                 FROM base
                 GROUP BY "startDate", "endDate", "activityCount"
-              )
-              SELECT 
-                  "startDate",
-                  "endDate",
-                  COALESCE(
-                    sumMerge(cumulativeState) OVER (ORDER BY "startDate" ASC),
-                    0
-                  )
-                  + (select count(*) from activities_filtered_historical_cutoff) AS "cumulativeActivityCount"
-              FROM rolling_cumulative
-              ORDER BY "startDate" ASC
-            {% else %}
-              SELECT 1
-            {% end %}
-
-
+            )
+        SELECT
+            "startDate",
+            "endDate",
+            COALESCE(sumMerge(cumulativeState) OVER (ORDER BY "startDate" ASC), 0)
+            + (select count(*) from activities_filtered_historical_cutoff) AS "cumulativeActivityCount"
+        FROM rolling_cumulative
+        ORDER BY "startDate" ASC
+    {% else %} SELECT 1
+    {% end %}
