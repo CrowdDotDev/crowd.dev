@@ -3,6 +3,7 @@ name: Tinybird CI (Testable)
 on:
   pull_request:
     branches:
+      - main
       - improvement/tinybird-ci
   workflow_dispatch:
 
