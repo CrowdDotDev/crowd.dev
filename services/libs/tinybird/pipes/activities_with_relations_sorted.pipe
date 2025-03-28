@@ -34,7 +34,6 @@ SQL >
             '8656081c-f2fc-485f-b5f2-389ffcd5621a',
             '2738d650-38a0-4c0d-9c7e-1c3fc5f18254',
             'd4457ee2-32ca-4454-ae4f-840b569b41d9',
-            '7627fb7c-7320-4948-9e29-5822af41edbb',
             'ed148448-536b-4dd4-9882-58e668c7ca3e'
         )
         and ar.memberId in (select id from members where not isBot and not isTeamMember)
