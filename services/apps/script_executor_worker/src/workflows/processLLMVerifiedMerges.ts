@@ -17,15 +17,20 @@ const {
 
 export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesArgs): Promise<void> {
   const SUGGESTIONS_PER_RUN = args.batchSize ?? 10
+  const WORKFLOWS_THRESHOLD = 20
 
-  // if (workflowsCount > 100) {
-  //   console.log(
-  //     `Too many running ${workflowTypeToCheck} workflows (${workflowsCount}). Waiting for  minutes.`,
-  //   )
+  const workflowTypeToCheck =
+    args.type === EntityType.MEMBER ? 'finishMemberMerging' : 'finishOrganizationMerging'
+  let workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
 
-  //   // Wait for 30 minutes before processing the next batch
-  //   await new Promise((resolve) => setTimeout(resolve, 30 * 60 * 1000))
-  // }
+  while (workflowsCount > WORKFLOWS_THRESHOLD) {
+    console.log(`Too many running ${workflowTypeToCheck} workflows (${workflowsCount})`)
+
+    // Wait for 5 minutes
+    await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
+
+    workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
+  }
 
   const suggestions = await getUnprocessedLLMApprovedSuggestions(
     SUGGESTIONS_PER_RUN,
@@ -43,14 +48,6 @@ export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesAr
   await Promise.all(
     suggestions.map((suggestion) => mergeFunction(suggestion.primaryId, suggestion.secondaryId)),
   )
-
-  await new Promise((resolve) => setTimeout(resolve, 60 * 1000))
-
-  const workflowTypeToCheck =
-    args.type === EntityType.MEMBER ? 'finishMemberMerging' : 'finishOrganizationMerging'
-  const workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
-
-  console.log(`Running ${workflowsCount} ${workflowTypeToCheck} workflows`)
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
