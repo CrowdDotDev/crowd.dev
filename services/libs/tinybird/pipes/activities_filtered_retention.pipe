@@ -10,16 +10,16 @@ NODE segments_filtered
 SQL >
 
     %
-        SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
-        where 1=1
-        {% if defined(project) %}
-        AND slug = {{String(project, description="Filter by project slug", required=True)}}
-        {% else %}
-        AND false
-        {% end %}  
-        {% if defined(repo) %}
-        AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
-        {% end %}
+            SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
+            where 1=1
+            {% if defined(project) %}
+            AND slug = {{String(project, description="Filter by project slug", required=True)}}
+            {% else %}
+            AND false
+            {% end %}  
+            {% if defined(repo) %}
+            AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+            {% end %}
 
 
 
@@ -27,47 +27,47 @@ NODE activities_filtered_by_timestamp_and_channel
 SQL >
 
     %
-    SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_ds a
-    where
-        segmentId = (SELECT id FROM segments_filtered)
-        {% if defined(startDate) %}
-            AND a.timestamp
-            > {% if defined(granularity) and granularity == "daily" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-                - INTERVAL 1 DAY
-            {% elif defined(granularity) and granularity == "weekly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-                - INTERVAL 7 DAY
-            {% elif defined(granularity) and granularity == "monthly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-                - INTERVAL 1 MONTH
-            {% elif defined(granularity) and granularity == "quarterly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-                - INTERVAL 3 MONTH
-            {% elif defined(granularity) and granularity == "yearly" %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-                - INTERVAL 1 YEAR
-            {% else %}
-                {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
+        FROM activities_with_relations_sorted_ds a
+        where
+            segmentId = (SELECT id FROM segments_filtered)
+            {% if defined(startDate) %}
+                AND a.timestamp
+                > {% if defined(granularity) and granularity == "daily" %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                    - INTERVAL 1 DAY
+                {% elif defined(granularity) and granularity == "weekly" %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                    - INTERVAL 7 DAY
+                {% elif defined(granularity) and granularity == "monthly" %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                    - INTERVAL 1 MONTH
+                {% elif defined(granularity) and granularity == "quarterly" %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                    - INTERVAL 3 MONTH
+                {% elif defined(granularity) and granularity == "yearly" %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                    - INTERVAL 1 YEAR
+                {% else %}
+                    {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+                {% end %}
             {% end %}
-        {% end %}
-        {% if defined(endDate) %}
-            AND a.timestamp
-            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
-        {% end %}
-        {% if defined(repo) %}
-            AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
-        {% end %}
-        {% if defined(platform) %}
-            AND a.platform
-            = {{ String(platform, description="Filter activity platform", required=False) }}
-        {% end %}
-        {% if not defined(onlyContributions) or (
-            defined(onlyContributions) and onlyContributions == 1
-        ) %} AND a.isContribution {% end %}
-        {% if defined(activity_type) %}
-            AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
-        {% end %}
+            {% if defined(endDate) %}
+                AND a.timestamp
+                < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+            {% end %}
+            {% if defined(repo) %}
+                AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
+            {% end %}
+            {% if defined(platform) %}
+                AND a.platform
+                = {{ String(platform, description="Filter activity platform", required=False) }}
+            {% end %}
+            {% if not defined(onlyContributions) or (
+                defined(onlyContributions) and onlyContributions == 1
+            ) %} AND a.isContribution {% end %}
+            {% if defined(activity_type) %}
+                AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
+            {% end %}
 
-TYPE endpoint
+

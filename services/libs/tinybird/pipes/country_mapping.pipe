@@ -46,4 +46,4 @@ SQL >
         ]) AS country_map
     )
 
-TYPE endpoint
+
