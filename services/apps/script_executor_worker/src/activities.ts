@@ -44,7 +44,7 @@ import {
   markActivitiesAsIndexed,
   resetIndexedIdentities,
 } from './activities/populate-activity-relations'
-import { getUnmergedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
+import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
 import { deleteIndexedEntities, markEntitiesIndexed } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
 import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
@@ -90,5 +90,5 @@ export {
   markEntitiesIndexed,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
-  getUnmergedLLMApprovedSuggestions,
+  getUnprocessedLLMApprovedSuggestions,
 }

@@ -62,7 +62,7 @@ class MergeActionRepository {
     return rows
   }
 
-  async getUnmergedLLMApprovedSuggestions(
+  async getUnprocessedLLMApprovedSuggestions(
     batchSize: number,
     type: EntityType,
   ): Promise<{ primaryId: string; secondaryId: string }[]> {

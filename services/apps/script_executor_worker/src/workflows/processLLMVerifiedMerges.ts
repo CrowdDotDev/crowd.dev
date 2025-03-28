@@ -5,7 +5,7 @@ import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executo
 import * as activities from '../activities'
 import { IProcessLLMVerifiedMergesArgs } from '../types'
 
-const { getUnmergedLLMApprovedSuggestions, mergeMembers, mergeOrganizations } = proxyActivities<
+const { getUnprocessedLLMApprovedSuggestions, mergeMembers, mergeOrganizations } = proxyActivities<
   typeof activities
 >({
   startToCloseTimeout: '30 minutes',
@@ -15,7 +15,7 @@ const { getUnmergedLLMApprovedSuggestions, mergeMembers, mergeOrganizations } = 
 export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesArgs): Promise<void> {
   const SUGGESTIONS_PER_RUN = args.batchSize ?? 10
 
-  const suggestions = await getUnmergedLLMApprovedSuggestions(
+  const suggestions = await getUnprocessedLLMApprovedSuggestions(
     SUGGESTIONS_PER_RUN,
     args.type as EntityType,
   )
