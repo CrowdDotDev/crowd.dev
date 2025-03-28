@@ -44,6 +44,8 @@ export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesAr
     suggestions.map((suggestion) => mergeFunction(suggestion.primaryId, suggestion.secondaryId)),
   )
 
+  await new Promise((resolve) => setTimeout(resolve, 60 * 1000))
+
   const workflowTypeToCheck =
     args.type === EntityType.MEMBER ? 'finishMemberMerging' : 'finishOrganizationMerging'
   const workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
