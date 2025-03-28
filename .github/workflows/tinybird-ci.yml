@@ -2,8 +2,8 @@ name: Tinybird CI
 
 on:
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'services/libs/tinybird/**'
   workflow_dispatch:
 
 env:
