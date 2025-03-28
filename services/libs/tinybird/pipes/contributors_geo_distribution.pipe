@@ -11,7 +11,7 @@ TOKEN "contributors_geo_distribution_endpoint_read_8966" READ
 NODE country_mapping_array
 SQL >
 
-     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
+    SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
 
 
 
@@ -46,4 +46,4 @@ SQL >
     GROUP BY country, flag, country_code
     ORDER BY contributorCount DESC
 
-TYPE endpoint
+

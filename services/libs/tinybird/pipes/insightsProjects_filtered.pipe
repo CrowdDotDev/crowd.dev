@@ -20,44 +20,44 @@ NODE insightsProjects_filtered_1
 SQL >
 
     %
-        SELECT
-            insightsProjects.id,
-            insightsProjects.name,
-            insightsProjects.slug,
-            insightsProjects.description,
-            insightsProjects.logoUrl as logo,
-            insightsProjects.repositories,
-            coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
-            coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
-        FROM insightsProjects FINAL
-        left join collection_info on collection_info.insightsProjectId = insightsProjects.id
-        left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
-        where
-            1 = 1
-            {% if defined(slug) %}
-                AND insightsProjects.slug
-                = {{ String(slug, description="Filter collection by slug", required=False) }}
-            {% end %}
-            {% if defined(search) %}
-                AND insightsProjects.name
-                ilike '%' || {{
-                    String(
-                        search,
-                        description="Search collection open ended wildcard using slug",
-                        required=False,
-                    )
-                }} || '%'
-            {% end %}
-            {% if defined(collectionSlug) %}
-                AND collection_info.collectionSlug
-                = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
-            {% end %}
-        group by
-            insightsProjects.id,
-            insightsProjects.name,
-            insightsProjects.slug,
-            insightsProjects.description,
-            insightsProjects.logoUrl,
-            insightsProjects.repositories
+            SELECT
+                insightsProjects.id,
+                insightsProjects.name,
+                insightsProjects.slug,
+                insightsProjects.description,
+                insightsProjects.logoUrl as logo,
+                insightsProjects.repositories,
+                coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
+                coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
+            FROM insightsProjects FINAL
+            left join collection_info on collection_info.insightsProjectId = insightsProjects.id
+            left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
+            where
+                1 = 1
+                {% if defined(slug) %}
+                    AND insightsProjects.slug
+                    = {{ String(slug, description="Filter collection by slug", required=False) }}
+                {% end %}
+                {% if defined(search) %}
+                    AND insightsProjects.name
+                    ilike '%' || {{
+                        String(
+                            search,
+                            description="Search collection open ended wildcard using slug",
+                            required=False,
+                        )
+                    }} || '%'
+                {% end %}
+                {% if defined(collectionSlug) %}
+                    AND collection_info.collectionSlug
+                    = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+                {% end %}
+            group by
+                insightsProjects.id,
+                insightsProjects.name,
+                insightsProjects.slug,
+                insightsProjects.description,
+                insightsProjects.logoUrl,
+                insightsProjects.repositories
 
-TYPE endpoint
+
