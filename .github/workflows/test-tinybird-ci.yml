@@ -7,7 +7,7 @@ on:
 
 jobs:
   call-ci:
-    uses: .github/workflows/ci.yml@your-branch-name
+    uses: .github/workflows/tinybird-ci.yml@improvement/tinybird-ci
     with:
       tb_env: staging
       data_project_dir: services/libs/tinybird
