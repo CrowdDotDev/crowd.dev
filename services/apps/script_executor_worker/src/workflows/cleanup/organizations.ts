@@ -8,7 +8,7 @@ import { IScriptBatchTestArgs } from '../../types'
 const {
   getOrganizationsToCleanup,
   deleteOrganization,
-  queueOrgForAggComputation,
+  syncRemoveOrganization,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
 } = proxyActivities<typeof activities>({
@@ -26,7 +26,7 @@ export async function cleanupOrganizations(args: IScriptBatchTestArgs): Promise<
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 25
 
   for (let i = 0; i < organizationIds.length; i += CHUNK_SIZE) {
     const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
@@ -39,10 +39,9 @@ export async function cleanupOrganizations(args: IScriptBatchTestArgs): Promise<
         return excludeEntityFromCleanup(orgId, EntityType.ORGANIZATION)
       }
 
-      console.log(`Deleting organization ${orgId} from database!`)
-      await deleteOrganization(orgId)
-
-      return queueOrgForAggComputation(orgId)
+      console.log(`Deleting organization ${orgId} from opensearch and database!`)
+      await syncRemoveOrganization(orgId)
+      return deleteOrganization(orgId)
     })
 
     await Promise.all(cleanupTasks)

@@ -2,7 +2,7 @@
   <teleport to="body">
     <el-drawer
       v-model="model"
-      :custom-class="`${customClass} ${
+      :class="`${customClass} ${
         hasBorder ? 'bordered' : ''
       } ${
         hasPadding ? '' : 'no-padding'

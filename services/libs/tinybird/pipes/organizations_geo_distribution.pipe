@@ -1,19 +1,24 @@
+DESCRIPTION >
+	Serves organization geographic distribution widget.
+
+
+TOKEN "insights-app-token" READ
+
 TOKEN "raul_dev_access_token" READ
 
 TOKEN "organizations_geo_distribution_endpoint_read_0957" READ
 
-TOKEN "insights-staging-app-token" READ
-
-NODE organizations_geo_distribution_0
+NODE country_mapping_array
 SQL >
 
-    WITH 
-        country_mapping_array AS (
-            SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-        ),
+    SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
 
-        parsed_country AS (
-            SELECT 
+
+
+NODE parsed_country
+SQL >
+
+    SELECT 
                 o.id,
                 o.location,
                 arrayFilter(
@@ -21,9 +26,13 @@ SQL >
                     (SELECT country_data FROM country_mapping_array)
                 ) AS matched_countries,
                 arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data
-            FROM organizations AS o
+            FROM organizations AS o final
             WHERE o.id IN (SELECT "organizationId" FROM activities_filtered)
-        )
+
+
+
+NODE organizations_geo_distribution_result
+SQL >
 
     SELECT 
         country_data.1 AS country,
@@ -35,5 +44,4 @@ SQL >
     GROUP BY country, flag, country_code
     ORDER BY organizationCount DESC
 
-
-
+TYPE endpoint

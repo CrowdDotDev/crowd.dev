@@ -15,7 +15,7 @@
         ref="popover"
         :style="popoverStyle"
         class="c-popover__content"
-        :class="[`is-placed-${props.placement}`, { 'is-hidden': props.persistent && !isVisible }]"
+        :class="[`is-placed-${props.placement}`, { 'is-hidden': props.persistent && !isVisible }, { 'popover-box': !props.isDropdown }]"
       >
         <slot :close="hidePopover" />
       </div>
@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<{
   visibility?: boolean,
   triggerEvent?: PopoverTrigger,
   persistent?: boolean;
+  isDropdown?: boolean;
 }>(), {
   placement: 'bottom-start',
   disabled: false,
@@ -44,6 +45,7 @@ const props = withDefaults(defineProps<{
   visibility: false,
   triggerEvent: 'click',
   persistent: false,
+  isDropdown: false,
 });
 
 const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();

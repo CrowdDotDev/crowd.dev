@@ -8,9 +8,9 @@ import { IScriptBatchTestArgs } from '../../types'
 const {
   getMembersToCleanup,
   deleteMember,
-  syncMembersBatch,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
+  syncRemoveMember,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -26,7 +26,7 @@ export async function cleanupMembers(args: IScriptBatchTestArgs): Promise<void> 
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 25
 
   for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
     const chunk = memberIds.slice(i, i + CHUNK_SIZE)
@@ -39,10 +39,9 @@ export async function cleanupMembers(args: IScriptBatchTestArgs): Promise<void> 
         return excludeEntityFromCleanup(memberId, EntityType.MEMBER)
       }
 
-      console.log(`Deleting member ${memberId} from database!`)
-      await deleteMember(memberId)
-
-      return syncMembersBatch([memberId], true)
+      console.log(`Deleting member ${memberId} from opensearch and database!`)
+      await syncRemoveMember(memberId)
+      return deleteMember(memberId)
     })
 
     await Promise.all(cleanupTasks)

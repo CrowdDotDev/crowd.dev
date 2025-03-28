@@ -35,7 +35,8 @@ export async function getOrganizations(
         and: [
           { [OrganizationField.TENANT_ID]: { eq: tenantId } },
           afterOrganizationId ? { [OrganizationField.ID]: { gt: afterOrganizationId } } : null,
-          lastGeneratedAt ? { [OrganizationField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
+          // Include organizations updated after the last generation to cover both new and modified ones
+          lastGeneratedAt ? { [OrganizationField.UPDATED_AT]: { gt: lastGeneratedAt } } : null,
           organizationIds ? { [OrganizationField.ID]: { in: organizationIds } } : null,
           // TODO filter by organizationIds,
         ],
@@ -47,6 +48,7 @@ export async function getOrganizations(
         OrganizationField.LOCATION,
         OrganizationField.INDUSTRY,
       ],
+      orderBy: `${OrganizationField.ID} asc`,
       limit: batchSize,
     })
 

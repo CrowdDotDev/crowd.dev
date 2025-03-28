@@ -1,0 +1,16 @@
+
+SCHEMA >
+    `id` String,
+    `timestamp` DateTime,
+    `platform` LowCardinality(String),
+    `type` LowCardinality(String),
+    `channel` String,
+    `isContribution` UInt8,
+    `updatedAt` DateTime64(3),
+    `memberId` String,
+    `organizationId` String,
+    `segmentId` String
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
+ENGINE_SORTING_KEY "segmentId, timestamp, type, platform, memberId, organizationId"

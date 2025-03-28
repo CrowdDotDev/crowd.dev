@@ -48,5 +48,6 @@ export async function copyActivitiesFromQuestdbToTinybird(
   await continueAsNew<typeof copyActivitiesFromQuestdbToTinybird>({
     batchSizePerRun: args.batchSizePerRun,
     latestSyncedActivityTimestamp: lastTimestamp,
+    segmentIds: args.segmentIds,
   })
 }

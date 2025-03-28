@@ -9,7 +9,7 @@
     }"
   >
     <span class="text-2xs text-gray-500">
-      Select an active project from Community Management
+      Select an active project from Community Data Platform
     </span>
     <div class="relative">
       <div v-if="form.projectId" class="absolute top-2 left-2 z-10">
