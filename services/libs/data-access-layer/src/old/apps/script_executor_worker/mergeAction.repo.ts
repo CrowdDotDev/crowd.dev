@@ -2,7 +2,7 @@ import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMergeAction } from '@crowd/types'
 
-import { IFindMemberMergeActionReplacement } from './types'
+import { EntityType, IFindMemberMergeActionReplacement } from './types'
 
 class MergeActionRepository {
   constructor(
@@ -60,6 +60,35 @@ class MergeActionRepository {
     }
 
     return rows
+  }
+
+  async findMergeActionsWithDeletedSecondaryEntities(
+    limit: number,
+    offset: number,
+    entityType: EntityType,
+  ): Promise<IMergeAction[]> {
+    const entityConfig = {
+      [EntityType.MEMBER]: { table: 'members', type: 'member' },
+      [EntityType.ORGANIZATION]: { table: 'organizations', type: 'org' },
+    }
+
+    const { table, type } = entityConfig[entityType]
+
+    return this.connection.query(
+      `
+      select * from "mergeActions" ma
+      where ma."state" = 'merged' and ma."type" = $(type)
+      and not exists (
+        select 1 from "${table}" t where t.id = ma."secondaryId" and t."deletedAt" is null
+      )
+      limit $(limit) offset $(offset)
+      `,
+      {
+        limit,
+        offset,
+        type,
+      },
+    )
   }
 }
 

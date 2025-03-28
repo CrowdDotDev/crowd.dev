@@ -3,7 +3,7 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
 import * as activities from '../../activities'
-import { ICleanupArgs } from '../../types'
+import { IScriptBatchTestArgs } from '../../types'
 
 const {
   getMembersToCleanup,
@@ -16,7 +16,7 @@ const {
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
+export async function cleanupMembers(args: IScriptBatchTestArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
   const memberIds = await getMembersToCleanup(BATCH_SIZE)
