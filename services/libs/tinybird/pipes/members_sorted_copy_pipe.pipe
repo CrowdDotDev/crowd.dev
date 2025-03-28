@@ -1,18 +1,13 @@
 DESCRIPTION >
-	Filters out `isBot = true` and `isTeamMember=true` members. Also possible to use more granular sorting keys in the destination datasource `members_sorted` Copy pipe runs every hour
-
+    Filters out `isBot = true` and `isTeamMember=true` members. Also possible to use more granular sorting keys in the destination datasource `members_sorted` Copy pipe runs every hour
 
 TOKEN "scheduled_copy_t_de195ee8afc8461385e2c25502dbaf74" READ
 
 NODE members_pre_filter
 SQL >
+    SELECT * FROM members final where not isBot and not isTeamMember
 
-    SELECT * FROM members final
-    where not isBot and not isTeamMember
-
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE members_sorted
 COPY_MODE replace
 COPY_SCHEDULE 0 * * * *
-
-

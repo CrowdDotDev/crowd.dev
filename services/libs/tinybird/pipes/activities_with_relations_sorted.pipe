@@ -2,18 +2,17 @@ TOKEN "scheduled_copy_t_4da4d923fcfc43fcb79985c8e108263b" READ
 
 NODE activities_with_relations_filtered
 SQL >
-
-    select 
-      a.id,
-      a.timestamp,
-      a.platform,
-      a.type,
-      a.channel,
-      a.isContribution,
-      ar.updatedAt as "updatedAt",
-      ar.memberId,
-      ar.organizationId,
-      ar.segmentId
+    select
+        a.id,
+        a.timestamp,
+        a.platform,
+        a.type,
+        a.channel,
+        a.isContribution,
+        ar.updatedAt as "updatedAt",
+        ar.memberId,
+        ar.organizationId,
+        ar.segmentId
     from activities a final
     join activityRelations ar final on ar.activityId = a.id
     where
@@ -38,9 +37,7 @@ SQL >
         )
         and ar.memberId in (select id from members where not isBot and not isTeamMember)
 
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE activities_with_relations_sorted_ds
 COPY_MODE replace
 COPY_SCHEDULE 0 * * * *
-
-

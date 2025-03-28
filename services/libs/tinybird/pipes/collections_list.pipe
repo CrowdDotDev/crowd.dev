@@ -1,116 +1,37 @@
 DESCRIPTION >
-	Serves collections page with pagination and sorting
-
+    Serves collections page with pagination and sorting
 
 TOKEN "insights-app-token" READ
-
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "collections_list_endpoint_read_0317" READ
 
 NODE collections_paginated
 SQL >
-
     %
-            SELECT
-                collections_filtered.id,
-                collections_filtered.name,
-                collections_filtered.slug,
-                collections_filtered.description,
-                SUM(
-                    CASE WHEN collectionsInsightsProjects.insightsProjectId != '' THEN 1 ELSE 0 END
-                ) as "projectCount"
-            FROM collections_filtered
-            left join
-                collectionsInsightsProjects
-                on collectionsInsightsProjects.collectionId = collections_filtered.id
-            group by
-                collections_filtered.id,
-                collections_filtered.name,
-                collections_filtered.slug,
-                collections_filtered.description
-            order by
-                {{
-                    column(
-                        String(orderByField, "name", description="Order by collection field.", required=False)
-                    )
-                }}
-                {% if String(
-                    orderByDirection,
-                    'asc',
-                    description="Order by direction. ASC or DESC",
-                    required=False,
-                ) == 'asc' or String(
-                    orderByDirection,
-                    'asc',
-                    description="Order by direction. ASC or DESC",
-                    required=False,
-                ) == 'ASC' %} ASC
-                {% else %} DESC
-                {% end %}
-            LIMIT {{ Int32(pageSize, 10) }}
-            OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
-
-
-
-NODE collections_featured_projects
-SQL >
-
-    SELECT collectionsInsightsProjects.collectionId, insightsProjects_filtered.*
-    from insightsProjects_filtered
-    join
+    SELECT
+        collections_filtered.id,
+        collections_filtered.name,
+        collections_filtered.slug,
+        collections_filtered.description,
+        SUM(
+            CASE WHEN collectionsInsightsProjects.insightsProjectId != '' THEN 1 ELSE 0 END
+        ) as "projectCount"
+    FROM collections_filtered
+    left join
         collectionsInsightsProjects
-        on collectionsInsightsProjects.insightsProjectId = insightsProjects_filtered.id
-    where
-        (collectionsInsightsProjects.collectionId in (select id from collections_paginated))
-        and collectionsInsightsProjects.starred
-
-
-
-NODE merging_fields_together
-SQL >
-
-    %
-            {% if Boolean(count, false) %} SELECT count(collections_filtered.id) from collections_filtered
-            {% else %}
-                SELECT
-                    collections_paginated.id as id,
-                    collections_paginated.name as name,
-                    collections_paginated.slug as slug,
-                    collections_paginated.description as description,
-                    collections_paginated.projectCount as "projectCount",
-                    arrayFilter(
-                        x -> x['name'] != '',
-                        groupArray(
-                            map(
-                                'name',
-                                toString(collections_featured_projects.name),
-                                'slug',
-                                toString(collections_featured_projects.slug),
-                                'logo',
-                                toString(collections_featured_projects.logo)
-                            )
-                        )
-                    ) AS featuredProjects
-                FROM collections_paginated
-                LEFT JOIN
-                    collections_featured_projects
-                    ON collections_featured_projects.collectionId = collections_paginated.id
-                GROUP BY
-                    collections_paginated.id as id,
-                    collections_paginated.name as name,
-                    collections_paginated.slug as slug,
-                    collections_paginated.description as description,
-                    collections_paginated.projectCount as "projectCount"
-                order by
-                    {{
+        on collectionsInsightsProjects.collectionId = collections_filtered.id
+    group by
+        collections_filtered.id,
+        collections_filtered.name,
+        collections_filtered.slug,
+        collections_filtered.description
+    order by
+        {{
                         column(
-                            String(
-                                orderByField, "name", description="Order by collection field.", required=False
-                            )
+                            String(orderByField, "name", description="Order by collection field.", required=False)
                         )
                     }}
-                    {% if String(
+        {% if String(
                         orderByDirection,
                         'asc',
                         description="Order by direction. ASC or DESC",
@@ -121,8 +42,75 @@ SQL >
                         description="Order by direction. ASC or DESC",
                         required=False,
                     ) == 'ASC' %} ASC
-                    {% else %} DESC
-                    {% end %}
+        {% else %} DESC
+        {% end %}
+    LIMIT {{ Int32(pageSize, 10) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+
+NODE collections_featured_projects
+SQL >
+    SELECT collectionsInsightsProjects.collectionId, insightsProjects_filtered.*
+    from insightsProjects_filtered
+    join
+        collectionsInsightsProjects
+        on collectionsInsightsProjects.insightsProjectId = insightsProjects_filtered.id
+    where
+        (collectionsInsightsProjects.collectionId in (select id from collections_paginated))
+        and collectionsInsightsProjects.starred
+
+NODE merging_fields_together
+SQL >
+    %
+    {% if Boolean(count, false) %} SELECT count(collections_filtered.id) from collections_filtered
+    {% else %}
+        SELECT
+            collections_paginated.id as id,
+            collections_paginated.name as name,
+            collections_paginated.slug as slug,
+            collections_paginated.description as description,
+            collections_paginated.projectCount as "projectCount",
+            arrayFilter(
+                x -> x['name'] != '',
+                groupArray(
+                    map(
+                        'name',
+                        toString(collections_featured_projects.name),
+                        'slug',
+                        toString(collections_featured_projects.slug),
+                        'logo',
+                        toString(collections_featured_projects.logo)
+                    )
+                )
+            ) AS featuredProjects
+        FROM collections_paginated
+        LEFT JOIN
+            collections_featured_projects
+            ON collections_featured_projects.collectionId = collections_paginated.id
+        GROUP BY
+            collections_paginated.id as id,
+            collections_paginated.name as name,
+            collections_paginated.slug as slug,
+            collections_paginated.description as description,
+            collections_paginated.projectCount as "projectCount"
+        order by
+            {{
+                            column(
+                                String(
+                                    orderByField, "name", description="Order by collection field.", required=False
+                                )
+                            )
+                        }}
+            {% if String(
+                            orderByDirection,
+                            'asc',
+                            description="Order by direction. ASC or DESC",
+                            required=False,
+                        ) == 'asc' or String(
+                            orderByDirection,
+                            'asc',
+                            description="Order by direction. ASC or DESC",
+                            required=False,
+                        ) == 'ASC' %} ASC
+            {% else %} DESC
             {% end %}
-
-
+    {% end %}

@@ -1,27 +1,28 @@
 DESCRIPTION >
-	Aggregates activities using segmentIds calculation `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
-
+    Aggregates activities using segmentIds calculation `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
 
 NODE segment_activity_aggregates
 SQL >
-
     SELECT
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
     FROM activityRelations_sorted
-    where activityId in (
-        select id from activities where 
-        isContribution and
-        ((platform in ('git', 'gerrit', 'github', 'gitlab') and channel in (
-          select arrayJoin(repositories) from insightsProjects
-        )) 
-        or
-        (platform not in ('git', 'gerrit', 'github', 'gitlab')))
-    )
+    where
+        activityId in (
+            select id
+            from activities
+            where
+                isContribution
+                and (
+                    (
+                        platform in ('git', 'gerrit', 'github', 'gitlab')
+                        and channel in (select arrayJoin(repositories) from insightsProjects)
+                    )
+                    or (platform not in ('git', 'gerrit', 'github', 'gitlab'))
+                )
+        )
     GROUP BY segmentId
 
-TYPE materialized
+TYPE MATERIALIZED
 DATASOURCE segmentsAggregatedMV
-
-
