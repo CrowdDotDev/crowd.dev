@@ -35,7 +35,7 @@ export async function fixActivityForiegnKeys(args: IFixActivityForiegnKeysArgs):
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 30
 
   for (let i = 0; i < mergeActions.length; i += CHUNK_SIZE) {
     const chunk = mergeActions.slice(i, i + CHUNK_SIZE)
