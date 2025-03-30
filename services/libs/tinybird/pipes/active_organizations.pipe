@@ -12,30 +12,30 @@ NODE timeseries_generation_for_active_organizations
 SQL >
 
     %
-        {% if defined(granularity) %}
-          SELECT 
-              ds."startDate",
-              ds."endDate",
-              COALESCE(uniq( case when af.organizationId != '' then af.organizationId else null end), 0) AS "organizationCount"
-          FROM generate_timeseries ds
-          LEFT JOIN activities_filtered af ON 
-              CASE 
-                  WHEN {{granularity}} = 'daily' 
-                      THEN toDate(af.timestamp)
-                  WHEN {{granularity}} = 'weekly'
-                      THEN toStartOfWeek(af.timestamp)
-                  WHEN {{granularity}} = 'monthly'
-                      THEN toStartOfMonth(af.timestamp)
-                  WHEN {{granularity}} = 'quarterly' 
-                      THEN toStartOfQuarter(af.timestamp)
-                  WHEN {{granularity}} = 'yearly' 
-                      THEN toStartOfYear(af.timestamp)
-              END = ds."startDate"
-          GROUP BY ds."startDate", "endDate"
-          ORDER BY ds."startDate" ASC
-        {% else %}
-        select 1
-        {% end %}
+            {% if defined(granularity) %}
+              SELECT 
+                  ds."startDate",
+                  ds."endDate",
+                  COALESCE(uniq( case when af.organizationId != '' then af.organizationId else null end), 0) AS "organizationCount"
+              FROM generate_timeseries ds
+              LEFT JOIN activities_filtered af ON 
+                  CASE 
+                      WHEN {{granularity}} = 'daily' 
+                          THEN toDate(af.timestamp)
+                      WHEN {{granularity}} = 'weekly'
+                          THEN toStartOfWeek(af.timestamp)
+                      WHEN {{granularity}} = 'monthly'
+                          THEN toStartOfMonth(af.timestamp)
+                      WHEN {{granularity}} = 'quarterly' 
+                          THEN toStartOfQuarter(af.timestamp)
+                      WHEN {{granularity}} = 'yearly' 
+                          THEN toStartOfYear(af.timestamp)
+                  END = ds."startDate"
+              GROUP BY ds."startDate", "endDate"
+              ORDER BY ds."startDate" ASC
+            {% else %}
+            select 1
+            {% end %}
 
 
 
@@ -43,10 +43,10 @@ NODE active_organizations_merged
 SQL >
 
     %
-        {% if not defined(granularity) %}
-        SELECT uniq( case when organizationId != '' then organizationId else null end) AS organizationCount FROM activities_filtered
-        {% else %}
-        select * from timeseries_generation_for_active_organizations
-        {% end %}
+            {% if not defined(granularity) %}
+            SELECT uniq( case when organizationId != '' then organizationId else null end) AS organizationCount FROM activities_filtered
+            {% else %}
+            select * from timeseries_generation_for_active_organizations
+            {% end %}
 
-TYPE endpoint
+
