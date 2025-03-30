@@ -76,12 +76,17 @@ class MergeActionRepository {
 
     return this.connection.query(
       `
-      select * from "mergeActions" ma
-      where ma."state" = 'merged' and ma."type" = $(type)
-      and not exists (
-        select 1 from "${table}" t where t.id = ma."secondaryId" and t."deletedAt" is null
-      )
-      limit $(limit) offset $(offset)
+      SELECT 
+        ma."primaryId",
+        ma."secondaryId"
+      FROM "mergeActions" ma
+      WHERE ma."state" = 'merged' 
+        AND ma."type" = $(type)
+        AND NOT EXISTS (
+          SELECT 1 FROM "${table}" t 
+          WHERE t.id = ma."secondaryId"
+        )
+      LIMIT $(limit) OFFSET $(offset)
       `,
       {
         limit,
