@@ -1,49 +1,53 @@
-TOKEN "generate_timeseries_endpoint_read_3418" READ
+DESCRIPTION >
+	Provides timeseries ranges for all timeseries pipes
 
-TOKEN "insights-staging-app-token" READ
+
+TOKEN "insights-app-token" READ
+
+TOKEN "generate_timeseries_endpoint_read_3418" READ
 
 NODE generate_timeseriez
 SQL >
 
     %
-    SELECT 
-      CASE 
-          WHEN {{granularity}} = 'daily' 
-              THEN toDate(addDays(generate_timeseries_bounds.actual_start_date, number))
-          WHEN {{granularity}} = 'weekly' 
-              THEN toStartOfWeek(addDays(generate_timeseries_bounds.actual_start_date, number * 7))
-          WHEN {{granularity}} = 'monthly' 
-              THEN toStartOfMonth(addMonths(generate_timeseries_bounds.actual_start_date, number))
-          WHEN {{granularity}} = 'quarterly' 
-              THEN toStartOfQuarter(addMonths(generate_timeseries_bounds.actual_start_date, number * 3))
-          WHEN {{granularity}} = 'yearly' 
-              THEN toStartOfYear(addYears(generate_timeseries_bounds.actual_start_date, number))
-      END AS "startDate",
-      CASE 
-          WHEN {{granularity}} = 'daily' 
-              THEN toDate(addDays(actual_start_date, number))
-          WHEN {{granularity}} = 'weekly' 
-              THEN toDate(toStartOfWeek(addDays(actual_start_date, number * 7)) + INTERVAL 6 DAY)
-          WHEN {{granularity}} = 'monthly' 
-              THEN toDate(toStartOfMonth(addMonths(actual_start_date, number)) + INTERVAL 1 MONTH - INTERVAL 1 DAY)
-          WHEN {{granularity}} = 'quarterly' 
-              THEN toDate(toStartOfQuarter(addMonths(actual_start_date, number * 3)) + INTERVAL 3 MONTH - INTERVAL 1 DAY)
-          WHEN {{granularity}} = 'yearly' 
-              THEN toDate(toStartOfYear(addYears(actual_start_date, number)) + INTERVAL 1 YEAR - INTERVAL 1 DAY)
-      END AS "endDate"
-    FROM numbers(1000)
-    CROSS JOIN (
-      SELECT 
-        CASE 
-          WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(actual_start_date)
-          WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(actual_start_date)
-          WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(actual_start_date)
-          WHEN {{granularity}} = 'yearly' THEN toStartOfYear(actual_start_date)
-          ELSE actual_start_date
-        END AS actual_start_date,
-        actual_end_date
-      FROM generate_timeseries_bounds
-    ) generate_timeseries_bounds
-    WHERE "startDate" >= actual_start_date AND "startDate" < actual_end_date
+            SELECT 
+              CASE 
+                  WHEN {{granularity}} = 'daily' 
+                      THEN toDate(addDays(generate_timeseries_bounds.actual_start_date, number))
+                  WHEN {{granularity}} = 'weekly' 
+                      THEN toStartOfWeek(addDays(generate_timeseries_bounds.actual_start_date, number * 7))
+                  WHEN {{granularity}} = 'monthly' 
+                      THEN toStartOfMonth(addMonths(generate_timeseries_bounds.actual_start_date, number))
+                  WHEN {{granularity}} = 'quarterly' 
+                      THEN toStartOfQuarter(addMonths(generate_timeseries_bounds.actual_start_date, number * 3))
+                  WHEN {{granularity}} = 'yearly' 
+                      THEN toStartOfYear(addYears(generate_timeseries_bounds.actual_start_date, number))
+              END AS "startDate",
+              CASE 
+                  WHEN {{granularity}} = 'daily' 
+                      THEN toDate(addDays(actual_start_date, number))
+                  WHEN {{granularity}} = 'weekly' 
+                      THEN toDate(toStartOfWeek(addDays(actual_start_date, number * 7)) + INTERVAL 6 DAY)
+                  WHEN {{granularity}} = 'monthly' 
+                      THEN toDate(toStartOfMonth(addMonths(actual_start_date, number)) + INTERVAL 1 MONTH - INTERVAL 1 DAY)
+                  WHEN {{granularity}} = 'quarterly' 
+                      THEN toDate(toStartOfQuarter(addMonths(actual_start_date, number * 3)) + INTERVAL 3 MONTH - INTERVAL 1 DAY)
+                  WHEN {{granularity}} = 'yearly' 
+                      THEN toDate(toStartOfYear(addYears(actual_start_date, number)) + INTERVAL 1 YEAR - INTERVAL 1 DAY)
+              END AS "endDate"
+            FROM numbers(1000)
+            CROSS JOIN (
+              SELECT 
+                CASE 
+                  WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(actual_start_date)
+                  WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(actual_start_date)
+                  WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(actual_start_date)
+                  WHEN {{granularity}} = 'yearly' THEN toStartOfYear(actual_start_date)
+                  ELSE actual_start_date
+                END AS actual_start_date,
+                actual_end_date
+              FROM generate_timeseries_bounds
+            ) generate_timeseries_bounds
+            WHERE "startDate" >= actual_start_date AND "startDate" < actual_end_date
 
 

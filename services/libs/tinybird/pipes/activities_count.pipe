@@ -1,37 +1,41 @@
-TOKEN "activities_count_endpoint_read_4271" READ
+DESCRIPTION >
+	Serves popularity forks and stars widgets
 
-TOKEN "insights-staging-app-token" READ
+
+TOKEN "insights-app-token" READ
+
+TOKEN "activities_count_endpoint_read_4271" READ
 
 NODE timeseries_generation_for_activity_count
 SQL >
 
     %
-    {% set onlyContributions = False %}
-    {% if defined(granularity) %}
-        SELECT
-            ds."startDate",
-            ds."endDate",
-            count(case when af.id != '' then af.id else null end) AS "activityCount"
-        FROM generate_timeseries ds
-        LEFT JOIN
-            activities_filtered af
-            ON CASE
-                WHEN {{ granularity }} = 'daily'
-                THEN toDate(af.timestamp)
-                WHEN {{ granularity }} = 'weekly'
-                THEN toStartOfWeek(af.timestamp)
-                WHEN {{ granularity }} = 'monthly'
-                THEN toStartOfMonth(af.timestamp)
-                WHEN {{ granularity }} = 'quarterly'
-                THEN toStartOfQuarter(af.timestamp)
-                WHEN {{ granularity }} = 'yearly'
-                THEN toStartOfYear(af.timestamp)
-            END
-            = ds."startDate"
-        GROUP BY ds."startDate", ds."endDate"
-        order by ds."startDate"
-    {% else %} SELECT 1
-    {% end %}
+            {% set onlyContributions = False %}
+            {% if defined(granularity) %}
+                SELECT
+                    ds."startDate",
+                    ds."endDate",
+                    count(case when af.id != '' then af.id else null end) AS "activityCount"
+                FROM generate_timeseries ds
+                LEFT JOIN
+                    activities_filtered af
+                    ON CASE
+                        WHEN {{ granularity }} = 'daily'
+                        THEN toDate(af.timestamp)
+                        WHEN {{ granularity }} = 'weekly'
+                        THEN toStartOfWeek(af.timestamp)
+                        WHEN {{ granularity }} = 'monthly'
+                        THEN toStartOfMonth(af.timestamp)
+                        WHEN {{ granularity }} = 'quarterly'
+                        THEN toStartOfQuarter(af.timestamp)
+                        WHEN {{ granularity }} = 'yearly'
+                        THEN toStartOfYear(af.timestamp)
+                    END
+                    = ds."startDate"
+                GROUP BY ds."startDate", ds."endDate"
+                order by ds."startDate"
+            {% else %} SELECT 1
+            {% end %}
 
 
 
@@ -39,11 +43,10 @@ NODE activity_count_merged
 SQL >
 
     %
-    {% if not defined(granularity) %}
-    SELECT count( case when activities_filtered.id != '' then activities_filtered.id else null end) AS activityCount FROM activities_filtered
-    {% else %}
-    select * from timeseries_generation_for_activity_count
-    {% end %}
-
+            {% if not defined(granularity) %}
+            SELECT count( case when activities_filtered.id != '' then activities_filtered.id else null end) AS activityCount FROM activities_filtered
+            {% else %}
+            select * from timeseries_generation_for_activity_count
+            {% end %}
 
 

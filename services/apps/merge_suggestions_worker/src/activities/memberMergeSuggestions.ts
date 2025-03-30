@@ -277,7 +277,8 @@ export async function getMembers(
         and: [
           { [MemberField.TENANT_ID]: { eq: tenantId } },
           afterMemberId ? { [MemberField.ID]: { gt: afterMemberId } } : null,
-          lastGeneratedAt ? { [MemberField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
+          // Include members updated after the last generation to cover both new and modified ones
+          lastGeneratedAt ? { [MemberField.UPDATED_AT]: { gt: lastGeneratedAt } } : null,
         ],
       },
       fields: [

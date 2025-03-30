@@ -1,28 +1,46 @@
+DESCRIPTION >
+	Serves contributor retention widget. Example on how the calculation work: assume weekly granularity
+startDate = 17.03.2025 startDate's retention will be calculated as follows:
+distinct memberIds that made a contribution between 10-16 March 2025
+say members a,b,c made activities in this interval
+17-24 March 2025 has active members b,c,d,e,f
+then we calculate 17-24 March's retention by doing  2/3 = %66 because among 3 members in the previous period only 2 were retained
+
+
+TOKEN "insights-app-token" READ
+
 TOKEN "raul_dev_access_token" READ
 
 TOKEN "member_retention_endpoint_read_0213" READ
 
-TOKEN "insights-staging-app-token" READ
-
-NODE member_retention_1
+NODE aggregated_members
 SQL >
 
     %
-    with aggregated_members AS (
-        SELECT 
-            CASE 
-                WHEN {{granularity}} = 'daily' THEN toDate(timestamp)
-                WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(timestamp)
-                WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(timestamp)
-                WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(timestamp)
-                WHEN {{granularity}} = 'yearly' THEN toStartOfYear(timestamp)
+        SELECT
+            CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(timestamp)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(timestamp)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(timestamp)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(timestamp)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(timestamp)
             END AS period,
             groupUniqArray(memberId) AS mems
         FROM activities_filtered_retention
         GROUP BY period
-    ),
-    retention AS (
-        SELECT 
+
+
+
+NODE retention
+SQL >
+
+    %
+        SELECT
             ts."startDate" AS "startDate",
             ts."endDate" as "endDate",
             -- coalesce(prev.mems, []) AS previous_member_ids,
@@ -30,28 +48,32 @@ SQL >
             -- arrayIntersect(coalesce(curr.mems, []), coalesce(prev.mems, [])) AS retained_member_ids,
             length(arrayIntersect(coalesce(curr.mems, []), coalesce(prev.mems, []))) AS retained_members,
             length(coalesce(prev.mems, [])) AS previous_period_total,
-            if(previous_period_total > 0, 
-               round(100 * retained_members / previous_period_total, 2), 
-               0) AS "retentionRate"
+            if(
+                previous_period_total > 0, round(100 * retained_members / previous_period_total, 2), 0
+            ) AS "retentionRate"
         FROM generate_timeseries ts
-        LEFT JOIN aggregated_members AS curr 
-            ON ts."startDate" = curr.period
-        LEFT JOIN aggregated_members AS prev  
-            ON prev.period = 
-                CASE 
-                    WHEN {{granularity}} = 'daily' THEN ts."startDate" - INTERVAL 1 DAY
-                    WHEN {{granularity}} = 'weekly' THEN ts."startDate" - INTERVAL 1 WEEK
-                    WHEN {{granularity}} = 'monthly' THEN ts."startDate" - INTERVAL 1 MONTH
-                    WHEN {{granularity}} = 'quarterly' THEN ts."startDate" - INTERVAL 1 QUARTER
-                    WHEN {{granularity}} = 'yearly' THEN ts."startDate" - INTERVAL 1 YEAR
-                END
-      )  
-    SELECT 
-      "startDate",
-      "endDate",
-      "retentionRate"
-    FROM retention
-    ORDER BY "startDate"
+        LEFT JOIN aggregated_members AS curr ON ts."startDate" = curr.period
+        LEFT JOIN
+            aggregated_members AS prev
+            ON prev.period = CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN ts."startDate" - INTERVAL 1 DAY
+                WHEN {{ granularity }} = 'weekly'
+                THEN ts."startDate" - INTERVAL 1 WEEK
+                WHEN {{ granularity }} = 'monthly'
+                THEN ts."startDate" - INTERVAL 1 MONTH
+                WHEN {{ granularity }} = 'quarterly'
+                THEN ts."startDate" - INTERVAL 1 QUARTER
+                WHEN {{ granularity }} = 'yearly'
+                THEN ts."startDate" - INTERVAL 1 YEAR
+            END
 
+
+
+NODE contributor_retention_result
+SQL >
+
+    %
+        SELECT "startDate", "endDate", "retentionRate" FROM retention ORDER BY "startDate"
 
 
