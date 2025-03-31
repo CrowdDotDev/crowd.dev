@@ -200,8 +200,20 @@ export default {
           segments,
         );
 
+        // This is a temporary workaround while we have to support 2 github integrations
+        const parsedRows = response.rows.map((row) => {
+          if (row.platform === 'github-nango') {
+            return {
+              ...row,
+              platform: 'github',
+            };
+          }
+
+          return row;
+        });
+
         commit('FETCH_SUCCESS', {
-          rows: response.rows,
+          rows: parsedRows,
           count: response.count,
         });
       } catch (error) {
