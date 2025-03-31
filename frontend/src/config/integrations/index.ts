@@ -34,6 +34,12 @@ export interface IntegrationConfig {
 export const getGithubIntegration = () => {
   if (config.env === 'local') return githubNango;
 
+  if (config.env === 'staging') {
+    const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true';
+
+    return useGitHubNango ? githubNango : github;
+  }
+
   const authStore = useAuthStore();
   const userId = authStore.user?.id;
 
