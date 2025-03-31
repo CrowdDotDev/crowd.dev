@@ -1,9 +1,9 @@
 DESCRIPTION >
     Serves active organizations widget. Activity filters are inherited from `activities_filtered` pipe
 
-TOKEN "insights-app-token" READ
-TOKEN "raul_dev_access_token" READ
 TOKEN "active_organizations_endpoint_read_1975" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE timeseries_generation_for_active_organizations
 SQL >

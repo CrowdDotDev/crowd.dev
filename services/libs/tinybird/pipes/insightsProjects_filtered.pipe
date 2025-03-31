@@ -1,9 +1,9 @@
 DESCRIPTION >
     Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
 
-TOKEN "insights-app-token" READ
-TOKEN "raul_dev_access_token" READ
 TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE collection_info
 SQL >

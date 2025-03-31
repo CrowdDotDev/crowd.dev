@@ -1,9 +1,9 @@
 DESCRIPTION >
     Unnests repositories in project definitions to be served as a separate (repository) entity. Also provides filters to repositories
 
-TOKEN "insights-app-token" READ
-TOKEN "raul_dev_access_token" READ
 TOKEN "activity_repositories_filtered_endpoint_read_9088" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE activity_repositories_filtered_0
 SQL >

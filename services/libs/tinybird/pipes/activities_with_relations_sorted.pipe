@@ -1,3 +1,4 @@
+TOKEN "scheduled_copy_t_a62607bcd62a4d909a5786fdd4c907cf" READ
 TOKEN "scheduled_copy_t_4da4d923fcfc43fcb79985c8e108263b" READ
 
 NODE activities_with_relations_filtered
@@ -22,18 +23,6 @@ SQL >
                 and a.channel in (select arrayJoin(repositories) from insightsProjects)
             )
             or (a.platform not in ('git', 'gerrit', 'github', 'gitlab'))
-        )
-        and ar.segmentId in (
-            '1da9d822-d1a9-41e3-9d68-199275a51522',
-            '7e7200a1-b7ab-49ef-9b83-476875388b2c',
-            'dcc22e8a-9008-49d3-aa4e-6250abc8052d',
-            '58554d20-ebec-4605-a2f3-c19c32a87b8b',
-            '24ab48d4-3484-4e59-87d0-1b3b72e38f90',
-            '591b1aa5-97fc-42c7-8f43-fc29b8c78ff1',
-            '8656081c-f2fc-485f-b5f2-389ffcd5621a',
-            '2738d650-38a0-4c0d-9c7e-1c3fc5f18254',
-            'd4457ee2-32ca-4454-ae4f-840b569b41d9',
-            'ed148448-536b-4dd4-9882-58e668c7ca3e'
         )
         and ar.memberId in (select id from members where not isBot and not isTeamMember)
 

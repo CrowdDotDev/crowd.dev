@@ -1,8 +1,8 @@
 DESCRIPTION >
     Provides timeseries ranges for all timeseries pipes
 
-TOKEN "insights-app-token" READ
 TOKEN "generate_timeseries_endpoint_read_3418" READ
+TOKEN "insights-app-token" READ
 
 NODE generate_timeseriez
 SQL >

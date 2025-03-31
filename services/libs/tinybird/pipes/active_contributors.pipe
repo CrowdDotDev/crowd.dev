@@ -1,9 +1,9 @@
 DESCRIPTION >
     Serves active contributors widget. Activity filters are inherited from `activities_filtered` pipe
 
-TOKEN "insights-app-token" READ
-TOKEN "raul_dev_access_token" READ
 TOKEN "active_contributors_endpoint_read_4407" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE timeseries_generation_for_active_contributors
 SQL >

@@ -1,9 +1,9 @@
 DESCRIPTION >
     Serves contributor dependency widget
 
-TOKEN "insights-app-token" READ
 TOKEN "raul_dev_access_token" READ
 TOKEN "contributor_dependency_endpoint_read_4095" READ
+TOKEN "insights-app-token" READ
 
 NODE contributions_percentage_running_total
 SQL >

@@ -1,9 +1,9 @@
 DESCRIPTION >
     Serves organization geographic distribution widget.
 
-TOKEN "insights-app-token" READ
 TOKEN "raul_dev_access_token" READ
 TOKEN "organizations_geo_distribution_endpoint_read_0957" READ
+TOKEN "insights-app-token" READ
 
 NODE country_mapping_array
 SQL >

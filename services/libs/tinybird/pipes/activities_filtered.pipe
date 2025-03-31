@@ -1,3 +1,7 @@
+TOKEN "activities_filtered_endpoint_read_8708" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
+
 NODE segments_filtered
 SQL >
     %

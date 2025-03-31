@@ -1,6 +1,7 @@
 DESCRIPTION >
     Filters out `isBot = true` and `isTeamMember=true` members. Also possible to use more granular sorting keys in the destination datasource `members_sorted` Copy pipe runs every hour
 
+TOKEN "scheduled_copy_t_680b3af6ddc4424b9a4e5b327fdc6fc4" READ
 TOKEN "scheduled_copy_t_de195ee8afc8461385e2c25502dbaf74" READ
 
 NODE members_pre_filter

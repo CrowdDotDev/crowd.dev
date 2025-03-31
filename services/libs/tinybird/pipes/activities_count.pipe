@@ -1,8 +1,8 @@
 DESCRIPTION >
     Serves popularity forks and stars widgets
 
-TOKEN "insights-app-token" READ
 TOKEN "activities_count_endpoint_read_4271" READ
+TOKEN "insights-app-token" READ
 
 NODE timeseries_generation_for_activity_count
 SQL >
