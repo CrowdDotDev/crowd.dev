@@ -34,7 +34,7 @@ setImmediate(async () => {
 
 
     const categoryGroups = Array.from(new Map(records.map((record) => {
-        const slug = `${slugify(record.category_group, {lower: true, replacement: '-'})}`;
+        const slug = `${slugify(record.category_group, {lower: true, replacement: '-'})}-${record.type}`;
         return [slug, {
             name: record.category_group,
             type: record.type,
@@ -72,7 +72,7 @@ setImmediate(async () => {
 
     const categories = Array.from(new Map(records.map((record) => {
         const slug = `${slugify(record.category, {lower: true, replacement: '-'})}`;
-        const groupSlug = `${slugify(record.category_group, {lower: true, replacement: '-'})}`;
+        const groupSlug = `${slugify(record.category_group, {lower: true, replacement: '-'})}-${record.type}`;
         const groupId = categoryGroupsMap[groupSlug];
         return [slug, {
             name: record.category,
