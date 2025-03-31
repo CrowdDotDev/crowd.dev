@@ -1,73 +1,61 @@
 DESCRIPTION >
-	Serves organization retention widget
-
-
-TOKEN "insights-app-token" READ
+    Serves organization retention widget
 
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "organization_retention_endpoint_read_0731" READ
+TOKEN "insights-app-token" READ
 
 NODE aggregated_organizations
 SQL >
-
     %
-        SELECT 
-                    CASE 
-                        WHEN {{granularity}} = 'daily' THEN toDate(timestamp)
-                        WHEN {{granularity}} = 'weekly' THEN toStartOfWeek(timestamp)
-                        WHEN {{granularity}} = 'monthly' THEN toStartOfMonth(timestamp)
-                        WHEN {{granularity}} = 'quarterly' THEN toStartOfQuarter(timestamp)
-                        WHEN {{granularity}} = 'yearly' THEN toStartOfYear(timestamp)
-                    END AS period,
-                    groupUniqArray(organizationId) AS orgs
-                FROM activities_filtered_retention
-                GROUP BY period
-
-
+    SELECT
+        CASE
+            WHEN {{ granularity }} = 'daily'
+            THEN toDate(timestamp)
+            WHEN {{ granularity }} = 'weekly'
+            THEN toStartOfWeek(timestamp)
+            WHEN {{ granularity }} = 'monthly'
+            THEN toStartOfMonth(timestamp)
+            WHEN {{ granularity }} = 'quarterly'
+            THEN toStartOfQuarter(timestamp)
+            WHEN {{ granularity }} = 'yearly'
+            THEN toStartOfYear(timestamp)
+        END AS period,
+        groupUniqArray(organizationId) AS orgs
+    FROM activities_filtered_retention
+    GROUP BY period
 
 NODE retention
 SQL >
-
     %
-        SELECT
-            ts."startDate" AS "startDate",
-            ts."endDate" as "endDate",
-            -- coalesce(prev.orgs, []) AS previous_org_ids,
-            -- coalesce(curr.orgs, []) AS current_org_ids,
-            -- arrayIntersect(coalesce(curr.orgs, []), coalesce(prev.orgs, [])) AS retained_org_ids,
-            length(arrayIntersect(coalesce(curr.orgs, []), coalesce(prev.orgs, []))) AS retained_orgs,
-            length(coalesce(prev.orgs, [])) AS previous_period_total,
-            if(
-                previous_period_total > 0, round(100 * retained_orgs / previous_period_total, 2), 0
-            ) AS "retentionRate"
-        FROM generate_timeseries ts
-        LEFT JOIN aggregated_organizations AS curr ON ts."startDate" = curr.period
-        LEFT JOIN
-            aggregated_organizations AS prev
-            ON prev.period = CASE
-                WHEN {{ granularity }} = 'daily'
-                THEN ts."startDate" - INTERVAL 1 DAY
-                WHEN {{ granularity }} = 'weekly'
-                THEN ts."startDate" - INTERVAL 1 WEEK
-                WHEN {{ granularity }} = 'monthly'
-                THEN ts."startDate" - INTERVAL 1 MONTH
-                WHEN {{ granularity }} = 'quarterly'
-                THEN ts."startDate" - INTERVAL 1 QUARTER
-                WHEN {{ granularity }} = 'yearly'
-                THEN ts."startDate" - INTERVAL 1 YEAR
-            END
-
-
+    SELECT
+        ts."startDate" AS "startDate",
+        ts."endDate" as "endDate",
+        -- coalesce(prev.orgs, []) AS previous_org_ids,
+        -- coalesce(curr.orgs, []) AS current_org_ids,
+        -- arrayIntersect(coalesce(curr.orgs, []), coalesce(prev.orgs, [])) AS retained_org_ids,
+        length(arrayIntersect(coalesce(curr.orgs, []), coalesce(prev.orgs, []))) AS retained_orgs,
+        length(coalesce(prev.orgs, [])) AS previous_period_total,
+        if(
+            previous_period_total > 0, round(100 * retained_orgs / previous_period_total, 2), 0
+        ) AS "retentionRate"
+    FROM generate_timeseries ts
+    LEFT JOIN aggregated_organizations AS curr ON ts."startDate" = curr.period
+    LEFT JOIN
+        aggregated_organizations AS prev
+        ON prev.period = CASE
+            WHEN {{ granularity }} = 'daily'
+            THEN ts."startDate" - INTERVAL 1 DAY
+            WHEN {{ granularity }} = 'weekly'
+            THEN ts."startDate" - INTERVAL 1 WEEK
+            WHEN {{ granularity }} = 'monthly'
+            THEN ts."startDate" - INTERVAL 1 MONTH
+            WHEN {{ granularity }} = 'quarterly'
+            THEN ts."startDate" - INTERVAL 1 QUARTER
+            WHEN {{ granularity }} = 'yearly'
+            THEN ts."startDate" - INTERVAL 1 YEAR
+        END
 
 NODE organization_retention_result
 SQL >
-
-    SELECT 
-          "startDate",
-          "endDate",
-          "retentionRate"
-        FROM retention
-        ORDER BY "startDate"
-
-
+    SELECT "startDate", "endDate", "retentionRate" FROM retention ORDER BY "startDate"

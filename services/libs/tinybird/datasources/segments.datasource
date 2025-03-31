@@ -1,4 +1,3 @@
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `parentId` String `json:$.record.parentId` DEFAULT '',
@@ -18,7 +17,7 @@ SCHEMA >
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
-ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "slug"
-ENGINE_VER "updatedAt"
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY slug
+ENGINE_VER updatedAt
