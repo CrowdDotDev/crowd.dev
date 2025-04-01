@@ -9,7 +9,7 @@ const image = new URL(
 ).href;
 
 const github: IntegrationConfig = {
-  key: 'github-nango',
+  key: 'github',
   name: 'GitHub (v2)',
   image,
   description:
