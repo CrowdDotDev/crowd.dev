@@ -708,8 +708,6 @@ export default {
         grandparentId,
       },
     ) {
-      console.log('doGroupsioConnect', email, token, groups, isUpdate);
-
       try {
         commit('CREATE_STARTED');
 
