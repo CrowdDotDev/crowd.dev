@@ -76,6 +76,6 @@ export async function fixActivityForiegnKeys(args: IFixActivityForiegnKeysArgs):
   // Continue as new for the next batch
   await continueAsNew<typeof fixActivityForiegnKeys>({
     ...args,
-    offset: OFFSET + BATCH_SIZE,
+    offset: Number(OFFSET) + Number(BATCH_SIZE),
   })
 }
