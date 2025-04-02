@@ -1569,7 +1569,7 @@ class OrganizationRepository {
 
     let segments = []
     if (segmentId) {
-      const segment = (await findSegmentById(optionsQx(options), segmentId))
+      const segment = await findSegmentById(optionsQx(options), segmentId)
 
       if (segment === null) {
         options.log.info('No segment found for organization')
