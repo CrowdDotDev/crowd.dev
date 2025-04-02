@@ -85,12 +85,12 @@
       We couldn't find any results that match your search or filters criteria, please try a different query.
     </p>
   </div>
-  <div v-if="loading">
-    <lf-loading v-for="i in 4" :key="i" height="4rem" />
-  </div>
-  <div class="pt-4">
+  <div class="pt-4 flex justify-center items-center">
+    <p v-if="loading" class="text-small text-gray-400">
+      {{ pageSize }} out of {{ total }} collections
+    </p>
     <lf-button
-      v-if="categoryGroups.length < total && !loading"
+      v-if="categoryGroups.length < total"
       type="primary-ghost"
       loading-text="Loading categories..."
       :loading="loading"
@@ -123,7 +123,6 @@ import LfCategoryGroupTypeFilter
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import LfPopover from '@/ui-kit/popover/Popover.vue';
-import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const categoryGroups = ref<CategoryGroup[]>([]);
 const isCreateGroupOpen = ref<boolean>(false);
@@ -146,7 +145,11 @@ const fetchCategoryGroups = () => {
     type: type.value,
   })
     .then((res) => {
-      categoryGroups.value = res.rows;
+      if (res.offset > 0) {
+        categoryGroups.value = [...categoryGroups.value, ...res.rows];
+      } else {
+        categoryGroups.value = res.rows;
+      }
       total.value = res.count;
     })
     .catch(() => {
@@ -163,7 +166,7 @@ const reload = () => {
 };
 
 const loadMore = () => {
-  page.value += 0;
+  page.value += 1;
   fetchCategoryGroups();
 };
 
