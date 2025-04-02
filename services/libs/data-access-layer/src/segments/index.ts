@@ -2,7 +2,13 @@ import lodash from 'lodash'
 import cloneDeep from 'lodash.clonedeep'
 
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
+import {
+  ActivityTypeSettings,
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
+  SegmentRawData,
+} from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -166,4 +172,18 @@ export function populateSegmentRelations(record: SegmentRawData): SegmentData {
   }
 
   return segmentData
+}
+
+export function getSegmentSubprojectIds(segment: SegmentData): string[] {
+  if (isSegmentProjectGroup(segment)) {
+    return ((segment as SegmentProjectGroupNestedData).projects || []).flatMap((p) =>
+      p.subprojects ? p.subprojects.map((sp) => sp.id) : [],
+    )
+  }
+
+  if (isSegmentProject(segment)) {
+    return (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
+  }
+
+  return [segment.id]
 }

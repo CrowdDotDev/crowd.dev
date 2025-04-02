@@ -38,6 +38,7 @@ import { findAttribute } from '@crowd/data-access-layer/src/organizations/attrib
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   findSegmentById,
+  getSegmentSubprojectIds,
   isSegmentProject,
   isSegmentProjectGroup,
 } from '@crowd/data-access-layer/src/segments'
@@ -1566,8 +1567,9 @@ class OrganizationRepository {
       }
     }
 
+    let segments = []
     if (segmentId) {
-      const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
+      const segment = (await findSegmentById(optionsQx(options), segmentId))
 
       if (segment === null) {
         options.log.info('No segment found for organization')
@@ -1579,13 +1581,13 @@ class OrganizationRepository {
         }
       }
 
-      segmentId = segment.id
+      segments = getSegmentSubprojectIds(segment)
     }
 
     const params = {
       limit,
       offset,
-      segmentId,
+      segments,
       tenantId: options.currentTenant.id,
     }
 
@@ -1617,12 +1619,8 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
-              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
-            }`
-          : ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
-              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
-            }`
+          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" IN ($(segments)::UUID[])`
+          : ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" IS NULL`
       }
       WHERE 1=1
         AND o."tenantId" = $(tenantId)

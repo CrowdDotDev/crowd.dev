@@ -20,7 +20,12 @@ import { findMaintainerRoles } from '../maintainers'
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
+import {
+  fetchManySegments,
+  findSegmentById,
+  getSegmentActivityTypes,
+  getSegmentSubprojectIds,
+} from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
@@ -129,9 +134,9 @@ export async function queryMembersAdvanced(
   }
 
   const withAggregates = !!segmentId
-  let segment
+  let segments = []
   if (withAggregates) {
-    segment = (await findSegmentById(qx, segmentId)) as any
+    const segment = await findSegmentById(qx, segmentId)
 
     if (segment === null) {
       log.info('No segment found for member query. Returning empty result.')
@@ -143,13 +148,13 @@ export async function queryMembersAdvanced(
       }
     }
 
-    segmentId = segment.id
+    segments = getSegmentSubprojectIds(segment)
   }
 
   const params = {
     limit,
     offset,
-    segmentId,
+    segments,
   }
 
   const filterString = RawQueryParser.parseFilters(
@@ -229,7 +234,7 @@ export async function queryMembersAdvanced(
       FROM members m
       ${
         withAggregates
-          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" IN ($(segments)::UUID[])`
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
@@ -411,13 +416,13 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, [segmentId])
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, segments)
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
         r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
           r.lastActivity,
-          getSegmentActivityTypes([segment]),
+          getSegmentActivityTypes(segments),
           [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
         )
       }
