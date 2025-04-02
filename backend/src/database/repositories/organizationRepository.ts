@@ -1402,10 +1402,8 @@ class OrganizationRepository {
     }
 
     if (isSegmentProjectGroup(segment)) {
-      segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
-        acc.push(...p.subprojects.map((sp) => sp.id))
-        return acc
-      }, [])
+      segments = ((segment as SegmentProjectGroupNestedData).projects || [])
+        .flatMap(p => p.subprojects ? p.subprojects.map(sp => sp.id) : [])
     } else if (isSegmentProject(segment)) {
       segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
     } else {
