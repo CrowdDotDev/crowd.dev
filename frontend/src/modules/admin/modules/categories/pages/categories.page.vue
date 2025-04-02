@@ -37,7 +37,7 @@
           </td>
           <td>
             <lf-badge type="secondary" class="!rounded-full !px-2.5">
-              0 categories
+              {{ pluralize('category', group.categories?.length || 0, true) }}
             </lf-badge>
           </td>
           <td>
@@ -86,7 +86,7 @@
     v-if="isCreateGroupOpen"
     v-model="isCreateGroupOpen"
     :category-group="selectedCategoryGroup || undefined"
-    @reload="reload()"
+    @update:model-value="reload()"
   />
 </template>
 
@@ -104,6 +104,7 @@ import LfSearch from '@/ui-kit/search/Search.vue';
 import LfCategoryGroupTypeFilter
   from '@/modules/admin/modules/categories/components/list/category-group-type-filter.vue';
 import Message from '@/shared/message/message';
+import pluralize from 'pluralize';
 
 const categoryGroups = ref<CategoryGroup[]>([]);
 const isCreateGroupOpen = ref<boolean>(false);
@@ -115,7 +116,7 @@ const page = ref<number>(0);
 const pageSize = ref<number>(20);
 const total = ref<number>(0);
 
-const loading = ref<boolean>(false);
+const loading = ref<boolean>(true);
 
 const fetchCategoryGroups = () => {
   loading.value = true;

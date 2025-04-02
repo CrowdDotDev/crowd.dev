@@ -1,10 +1,10 @@
 import {
-  connectCategoriesToCategoryGroup,
-  createCategoryGroup, deleteCategoryGroup,
-  ICategoryGroupsFilters,
+  connectCategoriesToCategoryGroup, createCategory,
+  createCategoryGroup, deleteCategories, deleteCategory, deleteCategoryGroup, getCategoryById,
+  ICategoryGroupsFilters, ICreateCategory,
   ICreateCategoryGroup,
-  ICreateCategoryGroupWithCategories,
-  listCategoryGroups, listCategoryGroupsCount,
+  ICreateCategoryGroupWithCategories, listCategoriesBySlug,
+  listCategoryGroups, listCategoryGroupsCount, listGroupListCategories, updateCategory,
   updateCategoryGroup,
 } from '@crowd/data-access-layer/src/categories'
 import {LoggerBase} from '@crowd/logging'
@@ -72,8 +72,17 @@ export class CategoryService extends LoggerBase {
 
   async listCategoryGroups(filters: ICategoryGroupsFilters) {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const rows = await listCategoryGroups(qx, filters)
+    let rows = await listCategoryGroups(qx, filters)
     const count = await listCategoryGroupsCount(qx, filters)
+
+    const categoryGroupIds = rows.map((categoryGroup) => categoryGroup.id)
+
+    const categories = await listGroupListCategories(qx, categoryGroupIds)
+
+    rows = rows.map((row) => ({
+      ...row,
+      categories: categories.filter((category) => category.categoryGroupId === row.id),
+    }))
 
     return {
       rows,
@@ -81,5 +90,72 @@ export class CategoryService extends LoggerBase {
       limit: +filters.limit || 20,
       offset: +filters.offset || 0,
     }
+  }
+
+
+
+  async createCategory(category: ICreateCategory) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+
+      let slug = slugify(category.name, {
+        lower: true,
+      })
+
+      const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
+
+      if(categoriesWithSameSlug.length > 0) {
+        slug = `${slug}-${categoriesWithSameSlug.length}`
+      }
+
+      return createCategory(qx, {
+        ...category,
+        slug,
+      })
+    })
+  }
+
+  async updateCategory(categoryId: string, data: ICreateCategory) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+
+      const currentCategory = await getCategoryById(qx, categoryId)
+
+      let slug = currentCategory.slug
+
+      if(currentCategory.name !== data.name) {
+        slug = slugify(data.name, {
+          lower: true,
+        })
+
+        const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
+
+        if(categoriesWithSameSlug.length > 0) {
+          slug = `${slug}-${categoriesWithSameSlug.length + 1}`
+        }
+      }
+
+      return updateCategory(qx,
+          categoryId,
+          {
+            ...data,
+            slug,
+          }
+      )
+    })
+  }
+
+
+  async deleteCategory(categoryId: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    return deleteCategory(qx, categoryId)
+  }
+
+
+  async deleteCategories(ids: string[]) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    return deleteCategories(qx, ids)
   }
 }

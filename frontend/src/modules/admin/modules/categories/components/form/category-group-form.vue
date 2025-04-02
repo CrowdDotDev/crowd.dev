@@ -53,7 +53,7 @@
         <lf-button
           type="primary-ghost"
           size="small"
-          @click="isCategoryFormOpen = true"
+          @click="isCategoryFormOpen = true; selectedCategory = null;"
         >
           <lf-icon
             name="plus"
@@ -62,8 +62,38 @@
         </lf-button>
       </div>
 
-      <div v-if="categories.length > 0" class="px-3 py-6">
-        List of categories
+      <div v-if="categories.length > 0" class="py-3 px-6">
+        <article
+          v-for="category of categories"
+          :key="category.id"
+          class="border-t border-gray-100 first:border-none flex justify-between items-center py-2.5"
+        >
+          <p class="text-medium">
+            {{ category.name }}
+          </p>
+          <div class="flex items-center gap-2">
+            <lf-button
+              type="secondary-ghost"
+              icon-only
+              @click="isCategoryFormOpen = true; selectedCategory = category;"
+            >
+              <lf-icon
+                name="edit"
+                class="text-gray-500"
+              />
+            </lf-button>
+            <lf-button
+              type="secondary-ghost"
+              icon-only
+              @click="deleteCategory(category.id)"
+            >
+              <lf-icon
+                name="trash-can"
+                class="text-gray-500"
+              />
+            </lf-button>
+          </div>
+        </article>
       </div>
       <div v-else class="pt-16 px-6 flex flex-col items-center">
         <lf-icon
@@ -84,20 +114,28 @@
       <lf-button
         type="secondary-ghost"
         class="mr-4"
-        @click="isDrawerOpen = false"
+        @click="cancel()"
       >
         Cancel
       </lf-button>
       <lf-button
         type="primary"
         :disabled="$v.$invalid"
+        :loading="isSending"
         @click="submit()"
       >
         {{ isEdit ? 'Update' : 'Add' }} category group
       </lf-button>
     </div>
   </lf-drawer>
-  <lf-category-form v-model="isCategoryFormOpen" />
+  <lf-category-form
+    v-if="isCategoryFormOpen"
+    v-model="isCategoryFormOpen"
+    :category="selectedCategory || undefined"
+    :category-group-id="props.categoryGroup?.id"
+    @add="categories.push($event)"
+    @update="updateCategory($event)"
+  />
 </template>
 
 <script setup lang="ts">
@@ -117,16 +155,18 @@ import LfCategoryForm from '@/modules/admin/modules/categories/components/form/c
 import { CategoryGroupService } from '@/modules/admin/modules/categories/services/category-group.service';
 import { CategoryGroup, CategoryGroupType } from '@/modules/admin/modules/categories/types/CategoryGroup';
 import Message from '@/shared/message/message';
+import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
+import { Category } from '@/modules/admin/modules/categories/types/Category';
 
 const props = defineProps<{
   modelValue: boolean;
   categoryGroup?: CategoryGroup,
 }>();
 
-const categories = ref([]);
+const categories = ref(props.categoryGroup?.categories || []);
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
-  (e: 'reload');
+  (e: 'reload'): void;
 }>();
 
 const isDrawerOpen = computed({
@@ -135,6 +175,9 @@ const isDrawerOpen = computed({
 });
 
 const isCategoryFormOpen = ref(false);
+const selectedCategory = ref<Category | null>(null);
+const isDeleting = ref(false);
+
 const isSending = ref(false);
 const isEdit = computed(() => !!props.categoryGroup);
 
@@ -178,6 +221,7 @@ const submit = () => {
     : CategoryGroupService.create({
       name: form.name,
       type: form.type as CategoryGroupType,
+      categories: categories.value.map((category) => category.id),
     });
   isSending.value = true;
 
@@ -194,6 +238,31 @@ const submit = () => {
     .finally(() => {
       isSending.value = false;
     });
+};
+
+const deleteCategory = (id: string) => {
+  isDeleting.value = true;
+  CategoryService.delete(id)
+    .then(() => {
+      Message.success('Category deleted');
+      categories.value = categories.value.filter((category) => category.id !== id);
+    })
+    .catch(() => {
+      Message.error('Error occurred while deleting category');
+    })
+    .finally(() => {
+      isDeleting.value = false;
+    });
+};
+
+const updateCategory = (category: Category) => {
+  categories.value = categories.value.map((c) => (c.id === category.id ? category : c));
+};
+
+const cancel = () => {
+  const categoriesWithoutGroup = categories.value.filter((category) => !category.categoryGroupId).map((category) => category.id);
+  CategoryService.deleteBulk(categoriesWithoutGroup);
+  isDrawerOpen.value = false;
 };
 
 onMounted(() => {

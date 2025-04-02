@@ -26,6 +26,8 @@
         Cancel
       </lf-button>
       <lf-button
+        :disabled="$v.$invalid"
+        :loading="isSending"
         @click="submit()"
       >
         {{ isEdit ? 'Update' : 'Add' }} category
@@ -35,7 +37,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import {
+  computed, onMounted, reactive, ref,
+} from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfField from '@/ui-kit/field/Field.vue';
@@ -43,13 +47,19 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import Message from '@/shared/message/message';
+import { Category } from '@/modules/admin/modules/categories/types/Category';
+import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 
 const props = defineProps<{
   modelValue: boolean;
-  category?: any,
+  category?: Category,
+  categoryGroupId?: string;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
+  (e: 'add', value: Category): void;
+  (e: 'update', value: Category): void;
 }>();
 
 const isModalOpen = computed({
@@ -58,6 +68,7 @@ const isModalOpen = computed({
 });
 
 const isEdit = computed(() => !!props.category);
+const isSending = ref(false);
 
 const form = reactive({
   name: '',
@@ -73,15 +84,48 @@ const $v = useVuelidate(rules, form, {
   $stopPropagation: true,
 });
 
+const fillForm = () => {
+  form.name = props.category?.name || '';
+};
+
 const submit = () => {
   if ($v.value.$invalid) {
     $v.value.$touch();
     return;
   }
 
-  // Submit form logic here
-  console.log('Form submitted:', form);
+  const call = isEdit.value
+    ? CategoryService.update(props.category!.id, {
+      name: form.name,
+      categoryGroupId: props.categoryGroupId,
+    })
+    : CategoryService.create({
+      name: form.name,
+      categoryGroupId: props.categoryGroupId,
+    });
+  isSending.value = true;
+
+  call
+    .then((category) => {
+      Message.success(`${isEdit.value ? 'Updated' : 'Created'} category`);
+      if (isEdit.value) {
+        emit('update', category);
+      } else {
+        emit('add', category);
+      }
+      isModalOpen.value = false;
+    })
+    .catch(() => {
+      Message.error(`Error occurred while ${isEdit.value ? 'updating' : 'creating'} category`);
+    })
+    .finally(() => {
+      isSending.value = false;
+    });
 };
+
+onMounted(() => {
+  fillForm();
+});
 </script>
 
 <script lang="ts">

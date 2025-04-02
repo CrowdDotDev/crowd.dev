@@ -20,10 +20,19 @@ export interface ICategoryGroup {
   updatedAt: string
 }
 
-export interface ICreateCategory {
+export interface ICategory {
+  id: string
   name: string
   slug: string
   categoryGroupId: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ICreateCategory {
+  name: string
+  slug: string
+  categoryGroupId?: string
 }
 
 export interface ICreateCategoryGroupWithCategories extends ICreateCategoryGroup {
@@ -91,6 +100,23 @@ export async function listCategoryGroups(
   )
 }
 
+export async function listGroupListCategories(
+  qx: QueryExecutor,
+  categoryGroupIds: string[],
+): Promise<ICategory[]> {
+  return qx.select(
+    `
+            SELECT id, name, slug, "categoryGroupId"
+            FROM "categories"
+            WHERE "categoryGroupId" = ANY($(categoryGroupIds)::uuid[])
+            ORDER BY "categoryGroupId"
+        `,
+    {
+      categoryGroupIds,
+    },
+  )
+}
+
 export async function listCategoryGroupsCount(
   qx: QueryExecutor,
   filters: ICategoryGroupsFilters,
@@ -148,6 +174,105 @@ export async function deleteCategoryGroup(
         `,
     {
       categoryGroupId,
+    },
+  )
+}
+
+export async function getCategoryById(qx: QueryExecutor, id: string): Promise<ICategory> {
+  return qx.selectOne(
+    `
+          SELECT id, slug, name
+          FROM "categories"
+          WHERE id = $(id)
+      `,
+    {
+      id,
+    },
+  )
+}
+
+export async function listCategoriesBySlug(qx: QueryExecutor, slug: string): Promise<ICategory[]> {
+  return qx.select(
+    `
+          SELECT slug
+          FROM "categories"
+          WHERE slug = $(slug)
+             OR slug ~ $(slugRegex)
+      `,
+    {
+      slug,
+      slugRegex: `^${slug}-[0-9]+$`,
+    },
+  )
+}
+
+export async function createCategory(
+  qx: QueryExecutor,
+  category: ICreateCategory,
+): Promise<ICategory> {
+  return qx.selectOne(
+    `
+            INSERT INTO "categories" (name, slug, "categoryGroupId")
+            VALUES ($(name), $(slug), $(categoryGroupId))
+            RETURNING *
+        `,
+    {
+      name: category.name,
+      slug: category.slug,
+      categoryGroupId: category.categoryGroupId || null,
+    },
+  )
+}
+
+export async function updateCategory(
+  qx: QueryExecutor,
+  categoryId: string,
+  data: Partial<ICreateCategory>,
+): Promise<ICategoryGroup> {
+  return qx.selectOne(
+    `
+            UPDATE "categories"
+            SET
+                name = COALESCE($(name), name),
+                slug = COALESCE($(slug), slug),
+                "categoryGroupId" = COALESCE($(categoryGroupId), "categoryGroupId"),
+                "updatedAt" = NOW()
+            WHERE id = $(categoryId)
+            RETURNING *
+        `,
+    {
+      categoryId,
+      name: data.name,
+      slug: data.slug,
+      categoryGroupId: data.categoryGroupId,
+    },
+  )
+}
+
+export async function deleteCategory(qx: QueryExecutor, categoryId: string): Promise<ICategory> {
+  return qx.selectOne(
+    `
+            DELETE
+            FROM "categories"
+            WHERE id = $(categoryId)
+            RETURNING *
+        `,
+    {
+      categoryId,
+    },
+  )
+}
+
+export async function deleteCategories(qx: QueryExecutor, ids: string[]): Promise<ICategory[]> {
+  return qx.select(
+    `
+            DELETE
+            FROM "categories"
+            WHERE id = ANY($(ids)::uuid[])
+            RETURNING *
+        `,
+    {
+      ids,
     },
   )
 }
