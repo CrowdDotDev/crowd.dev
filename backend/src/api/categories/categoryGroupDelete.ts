@@ -1,6 +1,7 @@
+import { CategoryService } from '@/services/categoryService'
+
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import {CategoryService} from "@/services/categoryService";
 
 /**
  * DELETE /category-groups/{id}

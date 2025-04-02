@@ -1,18 +1,33 @@
+import slugify from 'slugify'
+
 import {
-  connectCategoriesToCategoryGroup, createCategory,
-  createCategoryGroup, deleteCategories, deleteCategory, deleteCategoryGroup, getCategoryById, getCategoryGroupById,
-  ICategoryGroupsFilters, ICreateCategory,
+  ICategoryFilters,
+  ICategoryGroupsFilters,
+  ICreateCategory,
   ICreateCategoryGroup,
-  ICreateCategoryGroupWithCategories, listCategoriesBySlug,
-  listCategoryGroups, listCategoryGroupsBySlug, listCategoryGroupsCount, listGroupListCategories, updateCategory,
+  ICreateCategoryGroupWithCategories,
+  connectCategoriesToCategoryGroup,
+  createCategory,
+  createCategoryGroup,
+  deleteCategories,
+  deleteCategory,
+  deleteCategoryGroup,
+  getCategoryById,
+  getCategoryGroupById,
+  listCategories,
+  listCategoriesBySlug,
+  listCategoryGroups,
+  listCategoryGroupsBySlug,
+  listCategoryGroupsCount,
+  listGroupListCategories,
+  updateCategory,
   updateCategoryGroup,
 } from '@crowd/data-access-layer/src/categories'
-import {LoggerBase} from '@crowd/logging'
+import { LoggerBase } from '@crowd/logging'
 
-import slugify from 'slugify'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
-import {IServiceOptions} from './IServiceOptions'
+import { IServiceOptions } from './IServiceOptions'
 
 export class CategoryService extends LoggerBase {
   options: IServiceOptions
@@ -38,7 +53,7 @@ export class CategoryService extends LoggerBase {
 
       const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
-      if(categoryGroupsWithSameSlug.length > 0) {
+      if (categoryGroupsWithSameSlug.length > 0) {
         slug = `${slug}-${categoryGroupsWithSameSlug.length}`
       }
 
@@ -73,25 +88,22 @@ export class CategoryService extends LoggerBase {
 
       let slug = currentCategoryGroup.slug
 
-      if(currentCategoryGroup.name !== data.name) {
+      if (currentCategoryGroup.name !== data.name) {
         slug = slugify(data.name, {
           lower: true,
         })
 
         const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
-        if(categoryGroupsWithSameSlug.length > 0) {
+        if (categoryGroupsWithSameSlug.length > 0) {
           slug = `${slug}-${categoryGroupsWithSameSlug.length + 1}`
         }
       }
 
-      return updateCategoryGroup(qx,
-          categoryGroupId,
-          {
-            ...data,
-            slug,
-          }
-      )
+      return updateCategoryGroup(qx, categoryGroupId, {
+        ...data,
+        slug,
+      })
     })
   }
 
@@ -102,9 +114,9 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves when the category group is successfully deleted.
    */
   async deleteCategoryGroup(categoryGroupId: string) {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-      return deleteCategoryGroup(qx, categoryGroupId)
+    return deleteCategoryGroup(qx, categoryGroupId)
   }
 
   /**
@@ -139,8 +151,6 @@ export class CategoryService extends LoggerBase {
     }
   }
 
-
-
   /**
    * Creates a new category with a unique slug. If a category with the same slug already exists,
    * appends a number to the slug to ensure uniqueness.
@@ -158,7 +168,7 @@ export class CategoryService extends LoggerBase {
 
       const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
-      if(categoriesWithSameSlug.length > 0) {
+      if (categoriesWithSameSlug.length > 0) {
         slug = `${slug}-${categoriesWithSameSlug.length}`
       }
 
@@ -185,28 +195,24 @@ export class CategoryService extends LoggerBase {
 
       let slug = currentCategory.slug
 
-      if(currentCategory.name !== data.name) {
+      if (currentCategory.name !== data.name) {
         slug = slugify(data.name, {
           lower: true,
         })
 
         const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
-        if(categoriesWithSameSlug.length > 0) {
+        if (categoriesWithSameSlug.length > 0) {
           slug = `${slug}-${categoriesWithSameSlug.length + 1}`
         }
       }
 
-      return updateCategory(qx,
-          categoryId,
-          {
-            ...data,
-            slug,
-          }
-      )
+      return updateCategory(qx, categoryId, {
+        ...data,
+        slug,
+      })
     })
   }
-
 
   /**
    * Deletes a category based on the provided category ID.
@@ -220,7 +226,6 @@ export class CategoryService extends LoggerBase {
     return deleteCategory(qx, categoryId)
   }
 
-
   /**
    * Deletes categories based on the provided list of IDs.
    *
@@ -231,5 +236,31 @@ export class CategoryService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
     return deleteCategories(qx, ids)
+  }
+
+  async listCategories(filters: ICategoryFilters) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const rows = await listCategories(qx, filters)
+
+    const groupedCategories = rows.reduce((acc, row) => {
+      if (!acc[row.categoryGroupId]) {
+        acc[row.categoryGroupId] = {
+          id: row.categoryGroupId,
+          name: row.categoryGroupName,
+          categories: [],
+        }
+      }
+      acc[row.categoryGroupId].categories.push({
+        id: row.id,
+        name: row.name,
+      })
+      return acc
+    }, {})
+
+    return {
+      rows: Object.values(groupedCategories),
+      limit: +filters.limit || 20,
+      offset: +filters.offset || 0,
+    }
   }
 }

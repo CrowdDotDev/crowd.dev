@@ -9,3 +9,10 @@ export interface CreateCategory {
   name: string;
   categoryGroupId?: string;
 }
+
+export interface CategoryListFilters {
+  groupType?: string;
+  query?: string;
+  offset?: number;
+  limit?: number;
+}

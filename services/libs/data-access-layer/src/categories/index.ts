@@ -1,50 +1,16 @@
 import { QueryExecutor } from '../queryExecutor'
 
-/**
- * Enum representing the types of category groups.
- *
- * This enumeration is used to define the orientation or layout of a group of categories.
- *
- * - HORIZONTAL: Indicates a horizontal grouping of categories.
- * - VERTICAL: Indicates a vertical grouping of categories.
- */
 export enum CategoryGroupType {
   HORIZONTAL = 'horizontal',
   VERTICAL = 'vertical',
 }
 
-/**
- * Interface representing the structure of a category group creation object.
- *
- * This interface defines the necessary properties required to create a category group.
- *
- * Properties:
- * - name: Specifies the name of the category group.
- * - type: Defines the type of the category group as per the CategoryGroupType enumeration.
- * - slug: Represents the unique, URL-friendly identifier for the category group.
- */
 export interface ICreateCategoryGroup {
   name: string
   type: CategoryGroupType
   slug: string
 }
 
-/**
- * Represents a category group with its associated properties.
- *
- * This interface defines the structure of a group that categorizes
- * various entities or items. It provides metadata about the group,
- * such as its unique identifier, name, type, and timestamps for
- * creation and update events.
- *
- * Properties:
- * - id: A unique string identifier for the category group.
- * - name: The name of the category group.
- * - type: The type/category that this group belongs to, defined as CategoryGroupType.
- * - slug: A URL-friendly string identifier for the category group.
- * - createdAt: The timestamp indicating when the category group was created.
- * - updatedAt: The timestamp indicating the last update to the category group.
- */
 export interface ICategoryGroup {
   id: string
   name: string
@@ -52,23 +18,9 @@ export interface ICategoryGroup {
   slug: string
   createdAt: string
   updatedAt: string
+  categories?: ICategory[]
 }
 
-/**
- * Interface representing a category.
- *
- * A category is a classification that can be used to group and organize related items.
- * This interface provides the structure for a category object,
- * including its identifier, name, slug, associated group, and timestamps for creation and updates.
- *
- * Properties:
- * - `id` - Unique identifier for the category.
- * - `name` - Name of the category.
- * - `slug` - URL-friendly identifier for the category, often used in routing or SEO.
- * - `categoryGroupId` - Identifier for the group to which this category belongs.
- * - `createdAt` - Timestamp indicating when the category was created.
- * - `updatedAt` - Timestamp indicating the last time the category was updated.
- */
 export interface ICategory {
   id: string
   name: string
@@ -78,52 +30,25 @@ export interface ICategory {
   updatedAt: string
 }
 
-/**
- * Represents the structure required to create a new category.
- *
- * This interface defines the properties necessary to represent
- * a category entity for creation purposes, including its name,
- * unique slug identifier, and optionally the associated group ID.
- *
- * Properties:
- * - name: The name of the category, representing its display label.
- * - slug: A unique string that identifies the category, typically used in URLs or system-level identifiers.
- * - categoryGroupId: (Optional) The identifier for the group to which the category belongs.
- */
 export interface ICreateCategory {
   name: string
   slug: string
   categoryGroupId?: string
 }
 
-/**
- * Represents the interface for creating a category group along with its associated categories.
- * Extends the `ICreateCategoryGroup` interface.
- *
- * The `ICreateCategoryGroupWithCategories` interface allows the creation of a category group
- * that includes a collection of category identifiers.
- *
- * - `categories`: An optional array of strings representing the unique identifiers for the categories
- *   to be associated with the category group.
- */
 export interface ICreateCategoryGroupWithCategories extends ICreateCategoryGroup {
   categories?: string[]
 }
 
-/**
- * Represents a set of filters that can be applied to category groups.
- *
- * This interface is used to define the filtering criteria for retrieving
- * category groups based on specific parameters.
- *
- * Properties:
- * - `type` (optional): Specifies the type of category group to be filtered.
- * - `query` (optional): A search query used to match category group names or details.
- * - `limit`: The maximum number of category groups to retrieve.
- * - `offset`: The number of category groups to skip before starting the retrieval.
- */
 export interface ICategoryGroupsFilters {
   type?: CategoryGroupType
+  query?: string
+  limit: number
+  offset: number
+}
+
+export interface ICategoryFilters {
+  groupType?: CategoryGroupType
   query?: string
   limit: number
   offset: number
@@ -501,6 +426,73 @@ export async function deleteCategories(qx: QueryExecutor, ids: string[]): Promis
             FROM "categories"
             WHERE id = ANY($(ids)::uuid[])
             RETURNING *
+        `,
+    {
+      ids,
+    },
+  )
+}
+
+/**
+ * Retrieves a list of categories based on the provided filters.
+ *
+ * @param {QueryExecutor} qx - The query executor used to perform the database query.
+ * @param {ICategoryFilters} filters - An object containing filtering and pagination options.
+ * Filters include:
+ * - query: A string to search for categories by name.
+ * - limit: The maximum number of categories to retrieve.
+ * - offset: The number of categories to skip before starting retrieval.
+ * - groupType: A filter to include only categories belonging to a specific group type.
+ *
+ * @return {Promise<Object[]>} A promise that resolves to an array of category objects,
+ * each containing:
+ * - id: The unique identifier of the category.
+ * - name: The name of the category.
+ * - categoryGroupId: The unique identifier of the category group.
+ * - categoryGroupName: The name of the category group.
+ */
+export async function listCategories(
+  qx: QueryExecutor,
+  filters: ICategoryFilters,
+): Promise<
+  {
+    id: string
+    name: string
+    categoryGroupId: string
+    categoryGroupName: string
+  }[]
+> {
+  return qx.select(
+    `          SELECT c.id, c.name, cg.id as "categoryGroupId", cg.name as "categoryGroupName"
+                   FROM "categories" c
+                            JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
+                   WHERE c.name ILIKE CONCAT('%', $(query), '%')
+                     AND ($(groupType) IS NULL OR cg.type = $(groupType))
+                   ORDER BY cg.name
+        `,
+    {
+      query: filters.query || '',
+      limit: filters.limit || 20,
+      offset: filters.offset || 0,
+      groupType: filters.groupType || null,
+    },
+  )
+}
+
+/**
+ * Fetches a list of categories based on their IDs.
+ *
+ * @param {QueryExecutor} qx - The query executor for performing database operations.
+ * @param {string[]} ids - Array of category IDs to fetch.
+ * @return {Promise<ICategory[]>} A promise that resolves to an array of category objects.
+ */
+export async function listCategoriesByIds(qx: QueryExecutor, ids: string[]): Promise<ICategory[]> {
+  return qx.select(
+    `         
+    SELECT c.id, c.name, c.slug, c."categoryGroupId", cg.name as "categoryGroupName", cg.type as "categoryGroupType"
+    FROM categories c
+             JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
+    WHERE c.id = ANY($(ids)::uuid[])
         `,
     {
       ids,

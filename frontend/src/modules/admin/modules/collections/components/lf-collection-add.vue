@@ -24,7 +24,7 @@
           <div class="tab-content">
             <div v-if="activeTab === 'details'">
               <!-- Collection name -->
-              <article class="mb-5">
+              <article class="mb-6">
                 <lf-field label-text="Collection name" :required="true">
                   <lf-input
                     v-model="form.name"
@@ -41,7 +41,7 @@
               </article>
 
               <!-- Description -->
-              <article class="mb-5">
+              <article class="mb-6">
                 <lf-field label-text="Description" :required="true">
                   <lf-textarea
                     v-model="form.description"
@@ -51,6 +51,58 @@
                   />
                   <lf-field-messages
                     :validation="$v.description"
+                    :error-messages="{ required: 'This field is required' }"
+                  />
+                </lf-field>
+              </article>
+
+              <!-- Description -->
+              <article class="mb-5">
+                <lf-field label-text="Category">
+                  <div class="flex">
+                    <div class="w-1/4">
+                      <el-select
+                        v-model="form.type"
+                        placeholder="Select type"
+                        class="w-full type-select"
+                      >
+                        <el-option label="Industry" value="vertical" />
+                        <el-option label="Stack" value="horizontal" />
+                      </el-select>
+                    </div>
+                    <div class="w-3/4">
+                      <el-select
+                        v-model="form.categoryId"
+                        placeholder="Select type"
+                        class="w-full category-select"
+                        filterable
+                        remote
+                        :disabled="!form.type.length"
+                        :remote-method="fetchCategories"
+                      >
+                        <el-option
+                          v-if="collection"
+                          :label="props.collection?.category.name"
+                          :value="props.collection?.categoryId"
+                          class="!px-3 !hidden"
+                        />
+                        <template v-for="group of categories" :key="group.id">
+                          <div class="px-3 pt-1 text-xs font-semibold text-gray-400">
+                            {{ group.name }}
+                          </div>
+                          <el-option
+                            v-for="option of group.categories"
+                            :key="option.id"
+                            :label="option.name"
+                            :value="option.id"
+                            class="!px-3"
+                          />
+                        </template>
+                      </el-select>
+                    </div>
+                  </div>
+                  <lf-field-messages
+                    :validation="$v.category"
                     :error-messages="{ required: 'This field is required' }"
                   />
                 </lf-field>
@@ -83,7 +135,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
 import { required, maxLength } from '@vuelidate/validators';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
@@ -93,6 +145,9 @@ import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import Message from '@/shared/message/message';
+import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
+import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
 import {
   CollectionFormModel,
@@ -120,6 +175,8 @@ const submitLoading = ref(false);
 const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
+  type: '',
+  categoryId: '',
   projects: [],
 });
 
@@ -129,7 +186,10 @@ const rules = {
     maxLength,
   },
   description: { required: (value: string) => value.trim().length },
-  projects: { required: (value: any) => value.length > 0 },
+  // projects: { required: (value: any) => value.length > 0 },
+  categoryId: {
+    required,
+  },
 };
 
 const $v = useVuelidate(rules, form);
@@ -150,6 +210,8 @@ const isEditForm = computed(() => !!props.collection?.id);
 const fillForm = (record?: CollectionModel) => {
   if (record) {
     Object.assign(form, record);
+    form.type = record.category.categoryGroupType;
+    form.categoryId = record.categoryId || '';
   }
 
   formSnapshot();
@@ -182,6 +244,7 @@ const onSubmit = () => {
       starred: project?.starred || false,
     })),
     isLF: true,
+    categoryId: form.categoryId,
     slug: form.name.toLowerCase().replace(/ /g, '-'),
   };
   if (isEditForm.value) {
@@ -222,6 +285,29 @@ const handleCollectionCreate = (request: any) => {
       Message.error('Something went wrong');
     });
 };
+
+const categories = ref<CategoryGroup[]>([]);
+
+const fetchCategories = (query: string) => {
+  CategoryService.list({
+    offset: 0,
+    limit: 20,
+    query,
+    groupType: form.type,
+  })
+    .then((res) => {
+      form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
+      categories.value = res.rows;
+    });
+};
+
+watch(
+  () => form.type,
+  () => {
+    form.categoryId = '';
+    fetchCategories('');
+  },
+);
 </script>
 
 <script lang="ts">
@@ -229,3 +315,17 @@ export default {
   name: 'LfCollectionAdd',
 };
 </script>
+
+<style lang="scss">
+.type-select{
+  .el-input__wrapper{
+    @apply rounded-r-none border-r-0 #{!important};
+  }
+}
+
+.category-select{
+  .el-input__wrapper{
+    @apply rounded-l-none #{!important};
+  }
+}
+</style>

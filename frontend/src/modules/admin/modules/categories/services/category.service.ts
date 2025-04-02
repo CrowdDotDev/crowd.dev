@@ -1,5 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { Category, CreateCategory } from '@/modules/admin/modules/categories/types/Category';
+import { Category, CategoryListFilters, CreateCategory } from '@/modules/admin/modules/categories/types/Category';
+import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
+import { Pagination } from '@/shared/types/Pagination';
 
 export class CategoryService {
   static async create(category: CreateCategory): Promise<Category> {
@@ -32,6 +34,16 @@ export class CategoryService {
         data: {
           ids,
         },
+      },
+    );
+    return response.data;
+  }
+
+  static async list(filters: CategoryListFilters): Promise<Pagination<CategoryGroup>> {
+    const response = await authAxios.get(
+      '/category',
+      {
+        params: filters,
       },
     );
     return response.data;

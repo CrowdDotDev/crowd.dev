@@ -8,6 +8,9 @@
         <lf-table-head class="pl-3 min-w-[26%]">
           Projects
         </lf-table-head>
+        <lf-table-head class="pl-3 min-w-[26%]">
+          Category
+        </lf-table-head>
         <lf-table-head class="w-12" />
       </tr>
     </thead>
@@ -22,6 +25,12 @@
 
         <lf-table-cell>
           <app-lf-project-column :projects="collection.projects" />
+        </lf-table-cell>
+
+        <lf-table-cell>
+          <lf-badge type="secondary" class="!rounded-full !px-2.5">
+            {{ collection.category.name }} - {{ collection.category.categoryGroupType === 'vertical' ? 'Industry' : 'Stack' }}
+          </lf-badge>
         </lf-table-cell>
 
         <lf-table-cell class="pr-2 flex justify-end">
@@ -42,6 +51,7 @@ import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
+import LfBadge from '@/ui-kit/badge/Badge.vue';
 import LfCollectionDropdown from './lf-collection-dropdown.vue';
 import { CollectionModel } from '../models/collection.model';
 

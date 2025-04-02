@@ -36,9 +36,23 @@
             </p>
           </td>
           <td>
-            <lf-badge type="secondary" class="!rounded-full !px-2.5">
-              {{ pluralize('category', group.categories?.length || 0, true) }}
-            </lf-badge>
+            <lf-popover placement="top" trigger-event="hover">
+              <template #trigger>
+                <lf-badge type="secondary" class="!rounded-full !px-2.5">
+                  {{ pluralize('category', group.categories?.length || 0, true) }}
+                </lf-badge>
+              </template>
+              <div>
+                <p class="text-small font-semibold text-gray-400 pb-3">
+                  Categories
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <lf-badge v-for="category in group.categories" :key="category.id" type="secondary">
+                    {{ category.name }}
+                  </lf-badge>
+                </div>
+              </div>
+            </lf-popover>
           </td>
           <td>
             <p class="text-medium">
@@ -70,6 +84,9 @@
     <p class="text-center pt-3 text-gray-500 text-small">
       We couldn't find any results that match your search or filters criteria, please try a different query.
     </p>
+  </div>
+  <div v-if="loading">
+    <lf-loading v-for="i in 4" :key="i" height="4rem" />
   </div>
   <div class="pt-4">
     <lf-button
@@ -105,6 +122,8 @@ import LfCategoryGroupTypeFilter
   from '@/modules/admin/modules/categories/components/list/category-group-type-filter.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
+import LfPopover from '@/ui-kit/popover/Popover.vue';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const categoryGroups = ref<CategoryGroup[]>([]);
 const isCreateGroupOpen = ref<boolean>(false);
