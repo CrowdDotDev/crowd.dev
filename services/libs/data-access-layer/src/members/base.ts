@@ -234,7 +234,7 @@ export async function queryMembersAdvanced(
       FROM members m
       ${
         withAggregates
-          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" IN ($(segments)::UUID[])`
+          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" IN ($(segments:csv))`
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id

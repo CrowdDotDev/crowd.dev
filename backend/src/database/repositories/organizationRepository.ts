@@ -1619,7 +1619,7 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" IN ($(segments)::UUID[])`
+          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" IN ($(segments:csv))`
           : ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" IS NULL`
       }
       WHERE 1=1
