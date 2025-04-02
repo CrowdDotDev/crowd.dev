@@ -1,16 +1,50 @@
 import { QueryExecutor } from '../queryExecutor'
 
+/**
+ * Enum representing the types of category groups.
+ *
+ * This enumeration is used to define the orientation or layout of a group of categories.
+ *
+ * - HORIZONTAL: Indicates a horizontal grouping of categories.
+ * - VERTICAL: Indicates a vertical grouping of categories.
+ */
 export enum CategoryGroupType {
   HORIZONTAL = 'horizontal',
   VERTICAL = 'vertical',
 }
 
+/**
+ * Interface representing the structure of a category group creation object.
+ *
+ * This interface defines the necessary properties required to create a category group.
+ *
+ * Properties:
+ * - name: Specifies the name of the category group.
+ * - type: Defines the type of the category group as per the CategoryGroupType enumeration.
+ * - slug: Represents the unique, URL-friendly identifier for the category group.
+ */
 export interface ICreateCategoryGroup {
   name: string
   type: CategoryGroupType
   slug: string
 }
 
+/**
+ * Represents a category group with its associated properties.
+ *
+ * This interface defines the structure of a group that categorizes
+ * various entities or items. It provides metadata about the group,
+ * such as its unique identifier, name, type, and timestamps for
+ * creation and update events.
+ *
+ * Properties:
+ * - id: A unique string identifier for the category group.
+ * - name: The name of the category group.
+ * - type: The type/category that this group belongs to, defined as CategoryGroupType.
+ * - slug: A URL-friendly string identifier for the category group.
+ * - createdAt: The timestamp indicating when the category group was created.
+ * - updatedAt: The timestamp indicating the last update to the category group.
+ */
 export interface ICategoryGroup {
   id: string
   name: string
@@ -20,6 +54,21 @@ export interface ICategoryGroup {
   updatedAt: string
 }
 
+/**
+ * Interface representing a category.
+ *
+ * A category is a classification that can be used to group and organize related items.
+ * This interface provides the structure for a category object,
+ * including its identifier, name, slug, associated group, and timestamps for creation and updates.
+ *
+ * Properties:
+ * - `id` - Unique identifier for the category.
+ * - `name` - Name of the category.
+ * - `slug` - URL-friendly identifier for the category, often used in routing or SEO.
+ * - `categoryGroupId` - Identifier for the group to which this category belongs.
+ * - `createdAt` - Timestamp indicating when the category was created.
+ * - `updatedAt` - Timestamp indicating the last time the category was updated.
+ */
 export interface ICategory {
   id: string
   name: string
@@ -29,16 +78,50 @@ export interface ICategory {
   updatedAt: string
 }
 
+/**
+ * Represents the structure required to create a new category.
+ *
+ * This interface defines the properties necessary to represent
+ * a category entity for creation purposes, including its name,
+ * unique slug identifier, and optionally the associated group ID.
+ *
+ * Properties:
+ * - name: The name of the category, representing its display label.
+ * - slug: A unique string that identifies the category, typically used in URLs or system-level identifiers.
+ * - categoryGroupId: (Optional) The identifier for the group to which the category belongs.
+ */
 export interface ICreateCategory {
   name: string
   slug: string
   categoryGroupId?: string
 }
 
+/**
+ * Represents the interface for creating a category group along with its associated categories.
+ * Extends the `ICreateCategoryGroup` interface.
+ *
+ * The `ICreateCategoryGroupWithCategories` interface allows the creation of a category group
+ * that includes a collection of category identifiers.
+ *
+ * - `categories`: An optional array of strings representing the unique identifiers for the categories
+ *   to be associated with the category group.
+ */
 export interface ICreateCategoryGroupWithCategories extends ICreateCategoryGroup {
   categories?: string[]
 }
 
+/**
+ * Represents a set of filters that can be applied to category groups.
+ *
+ * This interface is used to define the filtering criteria for retrieving
+ * category groups based on specific parameters.
+ *
+ * Properties:
+ * - `type` (optional): Specifies the type of category group to be filtered.
+ * - `query` (optional): A search query used to match category group names or details.
+ * - `limit`: The maximum number of category groups to retrieve.
+ * - `offset`: The number of category groups to skip before starting the retrieval.
+ */
 export interface ICategoryGroupsFilters {
   type?: CategoryGroupType
   query?: string
@@ -46,6 +129,13 @@ export interface ICategoryGroupsFilters {
   offset: number
 }
 
+/**
+ * Creates a new category group in the database.
+ *
+ * @param {QueryExecutor} qx - The query executor used to interact with the database.
+ * @param {ICreateCategoryGroup} categoryGroup - The category group data to be inserted, including name, type, and slug.
+ * @return {Promise<ICategoryGroup>} A promise that resolves to the created category group object.
+ */
 export async function createCategoryGroup(
   qx: QueryExecutor,
   categoryGroup: ICreateCategoryGroup,
@@ -60,6 +150,14 @@ export async function createCategoryGroup(
   )
 }
 
+/**
+ * Associates multiple categories with a specified category group.
+ *
+ * @param {QueryExecutor} qx - The query executor instance used to run the database queries.
+ * @param {string} categoryGroupId - The ID of the category group to which the categories will be linked.
+ * @param {string[]} categoryIds - An array of category IDs that will be linked to the category group.
+ * @return {Promise<void>} A promise that resolves when the operation is complete.
+ */
 export async function connectCategoriesToCategoryGroup(
   qx: QueryExecutor,
   categoryGroupId: string,
@@ -78,6 +176,17 @@ export async function connectCategoriesToCategoryGroup(
   )
 }
 
+/**
+ * Retrieves a list of category groups based on the provided filters.
+ *
+ * @param {QueryExecutor} qx - The query executor used to run database queries.
+ * @param {ICategoryGroupsFilters} filters - The filters to apply to the query. Includes:
+ *   - type: Optional filter by the type of category group.
+ *   - query: Optional search query to match category group names (case-insensitive).
+ *   - limit: Optional maximum number of results to return (default: 20).
+ *   - offset: Optional number of results to skip for pagination (default: 0).
+ * @return {Promise<ICategoryGroup[]>} A promise that resolves to an array of category groups matching the filters.
+ */
 export async function listCategoryGroups(
   qx: QueryExecutor,
   filters: ICategoryGroupsFilters,
@@ -100,6 +209,13 @@ export async function listCategoryGroups(
   )
 }
 
+/**
+ * Retrieves a list of category details based on the provided category group IDs.
+ *
+ * @param {QueryExecutor} qx - The query executor used to interact with the database.
+ * @param {string[]} categoryGroupIds - An array of category group IDs to filter categories.
+ * @return {Promise<ICategory[]>} A promise that resolves to an array of category objects containing id, name, slug, and categoryGroupId.
+ */
 export async function listGroupListCategories(
   qx: QueryExecutor,
   categoryGroupIds: string[],
@@ -117,6 +233,13 @@ export async function listGroupListCategories(
   )
 }
 
+/**
+ * Retrieves the count of category groups based on the provided filters.
+ *
+ * @param {QueryExecutor} qx - The query executor used to interact with the database.
+ * @param {ICategoryGroupsFilters} filters - Filters for querying category groups. Contains properties such as `type` and `query`.
+ * @return {Promise<number>} A promise that resolves to the count of category groups matching the given filters.
+ */
 export async function listCategoryGroupsCount(
   qx: QueryExecutor,
   filters: ICategoryGroupsFilters,
@@ -136,6 +259,61 @@ export async function listCategoryGroupsCount(
   return parseInt(result.count, 10)
 }
 
+/**
+ * Fetches a list of category groups based on the provided slug.
+ * The method retrieves category groups where the slug matches exactly
+ * or follows a specific pattern defined by the slug.
+ *
+ * @param {QueryExecutor} qx - The query executor to interact with the database.
+ * @param {string} slug - The slug used to filter the category groups.
+ * @return {Promise<ICategoryGroup[]>} A promise that resolves to an array of category groups.
+ */
+export async function listCategoryGroupsBySlug(
+  qx: QueryExecutor,
+  slug: string,
+): Promise<ICategoryGroup[]> {
+  return qx.select(
+    `
+          SELECT slug
+          FROM "categoryGroups"
+          WHERE slug = $(slug)
+             OR slug ~ $(slugRegex)
+      `,
+    {
+      slug,
+      slugRegex: `^${slug}-[0-9]+$`,
+    },
+  )
+}
+
+/**
+ * Fetches a category group by its unique identifier.
+ *
+ * @param {QueryExecutor} qx - The query executor used to execute database queries.
+ * @param {string} id - The unique identifier of the category group to retrieve.
+ * @return {Promise<ICategoryGroup>} A promise that resolves to the category group object, including its id, slug, and name.
+ */
+export async function getCategoryGroupById(qx: QueryExecutor, id: string): Promise<ICategoryGroup> {
+  return qx.selectOne(
+    `
+          SELECT id, slug, name
+          FROM "categoryGroups"
+          WHERE id = $(id)
+      `,
+    {
+      id,
+    },
+  )
+}
+
+/**
+ * Updates an existing category group in the database with the provided data.
+ *
+ * @param {QueryExecutor} qx - The query executor instance used to interact with the database.
+ * @param {string} categoryGroupId - The unique identifier of the category group to update.
+ * @param {Partial<ICreateCategoryGroup>} data - The updated data for the category group, which may include name, type, and slug.
+ * @return {Promise<ICategoryGroup>} A promise that resolves to the updated category group object.
+ */
 export async function updateCategoryGroup(
   qx: QueryExecutor,
   categoryGroupId: string,
@@ -161,6 +339,13 @@ export async function updateCategoryGroup(
   )
 }
 
+/**
+ * Deletes a category group by its ID and returns the deleted category group object.
+ *
+ * @param {QueryExecutor} qx - The query executor used to perform database operations.
+ * @param {string} categoryGroupId - The ID of the category group to be deleted.
+ * @return {Promise<ICategoryGroup>} A promise that resolves to the deleted category group object.
+ */
 export async function deleteCategoryGroup(
   qx: QueryExecutor,
   categoryGroupId: string,
@@ -178,6 +363,13 @@ export async function deleteCategoryGroup(
   )
 }
 
+/**
+ * Retrieves a category by its unique identifier from the database.
+ *
+ * @param {QueryExecutor} qx - The query executor used to run the database query.
+ * @param {string} id - The unique identifier of the category to retrieve.
+ * @return {Promise<ICategory>} A promise that resolves to the category object with the specified ID.
+ */
 export async function getCategoryById(qx: QueryExecutor, id: string): Promise<ICategory> {
   return qx.selectOne(
     `
@@ -191,6 +383,13 @@ export async function getCategoryById(qx: QueryExecutor, id: string): Promise<IC
   )
 }
 
+/**
+ * Retrieves a list of category slugs that match a given slug or a slug pattern.
+ *
+ * @param {QueryExecutor} qx - The query executor to interact with the database.
+ * @param {string} slug - The slug to match against or use as the base for matching slug patterns.
+ * @return {Promise<ICategory[]>} A promise that resolves to an array of matching category slugs.
+ */
 export async function listCategoriesBySlug(qx: QueryExecutor, slug: string): Promise<ICategory[]> {
   return qx.select(
     `
@@ -206,6 +405,13 @@ export async function listCategoriesBySlug(qx: QueryExecutor, slug: string): Pro
   )
 }
 
+/**
+ * Creates a new category in the database.
+ *
+ * @param {QueryExecutor} qx - The query executor used to interact with the database.
+ * @param {ICreateCategory} category - The category data to be inserted, including name, slug, and optional category group ID.
+ * @return {Promise<ICategory>} A promise that resolves to the newly created category object.
+ */
 export async function createCategory(
   qx: QueryExecutor,
   category: ICreateCategory,
@@ -224,6 +430,17 @@ export async function createCategory(
   )
 }
 
+/**
+ * Updates the details of a category with the specified categoryId. Allows partial updates
+ * for fields such as name, slug, and categoryGroupId. Updates the "updatedAt" timestamp
+ * to the current date and time.
+ *
+ * @param {QueryExecutor} qx - The query executor responsible for interacting with the database.
+ * @param {string} categoryId - The unique identifier of the category to be updated.
+ * @param {Partial<ICreateCategory>} data - An object containing the category fields to be updated.
+ *                                          Supported fields include name, slug, and categoryGroupId.
+ * @return {Promise<ICategoryGroup>} A promise that resolves to the updated category details.
+ */
 export async function updateCategory(
   qx: QueryExecutor,
   categoryId: string,
@@ -249,6 +466,13 @@ export async function updateCategory(
   )
 }
 
+/**
+ * Deletes a category from the database with the specified category ID and returns the deleted category.
+ *
+ * @param {QueryExecutor} qx - The query executor used to perform database operations.
+ * @param {string} categoryId - The unique identifier of the category to be deleted.
+ * @return {Promise<ICategory>} A promise that resolves to the deleted category object.
+ */
 export async function deleteCategory(qx: QueryExecutor, categoryId: string): Promise<ICategory> {
   return qx.selectOne(
     `
@@ -263,6 +487,13 @@ export async function deleteCategory(qx: QueryExecutor, categoryId: string): Pro
   )
 }
 
+/**
+ * Deletes categories from the database based on the provided category IDs.
+ *
+ * @param {QueryExecutor} qx - The query executor used to interact with the database.
+ * @param {string[]} ids - An array of category IDs to be deleted.
+ * @return {Promise<ICategory[]>} A promise that resolves to an array of the deleted categories.
+ */
 export async function deleteCategories(qx: QueryExecutor, ids: string[]): Promise<ICategory[]> {
   return qx.select(
     `
