@@ -237,6 +237,7 @@ setImmediate(async () => {
   require('./mergeAction').default(routes)
   require('./dataQuality').default(routes)
   require('./collections').default(routes)
+  require('./categories').default(routes)
 
   await require('./nango').default(routes)
 

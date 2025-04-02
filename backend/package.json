@@ -127,6 +127,7 @@
     "sequelize": "6.21.2",
     "sequelize-cli-typescript": "^3.2.0-c",
     "slack-block-builder": "^2.7.2",
+    "slugify": "^1.6.6",
     "socket.io": "^4.5.4",
     "superagent": "^8.0.0",
     "tsconfig-paths": "^4.2.0",
