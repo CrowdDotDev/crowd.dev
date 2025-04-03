@@ -1,23 +1,16 @@
 DESCRIPTION >
-	Serves contributor geographic distribution widget.
-
-
-TOKEN "insights-app-token" READ
+    Serves contributor geographic distribution widget.
 
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "contributors_geo_distribution_endpoint_read_8966" READ
+TOKEN "insights-app-token" READ
 
 NODE country_mapping_array
 SQL >
-
     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-
-
 
 NODE parsed_country
 SQL >
-
     SELECT
         m.id,
         m.location,
@@ -31,19 +24,16 @@ SQL >
     FROM members_sorted AS m
     WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
 
-
-
 NODE contributors_geo_distribution_result
 SQL >
-
-    SELECT 
-        country_data.1 AS country,
-        country_data.2 AS flag,
-        country_data.3 AS country_code,
+    SELECT
+        country_data .1 AS country,
+        country_data .2 AS flag,
+        country_data .3 AS country_code,
         COUNT(id) AS contributorCount,
-        round((count(id)/ (select "contributorCount" from active_contributors))*100) as "contributorPercentage"
+        round(
+            (count(id) / (select "contributorCount" from active_contributors)) * 100
+        ) as "contributorPercentage"
     FROM parsed_country
     GROUP BY country, flag, country_code
     ORDER BY contributorCount DESC
-
-

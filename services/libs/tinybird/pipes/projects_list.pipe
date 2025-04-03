@@ -1,33 +1,39 @@
 DESCRIPTION >
-	Serves projects list page with sorting and pagination
-
-
-TOKEN "insights-app-token" READ
-
-TOKEN "raul_dev_access_token" READ
+    Serves projects list page with sorting and pagination
 
 TOKEN "projects_list_endpoint_read_5981" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE projects_paginated
 SQL >
-
     %
-            {% if Boolean(count, false) %}
-            SELECT count(insightsProjects_filtered.id) from insightsProjects_filtered
-            {% else %}
-            SELECT *
-            FROM insightsProjects_filtered
-            order by
-                {{ column(String(orderByField, "name", description="Order by project field.", required=False)) }}
-                {% if String(
-                    orderByDirection, 'asc', description="Order by direction. ASC or DESC", required=False
-                ) == 'asc' or String(
-                    orderByDirection, 'asc', description="Order by direction. ASC or DESC", required=False
-                ) == 'ASC' %} ASC
-                {% else %} DESC
-                {% end %}
-            LIMIT {{ Int32(pageSize, 10) }}
-            OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+    {% if Boolean(count, false) %}
+        SELECT count(insightsProjects_filtered.id) from insightsProjects_filtered
+    {% else %}
+        SELECT *
+        FROM insightsProjects_filtered
+        order by
+            {{
+                column(
+                    String(
+                        orderByField, "name", description="Order by project field.", required=False
+                    )
+                )
+            }}
+            {% if String(
+                orderByDirection,
+                'asc',
+                description="Order by direction. ASC or DESC",
+                required=False,
+            ) == 'asc' or String(
+                orderByDirection,
+                'asc',
+                description="Order by direction. ASC or DESC",
+                required=False,
+            ) == 'ASC' %} ASC
+            {% else %} DESC
             {% end %}
-
-
+        LIMIT {{ Int32(pageSize, 10) }}
+        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+    {% end %}

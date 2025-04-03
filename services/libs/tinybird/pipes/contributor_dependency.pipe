@@ -1,23 +1,23 @@
 DESCRIPTION >
-	Serves contributor dependency widget
-
-
-TOKEN "insights-app-token" READ
+    Serves contributor dependency widget
 
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "contributor_dependency_endpoint_read_4095" READ
+TOKEN "insights-app-token" READ
 
 NODE contributions_percentage_running_total
 SQL >
-
     SELECT t.*, active_contributors.contributorCount as "totalContributorCount"
-    FROM (
-    SELECT id, displayName, contributionPercentage,
-               sum(contributionPercentage) OVER (ORDER BY contributionPercentage DESC, id) AS contributionPercentageRunningTotal
-        FROM contributors_leaderboard
-    ) t
+    FROM
+        (
+            SELECT
+                id,
+                displayName,
+                contributionPercentage,
+                sum(contributionPercentage) OVER (
+                    ORDER BY contributionPercentage DESC, id
+                ) AS contributionPercentageRunningTotal
+            FROM contributors_leaderboard
+        ) t
     cross join active_contributors
     WHERE contributionPercentageRunningTotal <= 51
-
-

@@ -354,7 +354,6 @@ const logoUrl = discourse.image;
 
 const isVisible = computed({
   get() {
-    console.log('isVisible', props);
     return props.modelValue;
   },
   set(value) {
@@ -395,7 +394,6 @@ onMounted(() => {
     webhookSecret.value = props.integration?.settings.webhookSecret;
     payloadURL.value = `${window.location.origin}/api/webhooks/discourse`;
     isAPIConnectionValid.value = true;
-    console.log(props);
   }
   formSnapshot();
 });

@@ -68,7 +68,7 @@ const useContributorHelpers = () => {
 
   const activeOrganization = (contributor: Contributor) => {
     const { organizations } = contributor;
-    console.log(organizations);
+
     return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
       && !!org.memberOrganizations.dateStart
       && !org.memberOrganizations.dateEnd)
