@@ -120,7 +120,7 @@ export async function listCategoryGroups(
     `
             SELECT id, name, type
             FROM "categoryGroups"
-            WHERE ($(type) IS NULL OR type = $(type))
+            WHERE COALESCE($(type), type) = type
               AND ($(query) = '' OR name ILIKE $(searchPattern))
             ORDER BY name
             LIMIT $(limit) OFFSET $(offset)
@@ -174,7 +174,7 @@ export async function listCategoryGroupsCount(
     `
             SELECT COUNT(*) as count
             FROM "categoryGroups"
-            WHERE ($(type) IS NULL OR type = $(type))
+            WHERE COALESCE($(type), type) = type
               AND ($(query) = '' OR name ILIKE $(searchPattern))
         `,
     {
@@ -469,7 +469,7 @@ export async function listCategories(
                    FROM "categories" c
                             JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
                    WHERE c.name ILIKE $(query)
-                     AND ($(groupType) IS NULL OR cg.type = $(groupType))
+                     AND COALESCE($(groupType), type) = type
                    ORDER BY cg.name
         `,
     {
