@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
-      <lfx-header-v2 v-if="!$route.meta.hideLfxHeader" id="lfx-header" product="Community Data Platform" />
+      <lfx-header-v2 v-if="!$route.meta.hideLfxHeader" id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <component :is="Component" v-if="Component" />

@@ -23,22 +23,22 @@ export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
   segmentIds?: string[]
 }
 
-export interface IFixOrgIdentitiesWithWrongUrlsArgs {
-  testRun?: boolean
-}
-
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
 }
-export interface ISyncArgs {
-  segmentId?: string
+
+export interface IScriptBatchTestArgs {
   batchSize?: number
+  testRun?: boolean
+}
+
+export interface ISyncArgs extends IScriptBatchTestArgs {
+  segmentId?: string
   chunkSize?: number
   clean?: boolean
   withAggs?: boolean
-  testRun?: boolean
 }
 
 export interface ISyncSegmentsArgs extends ISyncArgs {
@@ -46,7 +46,12 @@ export interface ISyncSegmentsArgs extends ISyncArgs {
   entityType?: string
 }
 
-export interface ICleanupArgs {
-  batchSize: number
-  testRun?: boolean
+export interface ISyncSegmentsArgs extends ISyncArgs {
+  segmentIds: string[]
+  entityType?: string
+}
+
+export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
+  entityType: string
+  offset?: number
 }
