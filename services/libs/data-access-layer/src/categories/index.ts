@@ -121,13 +121,14 @@ export async function listCategoryGroups(
             SELECT id, name, type
             FROM "categoryGroups"
             WHERE ($(type) IS NULL OR type = $(type))
-              AND ($(query) = '' OR name ILIKE CONCAT('%', $(query), '%'))
+              AND ($(query) = '' OR name ILIKE $(searchPattern))
             ORDER BY name
             LIMIT $(limit) OFFSET $(offset)
         `,
     {
       type: filters.type || null,
       query: filters.query || '',
+      searchPattern: `%${filters.query}%` || '',
       limit: filters.limit || 20,
       offset: filters.offset || 0,
     },
@@ -174,11 +175,12 @@ export async function listCategoryGroupsCount(
             SELECT COUNT(*) as count
             FROM "categoryGroups"
             WHERE ($(type) IS NULL OR type = $(type))
-              AND ($(query) = '' OR name ILIKE CONCAT('%', $(query), '%'))
+              AND ($(query) = '' OR name ILIKE $(searchPattern))
         `,
     {
       type: filters.type || null,
       query: filters.query || '',
+      searchPattern: `%${filters.query}%` || '',
     },
   )
   return parseInt(result.count, 10)
@@ -466,12 +468,12 @@ export async function listCategories(
     `          SELECT c.id, c.name, cg.id as "categoryGroupId", cg.name as "categoryGroupName"
                    FROM "categories" c
                             JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
-                   WHERE c.name ILIKE CONCAT('%', $(query), '%')
+                   WHERE c.name ILIKE $(query)
                      AND ($(groupType) IS NULL OR cg.type = $(groupType))
                    ORDER BY cg.name
         `,
     {
-      query: filters.query || '',
+      query: `%${filters.query}%` || '',
       limit: filters.limit || 20,
       offset: filters.offset || 0,
       groupType: filters.groupType || null,

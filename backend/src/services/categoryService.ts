@@ -1,5 +1,4 @@
-import slugify from 'slugify'
-
+import { getCleanString } from '@crowd/common'
 import {
   ICategoryFilters,
   ICategoryGroupsFilters,
@@ -47,9 +46,7 @@ export class CategoryService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      let slug = slugify(categoryGroup.name, {
-        lower: true,
-      })
+      let slug = getCleanString(categoryGroup.name).replace(' ', '-')
 
       const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -89,9 +86,7 @@ export class CategoryService extends LoggerBase {
       let slug = currentCategoryGroup.slug
 
       if (currentCategoryGroup.name !== data.name) {
-        slug = slugify(data.name, {
-          lower: true,
-        })
+        slug = getCleanString(data.name).replace(' ', '-')
 
         const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -162,9 +157,7 @@ export class CategoryService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      let slug = slugify(category.name, {
-        lower: true,
-      })
+      let slug = getCleanString(category.name).replace(' ', '-')
 
       const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -196,9 +189,7 @@ export class CategoryService extends LoggerBase {
       let slug = currentCategory.slug
 
       if (currentCategory.name !== data.name) {
-        slug = slugify(data.name, {
-          lower: true,
-        })
+        slug = getCleanString(data.name).replace(' ', '-')
 
         const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
