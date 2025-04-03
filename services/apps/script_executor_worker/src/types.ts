@@ -46,11 +46,6 @@ export interface ISyncSegmentsArgs extends ISyncArgs {
   entityType?: string
 }
 
-export interface ISyncSegmentsArgs extends ISyncArgs {
-  segmentIds: string[]
-  entityType?: string
-}
-
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
   entityType: string
   offset?: number
