@@ -24,7 +24,7 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
 
   if (args.clean) {
     await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.MEMBER, args.segmentId)
-    console.log(`Deleted indexed entities for members!`)
+    console.log('Deleted indexed entities for members!')
   }
 
   const memberIds = await memberSyncActivity.getMembersForSync(BATCH_SIZE, args.segmentId)
