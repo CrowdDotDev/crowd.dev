@@ -33,11 +33,17 @@ export interface IPopulateActivityRelationsArgs {
   latestSyncedActivityTimestamp?: string
 }
 export interface ISyncArgs {
+  segmentId?: string
   batchSize?: number
   chunkSize?: number
   clean?: boolean
   withAggs?: boolean
   testRun?: boolean
+}
+
+export interface ISyncSegmentsArgs extends ISyncArgs {
+  segmentIds: string[]
+  entityType?: string
 }
 
 export interface ICleanupArgs {

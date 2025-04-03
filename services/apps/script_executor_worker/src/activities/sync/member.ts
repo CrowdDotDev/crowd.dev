@@ -5,10 +5,10 @@ import { MemberRepository } from '@crowd/opensearch/src/repo/member.repo'
 
 import { svc } from '../../main'
 
-export async function getMembersForSync(batchSize: number): Promise<string[]> {
+export async function getMembersForSync(batchSize: number, segmentId?: string): Promise<string[]> {
   try {
     const memberRepo = new MemberRepository(svc.redis, svc.postgres.reader, svc.log)
-    return memberRepo.getMembersForSync(batchSize)
+    return memberRepo.getMembersForSync(batchSize, segmentId)
   } catch (error) {
     svc.log.error(error, 'Error getting members for sync')
     throw error

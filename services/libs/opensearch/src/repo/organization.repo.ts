@@ -29,26 +29,31 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationsForSync(
     perPage: number,
     previousBatchIds?: string[],
+    segmentId?: string,
   ): Promise<string[]> {
     const notInClause =
       previousBatchIds?.length > 0 ? `AND o.id NOT IN ($(previousBatchIds:csv))` : ''
+
+    const segmentCondition = segmentId
+      ? 'INNER JOIN organization_segments_mv osm ON osm."organizationId" = o.id AND osm."segmentId" = $(segmentId)'
+      : ''
+
     const results = await this.db().any(
       `
       SELECT o.id
       FROM organizations o
+      ${segmentCondition}
+      LEFT JOIN indexed_entities ie ON ie.entity_id = o.id AND ie.type = $(type)
       WHERE o."deletedAt" is null
-      ${notInClause}
-      AND NOT EXISTS (
-        SELECT 1
-        FROM indexed_entities ie 
-        WHERE ie.entity_id = o.id
-          AND ie.type = $(type)
-      )
+        AND ie.id IS NULL
+        ${notInClause}
       ORDER BY o.id
-      LIMIT ${perPage}`,
+      LIMIT $(perPage)`,
       {
         type: IndexedEntityType.ORGANIZATION,
         previousBatchIds,
+        segmentId,
+        perPage,
       },
     )
 

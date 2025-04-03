@@ -32,24 +32,25 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getMembersForSync(perPage: number): Promise<string[]> {
-    const results = await this.db().any(
-      `
-        SELECT m.id
-        FROM members m
-        WHERE NOT EXISTS (
-          SELECT 1
-          FROM indexed_entities ie 
-          WHERE ie.entity_id = m.id
-            AND ie.type = $(type)
-        )
-        ORDER BY m.id
-        LIMIT ${perPage};
-      `,
-      {
-        type: IndexedEntityType.MEMBER,
-      },
-    )
+  public async getMembersForSync(perPage: number, segmentId?: string): Promise<string[]> {
+    const segmentCondition = segmentId
+      ? 'INNER JOIN member_segments_mv ms ON ms."memberId" = m.id AND ms."segmentId" = $(segmentId)'
+      : ''
+
+    const query = `
+      SELECT DISTINCT m.id FROM members m
+      ${segmentCondition}
+      LEFT JOIN indexed_entities ie ON ie.entity_id = m.id AND ie.type = $(type)
+      WHERE ie.id IS NULL
+      ORDER BY m.id LIMIT $(perPage);
+    `
+
+    const results = await this.db().query(query, {
+      segmentId,
+      perPage,
+      type: IndexedEntityType.MEMBER,
+    })
+
     return results.map((r) => r.id)
   }
 

@@ -20,12 +20,14 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
   const WITH_AGGS = args.withAggs ?? true
 
+  console.log('Starting syncOrganizations with args:', { ...args })
+
   if (args.clean) {
-    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
+    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.ORGANIZATION, args.segmentId)
     console.log('Deleted indexed entities for organizations!')
   }
 
-  const organizationIds = await orgSyncActivity.getOrganizationsForSync(BATCH_SIZE)
+  const organizationIds = await orgSyncActivity.getOrganizationsForSync(BATCH_SIZE, args.segmentId)
 
   if (organizationIds.length === 0) {
     console.log('No more organizations to sync!')

@@ -20,12 +20,14 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
   const WITH_AGGS = args.withAggs ?? true
 
+  console.log('Starting syncMembers with args:', { ...args })
+
   if (args.clean) {
-    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.MEMBER)
-    console.log('Deleted indexed entities for members!')
+    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.MEMBER, args.segmentId)
+    console.log(`Deleted indexed entities for members!`)
   }
 
-  const memberIds = await memberSyncActivity.getMembersForSync(BATCH_SIZE)
+  const memberIds = await memberSyncActivity.getMembersForSync(BATCH_SIZE, args.segmentId)
 
   if (memberIds.length === 0) {
     console.log('No more members to sync!')

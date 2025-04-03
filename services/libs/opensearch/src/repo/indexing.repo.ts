@@ -8,13 +8,29 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     super(dbStore, parentLog)
   }
 
-  public async deleteIndexedEntities(type: IndexedEntityType): Promise<void> {
+  public async deleteIndexedEntities(type: IndexedEntityType, segmentId?: string): Promise<void> {
+    let segmentCondition = ''
+
+    if (segmentId) {
+      const materializedView =
+        type === IndexedEntityType.MEMBER ? 'member_segments_mv' : 'organization_segments_mv'
+      const entityColumn = type === IndexedEntityType.MEMBER ? '"memberId"' : '"organizationId"'
+
+      segmentCondition = `
+        INNER JOIN ${materializedView} mv ON mv.${entityColumn} = indexed_entities.entity_id 
+        AND mv."segmentId" = $(segmentId)
+      `
+    }
+
     await this.db().none(
       `
-      delete from indexed_entities where type = $(type)
+      DELETE FROM indexed_entities 
+      ${segmentCondition}
+      WHERE indexed_entities.type = $(type)
       `,
       {
         type,
+        segmentId,
       },
     )
   }
