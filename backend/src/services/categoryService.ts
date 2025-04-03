@@ -3,9 +3,7 @@ import {
   ICategoryFilters,
   ICategoryGroupsFilters,
   ICreateCategory,
-  ICreateCategoryGroup,
   ICreateCategoryGroupWithCategories,
-  connectCategoriesToCategoryGroup,
   createCategory,
   createCategoryGroup,
   deleteCategories,
@@ -60,20 +58,20 @@ export class CategoryService extends LoggerBase {
       })
 
       if (categoryGroup.categories) {
-        for(const category of categoryGroup.categories) {
-            let slug = getCleanString(category.name).replace(' ', '-')
+        for (const category of categoryGroup.categories) {
+          let slug = getCleanString(category.name).replace(' ', '-')
 
-            const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
+          const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
-            if (categoriesWithSameSlug.length > 0) {
-                slug = `${slug}-${categoriesWithSameSlug.length}`
-            }
+          if (categoriesWithSameSlug.length > 0) {
+            slug = `${slug}-${categoriesWithSameSlug.length}`
+          }
 
-            await createCategory(qx, {
-                ...category,
-                slug,
-                categoryGroupId: createdCategoryGroup.id,
-            })
+          await createCategory(qx, {
+            ...category,
+            slug,
+            categoryGroupId: createdCategoryGroup.id,
+          })
         }
       }
       return true
@@ -116,18 +114,20 @@ export class CategoryService extends LoggerBase {
         const newCategoryIds = data.categories.map((category) => category.id)
         const categoriesToDelete = existingCategoryIds.filter((id) => !newCategoryIds.includes(id))
         const categoriesToCreate = data.categories.filter((category) => !category.id)
-        const categoriesToUpdate = data.categories.filter((category) => existingCategoryIds.includes(category.id))
+        const categoriesToUpdate = data.categories.filter((category) =>
+          existingCategoryIds.includes(category.id),
+        )
 
-        if(categoriesToDelete.length > 0){
+        if (categoriesToDelete.length > 0) {
           await deleteCategories(qx, categoriesToDelete)
         }
-        for(const category of categoriesToCreate) {
+        for (const category of categoriesToCreate) {
           await this.createCategory({
             ...category,
             categoryGroupId,
           })
         }
-        for(const category of categoriesToUpdate) {
+        for (const category of categoriesToUpdate) {
           await this.updateCategory(category.id, {
             ...category,
             categoryGroupId,
