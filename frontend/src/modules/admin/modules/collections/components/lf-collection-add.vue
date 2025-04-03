@@ -186,7 +186,7 @@ const rules = {
     maxLength,
   },
   description: { required: (value: string) => value.trim().length },
-  // projects: { required: (value: any) => value.length > 0 },
+  projects: { required: (value: any) => value.length > 0 },
   categoryId: {
     required,
   },
