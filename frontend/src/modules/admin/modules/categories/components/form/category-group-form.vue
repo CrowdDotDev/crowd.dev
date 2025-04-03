@@ -64,7 +64,7 @@
 
       <div v-if="categories.length > 0" class="py-3 px-6">
         <article
-          v-for="category of categories"
+          v-for="(category, ci) of categories"
           :key="category.id"
           class="border-t border-gray-100 first:border-none flex justify-between items-center py-2.5"
         >
@@ -85,7 +85,7 @@
             <lf-button
               type="secondary-ghost"
               icon-only
-              @click="deleteCategory(category.id)"
+              @click="deleteCategory(ci)"
             >
               <lf-icon
                 name="trash-can"
@@ -176,7 +176,6 @@ const isDrawerOpen = computed({
 
 const isCategoryFormOpen = ref(false);
 const selectedCategory = ref<Category | null>(null);
-const isDeleting = ref(false);
 
 const isSending = ref(false);
 const isEdit = computed(() => !!props.categoryGroup);
@@ -217,11 +216,12 @@ const submit = () => {
     ? CategoryGroupService.update(props.categoryGroup!.id, {
       name: form.name,
       type: form.type as CategoryGroupType,
+      categories: categories.value,
     })
     : CategoryGroupService.create({
       name: form.name,
       type: form.type as CategoryGroupType,
-      categories: categories.value.map((category) => category.id),
+      categories: categories.value,
     });
   isSending.value = true;
 
@@ -240,19 +240,8 @@ const submit = () => {
     });
 };
 
-const deleteCategory = (id: string) => {
-  isDeleting.value = true;
-  CategoryService.delete(id)
-    .then(() => {
-      Message.success('Category deleted');
-      categories.value = categories.value.filter((category) => category.id !== id);
-    })
-    .catch(() => {
-      Message.error('Error occurred while deleting category');
-    })
-    .finally(() => {
-      isDeleting.value = false;
-    });
+const deleteCategory = (index: number) => {
+  categories.value.splice(index, 1);
 };
 
 const updateCategory = (category: Category) => {

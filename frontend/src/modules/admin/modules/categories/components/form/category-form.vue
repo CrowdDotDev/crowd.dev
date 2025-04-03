@@ -27,7 +27,6 @@
       </lf-button>
       <lf-button
         :disabled="$v.$invalid"
-        :loading="isSending"
         @click="submit()"
       >
         {{ isEdit ? 'Update' : 'Add' }} category
@@ -38,7 +37,7 @@
 
 <script setup lang="ts">
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive,
 } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -47,9 +46,7 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import Message from '@/shared/message/message';
 import { Category } from '@/modules/admin/modules/categories/types/Category';
-import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -68,7 +65,6 @@ const isModalOpen = computed({
 });
 
 const isEdit = computed(() => !!props.category);
-const isSending = ref(false);
 
 const form = reactive({
   name: '',
@@ -94,33 +90,17 @@ const submit = () => {
     return;
   }
 
-  const call = isEdit.value
-    ? CategoryService.update(props.category!.id, {
-      name: form.name,
-      categoryGroupId: props.categoryGroupId,
-    })
-    : CategoryService.create({
-      name: form.name,
-      categoryGroupId: props.categoryGroupId,
-    });
-  isSending.value = true;
-
-  call
-    .then((category) => {
-      Message.success(`${isEdit.value ? 'Updated' : 'Created'} category`);
-      if (isEdit.value) {
-        emit('update', category);
-      } else {
-        emit('add', category);
-      }
-      isModalOpen.value = false;
-    })
-    .catch(() => {
-      Message.error(`Error occurred while ${isEdit.value ? 'updating' : 'creating'} category`);
-    })
-    .finally(() => {
-      isSending.value = false;
-    });
+  if (isEdit.value) {
+    emit('update', {
+      ...props.category,
+      ...form,
+    } as Category);
+  } else {
+    emit('add', {
+      ...form,
+    } as Category);
+  }
+  isModalOpen.value = false;
 };
 
 onMounted(() => {

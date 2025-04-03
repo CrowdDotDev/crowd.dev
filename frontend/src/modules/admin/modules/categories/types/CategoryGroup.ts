@@ -23,5 +23,5 @@ export interface CategoryGroupListFilters {
 export interface CreateCategoryGroup {
   name: string;
   type: CategoryGroupType;
-  categories?: string[];
+  categories?: Category[];
 }

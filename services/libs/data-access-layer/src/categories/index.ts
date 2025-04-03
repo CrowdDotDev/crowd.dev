@@ -37,7 +37,7 @@ export interface ICreateCategory {
 }
 
 export interface ICreateCategoryGroupWithCategories extends ICreateCategoryGroup {
-  categories?: string[]
+  categories?: ICategory[]
 }
 
 export interface ICategoryGroupsFilters {
