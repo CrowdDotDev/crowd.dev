@@ -216,6 +216,7 @@ export class CollectionService extends LoggerBase {
 
       const createdProject = await createInsightsProject(qx, {
         ...project,
+        isLF: !!project.segmentId,
         slug,
       })
 

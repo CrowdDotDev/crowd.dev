@@ -15,6 +15,7 @@ export interface InsightsProjectAddFormModel {
   github: string;
   twitter: string;
   linkedin: string;
+  keywords: string[];
   repositories: {
     url: string;
     label: string;

@@ -63,6 +63,9 @@
             <lf-tab name="widgets">
               Widgets
             </lf-tab>
+            <lf-tab name="advanced">
+              Advanced settings
+            </lf-tab>
           </lf-tabs>
           <div class="pt-6">
             <div class="tab-content">
@@ -72,12 +75,16 @@
                 :rules="rules"
               />
               <lf-insights-project-add-repository-tab
-                v-if="activeTab === 'repositories'"
+                v-else-if="activeTab === 'repositories'"
                 :form="form"
                 :repositories="form.repositories"
               />
               <lf-insights-project-add-widgets-tab
-                v-if="activeTab === 'widgets'"
+                v-else-if="activeTab === 'widgets'"
+                :form="form"
+              />
+              <lf-insights-project-add-advanced-tab
+                v-else-if="activeTab === 'advanced'"
                 :form="form"
               />
             </div>
@@ -118,6 +125,8 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
+import LfInsightsProjectAddAdvancedTab
+  from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import { useCollectionsStore } from '../../collections/pinia';
@@ -172,6 +181,7 @@ const initialFormState: InsightsProjectAddFormModel = {
   twitter: '',
   linkedin: '',
   repositories: [],
+  keywords: [],
   widgets: cloneDeep(defaultWidgetsValues),
 };
 const form = reactive<InsightsProjectAddFormModel>(cloneDeep(initialFormState));
