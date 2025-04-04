@@ -3,7 +3,7 @@
   line-height: var(--lf-checkbox-line-height);
   font-weight: var(--lf-checkbox-text-font-weight);
   color: var(--lf-checkbox-text-color);
-  @apply inline-flex flex-wrap relative mr-7.5 mt-2;
+  @apply inline-flex items-center flex-wrap relative mr-7.5 mt-2;
 
   input {
     height: var(--lf-checkbox-size);
