@@ -13,19 +13,9 @@
           <li>Search queries (powered by Google Trends)</li>
         </ul>
       </div>
-      <el-input-tag
+      <app-keywords-input
         v-model="form.keywords"
         placeholder="Enter keword(s)"
-      />
-      <el-select
-        v-model="form.keywords"
-        placeholder="Enter keword(s)"
-        class="w-full"
-        placement="bottom-end"
-        multiple
-        filterable
-        :allow-create="true"
-        :teleported="false"
       />
     </lf-field>
   </article>
@@ -34,6 +24,7 @@
 <script setup lang="ts">
 import LfField from '@/ui-kit/field/Field.vue';
 import { reactive } from 'vue';
+import AppKeywordsInput from '@/shared/form/keywords-input.vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 
 const props = defineProps<{

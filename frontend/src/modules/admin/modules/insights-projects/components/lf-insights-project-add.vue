@@ -271,7 +271,6 @@ const onSubmit = () => {
 const handleCreate = () => {
   const request = buildRequest({
     ...form,
-    slug: form.name.toLowerCase().replace(/ /g, '-'),
   });
   Message.info(null, {
     title: 'Insights project is being created',
