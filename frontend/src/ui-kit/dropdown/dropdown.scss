@@ -66,10 +66,10 @@
       @apply bg-primary-50 font-semibold justify-between;
 
       &:after{
-        content: "\eb7b";
-        font-size: 1rem;
-        font-family: serif !important;
-        font-style: normal;
+        content: "\f00c";
+        font-size: 15px;
+        font-family: "Font Awesome 6 Pro", serif !important;
+        font-weight: 300;
         @apply text-primary-500;
       }
 
