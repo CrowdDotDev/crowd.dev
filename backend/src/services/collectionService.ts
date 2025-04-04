@@ -28,6 +28,7 @@ import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 
+import {getCleanString} from "@crowd/common"
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -44,7 +45,12 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const createdCollection = await createCollection(qx, collection)
+      const slug = getCleanString(collection.name).replace(' ', '-')
+
+      const createdCollection = await createCollection(qx, {
+        ...collection,
+        slug,
+      })
 
       if (collection.projects) {
         await connectProjectsAndCollections(
@@ -200,7 +206,12 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const createdProject = await createInsightsProject(qx, project)
+      const slug = getCleanString(project.name).replace(' ', '-')
+
+      const createdProject = await createInsightsProject(qx, {
+        ...project,
+        slug,
+      })
 
       if (project.collections) {
         await connectProjectsAndCollections(
