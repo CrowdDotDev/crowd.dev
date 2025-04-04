@@ -54,6 +54,9 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
     return
   }
 
-  // Continue as new for the next batch
-  await continueAsNew<typeof syncOrganizations>(args)
+  // Continue as new for the next batch, but without the clean flag to avoid infinite cleaning
+  await continueAsNew<typeof syncOrganizations>({
+    ...args,
+    clean: false,
+  })
 }
