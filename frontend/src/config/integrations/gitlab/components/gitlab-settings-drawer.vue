@@ -108,7 +108,7 @@
               </div>
               <article v-for="project in projects" :key="project.id" class="py-1.5 flex items-center">
                 <div class="w-8 flex items-center justify-center">
-                  <el-checkbox v-model="selectedRepos[project.web_url]" @change="updateSelectedRepos" />
+                  <lf-checkbox v-model="selectedRepos[project.web_url]" :size="'large'" @change="updateSelectedRepos" />
                 </div>
                 <div class="flex-grow flex items-center pr-4">
                   <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
@@ -207,6 +207,7 @@ import { showIntegrationProgressNotification } from '@/modules/integration/helpe
 import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
