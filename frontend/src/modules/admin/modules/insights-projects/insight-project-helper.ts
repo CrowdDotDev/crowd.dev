@@ -15,6 +15,7 @@ export const buildRequest = (form: InsightsProjectAddFormModel) => ({
   twitter: form.twitter,
   linkedin: form.linkedin,
   repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
+  keywords: form.keywords,
   widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key]),
 });
 
@@ -30,6 +31,7 @@ export const buildForm = (
   ...result,
   organizationId: result.organization.id,
   collectionsIds: result.collections.map((collection: any) => collection.id),
+  keywords: result.keywords || [],
   repositories:
     repositories?.map((repository) => ({
       ...repository,
