@@ -20,16 +20,17 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
       const entityColumn = type === IndexedEntityType.MEMBER ? '"memberId"' : '"organizationId"'
 
       segmentCondition = `
-        INNER JOIN ${materializedView} mv ON mv.${entityColumn} = indexed_entities.entity_id 
-        AND mv."segmentId" in ($(segmentIds:csv))
+        USING ${materializedView} mv 
+        WHERE mv.${entityColumn} = indexed_entities.entity_id 
+        AND mv."segmentId" IN ($(segmentIds:csv))
       `
     }
 
     await this.db().none(
       `
-      DELETE FROM indexed_entities 
+      DELETE FROM indexed_entities
       ${segmentCondition}
-      WHERE indexed_entities.type = $(type)
+      AND indexed_entities.type = $(type)
       `,
       {
         type,
