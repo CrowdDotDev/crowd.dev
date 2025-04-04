@@ -297,6 +297,8 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const projects = await queryInsightsProjects(qx, {
       filter,
+      limit,
+      offset,
       fields: Object.values(InsightsProjectField),
     })
 
