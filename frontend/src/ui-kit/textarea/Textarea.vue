@@ -1,5 +1,5 @@
 <template>
-  <div class="c-input" :class="['c-input', { 'c-input--invalid': props.invalid }]">
+  <div class="c-input" :class="['c-input', { 'is-invalid': props.invalid }]">
     <textarea v-model="value" :placeholder="props.placeholder" :disabled="props.disabled" class="h-full" v-bind="$attrs" />
   </div>
 </template>
