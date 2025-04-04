@@ -87,13 +87,13 @@
               </div>
             </app-form-item>
 
-            <el-checkbox
+            <lf-checkbox
               v-model="form.updateResults"
               class="filter-checkbox"
               :disabled="!form.active"
             >
               <span class="text-sm text-gray-900">Update email results based on your current feed settings</span>
-            </el-checkbox>
+            </lf-checkbox>
           </el-form>
           <hr />
           <!-- Results summary -->
@@ -220,6 +220,7 @@ import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const props = defineProps({
   modelValue: {

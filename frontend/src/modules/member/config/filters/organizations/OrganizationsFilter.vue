@@ -27,32 +27,26 @@
           :value="option"
           class="!h-auto !min-h-10 !py-2.5"
         >
-          <div
-            class="h-4 el-checkbox filter-checkbox"
-            :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
-          >
-            <span class="el-checkbox__input" :class="{ 'is-checked': form.value.includes(option.value) }">
-              <span class="el-checkbox__inner" />
-            </span>
-          </div>
-          <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
-          <div>
-            <div class="flex items-center gap-1">
-              <p class="mb-0 leading-5">
-                {{ option.label }}
+          <lf-checkbox :model-value="form.value.includes(option.value)">
+            <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
+            <div>
+              <div class="flex items-center gap-1">
+                <p class="mb-0 leading-5">
+                  {{ option.label }}
+                </p>
+                <lf-organization-lf-member-tag
+                  :organization="option"
+                  :only-show-icon="true"
+                />
+              </div>
+              <p
+                v-if="option.description"
+                class="text-2xs text-gray-500 leading-5"
+              >
+                {{ option.description }}
               </p>
-              <lf-organization-lf-member-tag
-                :organization="option"
-                :only-show-icon="true"
-              />
             </div>
-            <p
-              v-if="option.description"
-              class="text-2xs text-gray-500 leading-5"
-            >
-              {{ option.description }}
-            </p>
-          </div>
+          </lf-checkbox>
         </el-option>
       </el-select>
     </div>
@@ -74,6 +68,7 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const props = defineProps<{
     modelValue: MultiSelectAsyncFilterValue,

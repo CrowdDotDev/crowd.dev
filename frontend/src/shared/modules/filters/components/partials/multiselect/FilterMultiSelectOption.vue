@@ -7,20 +7,15 @@
     :data-qa-value="props.value"
     @click="selectOption()"
   >
-    <div
-      class="el-checkbox filter-checkbox h-4"
-      :class="{ 'is-checked': selected }"
-    >
-      <span class="el-checkbox__input" :class="{ 'is-checked': selected }">
-        <span class="el-checkbox__inner" />
-      </span>
-    </div>
-    <slot />
+    <lf-checkbox class="filter-checkbox h-4" :model-value="selected">
+      <slot />
+    </lf-checkbox>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const props = withDefaults(defineProps<{
   modelValue: string[],
