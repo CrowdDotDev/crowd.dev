@@ -1,5 +1,6 @@
 import { uniq } from 'lodash'
 
+import { getCleanString } from '@crowd/common'
 import {
   CollectionField,
   ICreateCollectionWithProjects,
@@ -28,7 +29,6 @@ import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 
-import {getCleanString} from "@crowd/common"
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
