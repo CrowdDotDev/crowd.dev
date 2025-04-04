@@ -13,13 +13,17 @@
         <div>
           <img :src="platform.img" :alt="platform.label" class="min-w-6 h-6" />
         </div>
-        <el-switch
+        <lf-switch
           :model-value="platforms.includes(name)"
-          :inactive-text="platform.label"
-          class="h-full"
+          class="ml-4 flex-grow justify-between"
+          :checked-background="'var(--lf-color-secondary-500)'"
           @update:model-value="handlePlatformChange($event, name)"
           @change="$v.platforms.$touch"
-        />
+        >
+          <template #inactive>
+            {{ platform.label }}
+          </template>
+        </lf-switch>
       </article>
     </div>
   </app-form-item>
@@ -33,6 +37,7 @@ import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const emit = defineEmits(['update:platforms']);
 const props = defineProps({

@@ -120,7 +120,12 @@
                   applies to all current and future subgroups.
                 </div>
               </template>
-              <el-switch v-model="group[1].allSubgroupsSelected" @change="toggleAllSubgroups(group[1])" />
+              <lf-switch
+                v-model="group[1].allSubgroupsSelected"
+                class="ml-4"
+                :checked-background="'var(--lf-color-secondary-500)'"
+                @change="toggleAllSubgroups(group[1])"
+              />
             </el-tooltip>
             <span class="ml-2 text-sm">Auto-Sync</span>
           </div>
@@ -227,6 +232,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 
