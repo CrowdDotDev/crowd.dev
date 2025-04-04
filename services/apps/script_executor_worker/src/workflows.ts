@@ -9,6 +9,7 @@ import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithW
 import { populateActivityRelations } from './workflows/populateActivityRelations'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
+import { syncSegments } from './workflows/sync/segments'
 
 export {
   findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -22,4 +23,5 @@ export {
   cleanupMembers,
   cleanupOrganizations,
   fixActivityForiegnKeys,
+  syncSegments,
 }
