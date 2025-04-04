@@ -1,5 +1,6 @@
 import { uniq } from 'lodash'
 
+import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
   ICreateCollectionWithProjects,
@@ -173,11 +174,16 @@ export class CollectionService extends LoggerBase {
 
     const total = await countCollections(qx, filter)
 
+    const categoryIds = uniq(collections.map((c) => c.categoryId))
+    const categories = await listCategoriesByIds(qx, categoryIds)
+    const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]))
+
     return {
       rows: collections.map((c) => {
         const collectionConnections = connections.filter((cp) => cp.collectionId === c.id)
         return {
           ...c,
+          category: categoryById[c.categoryId],
           projects: projects
             .filter((p) => collectionConnections.some((cp) => cp.insightsProjectId === p.id))
             .map((p) => {
