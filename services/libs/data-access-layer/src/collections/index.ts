@@ -13,8 +13,8 @@ import { QueryOptions } from '../utils'
 export interface ICreateCollection {
   name: string
   description?: string
-  isLF: boolean
   categoryId: string
+  slug: string
 }
 
 export interface ICollection extends ICreateCollection {
@@ -37,7 +37,10 @@ export interface IInsightsProject {
   segmentId: string
   createdAt: string
   updatedAt: string
-
+  slug: string
+  isLF: boolean
+  enabled: boolean
+  keywords: string[]
   logoUrl: string
   organizationId: string
   website: string
@@ -68,7 +71,6 @@ export enum CollectionField {
   ID = 'id',
   NAME = 'name',
   DESCRIPTION = 'description',
-  IS_LF = 'isLF',
   CATEGORY_ID = 'categoryId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
@@ -107,8 +109,8 @@ export async function createCollection(
 ): Promise<ICollection> {
   return qx.selectOne(
     `
-      INSERT INTO collections (name, description, "isLF", slug, "categoryId")
-      VALUES ($(name), $(description), $(isLF), $(slug), $(categoryId))
+      INSERT INTO collections (name, description, slug, "categoryId")
+      VALUES ($(name), $(description), $(slug), $(categoryId))
       RETURNING *
     `,
     collection,
@@ -130,6 +132,9 @@ export enum InsightsProjectField {
   SEGMENT_ID = 'segmentId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
+  IS_LF = 'isLF',
+  ENABLED = 'enabled',
+  KEYWORDS = 'keywords',
 
   LOGO_URL = 'logoUrl',
   ORGANIZATION_ID = 'organizationId',
