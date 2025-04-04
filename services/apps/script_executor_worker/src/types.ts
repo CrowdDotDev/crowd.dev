@@ -35,15 +35,10 @@ export interface IScriptBatchTestArgs {
 }
 
 export interface ISyncArgs extends IScriptBatchTestArgs {
-  segmentId?: string
+  segmentIds?: string[]
   chunkSize?: number
   clean?: boolean
   withAggs?: boolean
-}
-
-export interface ISyncSegmentsArgs extends ISyncArgs {
-  segmentIds: string[]
-  entityType?: string
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {

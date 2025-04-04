@@ -32,21 +32,21 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getMembersForSync(perPage: number, segmentId?: string): Promise<string[]> {
-    const segmentCondition = segmentId
-      ? 'INNER JOIN member_segments_mv ms ON ms."memberId" = m.id AND ms."segmentId" = $(segmentId)'
+  public async getMembersForSync(perPage: number, segmentIds?: string[]): Promise<string[]> {
+    const segmentCondition = segmentIds
+      ? 'INNER JOIN member_segments_mv ms ON ms."memberId" = m.id AND ms."segmentId" in ($(segmentIds:csv))'
       : ''
 
     const query = `
       SELECT DISTINCT m.id FROM members m
       ${segmentCondition}
       LEFT JOIN indexed_entities ie ON ie.entity_id = m.id AND ie.type = $(type)
-      WHERE ie.id IS NULL
+      WHERE ie.entity_id IS NULL
       ORDER BY m.id LIMIT $(perPage);
     `
 
     const results = await this.db().query(query, {
-      segmentId,
+      segmentIds,
       perPage,
       type: IndexedEntityType.MEMBER,
     })

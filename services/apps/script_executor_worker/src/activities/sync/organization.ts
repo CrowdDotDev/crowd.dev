@@ -7,11 +7,11 @@ import { svc } from '../../main'
 
 export async function getOrganizationsForSync(
   batchSize: number,
-  segmentId?: string,
+  segmentIds?: string[],
 ): Promise<string[]> {
   try {
     const organizationRepo = new OrganizationRepository(svc.postgres.reader, svc.log)
-    return organizationRepo.getOrganizationsForSync(batchSize, null, segmentId)
+    return organizationRepo.getOrganizationsForSync(batchSize, null, segmentIds)
   } catch (error) {
     svc.log.error(error, 'Error getting organizations for sync')
     throw error

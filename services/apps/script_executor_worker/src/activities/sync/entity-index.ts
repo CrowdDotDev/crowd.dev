@@ -5,11 +5,11 @@ import { svc } from '../../main'
 
 export async function deleteIndexedEntities(
   entityType: IndexedEntityType,
-  segmentId?: string,
+  segmentIds?: string[],
 ): Promise<void> {
   try {
     const indexingRepo = new IndexingRepository(svc.postgres.writer, svc.log)
-    await indexingRepo.deleteIndexedEntities(entityType, segmentId)
+    await indexingRepo.deleteIndexedEntities(entityType, segmentIds)
   } catch (error) {
     svc.log.error(error, 'Error deleting indexed entities')
     throw error
