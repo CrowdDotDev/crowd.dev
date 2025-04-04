@@ -2,18 +2,16 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
-import * as entityIndexActivities from '../../activities/sync/entity-index'
-import * as orgSyncActivities from '../../activities/sync/organization'
+import * as activities from '../../activities'
 import { ISyncArgs } from '../../types'
 
-const orgSyncActivity = proxyActivities<typeof orgSyncActivities>({
+const {
+  deleteIndexedEntities,
+  markEntitiesIndexed,
+  getOrganizationsForSync,
+  syncOrganizationsBatch,
+} = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-})
-
-const entityIndexActivity = proxyActivities<typeof entityIndexActivities>({
-  startToCloseTimeout: '10 minutes',
-  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 export async function syncOrganizations(args: ISyncArgs): Promise<void> {
@@ -23,11 +21,11 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   console.log('Starting syncOrganizations with args:', { ...args })
 
   if (args.clean) {
-    await entityIndexActivity.deleteIndexedEntities(IndexedEntityType.ORGANIZATION, args.segmentIds)
+    await deleteIndexedEntities(IndexedEntityType.ORGANIZATION, args.segmentIds)
     console.log('Deleted indexed entities for organizations!')
   }
 
-  const organizationIds = await orgSyncActivity.getOrganizationsForSync(BATCH_SIZE, args.segmentIds)
+  const organizationIds = await getOrganizationsForSync(BATCH_SIZE, args.segmentIds)
 
   if (organizationIds.length === 0) {
     console.log('No more organizations to sync!')
@@ -35,7 +33,7 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   }
 
   const batchStartTime = new Date()
-  const { organizationCount } = await orgSyncActivity.syncOrganizationsBatch(
+  const { organizationCount } = await syncOrganizationsBatch(
     organizationIds,
     WITH_AGGS,
     args.chunkSize,
@@ -49,7 +47,7 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
     )} organizations/second!`,
   )
 
-  await entityIndexActivity.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
+  await markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
