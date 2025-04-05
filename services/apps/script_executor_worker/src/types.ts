@@ -35,6 +35,7 @@ export interface IScriptBatchTestArgs {
 }
 
 export interface ISyncArgs extends IScriptBatchTestArgs {
+  segmentIds?: string[]
   chunkSize?: number
   clean?: boolean
   withAggs?: boolean
