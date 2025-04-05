@@ -41,7 +41,8 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
 
   public async markEntitiesIndexed(type: IndexedEntityType, data: string[]): Promise<void> {
     if (data.length > 0) {
-      const values = data.map((d) => `('${type}', '${d}')`)
+      const uniqueRecords = [...new Set(data)]
+      const values = uniqueRecords.map((d) => `('${type}', '${d}')`)
       const query = `
         insert into indexed_entities(type, entity_id)
         values ${values.join(',\n')}
