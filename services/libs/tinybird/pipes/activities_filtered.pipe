@@ -1,6 +1,9 @@
+TOKEN "activities_filtered_endpoint_read_8708" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
+
 NODE segments_filtered
 SQL >
-
     %
     SELECT "segmentId" as id, repositories
     FROM insightsProjects FINAL
@@ -17,16 +20,13 @@ SQL >
             )
         {% end %}
 
-
-
 NODE activities_filtered_v2_1
 SQL >
-
     %
     SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
     FROM activities_with_relations_sorted_ds a
     where
-        segmentId = (SELECT id FROM segments_filtered) 
+        segmentId = (SELECT id FROM segments_filtered)
         {% if defined(startDate) %}
             AND a.timestamp
             > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
@@ -42,11 +42,10 @@ SQL >
             AND a.platform
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined(onlyContributions) or (
-            defined(onlyContributions) and onlyContributions == 1
+        {% if (
+            not defined(onlyContributions)
+            or (defined(onlyContributions) and onlyContributions == 1)
         ) %} AND a.isContribution {% end %}
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
-
-

@@ -1,31 +1,29 @@
 DESCRIPTION >
-	The only difference compared to the activities_filtered pipeline is that this version also returns data starting from one period before the specified startDate. The period is determined by the provided granularity—if daily, it includes data from startDate - 1 day; if monthly, it includes data from startDate - 1 month. This adjustment ensures that retention rate calculations for startDate have the necessary data from the preceding period for comparison of distinct members.
-
+    The only difference compared to the activities_filtered pipeline is that this version also returns data starting from one period before the specified startDate. The period is determined by the provided granularity—if daily, it includes data from startDate - 1 day; if monthly, it includes data from startDate - 1 month. This adjustment ensures that retention rate calculations for startDate have the necessary data from the preceding period for comparison of distinct members.
 
 TOKEN "insights-app-token" READ
-
 TOKEN "activities_filtered_retention_endpoint_read_8765" READ
 
 NODE segments_filtered
 SQL >
-
     %
-        SELECT "segmentId" as id, repositories FROM insightsProjects FINAL
-        where 1=1
+    SELECT "segmentId" as id, repositories
+    FROM insightsProjects FINAL
+    where
+        1 = 1
         {% if defined(project) %}
-        AND slug = {{String(project, description="Filter by project slug", required=True)}}
-        {% else %}
-        AND false
-        {% end %}  
-        {% if defined(repo) %}
-        AND has(insightsProjects.repositories, {{String(repo, description="Filter activity repo", required=False)}})
+            AND slug = {{ String(project, description="Filter by project slug", required=True) }}
+        {% else %} AND false
         {% end %}
-
-
+        {% if defined(repo) %}
+            AND has(
+                insightsProjects.repositories,
+                {{ String(repo, description="Filter activity repo", required=False) }}
+            )
+        {% end %}
 
 NODE activities_filtered_by_timestamp_and_channel
 SQL >
-
     %
     SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
     FROM activities_with_relations_sorted_ds a
@@ -69,5 +67,3 @@ SQL >
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
-
-TYPE endpoint

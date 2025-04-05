@@ -28,6 +28,11 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  calculateMemberAffiliations,
+  findMergeActionsWithDeletedSecondaryEntities,
+  moveActivitiesToCorrectEntity,
+} from './activities/fix-activity-foriegn-keys'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -91,6 +96,9 @@ export {
   markEntitiesIndexed,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
+  findMergeActionsWithDeletedSecondaryEntities,
+  moveActivitiesToCorrectEntity,
+  calculateMemberAffiliations,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
 }

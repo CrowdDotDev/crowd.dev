@@ -1,52 +1,46 @@
 DESCRIPTION >
-	Serves active contributors widget. Activity filters are inherited from `activities_filtered` pipe
-
-
-TOKEN "insights-app-token" READ
-
-TOKEN "raul_dev_access_token" READ
+    Serves active contributors widget. Activity filters are inherited from `activities_filtered` pipe
 
 TOKEN "active_contributors_endpoint_read_4407" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
 
 NODE timeseries_generation_for_active_contributors
 SQL >
-
     %
-        {% if defined(granularity) %}
-          SELECT 
-              ds."startDate",
-              ds."endDate",
-              COALESCE(uniq( case when af.memberId != '' then af.memberId else null end), 0) AS "contributorCount"
-          FROM generate_timeseries ds
-          LEFT JOIN activities_filtered af ON 
-              CASE 
-                  WHEN {{granularity}} = 'daily' 
-                      THEN toDate(af.timestamp)
-                  WHEN {{granularity}} = 'weekly'
-                      THEN toStartOfWeek(af.timestamp)
-                  WHEN {{granularity}} = 'monthly' 
-                      THEN toStartOfMonth(af.timestamp)
-                  WHEN {{granularity}} = 'quarterly' 
-                      THEN toStartOfQuarter(af.timestamp)
-                  WHEN {{granularity}} = 'yearly' 
-                      THEN toStartOfYear(af.timestamp)
-              END = ds."startDate"
-          GROUP BY ds."startDate", "endDate"
-          ORDER BY ds."startDate" ASC
-        {% else %}
-        select 1
-        {% end %}
-
-
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            COALESCE(
+                uniq(case when af.memberId != '' then af.memberId else null end), 0
+            ) AS "contributorCount"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            activities_filtered af
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(af.timestamp)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(af.timestamp)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(af.timestamp)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(af.timestamp)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(af.timestamp)
+            END
+            = ds."startDate"
+        GROUP BY ds."startDate", "endDate"
+        ORDER BY ds."startDate" ASC
+    {% else %} select 1
+    {% end %}
 
 NODE active_contributors_merged
 SQL >
-
     %
-        {% if not defined(granularity) %}
-        SELECT uniq( case when memberId != '' then memberId else null end) AS contributorCount FROM activities_filtered
-        {% else %}
-        select * from timeseries_generation_for_active_contributors
-        {% end %}
-
-TYPE endpoint
+    {% if not defined(granularity) %}
+        SELECT uniq(case when memberId != '' then memberId else null end) AS contributorCount
+        FROM activities_filtered
+    {% else %} select * from timeseries_generation_for_active_contributors
+    {% end %}

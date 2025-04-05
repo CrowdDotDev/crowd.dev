@@ -62,6 +62,40 @@ class MergeActionRepository {
     return rows
   }
 
+  async findMergeActionsWithDeletedSecondaryEntities(
+    limit: number,
+    offset: number,
+    entityType: EntityType,
+  ): Promise<IMergeAction[]> {
+    const entityConfig = {
+      [EntityType.MEMBER]: { table: 'members', type: 'member' },
+      [EntityType.ORGANIZATION]: { table: 'organizations', type: 'org' },
+    }
+
+    const { table, type } = entityConfig[entityType]
+
+    return this.connection.query(
+      `
+      SELECT 
+        ma."primaryId",
+        ma."secondaryId"
+      FROM "mergeActions" ma
+      WHERE ma."state" = 'merged' 
+        AND ma."type" = $(type)
+        AND NOT EXISTS (
+          SELECT 1 FROM "${table}" t 
+          WHERE t.id = ma."secondaryId"
+        )
+      LIMIT $(limit) OFFSET $(offset)
+      `,
+      {
+        limit,
+        offset,
+        type,
+      },
+    )
+  }
+
   async getUnprocessedLLMApprovedSuggestions(
     batchSize: number,
     type: EntityType,

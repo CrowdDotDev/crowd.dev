@@ -1,5 +1,7 @@
 import { uniq } from 'lodash'
 
+import { getCleanString } from '@crowd/common'
+import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
   ICreateCollectionWithProjects,
@@ -44,7 +46,12 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const createdCollection = await createCollection(qx, collection)
+      const slug = getCleanString(collection.name).replace(' ', '-')
+
+      const createdCollection = await createCollection(qx, {
+        ...collection,
+        slug,
+      })
 
       if (collection.projects) {
         await connectProjectsAndCollections(
@@ -173,11 +180,16 @@ export class CollectionService extends LoggerBase {
 
     const total = await countCollections(qx, filter)
 
+    const categoryIds = uniq(collections.map((c) => c.categoryId))
+    const categories = await listCategoriesByIds(qx, categoryIds)
+    const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]))
+
     return {
       rows: collections.map((c) => {
         const collectionConnections = connections.filter((cp) => cp.collectionId === c.id)
         return {
           ...c,
+          category: categoryById[c.categoryId],
           projects: projects
             .filter((p) => collectionConnections.some((cp) => cp.insightsProjectId === p.id))
             .map((p) => {
@@ -200,7 +212,13 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const createdProject = await createInsightsProject(qx, project)
+      const slug = getCleanString(project.name).replace(' ', '-')
+
+      const createdProject = await createInsightsProject(qx, {
+        ...project,
+        isLF: false,
+        slug,
+      })
 
       if (project.collections) {
         await connectProjectsAndCollections(
@@ -286,6 +304,8 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const projects = await queryInsightsProjects(qx, {
       filter,
+      limit,
+      offset,
       fields: Object.values(InsightsProjectField),
     })
 

@@ -11,9 +11,9 @@
         <lf-table-head class="pl-3 min-w-[27%]">
           Associated company
         </lf-table-head>
-        <!-- <lf-table-head class="pl-3 min-w-[15%]">
+        <lf-table-head class="pl-3 min-w-[15%]">
           Enabled
-        </lf-table-head> -->
+        </lf-table-head>
         <lf-table-head class="w-[7%]" />
       </tr>
     </thead>
@@ -63,9 +63,13 @@
           <span v-else class="text-gray-500 text-sm">No Company</span>
         </lf-table-cell>
 
-        <!-- <lf-table-cell class="pl-2">
-          <lf-switch :model-value="project.enabled" :size="'small'" />
-        </lf-table-cell> -->
+        <lf-table-cell class="pl-3">
+          <lf-switch
+            :model-value="project.enabled"
+            size="small"
+            @update:model-value="changeProjectEnabled(project.id, $event as boolean)"
+          />
+        </lf-table-cell>
 
         <lf-table-cell class="pr-2 flex justify-end">
           <lf-insights-project-dropdown
@@ -85,6 +89,8 @@ import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
+import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
 
@@ -95,6 +101,12 @@ const emit = defineEmits<{(e: 'onEditProject', id: string): void;
 defineProps<{
   projects: InsightsProjectModel[];
 }>();
+
+const changeProjectEnabled = (projectId: string, enabled: boolean) => {
+  InsightsProjectsService.update(projectId, {
+    enabled,
+  });
+};
 </script>
 
 <script lang="ts">

@@ -43,7 +43,6 @@ watch(() => props.segments, () => {
 }, { deep: true });
 
 onMounted(() => {
-  console.log('Component mounted');
   resume();
 });
 

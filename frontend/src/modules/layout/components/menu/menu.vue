@@ -143,8 +143,8 @@ watch(
   selectedProjectGroup,
   (updatedProjectGroup) => {
     if (updatedProjectGroup) {
-      fetchActivityTypes([selectedProjectGroup.value.id]);
-      fetchActivityChannels([selectedProjectGroup.value.id]);
+      fetchActivityTypes();
+      fetchActivityChannels();
     }
   },
   { immediate: true, deep: true },

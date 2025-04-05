@@ -1,21 +1,17 @@
 DESCRIPTION >
-	Serves contributor retention widget. Example on how the calculation work: assume weekly granularity
-startDate = 17.03.2025 startDate's retention will be calculated as follows:
-distinct memberIds that made a contribution between 10-16 March 2025
-say members a,b,c made activities in this interval
-17-24 March 2025 has active members b,c,d,e,f
-then we calculate 17-24 March's retention by doing  2/3 = %66 because among 3 members in the previous period only 2 were retained
-
-
-TOKEN "insights-app-token" READ
+    Serves contributor retention widget. Example on how the calculation work: assume weekly granularity
+    startDate = 17.03.2025 startDate's retention will be calculated as follows:
+    distinct memberIds that made a contribution between 10-16 March 2025
+    say members a,b,c made activities in this interval
+    17-24 March 2025 has active members b,c,d,e,f
+    then we calculate 17-24 March's retention by doing  2/3 = %66 because among 3 members in the previous period only 2 were retained
 
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "member_retention_endpoint_read_0213" READ
+TOKEN "insights-app-token" READ
 
 NODE aggregated_members
 SQL >
-
     %
     SELECT
         CASE
@@ -34,11 +30,8 @@ SQL >
     FROM activities_filtered_retention
     GROUP BY period
 
-
-
 NODE retention
 SQL >
-
     %
     SELECT
         ts."startDate" AS "startDate",
@@ -68,12 +61,7 @@ SQL >
             THEN ts."startDate" - INTERVAL 1 YEAR
         END
 
-
-
 NODE contributor_retention_result
 SQL >
-
     %
     SELECT "startDate", "endDate", "retentionRate" FROM retention ORDER BY "startDate"
-
-TYPE endpoint

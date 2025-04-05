@@ -144,8 +144,6 @@ const showLoading = (filter: any, body: any): boolean => {
 const fetch = ({
   filter, orderBy, body,
 }: FilterQuery) => {
-  console.log('fetch', filter, orderBy, body);
-
   if (!loading.value) {
     loading.value = showLoading(filter, body);
   }

@@ -25,7 +25,6 @@ export default class Message {
   static success(message, options = {}) {
     ElNotification(
       {
-
         title: options.title ? options.title : message,
         showClose: true,
         message: options.title ? message : null,
