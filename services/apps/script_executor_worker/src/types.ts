@@ -45,3 +45,7 @@ export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
   entityType: string
   offset?: number
 }
+
+export interface IProcessLLMVerifiedMergesArgs extends IScriptBatchTestArgs {
+  type: string
+}
