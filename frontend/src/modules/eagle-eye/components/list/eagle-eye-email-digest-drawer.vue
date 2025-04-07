@@ -17,7 +17,7 @@
             </p>
           </div>
           <div>
-            <el-switch v-model="form.active" />
+            <lf-switch v-model="form.active" />
           </div>
         </div>
         <div :class="{ 'opacity-50': !form.active }">
@@ -220,6 +220,7 @@ import { storeToRefs } from 'pinia';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const props = defineProps({

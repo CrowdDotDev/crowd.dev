@@ -157,8 +157,9 @@
                   applies to all current and future subgroups.
                 </div>
               </template>
-              <el-switch
+              <lf-switch
                 v-model="group[1].allSubgroupsSelected"
+                class="ml-4"
                 @change="toggleAllSubgroups(group[1])"
               />
             </el-tooltip>
@@ -277,6 +278,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
