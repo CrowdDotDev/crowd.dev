@@ -68,10 +68,10 @@
       </lf-button>
       <br />
       <div class="flex mt-2">
-        <lf-checkbox id="enableAllRepos" v-model="form.enableAllRepos" :size="'large'">
+        <lf-checkbox id="enableAllRepos" v-model="form.enableAllRepos" size="large">
           Enable All Projects
         </lf-checkbox>
-        <lf-checkbox id="enableGit" v-model="form.enableGit" :size="'large'">
+        <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
           Enable Git Integration
         </lf-checkbox>
       </div>

@@ -108,7 +108,7 @@
               </div>
               <article v-for="project in projects" :key="project.id" class="py-1.5 flex items-center">
                 <div class="w-8 flex items-center justify-center">
-                  <lf-checkbox v-model="selectedRepos[project.web_url]" :size="'large'" @change="updateSelectedRepos" />
+                  <lf-checkbox v-model="selectedRepos[project.web_url]" size="large" @change="updateSelectedRepos" />
                 </div>
                 <div class="flex-grow flex items-center pr-4">
                   <lf-svg name="git-repository" class="w-4 h-4 mr-2" />

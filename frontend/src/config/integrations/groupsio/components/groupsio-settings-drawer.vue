@@ -175,7 +175,7 @@
             >
               <lf-checkbox
                 v-model="group[1].mainGroup.selected"
-                :size="'large'"
+                size="large"
                 class="mr-4"
                 :disabled="group[1].allSubgroupsSelected"
                 @change="updateSelectedGroups(group[1])"
@@ -186,7 +186,7 @@
             <lf-checkbox
               v-else
               v-model="group[1].mainGroup.selected"
-              :size="'large'"
+              size="large"
               class="mr-4"
               :disabled="group[1].allSubgroupsSelected"
               @change="updateSelectedGroups(group[1])"
@@ -207,7 +207,7 @@
             >
               <lf-checkbox
                 v-model="subGroup.selected"
-                :size="'large'"
+                size="large"
                 class="mr-4"
                 :disabled="group[1].allSubgroupsSelected"
                 @change="updateSelectedGroups(group[1])"
@@ -219,7 +219,7 @@
             <lf-checkbox
               v-else
               v-model="subGroup.selected"
-              :size="'large'"
+              size="large"
               class="mr-4"
               :disabled="group[1].allSubgroupsSelected"
               @change="updateSelectedGroups(group[1])"
