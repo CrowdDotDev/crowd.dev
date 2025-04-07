@@ -62,6 +62,7 @@
     :query="{
       filter: {
         memberId: props.contributor?.id,
+        segments: [],
       },
     }"
   />
