@@ -10,7 +10,7 @@ const getSelectedProjectGroup = () => {
 };
 
 export class MemberService {
-  static async update(id, data, segments) {
+  static async update(id, data) {
     const response = await authAxios.put(
       `/member/${id}`,
       {
