@@ -35,6 +35,8 @@
 ClickHouse is an **append-only** database, so **updates** aren't possible.  
 Instead, we **reingest the data with new fields**, and let **deduplication** handle the rest.
 
+👉  For **deduplication** to work properly, whenever we're updating something (either via ui, sql, or some script) the `updatedAt` fields should also be updated. This is the field that ClickHouse uses to decide which version it's going to use on deduplicating via `ReplacingMergeTree` engine.
+
 ---
 
 ### Iterating on Activity Fields
@@ -50,7 +52,6 @@ Since `activities` **don’t exist in Postgres**, schema iteration must be done 
    - **Delete** the old `activities` datasource  
    - **Rename** `activities_new` to `activities` (**see end note**)
 5. **Restart** `data-sink-workers` with the updated code
-6. Run bash script `run_activity_merge_copy_pipe` after running copy pipe `activities_deduplicated_copy_pipe` once through UI. This will merge the historical activities together in batches.
 
 ---
 
@@ -90,7 +91,7 @@ Switching between old and new datasources can lead to **temporary downtime**, bu
 - **Downtime starts** when the old datasource is deleted
 - **Downtime ends** when the new datasource is renamed to the old name
 
-It's important to **keep this switch as short as possible** to minimize disruption.
+👉 It's important to **keep this switch as short as possible** to minimize disruption.
 
 ---
 
@@ -113,11 +114,11 @@ This allows your pipelines to stay active without interruption.
 
 ---
 
-### 👉 Choosing the Right Approach
+### Choosing the Right Approach
 
 Until we move fully to **Tinybird Forward** (which will support migration scripts), the best practice is to **find a balance** between these two approaches:
 
-1. **Quick rename strategy** is best when the raw datasource is only consumed by deduplication copy pipes, but no endpoints (This can be checked from dataflow tab in tinybird)
+1. **Quick rename strategy** is best when the raw datasource is only consumed by deduplication copy pipes, but no endpoints
 2. **Pipe-by-pipe updates** for zero downtime where #1 is not enough
 
 Pick the method that best fits your workflow and datasource complexity.
