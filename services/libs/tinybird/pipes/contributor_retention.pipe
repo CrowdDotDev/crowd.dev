@@ -6,9 +6,7 @@ DESCRIPTION >
     17-24 March 2025 has active members b,c,d,e,f
     then we calculate 17-24 March's retention by doing  2/3 = %66 because among 3 members in the previous period only 2 were retained
 
-TOKEN "raul_dev_access_token" READ
-TOKEN "member_retention_endpoint_read_0213" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE aggregated_members
 SQL >

@@ -1,10 +1,6 @@
 DESCRIPTION >
     Provides filters for collections
 
-TOKEN "collections_filtered_endpoint_read_3036" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
-
 NODE collections_filtered_0
 SQL >
     %

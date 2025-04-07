@@ -1,9 +1,6 @@
 DESCRIPTION >
     Filters in only tracked projects, and filters out activities from bots and team members. Results in `activityRelations_sorted` datasource. Copy pipe runs every hour
 
-TOKEN "scheduled_copy_t_4c5bb747ba9842f3983699d8660ea229" READ
-TOKEN "scheduled_copy_t_fa4496fc08d74c128ba7fdae7ddb7d17" READ
-
 NODE activityRelations_sorted_copy_0
 SQL >
     SELECT *

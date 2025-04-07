@@ -1,6 +1,4 @@
-TOKEN "activities_filtered_endpoint_read_8708" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE segments_filtered
 SQL >
@@ -24,7 +22,7 @@ NODE activities_filtered_v2_1
 SQL >
     %
     SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_ds a
+    FROM activities_with_relations_sorted_deduplicated_ds a
     where
         segmentId = (SELECT id FROM segments_filtered)
         {% if defined(startDate) %}

@@ -1,9 +1,6 @@
 DESCRIPTION >
     The only difference between the activities_filtered pipe and this pipe is that this version returns all activities up until the specified startDate, effectively reversing the time range filter. This approach is useful as it retains support for additional filters and is primarily used in the activities_cumulative_counts pipeline to obtain the historical total.
 
-TOKEN "activities_filtered_historical_cutoff_endpoint_read_5308" READ
-TOKEN "insights-app-token" READ
-
 NODE segments_filtered
 SQL >
     %
@@ -26,7 +23,7 @@ NODE activities_filtered_by_timestamp_and_channel
 SQL >
     %
     SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_ds a
+    FROM activities_with_relations_sorted_deduplicated_ds a
     where
         segmentId = (SELECT id FROM segments_filtered)
         {% if defined(startDate) %}
