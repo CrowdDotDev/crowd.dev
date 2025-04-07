@@ -34,7 +34,12 @@
             url: 'Enter valid email',
           }"
         >
-          <el-input ref="focus" v-model="form.email" type="email" @blur="onBlurEmail()" />
+          <el-input
+            ref="focus"
+            v-model="form.email"
+            type="email"
+            @blur="onBlurEmail()"
+          />
         </app-form-item>
         <app-form-item
           v-if="!isAPIConnectionValid"
@@ -46,9 +51,17 @@
             required: 'This field is required',
           }"
         >
-          <el-input ref="focus" v-model="form.password" @blur="onBlurPassword()">
+          <el-input
+            ref="focus"
+            v-model="form.password"
+            @blur="onBlurPassword()"
+          >
             <template #suffix>
-              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
+              <div
+                v-if="isValidating"
+                v-loading="isValidating"
+                class="flex items-center justify-center w-6 h-6"
+              />
             </template>
           </el-input>
         </app-form-item>
@@ -58,9 +71,17 @@
           :validation="$v.twoFactorCode"
           label="2FA Code (optional)"
         >
-          <el-input ref="focus" v-model="form.twoFactorCode" @blur="onBlurTwoFactorCode()">
+          <el-input
+            ref="focus"
+            v-model="form.twoFactorCode"
+            @blur="onBlurTwoFactorCode()"
+          >
             <template #suffix>
-              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
+              <div
+                v-if="isValidating"
+                v-loading="isValidating"
+                class="flex items-center justify-center w-6 h-6"
+              />
             </template>
           </el-input>
         </app-form-item>
@@ -77,17 +98,29 @@
             Verify Account
           </lf-button>
 
-          <lf-button v-if="isAPIConnectionValid" type="secondary-gray" size="medium" @click="reverifyAccount()">
+          <lf-button
+            v-if="isAPIConnectionValid"
+            type="secondary-gray"
+            size="medium"
+            @click="reverifyAccount()"
+          >
             Reverify Account
           </lf-button>
 
           <div v-if="accountVerificationFailed" class="mt-1">
-            <lf-icon name="circle-exclamation" :size="14" class="text-red-500 mr-2" />
+            <lf-icon
+              name="circle-exclamation"
+              :size="14"
+              class="text-red-500 mr-2"
+            />
             <span class="text-red-500 text-sm">Authentication failed</span>
           </div>
         </div>
       </el-form>
-      <div class="w-full flex flex-col mb-6 mt-4" :class="{ 'opacity-50': !isAPIConnectionValid }">
+      <div
+        class="w-full flex flex-col mb-6 mt-4"
+        :class="{ 'opacity-50': !isAPIConnectionValid }"
+      >
         <p class="text-[16px] font-semibold">
           Track Groups
         </p>
@@ -103,7 +136,11 @@
         </div>
       </div>
 
-      <div v-for="(group, index) in Object.entries(userSubscriptions)" :key="index" class="mb-4 text-sm w-full">
+      <div
+        v-for="(group, index) in Object.entries(userSubscriptions)"
+        :key="index"
+        class="mb-4 text-sm w-full"
+      >
         <div
           class="flex justify-between items-center mb-2 bg-gray-50 py-2 px-4 border-b border-t border-gray-200 w-full"
         >
@@ -120,7 +157,10 @@
                   applies to all current and future subgroups.
                 </div>
               </template>
-              <el-switch v-model="group[1].allSubgroupsSelected" @change="toggleAllSubgroups(group[1])" />
+              <el-switch
+                v-model="group[1].allSubgroupsSelected"
+                @change="toggleAllSubgroups(group[1])"
+              />
             </el-tooltip>
             <span class="ml-2 text-sm">Auto-Sync</span>
           </div>
@@ -133,56 +173,60 @@
               effect="dark"
               content="Disable Auto-Sync in order to remove subgroup"
             >
-              <el-checkbox
+              <lf-checkbox
                 v-model="group[1].mainGroup.selected"
+                size="large"
                 class="mr-4"
                 :disabled="group[1].allSubgroupsSelected"
                 @change="updateSelectedGroups(group[1])"
               >
-                <p>{{ group[1].mainGroup.group_name }}</p>
-              </el-checkbox>
+                {{ group[1].mainGroup.group_name }}
+              </lf-checkbox>
             </el-tooltip>
-            <el-checkbox
+            <lf-checkbox
               v-else
               v-model="group[1].mainGroup.selected"
+              size="large"
               class="mr-4"
               :disabled="group[1].allSubgroupsSelected"
               @change="updateSelectedGroups(group[1])"
             >
-              <p>{{ group[1].mainGroup.group_name }}</p>
-            </el-checkbox>
+              {{ group[1].mainGroup.group_name }}
+            </lf-checkbox>
           </div>
-          <div v-for="subGroup in group[1].subGroups" :key="subGroup.group_name" class="flex items-center mt-2 gap-2">
+          <div
+            v-for="subGroup in group[1].subGroups"
+            :key="subGroup.group_name"
+            class="flex items-center mt-2 gap-2"
+          >
             <el-tooltip
               v-if="group[1].allSubgroupsSelected"
               placement="top"
               effect="dark"
               content="Disable Auto-Sync in order to remove subgroup"
             >
-              <el-checkbox
+              <lf-checkbox
                 v-model="subGroup.selected"
+                size="large"
                 class="mr-4"
                 :disabled="group[1].allSubgroupsSelected"
                 @change="updateSelectedGroups(group[1])"
               >
-                <p>
-                  {{ subGroup.group_name }}
-                  <span class="text-gray-400 text-xs">Subgroup</span>
-                </p>
-              </el-checkbox>
+                {{ subGroup.group_name }}
+                <span class="text-gray-400 text-xs">Subgroup</span>
+              </lf-checkbox>
             </el-tooltip>
-            <el-checkbox
+            <lf-checkbox
               v-else
               v-model="subGroup.selected"
+              size="large"
               class="mr-4"
               :disabled="group[1].allSubgroupsSelected"
               @change="updateSelectedGroups(group[1])"
             >
-              <p>
-                {{ subGroup.group_name }}
-                <span class="text-gray-400 text-xs">Subgroup</span>
-              </p>
-            </el-checkbox>
+              {{ subGroup.group_name }}
+              <span class="text-gray-400 text-xs">Subgroup</span>
+            </lf-checkbox>
           </div>
         </div>
       </div>
@@ -190,7 +234,13 @@
 
     <template #footer>
       <div style="flex: auto">
-        <lf-button type="secondary-gray" size="medium" class="mr-3" :disabled="loading" @click="handleCancel">
+        <lf-button
+          type="secondary-gray"
+          size="medium"
+          class="mr-3"
+          :disabled="loading"
+          @click="handleCancel"
+        >
           Cancel
         </lf-button>
         <lf-button
@@ -227,6 +277,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 
@@ -565,21 +616,10 @@ export default {
 
 <style scoped>
 /* Add this style block */
-:deep(.el-checkbox__input.is-disabled .el-checkbox__inner) {
-  background-color: var(--lf-color-primary-200);
+:deep(.c-checkbox input:disabled:checked) {
+  --lf-checkbox-background: var(--lf-color-primary-200);
   /* Muted blue background */
-  border-color: var(--lf-color-primary-200);
+  --lf-checkbox-border: var(--lf-color-primary-200);
   /* Muted blue border */
-}
-
-:deep(.el-checkbox__input.is-disabled.is-checked .el-checkbox__inner) {
-  background-color: var(--lf-color-primary-200);
-  /* Darker muted blue for checked state */
-  border-color: var(--lf-color-primary-200);
-}
-
-:deep(.el-checkbox__input.is-disabled.is-checked .el-checkbox__inner::after) {
-  border-color: #FFFFFF;
-  /* White checkmark */
 }
 </style>
