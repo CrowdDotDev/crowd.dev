@@ -1,9 +1,7 @@
-import moment from 'moment'
-
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IntegrationRunState, IntegrationStreamState, IntegrationType } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
 
 import {
   IGenerateStreamsData,
@@ -88,13 +86,6 @@ export default class IntegrationRunRepository extends RepositoryBase<Integration
     )
 
     if (!results) {
-      return null
-    }
-
-    if (
-      results.type === IntegrationType.GITHUB &&
-      moment(results.updatedAt).isBefore(moment('2024-12-19'))
-    ) {
       return null
     }
 

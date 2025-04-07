@@ -1,0 +1,2 @@
+ALTER TABLE "insightsProjects"
+    ADD COLUMN "enabled" BOOLEAN DEFAULT TRUE NOT NULL;

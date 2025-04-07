@@ -3,7 +3,7 @@
   line-height: var(--lf-checkbox-line-height);
   font-weight: var(--lf-checkbox-text-font-weight);
   color: var(--lf-checkbox-text-color);
-  @apply flex flex-wrap relative;
+  @apply inline-flex items-center flex-wrap relative mr-7.5 mt-2;
 
   input {
     height: var(--lf-checkbox-size);
@@ -19,46 +19,56 @@
     @apply transition-all appearance-none p-0 my-0 ml-0 inline-block mr-2 cursor-pointer;
 
     // Text
-    & + span{
+    & + span {
       @apply cursor-pointer select-none;
     }
 
     // Icon
-    &:before{
-      content: "\eb7b";
-      font-family: serif;
+    &::after {
+      left: var(--lf-checkbox-mark-left);
+      top: var(--lf-checkbox-mark-top);
+      box-sizing: content-box;
+      content: "";
+      border: var(--lf-checkbox-mark-border) solid var(--lf-checkbox-icon);
+      border-left: 0;
+      border-top: 0;
+      height: var(--lf-checkbox-mark-height);
       position: absolute;
-      left: 0;
-      top: 0;
-      color: var(--lf-checkbox-icon);
-      line-height: var(--lf-checkbox-size);
-      width: var(--lf-checkbox-size);
-      font-size: var(--lf-checkbox-size);
-
-      --lf-checkbox-icon: var(--lf-checkbox-unchecked-icon);
+      transform: rotate(45deg) scaleY(0);
+      width: 3px;
+      transition: transform 0.15s ease-in 0.05s;
+      transform-origin: center;
     }
 
     // Checked
-    &:checked{
+    &:checked {
       --lf-checkbox-border: var(--lf-checkbox-checked-border);
       --lf-checkbox-background: var(--lf-checkbox-checked-background);
-      --lf-checkbox-icon: var(--lf-checkbox-checked-icon);
+      --lf-checkbox-icon: var(--lf-checkbox-checked-icon); 
+    }
+
+    &:checked::after {
+      transform: rotate(45deg) scaleY(1);
     }
 
     // Disabled
     &:disabled {
       --lf-checkbox-border: var(--lf-checkbox-disabled-unchecked-border);
-      --lf-checkbox-background: var(--lf-checkbox-disabled-unchecked-background);
+      --lf-checkbox-background: var(
+        --lf-checkbox-disabled-unchecked-background
+      );
       --lf-checkbox-icon: var(--lf-checkbox-disabled-unchecked-icon);
       @apply cursor-not-allowed;
 
       &:checked {
         --lf-checkbox-border: var(--lf-checkbox-disabled-checked-border);
-        --lf-checkbox-background: var(--lf-checkbox-disabled-checked-background);
+        --lf-checkbox-background: var(
+          --lf-checkbox-disabled-checked-background
+        );
         --lf-checkbox-icon: var(--lf-checkbox-disabled-checked-icon);
       }
 
-      & + span{
+      & + span {
         @apply cursor-not-allowed;
       }
     }
@@ -69,23 +79,41 @@
     --lf-checkbox-size: var(--lf-checkbox-small-size);
     --lf-checkbox-font-size: var(--lf-checkbox-small-font-size);
     --lf-checkbox-line-height: var(--lf-checkbox-small-line-height);
+    --lf-checkbox-mark-left: var(--lf-checkbox-small-mark-left);
+    --lf-checkbox-mark-top: var(--lf-checkbox-small-mark-top);
+    --lf-checkbox-mark-height: var(--lf-checkbox-small-mark-height);
+    --lf-checkbox-mark-border: var(--lf-checkbox-small-mark-border);
   }
 
   &--medium {
     --lf-checkbox-size: var(--lf-checkbox-medium-size);
     --lf-checkbox-font-size: var(--lf-checkbox-medium-font-size);
     --lf-checkbox-line-height: var(--lf-checkbox-medium-line-height);
+    --lf-checkbox-mark-left: var(--lf-checkbox-medium-mark-left);
+    --lf-checkbox-mark-top: var(--lf-checkbox-medium-mark-top);
+    --lf-checkbox-mark-height: var(--lf-checkbox-medium-mark-height);
+    --lf-checkbox-mark-border: var(--lf-checkbox-medium-mark-border);
+  }
+
+  &--large {
+    --lf-checkbox-size: var(--lf-checkbox-large-size);
+    --lf-checkbox-font-size: var(--lf-checkbox-large-font-size);
+    --lf-checkbox-line-height: var(--lf-checkbox-large-line-height);
+    --lf-checkbox-mark-left: var(--lf-checkbox-large-mark-left);
+    --lf-checkbox-mark-top: var(--lf-checkbox-large-mark-top);
+    --lf-checkbox-mark-height: var(--lf-checkbox-large-mark-height);
+    --lf-checkbox-mark-border: var(--lf-checkbox-large-mark-border);
   }
 
   // Multiple state
   // Change icon to subtract-line
   &--multiple {
-    input:before{
+    input:before {
       content: "\f1af";
     }
   }
 
-  p{
+  p {
     font-size: var(--lf-checkbox-description-font-size);
     line-height: var(--lf-checkbox-description-line-height);
     font-weight: var(--lf-checkbox-description-font-weight);

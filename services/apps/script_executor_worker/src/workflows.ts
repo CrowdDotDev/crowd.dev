@@ -4,8 +4,10 @@ import { copyActivitiesFromQuestdbToTinybird } from './workflows/copyActivitiesF
 import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
+import { fixActivityForiegnKeys } from './workflows/fixActivityForiegnKeys'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
+import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -20,4 +22,6 @@ export {
   syncOrganizations,
   cleanupMembers,
   cleanupOrganizations,
+  fixActivityForiegnKeys,
+  processLLMVerifiedMerges,
 }

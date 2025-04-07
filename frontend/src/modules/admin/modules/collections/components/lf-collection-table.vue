@@ -8,6 +8,9 @@
         <lf-table-head class="pl-3 min-w-[26%]">
           Projects
         </lf-table-head>
+        <lf-table-head class="pl-3 min-w-[26%]">
+          Category
+        </lf-table-head>
         <lf-table-head class="w-12" />
       </tr>
     </thead>
@@ -20,8 +23,17 @@
           </div>
         </lf-table-cell>
 
-        <lf-table-cell>
+        <lf-table-cell class="pl-3">
           <app-lf-project-column :projects="collection.projects" />
+        </lf-table-cell>
+
+        <lf-table-cell class="pl-3">
+          <p class="text-medium mb-0.5">
+            {{ collection.category.name }}
+          </p>
+          <p class="text-tiny text-gray-500">
+            {{ collection.category.categoryGroupName }} ({{ collection.category.categoryGroupType === 'vertical' ? 'Industry' : 'Stack' }})
+          </p>
         </lf-table-cell>
 
         <lf-table-cell class="pr-2 flex justify-end">

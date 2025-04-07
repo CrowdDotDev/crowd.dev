@@ -8,6 +8,7 @@ import {
 } from './activities/cleanup/organization'
 import {
   doesActivityExistInQuestDb,
+  getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
   unmergeMembers,
@@ -27,6 +28,11 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  calculateMemberAffiliations,
+  findMergeActionsWithDeletedSecondaryEntities,
+  moveActivitiesToCorrectEntity,
+} from './activities/fix-activity-foriegn-keys'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -44,6 +50,7 @@ import {
   markActivitiesAsIndexed,
   resetIndexedIdentities,
 } from './activities/populate-activity-relations'
+import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
 import { deleteIndexedEntities, markEntitiesIndexed } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
 import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
@@ -89,4 +96,9 @@ export {
   markEntitiesIndexed,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
+  findMergeActionsWithDeletedSecondaryEntities,
+  moveActivitiesToCorrectEntity,
+  calculateMemberAffiliations,
+  getUnprocessedLLMApprovedSuggestions,
+  getWorkflowsCount,
 }
