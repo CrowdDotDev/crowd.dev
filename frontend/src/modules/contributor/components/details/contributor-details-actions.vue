@@ -63,6 +63,7 @@
       filter: {
         memberId: props.contributor?.id,
       },
+      segments: [],
     }"
   />
   <app-member-merge-dialog
