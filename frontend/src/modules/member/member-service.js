@@ -15,7 +15,7 @@ export class MemberService {
       `/member/${id}`,
       {
         ...data,
-        segments,
+        segments: [getSelectedProjectGroup().id],
       },
     );
 
