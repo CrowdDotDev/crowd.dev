@@ -151,7 +151,7 @@
             >
               <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
-            <lf-switch v-model="form.aiReplies" class="ml-4 flex-grow justify-between" :checked-background="'var(--lf-color-secondary-500)'">
+            <lf-switch v-model="form.aiReplies" class="ml-4 flex-grow justify-between">
               <template #inactive>
                 AI replies
               </template>

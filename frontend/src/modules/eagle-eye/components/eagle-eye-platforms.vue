@@ -9,7 +9,7 @@
         <div>
           <img :src="platform.img" :alt="platform.label" class="min-w-6 h-6" />
         </div>
-        <lf-switch v-model="platforms[name]" class="ml-4 flex-grow justify-between" :checked-background="'var(--lf-color-secondary-500)'">
+        <lf-switch v-model="platforms[name]" class="ml-4 flex-grow justify-between">
           <template #inactive>
             {{ platform.label }}
           </template>

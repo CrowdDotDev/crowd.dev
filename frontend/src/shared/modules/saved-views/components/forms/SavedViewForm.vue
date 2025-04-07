@@ -19,7 +19,6 @@
                 v-model="form.shared"
                 :disabled="!!isEdit || !hasPermission(LfPermission.customViewsTenantManage)"
                 class="ml-4"
-                :checked-background="'var(--lf-color-secondary-500)'"
               />
             </div>
           </div>

@@ -123,7 +123,6 @@
               <lf-switch
                 v-model="group[1].allSubgroupsSelected"
                 class="ml-4"
-                :checked-background="'var(--lf-color-secondary-500)'"
                 @change="toggleAllSubgroups(group[1])"
               />
             </el-tooltip>

@@ -17,7 +17,7 @@
             </p>
           </div>
           <div>
-            <lf-switch v-model="form.active" :checked-background="'var(--lf-color-secondary-500)'" />
+            <lf-switch v-model="form.active" />
           </div>
         </div>
         <div :class="{ 'opacity-50': !form.active }">

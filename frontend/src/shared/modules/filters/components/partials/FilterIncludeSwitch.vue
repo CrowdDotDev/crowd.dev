@@ -4,7 +4,6 @@
       v-model="model"
       class="w-fit flex !justify-start filter-include-switch"
       size="tiny"
-      :checked-background="'var(--lf-color-secondary-500)'"
       data-qa="filter-include-switch"
     >
       {{ modelValue ? 'Include' : 'Exclude' }}

@@ -16,7 +16,6 @@
         <lf-switch
           :model-value="platforms.includes(name)"
           class="ml-4 flex-grow justify-between"
-          :checked-background="'var(--lf-color-secondary-500)'"
           @update:model-value="handlePlatformChange($event, name)"
           @change="$v.platforms.$touch"
         >
