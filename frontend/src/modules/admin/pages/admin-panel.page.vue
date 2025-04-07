@@ -59,6 +59,9 @@
           <lf-tab v-model="activeTab" name="projects">
             Projects
           </lf-tab>
+          <lf-tab v-model="activeTab" name="categories">
+            Categories
+          </lf-tab>
         </template>
       </lf-tabs>
       <div class="mt-6 border-t border-gray-100">
@@ -75,6 +78,7 @@
           <lf-admin-users v-else-if="activeTab === 'users'" />
           <lf-collections-page v-else-if="activeTab === 'collections'" />
           <lf-insights-projects-page v-else-if="activeTab === 'projects'" />
+          <lf-categories-page v-else-if="activeTab === 'categories'" />
         </div>
       </div>
     </div>
@@ -101,6 +105,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfCollectionsPage from '@/modules/admin/modules/collections/pages/collection.page.vue';
 import LfInsightsProjectsPage from '@/modules/admin/modules/insights-projects/pages/insights-projects.page.vue';
 import config from '@/config';
+import LfCategoriesPage from '@/modules/admin/modules/categories/pages/categories.page.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -147,6 +152,7 @@ onMounted(() => {
   } else if (
     initialActiveTab === 'collections'
     || initialActiveTab === 'projects'
+    || initialActiveTab === 'categories'
   ) {
     activeTab.value = isAdminUser.value ? initialActiveTab : 'project-groups';
     isCommunityManagement.value = !isAdminUser.value;

@@ -13,9 +13,9 @@ class CleanupExcludeListRepository {
   async addToExcludeList(entityId: string, type: EntityType): Promise<void> {
     await this.connection.none(
       `
-      insert into "cleanupExcludeList" (entityid, type)
+      insert into "cleanupExcludeList" ("entityId", "type")
       values ($(entityId), $(type))
-      on conflict (entityid, type) do nothing
+      on conflict ("entityId", "type") do nothing
     `,
       { entityId, type },
     )
@@ -24,7 +24,7 @@ class CleanupExcludeListRepository {
   async purgeCleanupExcludeList(type: EntityType): Promise<void> {
     await this.connection.none(
       `
-      delete from "cleanupExcludeList" where type = $(type)
+      delete from "cleanupExcludeList" where "type" = $(type)
     `,
       { type },
     )

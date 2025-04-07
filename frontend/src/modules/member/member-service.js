@@ -1,8 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 
 const getSelectedProjectGroup = () => {
   const lsSegmentsStore = useLfSegmentsStore();
@@ -274,7 +272,6 @@ export class MemberService {
 
   static async fetchMergeSuggestions(limit, offset, query) {
     const segments = [
-      ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
       getSelectedProjectGroup().id,
     ];
 
@@ -293,26 +290,30 @@ export class MemberService {
       .then(({ data }) => Promise.resolve(data));
   }
 
-  static async getCustomAttribute(id, segments) {
+  static async getCustomAttribute(id) {
     const response = await authAxios.get(
       `/settings/members/attributes/${id}`,
       {
-        data: [
-          segments,
-        ],
+        params: {
+          segments: [
+            getSelectedProjectGroup().id,
+          ],
+        },
       },
     );
 
     return response.data;
   }
 
-  static async fetchCustomAttributes(segments) {
+  static async fetchCustomAttributes() {
     const response = await authAxios.get(
       '/settings/members/attributes',
       {
-        data: [
-          segments,
-        ],
+        params: {
+          segments: [
+            getSelectedProjectGroup().id,
+          ],
+        },
       },
     );
 

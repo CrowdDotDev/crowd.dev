@@ -71,12 +71,13 @@ export class ActivityService {
     return response.data;
   }
 
-  static async listActivityTypes(segments) {
+  static async listActivityTypes(segment) {
+    const segments = segment || getSelectedProjectGroup().id;
     const response = await authAxios.get(
       '/activity/type',
       {
         params: {
-          segments,
+          segments: segments ? [segments] : [],
         },
       },
     );
@@ -84,12 +85,13 @@ export class ActivityService {
     return response.data;
   }
 
-  static async listActivityChannels(segments) {
+  static async listActivityChannels(segment) {
+    const segments = segment || getSelectedProjectGroup().id;
     const response = await authAxios.get(
       '/activity/channel',
       {
         params: {
-          segments,
+          segments: segments ? [segments] : [],
         },
       },
     );
