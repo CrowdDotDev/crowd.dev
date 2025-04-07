@@ -1,5 +1,14 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
+const getSegments = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value ? [selectedProjectGroup.value.id] : null;
+};
 
 export class ContributorApiService {
   static async find(id: string, segments: string[]): Promise<Contributor> {
@@ -31,22 +40,22 @@ export class ContributorApiService {
       .then(({ data }) => Promise.resolve(data));
   }
 
-  static async update(id: string, data: Partial<Contributor>, segments: []) {
+  static async update(id: string, data: Partial<Contributor>) {
     return authAxios.put(
       `/member/${id}`,
       {
         ...data,
-        segments,
+        segments: getSegments(),
       },
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async create(data: Partial<Contributor>, segments: string[]) {
+  static async create(data: Partial<Contributor>) {
     const response = await authAxios.post(
       '/member',
       {
         ...data,
-        segments,
+        segments: getSegments(),
       },
     );
 
