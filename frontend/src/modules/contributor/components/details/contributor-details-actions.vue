@@ -62,8 +62,8 @@
     :query="{
       filter: {
         memberId: props.contributor?.id,
-        segments: [],
       },
+      segments: [],
     }"
   />
   <app-member-merge-dialog
