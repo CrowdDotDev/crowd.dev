@@ -304,7 +304,7 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
-const timestamp = ref(dateHelper(props.entity.lastActive || '').toISOString());
+const timestamp = ref(dateHelper(props.entity.lastActive || undefined).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
