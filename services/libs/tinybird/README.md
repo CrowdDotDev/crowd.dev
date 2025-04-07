@@ -30,14 +30,14 @@
 6. Create PR for changes, make sure Tinybird-CI passes.
 7. Once Changes are merged, now point to production instance and `tb push` the latest stuff.
 
+---
+
 ## How to Iterate on Data
 
 ClickHouse is an **append-only** database, so **updates** aren't possible.  
 Instead, we **reingest the data with new fields**, and let **deduplication** handle the rest.
 
 👉  For **deduplication** to work properly, whenever we're updating something (either via ui, sql, or some script) the `updatedAt` fields should also be updated. This is the field that ClickHouse uses to decide which version it's going to use on deduplicating via `ReplacingMergeTree` engine.
-
----
 
 ### Iterating on Activity Fields
 
