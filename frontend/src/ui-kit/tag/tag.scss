@@ -1,0 +1,54 @@
+.c-tag {
+  @apply inline-flex items-center justify-center rounded-xmd m-1 mr-0 h-6 border;
+
+  .c-tag-close-icon {
+    @apply ml-1.5 cursor-pointer text-gray-400;
+    &:hover {
+      @apply text-white bg-gray-400 rounded-[50%];
+    }
+  }
+
+  &--rounded {
+    border-radius: 50px;
+  }
+
+  // Size Modifiers
+  &--small {
+    @apply text-tiny h-5 px-1.5; 
+  }
+  
+  &--medium {
+    @apply text-sm h-6 px-2; 
+  }
+
+  // Color Modifiers
+  &--primary {
+    border-color: var(--lf-color-primary-500);
+    background-color: var(--lf-color-primary-500);
+    color: var(--lf-color-white);
+  }
+
+  &--secondary {
+    border-color: var(--lf-color-gray-200);
+    background-color: var(--lf-color-gray-100);
+    color: var(--lf-color-gray-900)
+  }
+
+  &--success {
+    background-color: var(--lf-color-green-600);
+    border-color: var(--lf-color-green-600);
+    color: var(--lf-color-white);
+  }
+
+  &--danger {
+    background-color: var(--lf-color-red-500);
+    border-color: var(--lf-color-red-500);
+    color: var(--lf-color-white);
+  }
+  
+  &--warning {
+    background-color: var(-lf-color-yellow-300);
+    border-color: var(--lf-color-yellow-200);
+    color: var(--lf-color-white);
+  }
+}
