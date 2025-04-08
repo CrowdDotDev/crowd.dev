@@ -88,6 +88,7 @@
         </lf-button>
         <lf-tooltip
           :disabled="!hasSameOrgDetails"
+          placement="top-end"
           content="Please enter a different Job title or Period, as there is already a work experience associated with the selected organization."
         >
           <lf-button
@@ -260,7 +261,7 @@ const hasSameOrgDetails = computed(() => (props.contributor.organizations || [])
 
     //  Check for empty info
     if (!form.title && !form.dateStart && !form.dateEnd) {
-      return true;
+      return false;
     }
 
     // Check if titles matching
