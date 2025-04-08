@@ -32,7 +32,7 @@ SQL >
             where
                 1 = 1
                 {% if defined(start) %} AND updatedAt >= toDateTime({{ start }})
-                {% else %} AND updatedAt >= today()
+                {% else %} AND updatedAt >= toStartOfHour(now() - interval 1 hour)
                 {% end %}
                 {% if defined(end) %} AND updatedAt < toDateTime({{ end }}) {% end %}
         ) ar
