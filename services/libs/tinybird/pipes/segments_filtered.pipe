@@ -1,4 +1,4 @@
-NODE segments_filteredd_0
+NODE segments_filtered_0
 SQL >
     %
     SELECT "segmentId" as id, repositories
