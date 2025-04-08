@@ -98,6 +98,24 @@ export async function findMemberIdentityById(
   return res.length > 0 ? res[0] : null
 }
 
+export async function getMemberIdentitiesByValue(
+  qx: QueryExecutor,
+  memberId: string,
+  value: string,
+): Promise<IMemberIdentity[]> {
+  return qx.select(
+    `
+      SELECT id, platform, type,
+      FROM "memberIdentities"
+      WHERE "value" = $(value) AND "memberId" = $(memberId);
+    `,
+    {
+      value,
+      memberId,
+    },
+  )
+}
+
 export async function updateMemberIdentity(
   qx: QueryExecutor,
   memberId: string,

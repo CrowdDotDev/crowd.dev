@@ -14,6 +14,7 @@ export default (app) => {
   app.get(`/member/github/:id`, safeWrap(require('./memberFindGithub').default))
   app.put(`/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
 
+  app.get(`/member/:memberId/unmerge/options`, safeWrap(require('./memberUnmergeOptions').default))
   app.post(`/member/:memberId/unmerge/preview`, safeWrap(require('./memberUnmergePreview').default))
 
   app.post(`/member/:memberId/unmerge`, safeWrap(require('./memberUnmerge').default))

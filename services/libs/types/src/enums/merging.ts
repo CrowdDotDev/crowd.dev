@@ -32,3 +32,9 @@ export enum LLMSuggestionVerdictType {
   MEMBER = 'member',
   ORGANIZATION = 'organization',
 }
+
+export enum UnmergeStrategy {
+  REVERT_MERGE = 'revert-merge',
+  EXTRACT_SINGLE_IDENTITY = 'extract-single-identity',
+  EXTRACT_SIMILAR_IDENTITIES = 'extract-similar-identities',
+}

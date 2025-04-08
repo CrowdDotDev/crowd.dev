@@ -20,6 +20,7 @@ import {
   findMemberById,
   findMemberIdentityById,
   findMemberTags,
+  getMemberIdentitiesByValue,
   insertMemberSegments,
   queryMembersAdvanced,
   removeMemberTags,
@@ -35,6 +36,7 @@ import {
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
+  IUnmergeOptionsResult,
   IUnmergePreviewResult,
   MemberAttributeType,
   MemberIdentityType,
@@ -44,6 +46,7 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
+  UnmergeStrategy,
 } from '@crowd/types'
 
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -830,18 +833,20 @@ export default class MemberService extends LoggerBase {
   }
 
   /**
-   * Returns a preview of primary and secondary members after a possible unmerge operation
-   * Preview is built using the identity sent. First we try to find the corresponding mergeAction.unmergeBackup
-   * If we find the backup, we return preview by doing an in-place unmerge between two members.
-   * If backup is not found, preview will be for an identity extraction
-   * This will only return a preview, users will be able to edit the preview and confirm the payload
+   * Returns a preview of primary and secondary members after a possible unmerge operation.
+   * Preview is built using the identity and strategy provided. First, we try to find the corresponding mergeAction.unmergeBackup.
+   * If the strategy is to revert a merge and we find the backup, we return a preview by doing an in-place unmerge between two members.
+   * If the strategy is to extract identities, we return a preview by doing an identity extraction.
+   * This will only return a preview—users will be able to edit it and confirm the payload.
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
    * @param identityId identity to be extracted/unmerged
+   * @param strategy unmerge strategy to determine the type of operation
    */
   async unmergePreview(
     memberId: string,
     identityId: string,
+    strategy: UnmergeStrategy,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'identities', 'affiliations']
 
@@ -881,20 +886,23 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
-      this.options.log.info('[1] Finding merge backup...')
+      if (strategy === UnmergeStrategy.REVERT_MERGE) {
+        this.options.log.info('[1] Finding merge backup...')
 
-      const mergeAction = await MergeActionsRepository.findMergeBackup(
-        memberId,
-        MergeActionType.MEMBER,
-        identity,
-        this.options,
-      )
+        const mergeAction = await MergeActionsRepository.findMergeBackup(
+          memberId,
+          MergeActionType.MEMBER,
+          identity,
+          this.options,
+        )
 
-      this.options.log.info('[1] Done!')
+        this.options.log.info('[1] Done!')
 
-      if (mergeAction) {
+        if (!mergeAction) {
+          throw new Error('No previous merge action found to revert')
+        }
+
         // mergeAction is found, unmerge preview will be generated
-
         const primaryBackup = mergeAction.unmergeBackup.primary as IMemberUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
 
@@ -907,243 +915,367 @@ export default class MemberService extends LoggerBase {
 
         // Only unmerge when primary member still has some identities left after removing identities in the secondary backup
         // if not fall back to identity extraction
-        if (remainingIdentitiesInCurrentMember.length > 0) {
-          // construct primary member with best effort
-          for (const key of MemberService.MEMBER_MERGE_FIELDS) {
-            // delay relationships for later
-            if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
-              if (key === 'attributes') {
-                // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
-                // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
-                // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
-                // 4) if both backups doesn't have the value, but current member does, keep the current value
-                // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
+        if (remainingIdentitiesInCurrentMember.length === 0) {
+          throw new Error('Cannot revert merge as primary member would have no identities left')
+        }
 
-                // loop through current member attributes
-                for (const attributeKey of Object.keys(member.attributes)) {
+        // construct primary member with best effort
+        for (const key of MemberService.MEMBER_MERGE_FIELDS) {
+          // delay relationships for later
+          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
+            if (key === 'attributes') {
+              // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
+              // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
+              // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
+              // 4) if both backups doesn't have the value, but current member does, keep the current value
+              // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
+
+              // loop through current member attributes
+              for (const attributeKey of Object.keys(member.attributes)) {
+                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
+                  // both backups have the attribute
                   if (
-                    !(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)
+                    primaryBackup.attributes[attributeKey] &&
+                    secondaryBackup.attributes[attributeKey]
                   ) {
-                    // both backups have the attribute
-                    if (
-                      primaryBackup.attributes[attributeKey] &&
-                      secondaryBackup.attributes[attributeKey]
-                    ) {
-                      // find platform key values that exist on secondary, but not on primary backup
-                      const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
-                        secondaryBackup.attributes[attributeKey],
-                      ).filter(
-                        (key) =>
-                          primaryBackup.attributes[attributeKey][key] === null ||
-                          primaryBackup.attributes[attributeKey][key] === undefined ||
-                          primaryBackup.attributes[attributeKey][key] === '',
-                      )
+                    // find platform key values that exist on secondary, but not on primary backup
+                    const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
+                      secondaryBackup.attributes[attributeKey],
+                    ).filter(
+                      (key) =>
+                        primaryBackup.attributes[attributeKey][key] === null ||
+                        primaryBackup.attributes[attributeKey][key] === undefined ||
+                        primaryBackup.attributes[attributeKey][key] === '',
+                    )
 
-                      for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
-                        // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
+                    for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
+                      // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
+                      if (
+                        member.attributes[attributeKey][platformKey] ===
+                          secondaryBackup.attributes[attributeKey][platformKey] &&
+                        primaryBackup.attributes[attributeKey][platformKey] !==
+                          member.attributes[attributeKey][platformKey]
+                      ) {
+                        delete member.attributes[attributeKey][platformKey]
+                      }
+                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                        delete member.attributes[attributeKey]
+                      }
+                    }
+                  } else if (
+                    !primaryBackup.attributes[attributeKey] &&
+                    secondaryBackup.attributes[attributeKey]
+                  ) {
+                    // remove platform keys that has the same value with current member
+                    if (member.attributes[attributeKey]) {
+                      for (const platformKey of Object.keys(member.attributes[attributeKey])) {
                         if (
                           member.attributes[attributeKey][platformKey] ===
-                            secondaryBackup.attributes[attributeKey][platformKey] &&
-                          primaryBackup.attributes[attributeKey][platformKey] !==
-                            member.attributes[attributeKey][platformKey]
+                          secondaryBackup.attributes[attributeKey][platformKey]
                         ) {
                           delete member.attributes[attributeKey][platformKey]
                         }
-                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                          delete member.attributes[attributeKey]
-                        }
                       }
-                    } else if (
-                      !primaryBackup.attributes[attributeKey] &&
-                      secondaryBackup.attributes[attributeKey]
-                    ) {
-                      // remove platform keys that has the same value with current member
-                      if (member.attributes[attributeKey]) {
-                        for (const platformKey of Object.keys(member.attributes[attributeKey])) {
-                          if (
-                            member.attributes[attributeKey][platformKey] ===
-                            secondaryBackup.attributes[attributeKey][platformKey]
-                          ) {
-                            delete member.attributes[attributeKey][platformKey]
-                          }
-                        }
 
-                        // check any platform keys remaining on current member, if not remove the attribute completely
-                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                          delete member.attributes[attributeKey]
-                        }
+                      // check any platform keys remaining on current member, if not remove the attribute completely
+                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                        delete member.attributes[attributeKey]
                       }
                     }
                   }
                 }
-              } else if (key === 'reach') {
-                // only act on reach if current member has some data
-                for (const reachKey of Object.keys(member.reach)) {
-                  if (
-                    reachKey !== 'total' &&
-                    secondaryBackup.reach[reachKey] === member.reach[reachKey]
-                  ) {
-                    delete member.reach[reachKey]
-                  }
-                }
-                // check if there are any keys other than total, if yes recalculate total, else set total to -1
-                if (Object.keys(member.reach).length > 1) {
-                  delete member.reach.total
-                  member.reach.total = lodash.sum(Object.values(member.reach))
-                } else {
-                  member.reach.total = -1
-                }
-              } else if (key === 'contributions') {
-                // check secondary member has any contributions to extract from current member
-                if (member.contributions) {
-                  member.contributions = member.contributions.filter(
-                    (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
-                  )
-                }
-              } else if (
-                primaryBackup[key] !== member[key] &&
-                secondaryBackup[key] === member[key]
-              ) {
-                member[key] = null
               }
+            } else if (key === 'reach') {
+              // only act on reach if current member has some data
+              for (const reachKey of Object.keys(member.reach)) {
+                if (
+                  reachKey !== 'total' &&
+                  secondaryBackup.reach[reachKey] === member.reach[reachKey]
+                ) {
+                  delete member.reach[reachKey]
+                }
+              }
+              // check if there are any keys other than total, if yes recalculate total, else set total to -1
+              if (Object.keys(member.reach).length > 1) {
+                delete member.reach.total
+                member.reach.total = lodash.sum(Object.values(member.reach))
+              } else {
+                member.reach.total = -1
+              }
+            } else if (key === 'contributions') {
+              // check secondary member has any contributions to extract from current member
+              if (member.contributions) {
+                member.contributions = member.contributions.filter(
+                  (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
+                )
+              }
+            } else if (primaryBackup[key] !== member[key] && secondaryBackup[key] === member[key]) {
+              member[key] = null
             }
           }
+        }
 
-          // tags: Remove tags that exist in secondary backup, but not in primary backup
-          member.tags = member.tags.filter(
-            (tag) =>
-              !(
-                secondaryBackup.tags.some((t) => t.id === tag.id) &&
-                !primaryBackup.tags.some((t) => t.id === tag.id)
-              ),
-          )
+        // tags: Remove tags that exist in secondary backup, but not in primary backup
+        member.tags = member.tags.filter(
+          (tag) =>
+            !(
+              secondaryBackup.tags.some((t) => t.id === tag.id) &&
+              !primaryBackup.tags.some((t) => t.id === tag.id)
+            ),
+        )
 
-          // identities: Remove identities coming from secondary backup
-          member.identities = member.identities.filter(
-            (i) =>
-              !secondaryBackup.identities.some(
-                (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
-              ),
-          )
+        // identities: Remove identities coming from secondary backup
+        member.identities = member.identities.filter(
+          (i) =>
+            !secondaryBackup.identities.some(
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+            ),
+        )
 
-          // affiliations: Remove affiliations coming from secondary backup
-          member.affiliations = member.affiliations.filter(
-            (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
-          )
+        // affiliations: Remove affiliations coming from secondary backup
+        member.affiliations = member.affiliations.filter(
+          (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
+        )
 
-          // member organizations
-          const unmergedRoles = MemberOrganizationService.unmergeRoles(
-            member.memberOrganizations,
-            primaryBackup.memberOrganizations,
-            secondaryBackup.memberOrganizations,
-            MemberRoleUnmergeStrategy.SAME_MEMBER,
-          )
-          member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
+        // member organizations
+        const unmergedRoles = MemberOrganizationService.unmergeRoles(
+          member.memberOrganizations,
+          primaryBackup.memberOrganizations,
+          secondaryBackup.memberOrganizations,
+          MemberRoleUnmergeStrategy.SAME_MEMBER,
+        )
+        member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
-          const secondaryActivityCount = 0
-          const primaryActivityCount = 0
-          // activity count
-          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   secondaryBackup.identities,
-          // )
-          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   member.identities,
-          // )
+        const secondaryActivityCount = 0
+        const primaryActivityCount = 0
+        // activity count
+        // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   secondaryBackup.identities,
+        // )
+        // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   member.identities,
+        // )
 
-          return {
-            primary: {
-              ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
-              identities: member.identities,
-              memberOrganizations: member.memberOrganizations,
-              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-                member.memberOrganizations,
-              ),
-              username: MemberRepository.getUsernameFromIdentities(member.identities),
-              activityCount: primaryActivityCount,
-              numberOfOpenSourceContributions: member.contributions?.length || 0,
-            },
-            secondary: {
-              ...secondaryBackup,
-              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-                secondaryBackup.memberOrganizations,
-              ),
-              activityCount: secondaryActivityCount,
-              numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
-            },
-          }
+        return {
+          primary: {
+            ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
+            identities: member.identities,
+            memberOrganizations: member.memberOrganizations,
+            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+              member.memberOrganizations,
+            ),
+            username: MemberRepository.getUsernameFromIdentities(member.identities),
+            activityCount: primaryActivityCount,
+            numberOfOpenSourceContributions: member.contributions?.length || 0,
+          },
+          secondary: {
+            ...secondaryBackup,
+            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+              secondaryBackup.memberOrganizations,
+            ),
+            activityCount: secondaryActivityCount,
+            numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
+          },
         }
       }
 
-      // mergeAction is not found, identity extraction preview will be generated
-      const secondaryIdentities = [identity]
-      const primaryIdentities = member.identities.filter(
-        (i) =>
-          !secondaryIdentities.some(
-            (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
-          ),
-      )
+      if (strategy === UnmergeStrategy.EXTRACT_SINGLE_IDENTITY) {
+        // mergeAction is not found, identity extraction preview will be generated
+        const secondaryIdentities = [identity]
+        const primaryIdentities = member.identities.filter(
+          (i) =>
+            !secondaryIdentities.some(
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+            ),
+        )
 
-      if (primaryIdentities.length === 0) {
-        throw new Error(`Original member only has one identity, cannot extract it!`)
+        if (primaryIdentities.length === 0) {
+          throw new Error(`Original member only has one identity, cannot extract it!`)
+        }
+
+        const secondaryActivityCount = 0
+        const primaryActivityCount = 0
+
+        // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   secondaryIdentities,
+        // )
+        //
+        // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   primaryIdentities,
+        // )
+
+        const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
+          member.id,
+          this.options,
+        )
+
+        return {
+          primary: {
+            ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
+            identities: primaryIdentities,
+            memberOrganizations: primaryMemberRoles,
+            organizations:
+              OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
+            username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
+            activityCount: primaryActivityCount,
+            numberOfOpenSourceContributions: member.contributions?.length || 0,
+          },
+          secondary: {
+            id: randomUUID(),
+            reach: { total: -1 },
+            username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
+            displayName: getProperDisplayName(identity.value),
+            identities: secondaryIdentities,
+            memberOrganizations: [],
+            organizations: [],
+            tags: [],
+            attributes: {},
+            joinedAt: new Date().toISOString(),
+            tenantId: member.tenantId,
+            affiliations: [],
+            contributions: [],
+            manuallyCreated: true,
+            manuallyChangedFields: [],
+            activityCount: secondaryActivityCount,
+            numberOfOpenSourceContributions: 0,
+          },
+        }
       }
 
-      const secondaryActivityCount = 0
-      const primaryActivityCount = 0
+      if (strategy === UnmergeStrategy.EXTRACT_SIMILAR_IDENTITIES) {
+        const secondaryIdentities = await getMemberIdentitiesByValue(qx, memberId, identity.value)
+        const primaryIdentities = member.identities.filter(
+          (i) =>
+            !secondaryIdentities.some(
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+            ),
+        )
 
-      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   secondaryIdentities,
-      // )
-      //
-      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   primaryIdentities,
-      // )
+        if (primaryIdentities.length === 0) {
+          throw new Error(
+            `Cannot extract all matching identities as it would leave primary member with no identities!`,
+          )
+        }
 
-      const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
-        member.id,
+        const secondaryActivityCount = 0
+        const primaryActivityCount = 0
+
+        // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   secondaryIdentities,
+        // )
+        //
+        // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        //   this.options.qdb,
+        //   member.id,
+        //   primaryIdentities,
+        // )
+
+        const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
+          member.id,
+          this.options,
+        )
+
+        return {
+          primary: {
+            ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
+            identities: primaryIdentities,
+            memberOrganizations: primaryMemberRoles,
+            organizations:
+              OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
+            username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
+            activityCount: primaryActivityCount,
+            numberOfOpenSourceContributions: member.contributions?.length || 0,
+          },
+          secondary: {
+            id: randomUUID(),
+            reach: { total: -1 },
+            username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
+            displayName: getProperDisplayName(identity.value),
+            identities: secondaryIdentities,
+            memberOrganizations: [],
+            organizations: [],
+            tags: [],
+            attributes: {},
+            joinedAt: new Date().toISOString(),
+            tenantId: member.tenantId,
+            affiliations: [],
+            contributions: [],
+            manuallyCreated: true,
+            manuallyChangedFields: [],
+            activityCount: secondaryActivityCount,
+            numberOfOpenSourceContributions: 0,
+          },
+        }
+      }
+
+      throw new Error(`Invalid unmerge strategy: ${strategy}`)
+    } catch (err) {
+      this.options.log.error(err, 'Error while generating unmerge/identity extraction preview!')
+      throw err
+    }
+  }
+
+  async unmergeOptions(
+    memberId: string,
+    identityId: string,
+  ): Promise<IUnmergeOptionsResult<IMemberIdentity>> {
+    try {
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+      // Get the identity to be unmerged
+      const identity = await findMemberIdentityById(qx, memberId, identityId)
+      if (!identity) {
+        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+      }
+
+      // Check if there was a previous merge involving this identity
+      const mergeAction = await MergeActionsRepository.findMergeBackup(
+        memberId,
+        MergeActionType.MEMBER,
+        identity,
         this.options,
       )
 
+      const previousMergeExists = !!mergeAction
+      let canRevertMerge = false
+
+      if (previousMergeExists) {
+        // Check if the primary member would still have identities after reverting
+        const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
+        const currentMemberIdentities = await fetchMemberIdentities(qx, memberId)
+        const remainingIdentitiesInCurrentMember = currentMemberIdentities.filter(
+          (i) =>
+            !secondaryBackup.identities.some(
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+            ),
+        )
+
+        // Can only revert if primary member would still have at least one identity
+        canRevertMerge = remainingIdentitiesInCurrentMember.length > 0
+      }
+
+      // Find other identities with the same value, excluding the current one
+      const allMatchingIdentities = await getMemberIdentitiesByValue(qx, memberId, identity.value)
+      const relatedIdentities = allMatchingIdentities.filter((i) => i.id !== identity.id)
+
       return {
-        primary: {
-          ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
-          identities: primaryIdentities,
-          memberOrganizations: primaryMemberRoles,
-          organizations:
-            OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
-          username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
-          activityCount: primaryActivityCount,
-          numberOfOpenSourceContributions: member.contributions?.length || 0,
-        },
-        secondary: {
-          id: randomUUID(),
-          reach: { total: -1 },
-          username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: getProperDisplayName(identity.value),
-          identities: secondaryIdentities,
-          memberOrganizations: [],
-          organizations: [],
-          tags: [],
-          attributes: {},
-          joinedAt: new Date().toISOString(),
-          tenantId: member.tenantId,
-          affiliations: [],
-          contributions: [],
-          manuallyCreated: true,
-          manuallyChangedFields: [],
-          activityCount: secondaryActivityCount,
-          numberOfOpenSourceContributions: 0,
-        },
+        mergeActionId: mergeAction?.id,
+        previousMergeExists,
+        canRevertMerge,
+        relatedIdentities,
       }
     } catch (err) {
-      this.options.log.error(err, 'Error while generating unmerge/identity extraction preview!')
+      this.options.log.error(err, 'Error while checking unmerge options')
       throw err
     }
   }
