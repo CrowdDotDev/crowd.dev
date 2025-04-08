@@ -1,80 +1,67 @@
 DESCRIPTION >
-	Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
-
+    Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
 
 TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
-
 TOKEN "raul_dev_access_token" READ
-
 TOKEN "insights-app-token" READ
 
 TAGS "Widget"
 
 NODE collection_info
 SQL >
-
     SELECT cip.insightsProjectId, c.slug as "collectionSlug"
     FROM collectionsInsightsProjects cip final
     join collections c on c.id = cip.collectionId
 
-
-
 NODE insightsProjects_filtered_1
 SQL >
-
     %
-        SELECT
-            insightsProjects.id,
-            insightsProjects.name,
-            insightsProjects.slug,
-            insightsProjects.description,
-            insightsProjects.logoUrl as logo,
-            insightsProjects.repositories,
-            coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
-            coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
-        FROM insightsProjects FINAL
-        left join collection_info on collection_info.insightsProjectId = insightsProjects.id
-        left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
-        where
-            insightsProjects.enable = 1
-            {% if defined(slug) %}
-                AND insightsProjects.slug
-                = {{ String(slug, description="Filter collection by slug", required=False) }}
-            {% end %}
-            {% if defined(search) %}
-                AND insightsProjects.name
-                ilike '%'
-                || {{
-                    String(
-                        search,
-                        description="Search collection open ended wildcard using slug",
-                        required=False,
-                    )
-                }}
-                || '%'
-            {% end %}
-            {% if defined(collectionSlug) %}
-                AND collection_info.collectionSlug
-                = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
-            {% end %}
-            {% if defined(isLF) %}
-                AND insightsProjects.isLF = {{ Boolean(isLF, description="Filter project if it belongs to LFX") }}
-            {% end %}
-        group by
-            insightsProjects.id,
-            insightsProjects.name,
-            insightsProjects.slug,
-            insightsProjects.description,
-            insightsProjects.logoUrl,
-            insightsProjects.repositories
-
-TYPE endpoint
-
-
+    SELECT
+        insightsProjects.id,
+        insightsProjects.name,
+        insightsProjects.slug,
+        insightsProjects.description,
+        insightsProjects.logoUrl as logo,
+        insightsProjects.repositories,
+        coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
+        coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
+    FROM insightsProjects FINAL
+    left join collection_info on collection_info.insightsProjectId = insightsProjects.id
+    left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
+    where
+        insightsProjects.enable = 1
+        {% if defined(slug) %}
+            AND insightsProjects.slug
+            = {{ String(slug, description="Filter collection by slug", required=False) }}
+        {% end %}
+        {% if defined(search) %}
+            AND insightsProjects.name
+            ilike '%'
+            || {{
+                String(
+                    search,
+                    description="Search collection open ended wildcard using slug",
+                    required=False,
+                )
+            }}
+            || '%'
+        {% end %}
+        {% if defined(collectionSlug) %}
+            AND collection_info.collectionSlug
+            = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+        {% end %}
+        {% if defined(isLF) %}
+            AND insightsProjects.isLF
+            = {{ Boolean(isLF, description="Filter project if it belongs to LFX") }}
+        {% end %}
+    group by
+        insightsProjects.id,
+        insightsProjects.name,
+        insightsProjects.slug,
+        insightsProjects.description,
+        insightsProjects.logoUrl,
+        insightsProjects.repositories
 
 NODE insightsProjects_filtered_2
 SQL >
-
     SELECT * FROM insightsProjects_filtered_1
-
-
