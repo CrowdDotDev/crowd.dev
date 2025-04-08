@@ -1,0 +1,23 @@
+DESCRIPTION >
+    Deduplicates merged activity_with_relations data. Also sorts the data for optimized query times. Filters out code contributions that are not in insightsProject.repositories. Filters out activities that are done by bots and team members
+
+TAGS "Activity preprocessing pipeline"
+
+NODE activities_with_relations_deduplicated_copy_pipe_0
+SQL >
+    SELECT *
+    FROM activities_with_relations_merged_ds final
+    where
+        memberId IN (SELECT id FROM members WHERE NOT isBot AND NOT isTeamMember)
+        and (
+            (
+                platform IN ('git', 'gerrit', 'github', 'gitlab')
+                AND channel IN (SELECT arrayJoin(repositories) FROM insightsProjects)
+            )
+            OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
+        )
+
+TYPE COPY
+TARGET_DATASOURCE activities_with_relations_sorted_deduplicated_ds
+COPY_MODE replace
+COPY_SCHEDULE 15 * * * *

@@ -315,6 +315,15 @@ class Permissions {
         id: 'collectionRead',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
+
+      categoryEdit: {
+        id: 'categoryEdit',
+        allowedRoles: [roles.admin],
+      },
+      categoryRead: {
+        id: 'categoryRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+      },
     }
   }
 

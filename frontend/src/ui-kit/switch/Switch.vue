@@ -5,6 +5,9 @@
       `c-switch--${props.size}`,
     ]"
   >
+    <span v-if="$slots.inactive" class="flex flex-col">
+      <slot name="inactive" />
+    </span>
     <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
     <span v-if="$slots.default" class="flex flex-col">
       <slot />
@@ -22,7 +25,7 @@ const props = withDefaults(defineProps<{
   value?: string | boolean,
   disabled?: boolean,
 }>(), {
-  size: 'medium',
+  size: 'small',
   value: true,
   disabled: false,
 });

@@ -185,7 +185,6 @@ import Message from '@/shared/message/message';
 import formChangeDetector from '@/shared/form/form-change';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { dateHelper } from '@/shared/date-helper/date-helper';
@@ -222,9 +221,6 @@ const { fetchActivityTypes } = activityTypeStore;
 
 const activityStore = useActivityStore();
 const { fetchActivities, fetchActivityChannels } = activityStore;
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 // Form control
 const form = reactive({
@@ -407,8 +403,8 @@ watch(
   () => props.subprojectId,
   (subprojectId) => {
     if (subprojectId) {
-      fetchActivityTypes([selectedProjectGroup.value.id]);
-      fetchActivityChannels([selectedProjectGroup.value.id]);
+      fetchActivityTypes();
+      fetchActivityChannels();
     }
   },
   { immediate: true, deep: true },

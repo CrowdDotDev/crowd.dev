@@ -3,20 +3,20 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
 import * as activities from '../../activities'
-import { ICleanupArgs } from '../../types'
+import { IScriptBatchTestArgs } from '../../types'
 
 const {
   getMembersToCleanup,
   deleteMember,
-  syncMembersBatch,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
+  syncRemoveMember,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
+export async function cleanupMembers(args: IScriptBatchTestArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
   const memberIds = await getMembersToCleanup(BATCH_SIZE)
@@ -26,7 +26,7 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 25
 
   for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
     const chunk = memberIds.slice(i, i + CHUNK_SIZE)
@@ -39,10 +39,9 @@ export async function cleanupMembers(args: ICleanupArgs): Promise<void> {
         return excludeEntityFromCleanup(memberId, EntityType.MEMBER)
       }
 
-      console.log(`Deleting member ${memberId} from database!`)
-      await deleteMember(memberId)
-
-      return syncMembersBatch([memberId], true)
+      console.log(`Deleting member ${memberId} from opensearch and database!`)
+      await syncRemoveMember(memberId)
+      return deleteMember(memberId)
     })
 
     await Promise.all(cleanupTasks)

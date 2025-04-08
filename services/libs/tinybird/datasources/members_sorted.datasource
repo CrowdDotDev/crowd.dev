@@ -1,4 +1,3 @@
-
 SCHEMA >
     `id` String,
     `attributes` String,
@@ -14,6 +13,6 @@ SCHEMA >
     `displayName` String,
     `score` Int32
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(joinedAt)"
-ENGINE_SORTING_KEY "id"
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(joinedAt)
+ENGINE_SORTING_KEY id

@@ -1,3 +1,4 @@
+TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
     `id` String `json:$.id`,
@@ -28,7 +29,7 @@ SCHEMA >
     `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
     `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0
 
-ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "isContribution, platform, type, channel, sourceId, timestamp"
-ENGINE_VER "updatedAt"
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt

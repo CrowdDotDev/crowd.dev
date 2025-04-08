@@ -1,4 +1,3 @@
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name`,
@@ -16,7 +15,7 @@ SCHEMA >
     `widgets` Array(String) `json:$.record.widgets[:]` DEFAULT [],
     `repositories` Array(String) `json:$.record.repositories[:]` DEFAULT []
 
-ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "id"
-ENGINE_VER "updatedAt"
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt

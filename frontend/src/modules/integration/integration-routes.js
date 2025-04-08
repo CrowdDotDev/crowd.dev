@@ -32,7 +32,6 @@ export default [
           (to, from, next) => {
             const segmentId = localStorage.getItem('segmentId');
             const segmentGrandparentId = localStorage.getItem('segmentGrandparentId');
-            console.log(to.query.state);
             const state = to.query.state ?? '';
 
             // Redirect to integrations list page with correct id

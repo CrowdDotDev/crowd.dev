@@ -1,24 +1,26 @@
 DESCRIPTION >
-	Provides filters for collections
-
-
-TOKEN "insights-app-token" READ
-
-TOKEN "collections_filtered_endpoint_read_3036" READ
-
-TOKEN "raul_dev_access_token" READ
+    Provides filters for collections
 
 NODE collections_filtered_0
 SQL >
-
     %
-        SELECT * FROM collections FINAL 
-        where 1=1
+    SELECT *
+    FROM collections FINAL
+    where
+        1 = 1
         {% if defined(slug) %}
-        AND collections.slug = {{String(slug, description="Filter collection by slug", required=False)}}
+            AND collections.slug
+            = {{ String(slug, description="Filter collection by slug", required=False) }}
         {% end %}
         {% if defined(search) %}
-        AND collections.name ilike '%' || {{String(search, description="Search collection open ended wildcard using slug", required=False)}} || '%'
+            AND collections.name
+            ilike '%'
+            || {{
+                String(
+                    search,
+                    description="Search collection open ended wildcard using slug",
+                    required=False,
+                )
+            }}
+            || '%'
         {% end %}
-
-TYPE endpoint

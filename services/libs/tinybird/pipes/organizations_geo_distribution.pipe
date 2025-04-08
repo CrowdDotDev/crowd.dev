@@ -1,47 +1,37 @@
 DESCRIPTION >
-	Serves organization geographic distribution widget.
+    Serves organization geographic distribution widget.
 
-
-TOKEN "insights-app-token" READ
-
-TOKEN "raul_dev_access_token" READ
-
-TOKEN "organizations_geo_distribution_endpoint_read_0957" READ
+TAGS "Widget"
 
 NODE country_mapping_array
 SQL >
-
     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-
-
 
 NODE parsed_country
 SQL >
-
-    SELECT 
-                o.id,
-                o.location,
-                arrayFilter(
-                    x -> position(upper(o.location), upper(x.1)) > 0, 
-                    (SELECT country_data FROM country_mapping_array)
-                ) AS matched_countries,
-                arrayJoin(if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)) AS country_data
-            FROM organizations AS o final
-            WHERE o.id IN (SELECT "organizationId" FROM activities_filtered)
-
-
+    SELECT
+        o.id,
+        o.location,
+        arrayFilter(
+            x -> position(upper(o.location), upper(x .1)) > 0,
+            (SELECT country_data FROM country_mapping_array)
+        ) AS matched_countries,
+        arrayJoin(
+            if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)
+        ) AS country_data
+    FROM organizations AS o final
+    WHERE o.id IN (SELECT "organizationId" FROM activities_filtered)
 
 NODE organizations_geo_distribution_result
 SQL >
-
-    SELECT 
-        country_data.1 AS country,
-        country_data.2 AS flag,
-        country_data.3 AS country_code,
+    SELECT
+        country_data .1 AS country,
+        country_data .2 AS flag,
+        country_data .3 AS country_code,
         COUNT(id) AS organizationCount,
-        round((count(id)/ (select "organizationCount" from active_organizations))*100) as "organizationPercentage"
+        round(
+            (count(id) / (select "organizationCount" from active_organizations)) * 100
+        ) as "organizationPercentage"
     FROM parsed_country
     GROUP BY country, flag, country_code
     ORDER BY organizationCount DESC
-
-TYPE endpoint

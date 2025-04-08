@@ -1,49 +1,98 @@
 DESCRIPTION >
-	Provides country mapping (of country name, flag and country code) for geo distribution widgets
+    Provides country mapping (of country name, flag and country code) for geo distribution widgets
 
-
-TOKEN "country_mapping_endpoint_read_0281" READ
-
-TOKEN "insights-app-token" READ
+TAGS "Utility"
 
 NODE map_country_name_flag_code
 SQL >
-
-    SELECT 
-        country_map.1 AS country, 
-        country_map.2 AS flag, 
-        country_map.3 AS country_code
-    FROM (
-        SELECT arrayJoin([
-            ('Afghanistan', '🇦🇫', 'AF'), ('Albania', '🇦🇱', 'AL'), ('Algeria', '🇩🇿', 'DZ'), 
-            ('Andorra', '🇦🇩', 'AD'), ('Angola', '🇦🇴', 'AO'), ('Argentina', '🇦🇷', 'AR'), 
-            ('Armenia', '🇦🇲', 'AM'), ('Australia', '🇦🇺', 'AU'), ('Austria', '🇦🇹', 'AT'), 
-            ('Azerbaijan', '🇦🇿', 'AZ'), ('Bahamas', '🇧🇸', 'BS'), ('Bahrain', '🇧🇭', 'BH'), 
-            ('Bangladesh', '🇧🇩', 'BD'), ('Barbados', '🇧🇧', 'BB'), ('Belarus', '🇧🇾', 'BY'), 
-            ('Belgium', '🇧🇪', 'BE'), ('Belize', '🇧🇿', 'BZ'), ('Benin', '🇧🇯', 'BJ'), 
-            ('Bhutan', '🇧🇹', 'BT'), ('Bolivia', '🇧🇴', 'BO'), ('Bosnia and Herzegovina', '🇧🇦', 'BA'), 
-            ('Botswana', '🇧🇼', 'BW'), ('Brazil', '🇧🇷', 'BR'), ('Bulgaria', '🇧🇬', 'BG'), 
-            ('Canada', '🇨🇦', 'CA'), ('Chile', '🇨🇱', 'CL'), ('China', '🇨🇳', 'CN'), 
-            ('Colombia', '🇨🇴', 'CO'), ('Costa Rica', '🇨🇷', 'CR'), ('Croatia', '🇭🇷', 'HR'), 
-            ('Cuba', '🇨🇺', 'CU'), ('Cyprus', '🇨🇾', 'CY'), ('Czech Republic', '🇨🇿', 'CZ'), 
-            ('Denmark', '🇩🇰', 'DK'), ('Dominican Republic', '🇩🇴', 'DO'), ('Ecuador', '🇪🇨', 'EC'), 
-            ('Egypt', '🇪🇬', 'EG'), ('France', '🇫🇷', 'FR'), ('Germany', '🇩🇪', 'DE'), 
-            ('India', '🇮🇳', 'IN'), ('Indonesia', '🇮🇩', 'ID'), ('Iran', '🇮🇷', 'IR'), 
-            ('Iraq', '🇮🇶', 'IQ'), ('Ireland', '🇮🇪', 'IE'), ('Israel', '🇮🇱', 'IL'), 
-            ('Italy', '🇮🇹', 'IT'), ('Jamaica', '🇯🇲', 'JM'), ('Japan', '🇯🇵', 'JP'), 
-            ('Jordan', '🇯🇴', 'JO'), ('Kazakhstan', '🇰🇿', 'KZ'), ('Kenya', '🇰🇪', 'KE'), 
-            ('Malaysia', '🇲🇾', 'MY'), ('Mexico', '🇲🇽', 'MX'), ('Morocco', '🇲🇦', 'MA'), 
-            ('Nepal', '🇳🇵', 'NP'), ('Netherlands', '🇳🇱', 'NL'), ('New Zealand', '🇳🇿', 'NZ'), 
-            ('Nigeria', '🇳🇬', 'NG'), ('Pakistan', '🇵🇰', 'PK'), ('Philippines', '🇵🇭', 'PH'), 
-            ('Poland', '🇵🇱', 'PL'), ('Portugal', '🇵🇹', 'PT'), ('Romania', '🇷🇴', 'RO'), 
-            ('Russia', '🇷🇺', 'RU'), ('Saudi Arabia', '🇸🇦', 'SA'), ('Singapore', '🇸🇬', 'SG'), 
-            ('South Africa', '🇿🇦', 'ZA'), ('South Korea', '🇰🇷', 'KR'), ('Spain', '🇪🇸', 'ES'), 
-            ('Sri Lanka', '🇱🇰', 'LK'), ('Sweden', '🇸🇪', 'SE'), ('Switzerland', '🇨🇭', 'CH'), 
-            ('Thailand', '🇹🇭', 'TH'), ('Turkey', '🇹🇷', 'TR'), ('Ukraine', '🇺🇦', 'UA'), 
-            ('United Arab Emirates', '🇦🇪', 'AE'), ('United Kingdom', '🇬🇧', 'GB'), 
-            ('United States', '🇺🇸', 'US'), ('Venezuela', '🇻🇪', 'VE'), ('Vietnam', '🇻🇳', 'VN'), 
-            ('Zambia', '🇿🇲', 'ZM'), ('Zimbabwe', '🇿🇼', 'ZW')
-        ]) AS country_map
-    )
-
-TYPE endpoint
+    SELECT country_map .1 AS country, country_map .2 AS flag, country_map .3 AS country_code
+    FROM
+        (
+            SELECT
+                arrayJoin(
+                    [
+                        ('Afghanistan', '🇦🇫', 'AF'),
+                        ('Albania', '🇦🇱', 'AL'),
+                        ('Algeria', '🇩🇿', 'DZ'),
+                        ('Andorra', '🇦🇩', 'AD'),
+                        ('Angola', '🇦🇴', 'AO'),
+                        ('Argentina', '🇦🇷', 'AR'),
+                        ('Armenia', '🇦🇲', 'AM'),
+                        ('Australia', '🇦🇺', 'AU'),
+                        ('Austria', '🇦🇹', 'AT'),
+                        ('Azerbaijan', '🇦🇿', 'AZ'),
+                        ('Bahamas', '🇧🇸', 'BS'),
+                        ('Bahrain', '🇧🇭', 'BH'),
+                        ('Bangladesh', '🇧🇩', 'BD'),
+                        ('Barbados', '🇧🇧', 'BB'),
+                        ('Belarus', '🇧🇾', 'BY'),
+                        ('Belgium', '🇧🇪', 'BE'),
+                        ('Belize', '🇧🇿', 'BZ'),
+                        ('Benin', '🇧🇯', 'BJ'),
+                        ('Bhutan', '🇧🇹', 'BT'),
+                        ('Bolivia', '🇧🇴', 'BO'),
+                        ('Bosnia and Herzegovina', '🇧🇦', 'BA'),
+                        ('Botswana', '🇧🇼', 'BW'),
+                        ('Brazil', '🇧🇷', 'BR'),
+                        ('Bulgaria', '🇧🇬', 'BG'),
+                        ('Canada', '🇨🇦', 'CA'),
+                        ('Chile', '🇨🇱', 'CL'),
+                        ('China', '🇨🇳', 'CN'),
+                        ('Colombia', '🇨🇴', 'CO'),
+                        ('Costa Rica', '🇨🇷', 'CR'),
+                        ('Croatia', '🇭🇷', 'HR'),
+                        ('Cuba', '🇨🇺', 'CU'),
+                        ('Cyprus', '🇨🇾', 'CY'),
+                        ('Czech Republic', '🇨🇿', 'CZ'),
+                        ('Denmark', '🇩🇰', 'DK'),
+                        ('Dominican Republic', '🇩🇴', 'DO'),
+                        ('Ecuador', '🇪🇨', 'EC'),
+                        ('Egypt', '🇪🇬', 'EG'),
+                        ('France', '🇫🇷', 'FR'),
+                        ('Germany', '🇩🇪', 'DE'),
+                        ('India', '🇮🇳', 'IN'),
+                        ('Indonesia', '🇮🇩', 'ID'),
+                        ('Iran', '🇮🇷', 'IR'),
+                        ('Iraq', '🇮🇶', 'IQ'),
+                        ('Ireland', '🇮🇪', 'IE'),
+                        ('Israel', '🇮🇱', 'IL'),
+                        ('Italy', '🇮🇹', 'IT'),
+                        ('Jamaica', '🇯🇲', 'JM'),
+                        ('Japan', '🇯🇵', 'JP'),
+                        ('Jordan', '🇯🇴', 'JO'),
+                        ('Kazakhstan', '🇰🇿', 'KZ'),
+                        ('Kenya', '🇰🇪', 'KE'),
+                        ('Malaysia', '🇲🇾', 'MY'),
+                        ('Mexico', '🇲🇽', 'MX'),
+                        ('Morocco', '🇲🇦', 'MA'),
+                        ('Nepal', '🇳🇵', 'NP'),
+                        ('Netherlands', '🇳🇱', 'NL'),
+                        ('New Zealand', '🇳🇿', 'NZ'),
+                        ('Nigeria', '🇳🇬', 'NG'),
+                        ('Pakistan', '🇵🇰', 'PK'),
+                        ('Philippines', '🇵🇭', 'PH'),
+                        ('Poland', '🇵🇱', 'PL'),
+                        ('Portugal', '🇵🇹', 'PT'),
+                        ('Romania', '🇷🇴', 'RO'),
+                        ('Russia', '🇷🇺', 'RU'),
+                        ('Saudi Arabia', '🇸🇦', 'SA'),
+                        ('Singapore', '🇸🇬', 'SG'),
+                        ('South Africa', '🇿🇦', 'ZA'),
+                        ('South Korea', '🇰🇷', 'KR'),
+                        ('Spain', '🇪🇸', 'ES'),
+                        ('Sri Lanka', '🇱🇰', 'LK'),
+                        ('Sweden', '🇸🇪', 'SE'),
+                        ('Switzerland', '🇨🇭', 'CH'),
+                        ('Thailand', '🇹🇭', 'TH'),
+                        ('Turkey', '🇹🇷', 'TR'),
+                        ('Ukraine', '🇺🇦', 'UA'),
+                        ('United Arab Emirates', '🇦🇪', 'AE'),
+                        ('United Kingdom', '🇬🇧', 'GB'),
+                        ('United States', '🇺🇸', 'US'),
+                        ('Venezuela', '🇻🇪', 'VE'),
+                        ('Vietnam', '🇻🇳', 'VN'),
+                        ('Zambia', '🇿🇲', 'ZM'),
+                        ('Zimbabwe', '🇿🇼', 'ZW')
+                    ]
+                ) AS country_map
+        )

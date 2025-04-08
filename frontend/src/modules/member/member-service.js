@@ -1,8 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 
 const getSelectedProjectGroup = () => {
   const lsSegmentsStore = useLfSegmentsStore();
@@ -12,23 +10,23 @@ const getSelectedProjectGroup = () => {
 };
 
 export class MemberService {
-  static async update(id, data, segments) {
+  static async update(id, data) {
     const response = await authAxios.put(
       `/member/${id}`,
       {
         ...data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 
     return response.data;
   }
 
-  static async updateBulk(data, segments) {
+  static async updateBulk(data) {
     const response = await authAxios.patch(
       '/member',
       {
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
         data,
         addDataAsArray: true,
       },
@@ -37,10 +35,10 @@ export class MemberService {
     return response.data;
   }
 
-  static async destroyAll(ids, segments) {
+  static async destroyAll(ids) {
     const params = {
       ids,
-      segments,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
     };
 
     const response = await authAxios.delete(
@@ -58,7 +56,7 @@ export class MemberService {
       '/member',
       {
         ...data.data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 
@@ -68,6 +66,11 @@ export class MemberService {
   static async findGithub(id) {
     const response = await authAxios.get(
       `/member/github/${id}`,
+      {
+        params: {
+          segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+        },
+      },
     );
 
     return response.data;
@@ -274,7 +277,6 @@ export class MemberService {
 
   static async fetchMergeSuggestions(limit, offset, query) {
     const segments = [
-      ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
       getSelectedProjectGroup().id,
     ];
 
@@ -293,26 +295,30 @@ export class MemberService {
       .then(({ data }) => Promise.resolve(data));
   }
 
-  static async getCustomAttribute(id, segments) {
+  static async getCustomAttribute(id) {
     const response = await authAxios.get(
       `/settings/members/attributes/${id}`,
       {
-        data: [
-          segments,
-        ],
+        params: {
+          segments: [
+            getSelectedProjectGroup().id,
+          ],
+        },
       },
     );
 
     return response.data;
   }
 
-  static async fetchCustomAttributes(segments) {
+  static async fetchCustomAttributes() {
     const response = await authAxios.get(
       '/settings/members/attributes',
       {
-        data: [
-          segments,
-        ],
+        params: {
+          segments: [
+            getSelectedProjectGroup().id,
+          ],
+        },
       },
     );
 

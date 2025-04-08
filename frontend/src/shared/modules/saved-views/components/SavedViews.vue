@@ -158,6 +158,8 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -171,6 +173,9 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
 
 const { hasPermission } = usePermissions();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 // Drawer
 const isFormOpen = ref<boolean>(false);
@@ -268,6 +273,7 @@ const allViews = computed<SavedView[]>(() => [
 const getViews = () => {
   SavedViewsService.query({
     placement: [props.placement],
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
   })
     .then((res: SavedView[]) => {
       views.value = [];

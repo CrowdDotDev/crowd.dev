@@ -137,7 +137,6 @@ onMounted(() => {
   doFetch();
   findSubProject(id)
     .then((res) => {
-      console.log(res);
       subproject.value = res;
     });
 });

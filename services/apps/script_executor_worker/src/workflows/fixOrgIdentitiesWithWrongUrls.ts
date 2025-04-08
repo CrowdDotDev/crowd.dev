@@ -2,7 +2,7 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as commonActivities from '../activities/common'
 import * as activities from '../activities/fix-organization-identities-with-wrong-urls'
-import { IFixOrgIdentitiesWithWrongUrlsArgs } from '../types'
+import { IScriptBatchTestArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minute',
@@ -14,9 +14,7 @@ const common = proxyActivities<typeof commonActivities>({
   retry: { maximumAttempts: 1, backoffCoefficient: 3 },
 })
 
-export async function fixOrgIdentitiesWithWrongUrls(
-  args: IFixOrgIdentitiesWithWrongUrlsArgs,
-): Promise<void> {
+export async function fixOrgIdentitiesWithWrongUrls(args: IScriptBatchTestArgs): Promise<void> {
   const PROCESS_ORGANIZATIONS_PER_RUN = args.testRun ? 10 : 100
 
   if (args.testRun) {

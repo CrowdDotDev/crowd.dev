@@ -1,32 +1,10 @@
-NODE segments_filtered
-SQL >
-
-    %
-    SELECT "segmentId" as id, repositories
-    FROM insightsProjects FINAL
-    where
-        1 = 1
-        {% if defined(project) %}
-            AND slug = {{ String(project, description="Filter by project slug", required=True) }}
-        {% else %} AND false
-        {% end %}
-        {% if defined(repo) %}
-            AND has(
-                insightsProjects.repositories,
-                {{ String(repo, description="Filter activity repo", required=False) }}
-            )
-        {% end %}
-
-
-
 NODE activities_filtered_v2_1
 SQL >
-
     %
     SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_ds a
+    FROM activities_with_relations_sorted_deduplicated_ds a
     where
-        segmentId = (SELECT id FROM segments_filtered) 
+        segmentId = (SELECT id FROM segments_filtered)
         {% if defined(startDate) %}
             AND a.timestamp
             > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
@@ -42,11 +20,10 @@ SQL >
             AND a.platform
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined(onlyContributions) or (
-            defined(onlyContributions) and onlyContributions == 1
+        {% if (
+            not defined(onlyContributions)
+            or (defined(onlyContributions) and onlyContributions == 1)
         ) %} AND a.isContribution {% end %}
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
-
-

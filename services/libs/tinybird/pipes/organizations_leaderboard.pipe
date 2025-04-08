@@ -1,27 +1,19 @@
 DESCRIPTION >
-	Serves organizations leaderboard widget
+    Serves organizations leaderboard widget
 
-
-TOKEN "insights-app-token" READ
-
-TOKEN "raul_dev_access_token" READ
-
-TOKEN "organizations_leaderboard_endpoint_read_1189" READ
+TAGS "Widget"
 
 NODE organizations_leaderboard_1
 SQL >
-
     %
     SELECT
         org.id AS id,
         org.logo AS logo,
         org.displayName AS displayName,
         COUNT(af.id) AS contributionCount,
-        ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER(), 0) AS contributionPercentage
+        ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER (), 0) AS contributionPercentage
     FROM activities_filtered af
     JOIN organizations org final ON org.id = af.organizationId
     GROUP BY org.id, org.logo, org.displayName
     ORDER BY contributionCount DESC
     LIMIT {{ Int32(limit, 10) }}
-
-TYPE endpoint

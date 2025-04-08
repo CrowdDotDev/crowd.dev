@@ -27,26 +27,23 @@
           :value="option"
           class="!h-auto !min-h-10 !py-2.5"
         >
-          <div
-            class="h-4 el-checkbox filter-checkbox"
-            :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
+          <lf-checkbox
+            class="filter-checkbox h-4"
+            :model-value="form.value.includes(option.value)"
           >
-            <span class="el-checkbox__input" :class="{ 'is-checked': form.value.includes(option.value) }">
-              <span class="el-checkbox__inner" />
-            </span>
-          </div>
-          <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
-          <div>
-            <p class="mb-0 leading-5">
-              {{ option.label }}
-            </p>
-            <p
-              v-if="option.description"
-              class="text-2xs text-gray-500 leading-5"
-            >
-              {{ option.description }}
-            </p>
-          </div>
+            <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
+            <div>
+              <span class="mb-0 leading-5">
+                {{ option.label }}
+              </span>
+              <span
+                v-if="option.description"
+                class="text-2xs text-gray-500 leading-5"
+              >
+                {{ option.description }}
+              </span>
+            </div>
+          </lf-checkbox>
         </el-option>
       </el-select>
     </div>
@@ -67,14 +64,19 @@ import {
   MultiSelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { MultiSelectFilterValue } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
-const props = defineProps<{
-  modelValue: MultiSelectAsyncFilterValue,
-  data: any,
-  config: MultiSelectAsyncFilterConfig
-} & MultiSelectAsyncFilterOptions>();
+const props = defineProps<
+  {
+    modelValue: MultiSelectAsyncFilterValue;
+    data: any;
+    config: MultiSelectAsyncFilterConfig;
+  } & MultiSelectAsyncFilterOptions
+>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectAsyncFilterValue): void, (e: 'update:data', value: any): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectAsyncFilterValue): void;
+  (e: 'update:data', value: any): void;
+}>();
 
 const form = computed({
   get: () => props.modelValue,
@@ -111,21 +113,25 @@ const include = computed<boolean>({
   },
 });
 
-watch(() => props.modelValue.value, (value?: string[]) => {
-  if (value?.length !== data.value.selected?.length) {
-    props.remotePopulateItems(value || [])
-      .then((options) => {
+watch(
+  () => props.modelValue.value,
+  (value?: string[]) => {
+    if (value?.length !== data.value.selected?.length) {
+      props.remotePopulateItems(value || []).then((options) => {
         data.value.selected = options;
       });
-  }
-}, { immediate: true });
+    }
+  },
+  { immediate: true },
+);
 
 const loading = ref<boolean>(false);
 const filteredOptions = ref<MultiSelectAsyncFilterOption[]>([]);
 
 const searchOptions = (query: string) => {
   loading.value = true;
-  props.remoteMethod(query)
+  props
+    .remoteMethod(query)
     .then((options) => {
       filteredOptions.value = options;
     })
@@ -164,18 +170,18 @@ export default {
 .filter-multiselect {
   @apply w-full relative;
 
-  .el-select__tags{
+  .el-select__tags {
     @apply top-1.5 transform-none;
   }
 
   .el-select-dropdown__item {
     @apply px-3 #{!important};
 
-    &.selected{
+    &.selected {
       @apply bg-primary-25 font-normal px-3 #{!important};
     }
 
-    &:after{
+    &:after {
       @apply hidden;
     }
   }
@@ -194,17 +200,17 @@ export default {
     }
   }
 
-  .el-tag{
+  .el-tag {
     @apply bg-white #{!important};
   }
 }
 .filter-multiselect-popper {
   @apply relative inset-0 block shadow-none h-auto opacity-100 transform-none #{!important};
 
-  .el-select-dropdown{
+  .el-select-dropdown {
     @apply -mx-4 p-0 mt-3 border-t border-gray-100;
 
-    .el-scrollbar__view{
+    .el-scrollbar__view {
       @apply py-3 px-3;
     }
   }

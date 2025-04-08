@@ -3,12 +3,12 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
 import * as activities from '../../activities'
-import { ICleanupArgs } from '../../types'
+import { IScriptBatchTestArgs } from '../../types'
 
 const {
   getOrganizationsToCleanup,
   deleteOrganization,
-  queueOrgForAggComputation,
+  syncRemoveOrganization,
   doesActivityExistInQuestDb,
   excludeEntityFromCleanup,
 } = proxyActivities<typeof activities>({
@@ -16,7 +16,7 @@ const {
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
+export async function cleanupOrganizations(args: IScriptBatchTestArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
 
   const organizationIds = await getOrganizationsToCleanup(BATCH_SIZE)
@@ -26,7 +26,7 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
     return
   }
 
-  const CHUNK_SIZE = 10
+  const CHUNK_SIZE = 25
 
   for (let i = 0; i < organizationIds.length; i += CHUNK_SIZE) {
     const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
@@ -39,10 +39,9 @@ export async function cleanupOrganizations(args: ICleanupArgs): Promise<void> {
         return excludeEntityFromCleanup(orgId, EntityType.ORGANIZATION)
       }
 
-      console.log(`Deleting organization ${orgId} from database!`)
-      await deleteOrganization(orgId)
-
-      return queueOrgForAggComputation(orgId)
+      console.log(`Deleting organization ${orgId} from opensearch and database!`)
+      await syncRemoveOrganization(orgId)
+      return deleteOrganization(orgId)
     })
 
     await Promise.all(cleanupTasks)
