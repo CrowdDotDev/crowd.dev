@@ -3,7 +3,7 @@ SCHEMA >
     `name` String `json:$.record.name`,
     `slug` String `json:$.record.slug`,
     `description` String `json:$.record.description` DEFAULT '',
-    `categoryId` String `json:$.record.categoryId`,
+    `categoryId` Nullable(String) `json:$.record.categoryId`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
