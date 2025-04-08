@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves organizations leaderboard widget
 
-TOKEN "organizations_leaderboard_endpoint_read_1189" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE organizations_leaderboard_1
 SQL >

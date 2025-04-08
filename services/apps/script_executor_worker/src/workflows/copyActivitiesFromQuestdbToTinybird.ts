@@ -16,13 +16,14 @@ export async function copyActivitiesFromQuestdbToTinybird(
 
   if (args.deleteIndexedEntities) {
     await activity.resetIndexedIdentitiesForSyncingActivitiesToTinybird()
+    latestSyncedActivityTimestamp = null
   } else {
     latestSyncedActivityTimestamp =
       args.latestSyncedActivityTimestamp ||
       (await activity.getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird())
   }
 
-  const { activitiesLength, activitiesRedisKey, lastTimestamp } =
+  let { activitiesLength, activitiesRedisKey, lastTimestamp } =
     await activity.getActivitiesToCopyToTinybird(
       latestSyncedActivityTimestamp ?? undefined,
       BATCH_SIZE_PER_RUN,
@@ -33,9 +34,25 @@ export async function copyActivitiesFromQuestdbToTinybird(
     return
   }
 
-  if (activitiesLength < BATCH_SIZE_PER_RUN) {
-    if (lastTimestamp === args.latestSyncedActivityTimestamp) {
+  if (lastTimestamp === args.latestSyncedActivityTimestamp) {
+    if (activitiesLength < BATCH_SIZE_PER_RUN) {
       return
+    }
+
+    // All activities returned have the same timestamp, we need a bigger batch size
+    // then the default one to pass this point
+    let batchSizeMultiplier = 2
+
+    while (lastTimestamp === args.latestSyncedActivityTimestamp) {
+      const result = await activity.getActivitiesToCopyToTinybird(
+        lastTimestamp,
+        BATCH_SIZE_PER_RUN * batchSizeMultiplier,
+        args.segmentIds ?? [],
+      )
+      activitiesLength = result.activitiesLength
+      activitiesRedisKey = result.activitiesRedisKey
+      lastTimestamp = result.lastTimestamp
+      batchSizeMultiplier += 1
     }
   }
 

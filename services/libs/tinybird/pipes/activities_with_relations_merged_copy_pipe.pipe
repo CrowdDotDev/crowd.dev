@@ -1,0 +1,44 @@
+DESCRIPTION >
+    Merges activities and its relations together. This copy pipe runs in append mode, meaning only the activities that were updated recently (last hour) will be merged together again. This means that for change done in this pipe, the bash script called `run_activity_merge_copy_pipe` under `services/libs/tinybird/scripts/` need to be run. The script runs this copy pipe in daily batches, backfilling and merging activities and relations together. Destination datasource's sorting keys are optimized for the following deduplication operation.
+
+TAGS "Activity preprocessing pipeline"
+
+NODE activities_with_relations_merged
+SQL >
+    %
+    SELECT a.*, ar.updatedAt AS "updatedAt", ar.memberId, ar.organizationId, ar.segmentId
+    FROM
+        (
+            SELECT *
+            FROM activities_deduplicated_ds
+            WHERE
+                id IN (
+                    SELECT activityId
+                    FROM activityRelations_deduplicated_ds
+                    where
+                        1 = 1
+                        {% if defined(start) %} AND updatedAt >= toDateTime({{ start }})
+                        {% else %} AND updatedAt >= toStartOfHour(now() - interval 1 hour)
+                        {% end %}
+                        {% if defined(end) %} AND updatedAt < toDateTime({{ end }})
+                        {% else %} AND updatedAt < now()
+                        {% end %}
+                )
+        ) a
+    JOIN
+        (
+            SELECT *
+            FROM activityRelations_deduplicated_ds
+            where
+                1 = 1
+                {% if defined(start) %} AND updatedAt >= toDateTime({{ start }})
+                {% else %} AND updatedAt >= today()
+                {% end %}
+                {% if defined(end) %} AND updatedAt < toDateTime({{ end }}) {% end %}
+        ) ar
+        ON ar.activityId = a.id
+
+TYPE COPY
+TARGET_DATASOURCE activities_with_relations_merged_ds
+COPY_MODE append
+COPY_SCHEDULE 10 * * * *
