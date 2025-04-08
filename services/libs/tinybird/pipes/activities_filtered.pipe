@@ -1,5 +1,3 @@
-TAGS "Widget"
-
 NODE segments_filtered
 SQL >
     %

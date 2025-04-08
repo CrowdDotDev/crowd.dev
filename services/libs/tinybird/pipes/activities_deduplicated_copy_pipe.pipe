@@ -30,7 +30,7 @@ SQL >
             then '500+'
             else ''
         end as "gitChangedLinesBucket"
-    FROM activities_2 a final
+    FROM activities a final
 
 TYPE COPY
 TARGET_DATASOURCE activities_deduplicated_ds
