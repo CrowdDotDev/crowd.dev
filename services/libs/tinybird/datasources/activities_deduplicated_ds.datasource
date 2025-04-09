@@ -14,7 +14,6 @@ SCHEMA >
     `gitChangedLines` Int64,
     `gitChangedLinesBucket` String,
     `score` Int8,
-    `updatedAt` DateTime64(3),
     `attributes` String
 
 ENGINE MergeTree

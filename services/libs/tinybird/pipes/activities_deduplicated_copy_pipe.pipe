@@ -31,7 +31,6 @@ SQL >
             else ''
         end as "gitChangedLinesBucket",
         a.score,
-        a.updatedAt,
         a.attributes
     FROM activities a final
 
