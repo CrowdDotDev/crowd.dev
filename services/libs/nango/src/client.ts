@@ -233,6 +233,7 @@ export const startNangoSync = async (
   integration: NangoIntegration,
   connectionId: string,
   syncs?: string[],
+  fullSync = false,
   retries = 1,
 ): Promise<void> => {
   ensureBackendClient()
@@ -259,7 +260,7 @@ export const startNangoSync = async (
   } catch (err) {
     if (retries <= MAX_RETRIES) {
       await timeout(100)
-      return await startNangoSync(integration, connectionId, syncs, retries + 1)
+      return await startNangoSync(integration, connectionId, syncs, fullSync, retries + 1)
     } else {
       throw err
     }

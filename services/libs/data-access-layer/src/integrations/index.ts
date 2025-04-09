@@ -232,12 +232,14 @@ export async function findIntegrationDataForNangoWebhookProcessing(
 ): Promise<{
   id: string
   segmentId: string
+  platform: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: any
 } | null> {
   return qx.selectOneOrNone(
     `
       select id,
+             platform,
              "segmentId",
              settings
       from integrations
