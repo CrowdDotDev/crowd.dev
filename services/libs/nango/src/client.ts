@@ -9,7 +9,7 @@ import type {
 } from '@nangohq/types' assert { 'resolution-mode': 'require' }
 import axios from 'axios'
 
-import { SERVICE } from '@crowd/common'
+import { SERVICE, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import {
@@ -22,6 +22,8 @@ import {
 import { toRecord } from './utils'
 
 const log = getServiceChildLogger('nango')
+
+const MAX_RETRIES = 10
 
 export type { SyncStatus } from '@nangohq/node' assert { 'resolution-mode': 'require' }
 
@@ -159,7 +161,8 @@ export const createNangoGithubConnection = async (
   } catch (err) {
     log.error(err, 'Error creating nango GitHub connection')
 
-    if (retries <= 5) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
       return await createNangoGithubConnection(
         repoName,
         owner,
@@ -177,6 +180,7 @@ export const createNangoGithubConnection = async (
 export const createNangoConnection = async (
   integration: NangoIntegration,
   params: any,
+  retries = 1,
 ): Promise<string> => {
   ensureBackendClient()
 
@@ -195,6 +199,11 @@ export const createNangoConnection = async (
     const result = await frontendClient.create(integration, params)
     return result.connectionId
   } catch (err) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await createNangoConnection(integration, params, retries + 1)
+    }
+
     log.error(err, 'Error creating nango connection')
     throw err
   }
@@ -211,7 +220,8 @@ export const setNangoMetadata = async (
   try {
     await backendClient.setMetadata(integration, connectionId, metadata)
   } catch (err) {
-    if (retries <= 5) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
       return await setNangoMetadata(integration, connectionId, metadata, retries + 1)
     } else {
       throw err
@@ -247,7 +257,8 @@ export const startNangoSync = async (
 
     await backendClient.startSync(integration, syncs, connectionId)
   } catch (err) {
-    if (retries <= 5) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
       return await startNangoSync(integration, connectionId, syncs, retries + 1)
     } else {
       throw err
@@ -265,7 +276,8 @@ export const deleteNangoConnection = async (
   try {
     await backendClient.deleteConnection(integration, connectionId)
   } catch (err) {
-    if (retries <= 5) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
       return await deleteNangoConnection(integration, connectionId, retries + 1)
     } else {
       throw err
