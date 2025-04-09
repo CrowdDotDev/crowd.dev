@@ -5,7 +5,7 @@ import {
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { platformToNangoIntegration, startNangoSync } from '@crowd/nango'
+import { initNangoCloudClient, platformToNangoIntegration, startNangoSync } from '@crowd/nango'
 import { PlatformType } from '@crowd/types'
 
 const log = getServiceLogger()
@@ -20,6 +20,7 @@ if (processArguments.length !== 1) {
 const integrationIds = processArguments[0].split(',')
 
 setImmediate(async () => {
+  await initNangoCloudClient()
   const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
 
   for (const integrationId of integrationIds) {
