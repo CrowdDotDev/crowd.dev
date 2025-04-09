@@ -12,7 +12,10 @@ SCHEMA >
     `sentimentLabel` String,
     `sentimentScore` Float32,
     `gitChangedLines` Int64,
-    `gitChangedLinesBucket` String
+    `gitChangedLinesBucket` String,
+    `score` Int8,
+    `updatedAt` DateTime64(3),
+    `attributes` String
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
