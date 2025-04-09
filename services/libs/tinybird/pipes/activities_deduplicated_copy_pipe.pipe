@@ -29,7 +29,10 @@ SQL >
             when gitChangedLines > 499
             then '500+'
             else ''
-        end as "gitChangedLinesBucket"
+        end as "gitChangedLinesBucket",
+        a.score,
+        a.updatedAt,
+        a.attributes
     FROM activities a final
 
 TYPE COPY
