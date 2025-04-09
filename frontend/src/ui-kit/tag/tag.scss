@@ -4,12 +4,12 @@
   .c-tag-close-icon {
     @apply ml-1.5 cursor-pointer text-gray-400;
     &:hover {
-      @apply text-white bg-gray-400 rounded-[50%];
+      @apply text-white bg-gray-400 rounded-full;
     }
   }
 
   &--rounded {
-    border-radius: 50px;
+    @apply rounded-full
   }
 
   // Size Modifiers

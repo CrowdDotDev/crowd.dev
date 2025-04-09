@@ -1,5 +1,5 @@
 <template>
-  <span
+  <div
     class="c-tag"
     :class="[
       `c-tag--${props.size}`,
@@ -13,7 +13,7 @@
       <slot />
     </span>
     <lf-icon class="c-tag-close-icon" name="xmark" :size="14" @click="emit('close')" />
-  </span>
+  </div>
 </template>
 
 <script setup lang="ts">
