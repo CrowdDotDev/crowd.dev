@@ -1,5 +1,8 @@
-import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { findIntegrationDataForNangoWebhookProcessing } from '@crowd/data-access-layer/src/integrations'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import {
+  clearNangoIntegrationCursorData,
+  findIntegrationDataForNangoWebhookProcessing,
+} from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import { platformToNangoIntegration, startNangoSync } from '@crowd/nango'
@@ -17,7 +20,7 @@ if (processArguments.length !== 1) {
 const integrationIds = processArguments[0].split(',')
 
 setImmediate(async () => {
-  const dbConnection = await getDbConnection(READ_DB_CONFIG())
+  const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
 
   for (const integrationId of integrationIds) {
     const integration = await findIntegrationDataForNangoWebhookProcessing(
@@ -45,6 +48,10 @@ setImmediate(async () => {
 
           await startNangoSync(nangoIntegration, nangoConnectionId, undefined, true)
         }
+
+        // clear cursors
+        log.info(`Clearing cursors for integration '${integrationId} (${integration.platform})'!`)
+        await clearNangoIntegrationCursorData(pgpQx(dbConnection), integrationId)
       } catch (error) {
         log.error(`Failed to restart syncs for integration: ${integrationId}`, error)
       }

@@ -276,6 +276,20 @@ export async function setNangoIntegrationCursor(
   )
 }
 
+export async function clearNangoIntegrationCursorData(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+      update integrations set settings = settings - 'cursors' where id = $(integrationId)
+    `,
+    {
+      integrationId,
+    },
+  )
+}
+
 export async function fetchIntegrationsForSegment(
   qx: QueryExecutor,
   segmentId: string,
