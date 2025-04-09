@@ -632,7 +632,7 @@ export default class IntegrationService {
 
       const connectionData = await getNangoConnectionData(
         NangoIntegration.GITHUB,
-        tokenConnectionIds[0],
+        tokenConnectionIds[Math.floor(Math.random() * tokenConnectionIds.length)],
       )
 
       const tryCreateNangoConnection = async (
