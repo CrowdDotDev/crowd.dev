@@ -27,13 +27,6 @@ export interface IUnmergePreviewResult<T> {
   secondary: T
 }
 
-export interface IUnmergeOptionsResult<T> {
-  mergeActionId?: string
-  previousMergeExists: boolean
-  canRevertMerge: boolean
-  relatedIdentities: T[]
-}
-
 export interface IMergeAction {
   id: string
   type: MergeActionType

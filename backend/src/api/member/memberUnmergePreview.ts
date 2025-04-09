@@ -8,7 +8,7 @@ export default async (req, res) => {
   const payload = await new MemberService(req).unmergePreview(
     req.params.memberId,
     req.body.identity,
-    req.body.strategy,
+    req.body.revertPreviousMerge,
   )
 
   await req.responseHandler.success(req, res, payload, 200)

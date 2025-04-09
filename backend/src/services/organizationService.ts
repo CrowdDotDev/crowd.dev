@@ -73,6 +73,7 @@ export default class OrganizationService extends LoggerBase {
   async unmergePreview(
     organizationId: string,
     identity: IOrganizationIdentity,
+    revertPreviousMerge: boolean = false,
   ): Promise<IUnmergePreviewResult<IOrganizationUnmergePreviewResult>> {
     try {
       const organization = await OrganizationRepository.findById(organizationId, this.options)
@@ -98,14 +99,18 @@ export default class OrganizationService extends LoggerBase {
 
       organization.identities = identities
 
-      const mergeAction = await MergeActionsRepository.findMergeBackup(
-        organizationId,
-        MergeActionType.ORG,
-        identity,
-        this.options,
-      )
+      if (revertPreviousMerge) {
+        const mergeAction = await MergeActionsRepository.findMergeBackup(
+          organizationId,
+          MergeActionType.ORG,
+          identity,
+          this.options,
+        )
 
-      if (mergeAction) {
+        if (!mergeAction) {
+          throw new Error('No previous merge action found to revert for organization!')
+        }
+
         const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
 
@@ -144,7 +149,7 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      // merge action not found, preview an identity extraction instead
+      // Identity extraction preview will be generated if revertMerge flag is not set
       const secondaryIdentities = [identity]
       const primaryIdentities = organization.identities.filter(
         (i) =>
@@ -212,6 +217,56 @@ export default class OrganizationService extends LoggerBase {
       }
     } catch (err) {
       this.options.log.error(err, 'Error while generating unmerge/identity extraction preview!')
+      throw err
+    }
+  }
+
+  async canRevertMerge(organizationId: string, identity: IOrganizationIdentity): Promise<boolean> {
+    try {
+      // Get the identities of the organization
+      const organizationIdentities = await OrganizationRepository.getIdentities(
+        [organizationId],
+        this.options,
+      )
+
+      // Check if the organization has the identity to be unmerged
+      if (
+        !organizationIdentities.some(
+          (i) =>
+            i.platform === identity.platform &&
+            i.value === identity.value &&
+            i.type === identity.type &&
+            i.verified === identity.verified,
+        )
+      ) {
+        throw new Error(`Organization doesn't have the identity sent to be unmerged!`)
+      }
+
+      // Check if there was a previous merge involving this identity
+      const mergeAction = await MergeActionsRepository.findMergeBackup(
+        organizationId,
+        MergeActionType.ORG,
+        identity,
+        this.options,
+      )
+
+      if (!mergeAction) {
+        return false
+      }
+
+      const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
+
+      // Check if the primary organization would still have identities after reverting
+      const remainingIdentitiesInCurrentOrg = organizationIdentities.filter(
+        (i) =>
+          !secondaryBackup.identities.some(
+            (s) => s.platform === i.platform && s.value === i.value && s.type === identity.type,
+          ),
+      )
+
+      return remainingIdentitiesInCurrentOrg.length > 0
+    } catch (err) {
+      this.options.log.error(err, 'Error while checking if organization merge can be reverted!')
       throw err
     }
   }
