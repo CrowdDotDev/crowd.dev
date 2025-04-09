@@ -58,4 +58,6 @@ setImmediate(async () => {
       }
     }
   }
+
+  process.exit(0)
 })

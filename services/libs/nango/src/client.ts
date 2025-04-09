@@ -256,7 +256,11 @@ export const startNangoSync = async (
       }
     }
 
-    await backendClient.startSync(integration, syncs, connectionId)
+    if (fullSync) {
+      await backendClient.triggerSync(integration, syncs, connectionId, true)
+    } else {
+      await backendClient.startSync(integration, syncs, connectionId)
+    }
   } catch (err) {
     if (retries <= MAX_RETRIES) {
       await timeout(100)
