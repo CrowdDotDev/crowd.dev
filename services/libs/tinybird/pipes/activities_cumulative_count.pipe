@@ -1,8 +1,7 @@
 DESCRIPTION >
     Serves popularity forks and stars widgets
 
-TOKEN "activities_cumulative_count_endpoint_read_5317" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE historical_activity_count
 SQL >

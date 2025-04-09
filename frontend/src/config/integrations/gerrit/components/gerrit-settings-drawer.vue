@@ -67,12 +67,14 @@
         + Add Repository Name
       </lf-button>
       <br />
-      <el-checkbox id="enableAllRepos" v-model="form.enableAllRepos">
-        Enable All Projects
-      </el-checkbox>
-      <el-checkbox id="enableGit" v-model="form.enableGit">
-        Enable Git Integration
-      </el-checkbox>
+      <div class="flex mt-2">
+        <lf-checkbox id="enableAllRepos" v-model="form.enableAllRepos" size="large">
+          Enable All Projects
+        </lf-checkbox>
+        <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
+          Enable Git Integration
+        </lf-checkbox>
+      </div>
     </template>
 
     <template #footer>
@@ -116,6 +118,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

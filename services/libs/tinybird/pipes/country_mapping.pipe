@@ -1,8 +1,7 @@
 DESCRIPTION >
     Provides country mapping (of country name, flag and country code) for geo distribution widgets
 
-TOKEN "country_mapping_endpoint_read_0281" READ
-TOKEN "insights-app-token" READ
+TAGS "Utility"
 
 NODE map_country_name_flag_code
 SQL >

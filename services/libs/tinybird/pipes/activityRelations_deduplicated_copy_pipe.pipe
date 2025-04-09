@@ -1,0 +1,13 @@
+DESCRIPTION >
+    Deduplicates activityRelations and the destination datasource (activityRelations_deduplicated_ds) has optimized sorting key for merge operation that will follow
+
+TAGS "Activity preprocessing pipeline"
+
+NODE activityRelations_deduplicated
+SQL >
+    SELECT * FROM activityRelations final
+
+TYPE COPY
+TARGET_DATASOURCE activityRelations_deduplicated_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 * * * *

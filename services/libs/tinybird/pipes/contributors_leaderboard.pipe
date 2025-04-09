@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves contributors leaderboard widget.
 
-TOKEN "contributors_leaderboard_endpoint_read_3484" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE memberId_aggregates
 SQL >
