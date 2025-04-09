@@ -24,3 +24,13 @@ SQL >
             }}
             || '%'
         {% end %}
+        {% if defined(categoryIds) %}
+            AND collections.categoryId
+            IN {{
+                Array(
+                    categoryIds,
+                    'String',
+                    description="Filter collections by category ids",
+                )
+            }}
+        {% end %}
