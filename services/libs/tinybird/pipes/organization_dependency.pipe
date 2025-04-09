@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves organization dependency widget
 
-TOKEN "raul_dev_access_token" READ
-TOKEN "organization_dependency_endpoint_read_6465" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE organization_dependency_0
 SQL >

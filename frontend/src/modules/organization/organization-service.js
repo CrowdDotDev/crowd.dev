@@ -11,22 +11,22 @@ const getSelectedProjectGroup = () => {
 };
 
 export class OrganizationService {
-  static async update(id, data, segments) {
+  static async update(id, data) {
     const response = await authAxios.put(
       `/organization/${id}`,
       {
         ...data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 
     return response.data;
   }
 
-  static async destroyAll(ids, segments) {
+  static async destroyAll(ids) {
     const params = {
       ids,
-      segments,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
     };
 
     const response = await authAxios.delete(
@@ -93,12 +93,12 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async create(data, segments) {
+  static async create(data) {
     const response = await authAxios.post(
       '/organization',
       {
         ...data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 

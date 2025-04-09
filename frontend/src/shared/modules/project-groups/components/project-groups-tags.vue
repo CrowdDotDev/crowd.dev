@@ -7,11 +7,11 @@
       :disabled="projectGroups.length === 1"
     >
       <template #reference>
-        <el-tag type="info" size="small">
+        <lf-tag type="secondary" size="small">
           {{ projectGroups.length > 1
             ? pluralize('project group', projectGroups.length, true)
             : projectGroups[0].name }}
-        </el-tag>
+        </lf-tag>
       </template>
 
       <div>
@@ -20,9 +20,9 @@
         </div>
         <div class="flex flex-wrap items-center gap-1">
           <div v-for="projectGroup in projectGroups" :key="projectGroup.id">
-            <el-tag type="info" size="small">
+            <lf-tag type="secondary" size="small" bg-color="white">
               {{ projectGroup.name }}
-            </el-tag>
+            </lf-tag>
           </div>
         </div>
       </div>
@@ -34,6 +34,7 @@
 import { getProjectGroupsThroughSegments } from '@/utils/segments';
 import { computed } from 'vue';
 import pluralize from 'pluralize';
+import LfTag from '@/ui-kit/tag/Tag.vue';
 
 const props = defineProps<{
   segments: string[];

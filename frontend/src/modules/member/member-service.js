@@ -10,23 +10,23 @@ const getSelectedProjectGroup = () => {
 };
 
 export class MemberService {
-  static async update(id, data, segments) {
+  static async update(id, data) {
     const response = await authAxios.put(
       `/member/${id}`,
       {
         ...data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 
     return response.data;
   }
 
-  static async updateBulk(data, segments) {
+  static async updateBulk(data) {
     const response = await authAxios.patch(
       '/member',
       {
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
         data,
         addDataAsArray: true,
       },
@@ -35,10 +35,10 @@ export class MemberService {
     return response.data;
   }
 
-  static async destroyAll(ids, segments) {
+  static async destroyAll(ids) {
     const params = {
       ids,
-      segments,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
     };
 
     const response = await authAxios.delete(
@@ -56,7 +56,7 @@ export class MemberService {
       '/member',
       {
         ...data.data,
-        segments,
+        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
     );
 
@@ -66,6 +66,11 @@ export class MemberService {
   static async findGithub(id) {
     const response = await authAxios.get(
       `/member/github/${id}`,
+      {
+        params: {
+          segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+        },
+      },
     );
 
     return response.data;

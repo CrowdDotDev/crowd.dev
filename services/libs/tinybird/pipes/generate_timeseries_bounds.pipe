@@ -1,8 +1,7 @@
 DESCRIPTION >
     Provides timeseries bounds for generate_timeseries pipe. If `startDate` is not sent, then the first existing activity timestamp from sent filters are used as startDate. If endDate is not sent, then `now()` is used as endDate
 
-TOKEN "generate_timeseries_bounds_endpoint_read_4511" READ
-TOKEN "insights-app-token" READ
+TAGS "Utility"
 
 NODE generate_timeseries_boundz_0
 SQL >

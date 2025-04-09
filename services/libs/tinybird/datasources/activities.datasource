@@ -1,3 +1,5 @@
+TAGS "Activity preprocessing pipeline"
+
 SCHEMA >
     `id` String `json:$.id`,
     `type` LowCardinality(String) `json:$.type`,
@@ -29,5 +31,5 @@ SCHEMA >
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY isContribution, platform, type, channel, sourceId, timestamp
+ENGINE_SORTING_KEY id
 ENGINE_VER updatedAt

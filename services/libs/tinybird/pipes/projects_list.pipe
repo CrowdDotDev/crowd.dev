@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves projects list page with sorting and pagination
 
-TOKEN "projects_list_endpoint_read_5981" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE projects_paginated
 SQL >

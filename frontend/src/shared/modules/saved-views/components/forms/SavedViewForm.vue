@@ -15,7 +15,11 @@
               </p>
             </div>
             <div>
-              <el-switch v-model="form.shared" :disabled="isEdit || !hasPermission(LfPermission.customViewsTenantManage)" />
+              <lf-switch
+                v-model="form.shared"
+                :disabled="!!isEdit || !hasPermission(LfPermission.customViewsTenantManage)"
+                class="ml-4"
+              />
             </div>
           </div>
         </section>
@@ -229,6 +233,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const props = defineProps<{
   modelValue: boolean,

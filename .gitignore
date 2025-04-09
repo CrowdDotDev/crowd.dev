@@ -54,4 +54,5 @@ services/libs/*/dist
 
 **/.tinyb
 **/.tinyenv
+**/*copied_ranges.log*
 services/libs/tinybird/.diff_tmp
