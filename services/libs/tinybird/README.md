@@ -19,7 +19,7 @@
 
 ## Creating new endpoints
 1. Install the **tb client** for classic tinybird
-    - 1.1. Create a new virtual environment for pip `python3 -m venv venv`
+    - 1.1. Create a new virtual environment for pip `python3 -m venv .venv`
     - 1.2. Source the venv `source .venv/bin/activate`
     - 1.3. In this folder run `pip install -r requirements.txt`
     - 1.4 Check installation `tb --version` The version should be 5.x.x
