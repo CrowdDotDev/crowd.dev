@@ -19,6 +19,7 @@ SQL >
         insightsProjects.description,
         insightsProjects.logoUrl as logo,
         insightsProjects.repositories,
+        insightsProjects.isLF,
         coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
         coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
     FROM insightsProjects FINAL
@@ -46,14 +47,12 @@ SQL >
             AND collection_info.collectionSlug
             = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
         {% end %}
-        {% if defined(isLF) %}
-            AND insightsProjects.isLF
-            = {{ Boolean(isLF, description="Filter project if it belongs to LFX") }}
-        {% end %}
+        {% if defined(isLF) %} AND insightsProjects.isLF = {{ Boolean(isLF) }} {% end %}
     group by
         insightsProjects.id,
         insightsProjects.name,
         insightsProjects.slug,
         insightsProjects.description,
         insightsProjects.logoUrl,
-        insightsProjects.repositories
+        insightsProjects.repositories,
+        insightsProjects.isLF
