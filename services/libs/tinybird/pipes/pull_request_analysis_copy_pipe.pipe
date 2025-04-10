@@ -98,7 +98,7 @@ SQL >
             mergedAt IS NULL, NULL, toUnixTimestamp(mergedAt) - toUnixTimestamp(openedAt)
         ) AS mergedInSeconds,
         IF(
-            resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(resolvedAt)
+            resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds
     FROM pull_request_opened pr_opened
     LEFT JOIN pull_request_first_assigned AS assigned ON pr_opened.sourceId = assigned.sourceParentId
