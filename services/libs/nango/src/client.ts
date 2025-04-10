@@ -257,7 +257,21 @@ export const startNangoSync = async (
     }
 
     if (fullSync) {
-      await backendClient.triggerSync(integration, syncs, connectionId, true)
+      await axios.post(
+        'https://api.nango.dev/sync/trigger',
+        {
+          provider_config_key: integration,
+          connection_id: connectionId,
+          syncs,
+          sync_mode: 'full_refresh_and_clear_cache',
+          full_resync: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NANGO_CLOUD_SECRET_KEY}`,
+          },
+        },
+      )
     } else {
       await backendClient.startSync(integration, syncs, connectionId)
     }
