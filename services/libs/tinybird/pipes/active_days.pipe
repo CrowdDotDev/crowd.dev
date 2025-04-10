@@ -1,0 +1,80 @@
+DESCRIPTION >
+    Serves the `Development - Active days` widget
+
+NODE timeseries_generation_for_active_days
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            count(case when af.id != '' then af.id else null end) AS "activityCount"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            activities_filtered af
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(af.timestamp)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(af.timestamp)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(af.timestamp)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(af.timestamp)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(af.timestamp)
+            END
+            = ds.startDate
+            and af.type in (
+                'pull_request-reviewed',
+                'issues-closed',
+                'merge_request-closed',
+                'pull_request-closed',
+                'authored-commit',
+                'committed-commit',
+                'informed-commit',
+                'signed-off-commit',
+                'reviewed-commit',
+                'co-authored-commit',
+                'reported-commit',
+                'tested-commit',
+                'influenced-commit',
+                'approved-commit',
+                'resolved-commit',
+                'issues-opened',
+                'issue-comment',
+                'pull_request-opened',
+                'pull_request-comment',
+                'pull_request-review-thread-comment',
+                'pull_request-merged',
+                'changeset-created',
+                'changeset-merged',
+                'changeset-abandoned',
+                'discussion-started',
+                'discussion-comment',
+                'merge_request-opened',
+                'merge_request-comment',
+                'merge_request-review-approved'
+            )
+        GROUP BY ds."startDate", ds."endDate"
+        order by ds."startDate"
+    {% else %} SELECT 1
+    {% end %}
+
+NODE active_days_merged
+SQL >
+    %
+    {% if not defined(granularity) %}
+        SELECT
+            count(DISTINCT DATE(timestamp)) AS activeDaysCount,
+            ROUND(
+                COUNT(CASE WHEN activities_filtered.id != '' THEN 1 END)
+                * 1.0
+                / (
+                    SELECT DATEDIFF('day', actual_start_date, actual_end_date) + 1
+                    FROM generate_timeseries_bounds
+                )
+            ) AS avgContributionsPerDay
+        FROM activities_filtered
+    {% else %} select * from timeseries_generation_for_active_days
+    {% end %}

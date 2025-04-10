@@ -1,0 +1,45 @@
+DESCRIPTION >
+    Serves the `Development - Contributions outside work hours` widget
+
+NODE country_mapping_array
+SQL >
+    SELECT groupArray((country, flag, country_code, timezone_offset)) AS country_data
+    FROM country_mapping
+
+NODE members_with_location_information
+SQL >
+    SELECT
+        m.id,
+        m.location,
+        arrayFilter(
+            x -> position(coalesce(nullIf(upper(m.country), ''), upper(m.location)), upper(x .1)) > 0,
+            (SELECT country_data FROM country_mapping_array)
+        ) AS matched_countries,
+        arrayJoin(
+            if(empty(matched_countries), [('Unknown', '❓', 'XX', 0)], matched_countries)
+        ) AS country_data
+    FROM members_sorted AS m
+    where country_data .1 != 'Unknown'
+
+NODE activities_with_local_timestamp
+SQL >
+    select
+        count(id) as activityCount,
+        toDayOfWeek(addHours(af.timestamp, mwli.country_data .4)) as weekday,
+        intDiv(toHour(addHours(af.timestamp, mwli.country_data .4)), 2) * 2 AS two_hours_block
+    from activities_filtered af
+    join members_with_location_information mwli on mwli.id = af.memberId
+    where platform in ('git', 'github', 'gitlab', 'gerrit')
+    group by weekday, two_hours_block
+
+NODE weekday_hours
+SQL >
+    WITH range(1, 8) AS weekdays, array(8, 10, 12, 14, 16, 18, 20, 22, 0, 2, 4, 6) AS two_hours_blocks
+    SELECT arrayJoin(weekdays) AS weekday, arrayJoin(two_hours_blocks) AS two_hours_block
+
+NODE contributions_outside_working_hours_merged
+SQL >
+    FROM weekday_hours
+    LEFT JOIN activities_with_local_timestamp USING (weekday, two_hours_block)
+    SELECT weekday, two_hours_block as twoHoursBlock, coalesce(activityCount, 0) AS activityCount
+    ORDER BY weekday, two_hours_block

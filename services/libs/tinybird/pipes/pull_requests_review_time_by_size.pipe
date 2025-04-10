@@ -1,0 +1,22 @@
+DESCRIPTION >
+    Serves the `Development - Review time by pull request size` widget
+
+TAGS "Widget"
+
+NODE review_time_by_pull_request_size_0
+SQL >
+    %
+    select
+        avg(pra.reviewedInSeconds) "reviewedInSecondsAvg",
+        avg(dateDiff('second', pra.openedAt, pra.reviewedAt)) AS seconds_diff
+    from pull_requests_analyzed pra
+    where
+        pra.segmentId = (SELECT id FROM segments_filtered)
+        {% if defined(startDate) %}
+            AND pra.openedAt
+            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        {% end %}
+        {% if defined(endDate) %}
+            AND pra.openedAt
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+        {% end %}
