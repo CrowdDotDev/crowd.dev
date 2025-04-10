@@ -1,0 +1,22 @@
+SCHEMA >
+    `id` String,
+    `sourceId` String,
+    `openedAt` DateTime,
+    `segmentId` String,
+    `channel` String,
+    `gitChangedLinesBucket` String,
+    `assignedAt` Nullable(DateTime),
+    `reviewRequestedAt` Nullable(DateTime),
+    `reviewedAt` Nullable(DateTime),
+    `approvedAt` Nullable(DateTime),
+    `closedAt` Nullable(DateTime),
+    `mergedAt` Nullable(DateTime),
+    `assignedInSeconds` Nullable(Int64),
+    `reviewRequestedInSeconds` Nullable(Int64),
+    `reviewedInSeconds` Nullable(Int64),
+    `closedInSeconds` Nullable(Int64),
+    `mergedInSeconds` Nullable(Int64)
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(openedAt)
+ENGINE_SORTING_KEY segmentId, channel, openedAt, gitChangedLinesBucket, sourceId, id

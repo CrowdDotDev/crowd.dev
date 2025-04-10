@@ -1,0 +1,122 @@
+DESCRIPTION >
+    Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
+
+NODE pull_request_opened
+SQL >
+    SELECT id, sourceId, channel, timestamp AS openedAt, segmentId, gitChangedLinesBucket
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-opened'
+
+NODE pull_request_first_assigned
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS assignedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-assigned'
+    GROUP BY sourceParentId
+    order by min(timestamp) desc
+
+NODE pull_request_first_review_requested
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS reviewRequestedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-review-requested'
+    GROUP BY sourceParentId
+
+NODE pull_request_first_reviewed
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS reviewedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-reviewed'
+    GROUP BY sourceParentId
+
+NODE pull_request_first_review_approved
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS approvedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE
+        type = 'pull_request-reviewed'
+        and simpleJSONExtractString(attributes, 'reviewState') = 'APPROVED'
+    GROUP BY sourceParentId
+
+NODE pull_request_first_closed
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS closedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-closed'
+    GROUP BY sourceParentId
+
+NODE pull_request_first_merged
+DESCRIPTION >
+    Resolved PRs are the ones that are either closed or merged
+
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS mergedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-merged'
+    GROUP BY sourceParentId
+
+NODE pull_request_first_resolved
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS resolvedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'pull_request-closed' or type = 'pull_request-merged'
+    GROUP BY sourceParentId
+
+NODE pull_request_analysis_results_merged
+SQL >
+    SELECT
+        pr_opened.id,
+        pr_opened.sourceId,
+        pr_opened.openedAt,
+        pr_opened.segmentId,
+        pr_opened.channel,
+        pr_opened.gitChangedLinesBucket,
+        IF(assigned.assignedAt = toDateTime(0), NULL, assigned.assignedAt) AS assignedAt,
+        IF(
+            review_requested.reviewRequestedAt = toDateTime(0), NULL, review_requested.reviewRequestedAt
+        ) AS reviewRequestedAt,
+        IF(reviewed.reviewedAt = toDateTime(0), NULL, reviewed.reviewedAt) AS reviewedAt,
+        IF(approved.approvedAt = toDateTime(0), NULL, approved.approvedAt) AS approvedAt,
+        IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
+        IF(merged.mergedAt = toDateTime(0), NULL, merged.mergedAt) AS mergedAt,
+        IF(
+            assigned.assignedAt IS NULL,
+            NULL,
+            toUnixTimestamp(assigned.assignedAt) - toUnixTimestamp(pr_opened.openedAt)
+        ) AS assignedInSeconds,
+        IF(
+            review_requested.reviewRequestedAt IS NULL,
+            NULL,
+            toUnixTimestamp(review_requested.reviewRequestedAt) - toUnixTimestamp(pr_opened.openedAt)
+        ) AS reviewRequestedInSeconds,
+        IF(
+            reviewed.reviewedAt IS NULL,
+            NULL,
+            toUnixTimestamp(reviewed.reviewedAt) - toUnixTimestamp(pr_opened.openedAt)
+        ) AS reviewedInSeconds,
+        IF(
+            closed.closedAt IS NULL,
+            NULL,
+            toUnixTimestamp(closed.closedAt) - toUnixTimestamp(pr_opened.openedAt)
+        ) AS closedInSeconds,
+        IF(
+            merged.mergedAt IS NULL,
+            NULL,
+            toUnixTimestamp(merged.mergedAt) - toUnixTimestamp(pr_opened.openedAt)
+        ) AS mergedInSeconds
+    FROM pull_request_opened pr_opened
+    LEFT JOIN pull_request_first_assigned AS assigned ON pr_opened.sourceId = assigned.sourceParentId
+    LEFT JOIN
+        pull_request_first_review_requested AS review_requested
+        ON pr_opened.sourceId = review_requested.sourceParentId
+    LEFT JOIN pull_request_first_reviewed AS reviewed ON pr_opened.sourceId = reviewed.sourceParentId
+    LEFT JOIN
+        pull_request_first_review_approved AS approved ON pr_opened.sourceId = approved.sourceParentId
+    LEFT JOIN pull_request_first_closed AS closed ON pr_opened.sourceId = closed.sourceParentId
+    LEFT JOIN pull_request_first_merged AS merged ON pr_opened.sourceId = merged.sourceParentId
+    LEFT JOIN pull_request_first_resolved as resolved on pr_opened.sourceId = resolved.sourceParentId
+
+TYPE COPY
+TARGET_DATASOURCE pull_requests_analyzed
+COPY_MODE replace
+COPY_SCHEDULE 20 * * * *
