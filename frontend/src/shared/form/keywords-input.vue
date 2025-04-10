@@ -5,18 +5,17 @@
       :class="focused ? 'is-focus' : ''"
       @click="focusKeywordInput"
     >
-      <el-tag
+      <lf-tag
         v-for="(keyword, idx) in innerKeywords"
         v-bind="$attrs"
-        :key="keyword"
-        type="info"
-        effect="light"
-        :disable-transitions="true"
+        :key="idx"
+        size="medium"
+        type="secondary"
         :closable="!readOnly"
         @close="remove(idx)"
       >
         {{ keyword }}
-      </el-tag>
+      </lf-tag>
       <input
         v-if="!readOnly"
         class="el-keywords-input"
@@ -77,11 +76,13 @@
 
 <script>
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfTag from '@/ui-kit/tag/Tag.vue';
 
 export default {
   name: 'AppKeywordsInput',
   components: {
     LfIcon,
+    LfTag,
   },
   props: {
     modelValue: {
@@ -210,8 +211,8 @@ export default {
       cubic-bezier(0.645, 0.045, 0.355, 1);
     min-height: 38px;
 
-    .el-tag {
-      margin: 4px 0 4px 4px;
+    .c-tag {
+      @apply m-1 mr-0 text-tiny;
     }
 
     &.is-focus {
@@ -230,15 +231,12 @@ export default {
     width: 400px;
     min-height: 24px;
   }
-  .el-tag--small .el-tag__close {
-    @apply ml-1.5;
-  }
 
   &.is-focus {
     border: 1px solid #0068bd;
   }
 
-  .el-tag.el-tag--info {
+  .c-tag.c-tag--secondary {
     @apply text-black;
   }
 
