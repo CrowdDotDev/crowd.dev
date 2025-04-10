@@ -10,10 +10,8 @@
    - `activityRelations_deduplicated_copy_pipe`  
    2.1. `activities` → `activities_deduplicated_ds`  
    2.2. `activityRelations` → `activityRelations_deduplicated_ds`  
-3. **Merging with relations data**:  
-   - `activityRelations_deduplicated_ds` + `activities_deduplicated_ds` → `activities_with_relations_merged_ds`  
-4. **Filtering and deduplication**:  
-   - `activities_with_relations_merged_ds` → `activities_with_relations_sorted_deduplicated_ds`
+3. **Merging with relations, filtering and sorting data**:  
+   - `activityRelations_deduplicated_ds` + `activities_deduplicated_ds` → `activities_with_relations_sorted_deduplicated_ds`
 
 ---
 

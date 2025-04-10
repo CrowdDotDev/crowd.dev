@@ -1,12 +1,13 @@
 DESCRIPTION >
-    Deduplicates merged activity_with_relations data. Also sorts the data for optimized query times. Filters out code contributions that are not in insightsProject.repositories. Filters out activities that are done by bots and team members
+    Merges activities and its relations together.  Filters out bot and untracked activities that don't have channel definition in `project.repositories`. Destination datasource's sorting keys are optimized for insights queries.
 
 TAGS "Activity preprocessing pipeline"
 
-NODE activities_with_relations_deduplicated_copy_pipe_0
+NODE activities_with_relations_merged
 SQL >
-    SELECT *
-    FROM activities_with_relations_merged_ds final
+    SELECT a.*, ar.updatedAt AS "updatedAt", ar.memberId, ar.organizationId, ar.segmentId
+    FROM activities_deduplicated_ds a
+    JOIN activityRelations_deduplicated_ds ar ON ar.activityId = a.id
     where
         memberId IN (SELECT id FROM members WHERE NOT isBot AND NOT isTeamMember)
         and (
@@ -20,4 +21,4 @@ SQL >
 TYPE COPY
 TARGET_DATASOURCE activities_with_relations_sorted_deduplicated_ds
 COPY_MODE replace
-COPY_SCHEDULE 15 * * * *
+COPY_SCHEDULE 10 * * * *
