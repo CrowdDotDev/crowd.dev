@@ -11,11 +11,13 @@ SCHEMA >
     `approvedAt` Nullable(DateTime),
     `closedAt` Nullable(DateTime),
     `mergedAt` Nullable(DateTime),
+    `resolvedAt` Nullable(DateTime),
     `assignedInSeconds` Nullable(Int64),
     `reviewRequestedInSeconds` Nullable(Int64),
     `reviewedInSeconds` Nullable(Int64),
     `closedInSeconds` Nullable(Int64),
-    `mergedInSeconds` Nullable(Int64)
+    `mergedInSeconds` Nullable(Int64),
+    `resolvedInSeconds` Nullable(Int64)
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(openedAt)

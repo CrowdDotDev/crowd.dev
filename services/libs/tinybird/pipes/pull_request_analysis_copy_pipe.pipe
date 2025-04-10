@@ -79,31 +79,27 @@ SQL >
         IF(approved.approvedAt = toDateTime(0), NULL, approved.approvedAt) AS approvedAt,
         IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
         IF(merged.mergedAt = toDateTime(0), NULL, merged.mergedAt) AS mergedAt,
+        IF(resolved.resolvedAt = toDateTime(0), NULL, resolved.resolvedAt) AS resolvedAt,
         IF(
-            assigned.assignedAt IS NULL,
-            NULL,
-            toUnixTimestamp(assigned.assignedAt) - toUnixTimestamp(pr_opened.openedAt)
+            assignedAt IS NULL, NULL, toUnixTimestamp(assignedAt) - toUnixTimestamp(openedAt)
         ) AS assignedInSeconds,
         IF(
-            review_requested.reviewRequestedAt IS NULL,
+            reviewRequestedAt IS NULL,
             NULL,
-            toUnixTimestamp(review_requested.reviewRequestedAt) - toUnixTimestamp(pr_opened.openedAt)
+            toUnixTimestamp(reviewRequestedAt) - toUnixTimestamp(openedAt)
         ) AS reviewRequestedInSeconds,
         IF(
-            reviewed.reviewedAt IS NULL,
-            NULL,
-            toUnixTimestamp(reviewed.reviewedAt) - toUnixTimestamp(pr_opened.openedAt)
+            reviewedAt IS NULL, NULL, toUnixTimestamp(reviewedAt) - toUnixTimestamp(openedAt)
         ) AS reviewedInSeconds,
         IF(
-            closed.closedAt IS NULL,
-            NULL,
-            toUnixTimestamp(closed.closedAt) - toUnixTimestamp(pr_opened.openedAt)
+            closedAt IS NULL, NULL, toUnixTimestamp(closedAt) - toUnixTimestamp(openedAt)
         ) AS closedInSeconds,
         IF(
-            merged.mergedAt IS NULL,
-            NULL,
-            toUnixTimestamp(merged.mergedAt) - toUnixTimestamp(pr_opened.openedAt)
-        ) AS mergedInSeconds
+            mergedAt IS NULL, NULL, toUnixTimestamp(mergedAt) - toUnixTimestamp(openedAt)
+        ) AS mergedInSeconds,
+        IF(
+            resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(resolvedAt)
+        ) AS resolvedInSeconds
     FROM pull_request_opened pr_opened
     LEFT JOIN pull_request_first_assigned AS assigned ON pr_opened.sourceId = assigned.sourceParentId
     LEFT JOIN
