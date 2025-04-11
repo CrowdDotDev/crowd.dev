@@ -64,7 +64,7 @@ export class OrganizationService {
     const response = await authAxios.post(
       `/organization/${orgId}/unmerge/preview`,
       {
-        ...identity,
+        identity,
         revertPreviousMerge,
       },
     );
