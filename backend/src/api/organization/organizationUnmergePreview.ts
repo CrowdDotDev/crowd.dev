@@ -5,9 +5,6 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationEdit)
 
-  // todo: rm this log after testing
-  console.log('req.currentSegments', req.currentSegments)
-
   const payload = await new OrganizationService(req).unmergePreview(
     req.params.organizationId,
     req.body.identity,

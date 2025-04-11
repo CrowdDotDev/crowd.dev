@@ -1808,7 +1808,9 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
     const result = await queryActivities(options.qdb, {
+      segmentIds,
       countOnly: true,
       filter: {
         and: [
