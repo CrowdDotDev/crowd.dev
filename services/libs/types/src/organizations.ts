@@ -105,6 +105,7 @@ export interface IOrganizationSyncRemoteData {
 }
 
 export interface IOrganizationIdentity {
+  id?: string
   organizationId?: string
   integrationId?: string
   platform: string
