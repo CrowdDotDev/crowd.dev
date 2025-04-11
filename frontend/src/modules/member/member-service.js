@@ -266,12 +266,7 @@ export class MemberService {
 
   static async cabRevertMerge(memberId, identityId) {
     const response = await authAxios.get(
-      `/member/${memberId}/can-revert-merge`,
-      {
-        params: {
-          identityId,
-        },
-      },
+      `/member/${memberId}/can-revert-merge`
     );
 
     return response.data;
