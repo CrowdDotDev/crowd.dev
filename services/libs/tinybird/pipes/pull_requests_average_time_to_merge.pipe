@@ -1,0 +1,76 @@
+DESCRIPTION >
+    Serves the `Development - Average time to merge` widget
+
+TAGS "Widget"
+
+NODE timeseries_generation_for_pr_avg_time_to_merge
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate", ds."endDate", round(avg(pra.mergedInSeconds)) as "averageTimeToMergeSeconds"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered pra
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(pra.mergedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(pra.mergedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(pra.mergedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(pra.mergedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(pra.mergedAt)
+            END
+            = ds."startDate"
+        where
+            isNotNull(pra.mergedAt)
+            {% if defined(startDate) %}
+                AND pra.mergedAt
+                > {{
+                    DateTime(
+                        startDate, description="Filter pull request merged at after", required=False
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND pra.mergedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request merged at before", required=False
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", "endDate"
+        ORDER BY ds."startDate" ASC
+    {% else %} select 1
+    {% end %}
+
+NODE pr_avg_time_to_merge_combined
+SQL >
+    %
+    {% if not defined(granularity) %}
+        SELECT round(avg(pra.mergedInSeconds)) as "averageTimeToMergeSeconds"
+        FROM pull_requests_filtered pra
+        where
+            isNotNull(pra.mergedAt)
+            {% if defined(startDate) %}
+                AND pra.mergedAt
+                > {{
+                    DateTime(
+                        startDate, description="Filter pull request merged at after", required=False
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND pra.mergedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request merged at before", required=False
+                    )
+                }}
+            {% end %}
+    {% else %} select * from timeseries_generation_for_pr_avg_time_to_merge
+    {% end %}

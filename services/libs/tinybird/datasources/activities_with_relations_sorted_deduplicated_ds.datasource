@@ -1,3 +1,5 @@
+TAGS "Activity preprocessing pipeline"
+
 SCHEMA >
     `id` String,
     `timestamp` DateTime,
@@ -5,6 +7,14 @@ SCHEMA >
     `type` LowCardinality(String),
     `channel` String,
     `isContribution` UInt8,
+    `sourceId` String,
+    `sourceParentId` String,
+    `sentimentLabel` String,
+    `sentimentScore` Float32,
+    `gitChangedLines` Int64,
+    `gitChangedLinesBucket` String,
+    `score` Int8,
+    `attributes` String,
     `updatedAt` DateTime64(3),
     `memberId` String,
     `organizationId` String,

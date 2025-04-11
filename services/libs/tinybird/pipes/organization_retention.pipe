@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves organization retention widget
 
-TOKEN "raul_dev_access_token" READ
-TOKEN "organization_retention_endpoint_read_0731" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE aggregated_organizations
 SQL >

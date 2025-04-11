@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves contributor geographic distribution widget.
 
-TOKEN "raul_dev_access_token" READ
-TOKEN "contributors_geo_distribution_endpoint_read_8966" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE country_mapping_array
 SQL >

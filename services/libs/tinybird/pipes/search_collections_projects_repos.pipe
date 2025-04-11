@@ -1,9 +1,7 @@
 DESCRIPTION >
     Serves the search widget, it searches among projects repos and collections using the shared `search` param in corresponding pipes
 
-TOKEN "search_collections_projects_repos_endpoint_read_0215" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
+TAGS "Widget"
 
 NODE merge_results_from_collections_projects_repos_filtered
 SQL >

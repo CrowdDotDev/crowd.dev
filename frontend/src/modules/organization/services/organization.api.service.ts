@@ -4,6 +4,13 @@ import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 
+const getSelectedProjectGroupId = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value ? [selectedProjectGroup.value.id] : null;
+};
+
 export class OrganizationApiService {
   static async find(id: string, segments: string[]): Promise<Organization> {
     const [segmentId] = segments;
@@ -45,12 +52,12 @@ export class OrganizationApiService {
       .then(({ data }) => Promise.resolve(data));
   }
 
-  static create(data: Partial<Organization>, segments: string[]) {
+  static create(data: Partial<Organization>) {
     return authAxios.post(
       '/organization',
       {
         ...data,
-        segments,
+        segments: getSelectedProjectGroupId(),
       },
     )
       .then(({ data }) => Promise.resolve(data));

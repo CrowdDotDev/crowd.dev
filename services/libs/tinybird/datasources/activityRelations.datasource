@@ -1,3 +1,5 @@
+TAGS "Activity preprocessing pipeline"
+
 SCHEMA >
     `activityId` String `json:$.record.activityId`,
     `conversationId` String `json:$.record.conversationId` DEFAULT '',

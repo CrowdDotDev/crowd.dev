@@ -1,6 +1,15 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import { MemberOrganizationAffiliationOverride } from '@/modules/organization/types/Organization';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
+const getSegments = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value ? [selectedProjectGroup.value.id] : null;
+};
 
 export class ContributorAffiliationsApiService {
   static async list(memberId: string, segments: string[]): Promise<ContributorAffiliation[]> {
@@ -19,6 +28,7 @@ export class ContributorAffiliationsApiService {
       `/member/${memberId}/affiliation`,
       {
         affiliations,
+        segments: getSegments(),
       },
     ).then(({ data }) => Promise.resolve(data));
   }
@@ -26,7 +36,10 @@ export class ContributorAffiliationsApiService {
   static async updateAffiliationOverride(memberId: string, data: Partial<MemberOrganizationAffiliationOverride>): Promise<any> {
     return authAxios.post(
       `/member/${memberId}/affiliation/override`,
-      data,
+      {
+        ...data,
+        segments: getSegments(),
+      },
     ).then(({ data }) => Promise.resolve(data));
   }
 }

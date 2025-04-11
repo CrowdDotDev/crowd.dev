@@ -28,15 +28,9 @@
           data-qa="filter-select-option"
           :data-qa-value="option.value"
         >
-          <div
-            class="el-checkbox filter-checkbox h-4"
-            :class="{ 'is-checked': form.includes(option.value) }"
-          >
-            <span class="el-checkbox__input" :class="{ 'is-checked': form.includes(option.value) }">
-              <span class="el-checkbox__inner" />
-            </span>
-          </div>
-          {{ option.label }}
+          <lf-checkbox class="filter-checkbox h-4" :model-value="form.includes(option.value)">
+            {{ option.label }}
+          </lf-checkbox>
         </el-option>
       </template>
     </el-select>
@@ -49,6 +43,7 @@ import {
   MultiSelectFilterOptions,
   MultiSelectFilterConfig, MultiSelectFilterOptionGroup,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 const props = defineProps<{
   modelValue: string[],

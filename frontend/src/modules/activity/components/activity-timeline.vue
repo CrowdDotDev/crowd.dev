@@ -45,7 +45,7 @@
                   :src="enabledPlatform.image"
                   class="min-w-4 h-4 mr-2"
                 />
-                {{ enabledPlatform.label }}
+                {{ enabledPlatform.name }}
               </el-option>
               <el-option
                 value="other"

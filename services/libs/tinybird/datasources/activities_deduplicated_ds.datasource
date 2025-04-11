@@ -1,0 +1,21 @@
+TAGS "Activity preprocessing pipeline"
+
+SCHEMA >
+    `id` String,
+    `timestamp` DateTime,
+    `platform` LowCardinality(String),
+    `type` LowCardinality(String),
+    `channel` String,
+    `isContribution` UInt8,
+    `sourceId` String,
+    `sourceParentId` String,
+    `sentimentLabel` String,
+    `sentimentScore` Float32,
+    `gitChangedLines` Int64,
+    `gitChangedLinesBucket` String,
+    `score` Int8,
+    `attributes` String
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY id, platform, channel

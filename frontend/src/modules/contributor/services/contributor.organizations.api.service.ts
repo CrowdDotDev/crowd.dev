@@ -1,5 +1,14 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { MemberOrganization } from '@/modules/organization/types/Organization';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
+const getSegments = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value ? [selectedProjectGroup.value.id] : null;
+};
 
 export class ContributorOrganizationsApiService {
   static async list(memberId: string, segments: string[]) {
@@ -16,20 +25,31 @@ export class ContributorOrganizationsApiService {
   static async create(memberId: string, data: Partial<MemberOrganization>) {
     return authAxios.post(
       `/member/${memberId}/organization`,
-      data,
+      {
+        ...data,
+        segments: getSegments(),
+      },
     ).then(({ data }) => Promise.resolve(data));
   }
 
   static async update(memberId: string, id: string, organization: Partial<MemberOrganization>) {
     return authAxios.patch(
       `/member/${memberId}/organization/${id}`,
-      organization,
+      {
+        ...organization,
+        segments: getSegments(),
+      },
     ).then(({ data }) => Promise.resolve(data));
   }
 
   static async delete(memberId: string, id: string) {
     return authAxios.delete(
       `/member/${memberId}/organization/${id}`,
+      {
+        params: {
+          segments: getSegments(),
+        },
+      },
     ).then(({ data }) => Promise.resolve(data));
   }
 }
