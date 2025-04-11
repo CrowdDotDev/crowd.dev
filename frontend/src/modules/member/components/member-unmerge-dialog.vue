@@ -393,7 +393,7 @@ const resetRevertPreviousMerge = () => {
 };
 
 const getCanRevertMerge = (identityId: string) => {
-  MemberService.cabRevertMerge(props.modelValue?.id, identityId)
+  MemberService.canRevertMerge(props.modelValue?.id, identityId)
     .then((res) => {
       canRevertPreviousMerge.value = res;
     }).catch(() => {
