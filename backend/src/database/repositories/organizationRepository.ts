@@ -663,7 +663,7 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "id", "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
+      select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
       where "organizationId" in (:organizationIds)
     `,
       {
