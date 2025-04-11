@@ -1,0 +1,27 @@
+DESCRIPTION >
+    Serves the `Development - Merge lead time` widget
+
+TAGS "Widget"
+
+NODE pull_requests_merge_lead_time_0
+SQL >
+    %
+    select
+        round(avg(dateDiff('second', prf.openedAt, prf.mergedAt))) AS openedToMergedSeconds,
+        round(avg(dateDiff('second', prf.openedAt, prf.assignedAt))) AS openedToReviewAssignedSeconds,
+        round(
+            avg(dateDiff('second', prf.assignedAt, prf.reviewedAt))
+        ) AS reviewAssignedToFirstReviewSeconds,
+        round(avg(dateDiff('second', prf.reviewedAt, prf.approvedAt))) AS firstReviewToApprovedSeconds,
+        round(avg(dateDiff('second', prf.approvedAt, prf.mergedAt))) AS approvedToMergedSeconds
+    from pull_requests_filtered prf
+    where
+        1 = 1
+        {% if defined(startDate) %}
+            AND prf.openedAt
+            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        {% end %}
+        {% if defined(endDate) %}
+            AND prf.openedAt
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+        {% end %}

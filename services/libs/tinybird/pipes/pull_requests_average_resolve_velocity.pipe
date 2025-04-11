@@ -1,0 +1,11 @@
+DESCRIPTION >
+    Serves `Avg velocity` portion in the `Development - Pull Requests` widget
+
+TAGS "Widget"
+
+NODE average_pull_request_resolve_velocity_0
+SQL >
+    select round(avg(pra.resolvedInSeconds)) "averagePullRequestResolveVelocitySeconds"
+    from activities_filtered af
+    left join pull_requests_analyzed pra on af.id = pra.id
+    where isNotNull(pra.resolvedAt)

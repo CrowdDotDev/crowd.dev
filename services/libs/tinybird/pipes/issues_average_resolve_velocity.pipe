@@ -1,0 +1,11 @@
+DESCRIPTION >
+    Serves `Avg velocity` portion in the `Development - Issues resolution` widget
+
+TAGS "Widget"
+
+NODE average_issue_resolve_velocity_0
+SQL >
+    select round(avg(ia.closedInSeconds)) "averageIssueResolveVelocitySeconds"
+    from activities_filtered af
+    left join issues_analyzed ia on af.id = ia.id
+    where isNotNull(ia.closedAt)

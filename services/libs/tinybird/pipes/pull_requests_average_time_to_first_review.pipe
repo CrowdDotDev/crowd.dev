@@ -1,0 +1,80 @@
+DESCRIPTION >
+    Serves the `Development - Wait time for 1st review` widget
+
+TAGS "Widget"
+
+NODE timeseries_generation_for_pr_avg_time_to_first_review
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            round(avg(pra.reviewedInSeconds)) as "averageTimeToFirstReviewSeconds"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered pra
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(pra.reviewedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(pra.reviewedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(pra.reviewedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(pra.reviewedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(pra.reviewedAt)
+            END
+            = ds."startDate"
+        where
+            isNotNull(pra.reviewedAt)
+            {% if defined(startDate) %}
+                AND pra.reviewedAt
+                > {{
+                    DateTime(
+                        startDate,
+                        description="Filter pull request reviewed at after",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND pra.reviewedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request reviewed at before", required=False
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", "endDate"
+        ORDER BY ds."startDate" ASC
+    {% else %} select 1
+    {% end %}
+
+NODE pr_avg_time_to_first_review_combined
+SQL >
+    %
+    {% if not defined(granularity) %}
+        SELECT round(avg(pra.reviewedInSeconds)) as "averageTimeToFirstReviewSeconds"
+        FROM pull_requests_filtered pra
+        where
+            isNotNull(pra.reviewedAt)
+            {% if defined(startDate) %}
+                AND pra.reviewedAt
+                > {{
+                    DateTime(
+                        startDate, description="Filter pull request reviewed at after", required=False
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND pra.reviewedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request reviewed at before", required=False
+                    )
+                }}
+            {% end %}
+    {% else %} select * from timeseries_generation_for_pr_avg_time_to_first_review
+    {% end %}
