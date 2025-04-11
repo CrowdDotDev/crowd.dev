@@ -256,7 +256,7 @@ export class MemberService {
     const response = await authAxios.post(
       `/member/${memberId}/unmerge/preview`,
       {
-        identity: identityId,
+        identityId,
         revertPreviousMerge,
       },
     );
