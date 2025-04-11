@@ -28,12 +28,33 @@
           :loading="unmerging"
           @click="unmerge()"
         >
-          Unmerge identity
+          {{ !revertPreviousMerge ? 'Unmerge identity' : 'Unmerge identity and revert previous merge' }}
         </lf-button>
       </div>
     </template>
     <template #content>
       <div class="p-6 relative border-t">
+        <div v-if="canRevertPreviousMerge" class="flex bg-yellow-50 rounded-lg w-full p-3 mb-5">
+          <lf-icon name="exclamation-triangle" type="solid" class="text-yellow-500" :size="18" />
+          <div class="flex flex-col ml-2 flex-grow">
+            <div class="flex items-center justify-between">
+              <span class="text-black text-xs font-semibold">Do you want to revert the previous merge operation?</span>
+              <lf-switch
+                v-model="revertPreviousMerge"
+                class="text-gray-900 text-xs"
+                size="tiny"
+                @update:model-value="fetchPreview(selectedIdentity!)"
+              >
+                Revert previous merge
+              </lf-switch>
+            </div>
+            <span class="text-gray-500 text-tiny mt-1 whitespace-pre-line">
+              The identity you are unmerging was part of a previous merge operation.
+              <br />
+              By reverting the previous operation, we will split the profiles previously merged.
+            </span>
+          </div>
+        </div>
         <div class="flex -mx-3">
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
@@ -136,7 +157,7 @@
                   <div class="h-13">
                     <div class="flex justify-between items-start">
                       <div
-                        class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
+                        class="inline-flex items-center bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 text-xs leading-5 font-medium"
                       >
                         <lf-icon name="link-simple-slash" :size="16" class="mr-1" />
                         Unmerged profile
@@ -161,7 +182,7 @@
                               v-if="i.id !== selectedIdentity"
                               :value="i.id"
                               :label="i.value"
-                              @click="fetchPreview(i.id)"
+                              @click="changeIdentity(i.id)"
                             >
                               <lf-icon
                                 v-if="i.type === 'email'"
@@ -272,7 +293,7 @@
   </app-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
 import { MemberService } from '@/modules/member/member-service';
@@ -287,21 +308,17 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import { useRouter } from 'vue-router';
 import { lfIdentities } from '@/config/identities';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
-  selectedIdentity: {
-    type: String,
-    required: false,
-    default: () => null,
-  },
-});
+const props = defineProps<{
+  modelValue: Contributor,
+  selectedIdentity?: string | null,
+}>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{(e: 'update:modelValue', value: Contributor | null): void;
+}>();
 
 const router = useRouter();
 
@@ -312,9 +329,14 @@ const { getContributor } = useContributorStore();
 const { getContributorMergeActions } = useContributorStore();
 
 const unmerging = ref(false);
+const canRevertPreviousMerge = ref(false);
+const revertPreviousMerge = ref(false);
 const fetchingPreview = ref(false);
-const preview = ref(null);
-const selectedIdentity = ref(null);
+const preview = ref<{
+  primary: Contributor,
+  secondary: Contributor,
+} | null>(null);
+const selectedIdentity = ref<string | null>(null);
 
 const isModalOpen = computed({
   get() {
@@ -339,23 +361,43 @@ const identities = computed(() => (props.modelValue.identities || [])
     return aOrder - bOrder;
   }));
 
-const fetchPreview = (identityId) => {
+const changeIdentity = (identityId: string) => {
+  selectedIdentity.value = identityId;
+  resetRevertPreviousMerge();
+  getCanRevertMerge(identityId);
+  fetchPreview(identityId);
+};
+
+const fetchPreview = (identityId: string) => {
   if (fetchingPreview.value) {
     return;
   }
 
-  selectedIdentity.value = identityId;
   fetchingPreview.value = true;
 
-  MemberService.unmergePreview(props.modelValue?.id, identityId)
+  MemberService.unmergePreview(props.modelValue?.id, identityId, revertPreviousMerge.value)
     .then((res) => {
       preview.value = res;
     })
     .catch((error) => {
-      Message.error('There was an error fetching unmerge preview');
+      Message.error(error?.response?.data || 'There was an error fetching unmerge preview');
     })
     .finally(() => {
       fetchingPreview.value = false;
+    });
+};
+
+const resetRevertPreviousMerge = () => {
+  revertPreviousMerge.value = false;
+  canRevertPreviousMerge.value = false;
+};
+
+const getCanRevertMerge = (identityId: string) => {
+  MemberService.cabRevertMerge(props.modelValue?.id, identityId)
+    .then((res) => {
+      canRevertPreviousMerge.value = res;
+    }).catch(() => {
+      canRevertPreviousMerge.value = false;
     });
 };
 
@@ -403,12 +445,12 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(props.selectedIdentity);
+    changeIdentity(props.selectedIdentity);
   }
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberUnmergeDialog',
 };
