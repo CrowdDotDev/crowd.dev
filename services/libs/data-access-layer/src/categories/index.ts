@@ -471,6 +471,8 @@ export async function listCategories(
                    WHERE c.name ILIKE $(query)
                      AND COALESCE($(groupType), type) = type
                    ORDER BY cg.name
+                    LIMIT $(limit)
+          OFFSET $(offset)
         `,
     {
       query: `%${filters.query}%` || '',

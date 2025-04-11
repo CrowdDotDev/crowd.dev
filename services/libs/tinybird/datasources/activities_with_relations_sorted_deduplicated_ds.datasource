@@ -13,6 +13,8 @@ SCHEMA >
     `sentimentScore` Float32,
     `gitChangedLines` Int64,
     `gitChangedLinesBucket` String,
+    `score` Int8,
+    `attributes` String,
     `updatedAt` DateTime64(3),
     `memberId` String,
     `organizationId` String,

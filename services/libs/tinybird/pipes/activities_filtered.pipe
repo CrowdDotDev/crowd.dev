@@ -27,3 +27,7 @@ SQL >
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
+        {% if defined(activity_types) %}
+            AND a.type
+            in {{ Array(activity_types, 'String', description="Filter activity types", required=False) }}
+        {% end %}
