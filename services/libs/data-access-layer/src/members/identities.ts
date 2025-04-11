@@ -1,4 +1,4 @@
-import { IMemberIdentity } from '@crowd/types'
+import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -96,6 +96,23 @@ export async function findMemberIdentityById(
     },
   )
   return res.length > 0 ? res[0] : null
+}
+
+export async function findMemberIdentitiesByValue(
+  qx: QueryExecutor,
+  memberId: string,
+  value: string,
+  filter: { type?: MemberIdentityType },
+): Promise<IMemberIdentity[]> {
+  return qx.select(
+    `
+        SELECT id, platform, "sourceId", type, value, verified
+        FROM "memberIdentities"
+        WHERE value = $(value) AND "memberId" = $(memberId)
+        ${filter.type ? 'AND type = $(type)' : ''}
+    `,
+    { value, memberId, type: filter.type },
+  )
 }
 
 export async function updateMemberIdentity(

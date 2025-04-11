@@ -30,6 +30,17 @@ export interface OrganizationIdentity {
     sourceId?: string | null;
     integrationId?: string | null;
 }
+export interface OrganizationIdentityParsed {
+    id: string;
+    displayValue: string;
+    organizationId?: string | null;
+    platform: Platform;
+    type: OrganizationIdentityType;
+    value: string;
+    verified: boolean;
+    sourceId?: string | null;
+    integrationId?: string | null;
+}
 
 export interface MemberOrganizationAffiliationOverride {
   allowAffiliation: boolean;

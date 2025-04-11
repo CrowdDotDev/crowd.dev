@@ -60,11 +60,25 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async unmergePreview(orgId, identity) {
+  static async unmergePreview(orgId, identity, revertPreviousMerge) {
     const response = await authAxios.post(
       `/organization/${orgId}/unmerge/preview`,
       {
-        ...identity,
+        identity,
+        revertPreviousMerge,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async canRevertMerge(orgId, identity) {
+    const response = await authAxios.get(
+      `/organization/${orgId}/can-revert-merge`,
+      {
+        params: {
+          identity,
+        },
       },
     );
 

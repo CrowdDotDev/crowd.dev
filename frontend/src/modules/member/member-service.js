@@ -252,11 +252,25 @@ export class MemberService {
     return response.data;
   }
 
-  static async unmergePreview(memberId, identity) {
+  static async unmergePreview(memberId, identityId, revertPreviousMerge) {
     const response = await authAxios.post(
       `/member/${memberId}/unmerge/preview`,
       {
-        identity,
+        identityId,
+        revertPreviousMerge,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async canRevertMerge(memberId, identityId) {
+    const response = await authAxios.get(
+      `/member/${memberId}/can-revert-merge`,
+      {
+        params: {
+          identityId,
+        },
       },
     );
 
