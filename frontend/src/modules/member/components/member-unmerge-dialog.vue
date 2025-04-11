@@ -255,7 +255,7 @@
                 <el-select
                   placeholder="Select identity"
                   class="w-full"
-                  @update:model-value="fetchPreview($event)"
+                  @update:model-value="changeIdentity($event)"
                 >
                   <el-option
                     v-for="i of identities"
