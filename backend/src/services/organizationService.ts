@@ -221,7 +221,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async canRevertMerge(organizationId: string, identityId: string): Promise<boolean> {
+  async canRevertMerge(organizationId: string, identity: IOrganizationIdentity): Promise<boolean> {
     try {
       // Get the identities of the organization
       const organizationIdentities = await OrganizationRepository.getIdentities(
@@ -229,10 +229,16 @@ export default class OrganizationService extends LoggerBase {
         this.options,
       )
 
-      const identity = organizationIdentities.find((i) => i.id === identityId)
-
       // Check if the organization has the identity to be unmerged
-      if (!identity) {
+      if (
+        !organizationIdentities.some(
+          (i) =>
+            i.platform === identity.platform &&
+            i.value === identity.value &&
+            i.type === identity.type &&
+            i.verified === identity.verified,
+        )
+      ) {
         throw new Error(`Organization doesn't have the identity sent to be unmerged!`)
       }
 

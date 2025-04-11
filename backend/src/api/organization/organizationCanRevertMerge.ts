@@ -7,7 +7,7 @@ export default async (req, res) => {
 
   const payload = await new OrganizationService(req).canRevertMerge(
     req.params.organizationId,
-    req.query.identityId as string,
+    req.query.identity,
   )
 
   await req.responseHandler.success(req, res, payload, 200)
