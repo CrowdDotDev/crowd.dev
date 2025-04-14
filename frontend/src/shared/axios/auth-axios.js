@@ -50,7 +50,7 @@ authAxios.interceptors.request.use(
         // If neither body or query params have segments
         // Use selected project group segment ids
       } else if (selectedProjectGroup.value.projects.length) {
-        segments = getSegmentsFromProjectGroup(selectedProjectGroup.value, options);
+        segments = getSegmentsFromProjectGroup(selectedProjectGroup.value, options, options.method === 'get');
       }
 
       if (options.method === 'get') {
