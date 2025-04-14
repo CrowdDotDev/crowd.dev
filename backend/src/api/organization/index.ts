@@ -16,6 +16,11 @@ export default (app) => {
     safeWrap(require('./organizationNotMerge').default),
   )
 
+  app.get(
+    `/organization/:organizationId/can-revert-merge`,
+    safeWrap(require('./organizationCanRevertMerge').default),
+  )
+
   app.post(
     `/organization/:organizationId/unmerge/preview`,
     safeWrap(require('./organizationUnmergePreview').default),
