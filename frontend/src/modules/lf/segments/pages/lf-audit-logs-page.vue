@@ -19,100 +19,118 @@
     </div>
   </div>
   <div v-else>
-    <div class="border-t -mb-4" />
-    <el-table
+    <lf-table
       id="members-table"
       ref="table"
       v-loading="loading"
-      :data="auditLogs"
-      row-key="id"
-      border
-      class="mt-4 cursor-pointer"
-      @row-click="openLogDetails = $event"
+      type="bordered"
+      class="!overflow-visible mt-4 cursor-pointer"
+      show-hover
     >
-      <el-table-column
-        label="Action"
-        prop="action"
-        class-name="!p-0"
-      >
-        <template #default="{ row }">
-          <div class="flex py-4">
-            <div class="pr-2 min-w-6">
-              <lf-icon v-if="row.success" type="solid" name="circle-check" :size="16" class="text-green-500 mr-1" />
-              <lf-icon v-else type="solid" name="circle-exclamation" :size="16" class="text-red-500 mr-1" />
-            </div>
-            <div>
-              <div class="text-sm font-semibold text-black mb-1 leading-5">
-                {{ logRenderingConfig[row.actionType as AuditLog]?.label ?? row.actionType }}
+      <thead>
+        <tr>
+          <lf-table-head class="pl-2">
+            Action
+          </lf-table-head>
+          <lf-table-head class="pl-3">
+            User
+          </lf-table-head>
+          <lf-table-head class="pl-3 w-52">
+            Timestamp
+          </lf-table-head>
+          <lf-table-head class="w-34" />
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="auditLog of auditLogs"
+          :key="auditLog.id"
+          @click="openLogDetails = auditLog"
+        >
+          <lf-table-cell class="pl-2">
+            <div class="flex">
+              <div class="pr-2 min-w-6">
+                <lf-icon
+                  v-if="auditLog.success"
+                  type="solid"
+                  name="circle-check"
+                  :size="16"
+                  class="text-green-500 mr-1"
+                />
+                <lf-icon
+                  v-else
+                  type="solid"
+                  name="circle-exclamation"
+                  :size="16"
+                  class="text-red-500 mr-1"
+                />
               </div>
-              <p
-                v-if="logRenderingConfig[row.actionType as AuditLog]?.description"
-                class="text-2xs text-gray-500 leading-5"
-                v-html="$sanitize(logRenderingConfig[row.actionType as AuditLog]?.description(row))"
-              />
+              <div>
+                <div class="text-sm font-semibold text-black mb-1 leading-5">
+                  {{
+                    logRenderingConfig[auditLog.actionType]?.label
+                      ?? auditLog.actionType
+                  }}
+                </div>
+                <p
+                  v-if="logRenderingConfig[auditLog.actionType]"
+                  class="text-2xs text-gray-500 leading-5"
+                  v-html="
+                    $sanitize(
+                      logRenderingConfig[auditLog.actionType].description(
+                        auditLog,
+                      ),
+                    )
+                  "
+                />
+              </div>
             </div>
-          </div>
-        </template>
-      </el-table-column>
+          </lf-table-cell>
 
-      <el-table-column
-        label="User"
-        prop="user"
-        class-name="!p-0"
-      >
-        <template #default="{ row }">
-          <div class="py-4">
+          <lf-table-cell class="pl-3">
             <div class="text-sm font-semibold text-black mb-1 leading-5">
-              {{ row.user.fullName }}
+              {{ auditLog.user.fullName }}
             </div>
             <p class="text-2xs text-gray-500 leading-5">
-              {{ row.user.email }}
+              {{ auditLog.user.email }}
             </p>
             <p class="text-2xs text-gray-500 leading-5">
-              ID: {{ row.user.id }}
+              ID: {{ auditLog.user.id }}
             </p>
-          </div>
-        </template>
-      </el-table-column>
+          </lf-table-cell>
 
-      <el-table-column
-        label="Timestamp"
-        prop="timestamp"
-        width="200"
-        class-name="!p-0"
-      >
-        <template #default="{ row }">
-          <div class="text-sm py-4 flex items-center h-full">
-            {{ dateHelper(row.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
-          </div>
-        </template>
-      </el-table-column>
+          <lf-table-cell class="pl-3">
+            <div class="text-sm flex items-center h-full">
+              {{ dateHelper(auditLog.timestamp).format("DD-MM-YYYY HH:mm:ss") }}
+            </div>
+          </lf-table-cell>
 
-      <el-table-column
-        prop="details"
-        width="140"
-        class-name="!p-0"
-      >
-        <template #default="{ row }">
-          <div class="py-4 flex items-center h-full">
-            <lf-button type="secondary" size="small" @click="() => openLogDetailsDrawer(row)">
-              View details
-            </lf-button>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+          <lf-table-cell class="pr-2">
+            <div class="flex items-center justify-end h-full">
+              <lf-button
+                type="secondary"
+                size="small"
+                @click="() => openLogDetailsDrawer(auditLog)"
+              >
+                View details
+              </lf-button>
+            </div>
+          </lf-table-cell>
+        </tr>
+      </tbody>
+    </lf-table>
   </div>
 
-  <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
+  <div
+    v-if="pagination.total >= pagination.page * pagination.perPage"
+    class="pt-6 pb-6 flex justify-center"
+  >
     <lf-button type="secondary-ghost" @click="loadMore">
       <lf-icon name="arrow-down" /> Load more
     </lf-button>
   </div>
 
-  <app-lf-audit-logs-drawer
-    v-model:log="openLogDetails"
-  />
+  <app-lf-audit-logs-drawer v-model:log="openLogDetails" />
 </template>
 
 <script setup lang="ts">
@@ -126,9 +144,15 @@ import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);
@@ -176,10 +200,13 @@ const onFilterChange = (filterQuery: FilterQuery) => {
 };
 
 const fetch = () => {
-  const query = filter.value.and?.reduce((q: any, filtr: any) => ({
-    ...q,
-    ...filtr,
-  }), {}) || {};
+  const query = filter.value.and?.reduce(
+    (q: any, filtr: any) => ({
+      ...q,
+      ...filtr,
+    }),
+    {},
+  ) || {};
   if (pagination.page <= 1) {
     loading.value = true;
   }
@@ -212,7 +239,6 @@ const openLogDetailsDrawer = (log: AuditLog) => {
     type: EventType.FEATURE,
   });
 };
-
 </script>
 
 <script lang="ts">
