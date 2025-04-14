@@ -1,12 +1,12 @@
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
-export const getSegmentsFromProjectGroup = (projectGroup, options) => {
+export const getSegmentsFromProjectGroup = (projectGroup, options, isGetMethod) => {
   if (!projectGroup) {
     return [];
   }
 
-  if (options?.url?.includes('/member/query') || options?.url?.includes('/member/active') || options?.url?.includes('/organization/query')) {
+  if (options?.url?.includes('/member/query') || options?.url?.includes('/member/active') || options?.url?.includes('/organization/query') || isGetMethod) {
     return [projectGroup.id];
   }
 
