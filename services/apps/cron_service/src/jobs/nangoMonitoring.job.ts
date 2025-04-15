@@ -119,7 +119,7 @@ const job: IJobDefinition = {
           }
         }
 
-        slackMessage += `\n*${nangoIntegration}* on nango has ${distinctBy(integrations, (i) => i[0].id)} integrations mapped with ${integrations.length} connections and with ${successfulSyncs + failedSyncs + runningSyncs} total syncs:\n`
+        slackMessage += `\n*${nangoIntegration}* on nango has ${distinctBy(integrations, (i) => i[0].id).length} integrations mapped with ${integrations.length} connections and with ${successfulSyncs + failedSyncs + runningSyncs} total syncs:\n`
         if (successfulSyncs > 0) {
           slackMessage += `- ${successfulSyncs} successful syncs\n`
         }
