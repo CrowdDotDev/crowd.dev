@@ -10,8 +10,9 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
     this.cache = new RedisCache('githubRepos', redis, this.log)
   }
 
-  public async findSegmentForRepo(url: string): Promise<string | null> {
-    const cached = await this.cache.get(url)
+  public async findSegmentForRepo(integrationId: string, url: string): Promise<string | null> {
+    const key = `${integrationId}:${url}`
+    const cached = await this.cache.get(key)
     if (cached) {
       if (cached === 'null') {
         return null
@@ -24,19 +25,20 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
       `
         SELECT "segmentId"
         FROM "githubRepos"
-        WHERE url = $(url) and "deletedAt" is null
+        WHERE url = $(url) and "integrationId" = $(integrationId) and "deletedAt" is null
         LIMIT 1
       `,
       {
         url,
+        integrationId,
       },
     )
     if (!results) {
-      await this.cache.set(url, 'null', 7 * 60 * 60 * 24) // 7 days
+      await this.cache.set(key, 'null', 7 * 60 * 60 * 24) // 7 days
       return null
     }
 
-    await this.cache.set(url, results.segmentId, 7 * 60 * 60 * 24) // 7 days
+    await this.cache.set(key, results.segmentId, 7 * 60 * 60 * 24) // 7 days
     return results.segmentId
   }
 }

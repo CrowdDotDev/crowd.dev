@@ -64,11 +64,7 @@ export default class GitlabReposRepository {
       options,
     )
 
-    const urls = Object.entries(mapping).map(([url]) => url)
-    const cache = this.getCache(options)
-    for (const url of urls) {
-      await cache.delete(url)
-    }
+    await this.getCache(options).deleteAll()
   }
 
   static async getMapping(integrationId, options: IRepositoryOptions) {
@@ -128,18 +124,6 @@ export default class GitlabReposRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const results: any[] = await seq.query(
-      'SELECT url from "gitlabRepos" WHERE "integrationId" = :integrationId and "deletedAt" is null',
-      {
-        replacements: {
-          integrationId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-    const urls = results.map((result) => result.url)
-
     await seq.query(
       `
         UPDATE "gitlabRepos"
@@ -155,9 +139,6 @@ export default class GitlabReposRepository {
       },
     )
 
-    const cache = this.getCache(options)
-    for (const url of urls) {
-      await cache.delete(url)
-    }
+    await this.getCache(options).deleteAll()
   }
 }
