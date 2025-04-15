@@ -265,6 +265,9 @@ module.exports = {
       width: {
         fit: "fit-content"
       },
+      borderRadius: {
+        'xmd': "0.25rem",
+      }
     },
   },
   plugins: [require("@tailwindcss/line-clamp")],

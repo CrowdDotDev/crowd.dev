@@ -1,3 +1,0 @@
-NODE average_issue_resolve_velocity_0
-SQL >
-    select * from activities where channel = 'https://github.com/CrowdDotDev/crowd.dev'

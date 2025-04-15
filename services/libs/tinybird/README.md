@@ -4,22 +4,25 @@
 
 ## Activity Preprocessing Pipeline
 
-1. **New activities land** on `activities` and `activityRelations` datasources  
+1. **New activities land** on `activities` and `activityRelations` datasources 
 2. **Deduplication** of activities and relations separately via copy pipes:  
-   - `activities_deduplicated_copy_pipe`  
-   - `activityRelations_deduplicated_copy_pipe`  
+   - `activities_deduplicated_copy_pipe (every hour at minute 0)`  
+   - `activityRelations_deduplicated_copy_pipe (every hour at minute 0)`  
    2.1. `activities` → `activities_deduplicated_ds`  
    2.2. `activityRelations` → `activityRelations_deduplicated_ds`  
-3. **Merging with relations data**:  
-   - `activityRelations_deduplicated_ds` + `activities_deduplicated_ds` → `activities_with_relations_merged_ds`  
-4. **Filtering and deduplication**:  
-   - `activities_with_relations_merged_ds` → `activities_with_relations_sorted_deduplicated_ds`
+3. **Merging with relations, filtering and sorting data**:  
+   - `activityRelations_deduplicated_ds (every hour at minute 10)` + `activities_deduplicated_ds` → `activities_with_relations_sorted_deduplicated_ds`
+
+## Other Copy Pipes
+
+1. **pull_request_analysis_copy_pipe (every hour at minute 15)**: Compacts activities from same PR into one, keeping state change times in the same row. Helps with serving PR related metrics 
+2. **issue_analysis_copy_pipe (every hour at minute 15)**: Similar to pr analysis, this time we compact issue related information into one row.
 
 ---
 
 ## Creating new endpoints
 1. Install the **tb client** for classic tinybird
-    - 1.1. Create a new virtual environment for pip `python3 -m venv venv`
+    - 1.1. Create a new virtual environment for pip `python3 -m venv .venv`
     - 1.2. Source the venv `source .venv/bin/activate`
     - 1.3. In this folder run `pip install -r requirements.txt`
     - 1.4 Check installation `tb --version` The version should be 5.x.x

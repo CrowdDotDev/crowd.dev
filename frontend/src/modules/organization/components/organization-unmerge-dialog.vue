@@ -28,12 +28,33 @@
           :loading="unmerging"
           @click="unmerge()"
         >
-          Unmerge identity
+          {{ !revertPreviousMerge ? 'Unmerge identity' : 'Unmerge identity and revert previous merge' }}
         </lf-button>
       </div>
     </template>
     <template #content>
       <div class="p-6 relative border-t">
+        <div v-if="canRevertPreviousMerge" class="flex bg-yellow-50 rounded-lg w-full p-3 mb-5">
+          <lf-icon name="exclamation-triangle" type="solid" class="text-yellow-500" :size="18" />
+          <div class="flex flex-col ml-2 flex-grow">
+            <div class="flex items-center justify-between">
+              <span class="text-black text-xs font-semibold">Do you want to revert the previous merge operation?</span>
+              <lf-switch
+                v-model="revertPreviousMerge"
+                class="text-gray-900 text-xs"
+                size="tiny"
+                @update:model-value="fetchPreview(selectedIdentity!)"
+              >
+                Revert previous merge
+              </lf-switch>
+            </div>
+            <span class="text-gray-500 text-tiny mt-1 whitespace-pre-line">
+              The identity you are unmerging was part of a previous merge operation.
+              <br />
+              By reverting the previous operation, we will split the profiles previously merged.
+            </span>
+          </div>
+        </div>
         <div class="flex -mx-3">
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
@@ -86,7 +107,7 @@
                   <div class="h-13">
                     <div class="flex justify-between items-start">
                       <div
-                        class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
+                        class="inline-flex items-center bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 text-xs leading-5 font-medium"
                       >
                         <lf-icon name="link-slash" :size="16" class="mr-1" />
                         Unmerged organization
@@ -108,10 +129,10 @@
                             :key="i.id"
                           >
                             <el-dropdown-item
-                              v-if="i.id !== selectedIdentity.id"
+                              v-if="i.id !== selectedIdentity!.id"
                               :value="i"
                               :label="i.displayValue"
-                              @click="fetchPreview(i)"
+                              @click="changeIdentity(i)"
                             >
                               <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
                               <lf-icon
@@ -155,7 +176,7 @@
                   placeholder="Select identity"
                   class="w-full"
                   value-key="id"
-                  @update:model-value="fetchPreview($event)"
+                  @update:model-value="changeIdentity($event)"
                 >
                   <el-option
                     v-for="i of identities"
@@ -167,7 +188,7 @@
                     <lf-icon
                       v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
                       name="window"
-                      size="20"
+                      :size="20"
                       class="text-gray-900 text-lg leading-5 mr-2"
                     />
                     <img
@@ -194,7 +215,7 @@
   </app-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
@@ -209,31 +230,32 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { lfIdentities } from '@/config/identities';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
+import { Organization, OrganizationIdentity, OrganizationIdentityParsed } from '@/modules/organization/types/Organization';
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
-  selectedIdentity: {
-    type: Object,
-    required: false,
-    default: () => null,
-  },
-});
+const props = defineProps<{
+  modelValue: Organization | null,
+  selectedIdentity?: OrganizationIdentity | null,
+}>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{(e: 'update:modelValue', value: Organization | null): void,
+}>();
 
 const { trackEvent } = useProductTracking();
 
+const canRevertPreviousMerge = ref(false);
+const revertPreviousMerge = ref(false);
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
-const preview = ref(null);
-const selectedIdentity = ref(null);
+const preview = ref<{
+  primary: Organization,
+  secondary: Organization,
+} | null>(null);
+const selectedIdentity = ref<OrganizationIdentityParsed | null>(null);
 
 const { getOrganizationMergeActions, fetchOrganization } = useOrganizationStore();
 
-const parseIdentityValues = (identity) => {
+const parseIdentityValues = (identity: OrganizationIdentity): OrganizationIdentityParsed => {
   const splittedIdentity = identity.value?.split(':');
 
   if (identity.platform === Platform.LINKEDIN && splittedIdentity.length === 2) {
@@ -287,32 +309,47 @@ const identities = computed(() => {
     .map((i) => parseIdentityValues(i));
 });
 
-const fetchPreview = (identity) => {
+const changeIdentity = (identity: OrganizationIdentityParsed) => {
+  selectedIdentity.value = identity;
+  resetRevertPreviousMerge();
+  getCanRevertMerge(identity);
+  fetchPreview(identity);
+};
+
+const fetchPreview = (identity: OrganizationIdentityParsed) => {
   if (fetchingPreview.value) {
     return;
   }
-
-  selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const {
-    platform, value, type, verified,
-  } = identity;
-  const foundIdentity = identities.value.find((i) => i.platform === platform && i.value === value && i.type === type);
-  OrganizationService.unmergePreview(props.modelValue?.id, foundIdentity)
+  OrganizationService.unmergePreview(props.modelValue?.id, identity, revertPreviousMerge.value)
     .then((res) => {
       preview.value = res;
     })
-    .catch(() => {
-      Message.error('There was an error fetching unmerge preview');
+    .catch((error) => {
+      Message.error(error?.response?.data || 'There was an error fetching unmerge preview');
     })
     .finally(() => {
       fetchingPreview.value = false;
     });
 };
 
+const resetRevertPreviousMerge = () => {
+  revertPreviousMerge.value = false;
+  canRevertPreviousMerge.value = false;
+};
+
+const getCanRevertMerge = (identity: OrganizationIdentityParsed) => {
+  OrganizationService.canRevertMerge(props.modelValue?.id, identity)
+    .then((res) => {
+      canRevertPreviousMerge.value = res;
+    }).catch(() => {
+      canRevertPreviousMerge.value = false;
+    });
+};
+
 const unmerge = () => {
-  if (unmerging.value) {
+  if (unmerging.value || !props.modelValue) {
     return;
   }
 
@@ -326,16 +363,16 @@ const unmerge = () => {
 
   unmerging.value = true;
 
-  OrganizationService.unmerge(props.modelValue?.id, preview.value)
+  OrganizationService.unmerge(props.modelValue.id, preview.value)
     .then(() => {
-      getOrganizationMergeActions(props.modelValue?.id);
+      getOrganizationMergeActions(props.modelValue!.id);
       Message.info(
         'We’re syncing all activities of the unmerged organization. We will let you know once the process is completed.',
         {
           title: 'Organizations unmerging in progress',
         },
       );
-      fetchOrganization(props.modelValue?.id);
+      fetchOrganization(props.modelValue!.id);
       emit('update:modelValue', null);
     })
     .catch(() => {
@@ -350,13 +387,13 @@ onMounted(() => {
   if (props.selectedIdentity) {
     const identity = parseIdentityValues(props.selectedIdentity);
 
-    fetchPreview(identity);
+    changeIdentity(identity);
   }
 });
 
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationUnmergeDialog',
 };

@@ -1,0 +1,13 @@
+DESCRIPTION >
+    Reusable filtering pipe for pull request related widgets. Handles segment and repo filtering
+
+NODE pull_requests_filtered_0
+SQL >
+    %
+    SELECT *
+    FROM pull_requests_analyzed pra
+    where
+        pra.segmentId = (SELECT id FROM segments_filtered)
+        {% if defined(repo) %}
+            AND pra.channel = {{ String(repo, description="Filter activity repo", required=False) }}
+        {% end %}

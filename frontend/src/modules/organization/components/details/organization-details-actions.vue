@@ -48,6 +48,7 @@
         <lf-organization-dropdown
           :organization="props.organization"
           @reload="emit('reload')"
+          @unmerge="unmerge = props.organization"
         />
       </lf-dropdown>
     </lf-button-group>
@@ -64,6 +65,11 @@
   <app-organization-merge-dialog
     v-if="isMergeDialogOpen"
     v-model="isMergeDialogOpen"
+  />
+
+  <app-organization-unmerge-dialog
+    v-if="unmerge"
+    v-model="unmerge"
   />
 </template>
 
@@ -86,6 +92,7 @@ import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { useSharedStore } from '@/shared/pinia/shared.store';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -99,6 +106,7 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);
+const unmerge = ref<Organization | null>(null);
 const mergeSuggestionsCount = ref<number>(0);
 
 const fetchMergeSuggestions = () => {

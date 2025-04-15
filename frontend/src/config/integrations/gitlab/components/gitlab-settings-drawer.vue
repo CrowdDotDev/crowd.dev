@@ -31,9 +31,9 @@
               Connected groups
             </p>
             <div v-if="connectedGroups.length > 0" class="flex flex-wrap gap-2">
-              <el-tag v-for="group in connectedGroups" :key="group.id" size="small" color="white">
+              <lf-tag v-for="group in connectedGroups" :key="group.id" size="small" color="white">
                 {{ group.name }}
-              </el-tag>
+              </lf-tag>
             </div>
             <p v-else class="text-xs text-gray-500">
               --
@@ -208,6 +208,7 @@ import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import LfTag from '@/ui-kit/tag/Tag.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
