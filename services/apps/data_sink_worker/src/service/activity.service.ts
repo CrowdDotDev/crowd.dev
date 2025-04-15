@@ -704,7 +704,7 @@ export default class ActivityService extends LoggerBase {
         const txGitlabReposRepo = new GitlabReposRepository(txStore, this.redisClient, this.log)
 
         segmentId = providedSegmentId
-        if (!segmentId) {
+        if (!segmentId || platform === PlatformType.GITHUB || platform === PlatformType.GITLAB) {
           if (platform === PlatformType.GITLAB) {
             this.log.trace('Finding segment for GitLab repo.')
             const gitlabRepoSegmentId = await logExecutionTimeV2(
