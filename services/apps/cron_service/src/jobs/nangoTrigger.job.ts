@@ -13,6 +13,7 @@ import {
   platformToNangoIntegration,
 } from '@crowd/nango'
 import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
+import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
@@ -35,7 +36,7 @@ const job: IJobDefinition = {
     for (const int of integrationsToTrigger) {
       const { id, settings } = int
 
-      const platform = platformToNangoIntegration(int.platform)
+      const platform = platformToNangoIntegration(int.platform as PlatformType)
 
       if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
         // ignore non-nango github integrations

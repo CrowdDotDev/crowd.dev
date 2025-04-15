@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PlatformType } from '@crowd/types'
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
@@ -8,22 +9,22 @@ export enum NangoIntegration {
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
 
-export const nangoIntegrationToPlatform = (integration: NangoIntegration): string => {
+export const nangoIntegrationToPlatform = (integration: NangoIntegration): PlatformType => {
   switch (integration) {
     case NangoIntegration.GERRIT:
-      return 'gerrit'
+      return PlatformType.GERRIT
     case NangoIntegration.GITHUB:
-      return 'github-nango'
+      return PlatformType.GITHUB_NANGO
     default:
       throw new Error('Unknown integration')
   }
 }
 
-export const platformToNangoIntegration = (platform: string): NangoIntegration => {
+export const platformToNangoIntegration = (platform: PlatformType): NangoIntegration => {
   switch (platform) {
-    case 'gerrit':
+    case PlatformType.GERRIT:
       return NangoIntegration.GERRIT
-    case 'github-nango':
+    case PlatformType.GITHUB_NANGO:
       return NangoIntegration.GITHUB
     default:
       throw new Error('Unknown platform')

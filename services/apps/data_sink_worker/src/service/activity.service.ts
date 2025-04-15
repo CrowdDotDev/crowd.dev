@@ -700,8 +700,8 @@ export default class ActivityService extends LoggerBase {
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
         const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
-        const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
-        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
+        const txGithubReposRepo = new GithubReposRepository(txStore, this.redisClient, this.log)
+        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.redisClient, this.log)
 
         segmentId = providedSegmentId
         if (!segmentId) {
