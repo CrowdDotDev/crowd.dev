@@ -766,680 +766,6 @@
                   </tr>
                 </tbody>
               </lf-table>
-
-              <br />
-              <br />
-              <br />
-              ==========================================================================================
-              <br />
-              <br />
-              <br />
-
-              <el-table
-                id="organizations-table"
-                ref="table"
-                :data="organizations"
-                :default-sort="defaultSort"
-                row-key="id"
-                border
-                :row-class-name="rowClass"
-                @sort-change="doChangeSort"
-                @selection-change="selectedOrganizations = $event"
-                @cell-mouse-enter="handleCellMouseEnter"
-                @cell-mouse-leave="handleCellMouseLeave"
-              >
-                <!-- Checkbox -->
-                <el-table-column type="selection" width="75" fixed />
-
-                <!-- Organization logo and name -->
-                <el-table-column
-                  label="Organization"
-                  prop="displayName"
-                  width="300"
-                  fixed
-                  sortable
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block mr-4"
-                    >
-                      <app-organization-name
-                        class="w-full"
-                        :organization="scope.row"
-                      />
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Website -->
-                <el-table-column label="Website" width="260">
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <a
-                          v-if="getOrganizationWebsite(scope.row)"
-                          class="website-link hover:!text-gray-900"
-                          :href="withHttp(getOrganizationWebsite(scope.row))"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          @click.stop
-                        >{{ getOrganizationWebsite(scope.row) }}</a>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Headline -->
-                <el-table-column label="Headline" prop="headline" width="420">
-                  <template #header>
-                    <div class="flex items-center">
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Headline
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div class="mr-4">
-                        <span
-                          v-if="scope.row.headline || scope.row.description"
-                          class="text-sm h-full flex items-center text-gray-900 line-clamp-3"
-                        >
-                          {{ scope.row.headline || scope.row.description }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Identities -->
-                <el-table-column label="Identities" width="300">
-                  <template #header>
-                    <el-tooltip placement="top">
-                      <template #content>
-                        Identities can be profiles on social platforms,
-                        emails,<br />
-                        or unique identifiers from internal sources.
-                      </template>
-                      <span
-                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
-                      >Identities</span>
-                    </el-tooltip>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div class="h-full flex items-center">
-                        <app-identities-horizontal-list-organizations
-                          :organization="scope.row"
-                          :limit="5"
-                        />
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Number of members -->
-                <el-table-column
-                  label="# of People"
-                  width="220"
-                  prop="memberCount"
-                  sortable
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-gray-900 text-sm h-full flex items-center"
-                      >
-                        {{ formatNumberToCompact(scope.row.memberCount) }}
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Number of activities -->
-                <el-table-column
-                  label="# of Activities"
-                  width="200"
-                  prop="activityCount"
-                  sortable
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        class="text-gray-900 text-sm h-full flex items-center"
-                      >
-                        {{ formatNumberToCompact(scope.row.activityCount) }}
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Last active -->
-                <el-table-column
-                  label="Last active"
-                  prop="lastActive"
-                  width="180"
-                  sortable="lastActive"
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <span
-                        v-if="scope.row.lastActive"
-                        class="text-gray-900 text-sm h-full flex items-center"
-                      >
-                        {{ formatDateToTimeAgo(scope.row.lastActive) }}
-                      </span>
-                      <span v-else class="text-gray-900">-</span>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Joined Date -->
-                <el-table-column
-                  label="Joined Date"
-                  width="180"
-                  prop="joinedAt"
-                  sortable
-                >
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div
-                        v-if="scope.row.joinedAt"
-                        class="text-gray-900 text-sm h-full flex items-center"
-                      >
-                        {{ formatDateToTimeAgo(scope.row.joinedAt) }}
-                      </div>
-                      <span v-else class="text-gray-900">-</span>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Location -->
-                <el-table-column label="Location" width="260" prop="location">
-                  <template #header>
-                    <div class="flex items-center">
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Location
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span v-if="scope.row.location" class="text-gray-900">
-                          {{ scope.row.location }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Industry -->
-                <el-table-column label="Industry" width="220" prop="industry">
-                  <template #header>
-                    <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'industry')"
-                      class="flex items-center"
-                      @mouseover="() => onColumnHeaderMouseOver('industry')"
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Industry
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(
-                            el,
-                            `${scope.row.id}-industry`,
-                          )
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block h-full"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span v-if="scope.row.industry" class="text-gray-900">
-                          {{ toSentenceCase(scope.row.industry) }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Headcount -->
-                <el-table-column label="Headcount" width="180" prop="size">
-                  <template #header>
-                    <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
-                      class="flex items-center"
-                      @mouseover="() => onColumnHeaderMouseOver('size')"
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Headcount
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(el, `${scope.row.id}-size`)
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block h-full"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span
-                          v-if="scope.row.size || scope.row.employees"
-                          class="text-gray-900"
-                        >
-                          {{ scope.row.size || scope.row.employees }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Inferred Revenue -->
-                <el-table-column
-                  label="Annual Revenue"
-                  prop="revenueRange"
-                  width="220"
-                >
-                  <template #header>
-                    <div
-                      :ref="
-                        (el) => setEnrichmentAttributesRef(el, 'revenueRange')
-                      "
-                      class="flex items-center"
-                      @mouseover="() => onColumnHeaderMouseOver('revenueRange')"
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Annual Revenue
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(
-                            el,
-                            `${scope.row.id}-revenueRange`,
-                          )
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block h-full"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span
-                          v-if="scope.row.revenueRange"
-                          class="text-gray-900"
-                        >
-                          {{ revenueRange.formatValue(scope.row.revenueRange) }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Founded -->
-                <el-table-column
-                  label="Founded"
-                  width="160"
-                  prop="founded"
-                  sortable
-                >
-                  <template #header>
-                    <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'founded')"
-                      class="inline-block"
-                      @mouseover="() => onColumnHeaderMouseOver('founded')"
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <div class="flex items-center">
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Founded
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(
-                            el,
-                            `${scope.row.id}-founded`,
-                          )
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="block h-full"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span v-if="scope.row.founded" class="text-gray-900">
-                          {{ scope.row.founded }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Employee Growth Rate -->
-                <el-table-column
-                  label="Ann. Employee Growth"
-                  prop="employeeGrowthRate"
-                  width="280"
-                >
-                  <template #header>
-                    <div
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(el, 'employeeGrowthRate')
-                      "
-                      class="flex items-center"
-                      @mouseover="
-                        () => onColumnHeaderMouseOver('employeeGrowthRate')
-                      "
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Ann. Employee Growth Rate
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(
-                            el,
-                            `${scope.row.id}-employeeGrowthRate`,
-                          )
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block h-full"
-                    >
-                      <div class="text-sm h-full flex items-center">
-                        <span
-                          v-if="scope.row.employeeGrowthRate?.['12_month']"
-                          class="text-gray-900"
-                        >
-                          {{
-                            Object.values(
-                              employeeGrowthRate.formatValue(
-                                scope.row.employeeGrowthRate,
-                              ),
-                            )?.[0]
-                          }}
-                        </span>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Tags -->
-                <el-table-column label="Smart tags" prop="tags" width="280">
-                  <template #header>
-                    <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
-                      class="flex items-center"
-                      @mouseover="() => onColumnHeaderMouseOver('tags')"
-                      @mouseleave="closeEnrichmentPopover"
-                    >
-                      <el-tooltip
-                        content="Source: Enrichment"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <lf-svg name="source" class="h-3 w-3" />
-                      </el-tooltip>
-                      <div class="ml-2 text-purple-800">
-                        Smart Tags
-                      </div>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <router-link
-                      :ref="
-                        (el) =>
-                          setEnrichmentAttributesRef(el, `${scope.row.id}-tags`)
-                      "
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                      }"
-                      class="block h-full"
-                    >
-                      <div>
-                        <app-shared-tag-list
-                          v-if="scope.row.tags?.length"
-                          :list="scope.row.tags"
-                          :slice-size="5"
-                        >
-                          <template #itemSlot="{ item }">
-                            <span
-                              class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep"
-                            >
-                              {{ item }}
-                            </span>
-                          </template>
-                        </app-shared-tag-list>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </router-link>
-                  </template>
-                </el-table-column>
-
-                <!-- Actions -->
-                <el-table-column v-if="hasPermissions" fixed="right">
-                  <template #default="scope">
-                    <router-link
-                      :to="{
-                        name: 'organizationView',
-                        params: { id: scope.row.id },
-                        query: {
-                          projectGroup: selectedProjectGroup?.id,
-                          segmentId: scope.row.segmentId,
-                        },
-                      }"
-                      class="flex justify-center"
-                    >
-                      <button
-                        :id="`buttonRef-${scope.row.id}`"
-                        :ref="(el) => setActionBtnsRef(el, scope.row.id)"
-                        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
-                        type="button"
-                        @click.prevent.stop="() => onActionBtnClick(scope.row)"
-                      >
-                        <lf-icon
-                          :id="`buttonRefIcon-${scope.row.id}`"
-                          name="ellipsis"
-                          type="regular"
-                          :size="24"
-                        />
-                      </button>
-                    </router-link>
-                  </template>
-                </el-table-column>
-              </el-table>
               <div
                 v-if="isTableLoading"
                 class="absolute w-full top-0 left-0 bottom-[64px] bg-white opacity-60 z-20 flex items-center justify-center"
@@ -1607,11 +933,6 @@ const pagination = computed({
   },
 });
 
-const defaultSort = computed(() => ({
-  prop: filters.value.order.prop,
-  order: filters.value.order.order,
-}));
-
 const showBottomPagination = computed(
   () => !!totalOrganizations.value
     && Math.ceil(totalOrganizations.value / Number(pagination.value.perPage)) > 1,
@@ -1650,41 +971,41 @@ const setEnrichmentAttributesRef = (el, id) => {
   }
 };
 
-const handleCellMouseEnter = (row, column) => {
-  const validValues = [
-    'industry',
-    'size',
-    'revenueRange',
-    'founded',
-    'employeeGrowthRate',
-    'tags',
-  ];
+// const handleCellMouseEnter = (row, column) => {
+//   const validValues = [
+//     'industry',
+//     'size',
+//     'revenueRange',
+//     'founded',
+//     'employeeGrowthRate',
+//     'tags',
+//   ];
 
-  if (validValues.includes(column.property)) {
-    showEnrichmentPopover.value = true;
-    selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
-  }
-};
+//   if (validValues.includes(column.property)) {
+//     showEnrichmentPopover.value = true;
+//     selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
+//   }
+// };
 
 const onColumnHeaderMouseOver = (id) => {
   showEnrichmentPopover.value = true;
   selectedEnrichmentAttribute.value = id;
 };
 
-const handleCellMouseLeave = (_row, column) => {
-  const validValues = [
-    'industry',
-    'size',
-    'revenueRange',
-    'founded',
-    'employeeGrowthRate',
-    'tags',
-  ];
+// const handleCellMouseLeave = (_row, column) => {
+//   const validValues = [
+//     'industry',
+//     'size',
+//     'revenueRange',
+//     'founded',
+//     'employeeGrowthRate',
+//     'tags',
+//   ];
 
-  if (!validValues.includes(column.property)) {
-    closeEnrichmentPopover();
-  }
-};
+//   if (!validValues.includes(column.property)) {
+//     closeEnrichmentPopover();
+//   }
+// };
 
 const closeEnrichmentPopover = (ev) => {
   if (ev?.toElement?.id !== 'popover-content') {
@@ -1711,25 +1032,25 @@ const onClickOutside = (el) => {
 };
 
 const toggleAllOrganizationsSelection = () => {
-  if (selectedOrganizations.value.length === members.value.length) {
+  if (selectedOrganizations.value.length === organizations.value.length) {
     selectedOrganizations.value = [];
   } else {
-    selectedOrganizations.value = members.value;
+    selectedOrganizations.value = organizations.value;
   }
 };
 
-const toggleOrgSelection = (member) => {
-  if (isSelected(member)) {
+const toggleOrgSelection = (org) => {
+  if (isSelected(org)) {
     selectedOrganizations.value = selectedOrganizations.value.filter(
-      (r) => r.id !== member.id,
+      (r) => r.id !== org.id,
     );
   } else {
-    selectedOrganizations.value.push(member);
+    selectedOrganizations.value.push(org);
   }
 };
 
-const isSelected = (member) => (
-  selectedOrganizations.value.find((r) => r.id === member.id) !== undefined
+const isSelected = (org) => (
+  selectedOrganizations.value.find((r) => r.id === org.id) !== undefined
 );
 
 function doChangeSort(sorter) {
@@ -1766,12 +1087,6 @@ const onCtaClick = () => {
   router.push({
     name: 'organizationCreate',
   });
-};
-
-const rowClass = ({ row }) => {
-  const isSelected = selectedOrganizations.value.find((r) => r.id === row.id) !== undefined;
-
-  return isSelected ? 'is-selected' : '';
 };
 
 // On custom scrollbar scroll, set the table scroll with the same value
@@ -1871,35 +1186,6 @@ export default {
 .website-link {
   @apply text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed
   decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer;
-}
-// Hide table header scrollbar
-#organizations-table .el-table__header-wrapper {
-  // IE, Edge and Firefox
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-
-  // Chrome, Safari and Opera
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-#organizations-table .el-table__cell:not(.el-table-column--selection) {
-  padding: 0;
-}
-.el-table tbody .cell {
-  display: block !important;
-  @apply p-0;
-  &,
-  & > a {
-    @apply h-full w-full flex items-center;
-  }
-  & > a {
-    @apply px-2.5 py-2;
-  }
-}
-.el-table__body {
-  height: 1px;
 }
 
 .popover-dropdown {
