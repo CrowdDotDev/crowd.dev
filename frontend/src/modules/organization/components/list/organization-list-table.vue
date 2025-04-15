@@ -386,7 +386,7 @@
                         <div class="text-sm h-full flex items-center">
                           <a
                             v-if="getOrganizationWebsite(org)"
-                            class="website-link"
+                            class="website-link hover:!text-gray-900"
                             :href="withHttp(getOrganizationWebsite(org))"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -832,7 +832,7 @@
                       <div class="text-sm h-full flex items-center">
                         <a
                           v-if="getOrganizationWebsite(scope.row)"
-                          class="website-link"
+                          class="website-link hover:!text-gray-900"
                           :href="withHttp(getOrganizationWebsite(scope.row))"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1870,7 +1870,7 @@ export default {
 
 .website-link {
   @apply text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed
-  decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900;
+  decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer;
 }
 // Hide table header scrollbar
 #organizations-table .el-table__header-wrapper {
