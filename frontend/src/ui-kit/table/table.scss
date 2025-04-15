@@ -22,12 +22,9 @@
       @apply sticky pl-3 bg-white left-0 right-0 z-20;
 
       &:before {
-        content: '';
+        content: "";
         height: calc(100% + 3px);
         @apply absolute top-0 w-3;
-      }
-
-      &:first-child:before {
         right: 0;
         box-shadow: rem(6) 0 rem(8) rem(-2) rgba(0, 0, 0, 0.1);
       }
@@ -91,7 +88,7 @@
   }
 
   &.is-scroll-start {
-    .is-sticky:first-child:before {
+    .is-sticky:not(:last-child):before {
       @apply hidden;
     }
   }
@@ -102,3 +99,4 @@
     }
   }
 }
+
