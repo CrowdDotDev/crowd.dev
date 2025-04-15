@@ -87,6 +87,694 @@
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             >
+              <lf-table
+                id="organizations-table"
+                ref="table"
+                type="bordered"
+                show-hover
+              >
+                <thead>
+                  <tr>
+                    <lf-table-head class="px-2 min-w-19" :sticky="true">
+                      <lf-checkbox
+                        :model-value="
+                          selectedOrganizations.length === organizations.length
+                        "
+                        :indeterminate="
+                          selectedOrganizations.length > 0
+                            && selectedOrganizations.length < organizations.length
+                        "
+                        @update:model-value="toggleAllOrganizationsSelection()"
+                      />
+                    </lf-table-head>
+                    <lf-table-head
+                      property="displayName"
+                      :model-value="sorting"
+                      class="!px-3 min-w-76 !left-19"
+                      :sticky="true"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      Organization
+                    </lf-table-head>
+                    <lf-table-head class="!px-3 min-w-66">
+                      Website
+                    </lf-table-head>
+                    <lf-table-head class="!px-3 min-w-104">
+                      <div class="flex items-center">
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Headline
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head class="!px-3 min-w-76">
+                      <el-tooltip placement="top">
+                        <template #content>
+                          Identities can be profiles on social platforms,
+                          emails,<br />
+                          or unique identifiers from internal sources.
+                        </template>
+                        <span
+                          class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                        >Identities</span>
+                      </el-tooltip>
+                    </lf-table-head>
+
+                    <lf-table-head
+                      class="!px-3 min-w-55"
+                      property="memberCount"
+                      :model-value="sorting"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      # of People
+                    </lf-table-head>
+
+                    <lf-table-head
+                      class="!px-3 min-w-55"
+                      property="activityCount"
+                      :model-value="sorting"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      # of Activities
+                    </lf-table-head>
+
+                    <lf-table-head
+                      class="!px-3 min-w-[180px]"
+                      property="lastActive"
+                      :model-value="sorting"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      Last Active
+                    </lf-table-head>
+                    <lf-table-head
+                      class="!px-3 min-w-[180px]"
+                      property="joinedAt"
+                      :model-value="sorting"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      Joined Date
+                    </lf-table-head>
+
+                    <lf-table-head class="!px-3 min-w-65">
+                      <div class="flex items-center">
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Location
+                        </div>
+                      </div>
+                    </lf-table-head>
+                    <lf-table-head class="!px-3 min-w-55">
+                      <div
+                        :ref="
+                          (el) => setEnrichmentAttributesRef(el, 'industry')
+                        "
+                        class="flex items-center"
+                        @mouseover="() => onColumnHeaderMouseOver('industry')"
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Industry
+                        </div>
+                      </div>
+                    </lf-table-head>
+                    <lf-table-head class="!px-3 min-w-[180px]">
+                      <div
+                        :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
+                        class="flex items-center"
+                        @mouseover="() => onColumnHeaderMouseOver('size')"
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Headcount
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head v-if="showReach" class="!px-3 min-w-55">
+                      <div
+                        :ref="
+                          (el) => setEnrichmentAttributesRef(el, 'revenueRange')
+                        "
+                        class="flex items-center"
+                        @mouseover="
+                          () => onColumnHeaderMouseOver('revenueRange')
+                        "
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Annual Revenue
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head
+                      class="!px-3 min-w-42"
+                      property="founded"
+                      :model-value="sorting"
+                      @update:model-value="doChangeSort($event)"
+                    >
+                      <div
+                        :ref="(el) => setEnrichmentAttributesRef(el, 'founded')"
+                        class="inline-block"
+                        @mouseover="() => onColumnHeaderMouseOver('founded')"
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <div class="flex items-center">
+                          <el-tooltip
+                            content="Source: Enrichment"
+                            placement="top"
+                            trigger="hover"
+                          >
+                            <lf-svg name="source" class="h-3 w-3" />
+                          </el-tooltip>
+                          <div class="ml-2 text-purple-800">
+                            Founded
+                          </div>
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head class="!px-3 min-w-70">
+                      <div
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(el, 'employeeGrowthRate')
+                        "
+                        class="flex items-center"
+                        @mouseover="
+                          () => onColumnHeaderMouseOver('employeeGrowthRate')
+                        "
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Ann. Employee Growth Rate
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head class="!px-3 min-w-70">
+                      <div
+                        :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
+                        class="flex items-center"
+                        @mouseover="() => onColumnHeaderMouseOver('tags')"
+                        @mouseleave="closeEnrichmentPopover"
+                      >
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <div class="ml-2 text-purple-800">
+                          Smart Tags
+                        </div>
+                      </div>
+                    </lf-table-head>
+
+                    <lf-table-head
+                      v-if="hasPermissions"
+                      :sticky="true"
+                      class="min-w-19"
+                    />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="org of organizations"
+                    :key="org.id"
+                    :class="isSelected(org) ? 'is-selected' : ''"
+                    :data-qa="`organization-${org.id}`"
+                  >
+                    <lf-table-cell :sticky="true" class="pl-2">
+                      <lf-checkbox
+                        :model-value="isSelected(org)"
+                        @update:model-value="toggleOrgSelection(org)"
+                      />
+                    </lf-table-cell>
+
+                    <!-- Organization logo and name -->
+                    <lf-table-cell :sticky="true" class="pl-2 !left-19">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block mr-4"
+                      >
+                        <app-organization-name
+                          class="w-full"
+                          :organization="org"
+                        />
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Website -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                        }"
+                        class="block"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <a
+                            v-if="getOrganizationWebsite(org)"
+                            class="website-link"
+                            :href="withHttp(getOrganizationWebsite(org))"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            @click.stop
+                          >{{ getOrganizationWebsite(org) }}</a>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Headline -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div class="mr-4">
+                          <span
+                            v-if="org.headline || org.description"
+                            class="text-sm h-full flex items-center text-gray-900 line-clamp-3"
+                          >
+                            {{ org.headline || org.description }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Identities -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div class="h-full flex items-center">
+                          <app-identities-horizontal-list-organizations
+                            :organization="org"
+                            :limit="5"
+                          />
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Number of members -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div
+                          class="text-gray-900 text-sm h-full flex items-center"
+                        >
+                          {{ formatNumberToCompact(org.memberCount) }}
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Number of activities -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div
+                          class="text-gray-900 text-sm h-full flex items-center"
+                        >
+                          {{ formatNumberToCompact(org.activityCount) }}
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Last Active -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <span
+                          v-if="org.lastActive"
+                          class="text-gray-900 text-sm h-full flex items-center"
+                        >
+                          {{ formatDateToTimeAgo(org.lastActive) }}
+                        </span>
+                        <span v-else class="text-gray-900">-</span>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Joined Date -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div
+                          v-if="org.joinedAt"
+                          class="text-gray-900 text-sm h-full flex items-center"
+                        >
+                          {{ formatDateToTimeAgo(org.joinedAt) }}
+                        </div>
+                        <span v-else class="text-gray-900">-</span>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Location -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span v-if="org.location" class="text-gray-900">
+                            {{ org.location }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Industry -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(el, `${org.id}-industry`)
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block h-full"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span v-if="org.industry" class="text-gray-900">
+                            {{ toSentenceCase(org.industry) }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Headcount -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(el, `${org.id}-size`)
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block h-full"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span
+                            v-if="org.size || org.employees"
+                            class="text-gray-900"
+                          >
+                            {{ org.size || org.employees }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Inferred Revenue -->
+                    <lf-table-cell v-if="showReach" class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(
+                              el,
+                              `${org.id}-revenueRange`,
+                            )
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block h-full"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span v-if="org.revenueRange" class="text-gray-900">
+                            {{ revenueRange.formatValue(org.revenueRange) }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Founded -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(el, `${org.id}-founded`)
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="block h-full"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span v-if="org.founded" class="text-gray-900">
+                            {{ org.founded }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Employee Growth Rate -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(
+                              el,
+                              `${org.id}-employeeGrowthRate`,
+                            )
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                        }"
+                        class="block h-full"
+                      >
+                        <div class="text-sm h-full flex items-center">
+                          <span
+                            v-if="org.employeeGrowthRate?.['12_month']"
+                            class="text-gray-900"
+                          >
+                            {{
+                              Object.values(
+                                employeeGrowthRate.formatValue(
+                                  org.employeeGrowthRate,
+                                ),
+                              )?.[0]
+                            }}
+                          </span>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Tags -->
+                    <lf-table-cell class="pl-3">
+                      <router-link
+                        :ref="
+                          (el) =>
+                            setEnrichmentAttributesRef(el, `${org.id}-tags`)
+                        "
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                        }"
+                        class="block h-full"
+                      >
+                        <div>
+                          <app-shared-tag-list
+                            v-if="org.tags?.length"
+                            :list="org.tags"
+                            :slice-size="5"
+                          >
+                            <template #itemSlot="{ item }">
+                              <span
+                                class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep"
+                              >
+                                {{ item }}
+                              </span>
+                            </template>
+                          </app-shared-tag-list>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </router-link>
+                    </lf-table-cell>
+
+                    <!-- Action button -->
+                    <lf-table-cell
+                      v-if="hasPermissions"
+                      :sticky="true"
+                      class="pr-2"
+                    >
+                      <router-link
+                        :to="{
+                          name: 'organizationView',
+                          params: { id: org.id },
+                          query: {
+                            projectGroup: selectedProjectGroup?.id,
+                            segmentId: org.segmentId,
+                          },
+                        }"
+                        class="flex justify-center"
+                      >
+                        <button
+                          :id="`buttonRef-${org.id}`"
+                          :ref="(el) => setActionBtnsRef(el, org.id)"
+                          class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+                          type="button"
+                          @click.prevent.stop="() => onActionBtnClick(org)"
+                        >
+                          <lf-icon
+                            :id="`buttonRefIcon-${org.id}`"
+                            name="ellipsis"
+                            type="regular"
+                            :size="24"
+                          />
+                        </button>
+                      </router-link>
+                    </lf-table-cell>
+                  </tr>
+                </tbody>
+              </lf-table>
+
+              <br />
+              <br />
+              <br />
+              ==========================================================================================
+              <br />
+              <br />
+              <br />
+
               <el-table
                 id="organizations-table"
                 ref="table"
@@ -101,11 +789,7 @@
                 @cell-mouse-leave="handleCellMouseLeave"
               >
                 <!-- Checkbox -->
-                <el-table-column
-                  type="selection"
-                  width="75"
-                  fixed
-                />
+                <el-table-column type="selection" width="75" fixed />
 
                 <!-- Organization logo and name -->
                 <el-table-column
@@ -136,10 +820,7 @@
                 </el-table-column>
 
                 <!-- Website -->
-                <el-table-column
-                  label="Website"
-                  width="260"
-                >
+                <el-table-column label="Website" width="260">
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -148,36 +829,30 @@
                       }"
                       class="block"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
+                      <div class="text-sm h-full flex items-center">
                         <a
                           v-if="getOrganizationWebsite(scope.row)"
-                          class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
-          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+                          class="website-link"
                           :href="withHttp(getOrganizationWebsite(scope.row))"
                           target="_blank"
                           rel="noopener noreferrer"
                           @click.stop
                         >{{ getOrganizationWebsite(scope.row) }}</a>
-                        <span
-                          v-else
-                          class="text-gray-500"
-                        >-</span>
+                        <span v-else class="text-gray-500">-</span>
                       </div>
                     </router-link>
                   </template>
                 </el-table-column>
 
                 <!-- Headline -->
-                <el-table-column
-                  label="Headline"
-                  prop="headline"
-                  width="420"
-                >
+                <el-table-column label="Headline" prop="headline" width="420">
                   <template #header>
                     <div class="flex items-center">
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -204,27 +879,24 @@
                         >
                           {{ scope.row.headline || scope.row.description }}
                         </span>
-                        <span
-                          v-else
-                          class="text-gray-500"
-                        >-</span>
+                        <span v-else class="text-gray-500">-</span>
                       </div>
                     </router-link>
                   </template>
                 </el-table-column>
 
                 <!-- Identities -->
-                <el-table-column
-                  label="Identities"
-                  width="300"
-                >
+                <el-table-column label="Identities" width="300">
                   <template #header>
                     <el-tooltip placement="top">
                       <template #content>
-                        Identities can be profiles on social platforms, emails,<br>
+                        Identities can be profiles on social platforms,
+                        emails,<br />
                         or unique identifiers from internal sources.
                       </template>
-                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
+                      <span
+                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                      >Identities</span>
                     </el-tooltip>
                   </template>
                   <template #default="scope">
@@ -271,11 +943,7 @@
                       <div
                         class="text-gray-900 text-sm h-full flex items-center"
                       >
-                        {{
-                          formatNumberToCompact(
-                            scope.row.memberCount,
-                          )
-                        }}
+                        {{ formatNumberToCompact(scope.row.memberCount) }}
                       </div>
                     </router-link>
                   </template>
@@ -303,11 +971,7 @@
                       <div
                         class="text-gray-900 text-sm h-full flex items-center"
                       >
-                        {{
-                          formatNumberToCompact(
-                            scope.row.activityCount,
-                          )
-                        }}
+                        {{ formatNumberToCompact(scope.row.activityCount) }}
                       </div>
                     </router-link>
                   </template>
@@ -336,13 +1000,9 @@
                         v-if="scope.row.lastActive"
                         class="text-gray-900 text-sm h-full flex items-center"
                       >
-
                         {{ formatDateToTimeAgo(scope.row.lastActive) }}
                       </span>
-                      <span
-                        v-else
-                        class="text-gray-900"
-                      >-</span>
+                      <span v-else class="text-gray-900">-</span>
                     </router-link>
                   </template>
                 </el-table-column>
@@ -370,29 +1030,22 @@
                         v-if="scope.row.joinedAt"
                         class="text-gray-900 text-sm h-full flex items-center"
                       >
-                        {{
-                          formatDateToTimeAgo(
-                            scope.row.joinedAt,
-                          )
-                        }}
+                        {{ formatDateToTimeAgo(scope.row.joinedAt) }}
                       </div>
-                      <span
-                        v-else
-                        class="text-gray-900"
-                      >-</span>
+                      <span v-else class="text-gray-900">-</span>
                     </router-link>
                   </template>
                 </el-table-column>
 
                 <!-- Location -->
-                <el-table-column
-                  label="Location"
-                  width="260"
-                  prop="location"
-                >
+                <el-table-column label="Location" width="260" prop="location">
                   <template #header>
                     <div class="flex items-center">
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -412,13 +1065,9 @@
                       }"
                       class="block"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
+                      <div class="text-sm h-full flex items-center">
                         <span v-if="scope.row.location" class="text-gray-900">
-                          {{
-                            scope.row.location
-                          }}
+                          {{ scope.row.location }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
@@ -427,11 +1076,7 @@
                 </el-table-column>
 
                 <!-- Industry -->
-                <el-table-column
-                  label="Industry"
-                  width="220"
-                  prop="industry"
-                >
+                <el-table-column label="Industry" width="220" prop="industry">
                   <template #header>
                     <div
                       :ref="(el) => setEnrichmentAttributesRef(el, 'industry')"
@@ -439,7 +1084,11 @@
                       @mouseover="() => onColumnHeaderMouseOver('industry')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -449,7 +1098,13 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-industry`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${scope.row.id}-industry`,
+                          )
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -460,13 +1115,9 @@
                       }"
                       class="block h-full"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
+                      <div class="text-sm h-full flex items-center">
                         <span v-if="scope.row.industry" class="text-gray-900">
-                          {{
-                            toSentenceCase(scope.row.industry)
-                          }}
+                          {{ toSentenceCase(scope.row.industry) }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
@@ -475,11 +1126,7 @@
                 </el-table-column>
 
                 <!-- Headcount -->
-                <el-table-column
-                  label="Headcount"
-                  width="180"
-                  prop="size"
-                >
+                <el-table-column label="Headcount" width="180" prop="size">
                   <template #header>
                     <div
                       :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
@@ -487,7 +1134,11 @@
                       @mouseover="() => onColumnHeaderMouseOver('size')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -497,7 +1148,10 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-size`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${scope.row.id}-size`)
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -508,13 +1162,12 @@
                       }"
                       class="block h-full"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.size || scope.row.employees" class="text-gray-900">
-                          {{
-                            scope.row.size || scope.row.employees
-                          }}
+                      <div class="text-sm h-full flex items-center">
+                        <span
+                          v-if="scope.row.size || scope.row.employees"
+                          class="text-gray-900"
+                        >
+                          {{ scope.row.size || scope.row.employees }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
@@ -530,12 +1183,18 @@
                 >
                   <template #header>
                     <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'revenueRange')"
+                      :ref="
+                        (el) => setEnrichmentAttributesRef(el, 'revenueRange')
+                      "
                       class="flex items-center"
                       @mouseover="() => onColumnHeaderMouseOver('revenueRange')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -545,7 +1204,13 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-revenueRange`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${scope.row.id}-revenueRange`,
+                          )
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -556,13 +1221,12 @@
                       }"
                       class="block h-full"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.revenueRange" class="text-gray-900">
-                          {{
-                            revenueRange.formatValue(scope.row.revenueRange)
-                          }}
+                      <div class="text-sm h-full flex items-center">
+                        <span
+                          v-if="scope.row.revenueRange"
+                          class="text-gray-900"
+                        >
+                          {{ revenueRange.formatValue(scope.row.revenueRange) }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
@@ -585,7 +1249,11 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <div class="flex items-center">
-                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                        <el-tooltip
+                          content="Source: Enrichment"
+                          placement="top"
+                          trigger="hover"
+                        >
                           <lf-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
                         <div class="ml-2 text-purple-800">
@@ -596,7 +1264,13 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-founded`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${scope.row.id}-founded`,
+                          )
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -607,13 +1281,9 @@
                       }"
                       class="block h-full"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
+                      <div class="text-sm h-full flex items-center">
                         <span v-if="scope.row.founded" class="text-gray-900">
-                          {{
-                            scope.row.founded
-                          }}
+                          {{ scope.row.founded }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
                       </div>
@@ -629,12 +1299,21 @@
                 >
                   <template #header>
                     <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, 'employeeGrowthRate')"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, 'employeeGrowthRate')
+                      "
                       class="flex items-center"
-                      @mouseover="() => onColumnHeaderMouseOver('employeeGrowthRate')"
+                      @mouseover="
+                        () => onColumnHeaderMouseOver('employeeGrowthRate')
+                      "
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -644,19 +1323,30 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-employeeGrowthRate`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${scope.row.id}-employeeGrowthRate`,
+                          )
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
                       }"
                       class="block h-full"
                     >
-                      <div
-                        class="text-sm h-full flex items-center"
-                      >
-                        <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
+                      <div class="text-sm h-full flex items-center">
+                        <span
+                          v-if="scope.row.employeeGrowthRate?.['12_month']"
+                          class="text-gray-900"
+                        >
                           {{
-                            Object.values(employeeGrowthRate.formatValue(scope.row.employeeGrowthRate))?.[0]
+                            Object.values(
+                              employeeGrowthRate.formatValue(
+                                scope.row.employeeGrowthRate,
+                              ),
+                            )?.[0]
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
@@ -666,11 +1356,7 @@
                 </el-table-column>
 
                 <!-- Tags -->
-                <el-table-column
-                  label="Smart tags"
-                  prop="tags"
-                  width="280"
-                >
+                <el-table-column label="Smart tags" prop="tags" width="280">
                   <template #header>
                     <div
                       :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
@@ -678,7 +1364,11 @@
                       @mouseover="() => onColumnHeaderMouseOver('tags')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -688,7 +1378,10 @@
                   </template>
                   <template #default="scope">
                     <router-link
-                      :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-tags`)"
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${scope.row.id}-tags`)
+                      "
                       :to="{
                         name: 'organizationView',
                         params: { id: scope.row.id },
@@ -702,7 +1395,9 @@
                           :slice-size="5"
                         >
                           <template #itemSlot="{ item }">
-                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
+                            <span
+                              class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep"
+                            >
                               {{ item }}
                             </span>
                           </template>
@@ -734,7 +1429,12 @@
                         type="button"
                         @click.prevent.stop="() => onActionBtnClick(scope.row)"
                       >
-                        <lf-icon :id="`buttonRefIcon-${scope.row.id}`" name="ellipsis" type="regular" :size="24" />
+                        <lf-icon
+                          :id="`buttonRefIcon-${scope.row.id}`"
+                          name="ellipsis"
+                          type="regular"
+                          :size="24"
+                        />
                       </button>
                     </router-link>
                   </template>
@@ -753,21 +1453,14 @@
                 </div>
               </div>
 
-              <div
-                v-if="showBottomPagination"
-                class="mt-8 px-6"
-              >
+              <div v-if="showBottomPagination" class="mt-8 px-6">
                 <app-pagination
                   :total="totalOrganizations"
                   :page-size="Number(pagination.perPage)"
                   :current-page="pagination.page || 1"
                   module="organization"
-                  @change-current-page="
-                    doChangePaginationCurrentPage
-                  "
-                  @change-page-size="
-                    doChangePaginationPageSize
-                  "
+                  @change-current-page="doChangePaginationCurrentPage"
+                  @change-page-size="doChangePaginationPageSize"
                 />
               </div>
             </div>
@@ -801,10 +1494,7 @@
 
 <script setup>
 import {
-  computed,
-  ref,
-  watch,
-  onUnmounted,
+  computed, ref, watch, onUnmounted,
 } from 'vue';
 import { useRouter } from 'vue-router';
 import { ClickOutside as vClickOutside } from 'element-plus';
@@ -824,11 +1514,18 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { getOrganizationWebsite } from '@/utils/organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
@@ -863,14 +1560,19 @@ const emit = defineEmits(['update:pagination']);
 
 const { hasPermission } = usePermissions();
 
-const hasPermissions = computed(() => [LfPermission.organizationEdit,
+const hasPermissions = computed(() => [
+  LfPermission.organizationEdit,
   LfPermission.organizationDestroy,
-  LfPermission.mergeOrganizations]
-  .some((permission) => hasPermission(permission)));
+  LfPermission.mergeOrganizations,
+].some((permission) => hasPermission(permission)));
 
 const organizationStore = useOrganizationStore();
 const {
-  organizations, selectedOrganizations, filters, totalOrganizations, savedFilterBody,
+  organizations,
+  selectedOrganizations,
+  filters,
+  totalOrganizations,
+  savedFilterBody,
 } = storeToRefs(organizationStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -888,6 +1590,9 @@ const isCursorDown = ref(false);
 const showOrganizationDropdownPopover = ref(false);
 const actionBtnRefs = ref({});
 const selectedActionOrganization = ref(null);
+const sorting = computed(
+  () => `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+);
 
 const showEnrichmentPopover = ref(false);
 const enrichmentRefs = ref({});
@@ -907,12 +1612,10 @@ const defaultSort = computed(() => ({
   order: filters.value.order.order,
 }));
 
-const showBottomPagination = computed(() => (
-  !!totalOrganizations.value
-    && Math.ceil(
-      totalOrganizations.value / Number(pagination.value.perPage),
-    ) > 1
-));
+const showBottomPagination = computed(
+  () => !!totalOrganizations.value
+    && Math.ceil(totalOrganizations.value / Number(pagination.value.perPage)) > 1,
+);
 const isLoading = computed(() => props.isPageLoading);
 
 document.onmouseup = () => {
@@ -948,7 +1651,14 @@ const setEnrichmentAttributesRef = (el, id) => {
 };
 
 const handleCellMouseEnter = (row, column) => {
-  const validValues = ['industry', 'size', 'revenueRange', 'founded', 'employeeGrowthRate', 'tags'];
+  const validValues = [
+    'industry',
+    'size',
+    'revenueRange',
+    'founded',
+    'employeeGrowthRate',
+    'tags',
+  ];
 
   if (validValues.includes(column.property)) {
     showEnrichmentPopover.value = true;
@@ -962,7 +1672,14 @@ const onColumnHeaderMouseOver = (id) => {
 };
 
 const handleCellMouseLeave = (_row, column) => {
-  const validValues = ['industry', 'size', 'revenueRange', 'founded', 'employeeGrowthRate', 'tags'];
+  const validValues = [
+    'industry',
+    'size',
+    'revenueRange',
+    'founded',
+    'employeeGrowthRate',
+    'tags',
+  ];
 
   if (!validValues.includes(column.property)) {
     closeEnrichmentPopover();
@@ -993,19 +1710,41 @@ const onClickOutside = (el) => {
   }
 };
 
+const toggleAllOrganizationsSelection = () => {
+  if (selectedOrganizations.value.length === members.value.length) {
+    selectedOrganizations.value = [];
+  } else {
+    selectedOrganizations.value = members.value;
+  }
+};
+
+const toggleOrgSelection = (member) => {
+  if (isSelected(member)) {
+    selectedOrganizations.value = selectedOrganizations.value.filter(
+      (r) => r.id !== member.id,
+    );
+  } else {
+    selectedOrganizations.value.push(member);
+  }
+};
+
+const isSelected = (member) => (
+  selectedOrganizations.value.find((r) => r.id === member.id) !== undefined
+);
+
 function doChangeSort(sorter) {
   trackEvent({
     key: FeatureEventKey.SORT_ORGANIZATIONS,
     type: EventType.FEATURE,
     properties: {
-      sortBy: sorter.prop,
-      sortOrder: sorter.order,
+      orderby: sorter,
     },
   });
 
+  const orderby = sorter.split('_');
   filters.value.order = {
-    prop: sorter.prop,
-    order: sorter.order,
+    prop: orderby[0],
+    order: orderby[1] === 'DESC' ? 'descending' : 'ascending',
   };
 }
 
@@ -1030,8 +1769,7 @@ const onCtaClick = () => {
 };
 
 const rowClass = ({ row }) => {
-  const isSelected = selectedOrganizations.value.find((r) => r.id === row.id)
-    !== undefined;
+  const isSelected = selectedOrganizations.value.find((r) => r.id === row.id) !== undefined;
 
   return isSelected ? 'is-selected' : '';
 };
@@ -1043,16 +1781,12 @@ const onCustomScrollbarScroll = ({ scrollLeft }) => {
 
 // On table body scroll, set the custom scrollbar scroll with the same value
 const onTableBodyScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableBodyRef.value.scrollLeft,
-  );
+  scrollbarRef.value.setScrollLeft(tableBodyRef.value.scrollLeft);
 };
 
 // On table header scroll, set the custom scrollbar scroll with the same value
 const onTableHeaderScroll = () => {
-  scrollbarRef.value.setScrollLeft(
-    tableHeaderRef.value.scrollLeft,
-  );
+  scrollbarRef.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
   table.value.setScrollLeft(tableHeaderRef.value.scrollLeft);
 };
 
@@ -1090,32 +1824,20 @@ watch(table, (newValue) => {
 
   if (tableBodyEl) {
     tableBodyRef.value = tableBodyEl;
-    tableBodyRef.value.addEventListener(
-      'scroll',
-      onTableBodyScroll,
-    );
+    tableBodyRef.value.addEventListener('scroll', onTableBodyScroll);
   }
 
   if (tableHeaderEl) {
     tableHeaderEl.style.overflow = 'auto';
     tableHeaderRef.value = tableHeaderEl;
-    tableHeaderRef.value.addEventListener(
-      'scroll',
-      onTableHeaderScroll,
-    );
+    tableHeaderRef.value.addEventListener('scroll', onTableHeaderScroll);
   }
 });
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value?.removeEventListener(
-    'scroll',
-    onTableBodyScroll,
-  );
-  tableHeaderRef.value?.removeEventListener(
-    'scroll',
-    onTableHeaderScroll,
-  );
+  tableBodyRef.value?.removeEventListener('scroll', onTableBodyScroll);
+  tableHeaderRef.value?.removeEventListener('scroll', onTableHeaderScroll);
 });
 </script>
 
@@ -1126,6 +1848,30 @@ export default {
 </script>
 
 <style lang="scss">
+.c-table th, .c-table td {
+  @apply py-4 #{!important};
+}
+
+.c-table tbody tr {
+  @apply bg-white;
+
+  &.is-selected {
+    @apply bg-primary-25;
+  }
+
+  .is-sticky {
+    @apply bg-inherit;
+  }
+}
+
+.c-checkbox {
+  @apply m-0;
+}
+
+.website-link {
+  @apply text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed
+  decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900;
+}
 // Hide table header scrollbar
 #organizations-table .el-table__header-wrapper {
   // IE, Edge and Firefox
@@ -1138,8 +1884,7 @@ export default {
   }
 }
 
-#organizations-table
-.el-table__cell:not(.el-table-column--selection) {
+#organizations-table .el-table__cell:not(.el-table-column--selection) {
   padding: 0;
 }
 .el-table tbody .cell {
