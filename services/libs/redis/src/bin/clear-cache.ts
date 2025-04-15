@@ -22,4 +22,6 @@ setImmediate(async () => {
     const cache = new RedisCache(cacheName, client, log)
     await cache.deleteAll()
   }
+
+  process.exit(0)
 })
