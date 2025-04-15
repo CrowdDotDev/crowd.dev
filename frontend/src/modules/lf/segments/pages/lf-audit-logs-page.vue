@@ -20,7 +20,7 @@
   </div>
   <div v-else>
     <lf-table
-      id="members-table"
+      id="audit-logs-table"
       ref="table"
       v-loading="loading"
       type="bordered"
