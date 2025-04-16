@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div v-if="loading" class="h-16 !relative !min-h-5 flex justify-center items-center">
+    <div
+      v-if="loading"
+      class="h-16 !relative !min-h-5 flex justify-center items-center"
+    >
       <div class="animate-spin w-fit">
         <div class="custom-spinner" />
       </div>
@@ -46,13 +49,16 @@
           >
             <template #defaultFilters>
               <div>・</div>
-              <lf-default-filters :config="memberSavedViews" :settings="filters.settings" />
+              <lf-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
             </template>
           </app-pagination-sorter>
         </div>
 
         <!-- Members list -->
-        <div class="app-list-table panel">
+        <div class="relative panel">
           <transition name="el-fade-in">
             <div
               v-show="isScrollbarVisible"
@@ -76,16 +82,31 @@
               </el-scrollbar>
             </div>
           </transition>
-          <app-member-list-toolbar @mouseover="onTableMouseover" @mouseleave="onTableMouseLeft" />
-          <div class="-mx-6 -mt-6 relative" @mouseover="onTableMouseover" @mouseleave="onTableMouseLeft">
-            <lf-table id="members-table" ref="table" v-loading="loading" type="bordered" show-hover>
+          <app-member-list-toolbar
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
+          />
+          <div
+            class="-mx-6 -mt-6 relative"
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
+          >
+            <lf-table
+              id="members-table"
+              ref="table"
+              v-loading="loading"
+              type="bordered"
+              show-hover
+            >
               <thead>
                 <tr>
-                  <lf-table-head class="px-2 min-w-19" :sticky="true">
+                  <lf-table-head class="!py-4 px-2 min-w-19" :sticky="true">
                     <lf-checkbox
+                      class="!m-0"
                       :model-value="selectedRows.length === members.length"
-                      :indeterminate="selectedRows.length > 0
-                        && selectedRows.length < members.length
+                      :indeterminate="
+                        selectedRows.length > 0
+                          && selectedRows.length < members.length
                       "
                       @update:model-value="toggleAllMembersSelection()"
                     />
@@ -93,15 +114,19 @@
                   <lf-table-head
                     property="displayName"
                     :model-value="sorting"
-                    class="!px-3 min-w-76 !left-19"
+                    class="!py-4 !px-3 min-w-76 !left-19"
                     :sticky="true"
                     @update:model-value="doChangeSort($event)"
                   >
                     Person
                   </lf-table-head>
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <div class="flex items-center">
-                      <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -110,9 +135,13 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-66">
+                  <lf-table-head class="!py-4 !px-3 min-w-66">
                     <div class="flex items-center">
-                      <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -121,7 +150,7 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <el-tooltip placement="top">
                       <template #content>
                         Identities can be profiles on social platforms, emails,
@@ -129,15 +158,17 @@
                         or unique identifiers from internal sources (e.g. web
                         app log-in email).
                       </template>
-                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
+                      <span
+                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                      >Identities</span>
                     </el-tooltip>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     Emails
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <el-popover placement="top" width="20rem">
                       <template #reference>
                         <span
@@ -148,7 +179,9 @@
                         <p class="text-small font-semibold mb-2 text-black">
                           Maintainer
                         </p>
-                        <p class="text-small text-gray-500 break-normal mb-5 text-left">
+                        <p
+                          class="text-small text-gray-500 break-normal mb-5 text-left"
+                        >
                           Individual responsible for overseeing and managing
                           code repositories by reviewing and merging pull
                           requests, addressing issues, ensuring code quality,
@@ -157,14 +190,20 @@
                         <p class="text-small font-semibold mb-2 text-black">
                           Contributor
                         </p>
-                        <p class="text-small text-gray-500 break-normal text-left mb-8">
+                        <p
+                          class="text-small text-gray-500 break-normal text-left mb-8"
+                        >
                           Someone who has contributed to a project by making
                           changes or additions to its code. Contributions
                           require that code was successfully merged into a
                           repository.
                         </p>
                         <div class="flex gap-1">
-                          <lf-icon name="circle-info" :size="16" class="text-gray-400" />
+                          <lf-icon
+                            name="circle-info"
+                            :size="16"
+                            class="text-gray-400"
+                          />
                           <p class="text-tiny text-gray-400">
                             Roles are automatically assigned based on data from
                             connected integrations and individual activities on
@@ -176,7 +215,7 @@
                   </lf-table-head>
 
                   <lf-table-head
-                    class="!px-3 min-w-55"
+                    class="!py-4 !px-3 min-w-55"
                     property="score"
                     :model-value="sorting"
                     @update:model-value="doChangeSort($event)"
@@ -190,12 +229,13 @@
                         person who has written <br />in your Slack yesterday vs.
                         someone who did so three weeks ago.
                       </template>
-                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement
-                        Level</span>
+                      <span
+                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                      >Engagement Level</span>
                     </el-tooltip>
                   </lf-table-head>
                   <lf-table-head
-                    class="!px-3 min-w-55"
+                    class="!py-4 !px-3 min-w-55"
                     property="activityCount"
                     :model-value="sorting"
                     @update:model-value="doChangeSort($event)"
@@ -204,7 +244,7 @@
                   </lf-table-head>
 
                   <lf-table-head
-                    class="!px-3 min-w-55"
+                    class="!py-4 !px-3 min-w-55"
                     property="lastActive"
                     :model-value="sorting"
                     @update:model-value="doChangeSort($event)"
@@ -212,16 +252,20 @@
                     Last activity
                   </lf-table-head>
                   <lf-table-head
-                    class="!px-3 min-w-[180px]"
+                    class="!py-4 !px-3 min-w-[180px]"
                     property="joinedAt"
                     :model-value="sorting"
                     @update:model-value="doChangeSort($event)"
                   >
                     Joined Date
                   </lf-table-head>
-                  <lf-table-head class="!px-3 min-w-66">
+                  <lf-table-head class="!py-4 !px-3 min-w-66">
                     <div class="flex items-center">
-                      <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -232,7 +276,7 @@
 
                   <lf-table-head
                     v-if="showReach"
-                    class="!px-3 min-w-[140px]"
+                    class="!py-4 !px-3 min-w-[140px]"
                     property="reach"
                     :model-value="sorting"
                     @update:model-value="doChangeSort($event)"
@@ -244,7 +288,11 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <div class="inline-flex items-center ml-1 gap-2">
-                        <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
+                        <el-tooltip
+                          content="Source: GitHub"
+                          placement="top"
+                          trigger="hover"
+                        >
                           <lf-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
                         <el-tooltip placement="top">
@@ -262,9 +310,10 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-55">
+                  <lf-table-head class="!py-4 !px-3 min-w-55">
                     <div
-                      :ref="(el) => setEnrichmentAttributesRef(el, `seniorityLevel`)
+                      :ref="
+                        (el) => setEnrichmentAttributesRef(el, `seniorityLevel`)
                       "
                       class="flex items-center"
                       @mouseover="
@@ -272,7 +321,11 @@
                       "
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -281,13 +334,14 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <div
-                      :ref="(el) =>
-                        setEnrichmentAttributesRef(
-                          el,
-                          `programmingLanguagess`,
-                        )
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `programmingLanguagess`,
+                          )
                       "
                       class="flex items-center"
                       @mouseover="
@@ -295,7 +349,11 @@
                       "
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -304,14 +362,18 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <div
                       :ref="(el) => setEnrichmentAttributesRef(el, `skills`)"
                       class="flex items-center"
                       @mouseover="() => onColumnHeaderMouseOver('skills')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -320,10 +382,14 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 min-w-76">
+                  <lf-table-head class="!px-3 !py-4 min-w-76">
                     Tags
                   </lf-table-head>
-                  <lf-table-head v-if="hasPermissions" :sticky="true" class="min-w-19" />
+                  <lf-table-head
+                    v-if="hasPermissions"
+                    :sticky="true"
+                    class="!py-4 min-w-19"
+                  />
                 </tr>
               </thead>
               <tbody>
@@ -333,15 +399,16 @@
                   :class="isSelected(member) ? 'is-selected' : ''"
                   :data-qa="`member-${member.id}`"
                 >
-                  <lf-table-cell :sticky="true" class="pl-2">
+                  <lf-table-cell :sticky="true" class="!py-4 pl-2">
                     <lf-checkbox
+                      class="!m-0"
                       :model-value="isSelected(member)"
                       @update:model-value="toggleMemberSelection(member)"
                     />
                   </lf-table-cell>
 
                   <!-- Contacts -->
-                  <lf-table-cell :sticky="true" class="pl-2 !left-19">
+                  <lf-table-cell :sticky="true" class="!py-4 pl-2 !left-19">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -351,7 +418,9 @@
                       class="block"
                     >
                       <div class="flex items-center">
-                        <div class="inline-flex flex-wrap overflow-wrap items-center">
+                        <div
+                          class="inline-flex flex-wrap overflow-wrap items-center"
+                        >
                           <app-avatar :entity="member" size="xs" class="mr-3" />
 
                           <span
@@ -359,7 +428,10 @@
                             data-qa="members-name"
                             v-html="$sanitize(member.displayName)"
                           />
-                          <app-member-sentiment :member="member" class="ml-1 mr-1" />
+                          <app-member-sentiment
+                            :member="member"
+                            class="ml-1 mr-1"
+                          />
                           <app-member-badge :member="member" />
                         </div>
                       </div>
@@ -367,7 +439,7 @@
                   </lf-table-cell>
 
                   <!-- Organization -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -381,7 +453,7 @@
                   </lf-table-cell>
 
                   <!-- Job Title -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -395,7 +467,7 @@
                   </lf-table-cell>
 
                   <!-- Identities -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -404,12 +476,15 @@
                       }"
                       class="block w-fit"
                     >
-                      <app-identities-horizontal-list-members :member="member" :limit="5" />
+                      <app-identities-horizontal-list-members
+                        :member="member"
+                        :limit="5"
+                      />
                     </router-link>
                   </lf-table-cell>
 
                   <!-- Emails -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -423,7 +498,7 @@
                   </lf-table-cell>
 
                   <!-- Role -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -432,12 +507,14 @@
                       }"
                       class="block"
                     >
-                      <lf-contributor-details-projects-maintainer :maintainer-roles="member.maintainerRoles" />
+                      <lf-contributor-details-projects-maintainer
+                        :maintainer-roles="member.maintainerRoles"
+                      />
                     </router-link>
                   </lf-table-cell>
 
                   <!-- Engagement level -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -451,7 +528,7 @@
                   </lf-table-cell>
 
                   <!-- # of Activities -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -465,7 +542,7 @@
                   </lf-table-cell>
 
                   <!-- Last activity -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -475,13 +552,16 @@
                       class="block !text-gray-500"
                     >
                       <div>
-                        <app-member-last-activity v-if="member.lastActivity" :member="member" />
+                        <app-member-last-activity
+                          v-if="member.lastActivity"
+                          :member="member"
+                        />
                       </div>
                     </router-link>
                   </lf-table-cell>
 
                   <!-- Joined Date -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -498,7 +578,7 @@
                   </lf-table-cell>
 
                   <!-- Location -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -508,7 +588,10 @@
                       class="block"
                     >
                       <div>
-                        <div v-if="member.attributes?.location?.default" class="text-gray-900 text-sm">
+                        <div
+                          v-if="member.attributes?.location?.default"
+                          class="text-gray-900 text-sm"
+                        >
                           {{ member.attributes.location.default }}
                         </div>
                         <span v-else class="text-gray-900">-</span>
@@ -517,10 +600,16 @@
                   </lf-table-cell>
 
                   <!-- Reach -->
-                  <lf-table-cell v-if="showReach" class="pl-3">
+                  <lf-table-cell
+                    v-if="showReach"
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'reach')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
                     <router-link
-                      :ref="(el) =>
-                        setEnrichmentAttributesRef(el, `${member.id}-reach`)
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${member.id}-reach`)
                       "
                       :to="{
                         name: 'memberView',
@@ -539,13 +628,18 @@
                   </lf-table-cell>
 
                   <!-- Seniority Level -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'seniorityLevel')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
                     <router-link
-                      :ref="(el) =>
-                        setEnrichmentAttributesRef(
-                          el,
-                          `${member.id}-seniorityLevel`,
-                        )
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${member.id}-seniorityLevel`,
+                          )
                       "
                       :to="{
                         name: 'memberView',
@@ -556,7 +650,10 @@
                     >
                       <div>
                         <div>
-                          <div v-if="member.attributes?.seniorityLevel?.default" class="text-gray-900 text-sm">
+                          <div
+                            v-if="member.attributes?.seniorityLevel?.default"
+                            class="text-gray-900 text-sm"
+                          >
                             {{ member.attributes.seniorityLevel.default }}
                           </div>
                           <span v-else class="text-gray-900">-</span>
@@ -566,13 +663,18 @@
                   </lf-table-cell>
 
                   <!-- Programming Languages -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'programmingLanguages')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
                     <router-link
-                      :ref="(el) =>
-                        setEnrichmentAttributesRef(
-                          el,
-                          `${member.id}-programmingLanguages`,
-                        )
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${member.id}-programmingLanguages`,
+                          )
                       "
                       :to="{
                         name: 'memberView',
@@ -587,7 +689,8 @@
                               member.attributes.programmingLanguages?.default
                                 ?.length
                             "
-                            :list="member.attributes.programmingLanguages.default
+                            :list="
+                              member.attributes.programmingLanguages.default
                             "
                             :slice-size="5"
                           >
@@ -606,10 +709,15 @@
                   </lf-table-cell>
 
                   <!-- Skills -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'skills')"
+                    @mouseleave="closeEnrichmentPopover"
+                  >
                     <router-link
-                      :ref="(el) =>
-                        setEnrichmentAttributesRef(el, `${member.id}-skills`)
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${member.id}-skills`)
                       "
                       :to="{
                         name: 'memberView',
@@ -639,7 +747,7 @@
                   </lf-table-cell>
 
                   <!-- Tags -->
-                  <lf-table-cell class="pl-3">
+                  <lf-table-cell class="!py-4 pl-3">
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -657,7 +765,11 @@
                   </lf-table-cell>
 
                   <!-- Action button -->
-                  <lf-table-cell v-if="hasPermissions" :sticky="true" class="pr-2">
+                  <lf-table-cell
+                    v-if="hasPermissions"
+                    :sticky="true"
+                    class="!py-4 pr-2"
+                  >
                     <router-link
                       :to="{
                         name: 'memberView',
@@ -666,7 +778,9 @@
                       }"
                       class="block w-full"
                     >
-                      <div class="h-full flex items-center justify-center w-full">
+                      <div
+                        class="h-full flex items-center justify-center w-full"
+                      >
                         <button
                           :id="`buttonRef-${member.id}`"
                           :ref="(el) => setActionBtnsRef(el, member.id)"
@@ -674,7 +788,12 @@
                           type="button"
                           @click.prevent.stop="() => onActionBtnClick(member)"
                         >
-                          <lf-icon :id="`buttonRefIcon-${member.id}`" name="ellipsis" type="solid" :size="24" />
+                          <lf-icon
+                            :id="`buttonRefIcon-${member.id}`"
+                            name="ellipsis"
+                            type="solid"
+                            :size="24"
+                          />
                         </button>
                       </div>
                     </router-link>
@@ -686,7 +805,9 @@
               v-if="isTableLoading"
               class="absolute w-full top-0 left-0 bottom-[64px] bg-white opacity-60 z-20 flex items-center justify-center"
             >
-              <div class="h-16 !relative !min-h-5 flex justify-center items-center">
+              <div
+                class="h-16 !relative !min-h-5 flex justify-center items-center"
+              >
                 <div class="animate-spin w-fit">
                   <div class="custom-spinner" />
                 </div>
@@ -728,9 +849,16 @@
       </div>
     </el-popover>
 
-    <app-member-find-github-drawer v-if="isFindGithubDrawerOpen" v-model="isFindGithubDrawerOpen" />
+    <app-member-find-github-drawer
+      v-if="isFindGithubDrawerOpen"
+      v-model="isFindGithubDrawerOpen"
+    />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
-    <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
+    <app-tag-popover
+      v-model="isEditTagsDialogOpen"
+      :member="editTagMember"
+      @reload="fetchMembers({ reload: true })"
+    />
   </div>
 </template>
 
@@ -911,37 +1039,15 @@ const setEnrichmentAttributesRef = (el, id) => {
   }
 };
 
-// const handleCellMouseEnter = (row, column) => {
-//   const validValues = [
-//     "reach",
-//     "seniorityLevel",
-//     "programmingLanguages",
-//     "skills",
-//   ];
-
-//   if (validValues.includes(column.property)) {
-//     showEnrichmentPopover.value = true;
-//     selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
-//   }
-// };
+const handleCellMouseEnter = (row, columnName) => {
+  showEnrichmentPopover.value = true;
+  selectedEnrichmentAttribute.value = `${row.id}-${columnName}`;
+};
 
 const onColumnHeaderMouseOver = (id) => {
   showEnrichmentPopover.value = true;
   selectedEnrichmentAttribute.value = id;
 };
-
-// const handleCellMouseLeave = (_row, column) => {
-//   const validValues = [
-//     "reach",
-//     "seniorityLevel",
-//     "programmingLanguages",
-//     "skills",
-//   ];
-
-//   if (!validValues.includes(column.property)) {
-//     closeEnrichmentPopover();
-//   }
-// };
 
 const closeEnrichmentPopover = (ev) => {
   if (ev?.toElement?.id !== 'popover-content') {
@@ -1020,13 +1126,6 @@ function doChangePaginationPageSize(pageSize) {
     perPage: pageSize,
   });
 }
-
-// function rowClass({ row }) {
-//   const isSelected =
-//     selectedRows.value.find((r) => r.id === row.id) !== undefined;
-
-//   return isSelected ? "is-selected" : "";
-// }
 
 function onSecondaryBtnClick() {
   emit('onAddMember');
@@ -1117,27 +1216,6 @@ export default {
 </script>
 
 <style lang="scss">
-.c-table th,
-.c-table td {
-  @apply py-4 #{!important};
-}
-
-.c-table tbody tr {
-  @apply bg-white;
-
-  &.is-selected {
-    @apply bg-primary-25;
-  }
-
-  .is-sticky {
-    @apply bg-inherit;
-  }
-}
-
-.c-checkbox {
-  @apply m-0;
-}
-
 .popover-dropdown {
   @apply p-2 w-fit #{!important};
 }

@@ -51,7 +51,7 @@
           </div>
 
           <!-- Organizations list -->
-          <div class="app-list-table panel">
+          <div class="relative panel">
             <transition name="el-fade-in">
               <div
                 v-show="isScrollbarVisible"
@@ -95,8 +95,9 @@
               >
                 <thead>
                   <tr>
-                    <lf-table-head class="px-2 min-w-19" :sticky="true">
+                    <lf-table-head class="!py-4 min-w-19" :sticky="true">
                       <lf-checkbox
+                        class="!m-0"
                         :model-value="
                           selectedOrganizations.length === organizations.length
                         "
@@ -110,16 +111,16 @@
                     <lf-table-head
                       property="displayName"
                       :model-value="sorting"
-                      class="!px-3 min-w-76 !left-19"
+                      class="!py-4 px-3 min-w-76 !left-19"
                       :sticky="true"
                       @update:model-value="doChangeSort($event)"
                     >
                       Organization
                     </lf-table-head>
-                    <lf-table-head class="!px-3 min-w-66">
+                    <lf-table-head class="!py-4 !px-3 min-w-66">
                       Website
                     </lf-table-head>
-                    <lf-table-head class="!px-3 min-w-104">
+                    <lf-table-head class="!py-4 !px-3 min-w-104">
                       <div class="flex items-center">
                         <el-tooltip
                           content="Source: Enrichment"
@@ -134,7 +135,7 @@
                       </div>
                     </lf-table-head>
 
-                    <lf-table-head class="!px-3 min-w-76">
+                    <lf-table-head class="!py-4 !px-3 min-w-76">
                       <el-tooltip placement="top">
                         <template #content>
                           Identities can be profiles on social platforms,
@@ -148,7 +149,7 @@
                     </lf-table-head>
 
                     <lf-table-head
-                      class="!px-3 min-w-55"
+                      class="!py-4 !px-3 min-w-55"
                       property="memberCount"
                       :model-value="sorting"
                       @update:model-value="doChangeSort($event)"
@@ -157,7 +158,7 @@
                     </lf-table-head>
 
                     <lf-table-head
-                      class="!px-3 min-w-55"
+                      class="!py-4 !px-3 min-w-55"
                       property="activityCount"
                       :model-value="sorting"
                       @update:model-value="doChangeSort($event)"
@@ -166,7 +167,7 @@
                     </lf-table-head>
 
                     <lf-table-head
-                      class="!px-3 min-w-[180px]"
+                      class="!py-4 !px-3 min-w-[180px]"
                       property="lastActive"
                       :model-value="sorting"
                       @update:model-value="doChangeSort($event)"
@@ -174,7 +175,7 @@
                       Last Active
                     </lf-table-head>
                     <lf-table-head
-                      class="!px-3 min-w-[180px]"
+                      class="!py-4 !px-3 min-w-[180px]"
                       property="joinedAt"
                       :model-value="sorting"
                       @update:model-value="doChangeSort($event)"
@@ -182,7 +183,7 @@
                       Joined Date
                     </lf-table-head>
 
-                    <lf-table-head class="!px-3 min-w-65">
+                    <lf-table-head class="!py-4 !px-3 min-w-65">
                       <div class="flex items-center">
                         <el-tooltip
                           content="Source: Enrichment"
@@ -196,7 +197,7 @@
                         </div>
                       </div>
                     </lf-table-head>
-                    <lf-table-head class="!px-3 min-w-55">
+                    <lf-table-head class="!py-4 !px-3 min-w-55">
                       <div
                         :ref="
                           (el) => setEnrichmentAttributesRef(el, 'industry')
@@ -217,7 +218,7 @@
                         </div>
                       </div>
                     </lf-table-head>
-                    <lf-table-head class="!px-3 min-w-[180px]">
+                    <lf-table-head class="!py-4 !px-3 min-w-[180px]">
                       <div
                         :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
                         class="flex items-center"
@@ -237,7 +238,7 @@
                       </div>
                     </lf-table-head>
 
-                    <lf-table-head v-if="showReach" class="!px-3 min-w-55">
+                    <lf-table-head v-if="showReach" class="!py-4 !px-3 min-w-55">
                       <div
                         :ref="
                           (el) => setEnrichmentAttributesRef(el, 'revenueRange')
@@ -262,7 +263,7 @@
                     </lf-table-head>
 
                     <lf-table-head
-                      class="!px-3 min-w-42"
+                      class="!py-4 !px-3 min-w-42"
                       property="founded"
                       :model-value="sorting"
                       @update:model-value="doChangeSort($event)"
@@ -288,7 +289,7 @@
                       </div>
                     </lf-table-head>
 
-                    <lf-table-head class="!px-3 min-w-70">
+                    <lf-table-head class="!py-4 !px-3 min-w-70">
                       <div
                         :ref="
                           (el) =>
@@ -313,7 +314,7 @@
                       </div>
                     </lf-table-head>
 
-                    <lf-table-head class="!px-3 min-w-70">
+                    <lf-table-head class="!py-4 !px-3 min-w-70">
                       <div
                         :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
                         class="flex items-center"
@@ -336,7 +337,7 @@
                     <lf-table-head
                       v-if="hasPermissions"
                       :sticky="true"
-                      class="min-w-19"
+                      class="!py-4 min-w-19"
                     />
                   </tr>
                 </thead>
@@ -347,15 +348,16 @@
                     :class="isSelected(org) ? 'is-selected' : ''"
                     :data-qa="`organization-${org.id}`"
                   >
-                    <lf-table-cell :sticky="true" class="pl-2">
+                    <lf-table-cell :sticky="true" class="!py-4">
                       <lf-checkbox
+                        class="!m-0"
                         :model-value="isSelected(org)"
                         @update:model-value="toggleOrgSelection(org)"
                       />
                     </lf-table-cell>
 
                     <!-- Organization logo and name -->
-                    <lf-table-cell :sticky="true" class="pl-2 !left-19">
+                    <lf-table-cell :sticky="true" class="!py-4 pl-2 !left-19">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -375,7 +377,7 @@
                     </lf-table-cell>
 
                     <!-- Website -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -398,7 +400,7 @@
                     </lf-table-cell>
 
                     <!-- Headline -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -423,7 +425,7 @@
                     </lf-table-cell>
 
                     <!-- Identities -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -445,7 +447,7 @@
                     </lf-table-cell>
 
                     <!-- Number of members -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -466,7 +468,7 @@
                     </lf-table-cell>
 
                     <!-- Number of activities -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -487,7 +489,7 @@
                     </lf-table-cell>
 
                     <!-- Last Active -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -510,7 +512,7 @@
                     </lf-table-cell>
 
                     <!-- Joined Date -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -533,7 +535,7 @@
                     </lf-table-cell>
 
                     <!-- Location -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell class="!py-4 pl-3">
                       <router-link
                         :to="{
                           name: 'organizationView',
@@ -555,7 +557,11 @@
                     </lf-table-cell>
 
                     <!-- Industry -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell
+                      class="!py-4 pl-3"
+                      @mouseover="() => handleCellMouseEnter(org, 'industry')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -581,7 +587,11 @@
                     </lf-table-cell>
 
                     <!-- Headcount -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell
+                      class="!py-4 pl-3"
+                      @mouseover="() => handleCellMouseEnter(org, 'size')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -610,7 +620,14 @@
                     </lf-table-cell>
 
                     <!-- Inferred Revenue -->
-                    <lf-table-cell v-if="showReach" class="pl-3">
+                    <lf-table-cell
+                      v-if="showReach"
+                      class="!py-4 pl-3"
+                      @mouseover="
+                        () => handleCellMouseEnter(org, 'revenueRange')
+                      "
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -639,7 +656,11 @@
                     </lf-table-cell>
 
                     <!-- Founded -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell
+                      class="!py-4 pl-3"
+                      @mouseover="() => handleCellMouseEnter(org, 'founded')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -665,7 +686,13 @@
                     </lf-table-cell>
 
                     <!-- Employee Growth Rate -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell
+                      class="!py-4 pl-3"
+                      @mouseover="
+                        () => handleCellMouseEnter(org, 'employeeGrowthRate')
+                      "
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -699,7 +726,11 @@
                     </lf-table-cell>
 
                     <!-- Tags -->
-                    <lf-table-cell class="pl-3">
+                    <lf-table-cell
+                      class="!py-4 pl-3"
+                      @mouseover="() => handleCellMouseEnter(org, 'tags')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
                       <router-link
                         :ref="
                           (el) =>
@@ -734,7 +765,7 @@
                     <lf-table-cell
                       v-if="hasPermissions"
                       :sticky="true"
-                      class="pr-2"
+                      class="!py-4 pr-2"
                     >
                       <router-link
                         :to="{
@@ -971,41 +1002,15 @@ const setEnrichmentAttributesRef = (el, id) => {
   }
 };
 
-// const handleCellMouseEnter = (row, column) => {
-//   const validValues = [
-//     'industry',
-//     'size',
-//     'revenueRange',
-//     'founded',
-//     'employeeGrowthRate',
-//     'tags',
-//   ];
-
-//   if (validValues.includes(column.property)) {
-//     showEnrichmentPopover.value = true;
-//     selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
-//   }
-// };
+const handleCellMouseEnter = (row, columnName) => {
+  showEnrichmentPopover.value = true;
+  selectedEnrichmentAttribute.value = `${row.id}-${columnName}`;
+};
 
 const onColumnHeaderMouseOver = (id) => {
   showEnrichmentPopover.value = true;
   selectedEnrichmentAttribute.value = id;
 };
-
-// const handleCellMouseLeave = (_row, column) => {
-//   const validValues = [
-//     'industry',
-//     'size',
-//     'revenueRange',
-//     'founded',
-//     'employeeGrowthRate',
-//     'tags',
-//   ];
-
-//   if (!validValues.includes(column.property)) {
-//     closeEnrichmentPopover();
-//   }
-// };
 
 const closeEnrichmentPopover = (ev) => {
   if (ev?.toElement?.id !== 'popover-content') {
@@ -1049,9 +1054,7 @@ const toggleOrgSelection = (org) => {
   }
 };
 
-const isSelected = (org) => (
-  selectedOrganizations.value.find((r) => r.id === org.id) !== undefined
-);
+const isSelected = (org) => selectedOrganizations.value.find((r) => r.id === org.id) !== undefined;
 
 function doChangeSort(sorter) {
   trackEvent({
@@ -1163,26 +1166,6 @@ export default {
 </script>
 
 <style lang="scss">
-.c-table th, .c-table td {
-  @apply py-4 #{!important};
-}
-
-.c-table tbody tr {
-  @apply bg-white;
-
-  &.is-selected {
-    @apply bg-primary-25;
-  }
-
-  .is-sticky {
-    @apply bg-inherit;
-  }
-}
-
-.c-checkbox {
-  @apply m-0;
-}
-
 .website-link {
   @apply text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed
   decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:cursor-pointer;
