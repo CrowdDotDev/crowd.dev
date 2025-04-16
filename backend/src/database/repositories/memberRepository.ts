@@ -2941,15 +2941,23 @@ class MemberRepository {
       toMemberId,
     }
 
-    const updateQuery = `
-      update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
-    `
+    await seq.query(
+      `update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
+      {
+        replacements: params,
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
 
-    await seq.query(updateQuery, {
-      replacements: params,
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    await seq.query(
+      `update "memberOrganizationAffiliationOverrides" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
+      {
+        replacements: params,
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
   }
 
   static async moveSelectedAffiliationsBetweenMembers(
