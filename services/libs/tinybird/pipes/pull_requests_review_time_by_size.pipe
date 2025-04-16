@@ -10,7 +10,7 @@ SQL >
         pra.gitChangedLinesBucket,
         round(avg(pra.reviewedInSeconds)) "reviewedInSecondsAvg",
         count(pra.sourceId) as pullRequestCount
-    from pull_requests_analyzed pra
+    from pull_requests_filtered pra
     where
         not empty(gitChangedLinesBucket)
         {% if defined(startDate) %}
