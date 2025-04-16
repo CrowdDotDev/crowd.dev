@@ -1094,7 +1094,7 @@ export default class MemberService extends LoggerBase {
         })
 
         // exclude the original identity to avoid duplicates
-        secondaryIdentities = allEmailIdentities.filter((i) => i.id !== identity.id)
+        secondaryIdentities = lodash.uniqBy([...allEmailIdentities, identity], (i) => i.id)
       }
 
       // Ensure primary member retains at least one identity
@@ -1364,7 +1364,7 @@ export default class MemberService extends LoggerBase {
             repoOptions,
           )
 
-          // Update member affiliations
+          // Update member segment affiliations and organization affiliation overrides
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Performs a merge and returns the fields that were changed so we can update
