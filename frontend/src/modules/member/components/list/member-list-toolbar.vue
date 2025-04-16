@@ -1,11 +1,5 @@
 <template>
-  <div
-    v-if="selectedMembers.length > 0"
-    class="app-list-table-bulk-actions"
-  >
-    <span class="block text-sm font-semibold mr-4">
-      {{ pluralize('person', selectedMembers.length, true) }}
-      selected</span>
+  <lf-table-bulk-actions :selected-items="selectedMembers">
     <el-dropdown trigger="click" @command="handleCommand">
       <lf-button
         type="secondary-gray"
@@ -73,17 +67,16 @@
         </template>
       </template>
     </el-dropdown>
+  </lf-table-bulk-actions>
+  <app-tag-popover
+    v-model="bulkTagsUpdateVisible"
+    @reload="fetchMembers({ reload: true })"
+  />
 
-    <app-tag-popover
-      v-model="bulkTagsUpdateVisible"
-      @reload="fetchMembers({ reload: true })"
-    />
-
-    <app-bulk-edit-attribute-popover
-      v-model="bulkAttributesUpdateVisible"
-      @reload="fetchMembers({ reload: true })"
-    />
-  </div>
+  <app-bulk-edit-attribute-popover
+    v-model="bulkAttributesUpdateVisible"
+    @reload="fetchMembers({ reload: true })"
+  />
 </template>
 
 <script setup>
@@ -106,6 +99,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
 
 const { trackEvent } = useProductTracking();
 

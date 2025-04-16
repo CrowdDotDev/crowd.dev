@@ -1,15 +1,5 @@
 <template>
-  <div
-    v-if="selectedOrganizations.length > 0"
-    class="app-list-table-bulk-actions"
-  >
-    <span class="block text-sm font-semibold mr-4">
-      {{
-        pluralize('organization', selectedOrganizations.length, true)
-      }}
-      selected
-    </span>
-
+  <lf-table-bulk-actions :selected-items="selectedOrganizations">
     <el-dropdown trigger="click" @command="handleCommand">
       <lf-button type="secondary-gray" size="small">
         <span class="mr-2">Actions</span>
@@ -72,7 +62,7 @@
         </template>
       </template>
     </el-dropdown>
-  </div>
+  </lf-table-bulk-actions>
   <app-organization-merge-dialog v-model="isMergeDialogOpen" :to-merge="organizationToMerge" />
 </template>
 
@@ -95,6 +85,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
 import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();
