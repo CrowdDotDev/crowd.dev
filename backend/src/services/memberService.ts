@@ -1094,7 +1094,7 @@ export default class MemberService extends LoggerBase {
         })
 
         // exclude the original identity to avoid duplicates
-        secondaryIdentities = allEmailIdentities.filter((i) => i.id !== identity.id)
+        secondaryIdentities = lodash.uniqBy([...allEmailIdentities, identity], (i) => i.id)
       }
 
       // Ensure primary member retains at least one identity
