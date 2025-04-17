@@ -27,21 +27,17 @@
     &::after {
       left: var(--lf-checkbox-mark-left);
       top: var(--lf-checkbox-mark-top);
-      box-sizing: content-box;
       content: "";
       border: var(--lf-checkbox-mark-border) solid var(--lf-checkbox-icon);
-      border-left: 0;
-      border-top: 0;
       height: var(--lf-checkbox-mark-height);
-      position: absolute;
       transform: rotate(45deg) scaleY(0);
-      width: 3px;
       transition: transform 0.15s ease-in 0.05s;
       transform-origin: center;
+      @apply box-content border-l-0 border-t-0 absolute w-[3px];
     }
 
     // Checked
-    &:checked {
+    &:checked, &:indeterminate {
       --lf-checkbox-border: var(--lf-checkbox-checked-border);
       --lf-checkbox-background: var(--lf-checkbox-checked-background);
       --lf-checkbox-icon: var(--lf-checkbox-checked-icon); 
@@ -49,6 +45,12 @@
 
     &:checked::after {
       transform: rotate(45deg) scaleY(1);
+    }
+    
+    &:indeterminate::after {
+      @apply border-b-0 ;
+      top: calc(var(--lf-checkbox-mark-top) - 1px);
+      transform: rotate(90deg) scaleY(1);
     }
 
     // Disabled
