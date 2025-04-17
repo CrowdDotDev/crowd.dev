@@ -8,6 +8,10 @@
       <slot />
       <lf-icon v-if="model === `${props.property}_DESC`" name="chevron-down" type="solid" :size="16" class="text-gray-500" />
       <lf-icon v-else-if="model === `${props.property}_ASC`" name="chevron-up" type="solid" :size="16" class="text-gray-500" />
+      <div v-else-if="props.property">
+        <lf-icon name="chevron-up" :size="10" class="text-gray-500" />
+        <lf-icon name="chevron-down" :size="10" class="text-gray-500" />
+      </div>
     </div>
   </th>
 </template>

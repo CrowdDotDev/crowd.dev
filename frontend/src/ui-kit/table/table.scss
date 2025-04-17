@@ -19,15 +19,12 @@
   td,
   th {
     &.is-sticky {
-      @apply sticky pl-3 bg-white left-0 right-0 z-20;
+      @apply sticky pl-3 bg-inherit left-0 right-0 z-20;
 
       &:before {
-        content: '';
+        content: "";
         height: calc(100% + 3px);
         @apply absolute top-0 w-3;
-      }
-
-      &:first-child:before {
         right: 0;
         box-shadow: rem(6) 0 rem(8) rem(-2) rgba(0, 0, 0, 0.1);
       }
@@ -44,6 +41,9 @@
 
     thead {
       @apply border-b border-gray-100;
+      tr {
+        @apply bg-white;
+      }
       th {
         @apply h-12 text-xs leading-5 font-semibold text-gray-400 text-left whitespace-nowrap;
       }
@@ -52,9 +52,16 @@
     tbody {
       tr,
       .tr {
+        @apply bg-white;
+      
         &:not(:last-child) {
           @apply border-b border-gray-100;
         }
+
+        &.is-selected {
+          @apply bg-primary-25;
+        }
+      
       }
 
       td {
@@ -91,7 +98,7 @@
   }
 
   &.is-scroll-start {
-    .is-sticky:first-child:before {
+    .is-sticky:not(:last-child):before {
       @apply hidden;
     }
   }
@@ -102,3 +109,9 @@
     }
   }
 }
+
+
+.app-list-table-bulk-actions {
+  @apply flex items-center justify-start absolute top-0 right-0 z-30 bg-white rounded-tr-xl p-2 h-13 w-[calc(100%-75px)];
+}
+
