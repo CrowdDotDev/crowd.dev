@@ -1,6 +1,7 @@
 <template>
+  <!-- TODO: Remove the || true once the integrations are back up -->
   <div
-    v-if="showBanner"
+    v-if="showBanner || true"
   >
     <div class="pt-14">
       <!-- Links to {sub-project} integrations page -->
