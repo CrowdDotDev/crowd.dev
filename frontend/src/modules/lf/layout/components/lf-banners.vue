@@ -132,7 +132,7 @@
         variant="alert"
       >
         <div
-          class="flex flex-wrap items-center justify-center grow text-sm"
+          class="flex flex-wrap items-center justify-center grow text-sm py-2"
         >
           <span class="font-semibold">Temporary Disruption of Confluence and Jira Integrations</span>
           <span>Confluence and Jira integrations are currently stopped.
