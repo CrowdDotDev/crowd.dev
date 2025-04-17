@@ -299,20 +299,14 @@ class MemberRepository {
     args: IFetchMemberMergeSuggestionArgs,
     options: IRepositoryOptions,
   ) {
-    let segmentIds: string[]
-
     const HIGH_CONFIDENCE_LOWER_BOUND = 0.9
     const MEDIUM_CONFIDENCE_LOWER_BOUND = 0.7
 
-    if (args.filter?.projectIds) {
-      segmentIds = (
-        await new SegmentRepository(options).getSegmentSubprojects(args.filter.projectIds)
-      ).map((s) => s.id)
-    } else if (args.filter?.subprojectIds) {
-      segmentIds = args.filter.subprojectIds
-    } else {
-      segmentIds = SequelizeRepository.getSegmentIds(options)
-    }
+    const currentSegments = SequelizeRepository.getSegmentIds(options)
+
+    const segmentIds = (
+      await new SegmentRepository(options).getSegmentSubprojects(currentSegments)
+    ).map((s) => s.id)
 
     let similarityFilter = ''
     const similarityConditions = []
