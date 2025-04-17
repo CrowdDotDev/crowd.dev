@@ -126,6 +126,18 @@
           </router-link>
         </div>
       </banner>
+      <!-- TODO: Remove this banner once Jira and Confluence integrations are back up -->
+      <banner
+        variant="alert"
+      >
+        <div
+          class="flex flex-wrap items-center justify-center grow text-sm"
+        >
+          <span class="font-semibold">Temporary Disruption of Confluence and Jira Integrations</span>
+          <span>Confluence and Jira integrations are currently stopped.
+            The team is actively working on bringing the integrations back and restore full functionality.</span>
+        </div>
+      </banner>
     </div>
   </div>
 </template>
