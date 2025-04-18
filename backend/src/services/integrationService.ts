@@ -61,7 +61,6 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
-import { jiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -1695,7 +1694,7 @@ export default class IntegrationService {
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )
       connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
-
+      
       if (integrationData.projects && integrationData.projects.length > 0) {
         await setNangoMetadata(jiraIntegrationType, connectionId, {
           projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
