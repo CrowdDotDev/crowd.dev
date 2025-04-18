@@ -153,7 +153,8 @@ const en = {
       noIntegration: 'The Git integration is not configured.',
     },
     jira: {
-      invalidUrl: 'The URL provided is invalid. Please enter a valid URL format such as https://example.com or https://example.atlassian.net',
+      invalidUrl:
+        'The URL provided is invalid. Please enter a valid URL format such as https://example.com or https://example.atlassian.net',
     },
     alreadyExists: '{0}',
   },
