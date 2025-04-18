@@ -3,10 +3,10 @@ import { PlatformType } from '@crowd/types'
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
+  GITHUB = 'github',
   JIRA_CLOUD_BASIC = 'jira-basic',
   JIRA_DATA_CENTER_API_KEY = 'jira-data-center-api-key',
-  JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic',
-  GITHUB = 'github',
+  JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic'
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
@@ -72,38 +72,38 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.JIRA_CLOUD_BASIC]: {
     models: {
-      ISSUES: 'Issue',
-      ISSUE_COMMENT: 'IssueComment',
-      ISSUE_ATTACHMENTS: 'IssueAttachment',
+      ISSUES: "Issue",
+      ISSUE_COMMENT: "IssueComment",
+      ISSUE_ATTACHMENTS: "IssueAttachment"
     },
     syncs: {
-      ISSUES: 'issues',
-      ISSUE_COMMENT: 'issue-comments',
-      ISSUE_ATTACHMENTS: 'issue-attachments',
+      ISSUES: "issues",
+      ISSUE_COMMENT: "issue-comments",
+      ISSUE_ATTACHMENTS: "issue-attachments"
     },
   },
   [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
     models: {
-      ISSUES: 'Issue',
-      ISSUE_COMMENT: 'IssueComment',
-      ISSUE_ATTACHMENTS: 'IssueAttachment',
+      ISSUES: "Issue",
+      ISSUE_COMMENT: "IssueComment",
+      ISSUE_ATTACHMENTS: "IssueAttachment"
     },
     syncs: {
-      ISSUES: 'issues',
-      ISSUE_COMMENT: 'issue-comments',
-      ISSUE_ATTACHMENTS: 'issue-attachments',
+      ISSUES: "issues",
+      ISSUE_COMMENT: "issue-comments",
+      ISSUE_ATTACHMENTS: "issue-attachments"
     },
   },
   [NangoIntegration.JIRA_DATA_CENTER_API_KEY]: {
     models: {
-      ISSUES: 'Issue',
-      ISSUE_COMMENT: 'IssueComment',
-      ISSUE_ATTACHMENTS: 'IssueAttachment',
+      ISSUES: "Issue",
+      ISSUE_COMMENT: "IssueComment",
+      ISSUE_ATTACHMENTS: "IssueAttachment"
     },
     syncs: {
-      ISSUES: 'issues',
-      ISSUE_COMMENT: 'issue-comments',
-      ISSUE_ATTACHMENTS: 'issue-attachments',
+      ISSUES: "issues",
+      ISSUE_COMMENT: "issue-comments",
+      ISSUE_ATTACHMENTS: "issue-attachments"
     },
   },
 } as const satisfies IntegrationConfig
