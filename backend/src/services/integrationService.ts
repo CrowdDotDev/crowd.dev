@@ -8,8 +8,8 @@ import moment from 'moment'
 import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   NangoIntegration,
-  createNangoIntegration,
   connectNangoIntegration,
+  createNangoIntegration,
   deleteNangoConnection,
   setNangoMetadata,
   startNangoSync,
@@ -58,10 +58,10 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
+import { jiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
-import { jiraIntegrationData } from '../types/jiraTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1660,14 +1660,15 @@ export default class IntegrationService {
    * 1. Jira Cloud (basic auth): Requires URL, username, and password (API key)
    * 2. Jira Data Center (PAT): Requires URL and optionally a Personal Access Token
    * 3. Jira Data Center (basic auth): Requires URL, username, and password (API key)
-  */
- async jiraConnectOrUpdate(integrationData: jiraIntegrationData) {
-   const transaction = await SequelizeRepository.createTransaction(this.options)
-   let integration: any
-   let connectionId: string
-   try {
-
-      const constructNangoConnectionPayload = (integrationData: jiraIntegrationData): Record<string, any> => {
+   */
+  async jiraConnectOrUpdate(integrationData: jiraIntegrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    let connectionId: string
+    try {
+      const constructNangoConnectionPayload = (
+        integrationData: jiraIntegrationData,
+      ): Record<string, any> => {
         let jiraIntegrationType: NangoIntegration
         // nangoPayload is different for each integration
         // check https://github.com/NangoHQ/nango/blob/bf0aa529ad3b6af1c72ca6a30ccdde7a3e47d064/packages/providers/providers.yaml#L5007
@@ -1678,22 +1679,22 @@ export default class IntegrationService {
         const hostname = new URL(baseUrl).hostname
         const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
         const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
-        
-        if (isCloudUrl && integrationData.username && integrationData.apiToken){
+
+        if (isCloudUrl && integrationData.username && integrationData.apiToken) {
           jiraIntegrationType = NangoIntegration.JIRA_CLOUD_BASIC
           nangoPayload = {
             params: {
               subdomain,
               credentials: {
                 username: integrationData.username,
-                password: integrationData.apiToken
-              }
-            }
+                password: integrationData.apiToken,
+              },
+            },
           }
-          return {jiraIntegrationType, nangoPayload}
+          return { jiraIntegrationType, nangoPayload }
         }
 
-        if (!isCloudUrl && integrationData.username && integrationData.apiToken){
+        if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
           jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_BASIC
           nangoPayload = {
             // TODO: double check with nango as it's not defined on the providers.yaml.
@@ -1702,33 +1703,34 @@ export default class IntegrationService {
               baseUrl,
               credentials: {
                 username: integrationData.username,
-                password: integrationData.apiToken
-              }
-            }
+                password: integrationData.apiToken,
+              },
+            },
           }
-          return {jiraIntegrationType, nangoPayload}
+          return { jiraIntegrationType, nangoPayload }
         }
 
         jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_API_KEY
         nangoPayload = {
           params: {
             baseUrl,
-            credentials: {}
-          }
+            credentials: {},
+          },
         }
-        if (integrationData.personalAccessToken){
+        if (integrationData.personalAccessToken) {
           nangoPayload.params.credentials.apiKey = integrationData.personalAccessToken
         }
 
-        return {jiraIntegrationType, nangoPayload}
-
+        return { jiraIntegrationType, nangoPayload }
       }
-      
-      const {jiraIntegrationType, nangoPayload} = constructNangoConnectionPayload(integrationData)
-      this.options.log.info(`jira integration type determined: ${jiraIntegrationType}, intializing nango connection...`)
+
+      const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
+      this.options.log.info(
+        `jira integration type determined: ${jiraIntegrationType}, intializing nango connection...`,
+      )
       connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
       // TODO: handle errors (invalid creds,etc...)
-      
+
       if (integrationData.projects && integrationData.projects.length > 0) {
         await setNangoMetadata(jiraIntegrationType, connectionId, {
           projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
@@ -1742,7 +1744,9 @@ export default class IntegrationService {
             url: integrationData.url,
             auth: {
               username: integrationData.username,
-              personalAccessToken: integrationData.personalAccessToken ? encryptData(integrationData.personalAccessToken) : null,
+              personalAccessToken: integrationData.personalAccessToken
+                ? encryptData(integrationData.personalAccessToken)
+                : null,
               apiToken: integrationData.apiToken ? encryptData(integrationData.apiToken) : null,
             },
             projects: integrationData.projects.map((project) => project.toUpperCase()),
@@ -1755,7 +1759,7 @@ export default class IntegrationService {
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-      if (error instanceof TypeError && error.message.includes("Invalid URL")) {
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
         this.options.log.error(`Invalid url: ${integrationData.url}`)
         throw new Error400(this.options.language, 'errors.jira.invalidUrl')
       }
