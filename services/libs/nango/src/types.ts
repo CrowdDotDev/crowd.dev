@@ -72,14 +72,14 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.JIRA_CLOUD_BASIC]: {
     models: {
-      ISSUES: "Issue",
-      ISSUE_COMMENT: "IssueComment",
-      ISSUE_ATTACHMENTS: "IssueAttachment"
+      ISSUES: 'Issue',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
     },
     syncs: {
-      ISSUES: "issues",
-      ISSUE_COMMENT: "issue-comments",
-      ISSUE_ATTACHMENTS: "issue-attachments"
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
     },
   },
   [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
