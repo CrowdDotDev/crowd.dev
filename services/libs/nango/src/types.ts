@@ -3,7 +3,9 @@ import { PlatformType } from '@crowd/types'
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
-  // JIRA = 'jira',
+  JIRA_CLOUD_BASIC = 'jira-basic',
+  JIRA_DATA_CENTER_API_KEY = 'jira-data-center-api-key',
+  JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic'
   GITHUB = 'github',
 }
 
@@ -68,10 +70,26 @@ export const NANGO_INTEGRATION_CONFIG = {
       STARS: 'stars',
     },
   },
-  // [NangoIntegration.JIRA]: {
-  //   models: {},
-  //   syncs: {},
-  // },
+  [NangoIntegration.JIRA_CLOUD_BASIC]: {
+    models: {
+      ISSUES: "Issue",
+      ISSUE_COMMENT: "IssueComment",
+      ISSUE_ATTACHMENTS: "IssueAttachment"
+    },
+    syncs: {
+      ISSUES: "issues",
+      ISSUE_COMMENT: "issue-comments",
+      ISSUE_ATTACHMENTS: "issue-attachments"
+    },
+  },
+  [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
+    models: {},
+    syncs: {},
+  },
+  [NangoIntegration.JIRA_DATA_CENTER_API_KEY]: {
+    models: {},
+    syncs: {},
+  },
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {
