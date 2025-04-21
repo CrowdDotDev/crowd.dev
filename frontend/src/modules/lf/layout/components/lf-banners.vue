@@ -1,6 +1,7 @@
 <template>
+  <!-- TODO: Remove the || true once the integrations are back up -->
   <div
-    v-if="showBanner"
+    v-if="showBanner || true"
   >
     <div class="pt-14">
       <!-- Links to {sub-project} integrations page -->
@@ -124,6 +125,18 @@
               Project group settings
             </lf-button>
           </router-link>
+        </div>
+      </banner>
+      <!-- TODO: Remove this banner once Jira and Confluence integrations are back up -->
+      <banner
+        variant="alert"
+      >
+        <div
+          class="flex flex-wrap items-center justify-center grow text-sm py-2"
+        >
+          <span class="font-semibold">Temporary Disruption of Confluence and Jira Integrations</span>
+          <span>Confluence and Jira integrations are currently stopped.
+            The team is actively working on bringing the integrations back and restore full functionality.</span>
         </div>
       </banner>
     </div>

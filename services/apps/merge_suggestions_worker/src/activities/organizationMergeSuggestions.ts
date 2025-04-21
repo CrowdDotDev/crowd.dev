@@ -1,3 +1,5 @@
+import uniqBy from 'lodash.uniqby'
+
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
@@ -158,7 +160,13 @@ export async function getOrganizationMergeSuggestions(
   }
   let hasFuzzySearch = false
 
-  for (const identity of fullOrg.identities) {
+  // deduplicate identities, sort verified first
+  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
+    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
+  )
+
+  // limit to prevent exceeding OpenSearch's maxClauseCount (1024)
+  for (const identity of identities.slice(0, 140)) {
     if (identity.value.length > 0) {
       // weak identity search
       identitiesShould.push({
