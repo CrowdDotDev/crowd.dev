@@ -122,6 +122,13 @@ export async function getOrganizationMergeSuggestions(
     return []
   }
 
+  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
+  const excludeIds = [fullOrg.id]
+
+  if (noMergeIds && noMergeIds.length > 0) {
+    excludeIds.push(...noMergeIds)
+  }
+
   const identitiesShould = []
   const identitiesPartialQuery = {
     should: [
@@ -145,8 +152,8 @@ export async function getOrganizationMergeSuggestions(
     minimum_should_match: 1,
     must_not: [
       {
-        term: {
-          uuid_organizationId: fullOrg.id,
+        terms: {
+          uuid_organizationId: excludeIds,
         },
       },
     ],
@@ -234,18 +241,6 @@ export async function getOrganizationMergeSuggestions(
   // check if we have any actual identity searches, if not remove it from the query
   if (!hasFuzzySearch) {
     identitiesPartialQuery.should.pop()
-  }
-
-  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
-
-  if (noMergeIds && noMergeIds.length > 0) {
-    for (const noMergeId of noMergeIds) {
-      identitiesPartialQuery.must_not.push({
-        term: {
-          uuid_organizationId: noMergeId,
-        },
-      })
-    }
   }
 
   const similarOrganizationsQueryBody = {
