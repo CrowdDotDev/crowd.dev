@@ -23,6 +23,7 @@ import {
   getNangoConnections,
   setNangoMetadata,
   startNangoSync,
+  getNangoCloudSessionToken,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
@@ -1682,19 +1683,20 @@ export default class IntegrationService {
             baseUrl,
           },
           credentials: {
-            apiKey: integrationData.personalAccessToken,
+            apiKey: integrationData.personalAccessToken
           },
         }
 
         return { jiraIntegrationType, nangoPayload }
       }
 
+      const data = await getNangoCloudSessionToken()
       const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
       this.options.log.info(
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )
       connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
-      
+
       if (integrationData.projects && integrationData.projects.length > 0) {
         await setNangoMetadata(jiraIntegrationType, connectionId, {
           projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
