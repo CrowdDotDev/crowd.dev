@@ -96,10 +96,25 @@ const { hasPermission } = usePermissions();
 
 const { identities, emails } = useContributorHelpers();
 
-const identityList = computed(() => [
-  ...identities(props.contributor),
-  ...emails(props.contributor),
-]);
+const identityList = computed(() => {
+  const caseSensitivePlatforms = ['git'];
+  const seen = new Set<string>();
+  const result: ContributorIdentity[] = [];
+  const items = identities(props.contributor) as ContributorIdentity[];
+  items.forEach((identity) => {
+    const key = `${identity.value.toLowerCase()}-${identity.platform}`;
+    if (identity.verified && !caseSensitivePlatforms.includes(identity.platform)) {
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(identity);
+      }
+    } else {
+      result.push(identity); // always include unVerified identities
+    }
+  });
+
+  return [...result, ...emails(props.contributor)];
+});
 
 const showMore = ref<boolean>(false);
 const isUnmergeDialogOpen = ref(null);
