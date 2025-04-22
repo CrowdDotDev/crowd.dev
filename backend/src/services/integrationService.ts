@@ -23,7 +23,6 @@ import {
   getNangoConnections,
   setNangoMetadata,
   startNangoSync,
-  getNangoCloudSessionToken,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
@@ -1690,7 +1689,6 @@ export default class IntegrationService {
         return { jiraIntegrationType, nangoPayload }
       }
 
-      const data = await getNangoCloudSessionToken()
       const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
       this.options.log.info(
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
