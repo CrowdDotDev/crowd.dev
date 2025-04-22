@@ -1,3 +1,5 @@
+import uniqBy from 'lodash.uniqby'
+
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
@@ -120,6 +122,13 @@ export async function getOrganizationMergeSuggestions(
     return []
   }
 
+  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
+  const excludeIds = [fullOrg.id]
+
+  if (noMergeIds && noMergeIds.length > 0) {
+    excludeIds.push(...noMergeIds)
+  }
+
   const identitiesShould = []
   const identitiesPartialQuery = {
     should: [
@@ -143,8 +152,8 @@ export async function getOrganizationMergeSuggestions(
     minimum_should_match: 1,
     must_not: [
       {
-        term: {
-          uuid_organizationId: fullOrg.id,
+        terms: {
+          uuid_organizationId: excludeIds,
         },
       },
     ],
@@ -158,7 +167,13 @@ export async function getOrganizationMergeSuggestions(
   }
   let hasFuzzySearch = false
 
-  for (const identity of fullOrg.identities) {
+  // deduplicate identities, sort verified first
+  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
+    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
+  )
+
+  // limit to prevent exceeding OpenSearch's maxClauseCount (1024)
+  for (const identity of identities.slice(0, 120)) {
     if (identity.value.length > 0) {
       // weak identity search
       identitiesShould.push({
@@ -226,18 +241,6 @@ export async function getOrganizationMergeSuggestions(
   // check if we have any actual identity searches, if not remove it from the query
   if (!hasFuzzySearch) {
     identitiesPartialQuery.should.pop()
-  }
-
-  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
-
-  if (noMergeIds && noMergeIds.length > 0) {
-    for (const noMergeId of noMergeIds) {
-      identitiesPartialQuery.must_not.push({
-        term: {
-          uuid_organizationId: noMergeId,
-        },
-      })
-    }
   }
 
   const similarOrganizationsQueryBody = {
