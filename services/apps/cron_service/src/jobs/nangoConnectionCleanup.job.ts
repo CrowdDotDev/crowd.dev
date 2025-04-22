@@ -64,10 +64,10 @@ const job: IJobDefinition = {
       }
 
       if (!integration) {
-        // check if connection.created is older than 7 days
+        // check if connection.created is older than 30 days
         const created = new Date(connection.created)
 
-        if (created < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) {
+        if (created < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
           ctx.log.info(`Deleting stale connection ${connection.connection_id}`)
           await deleteNangoConnection(
             connection.provider_config_key as NangoIntegration,

@@ -46,18 +46,17 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.GITHUB]: {
     models: {
-      COMMIT: 'GithubCommit',
       DISCUSSION: 'GithubDiscussion',
       FORK: 'GithubFork',
       ISSUE_COMMENT: 'GithubIssueComment',
       ISSUE: 'GithubIssue',
       PULL_REQUEST_COMMENT: 'GithubPullRequestComment',
       PULL_REQUEST_REVIEW_THREAD_COMMENT: 'GithubPullRequestReviewThreadComment',
+      PULL_REQUEST_COMMIT: 'GithubPullRequestCommit',
       PULL_REQUEST: 'GithubPullRequest',
       STAR: 'GithubStar',
     },
     syncs: {
-      COMMITS: 'commits',
       DISCUSSIONS: 'discussions',
       FORKS: 'forks',
       ISSUES: 'issues',
@@ -65,6 +64,7 @@ export const NANGO_INTEGRATION_CONFIG = {
       PULL_REQUESTS: 'pull-requests',
       PULL_REQUEST_COMMENTS: 'pull-request-comments',
       PULL_REQUEST_REVIEWS: 'pull-request-reviews',
+      PULL_REQUEST_COMMITS: 'pull-request-commits',
       STARS: 'stars',
     },
   },
