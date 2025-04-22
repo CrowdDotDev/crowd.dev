@@ -22,6 +22,7 @@ import {
   getNangoConnections,
   setNangoMetadata,
   startNangoSync,
+  getNangoCloudSessionToken,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { Edition, PlatformType } from '@crowd/types'
@@ -1653,10 +1654,10 @@ export default class IntegrationService {
           nangoPayload = {
             params: {
               subdomain,
-              credentials: {
-                username: integrationData.username,
-                password: integrationData.apiToken,
-              },
+            },
+            credentials: {
+              username: integrationData.username,
+              password: integrationData.apiToken,
             },
           }
           return { jiraIntegrationType, nangoPayload }
@@ -1665,14 +1666,12 @@ export default class IntegrationService {
         if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
           jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_BASIC
           nangoPayload = {
-            // TODO: double check with nango as it's not defined on the providers.yaml.
-            // the following is just an assumption!!
             params: {
               baseUrl,
-              credentials: {
-                username: integrationData.username,
-                password: integrationData.apiToken,
-              },
+            },
+            credentials: {
+              username: integrationData.username,
+              password: integrationData.apiToken,
             },
           }
           return { jiraIntegrationType, nangoPayload }
@@ -1682,22 +1681,21 @@ export default class IntegrationService {
         nangoPayload = {
           params: {
             baseUrl,
-            credentials: {},
           },
-        }
-        if (integrationData.personalAccessToken) {
-          nangoPayload.params.credentials.apiKey = integrationData.personalAccessToken
+          credentials: {
+            apiKey: integrationData.personalAccessToken
+          },
         }
 
         return { jiraIntegrationType, nangoPayload }
       }
 
+      const data = await getNangoCloudSessionToken()
       const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
       this.options.log.info(
-        `jira integration type determined: ${jiraIntegrationType}, intializing nango connection...`,
+        `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )
       connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
-      // TODO: handle errors (invalid creds,etc...)
 
       if (integrationData.projects && integrationData.projects.length > 0) {
         await setNangoMetadata(jiraIntegrationType, connectionId, {
@@ -1723,13 +1721,16 @@ export default class IntegrationService {
         },
         transaction,
       )
-      // await startNangoSync(jiraIntegrationType, connectionId)
+      await startNangoSync(jiraIntegrationType, connectionId)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       if (error instanceof TypeError && error.message.includes('Invalid URL')) {
         this.options.log.error(`Invalid url: ${integrationData.url}`)
         throw new Error400(this.options.language, 'errors.jira.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.jira.invalidCredentials')
       }
       throw error
     }
