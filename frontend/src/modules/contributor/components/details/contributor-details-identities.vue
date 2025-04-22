@@ -87,6 +87,7 @@ import LfContributorIdentityEdit
 import LfContributorIdentityAdd
   from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { uniqBy } from 'lodash';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -96,10 +97,10 @@ const { hasPermission } = usePermissions();
 
 const { identities, emails } = useContributorHelpers();
 
-const identityList = computed(() => [
-  ...identities(props.contributor),
-  ...emails(props.contributor),
-]);
+const identityList = computed(() => {
+  const identityList = uniqBy(identities(props.contributor), (identity) => `${identity.value.toLowerCase()}-${identity.verified}`);
+  return [...identityList, ...emails(props.contributor)];
+});
 
 const showMore = ref<boolean>(false);
 const isUnmergeDialogOpen = ref(null);
