@@ -97,12 +97,13 @@ const { hasPermission } = usePermissions();
 const { identities, emails } = useContributorHelpers();
 
 const identityList = computed(() => {
+  const caseSensitivePlatforms = ['git'];
   const seen = new Set<string>();
   const result: ContributorIdentity[] = [];
   const items = identities(props.contributor) as ContributorIdentity[];
   items.forEach((identity) => {
     const key = `${identity.value.toLowerCase()}-${identity.platform}`;
-    if (identity.verified) {
+    if (identity.verified && !caseSensitivePlatforms.includes(identity.platform)) {
       if (!seen.has(key)) {
         seen.add(key);
         result.push(identity);
