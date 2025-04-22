@@ -87,7 +87,6 @@ import LfContributorIdentityEdit
 import LfContributorIdentityAdd
   from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { uniqBy } from 'lodash';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -98,8 +97,22 @@ const { hasPermission } = usePermissions();
 const { identities, emails } = useContributorHelpers();
 
 const identityList = computed(() => {
-  const identityList = uniqBy(identities(props.contributor), (identity) => `${identity.value.toLowerCase()}-${identity.verified}`);
-  return [...identityList, ...emails(props.contributor)];
+  const seen = new Set<string>();
+  const result: ContributorIdentity[] = [];
+  const items = identities(props.contributor) as ContributorIdentity[];
+  items.forEach((identity) => {
+    const key = `${identity.value.toLowerCase()}-${identity.platform}`;
+    if (identity.verified) {
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(identity);
+      }
+    } else {
+      result.push(identity); // always include unVerified identities
+    }
+  });
+
+  return [...result, ...emails(props.contributor)];
 });
 
 const showMore = ref<boolean>(false);
