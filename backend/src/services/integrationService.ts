@@ -1682,7 +1682,7 @@ export default class IntegrationService {
             baseUrl,
           },
           credentials: {
-            apiKey: integrationData.personalAccessToken
+            apiKey: integrationData.personalAccessToken,
           },
         }
 
