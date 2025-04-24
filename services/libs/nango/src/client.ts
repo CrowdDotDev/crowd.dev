@@ -280,6 +280,7 @@ export const startNangoSync = async (
       await timeout(100)
       return await startNangoSync(integration, connectionId, syncs, fullSync, retries + 1)
     } else {
+      log.error(err, 'Error starting nango sync!')
       throw err
     }
   }

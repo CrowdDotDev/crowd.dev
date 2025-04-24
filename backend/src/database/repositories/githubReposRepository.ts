@@ -52,11 +52,41 @@ export default class GithubReposRepository {
   }
 
   static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
+    const mappingEntries = Object.entries(mapping).map(([url, segmentId]) => ({
+      url: url as string,
+      segmentId: segmentId as string,
+    }))
+
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const existingRows = await seq.query(
+      `
+        select * from "githubRepos" where "tenantId" = :tenantId and "url" in (:urls)
+      `,
+      {
+        replacements: {
+          tenantId: DEFAULT_TENANT_ID,
+          urls: mappingEntries.map((e) => e.url),
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    for (const row of existingRows as any[]) {
+      if (!row.deletedAt && row.integrationId !== integrationId) {
+        throw new Error(
+          `Trying to update github repo ${row.url} mapping with integrationId ${integrationId} but it is already mapped to integration ${row.integrationId}!`,
+        )
+      }
+    }
+
     await GithubReposRepository.bulkInsert(
       'githubRepos',
       ['tenantId', 'integrationId', 'segmentId', 'url'],
       (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
-      Object.entries(mapping).map(([url, segmentId], idx) => ({
+      mappingEntries.map(({ url, segmentId }, idx) => ({
         [`tenantId_${idx}`]: DEFAULT_TENANT_ID,
         [`integrationId_${idx}`]: integrationId,
         [`segmentId_${idx}`]: segmentId,
