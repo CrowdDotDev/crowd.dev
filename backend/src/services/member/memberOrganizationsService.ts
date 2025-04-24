@@ -1,4 +1,5 @@
 /* eslint-disable no-continue */
+import { captureApiChange, memberUserValidationAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
   OrganizationField,
@@ -13,9 +14,15 @@ import {
 } from '@crowd/data-access-layer'
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberOrganization, IMemberOrganizationUserValidationDetails, IMemberUserValidationInput, IOrganization, IRenderFriendlyMemberOrganization, MemberUserValidationType } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IMemberOrganizationUserValidationDetails,
+  IMemberUserValidationInput,
+  IOrganization,
+  IRenderFriendlyMemberOrganization,
+  MemberUserValidationType,
+} from '@crowd/types'
 
-import { captureApiChange, memberUserValidationAction } from '@crowd/audit-logs'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -190,14 +197,17 @@ export default class MemberOrganizationsService extends LoggerBase {
     return getMemberOrganizationStatus(qx, memberId)
   }
 
-  async userValidation(memberId: string, data: IMemberUserValidationInput<IMemberOrganizationUserValidationDetails>): Promise<void> {
+  async userValidation(
+    memberId: string,
+    data: IMemberUserValidationInput<IMemberOrganizationUserValidationDetails>,
+  ): Promise<void> {
     try {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
       const result = await createMemberUserValidation(qx, memberId, {
         type: MemberUserValidationType.WORK_HISTORY,
-        ...data
+        ...data,
       })
-      
+
       // record changes for audit logs
       await captureApiChange(
         this.options,

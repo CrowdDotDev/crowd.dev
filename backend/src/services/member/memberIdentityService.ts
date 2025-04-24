@@ -1,23 +1,34 @@
 /* eslint-disable no-continue */
 import lodash from 'lodash'
 
-import { captureApiChange, memberEditIdentitiesAction, memberUserValidationAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  memberEditIdentitiesAction,
+  memberUserValidationAction,
+} from '@crowd/audit-logs'
 import { Error409 } from '@crowd/common'
+import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import {
   checkIdentityExistance,
   createMemberIdentity,
+  createMemberUserValidation,
   deleteMemberIdentity,
   fetchMemberIdentities,
   findMemberIdentityById,
+  getMemberUserValidations,
   touchMemberUpdatedAt,
   updateMemberIdentity,
-  createMemberUserValidation,
-  getMemberUserValidations,
 } from '@crowd/data-access-layer/src/members'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberIdentity, IMemberIdentityUserValidationDetails, IMemberIdentityWithActivityCount, IMemberUserValidationInput, MemberIdentityType, MemberUserValidationType } from '@crowd/types'
+import {
+  IMemberIdentity,
+  IMemberIdentityUserValidationDetails,
+  IMemberIdentityWithActivityCount,
+  IMemberUserValidationInput,
+  MemberIdentityType,
+  MemberUserValidationType,
+} from '@crowd/types'
 
-import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '@/database/repositories/memberRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -44,15 +55,10 @@ export default class MemberIdentityService extends LoggerBase {
    */
   async detectedList(memberId: string): Promise<IMemberIdentityWithActivityCount[]> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    
+
     // Fetch all identities
     const [identities, validated] = await Promise.all([
-      fetchMemberIdentities(
-        qx,
-        memberId,
-        { verified: true },
-        ['id', 'platform', 'type', 'value']
-      ),
+      fetchMemberIdentities(qx, memberId, { verified: true }, ['id', 'platform', 'type', 'value']),
       getMemberUserValidations(qx, memberId, {
         type: MemberUserValidationType.IDENTITY,
       }),
@@ -64,16 +70,21 @@ export default class MemberIdentityService extends LoggerBase {
 
     // Filter out identities that were previously validated
     const filteredIdentities = identities.filter(
-      (identity) => !validatedIdentityIds.includes(identity.id)
+      (identity) => !validatedIdentityIds.includes(identity.id),
     )
 
     // Only username identities for activity count
     const usernameIdentities = filteredIdentities.filter(
-      (identity) => identity.type === MemberIdentityType.USERNAME
+      (identity) => identity.type === MemberIdentityType.USERNAME,
     )
 
     // Get activity count map per username identity
-    const activityMap = await getActivityCountOfMemberIdentities(this.options.qdb, memberId, usernameIdentities, true)
+    const activityMap = await getActivityCountOfMemberIdentities(
+      this.options.qdb,
+      memberId,
+      usernameIdentities,
+      true,
+    )
 
     return filteredIdentities.map((identity) => ({
       ...identity,
@@ -83,14 +94,17 @@ export default class MemberIdentityService extends LoggerBase {
     }))
   }
 
-  async userValidation(memberId: string, data: IMemberUserValidationInput<IMemberIdentityUserValidationDetails>): Promise<void> {  
+  async userValidation(
+    memberId: string,
+    data: IMemberUserValidationInput<IMemberIdentityUserValidationDetails>,
+  ): Promise<void> {
     try {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
       const result = await createMemberUserValidation(qx, memberId, {
         type: MemberUserValidationType.IDENTITY,
-        ...data
+        ...data,
       })
-      
+
       // record changes for audit logs
       await captureApiChange(
         this.options,

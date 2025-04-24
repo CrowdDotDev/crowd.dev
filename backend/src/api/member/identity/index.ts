@@ -17,7 +17,15 @@ export default (app) => {
   // Member Identity Delete
   app.delete(`/member/:memberId/identity/:id`, safeWrap(require('./memberIdentityDelete').default))
 
-  app.get(`/member/:memberIdOrLfid/detected-identity`, memberIdOrLfidMiddleware, safeWrap(require('./memberIdentityDetectedList').default))
+  app.get(
+    `/member/:memberIdOrLfid/detected-identity`,
+    memberIdOrLfidMiddleware,
+    safeWrap(require('./memberIdentityDetectedList').default),
+  )
 
-  app.post(`/member/:memberIdOrLfid/user-validation`, memberIdOrLfidMiddleware, safeWrap(require('./memberIdentityUserValidation').default))
+  app.post(
+    `/member/:memberIdOrLfid/user-validation`,
+    memberIdOrLfidMiddleware,
+    safeWrap(require('./memberIdentityUserValidation').default),
+  )
 }
