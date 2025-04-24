@@ -42,6 +42,7 @@ export enum ActionType {
   ORGANIZATIONS_CREATE = 'organizations-create',
   INTEGRATIONS_CONNECT = 'integrations-connect',
   INTEGRATIONS_RECONNECT = 'integrations-reconnect',
+  MEMBER_USER_VALIDATION = 'member-user-validation',
 }
 
 const ACTION_TYPES_ENTITY_TYPES = {
@@ -59,6 +60,7 @@ const ACTION_TYPES_ENTITY_TYPES = {
   [ActionType.ORGANIZATIONS_CREATE]: EntityType.ORGANIZATION,
   [ActionType.INTEGRATIONS_CONNECT]: EntityType.INTEGRATION,
   [ActionType.INTEGRATIONS_RECONNECT]: EntityType.INTEGRATION,
+  [ActionType.MEMBER_USER_VALIDATION]: EntityType.MEMBER,
 }
 
 export async function addAuditAction(

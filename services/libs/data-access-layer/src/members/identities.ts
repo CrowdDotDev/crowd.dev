@@ -2,18 +2,38 @@ import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
+const DEFAULT_COLUMNS: (keyof IMemberIdentity)[] = [
+  'id',
+  'platform',
+  'sourceId',
+  'type',
+  'value',
+  'verified',
+]
+
 export async function fetchMemberIdentities(
   qx: QueryExecutor,
   memberId: string,
+  filter: { verified?: boolean } = {},
+  columns: (keyof IMemberIdentity)[] = DEFAULT_COLUMNS,
 ): Promise<IMemberIdentity[]> {
+  const where: string[] = ['"memberId" = $(memberId)']
+
+  if (filter.verified) {
+    where.push('verified = $(verified)')
+  }
+
+  const selectedColumns = columns.map((c) => `"${c}"`).join(', ')
+
   return qx.select(
     `
-      SELECT id, platform, "sourceId", type, value, verified
+      SELECT ${selectedColumns}
       FROM "memberIdentities"
-      WHERE "memberId" = $(memberId)
+      WHERE ${where.join(' AND ')}
     `,
     {
       memberId,
+      verified: filter.verified,
     },
   )
 }
@@ -161,4 +181,20 @@ export async function deleteMemberIdentity(
       id,
     },
   )
+}
+
+export async function lfidToMemberId(qx: QueryExecutor, lfid: string): Promise<string | null> {
+  const result = await qx.selectOneOrNone(
+    `
+      select "memberId"
+      from "memberIdentities"
+      where "platform" = 'lfid' and "value" = $(lfid)
+      and verified = true limit 1;
+    `,
+    {
+      lfid,
+    },
+  )
+
+  return result?.memberId ?? null
 }

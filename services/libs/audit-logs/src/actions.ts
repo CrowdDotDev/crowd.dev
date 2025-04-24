@@ -127,6 +127,13 @@ export function integrationConnectAction<T>(
   return createEntityAction(ActionType.INTEGRATIONS_CONNECT, entityId, captureFn)
 }
 
+export function memberUserValidationAction<T>(
+  entityId: string,
+  captureFn: CaptureOneFn<T>,
+): BuildActionFn<T> {
+  return createEntityAction(ActionType.MEMBER_USER_VALIDATION, entityId, captureFn)
+}
+
 export function memberEditIdentitiesAction<T>(
   entityId: string,
   captureFn: CaptureFn<T>,

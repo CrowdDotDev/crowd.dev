@@ -4,6 +4,7 @@ class Roles {
       admin: 'admin',
       readonly: 'readonly',
       projectAdmin: 'projectAdmin',
+      externalService: 'externalService',
     }
   }
 }

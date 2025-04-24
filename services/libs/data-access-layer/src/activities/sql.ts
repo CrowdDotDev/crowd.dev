@@ -16,7 +16,6 @@ import {
   IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
-  MemberIdentityType,
   PageData,
   PlatformType,
 } from '@crowd/types'
@@ -960,47 +959,66 @@ export async function getMemberAggregates(
   })
 }
 
+/**
+ * Returns activity counts for the given identities of a member.
+ * If perIdentity is true, returns a map of counts per identity (platform:value),
+ * otherwise returns the total count across all identities.
+ */
 export async function getActivityCountOfMemberIdentities(
   qdbConn: DbConnOrTx,
   memberId: string,
   identities: IMemberIdentity[],
-): Promise<number> {
+  perIdentity = false,
+): Promise<number | Record<string, number>> {
   if (identities.length === 0) {
     throw new Error(`No identities sent!`)
   }
 
-  let query = `
-  select count(id) from activities
-  where "deletedAt" is null and "memberId" = $(memberId)
-  `
-
+  // Build conditions and params for each identity
   const replacementKey = (key: string, index: number) => `${key}${index}`
-
   const conditions: string[] = []
+  const params: Record<string, any> = { memberId }
 
-  const params = {
-    memberId,
-  }
-
-  for (
-    let i = 0;
-    i < identities.filter((i) => i.type === MemberIdentityType.USERNAME).length;
-    i++
-  ) {
-    const platformKey = replacementKey('platform', i)
-    const usernameKey = replacementKey('username', i)
-
+  identities.forEach((identity, idx) => {
+    const platformKey = replacementKey('platform', idx)
+    const usernameKey = replacementKey('username', idx)
     conditions.push(`(platform = $(${platformKey}) and username = $(${usernameKey}))`)
+    params[platformKey] = identity.platform
+    params[usernameKey] = identity.value
+  })
 
-    params[platformKey] = identities[i].platform
-    params[usernameKey] = identities[i].value
+  let query = ''
+
+  // calculate activity count per identity
+  if (perIdentity) {
+    query = `
+      SELECT platform, username, COUNT(id) AS count
+      FROM activities
+      WHERE "deletedAt" IS NULL
+        AND "memberId" = $(memberId)
+        ${conditions.length ? `AND (${conditions.join(' OR ')})` : ''}
+      GROUP BY platform, username
+    `
+    const rows = await qdbConn.any(query, params)
+    const result: Record<string, number> = {}
+
+    for (const row of rows) {
+      result[`${row.platform}:${row.username}`] = Number(row.count)
+    }
+
+    return result
+  } else {
+    query = `
+      SELECT count(id) as count FROM activities
+      WHERE "deletedAt" IS NULL AND "memberId" = $(memberId)
+    `
+    if (conditions.length > 0) {
+      query = `${query} AND (${conditions.join(' OR ')})`
+    }
+
+    const row = await qdbConn.one(query, params)
+    return Number(row?.count || 0)
   }
-
-  if (conditions.length > 0) {
-    query = `${query} and (${conditions.join(' or ')})`
-  }
-
-  return await qdbConn.one(query, params, (a) => a.count)
 }
 
 export async function countMembersWithActivities(

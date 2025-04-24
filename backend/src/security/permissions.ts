@@ -84,6 +84,42 @@ class Permissions {
         id: 'memberAutocomplete',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
       },
+      memberIdentityCreate: {
+        id: 'memberIdentityCreate',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberIdentityEdit: {
+        id: 'memberIdentityEdit',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberIdentityDestroy: {
+        id: 'memberIdentityDestroy',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberIdentityRead: {
+        id: 'memberIdentityRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly, roles.externalService],
+      },
+      memberOrganizationCreate: {
+        id: 'memberOrganizationCreate',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberOrganizationEdit: {
+        id: 'memberOrganizationEdit',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberOrganizationDestroy: {
+        id: 'memberOrganizationDestroy',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+      },
+      memberOrganizationRead: {
+        id: 'memberOrganizationRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly, roles.externalService],
+      },
+      memberUserValidationCreate: {
+        id: 'memberUserValidationCreate',
+        allowedRoles: [roles.externalService],
+      },
       activityImport: {
         id: 'activityImport',
         allowedRoles: [roles.admin, roles.projectAdmin],

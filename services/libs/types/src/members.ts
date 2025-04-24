@@ -32,6 +32,10 @@ export interface IMemberIdentity {
   verified: boolean
 }
 
+export interface IMemberIdentityWithActivityCount extends IMemberIdentity {
+  activityCount?: number
+}
+
 export interface IActivityIdentity {
   username: string
   platform: string
@@ -226,4 +230,37 @@ export interface IMemberOrganizationAffiliationOverride {
   memberOrganizationId: string
   allowAffiliation: boolean
   isPrimaryWorkExperience: boolean
+}
+
+export enum MemberUserValidationType {
+  IDENTITY = 'identity',
+  WORK_HISTORY = 'work-history',
+}
+
+export enum MemberIdentityUserValidationAction {
+  ACCEPT = 'accept',
+  REJECT = 'reject',
+}
+
+export enum MemberOrganizationUserValidationAction {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export interface IMemberUserValidationInput<T> {
+  action: string
+  details: T
+}
+
+export interface IMemberIdentityUserValidationDetails {
+  identityId: string
+}
+
+export interface IMemberOrganizationUserValidationDetails {
+  organizationId: string
+  organizationName: string
+  title: string
+  dateStart: string
+  dateEnd: string
 }
