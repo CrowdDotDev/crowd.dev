@@ -51,7 +51,6 @@ import MemberOrganizationRepository from '@/database/repositories/memberOrganiza
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 
-import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -66,6 +65,7 @@ import {
 import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
+import { getGithubInstallationToken } from './helpers/githubToken'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
@@ -1493,6 +1493,8 @@ export default class MemberService extends LoggerBase {
     const memberIdentities = MemberRepository.getUsernameFromIdentities(
       await fetchMemberIdentities(qx, memberId),
     )
+
+    const token = await getGithubInstallationToken()
     const axios = require('axios')
     // GitHub allows a maximum of 5 parameters
     const identities = Object.values(memberIdentities).flat().slice(0, 5)
@@ -1501,7 +1503,7 @@ export default class MemberService extends LoggerBase {
     const url = `https://api.github.com/search/users?q=${identitiesQuery}`
     const headers = {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${GITHUB_TOKEN_CONFIG.token}`,
+      Authorization: `Bearer ${token}`,
       'X-GitHub-Api-Version': '2022-11-28',
     }
     const response = await axios.get(url, { headers })

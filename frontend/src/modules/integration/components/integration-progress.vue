@@ -56,7 +56,7 @@ const showProgress = computed(() => {
   if (!props.progress) {
     return false;
   }
-  return lfIntegrations[props.progress.platform]?.showProgress || false;
+  return lfIntegrations()[props.progress.platform]?.showProgress || false;
 });
 
 const parts = computed<IntegrationProgressPart[]>(() => {

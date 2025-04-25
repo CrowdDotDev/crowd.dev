@@ -700,15 +700,15 @@ export default class ActivityService extends LoggerBase {
         )
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
         const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
-        const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
-        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
+        const txGithubReposRepo = new GithubReposRepository(txStore, this.redisClient, this.log)
+        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.redisClient, this.log)
 
         segmentId = providedSegmentId
-        if (!segmentId) {
+        if (!segmentId || platform === PlatformType.GITHUB || platform === PlatformType.GITLAB) {
           if (platform === PlatformType.GITLAB) {
             this.log.trace('Finding segment for GitLab repo.')
             const gitlabRepoSegmentId = await logExecutionTimeV2(
-              () => txGitlabReposRepo.findSegmentForRepo(activity.channel),
+              () => txGitlabReposRepo.findSegmentForRepo(integrationId, activity.channel),
               this.log,
               'processActivity -> txGitlabReposRepo.findSegmentForRepo',
             )
@@ -719,7 +719,7 @@ export default class ActivityService extends LoggerBase {
           } else if (platform === PlatformType.GITHUB) {
             this.log.trace('Finding segment for Github repo.')
             const repoSegmentId = await logExecutionTimeV2(
-              () => txGithubReposRepo.findSegmentForRepo(activity.channel),
+              () => txGithubReposRepo.findSegmentForRepo(integrationId, activity.channel),
               this.log,
               'processActivity -> txGithubReposRepo.findSegmentForRepo',
             )

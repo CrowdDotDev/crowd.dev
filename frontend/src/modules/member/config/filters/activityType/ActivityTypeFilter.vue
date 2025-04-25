@@ -52,7 +52,7 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: lfIntegrations[platform]?.name ?? platform,
+      label: lfIntegrations()[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
         label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,
@@ -61,7 +61,7 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
 
   const customOptions = Object.entries(typesValue.custom)
     .map(([platform, activityTypes]: [string, any]) => ({
-      label: lfIntegrations[platform]?.name ?? platform,
+      label: lfIntegrations()[platform]?.name ?? platform,
       options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
         label: `${activityTypeData.display.short.charAt(0).toUpperCase()}${activityTypeData.display.short.substring(1).toLowerCase()}`,
         value: `${platform}:${activityType}`,

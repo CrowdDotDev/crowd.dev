@@ -9,8 +9,11 @@ import {
   INangoWebhookPayload,
   NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
+  nangoIntegrationToPlatform,
+  platformToNangoIntegration,
 } from '@crowd/nango'
 import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
+import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
@@ -27,15 +30,20 @@ const job: IJobDefinition = {
 
     const integrationsToTrigger = await fetchNangoIntegrationData(
       pgpQx(dbConnection),
-      ALL_NANGO_INTEGRATIONS,
+      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
     )
 
     for (const int of integrationsToTrigger) {
-      const { id, platform } = int
+      const { id, settings } = int
 
-      for (const model of Object.values(
-        NANGO_INTEGRATION_CONFIG[platform as NangoIntegration].models,
-      )) {
+      const platform = platformToNangoIntegration(int.platform as PlatformType)
+
+      if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
+        // ignore non-nango github integrations
+        continue
+      }
+
+      for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
         ctx.log.info(
           {
             integrationId: id,
@@ -45,25 +53,52 @@ const job: IJobDefinition = {
           'Triggering nango integration check!',
         )
 
-        const payload: INangoWebhookPayload = {
-          connectionId: id,
-          providerConfigKey: platform,
-          syncName: 'not important',
-          model,
-          responseResults: { added: 1, updated: 1, deleted: 1 },
-          syncType: 'INCREMENTAL',
-          modifiedAfter: new Date().toISOString(),
+        if (platform === NangoIntegration.GITHUB) {
+          // trigger for each connection id - could be multiple because 1 integration can have multiple repositories and each repository has a connection id on nango
+          for (const connectionId of Object.keys(settings.nangoMapping)) {
+            const payload: INangoWebhookPayload = {
+              connectionId: connectionId,
+              providerConfigKey: platform,
+              syncName: 'not important',
+              model,
+              responseResults: { added: 1, updated: 1, deleted: 1 },
+              syncType: 'INCREMENTAL',
+              modifiedAfter: new Date().toISOString(),
+            }
+
+            await temporal.workflow.start('processNangoWebhook', {
+              taskQueue: 'nango',
+              workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
+              workflowIdReusePolicy:
+                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+              retry: {
+                maximumAttempts: 10,
+              },
+              args: [payload],
+            })
+          }
+        } else {
+          const payload: INangoWebhookPayload = {
+            connectionId: id,
+            providerConfigKey: platform,
+            syncName: 'not important',
+            model,
+            responseResults: { added: 1, updated: 1, deleted: 1 },
+            syncType: 'INCREMENTAL',
+            modifiedAfter: new Date().toISOString(),
+          }
+
+          await temporal.workflow.start('processNangoWebhook', {
+            taskQueue: 'nango',
+            workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
+            workflowIdReusePolicy:
+              WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+            retry: {
+              maximumAttempts: 10,
+            },
+            args: [payload],
+          })
         }
-        await temporal.workflow.start('processNangoWebhook', {
-          taskQueue: 'nango',
-          workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-          workflowIdReusePolicy:
-            WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-          retry: {
-            maximumAttempts: 10,
-          },
-          args: [payload],
-        })
       }
     }
   },

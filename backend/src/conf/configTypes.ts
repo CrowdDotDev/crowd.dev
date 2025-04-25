@@ -145,7 +145,9 @@ export interface EagleEyeConfiguration {
 }
 
 export interface GithubTokenConfiguration {
-  token: string
+  clientId: string
+  installationId: string
+  privateKey: string
 }
 
 export interface StackExchangeConfiguration {

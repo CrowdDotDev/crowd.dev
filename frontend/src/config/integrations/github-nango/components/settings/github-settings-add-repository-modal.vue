@@ -206,8 +206,8 @@ import {
   GitHubOrganization,
   GitHubRepository,
   GitHubSettingsRepository,
-} from '@/config/integrations/github-archive/types/GithubSettings';
-import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
+} from '@/config/integrations/github-nango/types/GithubSettings';
+import { GithubApiService } from '@/config/integrations/github-nango/services/github.api.service';
 import Message from '@/shared/message/message';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 

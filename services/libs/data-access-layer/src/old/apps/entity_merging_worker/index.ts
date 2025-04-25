@@ -116,7 +116,6 @@ export async function moveIdentityActivitiesToNewMember(
         "memberId" = $(fromId)
         and "username" = $(username)
         and "platform" = $(platform)
-        and "deletedAt" is null
       `,
       {
         fromId,
