@@ -1,11 +1,24 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { RedisCache } from '@crowd/redis'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
 export default class GithubReposRepository {
-  static async bulkInsert(table, columns, placeholdersFn, values, options: IRepositoryOptions) {
+  private static getCache(options: IRepositoryOptions): RedisCache {
+    return new RedisCache('githubRepos', options.redis, options.log)
+  }
+
+  private static async bulkInsert(
+    table,
+    columns,
+    placeholdersFn,
+    values,
+    options: IRepositoryOptions,
+  ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -39,92 +52,54 @@ export default class GithubReposRepository {
   }
 
   static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
-    const tenantId = options.currentTenant.id
+    const mappingEntries = Object.entries(mapping).map(([url, segmentId]) => ({
+      url: url as string,
+      segmentId: segmentId as string,
+    }))
+
+    const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const existingRows = await seq.query(
+      `
+        select * from "githubRepos" where "tenantId" = :tenantId and "url" in (:urls)
+      `,
+      {
+        replacements: {
+          tenantId: DEFAULT_TENANT_ID,
+          urls: mappingEntries.map((e) => e.url),
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    for (const row of existingRows as any[]) {
+      if (!row.deletedAt && row.integrationId !== integrationId) {
+        throw new Error(
+          `Trying to update github repo ${row.url} mapping with integrationId ${integrationId} but it is already mapped to integration ${row.integrationId}!`,
+        )
+      }
+    }
 
     await GithubReposRepository.bulkInsert(
       'githubRepos',
       ['tenantId', 'integrationId', 'segmentId', 'url'],
       (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
-      Object.entries(mapping).map(([url, segmentId], idx) => ({
-        [`tenantId_${idx}`]: tenantId,
+      mappingEntries.map(({ url, segmentId }, idx) => ({
+        [`tenantId_${idx}`]: DEFAULT_TENANT_ID,
         [`integrationId_${idx}`]: integrationId,
         [`segmentId_${idx}`]: segmentId,
         [`url_${idx}`]: url,
       })),
       options,
     )
-  }
 
-  static async updateMappingSnowflake(
-    integrationId,
-    newMapping: Record<string, string>,
-    oldMapping: {
-      url: string
-      segment: {
-        id: string
-        name: string
-      }
-    }[],
-    options: IRepositoryOptions,
-  ) {
-    const tenantId = options.currentTenant.id
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    // Create maps for efficient lookup
-    const oldMappingMap = new Map(oldMapping.map((m) => [m.url, m.segment.id]))
-    const newMappingEntries = Object.entries(newMapping)
-
-    // Find repos to insert or update (where they didn't exist or segment changed)
-    const reposToUpsert = newMappingEntries.filter(([url, segmentId]) => {
-      const oldSegmentId = oldMappingMap.get(url)
-      return !oldSegmentId || oldSegmentId !== segmentId
-    })
-
-    if (reposToUpsert.length > 0) {
-      await GithubReposRepository.bulkInsert(
-        'githubRepos',
-        ['tenantId', 'integrationId', 'segmentId', 'url'],
-        (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
-        reposToUpsert.map(([url, segmentId], idx) => ({
-          [`tenantId_${idx}`]: tenantId,
-          [`integrationId_${idx}`]: integrationId,
-          [`segmentId_${idx}`]: segmentId,
-          [`url_${idx}`]: url,
-        })),
-        options,
-      )
-    }
-
-    // Find repos that were removed (exist in old but not in new)
-    const newUrlSet = new Set(Object.keys(newMapping))
-    const urlsToRemove = oldMapping.filter((m) => !newUrlSet.has(m.url)).map((m) => m.url)
-
-    if (urlsToRemove.length > 0) {
-      await seq.query(
-        `
-        UPDATE "githubRepos"
-        SET "deletedAt" = NOW()
-        WHERE "tenantId" = :tenantId
-        AND "integrationId" = :integrationId
-        AND "url" IN (:urls)
-        AND "deletedAt" IS NULL
-        `,
-        {
-          replacements: {
-            tenantId,
-            integrationId,
-            urls: urlsToRemove,
-          },
-          transaction,
-        },
-      )
-    }
+    await this.getCache(options).deleteAll()
   }
 
   static async getMapping(integrationId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     const results = await options.database.sequelize.query(
       `
@@ -137,13 +112,11 @@ export default class GithubReposRepository {
         FROM "githubRepos" r
         JOIN segments s ON s.id = r."segmentId"
         WHERE r."integrationId" = :integrationId
-        AND r."tenantId" = :tenantId
         AND r."deletedAt" is null
       `,
       {
         replacements: {
           integrationId,
-          tenantId,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -155,7 +128,6 @@ export default class GithubReposRepository {
 
   static async hasMappedRepos(segmentId: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     const result = await options.database.sequelize.query(
       `
@@ -163,14 +135,13 @@ export default class GithubReposRepository {
           SELECT 1
           FROM "githubRepos" r
           WHERE r."segmentId" = :segmentId
-          AND r."tenantId" = :tenantId
+          AND r."deletedAt" is null
           LIMIT 1
         ) as has_repos
       `,
       {
         replacements: {
           segmentId,
-          tenantId,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -183,23 +154,22 @@ export default class GithubReposRepository {
   static async delete(integrationId, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     await seq.query(
       `
         UPDATE "githubRepos"
         SET "deletedAt" = NOW()
         WHERE "integrationId" = :integrationId
-          AND "tenantId" = :tenantId
       `,
       {
         replacements: {
           integrationId,
-          tenantId,
         },
         type: QueryTypes.UPDATE,
         transaction,
       },
     )
+
+    await this.getCache(options).deleteAll()
   }
 }

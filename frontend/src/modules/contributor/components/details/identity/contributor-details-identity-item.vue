@@ -5,49 +5,33 @@
     @mouseleave="hovered = false"
   >
     <div class="mt-0.5">
-      <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
-        <lf-icon name="envelope" type="regular" :size="20" />
-      </lf-tooltip>
-      <lf-tooltip v-else-if="lfIdentities[props.identity.platform]" placement="top-start" :content="lfIdentities[props.identity.platform].name">
-        <img
-          :src="lfIdentities[props.identity.platform].image"
-          class="h-5 min-w-5 object-contain"
-          :alt="props.identity.value"
-        />
-      </lf-tooltip>
-      <lf-tooltip v-else content="Custom identity" placement="top-start">
-        <lf-icon
-          name="fingerprint"
-          :size="20"
-          class="text-gray-600"
-        />
-      </lf-tooltip>
+      <lf-contributor-details-identity-item-image :identity="props.identity" />
     </div>
 
     <div class="pl-3 flex-grow">
-      <div class="flex items-center">
-        <div class=" flex items-center">
-          <p v-if="!props.identity.url" class="text-medium max-w-48 truncate">
-            {{ props.identity.value }}
-          </p>
-          <a
-            v-else
-            :href="props.identity.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-medium cursor-pointer !text-black underline decoration-dashed
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-48 truncate"
-          >
-            {{ props.identity.value }}
-          </a>
-          <p
-            v-if="!lfIdentities[props.identity.platform] && !props.identity.platforms
-              && getPlatformsLabel([props.identity.platform]).length > 0"
-            class="text-medium text-gray-400 ml-1"
-          >
-            <span v-html="$sanitize(getPlatformsLabel([props.identity.platform]))" />
-          </p>
-        </div>
+      <div class="flex items-center relative">
+        <lf-popover
+          v-if="props.identity.duplicatedIdentities?.length"
+          placement="top"
+          trigger-event="hover"
+        >
+          <template #trigger>
+            <lf-contributor-details-identity-item-value
+              :identity="props.identity"
+            />
+          </template>
+          <div v-for="duplicatedIdentity of props.identity.duplicatedIdentities" :key="duplicatedIdentity.id" class="flex items-center mb-2">
+            <lf-contributor-details-identity-item-image :identity="duplicatedIdentity" />
+            <lf-contributor-details-identity-item-value
+              class="ml-3"
+              :identity="duplicatedIdentity"
+            />
+          </div>
+        </lf-popover>
+        <lf-contributor-details-identity-item-value
+          v-else
+          :identity="props.identity"
+        />
         <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
       <p
@@ -148,6 +132,9 @@ import { ReportDataType } from '@/shared/modules/report-issue/constants/report-d
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { lfIdentities } from '@/config/identities';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
+import LfPopover from '@/ui-kit/popover/Popover.vue';
+import LfContributorDetailsIdentityItemImage from './contributor-details-identity-item-image.vue';
+import LfContributorDetailsIdentityItemValue from './contributor-details-identity-item-value.vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,

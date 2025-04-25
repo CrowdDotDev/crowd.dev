@@ -51,7 +51,7 @@
           <template v-if="integration.type === 'mapped'">
             <p class="text-xs text-black leading-5">
               Syncing
-              {{ lfIntegrations[integration.platform]?.name }}
+              {{ lfIntegrations()[integration.platform]?.name }}
               data since this sub-project is mapped with
               <b>{{ (integration as any).mappedWith }}</b> sub-project
             </p>
@@ -65,7 +65,7 @@
             >
               <h6 class="text-xs text-black leading-5 pb-3">
                 Connecting
-                {{ lfIntegrations[integration.platform]?.name }}
+                {{ lfIntegrations()[integration.platform]?.name }}
                 integration
               </h6>
             </app-integration-progress>

@@ -7,8 +7,8 @@
           All integrations
         </template>
         <template v-else>
-          <img :src="lfIntegrations[model]?.image" :alt="lfIntegrations[model]?.name" class="min-w-4 h-4 object-contain">
-          {{ lfIntegrations[model]?.name }}
+          <img :src="lfIntegrations()[model]?.image" :alt="lfIntegrations()[model]?.name" class="min-w-4 h-4 object-contain">
+          {{ lfIntegrations()[model]?.name }}
         </template>
         <lf-icon name="chevron-down" :size="16" />
       </lf-button>
@@ -23,7 +23,7 @@
       <lf-dropdown-separator />
 
       <lf-dropdown-item
-        v-for="(integration, key) in lfIntegrations"
+        v-for="(integration, key) in lfIntegrations()"
         :key="key"
         :selected="model === key"
         @click="model = key"

@@ -62,7 +62,7 @@
             "
             @click="connect()"
           >
-            {{ props.integration ? "Update settings" : "Connect" }}
+            {{ props.integration ? 'Update settings' : 'Connect' }}
           </lf-button>
         </span>
       </div>
@@ -81,21 +81,21 @@
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
+import useVuelidate from '@vuelidate/core';
 import LfDrawer from '@/ui-kit/drawer/Drawer.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfGithubSettingsEmpty from '@/config/integrations/github-archive/components/settings/github-settings-empty.vue';
-import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github-archive/components/settings/github-settings-add-repository-modal.vue';
+import LfGithubSettingsEmpty from '@/config/integrations/github-nango/components/settings/github-settings-empty.vue';
+import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github-nango/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import useVuelidate from '@vuelidate/core';
 import { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import {
   GitHubOrganization,
   GitHubSettings,
   GitHubSettingsOrganization,
   GitHubSettingsRepository,
-} from '@/config/integrations/github-archive/types/GithubSettings';
-import LfGithubSettingsMapping from '@/config/integrations/github-archive/components/settings/github-settings-mapping.vue';
+} from '@/config/integrations/github-nango/types/GithubSettings';
+import LfGithubSettingsMapping from '@/config/integrations/github-nango/components/settings/github-settings-mapping.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -180,36 +180,15 @@ const buildSettings = (): GitHubSettings => {
 };
 
 const connect = () => {
-  let integration: any = null;
   const settings: GitHubSettings = buildSettings();
 
-  (props.integration?.id
-    ? IntegrationService.update(
-      props.integration.id,
-      {
-        settings,
-      },
-      [props.segmentId],
-    )
-    : IntegrationService.create(
-      {
-        settings,
-        platform: 'github',
-        status: 'in-progress',
-      },
-      [props.segmentId],
-    )
+  IntegrationService.githubNangoConnect(
+    settings,
+    [props.segmentId],
+    repoMappings.value,
+    props.integration?.id,
   )
-    .then((res) => {
-      integration = res;
-      return IntegrationService.githubMapRepos(
-        res.id,
-        repoMappings.value,
-        [res.segmentId],
-        !!props.integration?.id,
-      );
-    })
-    .then(() => {
+    .then((integration) => {
       doFetch([integration.segmentId]);
 
       trackEvent({

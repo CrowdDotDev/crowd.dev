@@ -24,12 +24,12 @@
 import { ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfGithubSettingsDrawer from '@/config/integrations/github-archive/components/settings/github-settings-drawer.vue';
+import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue';
 // import { useAuthStore } from '@/modules/auth/store/auth.store';
 // import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
-  integration: any,
+  integration: any;
   segmentId: string | null;
   grandparentId: string | null;
 }>();

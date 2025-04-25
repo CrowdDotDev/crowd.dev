@@ -69,6 +69,7 @@ export interface ContributorIdentity {
   // Computed properties
   platforms?: string[];
   url?: string;
+  duplicatedIdentities?: ContributorIdentity[];
 }
 
 export interface Contributor {

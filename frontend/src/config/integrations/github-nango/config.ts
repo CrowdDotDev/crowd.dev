@@ -10,7 +10,7 @@ const image = new URL(
 
 const github: IntegrationConfig = {
   key: 'github',
-  name: 'GitHub',
+  name: 'GitHub (v2)',
   image,
   description:
     'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',

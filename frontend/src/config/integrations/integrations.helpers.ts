@@ -5,7 +5,7 @@ const useIntegrationsHelpers = () => {
   const getActiveIntegrations = () => {
     const { findByPlatform }: any = mapGetters('integrations');
 
-    return Object.values(lfIntegrations).map((config) => ({
+    return Object.values(lfIntegrations()).map((config) => ({
       ...config,
       ...(findByPlatform ? findByPlatform(config.key) : {}),
     }))
