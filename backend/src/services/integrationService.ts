@@ -16,7 +16,8 @@ import {
 import {
   NangoIntegration,
   connectNangoIntegration,
-  createNangoIntegration,
+  createNangoConnection,
+  createNangoGithubConnection,
   deleteNangoConnection,
   getNangoConnectionData,
   getNangoConnections,
@@ -65,7 +66,6 @@ import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import { jiraIntegrationData } from '../types/jiraTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 

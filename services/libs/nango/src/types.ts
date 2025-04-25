@@ -83,12 +83,28 @@ export const NANGO_INTEGRATION_CONFIG = {
     },
   },
   [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
-    models: {},
-    syncs: {},
+    models: {
+      ISSUES: 'Issue',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
+    },
+    syncs: {
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
   },
   [NangoIntegration.JIRA_DATA_CENTER_API_KEY]: {
-    models: {},
-    syncs: {},
+    models: {
+      ISSUES: 'Issue',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
+    },
+    syncs: {
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
   },
 } as const satisfies IntegrationConfig
 
