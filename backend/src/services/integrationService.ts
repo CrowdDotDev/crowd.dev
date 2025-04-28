@@ -18,6 +18,7 @@ import {
   connectNangoIntegration,
   createNangoConnection,
   createNangoGithubConnection,
+  connectNangoIntegration,
   deleteNangoConnection,
   getNangoConnectionData,
   getNangoConnections,
@@ -62,7 +63,6 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
 import { encryptData } from '../utils/crypto'
-
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
 import { jiraIntegrationData } from '../types/jiraTypes'
@@ -1703,6 +1703,7 @@ export default class IntegrationService {
 
       integration = await this.createOrUpdate(
         {
+          id: connectionId,
           platform: PlatformType.JIRA,
           settings: {
             url: integrationData.url,
@@ -1713,6 +1714,7 @@ export default class IntegrationService {
                 : null,
               apiToken: integrationData.apiToken ? encryptData(integrationData.apiToken) : null,
             },
+            nangoIntegrationName: jiraIntegrationType,
             projects: integrationData.projects.map((project) => project.toUpperCase()),
           },
           status: 'done',
