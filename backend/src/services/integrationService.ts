@@ -15,7 +15,6 @@ import {
 } from '@crowd/common'
 import {
   NangoIntegration,
-  connectNangoIntegration,
   createNangoConnection,
   createNangoGithubConnection,
   connectNangoIntegration,
