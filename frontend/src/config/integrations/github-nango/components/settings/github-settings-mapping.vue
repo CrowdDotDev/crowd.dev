@@ -11,7 +11,11 @@
       </lf-button>
     </div>
     <div class="mb-6">
-      <lf-search v-model="search" placeholder="Search repositories..." class="!h-9" />
+      <lf-search
+        v-model="search"
+        placeholder="Search repositories..."
+        class="!h-9"
+      />
     </div>
     <div v-if="filteredRepos.length === 0" class="flex justify-center">
       <div class="pt-12 flex flex-col items-center w-full max-w-100">
@@ -45,7 +49,7 @@
           </thead>
           <tbody v-if="subprojects.length > 0">
             <lf-github-settings-repo-item
-              v-for="(repo) of o.repositories"
+              v-for="repo of o.repositories"
               :key="repo.url"
               v-model:repositories="repos"
               v-model="repoMappings[repo.url]"
@@ -68,19 +72,19 @@
 </template>
 
 <script lang="ts" setup>
+import { computed, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { computed, ref } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfGithubSettingsRepositoriesBulkSelect
-  from '@/config/integrations/github-archive/components/settings/github-settings-repositories-bulk-select.vue';
+  from '@/config/integrations/github-nango/components/settings/github-settings-repositories-bulk-select.vue';
 import {
   GitHubOrganization,
   GitHubSettingsRepository,
-} from '@/config/integrations/github-archive/types/GithubSettings';
-import LfGithubSettingsOrgItem from '@/config/integrations/github-archive/components/settings/github-settings-org-item.vue';
+} from '@/config/integrations/github-nango/types/GithubSettings';
+import LfGithubSettingsOrgItem from '@/config/integrations/github-nango/components/settings/github-settings-org-item.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
-import LfGithubSettingsRepoItem from '@/config/integrations/github-archive/components/settings/github-settings-repo-item.vue';
+import LfGithubSettingsRepoItem from '@/config/integrations/github-nango/components/settings/github-settings-repo-item.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
@@ -90,10 +94,11 @@ const props = defineProps<{
   subprojects: any[];
 }>();
 
-const emit = defineEmits<{(e: 'update:repositories', value: GitHubSettingsRepository[]): void,
-  (e: 'update:organizations', value: GitHubOrganization[]): void,
-  (e: 'update:mappings', value: Record<string, string>): void,
-  (e: 'add'): void }>();
+const emit = defineEmits<{(e: 'update:repositories', value: GitHubSettingsRepository[]): void;
+  (e: 'update:organizations', value: GitHubOrganization[]): void;
+  (e: 'update:mappings', value: Record<string, string>): void;
+  (e: 'add'): void;
+}>();
 
 const search = ref('');
 const isBulkSelectOpened = ref(false);
@@ -115,8 +120,10 @@ const repoMappings = computed<Record<string, string>>({
   set: (value) => emit('update:mappings', value),
 });
 
-const filteredRepos = computed(() => repos.value.filter((r) => r.name.toLowerCase().includes(search.value.toLowerCase())
-    || (r.org?.name || '').toLowerCase().includes(search.value.toLowerCase())));
+const filteredRepos = computed(() => repos.value.filter(
+  (r) => r.name.toLowerCase().includes(search.value.toLowerCase())
+      || (r.org?.name || '').toLowerCase().includes(search.value.toLowerCase()),
+));
 
 const allOrganizations = computed<any[]>(() => {
   const owners = new Set();
@@ -124,8 +131,10 @@ const allOrganizations = computed<any[]>(() => {
     if (!owners.has(r.org!.name)) {
       owners.add(r.org!.name);
       acc.push({
-        ...(r.org!),
-        repositories: props.repositories.filter((repo) => repo.org!.url === r.org!.url),
+        ...r.org!,
+        repositories: props.repositories.filter(
+          (repo) => repo.org!.url === r.org!.url,
+        ),
       });
     }
     return acc;

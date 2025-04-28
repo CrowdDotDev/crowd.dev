@@ -1,11 +1,20 @@
 <template>
   <div>
-    <div class="bg-gray-50 px-2 py-1.5 border-t border-b border-gray-100 flex justify-between items-center">
+    <div
+      class="bg-gray-50 px-2 py-1.5 border-t border-b border-gray-100 flex justify-between items-center"
+    >
       <!-- Org information -->
       <div class="flex items-center gap-3">
-        <lf-avatar :name="props.organization.name" :src="props.organization.logo" :size="24" class="!rounded border border-gray-200">
+        <lf-avatar
+          :name="props.organization.name"
+          :src="props.organization.logo"
+          :size="24"
+          class="!rounded border border-gray-200"
+        >
           <template #placeholder>
-            <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+            <div
+              class="w-full h-full bg-gray-50 flex items-center justify-center"
+            >
               <lf-icon name="house-building" :size="12" class="text-gray-400" />
             </div>
           </template>
@@ -16,7 +25,11 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <lf-badge v-if="isSynced" type="primary" class="!flex items-center gap-1 !rounded-full !px-2">
+        <lf-badge
+          v-if="isSynced"
+          type="primary"
+          class="!flex items-center gap-1 !rounded-full !px-2"
+        >
           <lf-icon name="arrows-rotate" />
           Synced
         </lf-badge>
@@ -34,7 +47,8 @@
                   Sync organization
                 </p>
                 <p class="text-tiny text-gray-500">
-                  Includes all existing and future repositories within this organization
+                  Includes all existing and future repositories within this
+                  organization
                 </p>
               </div>
             </div>
@@ -47,7 +61,8 @@
                   Stop syncing
                 </p>
                 <p class="text-tiny text-gray-500">
-                  Synchronization will stop for future repositories from this organization
+                  Synchronization will stop for future repositories from this
+                  organization
                 </p>
               </div>
             </div>
@@ -68,7 +83,7 @@ import {
   GitHubOrganization,
   GitHubRepository,
   GitHubSettingsRepository,
-} from '@/config/integrations/github-archive/types/GithubSettings';
+} from '@/config/integrations/github-nango/types/GithubSettings';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -76,7 +91,7 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { computed } from 'vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import { GithubApiService } from '@/config/integrations/github-archive/services/github.api.service';
+import { GithubApiService } from '@/config/integrations/github-nango/services/github.api.service';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
@@ -85,8 +100,9 @@ const props = defineProps<{
   organization: GitHubOrganization;
 }>();
 
-const emit = defineEmits<{(e: 'update:organizations', value: GitHubOrganization[]): void,
-  (e: 'update:repositories', value: GitHubRepository[]): void}>();
+const emit = defineEmits<{(e: 'update:organizations', value: GitHubOrganization[]): void;
+  (e: 'update:repositories', value: GitHubRepository[]): void;
+}>();
 
 const orgs = computed<GitHubOrganization[]>({
   get: () => props.organizations,
@@ -101,14 +117,26 @@ const repos = computed<GitHubRepository[]>({
 const isSynced = computed(() => orgs.value.some((org) => org.url === props.organization.url));
 
 const sync = () => {
-  orgs.value.push({ ...props.organization, updatedAt: dateHelper().toISOString() });
-  GithubApiService.getOrganizationRepositories(props.organization.name)
-    .then((res) => {
+  orgs.value.push({
+    ...props.organization,
+    updatedAt: dateHelper().toISOString(),
+  });
+  GithubApiService.getOrganizationRepositories(props.organization.name).then(
+    (res) => {
       const newRepositories = (res as GitHubSettingsRepository[])
-        .filter((r: GitHubSettingsRepository) => !repos.value.some((repo: GitHubSettingsRepository) => repo.url === r.url))
-        .map((r: GitHubSettingsRepository) => ({ ...r, org: props.organization, updatedAt: dateHelper().toISOString() }));
+        .filter(
+          (r: GitHubSettingsRepository) => !repos.value.some(
+            (repo: GitHubSettingsRepository) => repo.url === r.url,
+          ),
+        )
+        .map((r: GitHubSettingsRepository) => ({
+          ...r,
+          org: props.organization,
+          updatedAt: dateHelper().toISOString(),
+        }));
       repos.value = [...repos.value, ...newRepositories];
-    });
+    },
+  );
 };
 
 const unsync = () => {
@@ -117,7 +145,9 @@ const unsync = () => {
 
 const remove = () => {
   unsync();
-  repos.value = repos.value.filter((repo) => repo.org!.url !== props.organization.url);
+  repos.value = repos.value.filter(
+    (repo) => repo.org!.url !== props.organization.url,
+  );
 };
 </script>
 

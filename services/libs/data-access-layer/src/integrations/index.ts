@@ -1,6 +1,8 @@
-import { IIntegration } from '@crowd/types'
+import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Fetches a list of global integrations based on the provided filters.
@@ -205,6 +207,7 @@ export async function fetchGlobalIntegrationsStatusCount(
 export interface INangoIntegrationData {
   id: string
   platform: string
+  settings: any
 }
 
 export async function fetchNangoIntegrationData(
@@ -213,7 +216,7 @@ export async function fetchNangoIntegrationData(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform
+      select id, platform, settings
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
     `,
@@ -229,19 +232,22 @@ export async function findIntegrationDataForNangoWebhookProcessing(
 ): Promise<{
   id: string
   segmentId: string
+  platform: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: any
 } | null> {
   return qx.selectOneOrNone(
     `
       select id,
+             platform,
              "segmentId",
              settings
       from integrations
-      where id = $(id)
+      where id = $(id) or (platform = $(platform) and (settings -> 'nangoMapping') ? $(id))
     `,
     {
       id,
+      platform: PlatformType.GITHUB_NANGO,
     },
   )
 }
@@ -266,6 +272,20 @@ export async function setNangoIntegrationCursor(
       integrationId,
       model,
       cursor,
+    },
+  )
+}
+
+export async function clearNangoIntegrationCursorData(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+      update integrations set settings = settings - 'cursors' where id = $(integrationId)
+    `,
+    {
+      integrationId,
     },
   )
 }

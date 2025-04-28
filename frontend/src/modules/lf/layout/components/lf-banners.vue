@@ -135,7 +135,7 @@
           class="flex flex-wrap items-center justify-center grow text-sm py-2"
         >
           <span class="font-semibold">Temporary Disruption of Confluence and Jira Integrations</span>
-          <span>Confluence and Jira integrations are currently stopped.
+          <span>&nbsp;Confluence and Jira integrations are currently stopped.
             The team is actively working on bringing the integrations back and restore full functionality.</span>
         </div>
       </banner>

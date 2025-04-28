@@ -13,10 +13,7 @@ export class IntegrationService {
 
     body.segments = segments.length ? segments : body.segments;
 
-    const response = await authAxios.put(
-      `/integration/${id}`,
-      body,
-    );
+    const response = await authAxios.put(`/integration/${id}`, body);
 
     return response.data;
   }
@@ -42,21 +39,15 @@ export class IntegrationService {
 
     body.segments = segments.length ? segments : body.segments;
 
-    const response = await authAxios.post(
-      '/integration',
-      body,
-    );
+    const response = await authAxios.post('/integration', body);
 
     return response.data;
   }
 
   static async find(id) {
-    const response = await authAxios.get(
-      `/integration/${id}`,
-      {
-        params: getSegments(),
-      },
-    );
+    const response = await authAxios.get(`/integration/${id}`, {
+      params: getSegments(),
+    });
 
     return response.data;
   }
@@ -70,10 +61,7 @@ export class IntegrationService {
       ...(segments.length ? { segments } : getSegments()),
     };
 
-    const response = await authAxios.post(
-      '/integration/query',
-      body,
-    );
+    const response = await authAxios.post('/integration/query', body);
 
     return response.data;
   }
@@ -104,15 +92,32 @@ export class IntegrationService {
 
   static async hackerNewsConnect(keywords, urls, segments) {
     // Calling connect devto function in the backend.
-    const response = await authAxios.post(
-      '/hackernews-connect',
-      {
-        keywords,
-        urls,
-        ...getSegments(),
-        segments,
-      },
-    );
+    const response = await authAxios.post('/hackernews-connect', {
+      keywords,
+      urls,
+      ...getSegments(),
+      segments,
+    });
+
+    return response.data;
+  }
+
+  static async githubNangoConnect(
+    settings,
+    segmentIds,
+    mapping,
+    integrationId,
+  ) {
+    const body = {
+      integrationId,
+      settings,
+      ...getSegments(),
+      mapping,
+    };
+
+    body.segments = segmentIds.length ? segmentIds : body.segments;
+
+    const response = await authAxios.post('/github-nango-connect', body);
 
     return response.data;
   }
@@ -126,14 +131,16 @@ export class IntegrationService {
       ...getSegments(),
     };
     // Calling the authenticate function in the backend.
-    const response = await authAxios.put(
-      `/authenticate/${code}`,
-      body,
-    );
+    const response = await authAxios.put(`/authenticate/${code}`, body);
     return response.data;
   }
 
-  static async githubMapRepos(integrationId, mapping, segments, isUpdateTransaction = false) {
+  static async githubMapRepos(
+    integrationId,
+    mapping,
+    segments,
+    isUpdateTransaction = false,
+  ) {
     const response = await authAxios.put(
       `/integration/${integrationId}/github/repos`,
       {
@@ -182,10 +189,9 @@ export class IntegrationService {
   }
 
   static async linkedinConnect(segmentId) {
-    const response = await authAxios.put(
-      '/linkedin-connect',
-      { segments: [segmentId] },
-    );
+    const response = await authAxios.put('/linkedin-connect', {
+      segments: [segmentId],
+    });
 
     return response.data;
   }
@@ -196,10 +202,7 @@ export class IntegrationService {
       segments: [segmentId],
     };
 
-    const response = await authAxios.post(
-      '/linkedin-onboard',
-      body,
-    );
+    const response = await authAxios.post('/linkedin-onboard', body);
 
     return response.data;
   }
@@ -238,67 +241,52 @@ export class IntegrationService {
   }
 
   static async redditValidate(subreddit) {
-    const response = await authAxios.get(
-      '/reddit-validate',
-      {
-        params: {
-          subreddit,
-          ...getSegments(),
-        },
+    const response = await authAxios.get('/reddit-validate', {
+      params: {
+        subreddit,
+        ...getSegments(),
       },
-    );
+    });
 
     return response.data;
   }
 
   static async stackOverflowValidate(tag) {
-    const response = await authAxios.get(
-      '/stackoverflow-validate',
-      {
-        params: {
-          tag,
-          ...getSegments(),
-        },
+    const response = await authAxios.get('/stackoverflow-validate', {
+      params: {
+        tag,
+        ...getSegments(),
       },
-    );
+    });
 
     return response.data;
   }
 
   static async stackOverflowVolume(keywords) {
-    const response = await authAxios.get(
-      '/stackoverflow-volume',
-      {
-        params: {
-          keywords,
-          ...getSegments(),
-        },
+    const response = await authAxios.get('/stackoverflow-volume', {
+      params: {
+        keywords,
+        ...getSegments(),
       },
-    );
+    });
 
     return response.data.total;
   }
 
   static async stackOverflowOnboard(segmentId, tags, keywords) {
     // Calling the authenticate function in the backend.
-    const response = await authAxios.post(
-      '/stackoverflow-connect',
-      {
-        tags,
-        keywords,
-        segments: [segmentId],
-      },
-    );
+    const response = await authAxios.post('/stackoverflow-connect', {
+      tags,
+      keywords,
+      segments: [segmentId],
+    });
 
     return response.data;
   }
 
   static async hubspotConnect() {
     // Calling the authenticate function in the backend.
-    const response = await authAxios.post(
-      '/hubspot-connect',
-      {},
-    );
+    const response = await authAxios.post('/hubspot-connect', {});
 
     return response.data;
   }
@@ -314,13 +302,10 @@ export class IntegrationService {
   }
 
   static async confluenceConnect(settings, segmentId) {
-    const response = await authAxios.put(
-      '/confluence-connect',
-      {
-        settings,
-        segments: [segmentId],
-      },
-    );
+    const response = await authAxios.put('/confluence-connect', {
+      settings,
+      segments: [segmentId],
+    });
 
     return response.data;
   }
@@ -336,114 +321,108 @@ export class IntegrationService {
   }
 
   static async discourseValidateAPI(forumHostname, apiKey) {
-    const response = await authAxios.post(
-      '/discourse-validate',
-      {
-        forumHostname,
-        apiKey,
-        apiUsername: 'system',
-        ...getSegments(),
-      },
-    );
+    const response = await authAxios.post('/discourse-validate', {
+      forumHostname,
+      apiKey,
+      apiUsername: 'system',
+      ...getSegments(),
+    });
 
     return response.status === 200;
   }
 
-  static async discourseConnect(forumHostname, apiKey, webhookSecret, segments = []) {
-    const response = await authAxios.post(
-      '/discourse-connect',
-      {
-        forumHostname,
-        apiKey,
-        apiUsername: 'system',
-        webhookSecret,
-        ...getSegments(),
-        segments,
-      },
-    );
+  static async discourseConnect(
+    forumHostname,
+    apiKey,
+    webhookSecret,
+    segments = [],
+  ) {
+    const response = await authAxios.post('/discourse-connect', {
+      forumHostname,
+      apiKey,
+      apiUsername: 'system',
+      webhookSecret,
+      ...getSegments(),
+      segments,
+    });
 
     return response.data;
   }
 
   static async discourseSoftConnect(forumHostname, apiKey, webhookSecret) {
-    const response = await authAxios.post(
-      '/discourse-soft-connect',
-      {
-        forumHostname,
-        apiKey,
-        apiUsername: 'system',
-        webhookSecret,
-      },
-    );
+    const response = await authAxios.post('/discourse-soft-connect', {
+      forumHostname,
+      apiKey,
+      apiUsername: 'system',
+      webhookSecret,
+    });
 
     return response.data.id;
   }
 
   static async discourseVerifyWebhook(integrationId) {
-    const response = await authAxios.post(
-      '/discourse-test-webhook',
-      {
-        integrationId,
-      },
-    );
+    const response = await authAxios.post('/discourse-test-webhook', {
+      integrationId,
+    });
 
     return response.data.isWebhooksReceived;
   }
 
-  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports, segments = []) {
-    const response = await authAxios.post(
-      '/groupsio-connect',
-      {
-        email,
-        token,
-        tokenExpiry,
-        password,
-        groups,
-        autoImports,
-        ...getSegments(),
-        segments,
-      },
-    );
+  static async groupsioConnect(
+    email,
+    token,
+    tokenExpiry,
+    password,
+    groups,
+    autoImports,
+    segments = [],
+  ) {
+    const response = await authAxios.post('/groupsio-connect', {
+      email,
+      token,
+      tokenExpiry,
+      password,
+      groups,
+      autoImports,
+      ...getSegments(),
+      segments,
+    });
 
     return response.data;
   }
 
-  static async groupsioGetToken(email, password, twoFactorCode = null, segments = []) {
-    const response = await authAxios.post(
-      '/groupsio-get-token',
-      {
-        email,
-        password,
-        twoFactorCode,
-        ...getSegments(),
-        segments,
-      },
-    );
+  static async groupsioGetToken(
+    email,
+    password,
+    twoFactorCode = null,
+    segments = [],
+  ) {
+    const response = await authAxios.post('/groupsio-get-token', {
+      email,
+      password,
+      twoFactorCode,
+      ...getSegments(),
+      segments,
+    });
 
     return response.data;
   }
 
   static async groupsioVerifyGroup(groupName, cookie) {
-    const response = await authAxios.post(
-      '/groupsio-verify-group',
-      {
-        groupName,
-        cookie,
-        ...getSegments(),
-      },
-    );
+    const response = await authAxios.post('/groupsio-verify-group', {
+      groupName,
+      cookie,
+      ...getSegments(),
+    });
 
     return response.data;
   }
 
   static async groupsioGetUserSubscriptions(cookie) {
-    const response = await authAxios.post(
-      '/groupsio-get-user-subscriptions',
-      {
-        cookie,
-        ...getSegments(),
-      },
-    );
+    const response = await authAxios.post('/groupsio-get-user-subscriptions', {
+      cookie,
+      ...getSegments(),
+    });
 
     return response.data;
   }
@@ -470,12 +449,9 @@ export class IntegrationService {
   }
 
   static async fetchIntegrationsProgress(segments) {
-    const response = await authAxios.post(
-      '/integration/progress/list',
-      {
-        segments: segments || undefined,
-      },
-    );
+    const response = await authAxios.post('/integration/progress/list', {
+      segments: segments || undefined,
+    });
 
     return response.data;
   }
@@ -493,12 +469,9 @@ export class IntegrationService {
   }
 
   static async getGithubInstallations() {
-    const response = await authAxios.get(
-      '/integration/github-installations',
-      {
-        params: getSegments(),
-      },
-    );
+    const response = await authAxios.get('/integration/github-installations', {
+      params: getSegments(),
+    });
 
     return response.data;
   }

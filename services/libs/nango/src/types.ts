@@ -1,11 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PlatformType } from '@crowd/types'
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
-  JIRA = 'jira',
+  // JIRA = 'jira',
+  GITHUB = 'github',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
+
+export const nangoIntegrationToPlatform = (integration: NangoIntegration): PlatformType => {
+  switch (integration) {
+    case NangoIntegration.GERRIT:
+      return PlatformType.GERRIT
+    case NangoIntegration.GITHUB:
+      return PlatformType.GITHUB_NANGO
+    default:
+      throw new Error('Unknown integration')
+  }
+}
+
+export const platformToNangoIntegration = (platform: PlatformType): NangoIntegration => {
+  switch (platform) {
+    case PlatformType.GERRIT:
+      return NangoIntegration.GERRIT
+    case PlatformType.GITHUB_NANGO:
+      return NangoIntegration.GITHUB
+    default:
+      throw new Error('Unknown platform')
+  }
+}
 
 export const NANGO_INTEGRATION_CONFIG = {
   [NangoIntegration.GERRIT]: {
@@ -20,10 +44,34 @@ export const NANGO_INTEGRATION_CONFIG = {
       PATCHSETS: 'patchsets',
     },
   },
-  [NangoIntegration.JIRA]: {
-    models: {},
-    syncs: {},
+  [NangoIntegration.GITHUB]: {
+    models: {
+      DISCUSSION: 'GithubDiscussion',
+      FORK: 'GithubFork',
+      ISSUE_COMMENT: 'GithubIssueComment',
+      ISSUE: 'GithubIssue',
+      PULL_REQUEST_COMMENT: 'GithubPullRequestComment',
+      PULL_REQUEST_REVIEW_THREAD_COMMENT: 'GithubPullRequestReviewThreadComment',
+      PULL_REQUEST_COMMIT: 'GithubPullRequestCommit',
+      PULL_REQUEST: 'GithubPullRequest',
+      STAR: 'GithubStar',
+    },
+    syncs: {
+      DISCUSSIONS: 'discussions',
+      FORKS: 'forks',
+      ISSUES: 'issues',
+      ISSUE_COMMENTS: 'issue-comments',
+      PULL_REQUESTS: 'pull-requests',
+      PULL_REQUEST_COMMENTS: 'pull-request-comments',
+      PULL_REQUEST_REVIEWS: 'pull-request-reviews',
+      PULL_REQUEST_COMMITS: 'pull-request-commits',
+      STARS: 'stars',
+    },
   },
+  // [NangoIntegration.JIRA]: {
+  //   models: {},
+  //   syncs: {},
+  // },
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {

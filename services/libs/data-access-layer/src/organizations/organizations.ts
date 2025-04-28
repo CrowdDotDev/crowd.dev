@@ -481,6 +481,8 @@ export async function findOrCreateOrganization(
       identity.value = websiteNormalizer(identity.value, false)
     }
 
+    data.identities = data.identities.filter((i) => i.value !== undefined)
+
     let existing
     // find existing org by sent verified identities
     for (const identity of verifiedIdentities) {

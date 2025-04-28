@@ -1,11 +1,24 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { RedisCache } from '@crowd/redis'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
 export default class GitlabReposRepository {
-  static async bulkInsert(table, columns, placeholdersFn, values, options: IRepositoryOptions) {
+  private static getCache(options: IRepositoryOptions): RedisCache {
+    return new RedisCache('gitlabRepos', options.redis, options.log)
+  }
+
+  private static async bulkInsert(
+    table,
+    columns,
+    placeholdersFn,
+    values,
+    options: IRepositoryOptions,
+  ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -38,25 +51,24 @@ export default class GitlabReposRepository {
   }
 
   static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
-    const tenantId = options.currentTenant.id
-
     await GitlabReposRepository.bulkInsert(
       'gitlabRepos',
       ['tenantId', 'integrationId', 'segmentId', 'url'],
       (idx) => `(:tenantId_${idx}, :integrationId_${idx}, :segmentId_${idx}, :url_${idx})`,
       Object.entries(mapping).map(([url, segmentId], idx) => ({
-        [`tenantId_${idx}`]: tenantId,
+        [`tenantId_${idx}`]: DEFAULT_TENANT_ID,
         [`integrationId_${idx}`]: integrationId,
         [`segmentId_${idx}`]: segmentId,
         [`url_${idx}`]: url,
       })),
       options,
     )
+
+    await this.getCache(options).deleteAll()
   }
 
   static async getMapping(integrationId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     const results = await options.database.sequelize.query(
       `
@@ -69,12 +81,11 @@ export default class GitlabReposRepository {
         FROM "gitlabRepos" r
         JOIN segments s ON s.id = r."segmentId"
         WHERE r."integrationId" = :integrationId
-        AND r."tenantId" = :tenantId
+        AND r."deletedAt" is null
       `,
       {
         replacements: {
           integrationId,
-          tenantId,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -86,7 +97,6 @@ export default class GitlabReposRepository {
 
   static async hasMappedRepos(segmentId: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     const result = await options.database.sequelize.query(
       `
@@ -94,14 +104,13 @@ export default class GitlabReposRepository {
           SELECT 1
           FROM "gitlabRepos" r
           WHERE r."segmentId" = :segmentId
-          AND r."tenantId" = :tenantId
+          AND r."deletedAt" is null
           LIMIT 1
         ) as has_repos
       `,
       {
         replacements: {
           segmentId,
-          tenantId,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -114,23 +123,22 @@ export default class GitlabReposRepository {
   static async delete(integrationId, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
 
     await seq.query(
       `
         UPDATE "gitlabRepos"
         SET "deletedAt" = NOW()
         WHERE "integrationId" = :integrationId
-          AND "tenantId" = :tenantId
       `,
       {
         replacements: {
           integrationId,
-          tenantId,
         },
         type: QueryTypes.UPDATE,
         transaction,
       },
     )
+
+    await this.getCache(options).deleteAll()
   }
 }

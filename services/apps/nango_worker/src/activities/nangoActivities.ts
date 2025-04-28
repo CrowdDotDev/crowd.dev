@@ -19,7 +19,7 @@ import { IProcessNangoWebhookArguments } from '../types'
 export async function processNangoWebhook(
   args: IProcessNangoWebhookArguments,
 ): Promise<string | undefined> {
-  const logger = getChildLogger(processNangoWebhook.name, svc.log, {
+  let logger = getChildLogger(processNangoWebhook.name, svc.log, {
     provider: args.providerConfigKey,
     connectionId: args.connectionId,
     model: args.model,
@@ -29,8 +29,6 @@ export async function processNangoWebhook(
     logger.info({ providerConfigKey: args.providerConfigKey }, 'Skipping non-Nango integration!')
     return
   }
-
-  await initNangoCloudClient()
 
   const integration = await findIntegrationDataForNangoWebhookProcessing(
     dbStoreQx(svc.postgres.reader),
@@ -45,7 +43,13 @@ export async function processNangoWebhook(
     return
   }
 
+  logger = getChildLogger(processNangoWebhook.name, logger, {
+    integrationId: integration.id,
+  })
+
   const cursor = integration.settings.cursors ? integration.settings.cursors[args.model] : undefined
+
+  await initNangoCloudClient()
 
   const records = await getNangoCloudRecords(
     args.providerConfigKey as NangoIntegration,
@@ -62,7 +66,9 @@ export async function processNangoWebhook(
       // process record
       const resultId = await repo.publishExternalResult(integration.id, {
         type: IntegrationResultType.ACTIVITY,
-        segmentId: integration.segmentId,
+        // github must use githubRepos to determine segmentId so we must not pass it here
+        segmentId:
+          args.providerConfigKey !== NangoIntegration.GITHUB ? integration.segmentId : undefined,
         data: record.activity,
       })
       await svc.dataSinkWorkerEmitter.triggerResultProcessing(
