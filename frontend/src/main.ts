@@ -30,14 +30,14 @@ declare module 'vue' {
  */
 /* eslint-disable no-param-reassign, no-underscore-dangle, func-names */
 (async function () {
+  const pinia = createPinia();
+  const app = createApp(App);
+  app.use(pinia);
+
   const { captureException } = useLogRocket();
 
-  const app = createApp(App);
-  const pinia = createPinia();
   const router = await createRouter();
   const store = await createStore(LogRocketClient);
-
-  app.use(pinia);
 
   app.use(VueGridLayout);
   app.use(Vue3Sanitize, vueSanitizeOptions);

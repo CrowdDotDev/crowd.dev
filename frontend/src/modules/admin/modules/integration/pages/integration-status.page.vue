@@ -45,16 +45,20 @@
                 <div class="flex flex-col gap-1 items-start">
                   <div class="flex items-center gap-1.5">
                     <div>
-                      <img :src="lfIntegrations[integration.platform]?.image" :alt="lfIntegrations[integration.platform]?.name" class="min-w-4 h-4" />
+                      <img
+                        :src="lfIntegrations()[integration.platform]?.image"
+                        :alt="lfIntegrations()[integration.platform]?.name"
+                        class="min-w-4 h-4"
+                      />
                     </div>
                     <p class="text-medium font-semibold">
-                      {{ lfIntegrations[integration.platform]?.name }}
+                      {{ lfIntegrations()[integration.platform]?.name }}
                     </p>
                   </div>
                   <div class="text-tiny text-gray-500">
                     <template v-if="status === 'done'">
                       <component
-                        :is="lfIntegrations[integration.platform].connectedParamsComponent"
+                        :is="lfIntegrations()[integration.platform].connectedParamsComponent"
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
@@ -92,18 +96,18 @@
               <td>
                 <div class="flex justify-end gap-3">
                   <component
-                    :is="lfIntegrations[integration.platform].connectComponent"
-                    v-if="status === 'notConnected' && lfIntegrations[integration.platform].connectComponent"
+                    :is="lfIntegrations()[integration.platform].connectComponent"
+                    v-if="status === 'notConnected' && lfIntegrations()[integration.platform].connectComponent"
                     :integration="integration"
                     :hide-details="true"
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   >
-                    Connect {{ lfIntegrations[integration.platform].name }}
+                    Connect {{ lfIntegrations()[integration.platform].name }}
                   </component>
                   <component
-                    :is="lfIntegrations[integration.platform].actionComponent"
-                    v-if="status === 'waitingForAction' && lfIntegrations[integration.platform].actionComponent"
+                    :is="lfIntegrations()[integration.platform].actionComponent"
+                    v-if="status === 'waitingForAction' && lfIntegrations()[integration.platform].actionComponent"
                     :integration="integration"
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
@@ -116,8 +120,8 @@
                         </lf-button>
                       </template>
                       <component
-                        :is="lfIntegrations[integration.platform].dropdownComponent"
-                        v-if="status === 'done' && lfIntegrations[integration.platform].dropdownComponent"
+                        :is="lfIntegrations()[integration.platform].dropdownComponent"
+                        v-if="status === 'done' && lfIntegrations()[integration.platform].dropdownComponent"
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"

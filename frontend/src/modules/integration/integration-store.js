@@ -34,7 +34,7 @@ export default {
     list: (state) => Object.keys(state.byId).reduce((acc, key) => {
       acc[key] = {
         ...state.byId[key],
-        ...lfIntegrations[state.byId[key].platform],
+        ...lfIntegrations()[state.byId[key].platform],
       };
       return acc;
     }, {}),
@@ -42,7 +42,7 @@ export default {
     listByPlatform: (state) => Object.keys(state.byId).reduce((acc, key) => {
       acc[state.byId[key].platform] = {
         ...state.byId[key],
-        ...lfIntegrations[state.byId[key].platform],
+        ...lfIntegrations()[state.byId[key].platform],
       };
       return acc;
     }, {}),
@@ -200,8 +200,20 @@ export default {
           segments,
         );
 
+        // This is a temporary workaround while we have to support 2 github integrations
+        const parsedRows = response.rows.map((row) => {
+          if (row.platform === 'github-nango') {
+            return {
+              ...row,
+              platform: 'github',
+            };
+          }
+
+          return row;
+        });
+
         commit('FETCH_SUCCESS', {
-          rows: response.rows,
+          rows: parsedRows,
           count: response.count,
         });
       } catch (error) {

@@ -38,7 +38,11 @@
           </el-select>
         </app-form-item>
 
-        <lf-tooltip v-if="!props.orgSyncing" placement="top-end" content="Remove repository">
+        <lf-tooltip
+          v-if="!props.orgSyncing"
+          placement="top-end"
+          content="Remove repository"
+        >
           <lf-button type="secondary-ghost" icon-only @click="removeRepo()">
             <lf-icon name="circle-minus" type="regular" class="text-gray-500" />
           </lf-button>
@@ -49,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { GitHubRepository } from '@/config/integrations/github-archive/types/GithubSettings';
+import { GitHubRepository } from '@/config/integrations/github-nango/types/GithubSettings';
 import { computed, watch } from 'vue';
 import LfSvg from '@/shared/svg/svg.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
@@ -67,9 +71,10 @@ const props = defineProps<{
   orgSyncing: boolean;
 }>();
 
-const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]): void,
-  (e: 'update:modelValue', value: string): void,
-  (e: 'remove-mapping', repoUrl: string): void}>();
+const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]): void;
+  (e: 'update:modelValue', value: string): void;
+  (e: 'remove-mapping', repoUrl: string): void;
+}>();
 
 const repos = computed<GitHubRepository[]>({
   get: () => props.repositories,
@@ -96,11 +101,15 @@ const removeRepo = () => {
   emit('remove-mapping', props.repository.url);
 };
 
-watch(() => model.value, (value) => {
-  if (!value) {
-    model.value = props.subprojects[0].id;
-  }
-}, { immediate: true });
+watch(
+  () => model.value,
+  (value) => {
+    if (!value) {
+      model.value = props.subprojects[0].id;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <script lang="ts">

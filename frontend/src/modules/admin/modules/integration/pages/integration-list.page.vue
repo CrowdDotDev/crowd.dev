@@ -64,7 +64,7 @@
             <lf-integration-list-item
               v-for="key in platformsByStatus"
               :key="key"
-              :config="lfIntegrations[key]"
+              :config="lfIntegrations()[key]"
               :progress="progress"
               :progress-error="progressError"
             />
@@ -110,7 +110,7 @@ const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const all = Object.keys(lfIntegrations);
+  const all = Object.keys(lfIntegrations());
   if (!statusConfig) {
     return all;
   }
@@ -126,7 +126,7 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
     statusCount[key] = array.value.filter((integration: any) => statusConfig.show(integration)).length;
   });
-  statusCount.notConnected = Object.keys(lfIntegrations).length - array.value.length;
+  statusCount.notConnected = Object.keys(lfIntegrations()).length - array.value.length;
   return statusCount;
 });
 
