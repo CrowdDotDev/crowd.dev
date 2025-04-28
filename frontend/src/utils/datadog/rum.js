@@ -15,7 +15,7 @@ export function initRUM() {
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
-    defaultPrivacyLevel: 'mask-user-input',
+    defaultPrivacyLevel: 'allow',
   });
 }
 
