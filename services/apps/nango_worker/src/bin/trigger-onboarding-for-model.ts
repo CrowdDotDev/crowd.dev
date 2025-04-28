@@ -34,7 +34,10 @@ setImmediate(async () => {
       log.info(
         `Triggering nango integration check for integrationId '${integrationId}' and connectionId '${connectionId}'!`,
       )
-      const providerConfigKey = platformToNangoIntegration(integration.platform as PlatformType)
+      const providerConfigKey = platformToNangoIntegration(
+        integration.platform as PlatformType,
+        integration.settings,
+      )
 
       await dbConnection.none(
         `

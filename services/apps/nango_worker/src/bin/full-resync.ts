@@ -30,7 +30,10 @@ setImmediate(async () => {
     )
 
     if (integration) {
-      const nangoIntegration = platformToNangoIntegration(integration.platform as PlatformType)
+      const nangoIntegration = platformToNangoIntegration(
+        integration.platform as PlatformType,
+        integration.settings,
+      )
 
       try {
         const toTrigger: string[] = []
