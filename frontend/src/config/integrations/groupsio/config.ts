@@ -2,6 +2,7 @@ import { IntegrationConfig } from '@/config/integrations';
 import GroupsioConnect from './components/groupsio-connect.vue';
 import GroupsioParams from './components/groupsio-params.vue';
 import GroupsioDropdown from './components/groupsio-dropdown.vue';
+import LfGroupsioSettingsDrawer from './components/groupsio-settings-drawer.vue';
 
 const image = new URL(
   '@/assets/images/integrations/groupsio.svg',
@@ -16,6 +17,7 @@ const groupsio: IntegrationConfig = {
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,
   dropdownComponent: GroupsioDropdown,
+  settingComponent: LfGroupsioSettingsDrawer,
   showProgress: false,
 };
 

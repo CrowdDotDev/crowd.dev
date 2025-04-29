@@ -1,31 +1,23 @@
 <template>
-  <lf-dropdown-item @click="isStackoverflowConnectDrawerOpen = true">
+  <lf-dropdown-item @click="emit('open-setting')">
     <lf-icon name="sliders-simple" type="regular" />
     Settings
   </lf-dropdown-item>
-  <lf-stackoverflow-settings-drawer
-    v-if="isStackoverflowConnectDrawerOpen"
-    v-model="isStackoverflowConnectDrawerOpen"
-    :integration="props.integration"
-    :segment-id="props.segmentId"
-    :grandparent-id="props.grandparentId"
-  />
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
+import { defineProps } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfStackoverflowSettingsDrawer
-  from '@/config/integrations/stackoverflow/components/stackoverflow-settings-drawer.vue';
 
-const props = defineProps<{
+defineProps<{
   integration: any,
   segmentId?: string,
   grandparentId?: string,
 }>();
 
-const isStackoverflowConnectDrawerOpen = ref(false);
+const emit = defineEmits<{(e: 'open-setting'): void;
+}>();
 </script>
 
 <script lang="ts">
