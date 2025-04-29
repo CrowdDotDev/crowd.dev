@@ -1,4 +1,5 @@
 import { IntegrationConfig } from '@/config/integrations';
+import LfLinkedinSettingsDrawer from '@/config/integrations/linkedin/components/linkedin-settings-drawer.vue';
 import LinkedinConnect from './components/linkedin-connect.vue';
 import LinkedinParams from './components/linkedin-params.vue';
 import LinkedinAction from './components/linkedin-action.vue';
@@ -19,6 +20,7 @@ const linkedin: IntegrationConfig = {
   connectedParamsComponent: LinkedinParams,
   actionComponent: LinkedinAction,
   dropdownComponent: LinkedinDropdown,
+  settingComponent: LfLinkedinSettingsDrawer,
   showProgress: false,
 };
 

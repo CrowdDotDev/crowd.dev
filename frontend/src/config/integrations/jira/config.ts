@@ -1,4 +1,5 @@
 import { IntegrationConfig } from '@/config/integrations';
+import LfJiraSettingsDrawer from '@/config/integrations/jira/components/jira-settings-drawer.vue';
 import JiraConnect from './components/jira-connect.vue';
 import JiraParams from './components/jira-params.vue';
 import JiraDropdown from './components/jira-dropdown.vue';
@@ -14,6 +15,7 @@ const jira: IntegrationConfig = {
   connectComponent: JiraConnect,
   connectedParamsComponent: JiraParams,
   dropdownComponent: JiraDropdown,
+  settingComponent: LfJiraSettingsDrawer,
   showProgress: false,
 };
 
