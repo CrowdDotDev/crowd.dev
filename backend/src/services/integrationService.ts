@@ -15,9 +15,9 @@ import {
 } from '@crowd/common'
 import {
   NangoIntegration,
+  connectNangoIntegration,
   createNangoConnection,
   createNangoGithubConnection,
-  connectNangoIntegration,
   deleteNangoConnection,
   getNangoConnectionData,
   getNangoConnections,
@@ -61,10 +61,11 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
+import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
+
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import { JiraIntegrationData } from '../types/jiraTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1681,7 +1682,7 @@ export default class IntegrationService {
             baseUrl,
           },
           credentials: {
-            apiKey: integrationData.personalAccessToken
+            apiKey: integrationData.personalAccessToken,
           },
         }
 
