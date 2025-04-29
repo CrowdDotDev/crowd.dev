@@ -1,4 +1,5 @@
 import { IntegrationConfig } from '@/config/integrations';
+import LfTwitterSettingsDrawer from '@/config/integrations/twitter/components/twitter-settings-drawer.vue';
 import TwitterConnect from './components/twitter-connect.vue';
 import TwitterParams from './components/twitter-params.vue';
 import TwitterDropdown from './components/twitter-dropdown.vue';
@@ -17,6 +18,7 @@ const twitter: IntegrationConfig = {
   connectComponent: TwitterConnect,
   connectedParamsComponent: TwitterParams,
   dropdownComponent: TwitterDropdown,
+  settingComponent: LfTwitterSettingsDrawer,
   showProgress: false,
 };
 

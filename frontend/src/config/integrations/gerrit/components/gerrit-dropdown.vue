@@ -1,30 +1,23 @@
 <template>
-  <lf-dropdown-item @click="isGerritConnectDrawerOpen = true">
+  <lf-dropdown-item @click="emit('open-setting')">
     <lf-icon name="sliders-simple" type="regular" />
     Settings
   </lf-dropdown-item>
-  <lf-gerrit-settings-drawer
-    v-if="isGerritConnectDrawerOpen"
-    v-model="isGerritConnectDrawerOpen"
-    :integration="props.integration"
-    :segment-id="props.segmentId"
-    :grandparent-id="props.grandparentId"
-  />
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
+import { defineProps } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfGerritSettingsDrawer from '@/config/integrations/gerrit/components/gerrit-settings-drawer.vue';
 
-const props = defineProps<{
+defineProps<{
   integration: any,
   segmentId: string | null;
   grandparentId: string | null;
 }>();
 
-const isGerritConnectDrawerOpen = ref(false);
+const emit = defineEmits<{(e: 'open-setting'): void;
+}>();
 </script>
 
 <script lang="ts">

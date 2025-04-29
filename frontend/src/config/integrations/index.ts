@@ -28,6 +28,7 @@ export interface IntegrationConfig {
   statusComponent?: Vue.Component; // Component rendered to show integration status
   connectedParamsComponent?: Vue.Component; // Component rendered to show connected integration params (repositories, channels)
   dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
+  settingComponent?: Vue.Component; // Component rendered next to dropdown for extra options
   showProgress: boolean; // Show progress bar when connecting
 }
 
