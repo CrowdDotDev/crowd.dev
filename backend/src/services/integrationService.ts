@@ -64,7 +64,7 @@ import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService
 import { encryptData } from '../utils/crypto'
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import { jiraIntegrationData } from '../types/jiraTypes'
+import { JiraIntegrationData } from '../types/jiraTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1628,13 +1628,13 @@ export default class IntegrationService {
    * 2. Jira Data Center (PAT): Requires URL and optionally a Personal Access Token
    * 3. Jira Data Center (basic auth): Requires URL, username, and password (API key)
    */
-  async jiraConnectOrUpdate(integrationData: jiraIntegrationData) {
+  async jiraConnectOrUpdate(integrationData: JiraIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     let connectionId: string
     try {
       const constructNangoConnectionPayload = (
-        integrationData: jiraIntegrationData,
+        integrationData: JiraIntegrationData,
       ): Record<string, any> => {
         let jiraIntegrationType: NangoIntegration
         // nangoPayload is different for each integration

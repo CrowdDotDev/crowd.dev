@@ -1,4 +1,4 @@
-export interface jiraIntegrationData {
+export interface JiraIntegrationData {
   url: string
   username?: string
   personalAccessToken?: string
