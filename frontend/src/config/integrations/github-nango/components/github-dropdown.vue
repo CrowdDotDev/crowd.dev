@@ -1,8 +1,10 @@
 <template>
-  <lf-dropdown-item @click="isGitHubSettingsDrawerOpen = true">
-    <lf-icon name="sliders-simple" type="regular" />
-    Settings
-  </lf-dropdown-item>
+  <div>
+    <lf-dropdown-item @click="isGitHubSettingsDrawerOpen = true">
+      <lf-icon name="sliders-simple" type="regular" />
+      Settings
+    </lf-dropdown-item>
+  </div>
   <lf-github-settings-drawer
     v-if="isGitHubSettingsDrawerOpen"
     v-model="isGitHubSettingsDrawerOpen"
