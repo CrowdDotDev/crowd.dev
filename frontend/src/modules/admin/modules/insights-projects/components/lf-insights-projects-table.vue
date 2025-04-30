@@ -26,7 +26,7 @@
                 :src="project.logoUrl"
                 :name="project.name"
                 :size="24"
-                class="!rounded-md border border-gray-200 mr-3"
+                class="!rounded-md border border-gray-200 mr-3 min-w-5"
               />
               <span
                 class="text-black text-sm font-semibold line-clamp-2 w-auto"
