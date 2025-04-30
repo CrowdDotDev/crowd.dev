@@ -71,9 +71,10 @@
           />
         </lf-table-cell>
 
-        <lf-table-cell class="pr-2 flex justify-end">
+        <lf-table-cell class="pr-2">
           <lf-insights-project-dropdown
             :id="project.id"
+            class="flex justify-end"
             @on-edit-project="emit('onEditProject', project.id)"
             @on-delete-project="emit('onDeleteProject', project.id)"
           />

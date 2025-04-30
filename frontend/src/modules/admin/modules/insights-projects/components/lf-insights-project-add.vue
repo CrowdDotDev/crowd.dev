@@ -192,7 +192,6 @@ const rules = {
   },
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
-  website: { required: (value: string) => value.trim().length },
   widgets: {
     required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]),
   },
