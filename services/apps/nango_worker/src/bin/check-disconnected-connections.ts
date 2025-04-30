@@ -44,7 +44,9 @@ setImmediate(async () => {
     (c) => !c.connection_id.startsWith('github-token-'),
   )) {
     if (!connectionIds.includes(nangoConnection.connection_id)) {
-      log.warn(`Connection ${nangoConnection.connection_id} is not connected to integration!`)
+      log.warn(
+        `Connection ${nangoConnection.connection_id} is not connected to integration and should be deleted!`,
+      )
     }
   }
 })
