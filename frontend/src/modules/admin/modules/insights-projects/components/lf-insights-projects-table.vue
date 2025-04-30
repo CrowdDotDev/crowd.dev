@@ -21,7 +21,7 @@
       <tr v-for="project of projects" :key="project.id">
         <lf-table-cell class="pl-2">
           <div class="flex items-center">
-            <div class="inline-flex flex-wrap overflow-wrap items-center">
+            <div class="inline-flex overflow-wrap items-center">
               <lf-avatar
                 :src="project.logoUrl"
                 :name="project.name"
@@ -71,9 +71,10 @@
           />
         </lf-table-cell>
 
-        <lf-table-cell class="pr-2 flex justify-end">
+        <lf-table-cell class="pr-2">
           <lf-insights-project-dropdown
             :id="project.id"
+            class="flex justify-end"
             @on-edit-project="emit('onEditProject', project.id)"
             @on-delete-project="emit('onDeleteProject', project.id)"
           />
