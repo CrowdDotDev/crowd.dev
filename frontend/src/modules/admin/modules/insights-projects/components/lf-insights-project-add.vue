@@ -136,6 +136,7 @@ const initialFormState: InsightsProjectAddFormModel = {
   logoUrl: '',
   slug: '',
   collectionsIds: [],
+  collections: [],
   organizationId: undefined,
   organization: {
     id: undefined,

@@ -31,6 +31,7 @@ export const buildForm = (
   ...result,
   organizationId: result.organization.id,
   collectionsIds: result.collections.map((collection: any) => collection.id),
+  collections: result.collections,
   keywords: result.keywords || [],
   repositories:
     repositories?.map((repository) => ({
