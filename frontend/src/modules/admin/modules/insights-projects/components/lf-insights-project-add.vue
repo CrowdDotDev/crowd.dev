@@ -206,6 +206,9 @@ const openModalEditMode = (insightsProjectId: string) => {
         fillForm(form);
         loading.value = false;
       });
+    } else {
+      loading.value = false;
+      Message.error('Project not found');
     }
   });
 };
