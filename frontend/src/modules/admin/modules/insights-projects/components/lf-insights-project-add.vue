@@ -8,13 +8,7 @@
   >
     <template #header>
       <section class="flex items-center">
-        <lf-button
-          v-if="displayBackButton"
-          type="secondary"
-          :icon-only="true"
-          class="mr-4"
-          @click="onCancel"
-        >
+        <lf-button v-if="displayBackButton" type="secondary" :icon-only="true" class="mr-4" @click="onCancel">
           <lf-icon name="arrow-left" />
         </lf-button>
         <div class="flex flex-col">
@@ -36,11 +30,7 @@
       </section>
     </template>
     <template #content>
-      <div
-        v-if="loading"
-        v-loading="loading"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      />
+      <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
@@ -49,10 +39,7 @@
           @on-change="onProjectSelection"
         />
         <div class="relative">
-          <div
-            v-if="!form.segmentId"
-            class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20"
-          />
+          <div v-if="!form.segmentId" class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20" />
           <lf-tabs v-model="activeTab" :fragment="false">
             <lf-tab name="details">
               Details
@@ -69,24 +56,14 @@
           </lf-tabs>
           <div class="pt-6">
             <div class="tab-content">
-              <lf-insights-project-add-details-tab
-                v-if="activeTab === 'details'"
-                :form="form"
-                :rules="rules"
-              />
+              <lf-insights-project-add-details-tab v-if="activeTab === 'details'" :form="form" :rules="rules" />
               <lf-insights-project-add-repository-tab
                 v-else-if="activeTab === 'repositories'"
                 :form="form"
                 :repositories="form.repositories"
               />
-              <lf-insights-project-add-widgets-tab
-                v-else-if="activeTab === 'widgets'"
-                :form="form"
-              />
-              <lf-insights-project-add-advanced-tab
-                v-else-if="activeTab === 'advanced'"
-                :form="form"
-              />
+              <lf-insights-project-add-widgets-tab v-else-if="activeTab === 'widgets'" :form="form" />
+              <lf-insights-project-add-advanced-tab v-else-if="activeTab === 'advanced'" :form="form" />
             </div>
           </div>
         </div>
@@ -99,11 +76,7 @@
       <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
         {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button> -->
-      <lf-button
-        type="primary"
-        :disabled="!hasFormChanged || $v.$invalid || loading"
-        @click="onSubmit"
-      >
+      <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
         {{ isEditForm ? "Update" : "Add project" }}
       </lf-button>
     </template>
@@ -125,15 +98,12 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
-import LfInsightsProjectAddAdvancedTab
-  from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
+import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
-import { useCollectionsStore } from '../../collections/pinia';
 import { InsightsProjectModel } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
-import { CollectionsService } from '../../collections/services/collections.service';
 import { defaultWidgetsValues } from '../widgets';
 import { InsightsProjectsService } from '../services/insights-projects.service';
 import {
@@ -142,9 +112,6 @@ import {
   buildRequest,
 } from '../insight-project-helper';
 import LfCmSubProjectListDropdown from './lf-cm-sub-project-list-dropdown.vue';
-
-const collectionsStore = useCollectionsStore();
-const organizationStore = useOrganizationStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
   (e: 'onInsightsProjectCreated', project: InsightsProjectModel): void;
@@ -221,7 +188,6 @@ const fillForm = (record?: InsightsProjectAddFormModel) => {
 };
 
 onMounted(() => {
-  fetchCollections();
   if (props.insightsProjectId) {
     loading.value = true;
     openModalEditMode(props.insightsProjectId);
@@ -237,7 +203,6 @@ const openModalEditMode = (insightsProjectId: string) => {
     if (res.segment.id) {
       fetchRepositories(res.segment.id, () => {
         const form = buildForm(res, initialFormState.repositories);
-        fetchOrganizations(form.segmentId);
         fillForm(form);
         loading.value = false;
       });
@@ -252,7 +217,6 @@ const onProjectSelection = ({ project }: any) => {
     form.name = project.name;
     form.description = project.description;
     form.logoUrl = project.url;
-    fetchOrganizations(project.id);
   });
 };
 
@@ -304,29 +268,6 @@ const handleUpdate = () => {
       Message.closeAll();
       Message.error('Something went wrong');
     });
-};
-
-const fetchCollections = async () => {
-  CollectionsService.list({
-    offset: 0,
-    limit: 1000,
-  }).then((res) => {
-    collectionsStore.setCollections(res.rows);
-  });
-};
-
-const fetchOrganizations = async (segmentId: string) => {
-  organizationStore
-    .fetchOrganizations({
-      body: {
-        filter: {},
-        offset: 0,
-        limit: 1000,
-        orderBy: 'activityCount_DESC',
-        segments: [segmentId],
-      },
-    })
-    .then(() => {});
 };
 
 const fetchRepositories = async (segmentId: string, callback?: () => void) => {

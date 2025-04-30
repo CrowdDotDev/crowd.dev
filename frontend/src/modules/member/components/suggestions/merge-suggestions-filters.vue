@@ -9,7 +9,7 @@
     />
     <app-merge-suggestions-projects-filter
       v-model:segments="form.segments"
-      v-model:childSegments="form.childSegments"
+      v-model:child-segments="form.childSegments"
     />
   </div>
 </template>
