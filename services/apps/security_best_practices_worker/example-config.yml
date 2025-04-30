@@ -1,0 +1,18 @@
+loglevel: info
+write-directory: evaluation_results
+write: true
+output: json
+services:
+  $REPO_NAME:
+    plugin: github-repo
+
+    policy:
+      catalogs:
+        - OSPS_B
+      applicability:
+        - Maturity Level 1
+
+    vars:
+      owner: $REPO_OWNER
+      repo: $REPO_NAME
+      token: $GITHUB_TOKEN
