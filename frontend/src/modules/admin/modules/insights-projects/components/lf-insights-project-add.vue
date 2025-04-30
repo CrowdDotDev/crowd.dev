@@ -95,7 +95,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
 import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
