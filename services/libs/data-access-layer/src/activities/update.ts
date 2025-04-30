@@ -19,10 +19,14 @@ export async function streamActivities(
   params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
   const whereClause = formatQuery(where, params)
-  const qs = new QueryStream(`SELECT * FROM activities WHERE ${whereClause}`, [], {
-    batchSize: 1000,
-    highWaterMark: 250,
-  })
+  const qs = new QueryStream(
+    `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`,
+    [],
+    {
+      batchSize: 1000,
+      highWaterMark: 250,
+    },
+  )
 
   const t = timer(logger, `query activities with ${whereClause}`)
 

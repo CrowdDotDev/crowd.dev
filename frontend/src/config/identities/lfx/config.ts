@@ -3,8 +3,8 @@ import { IdentityConfig } from '@/config/identities';
 const image = new URL('@/assets/images/identities/lfx.png', import.meta.url)
   .href;
 
-const lfx: IdentityConfig = {
-  key: 'lfx',
+const lfid: IdentityConfig = {
+  key: 'lfid',
   name: 'Linux Foundation ID',
   image,
   member: {
@@ -12,4 +12,4 @@ const lfx: IdentityConfig = {
   },
 };
 
-export default lfx;
+export default lfid;

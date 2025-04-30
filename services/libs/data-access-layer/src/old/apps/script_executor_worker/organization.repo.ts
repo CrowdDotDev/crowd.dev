@@ -113,7 +113,6 @@ class OrganizationRepository {
                 SELECT 1
                 FROM "memberOrganizations" mo
                 WHERE mo."organizationId" = o.id
-                  AND mo."deletedAt" IS NULL
               )
               AND NOT EXISTS (
                 SELECT 1

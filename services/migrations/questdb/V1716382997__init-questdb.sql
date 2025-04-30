@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS 'activities' (
   gitIsMerge BOOLEAN
 )
   TIMESTAMP (timestamp) PARTITION BY MONTH WAL
-  DEDUP UPSERT KEYS(platform, channel, sourceId, segmentId, timestamp);
+  DEDUP UPSERT KEYS(type, platform, channel, sourceId, segmentId, timestamp);
 
 CREATE TABLE IF NOT EXISTS 'conversations' (
   id UUID,

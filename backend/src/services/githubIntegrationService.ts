@@ -1,23 +1,13 @@
 import { request } from '@octokit/request'
 
-import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
-
-import { GITHUB_TOKEN_CONFIG } from '@/conf'
-
 import { IServiceOptions } from './IServiceOptions'
+import { getGithubInstallationToken } from './helpers/githubToken'
 
 export default class GithubIntegrationService {
   constructor(private readonly options: IServiceOptions) {}
 
-  public async getGithubRepositories(org: string) {
-    const client = SnowflakeClient.fromEnv({ parentLog: this.options.log })
-    this.options.log.info(`Getting GitHub repositories for org: ${org}`)
-    const githubClient = new GithubSnowflakeClient(client)
-    return githubClient.getOrgRepositories({ org, perPage: 10000 })
-  }
-
   public async findGithubRepos(query: string) {
-    const auth = GITHUB_TOKEN_CONFIG.token
+    const auth = await getGithubInstallationToken()
 
     const [orgRepos, repos] = await Promise.all([
       request('GET /search/repositories', {
@@ -52,7 +42,7 @@ export default class GithubIntegrationService {
   }
 
   public static async findOrgs(query: string) {
-    const auth = GITHUB_TOKEN_CONFIG.token
+    const auth = await getGithubInstallationToken()
     const response = await request('GET /search/users', {
       q: query,
       headers: {
@@ -67,7 +57,7 @@ export default class GithubIntegrationService {
   }
 
   public static async getOrgRepos(org: string) {
-    const auth = GITHUB_TOKEN_CONFIG.token
+    const auth = await getGithubInstallationToken()
     const response = await request('GET /orgs/{org}/repos', {
       org,
       headers: {

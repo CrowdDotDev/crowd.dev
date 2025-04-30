@@ -18,6 +18,7 @@ import {
   addMemberTags,
   fetchMemberIdentities,
   findMemberById,
+  findMemberIdentitiesByValue,
   findMemberIdentityById,
   findMemberTags,
   insertMemberSegments,
@@ -50,7 +51,6 @@ import MemberOrganizationRepository from '@/database/repositories/memberOrganiza
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 
-import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -65,6 +65,7 @@ import {
 import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
+import { getGithubInstallationToken } from './helpers/githubToken'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
@@ -831,17 +832,19 @@ export default class MemberService extends LoggerBase {
 
   /**
    * Returns a preview of primary and secondary members after a possible unmerge operation
-   * Preview is built using the identity sent. First we try to find the corresponding mergeAction.unmergeBackup
-   * If we find the backup, we return preview by doing an in-place unmerge between two members.
-   * If backup is not found, preview will be for an identity extraction
+   * If revertMerge flag is set, preview will be for an in-place unmerge between two members with the corresponding mergeAction.unmergeBackup
+   * Otherwise, preview will be for an identity extraction
+   * For email identities, all related identities across sources will be extracted
    * This will only return a preview, users will be able to edit the preview and confirm the payload
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
    * @param identityId identity to be extracted/unmerged
+   * @param revertMerge flag to determine if we should revert a merge or do an identity extraction
    */
   async unmergePreview(
     memberId: string,
     identityId: string,
+    revertPreviousMerge: boolean = false,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'identities', 'affiliations']
 
@@ -881,20 +884,23 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
-      this.options.log.info('[1] Finding merge backup...')
+      if (revertPreviousMerge) {
+        this.options.log.info('[1] Finding merge backup...')
 
-      const mergeAction = await MergeActionsRepository.findMergeBackup(
-        memberId,
-        MergeActionType.MEMBER,
-        identity,
-        this.options,
-      )
+        const mergeAction = await MergeActionsRepository.findMergeBackup(
+          memberId,
+          MergeActionType.MEMBER,
+          identity,
+          this.options,
+        )
 
-      this.options.log.info('[1] Done!')
+        if (!mergeAction) {
+          throw new Error('No previous merge action found to revert for member!')
+        }
 
-      if (mergeAction) {
+        this.options.log.info('[1] Done!')
+
         // mergeAction is found, unmerge preview will be generated
-
         const primaryBackup = mergeAction.unmergeBackup.primary as IMemberUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
 
@@ -1078,8 +1084,20 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      // mergeAction is not found, identity extraction preview will be generated
-      const secondaryIdentities = [identity]
+      // Identity extraction preview will be generated if revertMerge flag is not set
+      let secondaryIdentities = [identity]
+
+      // For email identities, extract all related identities across sources
+      if (identity.type === MemberIdentityType.EMAIL) {
+        const allEmailIdentities = await findMemberIdentitiesByValue(qx, memberId, identity.value, {
+          type: MemberIdentityType.EMAIL,
+        })
+
+        // exclude the original identity to avoid duplicates
+        secondaryIdentities = lodash.uniqBy([...allEmailIdentities, identity], (i) => i.id)
+      }
+
+      // Ensure primary member retains at least one identity
       const primaryIdentities = member.identities.filter(
         (i) =>
           !secondaryIdentities.some(
@@ -1144,6 +1162,47 @@ export default class MemberService extends LoggerBase {
       }
     } catch (err) {
       this.options.log.error(err, 'Error while generating unmerge/identity extraction preview!')
+      throw err
+    }
+  }
+
+  async canRevertMerge(memberId: string, identityId: string): Promise<boolean> {
+    try {
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+      // Get the identity to be unmerged
+      const identity = await findMemberIdentityById(qx, memberId, identityId)
+      if (!identity) {
+        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+      }
+
+      // Check if there was a previous merge involving this identity
+      const mergeAction = await MergeActionsRepository.findMergeBackup(
+        memberId,
+        MergeActionType.MEMBER,
+        identity,
+        this.options,
+      )
+
+      const previousMergeExists = !!mergeAction
+
+      if (!previousMergeExists) {
+        return false
+      }
+
+      // Check if the primary member would still have identities after reverting
+      const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
+      const currentMemberIdentities = await fetchMemberIdentities(qx, memberId)
+      const remainingIdentitiesInCurrentMember = currentMemberIdentities.filter(
+        (i) =>
+          !secondaryBackup.identities.some(
+            (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+          ),
+      )
+
+      return remainingIdentitiesInCurrentMember.length > 0
+    } catch (err) {
+      this.options.log.error(err, 'Error while checking if member merge can be reverted!')
       throw err
     }
   }
@@ -1305,7 +1364,7 @@ export default class MemberService extends LoggerBase {
             repoOptions,
           )
 
-          // Update member affiliations
+          // Update member segment affiliations and organization affiliation overrides
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Performs a merge and returns the fields that were changed so we can update
@@ -1434,6 +1493,8 @@ export default class MemberService extends LoggerBase {
     const memberIdentities = MemberRepository.getUsernameFromIdentities(
       await fetchMemberIdentities(qx, memberId),
     )
+
+    const token = await getGithubInstallationToken()
     const axios = require('axios')
     // GitHub allows a maximum of 5 parameters
     const identities = Object.values(memberIdentities).flat().slice(0, 5)
@@ -1442,7 +1503,7 @@ export default class MemberService extends LoggerBase {
     const url = `https://api.github.com/search/users?q=${identitiesQuery}`
     const headers = {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${GITHUB_TOKEN_CONFIG.token}`,
+      Authorization: `Bearer ${token}`,
       'X-GitHub-Api-Version': '2022-11-28',
     }
     const response = await axios.get(url, { headers })

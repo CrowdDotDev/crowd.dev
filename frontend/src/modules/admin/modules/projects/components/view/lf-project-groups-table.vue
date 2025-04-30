@@ -1,5 +1,5 @@
 <template>
-  <div class="app-list-table not-clickable !px-0 !pt-0 !pb-6">
+  <div class="relative not-clickable !px-0 !pt-0 !pb-6">
     <lf-table class="!overflow-visible" show-hover>
       <thead>
         <tr>

@@ -1,0 +1,10 @@
+SCHEMA >
+    `id` String,
+    `sourceId` String,
+    `openedAt` DateTime,
+    `closedAt` Nullable(DateTime),
+    `closedInSeconds` Nullable(Int64)
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(openedAt)
+ENGINE_SORTING_KEY openedAt, id, sourceId

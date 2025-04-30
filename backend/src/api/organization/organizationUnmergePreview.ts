@@ -7,7 +7,8 @@ export default async (req, res) => {
 
   const payload = await new OrganizationService(req).unmergePreview(
     req.params.organizationId,
-    req.body,
+    req.body.identity,
+    req.body.revertPreviousMerge,
   )
 
   await req.responseHandler.success(req, res, payload, 200)

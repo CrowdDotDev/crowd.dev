@@ -58,7 +58,7 @@
         </div>
 
         <!-- Members list -->
-        <div class="app-list-table panel">
+        <div class="relative panel">
           <transition name="el-fade-in">
             <div
               v-show="isScrollbarVisible"
@@ -91,617 +91,716 @@
             @mouseover="onTableMouseover"
             @mouseleave="onTableMouseLeft"
           >
-            <el-table
+            <lf-table
               id="members-table"
               ref="table"
               v-loading="loading"
-              :data="members"
-              :default-sort="defaultSort"
-              row-key="id"
-              border
-              :row-class-name="rowClass"
-              @sort-change="doChangeSort"
-              @selection-change="selectedMembers = $event"
-              @cell-mouse-enter="handleCellMouseEnter"
-              @cell-mouse-leave="handleCellMouseLeave"
+              type="bordered"
+              show-hover
             >
-              <el-table-column type="selection" width="75" fixed />
-
-              <!-- Contacts -->
-              <el-table-column
-                label="Person"
-                prop="displayName"
-                width="300"
-                fixed
-                class="-my-2"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
+              <thead>
+                <tr>
+                  <lf-table-head class="!py-4 px-2 min-w-19" :sticky="true">
+                    <lf-checkbox
+                      class="!m-0"
+                      :model-value="selectedRows.length === members.length"
+                      :indeterminate="
+                        selectedRows.length > 0
+                          && selectedRows.length < members.length
+                      "
+                      @update:model-value="toggleAllMembersSelection()"
+                    />
+                  </lf-table-head>
+                  <lf-table-head
+                    property="displayName"
+                    :model-value="sorting"
+                    class="!py-4 !px-3 min-w-76 !left-19"
+                    :sticky="true"
+                    @update:model-value="doChangeSort($event)"
                   >
+                    Person
+                  </lf-table-head>
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
                     <div class="flex items-center">
-                      <div class="inline-flex flex-wrap overflow-wrap items-center">
-                        <app-avatar :entity="scope.row" size="xs" class="mr-3" />
-
-                        <span
-                          class="font-medium text-sm text-gray-900 line-clamp-2 w-auto"
-                          data-qa="members-name"
-                          v-html="$sanitize(scope.row.displayName)"
-                        />
-                        <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
-                        <app-member-badge :member="scope.row" />
-                      </div>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Organization -->
-              <el-table-column
-                label="Organization"
-                width="300"
-              >
-                <template #header>
-                  <div class="flex items-center">
-                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Organization
-                    </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-organizations-vertical
-                      :member="scope.row"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Job Title -->
-              <el-table-column
-                label="Job Title"
-                width="260"
-              >
-                <template #header>
-                  <div class="flex items-center">
-                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Job Title
-                    </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-job-title :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Identities -->
-              <el-table-column
-                label="Identities"
-                width="300"
-              >
-                <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      Identities can be profiles on social platforms, emails, phone numbers,<br>
-                      or unique identifiers from internal sources (e.g. web app log-in email).
-                    </template>
-                    <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Identities</span>
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-identities-horizontal-list-members
-                      :member="scope.row"
-                      :limit="5"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Emails -->
-              <el-table-column
-                label="Emails"
-                width="300"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-list-emails :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Emails -->
-              <el-table-column
-                label="Role"
-                width="300"
-              >
-                <template #header>
-                  <el-popover placement="top" width="20rem">
-                    <template #reference>
-                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4 cursor-pointer">Role</span>
-                    </template>
-                    <div class="p-1">
-                      <p class="text-small font-semibold mb-2 text-black">
-                        Maintainer
-                      </p>
-                      <p class="text-small text-gray-500 break-normal mb-5 text-left">
-                        Individual responsible for overseeing and managing code repositories by
-                        reviewing and merging pull requests, addressing issues, ensuring code quality, and guiding contributors.
-                      </p>
-                      <p class="text-small font-semibold mb-2 text-black">
-                        Contributor
-                      </p>
-                      <p class="text-small text-gray-500 break-normal text-left mb-8">
-                        Someone who has contributed to a project by making changes or additions to its code.
-                        Contributions require that code was successfully merged into a repository.
-                      </p>
-                      <div class="flex gap-1">
-                        <lf-icon name="circle-info" :size="16" class="text-gray-400" />
-                        <p class="text-tiny text-gray-400">
-                          Roles are automatically assigned based on data from connected integrations and individual activities on behalf of a project.
-                        </p>
-                      </div>
-                    </div>
-                  </el-popover>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <lf-contributor-details-projects-maintainer :maintainer-roles="scope.row.maintainerRoles" />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Engagement level -->
-              <el-table-column
-                label="Engagement Level"
-                prop="score"
-                width="220"
-                sortable="custom"
-              >
-                <template #header>
-                  <el-tooltip placement="top">
-                    <template #content>
-                      Calculated based on the recency and importance of the activities<br>
-                      a person has performed in relation to the community.
-                      <br>E.g. a higher engagement level will be given to a person who has written
-                      <br>in your Slack yesterday vs. someone who did so three weeks ago.
-                    </template>
-                    <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement Level</span>
-                  </el-tooltip>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <app-member-engagement-level :member="scope.row" />
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- # of Activities -->
-              <el-table-column
-                label="# of Activities"
-                prop="activityCount"
-                width="220"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    {{ formatNumber(scope.row.activityCount) }}
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Last activity -->
-              <el-table-column
-                label="Last activity"
-                prop="lastActive"
-                width="220"
-                sortable="custom"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block !text-gray-500"
-                  >
-                    <div>
-                      <app-member-last-activity
-                        v-if="scope.row.lastActivity"
-                        :member="scope.row"
-                      />
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Joined Date -->
-              <el-table-column
-                label="Joined Date"
-                width="180"
-                prop="joinedAt"
-                sortable
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <div
-                      v-if="scope.row.joinedAt"
-                      class="text-gray-900 text-sm"
-                    >
-                      {{ formatDateToTimeAgo(scope.row.joinedAt) }}
-                    </div>
-                    <span v-else class="text-gray-900">-</span>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Location -->
-              <el-table-column
-                label="Location"
-                width="260"
-              >
-                <template #header>
-                  <div class="flex items-center">
-                    <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Location
-                    </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
-                  >
-                    <div>
-                      <div
-                        v-if="scope.row.attributes?.location?.default"
-                        class="text-gray-900 text-sm"
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
                       >
-                        {{ scope.row.attributes.location.default }}
-                      </div>
-                      <span v-else class="text-gray-900">-</span>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-
-              <!-- Reach -->
-              <el-table-column
-                v-if="showReach"
-                label="Reach"
-                prop="reach"
-                width="140"
-                sortable="custom"
-              >
-                <template #header>
-                  <div
-                    :ref="(el) => setEnrichmentAttributesRef(el, `reach`)"
-                    class="inline-flex"
-                    @mouseover="() => onColumnHeaderMouseOver('reach')"
-                    @mouseleave="closeEnrichmentPopover"
-                  >
-                    <div class="inline-flex items-center ml-1 gap-2">
-                      <el-tooltip content="Source: GitHub" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
-                      <el-tooltip placement="top">
-                        <template #content>
-                          Reach is the combined followers across social platforms (e.g. GitHub or Twitter).
-                        </template>
-                        <span
-                          class="underline decoration-dashed text-purple-800 decoration-purple-800 underline-offset-4"
-                        >
-                          Reach
-                        </span>
-                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Organization
+                      </div>
                     </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-reach`)"
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block h-full !text-gray-500"
-                  >
-                    <app-member-reach
-                      :member="{
-                        ...scope.row,
-                        reach: scope.row.reach,
-                      }"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
+                  </lf-table-head>
 
-              <!-- Seniority Level -->
-              <el-table-column
-                label="Seniority Level"
-                prop="seniorityLevel"
-                width="220"
-              >
-                <template #header>
-                  <div
-                    :ref="(el) => setEnrichmentAttributesRef(el, `seniorityLevel`)"
-                    class="flex items-center"
-                    @mouseover="() => onColumnHeaderMouseOver('seniorityLevel')"
-                    @mouseleave="closeEnrichmentPopover"
-                  >
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
-                    >
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Seniority Level
+                  <lf-table-head class="!py-4 !px-3 min-w-66">
+                    <div class="flex items-center">
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
+                      >
+                        <lf-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Job Title
+                      </div>
                     </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-seniorityLevel`)"
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block h-full"
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Identities can be profiles on social platforms, emails,
+                        phone numbers,<br />
+                        or unique identifiers from internal sources (e.g. web
+                        app log-in email).
+                      </template>
+                      <span
+                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                      >Identities</span>
+                    </el-tooltip>
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
+                    Emails
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
+                    <el-popover placement="top" width="20rem">
+                      <template #reference>
+                        <span
+                          class="underline decoration-dashed decoration-gray-400 underline-offset-4 cursor-pointer"
+                        >Role</span>
+                      </template>
+                      <div class="p-1">
+                        <p class="text-small font-semibold mb-2 text-black">
+                          Maintainer
+                        </p>
+                        <p
+                          class="text-small text-gray-500 break-normal mb-5 text-left"
+                        >
+                          Individual responsible for overseeing and managing
+                          code repositories by reviewing and merging pull
+                          requests, addressing issues, ensuring code quality,
+                          and guiding contributors.
+                        </p>
+                        <p class="text-small font-semibold mb-2 text-black">
+                          Contributor
+                        </p>
+                        <p
+                          class="text-small text-gray-500 break-normal text-left mb-8"
+                        >
+                          Someone who has contributed to a project by making
+                          changes or additions to its code. Contributions
+                          require that code was successfully merged into a
+                          repository.
+                        </p>
+                        <div class="flex gap-1">
+                          <lf-icon
+                            name="circle-info"
+                            :size="16"
+                            class="text-gray-400"
+                          />
+                          <p class="text-tiny text-gray-400">
+                            Roles are automatically assigned based on data from
+                            connected integrations and individual activities on
+                            behalf of a project.
+                          </p>
+                        </div>
+                      </div>
+                    </el-popover>
+                  </lf-table-head>
+
+                  <lf-table-head
+                    class="!py-4 !px-3 min-w-55"
+                    property="score"
+                    :model-value="sorting"
+                    @update:model-value="doChangeSort($event)"
                   >
-                    <div>
+                    <el-tooltip placement="top">
+                      <template #content>
+                        Calculated based on the recency and importance of the
+                        activities<br />
+                        a person has performed in relation to the community.
+                        <br />E.g. a higher engagement level will be given to a
+                        person who has written <br />in your Slack yesterday vs.
+                        someone who did so three weeks ago.
+                      </template>
+                      <span
+                        class="underline decoration-dashed decoration-gray-400 underline-offset-4"
+                      >Engagement Level</span>
+                    </el-tooltip>
+                  </lf-table-head>
+                  <lf-table-head
+                    class="!py-4 !px-3 min-w-55"
+                    property="activityCount"
+                    :model-value="sorting"
+                    @update:model-value="doChangeSort($event)"
+                  >
+                    # of Activities
+                  </lf-table-head>
+
+                  <lf-table-head
+                    class="!py-4 !px-3 min-w-55"
+                    property="lastActive"
+                    :model-value="sorting"
+                    @update:model-value="doChangeSort($event)"
+                  >
+                    Last activity
+                  </lf-table-head>
+                  <lf-table-head
+                    class="!py-4 !px-3 min-w-[180px]"
+                    property="joinedAt"
+                    :model-value="sorting"
+                    @update:model-value="doChangeSort($event)"
+                  >
+                    Joined Date
+                  </lf-table-head>
+                  <lf-table-head class="!py-4 !px-3 min-w-66">
+                    <div class="flex items-center">
+                      <el-tooltip
+                        content="Source: Enrichment & GitHub"
+                        placement="top"
+                        trigger="hover"
+                      >
+                        <lf-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Location
+                      </div>
+                    </div>
+                  </lf-table-head>
+
+                  <lf-table-head
+                    v-if="showReach"
+                    class="!py-4 !px-3 min-w-[140px]"
+                    property="reach"
+                    :model-value="sorting"
+                    @update:model-value="doChangeSort($event)"
+                  >
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, `reach`)"
+                      class="inline-flex"
+                      @mouseover="() => onColumnHeaderMouseOver('reach')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <div class="inline-flex items-center ml-1 gap-2">
+                        <el-tooltip
+                          content="Source: GitHub"
+                          placement="top"
+                          trigger="hover"
+                        >
+                          <lf-svg name="source" class="h-3 w-3" />
+                        </el-tooltip>
+                        <el-tooltip placement="top">
+                          <template #content>
+                            Reach is the combined followers across social
+                            platforms (e.g. GitHub or Twitter).
+                          </template>
+                          <span
+                            class="underline decoration-dashed text-purple-800 decoration-purple-800 underline-offset-4"
+                          >
+                            Reach
+                          </span>
+                        </el-tooltip>
+                      </div>
+                    </div>
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-55">
+                    <div
+                      :ref="
+                        (el) => setEnrichmentAttributesRef(el, `seniorityLevel`)
+                      "
+                      class="flex items-center"
+                      @mouseover="
+                        () => onColumnHeaderMouseOver('seniorityLevel')
+                      "
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
+                        <lf-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Seniority Level
+                      </div>
+                    </div>
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
+                    <div
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `programmingLanguagess`,
+                          )
+                      "
+                      class="flex items-center"
+                      @mouseover="
+                        () => onColumnHeaderMouseOver('programmingLanguagess')
+                      "
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
+                        <lf-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Programming Languages
+                      </div>
+                    </div>
+                  </lf-table-head>
+
+                  <lf-table-head class="!py-4 !px-3 min-w-76">
+                    <div
+                      :ref="(el) => setEnrichmentAttributesRef(el, `skills`)"
+                      class="flex items-center"
+                      @mouseover="() => onColumnHeaderMouseOver('skills')"
+                      @mouseleave="closeEnrichmentPopover"
+                    >
+                      <el-tooltip
+                        content="Source: Enrichment"
+                        placement="top"
+                        trigger="hover"
+                      >
+                        <lf-svg name="source" class="h-3 w-3" />
+                      </el-tooltip>
+                      <div class="ml-2 text-purple-800">
+                        Skills
+                      </div>
+                    </div>
+                  </lf-table-head>
+
+                  <lf-table-head class="!px-3 !py-4 min-w-76">
+                    Tags
+                  </lf-table-head>
+                  <lf-table-head
+                    v-if="hasPermissions"
+                    :sticky="true"
+                    class="!py-4 min-w-19"
+                  />
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="member of members"
+                  :key="member.id"
+                  :class="isSelected(member) ? 'is-selected' : ''"
+                  :data-qa="`member-${member.id}`"
+                >
+                  <lf-table-cell :sticky="true" class="!py-4 pl-2">
+                    <lf-checkbox
+                      class="!m-0"
+                      :model-value="isSelected(member)"
+                      @update:model-value="toggleMemberSelection(member)"
+                    />
+                  </lf-table-cell>
+
+                  <!-- Contacts -->
+                  <lf-table-cell :sticky="true" class="!py-4 pl-2 !left-19">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <div class="flex items-center">
+                        <div
+                          class="inline-flex flex-wrap overflow-wrap items-center"
+                        >
+                          <app-avatar :entity="member" size="xs" class="mr-3" />
+
+                          <span
+                            class="font-medium text-sm text-gray-900 line-clamp-2 w-auto"
+                            data-qa="members-name"
+                            v-html="$sanitize(member.displayName)"
+                          />
+                          <app-member-sentiment
+                            :member="member"
+                            class="ml-1 mr-1"
+                          />
+                          <app-member-badge :member="member" />
+                        </div>
+                      </div>
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Organization -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <app-member-organizations-vertical :member="member" />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Job Title -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <app-member-job-title :member="member" />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Identities -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block w-fit"
+                    >
+                      <app-identities-horizontal-list-members
+                        :member="member"
+                        :limit="5"
+                      />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Emails -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <app-member-list-emails :member="member" />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Role -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <lf-contributor-details-projects-maintainer
+                        :maintainer-roles="member.maintainerRoles"
+                      />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Engagement level -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <app-member-engagement-level :member="member" />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- # of Activities -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block !text-gray-500"
+                    >
+                      {{ formatNumber(member.activityCount) }}
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Last activity -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block !text-gray-500"
+                    >
+                      <div>
+                        <app-member-last-activity
+                          v-if="member.lastActivity"
+                          :member="member"
+                        />
+                      </div>
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Joined Date -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <div v-if="member.joinedAt" class="text-gray-900 text-sm">
+                        {{ formatDateToTimeAgo(member.joinedAt) }}
+                      </div>
+                      <span v-else class="text-gray-900">-</span>
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Location -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
                       <div>
                         <div
-                          v-if="scope.row.attributes?.seniorityLevel?.default"
+                          v-if="member.attributes?.location?.default"
                           class="text-gray-900 text-sm"
                         >
-                          {{ scope.row.attributes.seniorityLevel.default }}
+                          {{ member.attributes.location.default }}
                         </div>
                         <span v-else class="text-gray-900">-</span>
                       </div>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                    </router-link>
+                  </lf-table-cell>
 
-              <!-- Programming Languages -->
-              <el-table-column
-                label="Programming Languages"
-                prop="programmingLanguages"
-                width="300"
-              >
-                <template #header>
-                  <div
-                    :ref="(el) => setEnrichmentAttributesRef(el, `programmingLanguagess`)"
-                    class="flex items-center"
-                    @mouseover="() => onColumnHeaderMouseOver('programmingLanguagess')"
+                  <!-- Reach -->
+                  <lf-table-cell
+                    v-if="showReach"
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'reach')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
+                    <router-link
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${member.id}-reach`)
+                      "
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block h-full !text-gray-500"
                     >
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Programming Languages
-                    </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-programmingLanguages`)"
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block h-full"
-                  >
-                    <div>
-                      <div>
-                        <app-shared-tag-list
-                          v-if="scope.row.attributes.programmingLanguages?.default?.length"
-                          :list="scope.row.attributes.programmingLanguages.default"
-                          :slice-size="5"
-                        >
-                          <template #itemSlot="{ item }">
-                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
-                              {{ item }}
-                            </span>
-                          </template>
-                        </app-shared-tag-list>
-                        <span v-else class="text-gray-500">-</span>
-                      </div>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                      <app-member-reach
+                        :member="{
+                          ...member,
+                          reach: member.reach,
+                        }"
+                      />
+                    </router-link>
+                  </lf-table-cell>
 
-              <!-- Skills -->
-              <el-table-column
-                label="Skills"
-                prop="skills"
-                width="300"
-              >
-                <template #header>
-                  <div
-                    :ref="(el) => setEnrichmentAttributesRef(el, `skills`)"
-                    class="flex items-center"
-                    @mouseover="() => onColumnHeaderMouseOver('skills')"
+                  <!-- Seniority Level -->
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'seniorityLevel')"
                     @mouseleave="closeEnrichmentPopover"
                   >
-                    <el-tooltip
-                      content="Source: Enrichment"
-                      placement="top"
-                      trigger="hover"
+                    <router-link
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${member.id}-seniorityLevel`,
+                          )
+                      "
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block h-full"
                     >
-                      <lf-svg name="source" class="h-3 w-3" />
-                    </el-tooltip>
-                    <div class="ml-2 text-purple-800">
-                      Skills
-                    </div>
-                  </div>
-                </template>
-                <template #default="scope">
-                  <router-link
-                    :ref="(el) => setEnrichmentAttributesRef(el, `${scope.row.id}-skills`)"
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                    }"
-                    class="block h-full"
-                  >
-                    <div>
                       <div>
-                        <app-shared-tag-list
-                          v-if="scope.row.attributes.skills?.default?.length"
-                          :list="scope.row.attributes.skills.default"
-                          :slice-size="5"
-                        >
-                          <template #itemSlot="{ item }">
-                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
-                              {{ item }}
-                            </span>
-                          </template>
-                        </app-shared-tag-list>
-                        <span v-else class="text-gray-500">-</span>
+                        <div>
+                          <div
+                            v-if="member.attributes?.seniorityLevel?.default"
+                            class="text-gray-900 text-sm"
+                          >
+                            {{ member.attributes.seniorityLevel.default }}
+                          </div>
+                          <span v-else class="text-gray-900">-</span>
+                        </div>
                       </div>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
+                    </router-link>
+                  </lf-table-cell>
 
-              <!-- Tags -->
-              <el-table-column
-                label="Tags"
-                width="300"
-              >
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block"
+                  <!-- Programming Languages -->
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'programmingLanguages')"
+                    @mouseleave="closeEnrichmentPopover"
                   >
-                    <app-tag-list
-                      :member="scope.row"
-                      :editable="hasPermission(LfPermission.tagEdit)"
-                      @edit="handleEditTagsDialog(scope.row)"
-                    />
-                  </router-link>
-                </template>
-              </el-table-column>
+                    <router-link
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(
+                            el,
+                            `${member.id}-programmingLanguages`,
+                          )
+                      "
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                      }"
+                      class="block h-full"
+                    >
+                      <div>
+                        <div>
+                          <app-shared-tag-list
+                            v-if="
+                              member.attributes.programmingLanguages?.default
+                                ?.length
+                            "
+                            :list="
+                              member.attributes.programmingLanguages.default
+                            "
+                            :slice-size="5"
+                          >
+                            <template #itemSlot="{ item }">
+                              <span
+                                class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep"
+                              >
+                                {{ item }}
+                              </span>
+                            </template>
+                          </app-shared-tag-list>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </div>
+                    </router-link>
+                  </lf-table-cell>
 
-              <!-- Action button -->
-              <el-table-column v-if="hasPermissions" fixed="right">
-                <template #default="scope">
-                  <router-link
-                    :to="{
-                      name: 'memberView',
-                      params: { id: scope.row.id },
-                      query: { projectGroup: selectedProjectGroup?.id },
-                    }"
-                    class="block w-full"
+                  <!-- Skills -->
+                  <lf-table-cell
+                    class="!py-4 pl-3"
+                    @mouseover="() => handleCellMouseEnter(member, 'skills')"
+                    @mouseleave="closeEnrichmentPopover"
                   >
-                    <div class="h-full flex items-center justify-center w-full">
-                      <button
-                        :id="`buttonRef-${scope.row.id}`"
-                        :ref="(el) => setActionBtnsRef(el, scope.row.id)"
-                        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
-                        type="button"
-                        @click.prevent.stop="() => onActionBtnClick(scope.row)"
+                    <router-link
+                      :ref="
+                        (el) =>
+                          setEnrichmentAttributesRef(el, `${member.id}-skills`)
+                      "
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                      }"
+                      class="block h-full"
+                    >
+                      <div>
+                        <div>
+                          <app-shared-tag-list
+                            v-if="member.attributes.skills?.default?.length"
+                            :list="member.attributes.skills.default"
+                            :slice-size="5"
+                          >
+                            <template #itemSlot="{ item }">
+                              <span
+                                class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep"
+                              >
+                                {{ item }}
+                              </span>
+                            </template>
+                          </app-shared-tag-list>
+                          <span v-else class="text-gray-500">-</span>
+                        </div>
+                      </div>
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Tags -->
+                  <lf-table-cell class="!py-4 pl-3">
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block"
+                    >
+                      <app-tag-list
+                        :member="member"
+                        :editable="hasPermission(LfPermission.tagEdit)"
+                        @edit="handleEditTagsDialog(member)"
+                      />
+                    </router-link>
+                  </lf-table-cell>
+
+                  <!-- Action button -->
+                  <lf-table-cell
+                    v-if="hasPermissions"
+                    :sticky="true"
+                    class="!py-4 pr-2"
+                  >
+                    <router-link
+                      :to="{
+                        name: 'memberView',
+                        params: { id: member.id },
+                        query: { projectGroup: selectedProjectGroup?.id },
+                      }"
+                      class="block w-full"
+                    >
+                      <div
+                        class="h-full flex items-center justify-center w-full"
                       >
-                        <lf-icon :id="`buttonRefIcon-${scope.row.id}`" name="ellipsis" type="solid" :size="24" />
-                      </button>
-                    </div>
-                  </router-link>
-                </template>
-              </el-table-column>
-            </el-table>
+                        <button
+                          :id="`buttonRef-${member.id}`"
+                          :ref="(el) => setActionBtnsRef(el, member.id)"
+                          class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+                          type="button"
+                          @click.prevent.stop="() => onActionBtnClick(member)"
+                        >
+                          <lf-icon
+                            :id="`buttonRefIcon-${member.id}`"
+                            name="ellipsis"
+                            type="solid"
+                            :size="24"
+                          />
+                        </button>
+                      </div>
+                    </router-link>
+                  </lf-table-cell>
+                </tr>
+              </tbody>
+            </lf-table>
             <div
               v-if="isTableLoading"
               class="absolute w-full top-0 left-0 bottom-[64px] bg-white opacity-60 z-20 flex items-center justify-center"
@@ -755,7 +854,11 @@
       v-model="isFindGithubDrawerOpen"
     />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
-    <app-tag-popover v-model="isEditTagsDialogOpen" :member="editTagMember" @reload="fetchMembers({ reload: true })" />
+    <app-tag-popover
+      v-model="isEditTagsDialogOpen"
+      :member="editTagMember"
+      @reload="fetchMembers({ reload: true })"
+    />
   </div>
 </template>
 
@@ -787,12 +890,19 @@ import AppMemberListEmails from '@/modules/member/components/list/columns/member
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
@@ -864,15 +974,15 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { hasPermission } = usePermissions();
 
-const hasPermissions = computed(() => [LfPermission.memberEdit,
+const hasPermissions = computed(() => [
+  LfPermission.memberEdit,
   LfPermission.memberDestroy,
-  LfPermission.mergeMembers]
-  .some((permission) => hasPermission(permission)));
+  LfPermission.mergeMembers,
+].some((permission) => hasPermission(permission)));
 
-const defaultSort = computed(() => ({
-  prop: filters.value.order.prop,
-  order: filters.value.order.order,
-}));
+const sorting = computed(
+  () => `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
+);
 
 const integrations = computed(
   () => store.getters['integration/activeList'] || {},
@@ -883,9 +993,7 @@ const showReach = computed(
     || integrations.value.github?.status === 'done',
 );
 
-const loading = computed(
-  () => props.isPageLoading,
-);
+const loading = computed(() => props.isPageLoading);
 
 const selectedRows = computed(() => selectedMembers.value);
 const pagination = computed({
@@ -931,26 +1039,14 @@ const setEnrichmentAttributesRef = (el, id) => {
   }
 };
 
-const handleCellMouseEnter = (row, column) => {
-  const validValues = ['reach', 'seniorityLevel', 'programmingLanguages', 'skills'];
-
-  if (validValues.includes(column.property)) {
-    showEnrichmentPopover.value = true;
-    selectedEnrichmentAttribute.value = `${row.id}-${column.property}`;
-  }
+const handleCellMouseEnter = (row, columnName) => {
+  showEnrichmentPopover.value = true;
+  selectedEnrichmentAttribute.value = `${row.id}-${columnName}`;
 };
 
 const onColumnHeaderMouseOver = (id) => {
   showEnrichmentPopover.value = true;
   selectedEnrichmentAttribute.value = id;
-};
-
-const handleCellMouseLeave = (_row, column) => {
-  const validValues = ['reach', 'seniorityLevel', 'programmingLanguages', 'skills'];
-
-  if (!validValues.includes(column.property)) {
-    closeEnrichmentPopover();
-  }
 };
 
 const closeEnrichmentPopover = (ev) => {
@@ -982,19 +1078,38 @@ function handleEditTagsDialog(member) {
   editTagMember.value = member;
 }
 
+const toggleAllMembersSelection = () => {
+  if (selectedRows.value.length === members.value.length) {
+    selectedMembers.value = [];
+  } else {
+    selectedMembers.value = members.value;
+  }
+};
+
+const toggleMemberSelection = (member) => {
+  if (isSelected(member)) {
+    selectedMembers.value = selectedMembers.value.filter(
+      (r) => r.id !== member.id,
+    );
+  } else {
+    selectedMembers.value.push(member);
+  }
+};
+
+const isSelected = (member) => selectedMembers.value.find((r) => r.id === member.id) !== undefined;
+
 function doChangeSort(sorter) {
   trackEvent({
     key: FeatureEventKey.SORT_MEMBERS,
     type: EventType.FEATURE,
     properties: {
-      sortBy: sorter.prop,
-      sortOrder: sorter.order,
+      orderBy: sorter,
     },
   });
-
+  const orderby = sorter.split('_');
   filters.value.order = {
-    prop: sorter.prop,
-    order: sorter.order,
+    prop: orderby[0],
+    order: orderby[1] === 'DESC' ? 'descending' : 'ascending',
   };
 }
 
@@ -1010,12 +1125,6 @@ function doChangePaginationPageSize(pageSize) {
     page: 1,
     perPage: pageSize,
   });
-}
-
-function rowClass({ row }) {
-  const isSelected = selectedRows.value.find((r) => r.id === row.id) !== undefined;
-
-  return isSelected ? 'is-selected' : '';
 }
 
 function onSecondaryBtnClick() {
@@ -1087,7 +1196,10 @@ const doExport = () => MemberService.export({
 });
 
 onMounted(async () => {
-  await store.dispatch('integration/doFetch', getSegmentsFromProjectGroup(selectedProjectGroup.value));
+  await store.dispatch(
+    'integration/doFetch',
+    getSegmentsFromProjectGroup(selectedProjectGroup.value),
+  );
 });
 
 // Remove listeners on unmount
@@ -1104,40 +1216,7 @@ export default {
 </script>
 
 <style lang="scss">
-// Hide table header scrollbar
-#members-table .el-table__header-wrapper {
-  // IE, Edge and Firefox
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-
-  // Chrome, Safari and Opera
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-#members-table .el-table__cell:not(.el-table-column--selection) {
-  padding: 0;
-}
-
-.el-table tbody .cell {
-  display: block !important;
-  @apply p-0;
-
-  &,
-  & > a {
-    @apply h-full w-full flex items-center;
-  }
-
-  & > a {
-    @apply px-2.5 py-2;
-  }
-}
-.el-table__body {
-  height: 1px;
-}
-
 .popover-dropdown {
-  padding: 0.5rem !important;
-  width: fit-content !important;
+  @apply p-2 w-fit #{!important};
 }
 </style>

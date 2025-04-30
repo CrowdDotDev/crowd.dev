@@ -1,0 +1,33 @@
+DESCRIPTION >
+    Compacts activities from same issue into one, keeping necessary information in a single row. Helps to serve issue-wide widgets in the development tab.
+
+NODE issues_opened
+SQL >
+    SELECT id, sourceId, timestamp AS openedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'issues-opened'
+
+NODE issues_closed
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS closedAt
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE type = 'issues-closed'
+    GROUP BY sourceParentId
+
+NODE issue_analysis_results_merged
+SQL >
+    SELECT
+        opened.id,
+        opened.sourceId,
+        opened.openedAt,
+        IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
+        IF(
+            closedAt IS NULL, NULL, toUnixTimestamp(closed.closedAt) - toUnixTimestamp(opened.openedAt)
+        ) AS closedInSeconds
+    FROM issues_opened opened
+    LEFT JOIN issues_closed AS closed ON opened.sourceId = closed.sourceParentId
+
+TYPE COPY
+TARGET_DATASOURCE issues_analyzed
+COPY_MODE replace
+COPY_SCHEDULE 20 * * * *

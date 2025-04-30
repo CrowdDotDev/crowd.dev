@@ -222,7 +222,12 @@ export default class DataSinkService extends LoggerBase {
               )
               const activityData = data.data as IActivityData
 
-              const platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+              let platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+
+              // TODO remove when github is just on nango
+              if ((platform as string) === PlatformType.GITHUB_NANGO) {
+                platform = PlatformType.GITHUB
+              }
 
               await logExecutionTimeV2(
                 () =>

@@ -1,7 +1,7 @@
 <template>
   <lf-dropdown-item
     v-if="hasPermission(LfPermission.organizationEdit) && props.organization.identities.length > 1"
-    @click="unmerge = props.organization"
+    @click="emit('unmerge')"
   >
     <lf-icon name="link-simple-slash" />
     Unmerge identity
@@ -21,11 +21,6 @@
       Delete organization
     </lf-dropdown-item>
   </template>
-
-  <app-organization-unmerge-dialog
-    v-if="unmerge"
-    v-model="unmerge"
-  />
 </template>
 
 <script setup lang="ts">
@@ -41,22 +36,18 @@ import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { Organization } from '@/modules/organization/types/Organization';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
-import { ref } from 'vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps<{
   organization: Organization,
 }>();
 
-const emit = defineEmits<{(e: 'reload'): any}>();
+const emit = defineEmits<{(e: 'reload'): any, (e: 'unmerge'): void}>();
 
 const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-
-const unmerge = ref<Organization | null>(null);
 
 const { fetchOrganization } = useOrganizationStore();
 

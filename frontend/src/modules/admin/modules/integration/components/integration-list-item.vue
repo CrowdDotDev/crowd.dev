@@ -89,12 +89,21 @@
               :integration="integration"
               :segment-id="route.params.id"
               :grandparent-id="route.params.grandparentId"
+              @open-setting="isSettingsOpen = true"
             />
             <lf-dropdown-item type="danger" @click="disconnectIntegration()">
               <lf-icon name="link-simple-slash" type="regular" />
               Disconnect integration
             </lf-dropdown-item>
           </lf-dropdown>
+          <component
+            :is="props.config.settingComponent"
+            v-if="props.config.settingComponent"
+            v-model="isSettingsOpen"
+            :integration="integration"
+            :segment-id="route.params.id"
+            :grandparent-id="route.params.grandparentId"
+          />
         </div>
       </div>
     </div>
@@ -141,6 +150,7 @@ const isComplete = computed(() => integration.value.status === 'done');
 const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.config.key));
 
 const isComponentMounted = ref(false);
+const isSettingsOpen = ref(false);
 
 onMounted(() => {
   isComponentMounted.value = true;

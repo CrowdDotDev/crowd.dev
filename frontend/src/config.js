@@ -20,12 +20,9 @@ const defaultConfig = {
   websocketsUrl: import.meta.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
-  gitHubInstallationUrl:
-    import.meta.env.VUE_APP_GITHUB_INSTALLATION_URL,
-  discordInstallationUrl:
-    import.meta.env.VUE_APP_DISCORD_INSTALLATION_URL,
-  conversationPublicUrl:
-    import.meta.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
+  gitHubInstallationUrl: import.meta.env.VUE_APP_GITHUB_INSTALLATION_URL,
+  discordInstallationUrl: import.meta.env.VUE_APP_DISCORD_INSTALLATION_URL,
+  conversationPublicUrl: import.meta.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
   edition: import.meta.env.VUE_APP_EDITION,
   communityPremium: import.meta.env.VUE_APP_COMMUNITY_PREMIUM,
   env: import.meta.env.VUE_APP_ENV,
@@ -36,14 +33,11 @@ const defaultConfig = {
     environmentId: import.meta.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
   },
   stripe: {
-    publishableKey:
-      import.meta.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
+    publishableKey: import.meta.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
     growthPlanPaymentLink:
-      import.meta.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK
-      || '',
+      import.meta.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK || '',
     eagleEyePlanPaymentLink:
-      import.meta.env
-        .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
+      import.meta.env.VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
       import.meta.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
   },
@@ -55,7 +49,6 @@ const defaultConfig = {
   lf: {
     tenantId: import.meta.env.VUE_APP_LF_TENANT_ID,
   },
-  isGithubArchiveEnabled: import.meta.env.VUE_APP_IS_GITHUB_ARCHIVE_ENABLED,
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
   isGroupsioEnabled: import.meta.env.VUE_APP_IS_GROUPSIO_ENABLED,
   isConfluenceEnabled: import.meta.env.VUE_APP_IS_CONFLUENCE_ENABLED,
@@ -81,12 +74,9 @@ const composedConfig = {
   websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,
-  gitHubInstallationUrl:
-    'CROWD_VUE_APP_GITHUB_INSTALLATION_URL',
-  discordInstallationUrl:
-    'CROWD_VUE_APP_DISCORD_INSTALLATION_URL',
-  conversationPublicUrl:
-    'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
+  gitHubInstallationUrl: 'CROWD_VUE_APP_GITHUB_INSTALLATION_URL',
+  discordInstallationUrl: 'CROWD_VUE_APP_DISCORD_INSTALLATION_URL',
+  conversationPublicUrl: 'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
   edition: 'CROWD_VUE_APP_EDITION',
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
   env: 'CROWD_VUE_APP_ENV',
@@ -99,15 +89,12 @@ const composedConfig = {
     environmentId: 'CROWD_VUE_APP_FORMBRICKS_ENVIRONMENT_ID',
   },
   stripe: {
-    publishableKey:
-      'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
+    publishableKey: 'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
     growthPlanPaymentLink:
       'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
     eagleEyePlanPaymentLink:
-      'CROWD_VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK'
-      || '',
-    customerPortalLink:
-      'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || '',
+      'CROWD_VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK' || '',
+    customerPortalLink: 'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || '',
   },
   auth0: {
     domain: 'CROWD_VUE_APP_AUTH0_DOMAIN',
@@ -117,7 +104,6 @@ const composedConfig = {
   lf: {
     tenantId: 'CROWD_VUE_APP_LF_TENANT_ID',
   },
-  isGithubArchiveEnabled: 'CROWD_VUE_APP_IS_GITHUB_ARCHIVE_ENABLED',
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
   isGroupsioEnabled: 'CROWD_VUE_APP_IS_GROUPSIO_ENABLED',
   isTwitterEnabled: 'CROWD_VUE_APP_IS_TWITTER_ENABLED',
@@ -129,15 +115,15 @@ const composedConfig = {
       clientToken: 'CROWD_VUE_APP_DATADOG_RUM_CLIENT_TOKEN',
     },
   },
+  permissions: {
+    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS',
+  },
 };
 
-const config = defaultConfig.backendUrl
-  ? defaultConfig
-  : composedConfig;
+const config = defaultConfig.backendUrl ? defaultConfig : composedConfig;
 
 config.isCommunityVersion = config.edition === 'community';
-config.hasPremiumModules = !config.isCommunityVersion
-  || config.communityPremium === 'true';
+config.hasPremiumModules = !config.isCommunityVersion || config.communityPremium === 'true';
 config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 config.isGroupsioIntegrationEnabled = config.isGroupsioEnabled === 'true';
 config.isTwitterIntegrationEnabled = config.isTwitterEnabled === 'true';

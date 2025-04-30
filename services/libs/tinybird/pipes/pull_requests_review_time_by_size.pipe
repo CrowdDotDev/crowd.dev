@@ -1,0 +1,38 @@
+DESCRIPTION >
+    Serves the `Development - Review time by pull request size` widget
+
+TAGS "Widget"
+
+NODE review_time_by_pull_request_size_0
+SQL >
+    %
+    select
+        pra.gitChangedLinesBucket,
+        round(avg(pra.reviewedInSeconds)) "reviewedInSecondsAvg",
+        count(pra.sourceId) as pullRequestCount
+    from pull_requests_filtered pra
+    where
+        not empty(gitChangedLinesBucket)
+        {% if defined(startDate) %}
+            AND pra.reviewedAt
+            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        {% end %}
+        {% if defined(endDate) %}
+            AND pra.reviewedAt
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+        {% end %}
+    group by pra.gitChangedLinesBucket
+    order BY
+        CASE
+            pra.gitChangedLinesBucket
+            WHEN '1-9'
+            THEN 1
+            WHEN '10-59'
+            THEN 2
+            WHEN '60-99'
+            THEN 3
+            WHEN '100-499'
+            THEN 4
+            WHEN '500+'
+            THEN 5
+        END
