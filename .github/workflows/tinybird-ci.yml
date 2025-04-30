@@ -2,6 +2,7 @@ name: Tinybird CI
 
 on:
   pull_request:
+    types: [labeled, unlabeled, synchronize]
     paths:
       - 'services/libs/tinybird/**'
   workflow_dispatch:
