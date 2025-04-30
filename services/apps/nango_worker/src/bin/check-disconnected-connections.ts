@@ -4,6 +4,8 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
   ALL_NANGO_INTEGRATIONS,
+  NangoIntegration,
+  deleteNangoConnection,
   getNangoConnections,
   initNangoCloudClient,
   nangoIntegrationToPlatform,
@@ -44,9 +46,20 @@ setImmediate(async () => {
     (c) => !c.connection_id.startsWith('github-token-'),
   )) {
     if (!connectionIds.includes(nangoConnection.connection_id)) {
-      log.warn(
-        `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration and should be deleted!`,
-      )
+      if (deleteDisconnectedConnections) {
+        log.warn(
+          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration and should be deleted!`,
+        )
+      } else {
+        log.warn(
+          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration - deleting it...`,
+        )
+
+        await deleteNangoConnection(
+          nangoConnection.provider_config_key as NangoIntegration,
+          nangoConnection.connection_id,
+        )
+      }
     }
   }
 })
