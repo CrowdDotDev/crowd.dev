@@ -45,7 +45,7 @@ setImmediate(async () => {
   )) {
     if (!connectionIds.includes(nangoConnection.connection_id)) {
       log.warn(
-        `Connection ${nangoConnection.connection_id} is not connected to integration and should be deleted!`,
+        `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration and should be deleted!`,
       )
     }
   }
