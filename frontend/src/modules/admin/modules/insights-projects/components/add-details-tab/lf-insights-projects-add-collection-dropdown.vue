@@ -66,10 +66,17 @@ function fetchCollections(query = '', pageNum = 0) {
   })
     .then((res: { rows: CollectionModel[], total: string }) => {
       const { rows } = res;
+      const selectedItems = cForm.collections;
       if (pageNum === 0) {
-        collections.value = rows;
+        collections.value = [...selectedItems, ...rows].reduce((acc, item) => {
+          if (!acc.find((i) => i.id === item.id)) acc.push(item);
+          return acc;
+        }, [] as CollectionModel[]);
       } else {
-        collections.value = [...collections.value, ...rows];
+        collections.value = [...collections.value, ...rows].reduce((acc, item) => {
+          if (!acc.find((i) => i.id === item.id)) acc.push(item);
+          return acc;
+        }, [] as CollectionModel[]);
       }
 
       noMoreData.value = collections.value.length >= +res.total;

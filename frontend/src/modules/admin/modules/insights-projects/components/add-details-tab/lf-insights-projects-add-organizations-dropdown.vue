@@ -91,10 +91,17 @@ function fetchOrganizations(query = '', pageNum = 0) {
     })
     .then((res) => {
       const { rows } = res;
+      const selectedItem = cForm.organizationId ? [cForm.organization as Organization] : [];
       if (pageNum === 0) {
-        organizations.value = rows;
+        organizations.value = [...selectedItem, ...rows].reduce((acc, item) => {
+          if (!acc.find((i) => i.id === item.id)) acc.push(item);
+          return acc;
+        }, [] as Organization[]);
       } else {
-        organizations.value = [...organizations.value, ...rows];
+        organizations.value = [...organizations.value, ...rows].reduce((acc, item) => {
+          if (!acc.find((i) => i.id === item.id)) acc.push(item);
+          return acc;
+        }, [] as Organization[]);
       }
 
       noMoreData.value = organizations.value.length >= +res.count;
