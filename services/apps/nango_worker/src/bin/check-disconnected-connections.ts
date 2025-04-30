@@ -48,16 +48,16 @@ setImmediate(async () => {
     if (!connectionIds.includes(nangoConnection.connection_id)) {
       if (deleteDisconnectedConnections) {
         log.warn(
-          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration and should be deleted!`,
-        )
-      } else {
-        log.warn(
           `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration - deleting it...`,
         )
 
         await deleteNangoConnection(
           nangoConnection.provider_config_key as NangoIntegration,
           nangoConnection.connection_id,
+        )
+      } else {
+        log.warn(
+          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is not connected to integration and should be deleted!`,
         )
       }
     }
