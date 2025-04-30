@@ -1,3 +1,4 @@
+/* eslint-disable */
 const { getThemeReplacementsValues } = require("./.tailwind/colorConverter.js");
 
 const themeReplacements = getThemeReplacementsValues();
