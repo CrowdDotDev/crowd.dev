@@ -1,30 +1,23 @@
 <template>
-  <lf-dropdown-item @click="isRedditSettingsDrawerOpen = true">
+  <lf-dropdown-item @click="emit('open-setting')">
     <lf-icon name="sliders-simple" type="regular" />
     Settings
   </lf-dropdown-item>
-  <lf-reddit-settings-drawer
-    v-if="isRedditSettingsDrawerOpen"
-    v-model="isRedditSettingsDrawerOpen"
-    :integration="props.integration"
-    :segment-id="props.segmentId"
-    :grandparent-id="props.grandparentId"
-  />
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
+import { defineProps } from 'vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfRedditSettingsDrawer from '@/config/integrations/reddit/components/reddit-settings-drawer.vue';
 
-const props = defineProps<{
+defineProps<{
   integration: any,
   segmentId: string,
   grandparentId: string,
 }>();
 
-const isRedditSettingsDrawerOpen = ref(false);
+const emit = defineEmits<{(e: 'open-setting'): void;
+}>();
 </script>
 
 <script lang="ts">

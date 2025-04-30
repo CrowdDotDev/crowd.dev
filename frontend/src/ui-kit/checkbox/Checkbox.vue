@@ -6,7 +6,7 @@
       props.multiple && 'c-checkbox--multiple',
     ]"
   >
-    <input v-model="checked" type="checkbox" :value="props.value" :disabled="props.disabled">
+    <input v-model="checked" :indeterminate="indeterminate" type="checkbox" :value="props.value" :disabled="props.disabled">
     <span class="flex flex-col">
       <slot />
     </span>
@@ -23,11 +23,13 @@ const props = withDefaults(defineProps<{
   value?: string | boolean,
   disabled?: boolean,
   multiple?: boolean,
+  indeterminate?: boolean,
 }>(), {
   size: 'medium',
   value: true,
   disabled: false,
   multiple: false,
+  indeterminate: false,
 });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean | string[]): any}>();

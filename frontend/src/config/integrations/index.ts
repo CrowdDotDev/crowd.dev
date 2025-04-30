@@ -1,6 +1,7 @@
 import config from '@/config';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import github from './github/config';
-import githubArchive from './github-archive/config';
+import githubNango from './github-nango/config';
 import git from './git/config';
 import groupsio from './groupsio/config';
 import confluence from './confluence/config';
@@ -27,11 +28,29 @@ export interface IntegrationConfig {
   statusComponent?: Vue.Component; // Component rendered to show integration status
   connectedParamsComponent?: Vue.Component; // Component rendered to show connected integration params (repositories, channels)
   dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
+  settingComponent?: Vue.Component; // Component rendered next to dropdown for extra options
   showProgress: boolean; // Show progress bar when connecting
 }
 
-export const lfIntegrations: Record<string, IntegrationConfig> = {
-  github: config.isGithubArchiveEnabled === 'true' ? githubArchive : github,
+export const getGithubIntegration = () => {
+  if (config.env === 'local') return githubNango;
+
+  if (config.env === 'staging') {
+    const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true';
+
+    return useGitHubNango ? githubNango : github;
+  }
+
+  const authStore = useAuthStore();
+  const userId = authStore.user?.id;
+
+  return config.permissions.teamUserIds?.includes(userId)
+    ? githubNango
+    : github;
+};
+
+export const lfIntegrations: () => Record<string, IntegrationConfig> = () => ({
+  github: getGithubIntegration(),
   git,
   groupsio,
   confluence,
@@ -47,4 +66,4 @@ export const lfIntegrations: Record<string, IntegrationConfig> = {
   gerrit,
   discourse,
   devto,
-};
+});

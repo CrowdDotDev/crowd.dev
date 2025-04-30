@@ -3,7 +3,7 @@ export enum PlatformType {
   SLACK = 'slack',
   DISCORD = 'discord',
   GITHUB = 'github',
-  GITHUB_SNOWFLAKE = 'github-snowflake',
+  GITHUB_NANGO = 'github-nango',
   TWITTER = 'twitter',
   REDDIT = 'reddit',
   HACKERNEWS = 'hackernews',

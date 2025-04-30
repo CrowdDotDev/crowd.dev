@@ -115,14 +115,11 @@
 
   <!-- Website -->
   <article class="mb-5">
-    <lf-field label-text="Website" :required="true">
+    <lf-field label-text="Website">
       <lf-input
         v-model="cForm.website"
         class="h-10"
-        :invalid="$v.website.$invalid && $v.website.$dirty"
         placeholder="https://www.example.com"
-        @blur="$v.website.$touch()"
-        @change="$v.website.$touch()"
       />
       <lf-field-messages
         :validation="$v.website"

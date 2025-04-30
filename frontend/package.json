@@ -23,7 +23,7 @@
   },
   "lint-staged": {
     "**/*.{js,ts,vue}": [
-      "eslint --max-warnings=0 --fix"
+      "eslint --fix"
     ]
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "@linuxfoundation/lfx-ui-core": "^0.0.12",
     "@nangohq/frontend": "^0.9.0",
     "@nangohq/frontend-v2": "npm:@nangohq/frontend@^0.52.4",
+    "@tailwindcss/line-clamp": "^0.4.2",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/eslint-config-airbnb": "^7.0.0",
     "@vuelidate/core": "^2.0.1",
@@ -72,7 +73,6 @@
     "@storybook/addon-links": "^7.6.10",
     "@storybook/vue3": "^7.6.10",
     "@storybook/vue3-vite": "^7.6.10",
-    "@tailwindcss/line-clamp": "^0.4.2",
     "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",

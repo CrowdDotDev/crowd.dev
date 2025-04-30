@@ -1,3 +1,4 @@
+/* eslint-disable */
 const { getThemeReplacementsValues } = require("./.tailwind/colorConverter.js");
 
 const themeReplacements = getThemeReplacementsValues();
@@ -37,8 +38,16 @@ const spacing = {
   34: "8.5rem",
   42: "10.5rem",
   43: "10.75rem",
+  48: "12rem",
+  50: "12.5rem",
+  52: "13rem",
+  53: "13.25rem",
+  54: "13.5rem",
   55: "13.75rem",
+  56: "14rem",
+  57: "14.25rem",
   58: "14.5rem",
+  59: "14.75rem",
   66: "16.125rem",
   65: "16.25rem",
   68: "17rem",

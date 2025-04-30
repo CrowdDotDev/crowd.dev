@@ -192,7 +192,6 @@ const rules = {
   },
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
-  website: { required: (value: string) => value.trim().length },
   widgets: {
     required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]),
   },
@@ -234,12 +233,15 @@ onMounted(() => {
 const openModalEditMode = (insightsProjectId: string) => {
   InsightsProjectsService.getById(insightsProjectId).then((res) => {
     insightsProject.value = res;
-    fetchRepositories(res.segment.id, () => {
-      const form = buildForm(res, initialFormState.repositories);
-      fetchOrganizations(form.segmentId);
-      fillForm(form);
-      loading.value = false;
-    });
+
+    if (res.segment.id) {
+      fetchRepositories(res.segment.id, () => {
+        const form = buildForm(res, initialFormState.repositories);
+        fetchOrganizations(form.segmentId);
+        fillForm(form);
+        loading.value = false;
+      });
+    }
   });
 };
 
@@ -308,11 +310,6 @@ const fetchCollections = async () => {
   CollectionsService.list({
     offset: 0,
     limit: 1000,
-    filter: {
-      isLF: {
-        eq: true,
-      },
-    },
   }).then((res) => {
     collectionsStore.setCollections(res.rows);
   });

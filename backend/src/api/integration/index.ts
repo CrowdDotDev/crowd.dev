@@ -41,7 +41,6 @@ export default (app) => {
   app.get(`/integration/:id`, safeWrap(require('./integrationFind').default))
 
   app.put(`/authenticate/:code`, safeWrap(require('./helpers/githubAuthenticate').default))
-
   app.put(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapRepos').default))
   app.get(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapReposGet').default))
   app.get(
@@ -56,6 +55,7 @@ export default (app) => {
     `/integration/github/orgs/:org/repos`,
     safeWrap(require('./helpers/githubOrgRepos').default),
   )
+  app.post('/github-nango-connect', safeWrap(require('./helpers/githubNangoConnect').default))
   app.put(
     `/discord-authenticate/:guild_id`,
     safeWrap(require('./helpers/discordAuthenticate').default),

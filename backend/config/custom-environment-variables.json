@@ -143,7 +143,9 @@
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
   },
   "githubToken": {
-    "token": "CROWD_GITHUB_TOKEN"
+    "clientId": "GITHUB_TOKEN_CLIENT_ID",
+    "installationId": "GITHUB_TOKEN_INSTALLATION_ID",
+    "privateKey": "GITHUB_TOKEN_PRIVATE_KEY"
   },
   "slackAlerting": {
     "url": "CROWD_SLACK_ALERTING_URL"
