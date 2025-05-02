@@ -1,17 +1,10 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
-
 import * as activities from '../../activities'
 import { IScriptBatchTestArgs } from '../../types'
+import { chunkArray } from '../../utils/common'
 
-const {
-  getMembersToCleanup,
-  deleteMember,
-  doesActivityExistInQuestDb,
-  excludeEntityFromCleanup,
-  syncRemoveMember,
-} = proxyActivities<typeof activities>({
+const { getMembersToCleanup, deleteMember, syncRemoveMember } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -28,23 +21,15 @@ export async function cleanupMembers(args: IScriptBatchTestArgs): Promise<void> 
 
   const CHUNK_SIZE = 25
 
-  for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
-    const chunk = memberIds.slice(i, i + CHUNK_SIZE)
-
+  for (const chunk of chunkArray(memberIds, CHUNK_SIZE)) {
     const cleanupTasks = chunk.map(async (memberId) => {
-      const isInQuestDb = await doesActivityExistInQuestDb(memberId, EntityType.MEMBER)
-
-      if (isInQuestDb) {
-        console.log(`Member ${memberId} is in QuestDB, skipping!`)
-        return excludeEntityFromCleanup(memberId, EntityType.MEMBER)
-      }
-
-      console.log(`Deleting member ${memberId} from opensearch and database!`)
       await syncRemoveMember(memberId)
       return deleteMember(memberId)
     })
 
-    await Promise.all(cleanupTasks)
+    await Promise.all(cleanupTasks).catch((err) => {
+      console.error('Error cleaning up members!', err)
+    })
   }
 
   if (args.testRun) {
