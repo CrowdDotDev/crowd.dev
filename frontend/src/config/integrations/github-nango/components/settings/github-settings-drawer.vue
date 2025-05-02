@@ -140,7 +140,7 @@ const isDrawerVisible = computed({
 
 const fetchSubProjects = () => {
   LfService.findSegment(props.grandparentId).then((segment) => {
-    subprojects.value = segment.projects.map((p) => p.subprojects).flat();
+    subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
   });
 };
 
