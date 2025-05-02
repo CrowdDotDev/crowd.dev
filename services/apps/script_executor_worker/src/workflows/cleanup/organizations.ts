@@ -1,9 +1,8 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { chunkArray } from '@crowd/common'
-
 import * as activities from '../../activities'
 import { IScriptBatchTestArgs } from '../../types'
+import { chunkArray } from '../../utils/common'
 
 const { getOrganizationsToCleanup, deleteOrganization, syncRemoveOrganization } = proxyActivities<
   typeof activities

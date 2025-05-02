@@ -1,9 +1,8 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { chunkArray } from '@crowd/common'
-
 import * as activities from '../../activities'
 import { IScriptBatchTestArgs } from '../../types'
+import { chunkArray } from '../../utils/common'
 
 const { getMembersToCleanup, deleteMember, syncRemoveMember } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
