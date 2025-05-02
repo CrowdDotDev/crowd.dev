@@ -18,9 +18,9 @@ const props = defineProps<{
   integration: any;
 }>();
 
-const isMapping = computed(() => props.integration.status !== 'mapping');
+const isMapping = computed(() => props.integration.status === 'mapping');
 
-const isSettingsDrawerOpen = ref(props.integration.status !== 'mapping');
+const isSettingsDrawerOpen = ref(props.integration.status === 'mapping');
 </script>
 
 <script lang="ts">
