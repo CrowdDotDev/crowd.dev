@@ -22,7 +22,7 @@ export async function triggerSecurityInsightsCheckForRepos(
 ): Promise<void> {
   const info = workflowInfo()
 
-  const failedRepos = args?.failedRepos || []
+  const failedRepoUrls = args?.failedRepoUrls || []
 
   const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
   const LIMIT_REPOS_TO_CHECK_PER_RUN = 1000
@@ -30,7 +30,7 @@ export async function triggerSecurityInsightsCheckForRepos(
   // We won't try same repos again if they already failed(and retried) in the same-day run
   const repos = await findObsoleteRepos(
     REPOS_OBSOLETE_AFTER_SECONDS,
-    failedRepos,
+    failedRepoUrls,
     LIMIT_REPOS_TO_CHECK_PER_RUN,
   )
 
@@ -41,7 +41,7 @@ export async function triggerSecurityInsightsCheckForRepos(
   for (const repo of repos) {
     try {
       await executeChild(upsertOSPSBaselineSecurityInsights, {
-        workflowId: `${info.workflowId}->${repo}`,
+        workflowId: `${info.workflowId}->${repo.repoUrl}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
         retry: {
@@ -52,18 +52,20 @@ export async function triggerSecurityInsightsCheckForRepos(
         },
         args: [
           {
-            repoUrl: repo,
+            repoUrl: repo.repoUrl,
+            insightsProjectId: repo.insightsProjectId,
+            insightsProjectSlug: repo.insightsProjectSlug,
           },
         ],
         searchAttributes: {},
       })
     } catch (error) {
       console.error(`Failed to process repo ${repo}:`, error)
-      failedRepos.push(repo)
+      failedRepoUrls.push(repo.repoUrl)
     }
   }
 
   await continueAsNew<typeof triggerSecurityInsightsCheckForRepos>({
-    failedRepos,
+    failedRepoUrls,
   })
 }

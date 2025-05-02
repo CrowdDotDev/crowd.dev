@@ -14,5 +14,5 @@ export async function upsertOSPSBaselineSecurityInsights(
   args: IUpsertOSPSBaselineSecurityInsightsParams,
 ): Promise<void> {
   const key = await getOSPSBaselineInsights(args.repoUrl)
-  await saveOSPSBaselineInsightsToDB(key, args.repoUrl)
+  await saveOSPSBaselineInsightsToDB(key, args)
 }

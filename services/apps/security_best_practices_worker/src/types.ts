@@ -32,9 +32,11 @@ export interface ISecurityInsightsPrivateerResultAssessment {
 }
 
 export interface IUpsertOSPSBaselineSecurityInsightsParams {
+  insightsProjectId: string
+  insightsProjectSlug: string
   repoUrl: string
 }
 
 export interface ITriggerSecurityInsightsCheckForReposParams {
-  failedRepos?: string[]
+  failedRepoUrls?: string[]
 }

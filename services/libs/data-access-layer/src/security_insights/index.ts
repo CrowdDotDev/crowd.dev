@@ -3,6 +3,7 @@ import {
   ISecurityInsightsEvaluationSuite,
   ISecurityInsightsEvaluationSuiteControlEvaluation,
   ISecurityInsightsEvaluationSuiteControlEvaluationAssessment,
+  ISecurityInsightsObsoleteRepo,
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
@@ -12,26 +13,32 @@ export async function findObsoleteReposQx(
   insightsObsoleteAfterSeconds: number,
   failedRepos: string[],
   limit = 1000,
-): Promise<string[]> {
+): Promise<ISecurityInsightsObsoleteRepo[]> {
   const failedReposSubquery =
     failedRepos.length > 0 ? 'and all_repos.repo not in ($(failedRepos:csv))' : ''
 
-  const repos = await qx.select(
+  const repos: ISecurityInsightsObsoleteRepo[] = await qx.select(
     `
-        with all_repos as (
-            select unnest(repositories) as repo
+      with all_repos as (
+            select
+                id as "insightsProjectId",
+                slug as "insightsProjectSlug",
+                unnest(repositories) as "repoUrl"
             from "insightsProjects"
-        )
-        select repo
-        from all_repos
-        where not exists (
-            select 1
-            from "securityInsightsEvaluationSuites" s
-            where s.repo = all_repos.repo
-            AND EXTRACT(EPOCH FROM (now() - s."updatedAt")) < $(insightsObsoleteAfterSeconds)
-        )
-        ${failedReposSubquery}
-        limit $(limit)
+      )
+      select
+          "insightsProjectId",
+          "insightsProjectSlug",
+          "repoUrl"
+      from all_repos
+      where not exists (
+          select 1
+          from "securityInsightsEvaluationSuites" s
+          where s.repo = all_repos."repoUrl"
+          AND EXTRACT(EPOCH FROM (now() - s."updatedAt")) < $(insightsObsoleteAfterSeconds)
+      )
+      ${failedReposSubquery}
+      limit $(limit)
     `,
     {
       insightsObsoleteAfterSeconds,
@@ -40,7 +47,7 @@ export async function findObsoleteReposQx(
     },
   )
 
-  return repos?.map((r) => r.repo) || []
+  return repos || []
 }
 
 export async function findEvaluationSuite(
@@ -68,9 +75,9 @@ export async function addEvaluationSuite(
   await qx.result(
     `
         insert into "securityInsightsEvaluationSuites"
-            ("id", "name", "repo", "catalogId", "result", "corruptedState", "createdAt", "updatedAt")
+            ("id", "name", "repo", "insightsProjectId", "insightsProjectSlug", "catalogId", "result", "corruptedState", "createdAt", "updatedAt")
         values 
-            ($(id), $(name), $(repo), $(catalogId), $(result), $(corruptedState), now(), now())
+            ($(id), $(name), $(repo), $(insightsProjectId), $(insightsProjectSlug), $(catalogId), $(result), $(corruptedState), now(), now())
         on conflict ("repo", "catalogId")
             do update
             set "updatedAt"      = EXCLUDED."updatedAt",
@@ -82,6 +89,8 @@ export async function addEvaluationSuite(
       id: generateUUIDv4(),
       name: suite.name,
       repo: suite.repo,
+      insightsProjectId: suite.insightsProjectId,
+      insightsProjectSlug: suite.insightsProjectSlug,
       catalogId: suite.catalogId,
       result: suite.result,
       corruptedState: suite.corruptedState,
@@ -118,6 +127,8 @@ export async function addSuiteControlEvaluation(
                 "id", 
                 "securityInsightsEvaluationSuiteId",
                 "repo", 
+                "insightsProjectId", 
+                "insightsProjectSlug",
                 "controlId", 
                 "result", 
                 "message", 
@@ -131,6 +142,8 @@ export async function addSuiteControlEvaluation(
                 $(id), 
                 $(securityInsightsEvaluationSuiteId), 
                 $(repo), 
+                $(insightsProjectId),
+                $(insightsProjectSlug),
                 $(controlId), 
                 $(result),
                 $(message),
@@ -152,6 +165,8 @@ export async function addSuiteControlEvaluation(
       id: generateUUIDv4(),
       securityInsightsEvaluationSuiteId: evaluation.securityInsightsEvaluationSuiteId,
       repo: evaluation.repo,
+      insightsProjectId: evaluation.insightsProjectId,
+      insightsProjectSlug: evaluation.insightsProjectSlug,
       controlId: evaluation.controlId,
       result: evaluation.result,
       message: evaluation.message,
@@ -172,6 +187,8 @@ export async function addControlEvaluationAssessment(
                 "id", 
                 "securityInsightsEvaluationSuiteControlEvaluationId",
                 "repo", 
+                "insightsProjectId",
+                "insightsProjectSlug",
                 "requirementId", 
                 "applicability", 
                 "description", 
@@ -188,6 +205,8 @@ export async function addControlEvaluationAssessment(
                 $(id), 
                 $(securityInsightsEvaluationSuiteControlEvaluationId), 
                 $(repo), 
+                $(insightsProjectId),
+                $(insightsProjectSlug),
                 $(requirementId), 
                 $(applicability),
                 $(description),
@@ -216,6 +235,8 @@ export async function addControlEvaluationAssessment(
       securityInsightsEvaluationSuiteControlEvaluationId:
         assessment.securityInsightsEvaluationSuiteControlEvaluationId,
       repo: assessment.repo,
+      insightsProjectId: assessment.insightsProjectId,
+      insightsProjectSlug: assessment.insightsProjectSlug,
       requirementId: assessment.requirementId,
       applicability: assessment.applicability,
       description: assessment.description,

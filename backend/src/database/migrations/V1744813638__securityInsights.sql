@@ -8,7 +8,10 @@ create table public."securityInsightsEvaluationSuites" (
     "corruptedState" boolean not null,
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
-
+    "insightsProjectId" uuid not null,
+    "insightsProjectSlug" text not null,
+    
+    foreign key ("insightsProjectId") references "insightsProjects" (id) on delete cascade,
     unique ("repo", "catalogId")
 );
 
@@ -27,7 +30,10 @@ create table public."securityInsightsEvaluationSuiteControlEvaluations" (
     "remediationGuide" text not null,
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
-
+    "insightsProjectId" uuid not null,
+    "insightsProjectSlug" text not null,
+    
+    foreign key ("insightsProjectId") references "insightsProjects" (id) on delete cascade,
     foreign key ("securityInsightsEvaluationSuiteId") references "securityInsightsEvaluationSuites" (id) on delete cascade,
     unique ("securityInsightsEvaluationSuiteId", "repo", "controlId")
 );
@@ -51,7 +57,10 @@ create table public."securityInsightsEvaluationSuiteControlEvaluationAssessments
     "runDuration" text not null,
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
-
+    "insightsProjectId" uuid not null,
+    "insightsProjectSlug" text not null,
+    
+    foreign key ("insightsProjectId") references "insightsProjects" (id) on delete cascade,
     foreign key ("securityInsightsEvaluationSuiteControlEvaluationId") references "securityInsightsEvaluationSuiteControlEvaluations" (id) on delete cascade,
     unique ("securityInsightsEvaluationSuiteControlEvaluationId", "repo", "requirementId")
 );

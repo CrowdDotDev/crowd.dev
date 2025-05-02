@@ -13,6 +13,7 @@ import {
 } from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
+import { ISecurityInsightsObsoleteRepo } from '@crowd/types'
 
 import { svc } from '../main'
 import { ISecurityInsightsPrivateerResult } from '../types'
@@ -62,7 +63,10 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
   return key
 }
 
-export async function saveOSPSBaselineInsightsToDB(key: string, repoUrl: string): Promise<void> {
+export async function saveOSPSBaselineInsightsToDB(
+  key: string,
+  repo: ISecurityInsightsObsoleteRepo,
+): Promise<void> {
   const CATALOG_ID = 'OSPS_B'
   const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
   const result = await redisCache.get(key)
@@ -72,33 +76,43 @@ export async function saveOSPSBaselineInsightsToDB(key: string, repoUrl: string)
   const qx = pgpQx(svc.postgres.writer.connection())
 
   await addEvaluationSuite(qx, {
-    repo: repoUrl,
+    repo: repo.repoUrl,
+    insightsProjectId: repo.insightsProjectId,
+    insightsProjectSlug: repo.insightsProjectSlug,
     catalogId: evaluationSuite.catalog_id,
     name: evaluationSuite.name,
     result: evaluationSuite.result,
     corruptedState: evaluationSuite.corrupted_state,
   })
 
-  const suite = await findEvaluationSuite(qx, repoUrl, evaluationSuite.catalog_id)
+  const suite = await findEvaluationSuite(qx, repo.repoUrl, evaluationSuite.catalog_id)
 
   for (const evaluation of evaluationSuite.control_evaluations) {
     await addSuiteControlEvaluation(qx, {
       controlId: evaluation.control_id,
       corruptedState: evaluation.corrupted_state,
       message: evaluation.message,
-      repo: repoUrl,
+      repo: repo.repoUrl,
+      insightsProjectId: repo.insightsProjectId,
+      insightsProjectSlug: repo.insightsProjectSlug,
       remediationGuide: evaluation.remediation_guide,
       result: evaluation.result,
       securityInsightsEvaluationSuiteId: suite.id,
     })
 
-    const controlEvaluation = await findSuiteControlEvaluation(qx, repoUrl, evaluation.control_id)
+    const controlEvaluation = await findSuiteControlEvaluation(
+      qx,
+      repo.repoUrl,
+      evaluation.control_id,
+    )
     for (const assessment of evaluation.assessments) {
       await addControlEvaluationAssessment(qx, {
         applicability: assessment.applicability,
         description: assessment.description,
         message: assessment.message,
-        repo: repoUrl,
+        repo: repo.repoUrl,
+        insightsProjectId: repo.insightsProjectId,
+        insightsProjectSlug: repo.insightsProjectSlug,
         requirementId: assessment.requirement_id,
         result: assessment.result,
         runDuration: assessment.run_duration,
@@ -114,7 +128,7 @@ export async function findObsoleteRepos(
   insightsObsoleteAfterSeconds: number,
   failedRepos: string[],
   limit: number,
-): Promise<string[]> {
+): Promise<ISecurityInsightsObsoleteRepo[]> {
   const qx = pgpQx(svc.postgres.reader.connection())
   return findObsoleteReposQx(qx, insightsObsoleteAfterSeconds, failedRepos, limit)
 }
