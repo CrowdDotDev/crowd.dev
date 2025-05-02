@@ -67,3 +67,10 @@ create table public."securityInsightsEvaluationSuiteControlEvaluationAssessments
 
 create index "ix_securityInsightsAssessments_repo" on "securityInsightsEvaluationSuiteControlEvaluationAssessments"("repo");
 create index "ix_securityInsightsAssessments_updatedAt_id" on "securityInsightsEvaluationSuiteControlEvaluationAssessments" ("updatedAt", id);
+
+
+-- Sequin publication migrations
+ALTER PUBLICATION sequin_pub ADD TABLE "securityInsightsEvaluationSuiteControlEvaluations";
+ALTER PUBLICATION sequin_pub ADD TABLE "securityInsightsEvaluationSuiteControlEvaluationAssessments";
+ALTER TABLE public."securityInsightsEvaluationSuiteControlEvaluations" REPLICA IDENTITY FULL;
+ALTER TABLE public."securityInsightsEvaluationSuiteControlEvaluationAssessments" REPLICA IDENTITY FULL;
