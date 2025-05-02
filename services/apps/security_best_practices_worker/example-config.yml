@@ -1,7 +1,6 @@
 loglevel: info
 write-directory: evaluation_results
 write: true
-output: json
 services:
   $REPO_NAME:
     plugin: github-repo

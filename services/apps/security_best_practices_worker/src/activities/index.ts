@@ -1,5 +1,6 @@
 import { exec, spawn } from 'child_process'
 import { existsSync, readFileSync } from 'fs'
+import { load as parseYaml } from 'js-yaml'
 import { promisify } from 'util'
 
 import {
@@ -24,7 +25,7 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
   // get owner and repo name from url in a single line
   const [owner, repoName] = repoUrl.split('/').slice(-2)
 
-  const REPORT_OUTPUT_FILE_PATH = `${BINARY_HOME}/evaluation_results/${repoName}/${repoName}.json`
+  const REPORT_OUTPUT_FILE_PATH = `${BINARY_HOME}/evaluation_results/${repoName.toLowerCase()}/${repoName.toLowerCase()}.yaml`
 
   // prepare config file for privateer
   await execAsync(
@@ -40,21 +41,20 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
 
   // Check if file exists
   if (!existsSync(`${REPORT_OUTPUT_FILE_PATH}`)) {
-    throw new Error(`Expected output file not found at ${REPORT_OUTPUT_FILE_PATH}`)
+    throw new Error(`Expected output file not found at ${REPORT_OUTPUT_FILE_PATH}!`)
   }
 
-  // Read file contents
-  const fileContents = readFileSync(REPORT_OUTPUT_FILE_PATH, 'utf8')
-  let parsedJson: ISecurityInsightsPrivateerResult
+  let parsedYaml: ISecurityInsightsPrivateerResult
   try {
-    parsedJson = JSON.parse(fileContents)
+    const fileContents = readFileSync(REPORT_OUTPUT_FILE_PATH, 'utf8')
+    parsedYaml = parseYaml(fileContents) as ISecurityInsightsPrivateerResult
   } catch (err) {
-    throw new Error(`Failed to parse JSON from file: ${err}`)
+    throw new Error(`Failed to parse YAML from file: ${err}`)
   }
 
   // Save file contents to redis
   const key = Math.random().toString(36).substring(7)
-  await saveOSPSBaselineInsightsToRedis(key, parsedJson)
+  await saveOSPSBaselineInsightsToRedis(key, parsedYaml)
 
   // Delete the file
   await cleanupFiles(repoName)
@@ -67,43 +67,43 @@ export async function saveOSPSBaselineInsightsToDB(key: string, repoUrl: string)
   const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
   const result = await redisCache.get(key)
   const parsedResult: ISecurityInsightsPrivateerResult = JSON.parse(result)
-  const evaluationSuite = parsedResult.Evaluation_Suites.find((s) => s.Catalog_Id === CATALOG_ID)
+  const evaluationSuite = parsedResult.evaluation_suites.find((s) => s.catalog_id === CATALOG_ID)
 
   const qx = pgpQx(svc.postgres.writer.connection())
 
   await addEvaluationSuite(qx, {
     repo: repoUrl,
-    catalogId: evaluationSuite.Catalog_Id,
-    name: evaluationSuite.Name,
-    result: evaluationSuite.Result,
-    corruptedState: evaluationSuite.Corrupted_State,
+    catalogId: evaluationSuite.catalog_id,
+    name: evaluationSuite.name,
+    result: evaluationSuite.result,
+    corruptedState: evaluationSuite.corrupted_state,
   })
 
-  const suite = await findEvaluationSuite(qx, repoUrl, evaluationSuite.Catalog_Id)
+  const suite = await findEvaluationSuite(qx, repoUrl, evaluationSuite.catalog_id)
 
-  for (const evaluation of evaluationSuite.Control_Evaluations) {
+  for (const evaluation of evaluationSuite.control_evaluations) {
     await addSuiteControlEvaluation(qx, {
-      controlId: evaluation.Control_Id,
-      corruptedState: evaluation.Corrupted_State,
-      message: evaluation.Message,
+      controlId: evaluation.control_id,
+      corruptedState: evaluation.corrupted_state,
+      message: evaluation.message,
       repo: repoUrl,
-      remediationGuide: evaluation.Remediation_Guide,
-      result: evaluation.Result,
+      remediationGuide: evaluation.remediation_guide,
+      result: evaluation.result,
       securityInsightsEvaluationSuiteId: suite.id,
     })
 
-    const controlEvaluation = await findSuiteControlEvaluation(qx, repoUrl, evaluation.Control_Id)
-    for (const assessment of evaluation.Assessments) {
+    const controlEvaluation = await findSuiteControlEvaluation(qx, repoUrl, evaluation.control_id)
+    for (const assessment of evaluation.assessments) {
       await addControlEvaluationAssessment(qx, {
-        applicability: assessment.Applicability,
-        description: assessment.Description,
-        message: assessment.Message,
+        applicability: assessment.applicability,
+        description: assessment.description,
+        message: assessment.message,
         repo: repoUrl,
-        requirementId: assessment.Requirement_Id,
-        result: assessment.Result,
-        runDuration: assessment.Run_Duration,
-        steps: assessment.Steps,
-        stepsExecuted: assessment.Steps_Executed,
+        requirementId: assessment.requirement_id,
+        result: assessment.result,
+        runDuration: assessment.run_duration,
+        steps: assessment.steps,
+        stepsExecuted: assessment.steps_executed,
         securityInsightsEvaluationSuiteControlEvaluationId: controlEvaluation.id,
       })
     }
