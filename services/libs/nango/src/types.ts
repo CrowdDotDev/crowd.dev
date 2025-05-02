@@ -82,7 +82,7 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.JIRA_CLOUD_BASIC]: {
     models: {
-      ISSUES: 'Issue',
+      ISSUES: 'Issues',
       ISSUE_COMMENT: 'IssueComment',
       ISSUE_ATTACHMENTS: 'IssueAttachment',
     },
@@ -94,7 +94,7 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
     models: {
-      ISSUES: 'Issue',
+      ISSUES: 'Issues',
       ISSUE_COMMENT: 'IssueComment',
       ISSUE_ATTACHMENTS: 'IssueAttachment',
     },
@@ -106,7 +106,7 @@ export const NANGO_INTEGRATION_CONFIG = {
   },
   [NangoIntegration.JIRA_DATA_CENTER_API_KEY]: {
     models: {
-      ISSUES: 'Issue',
+      ISSUES: 'Issues',
       ISSUE_COMMENT: 'IssueComment',
       ISSUE_ATTACHMENTS: 'IssueAttachment',
     },
