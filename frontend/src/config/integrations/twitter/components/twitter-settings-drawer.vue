@@ -77,17 +77,25 @@ import { FormSchema } from '@/shared/form/form-schema';
 import StringField from '@/shared/fields/string-field';
 import twitter from '@/config/integrations/twitter/config';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
+import config from '@/config';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
-  hashtags: {
-    type: Array,
-    default: () => [],
+  integration: {
+    type: Object,
+    default: null,
   },
-  connectUrl: {
+  segmentId: {
+    type: String,
+    default: null,
+  },
+  grandparentId: {
     type: String,
     default: null,
   },
@@ -95,8 +103,25 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-const parsedHashtags = computed(() => (props.hashtags.length
-  ? props.hashtags[props.hashtags.length - 1]
+const getHashtags = () => props.integration.settings?.hashtags || [];
+
+const getConnectUrl = () => {
+  const redirectUrl = props.grandparentId && props.segmentId
+    ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?success=true`
+    : `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
+
+  const authStore = useAuthStore();
+  const { tenant } = storeToRefs(authStore);
+
+  return `${config.backendUrl}/twitter/${
+    tenant.value.id
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
+    props.segmentId
+  }`;
+};
+
+const parsedHashtags = computed(() => (getHashtags().length
+  ? getHashtags()[getHashtags().length - 1]
   : ''));
 const hashtagField = new StringField(
   'hashtag',
@@ -134,7 +159,7 @@ const computedConnectUrl = computed(() => {
     ? `&hashtags[]=${model.value.hashtag}`
     : '';
 
-  return `${props.connectUrl}${encodedHashtags}`;
+  return `${getConnectUrl()}${encodedHashtags}`;
 });
 
 const doReset = () => {

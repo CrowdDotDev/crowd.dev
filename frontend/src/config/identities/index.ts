@@ -15,7 +15,7 @@ import gitlab from './gitlab/config';
 import groupsio from './groupsio/config';
 import hackernews from './hackernews/config';
 import jira from './jira/config';
-import lfx from './lfx/config';
+import lfid from './lfx/config';
 import linkedin from './linkedin/config';
 import n8n from './n8n/config';
 import reddit from './reddit/config';
@@ -78,12 +78,11 @@ export const lfIdentities: Record<string, IdentityConfig> = {
   gerrit,
   jira,
   cvent,
-  lfx,
+  lfid,
   tnc,
   gitlab,
   crunchbase,
   facebook,
-  lfid: lfx,
   n8n,
   training_cert: tnc,
   zapier,

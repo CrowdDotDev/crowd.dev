@@ -1,4 +1,6 @@
 import { IntegrationConfig } from '@/config/integrations';
+import LfStackoverflowSettingsDrawer
+  from '@/config/integrations/stackoverflow/components/stackoverflow-settings-drawer.vue';
 import StackoverflowConnect from './components/stackoverflow-connect.vue';
 import StackoverflowDropdown from './components/stackoverflow-dropdown.vue';
 import StackoverflowParams from './components/stackoverflow-params.vue';
@@ -17,6 +19,7 @@ const stackoverflow: IntegrationConfig = {
   connectComponent: StackoverflowConnect,
   dropdownComponent: StackoverflowDropdown,
   connectedParamsComponent: StackoverflowParams,
+  settingComponent: LfStackoverflowSettingsDrawer,
   showProgress: false,
 };
 

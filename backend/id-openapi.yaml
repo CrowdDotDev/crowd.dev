@@ -5,7 +5,7 @@ info:
   description: API endpoints for LFX Community Data Platform application
 
 servers:
-  - url: https://cm.lfx.dev/api
+  - url: https://cm.lfx.dev/api/v1
     description: LFX CM Production
 
 tags:
@@ -18,7 +18,7 @@ security:
   - BearerAuth: []
 
 paths:
-  /tenant/{tenantId}/member/{memberId}/organization:
+  /member/{memberId}/organization:
     get:
       security:
         - BearerAuth: []
@@ -27,25 +27,11 @@ paths:
       summary: List Work History Organizations
       description: Retrieve a list of organizations for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of segment IDs
       responses:
         '200':
           description: Successful operation
@@ -68,25 +54,11 @@ paths:
       summary: Create Work History Organization
       description: Create a new organization for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of segment IDs
       requestBody:
         required: true
         content:
@@ -134,7 +106,7 @@ paths:
         '404':
           description: Member not found
 
-  /tenant/{tenantId}/member/{memberId}/organization/{organizationId}:
+  /member/{memberId}/organization/{workHistoryId}:
     patch:
       security:
         - BearerAuth: []
@@ -143,30 +115,16 @@ paths:
       summary: Update Work History Organization
       description: Update an existing organization for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: organizationId
+        - name: workHistoryId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of sub-project IDs
       requestBody:
         required: true
         content:
@@ -175,7 +133,7 @@ paths:
               type: object
               required:
                 - id
-                - organizationId
+                - workHistoryId
                 - source
               properties:
                 id:
@@ -227,30 +185,16 @@ paths:
       summary: Delete Work History Organization
       description: Delete an organization for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: organizationId
+        - name: workHistoryId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of segment IDs
       responses:
         '200':
           description: Successful operation
@@ -263,7 +207,7 @@ paths:
         '404':
           description: Organization or member not found
 
-  /tenant/{tenantId}/member/{memberId}/affiliation:
+  /member/{memberId}/affiliation:
     get:
       security:
         - BearerAuth: []
@@ -272,25 +216,11 @@ paths:
       summary: List Project Affiliations
       description: Retrieve a list of project affiliations for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of segment IDs
       responses:
         '200':
           description: Successful operation
@@ -313,25 +243,11 @@ paths:
       summary: Update Multiple Project Affiliations
       description: Bulk update project affiliations for a specific profile
       parameters:
-        - name: tenantId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: memberId
           in: path
           required: true
           schema:
             type: string
-        - name: segments
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-          description: Array of segment IDs
       requestBody:
         required: true
         content:

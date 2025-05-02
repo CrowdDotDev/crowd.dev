@@ -19,7 +19,7 @@ SQL >
             if(empty(matched_countries), [('Unknown', '❓', 'XX', 0)], matched_countries)
         ) AS country_data
     FROM members_sorted AS m
-    where country_data .1 != 'Unknown'
+    where country_data .1 != 'Unknown' and m.id in (select memberId from activities_filtered)
 
 NODE activities_with_local_timestamp
 SQL >

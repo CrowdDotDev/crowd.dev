@@ -3,8 +3,13 @@ import type {
   Nango as BackendNango,
   SyncStatus,
 } from '@nangohq/node' assert { 'resolution-mode': 'require' }
+import type {
+  ApiPublicConnection,
+  ApiPublicConnectionFull,
+} from '@nangohq/types' assert { 'resolution-mode': 'require' }
+import axios from 'axios'
 
-import { SERVICE } from '@crowd/common'
+import { SERVICE, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import {
@@ -18,7 +23,14 @@ import { toRecord } from './utils'
 
 const log = getServiceChildLogger('nango')
 
+const MAX_RETRIES = 10
+
 export type { SyncStatus } from '@nangohq/node' assert { 'resolution-mode': 'require' }
+
+export type {
+  ApiPublicConnection,
+  ApiPublicConnectionFull,
+} from '@nangohq/types' assert { 'resolution-mode': 'require' }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -90,47 +102,85 @@ export const getNangoConnectionStatus = async (
   return res.syncs
 }
 
-export const getNangoConnectionIds = async (): Promise<
-  { connectionId: string; integration: NangoIntegration; createdAt: string }[]
-> => {
+export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
   ensureBackendClient()
 
   const results = await backendClient.listConnections()
 
-  return results.connections.map((c) => {
-    return {
-      connectionId: c.connection_id,
-      integration: c.provider_config_key as NangoIntegration,
-      createdAt: c.created,
-    }
-  })
+  return results.connections
+}
+
+export const getNangoConnectionData = async (
+  integration: NangoIntegration,
+  connectionId: string,
+): Promise<ApiPublicConnectionFull> => {
+  ensureBackendClient()
+
+  const result = await backendClient.getConnection(integration, connectionId)
+
+  return result
 }
 
 let frontendModule: any | undefined = undefined
-export const connectNangoIntegration = async (
-  integration: NangoIntegration,
-  params: any,
+
+export const createNangoGithubConnection = async (
+  repoName: string,
+  owner: string,
+  tokenConnectionIds: string[],
+  appId: string,
+  installationId: string,
+  retries = 1,
 ): Promise<string> => {
-  ensureBackendClient()
+  log.info(
+    { repoName, owner, tokenConnectionIds, appId, installationId },
+    'Creating a nango GitHub connection...',
+  )
 
-  log.info({ params, integration }, 'Creating a nango connection...')
-  const data = await getNangoCloudSessionToken()
+  try {
+    const result = await axios.post(
+      'https://api.nango.dev/connection',
+      {
+        app_id: appId,
+        installation_id: installationId,
+        provider_config_key: NangoIntegration.GITHUB,
+        metadata: {
+          repo: `${owner}/${repoName}`,
+          connection_ids: tokenConnectionIds,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NANGO_CLOUD_SECRET_KEY}`,
+        },
+      },
+    )
 
-  if (!frontendModule) {
-    frontendModule = await import('@nangohq/frontend')
+    log.info({ result: JSON.stringify(result.data, null, 2) }, 'Nango GitHub connection created')
+
+    return result.data.connection_id
+  } catch (err) {
+    log.error(err, 'Error creating nango GitHub connection')
+
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await createNangoGithubConnection(
+        repoName,
+        owner,
+        tokenConnectionIds,
+        appId,
+        installationId,
+        retries + 1,
+      )
+    } else {
+      throw err
+    }
   }
-
-  const frontendClient = new frontendModule.default({
-    connectSessionToken: data.token,
-  }) as Nango
-
-  const result = await frontendClient.auth(integration, params)
-  return result.connectionId
 }
 
-export const createNangoIntegration = async (
+export const createNangoConnection = async (
   integration: NangoIntegration,
   params: any,
+  retries = 1,
 ): Promise<string> => {
   ensureBackendClient()
 
@@ -145,54 +195,114 @@ export const createNangoIntegration = async (
     connectSessionToken: data.token,
   }) as Nango
 
-  const result = await frontendClient.create(integration, params)
-  return result.connectionId
+  try {
+    const result = await frontendClient.create(integration, params)
+    return result.connectionId
+  } catch (err) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await createNangoConnection(integration, params, retries + 1)
+    }
+
+    log.error(err, 'Error creating nango connection')
+    throw err
+  }
 }
 
 export const setNangoMetadata = async (
   integration: NangoIntegration,
   connectionId: string,
   metadata: Record<string, unknown>,
+  retries = 1,
 ): Promise<void> => {
   ensureBackendClient()
 
-  await backendClient.setMetadata(integration, connectionId, metadata)
+  try {
+    await backendClient.setMetadata(integration, connectionId, metadata)
+  } catch (err) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await setNangoMetadata(integration, connectionId, metadata, retries + 1)
+    } else {
+      throw err
+    }
+  }
 }
 
 export const startNangoSync = async (
   integration: NangoIntegration,
   connectionId: string,
   syncs?: string[],
+  fullSync = false,
+  retries = 1,
 ): Promise<void> => {
   ensureBackendClient()
   log.info({ connectionId, integration, syncs }, 'Starting a nango sync...')
 
-  if (!syncs) {
-    syncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
-  } else {
-    // verify against config
-    const validSyncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
-    for (const sync of syncs) {
-      if (!validSyncs.includes(sync)) {
-        const available = validSyncs.join(', ')
+  try {
+    if (!syncs) {
+      syncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
+    } else {
+      // verify against config
+      const validSyncs = Object.values(NANGO_INTEGRATION_CONFIG[integration].syncs) as string[]
+      for (const sync of syncs) {
+        if (!validSyncs.includes(sync)) {
+          const available = validSyncs.join(', ')
 
-        throw new Error(
-          `Invalid sync: ${sync}! Integration '${integration}' supports these syncs: ${available}`,
-        )
+          throw new Error(
+            `Invalid sync: ${sync}! Integration '${integration}' supports these syncs: ${available}`,
+          )
+        }
       }
     }
-  }
 
-  await backendClient.startSync(integration, syncs, connectionId)
+    if (fullSync) {
+      await axios.post(
+        'https://api.nango.dev/sync/trigger',
+        {
+          provider_config_key: integration,
+          connection_id: connectionId,
+          syncs,
+          sync_mode: 'full_refresh_and_clear_cache',
+          full_resync: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NANGO_CLOUD_SECRET_KEY}`,
+          },
+        },
+      )
+    } else {
+      await backendClient.startSync(integration, syncs, connectionId)
+    }
+  } catch (err) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await startNangoSync(integration, connectionId, syncs, fullSync, retries + 1)
+    } else {
+      log.error(err, 'Error starting nango sync!')
+      throw err
+    }
+  }
 }
 
 export const deleteNangoConnection = async (
   integration: NangoIntegration,
   connectionId: string,
+  retries = 1,
 ): Promise<void> => {
   ensureBackendClient()
 
-  await backendClient.deleteConnection(integration, connectionId)
+  try {
+    await backendClient.deleteConnection(integration, connectionId)
+  } catch (err) {
+    if (retries <= MAX_RETRIES) {
+      await timeout(100)
+      return await deleteNangoConnection(integration, connectionId, retries + 1)
+    } else {
+      throw err
+    }
+  }
 }
 
 export const getNangoCloudRecords = async (

@@ -159,10 +159,9 @@ export class OrganizationSyncService {
       },
     }
 
-    const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt']
+    const sort = [{ _id: 'asc' }]
     const pageSize = 10
-    let lastJoinedAt: string
+    let lastId: string
 
     let results = (await this.openSearchService.search(
       OpenSearchIndex.ORGANIZATIONS,
@@ -171,24 +170,24 @@ export class OrganizationSyncService {
       pageSize,
       sort,
       undefined,
-      include,
-    )) as ISearchHit<{ date_joinedAt: string }>[]
+      undefined,
+    )) as ISearchHit<object>[]
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
       await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.ORGANIZATIONS)
 
-      // use last joinedAt to get the next page
-      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      // use last _id to get the next page
+      lastId = results[results.length - 1]._id
       results = (await this.openSearchService.search(
         OpenSearchIndex.ORGANIZATIONS,
         query,
         undefined,
         pageSize,
         sort,
-        lastJoinedAt,
-        include,
-      )) as ISearchHit<{ date_joinedAt: string }>[]
+        lastId,
+        undefined,
+      )) as ISearchHit<object>[]
     }
   }
 
