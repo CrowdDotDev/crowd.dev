@@ -85,7 +85,7 @@
               </p>
             </div>
           </div>
-          <div class="py-1.5">
+          <div v-if="!loading" class="py-1.5">
             <article v-for="repo of filteredRepos" :key="repo.url" class="py-1.5 flex items-center">
               <div class="w-1/2 flex items-center pr-4">
                 <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
@@ -121,6 +121,9 @@
                 </app-form-item>
               </div>
             </article>
+          </div>
+          <div v-if="loading" class="flex justify-center py-4">
+            <lf-icon name="spinner" type="solid" :size="16" class="text-gray-400 animate-spin" />
           </div>
         </section>
         <section v-else>
@@ -302,11 +305,17 @@ const connect = () => {
 
 // Fetching subprojects
 const subprojects = ref([]);
+const loading = ref(false);
 
 const fetchSubProjects = () => {
+  loading.value = true;
   LfService.findSegment(route.params.grandparentId)
     .then((segment) => {
       subprojects.value = segment.projects.map((p) => p.subprojects).flat();
+    }).catch(() => {
+      Message.error('There was an error fetching subprojects');
+    }).finally(() => {
+      loading.value = false;
     });
 };
 
