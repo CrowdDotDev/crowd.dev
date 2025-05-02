@@ -15,7 +15,7 @@ export async function findObsoleteReposQx(
   limit = 1000,
 ): Promise<ISecurityInsightsObsoleteRepo[]> {
   const failedReposSubquery =
-    failedRepos.length > 0 ? 'and all_repos.repo not in ($(failedRepos:csv))' : ''
+    failedRepos.length > 0 ? 'and all_repos."repoUrl" not in ($(failedRepos:csv))' : ''
 
   const repos: ISecurityInsightsObsoleteRepo[] = await qx.select(
     `
