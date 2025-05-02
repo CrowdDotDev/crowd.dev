@@ -311,7 +311,7 @@ const fetchSubProjects = () => {
   loading.value = true;
   LfService.findSegment(route.params.grandparentId)
     .then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat();
+      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
     }).catch(() => {
       Message.error('There was an error fetching subprojects');
     }).finally(() => {
