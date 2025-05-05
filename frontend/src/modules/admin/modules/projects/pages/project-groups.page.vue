@@ -151,8 +151,8 @@ const {
   queryFn: projectGroupsQueryFn,
   getNextPageParam: (lastPage) => {
     const nextPage = lastPage.offset + lastPage.limit;
-    const totalPages = Math.ceil(lastPage.count / lastPage.limit);
-    return nextPage < totalPages ? nextPage : undefined;
+    const totalRows = lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
   },
   initialPageParam: 0,
 });

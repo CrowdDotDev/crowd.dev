@@ -40,10 +40,6 @@ declare module 'vue' {
     defaultOptions: { queries: { staleTime: 1000 * 60 * 5 } },
   });
 
-  app.use(VueQueryPlugin, {
-    enableDevtoolsV6Plugin: true,
-  });
-
   // Install the VueQuery plugin
   app.use(VueQueryPlugin, {
     queryClient,
