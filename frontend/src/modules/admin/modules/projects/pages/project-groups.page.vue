@@ -179,6 +179,7 @@ const pagination = computed((): Pagination<ProjectGroup> => {
 
 const onLoadMore = () => {
   if (hasNextPage.value && !isFetchingNextPage.value && !isPending.value) {
+    console.log('Loading more project groups...');
     fetchNextPage();
   }
 };
