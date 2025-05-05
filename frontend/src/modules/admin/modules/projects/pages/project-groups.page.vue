@@ -3,12 +3,14 @@
     <div class="flex gap-4">
       <!-- Search input -->
       <app-lf-search-input
-        v-if="pagination.total"
+        v-if="pagination.count"
         placeholder="Search project groups..."
         @on-change="onSearchProjectGroup"
       />
       <lf-button
-        v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
+        v-if="
+          pagination.count && hasPermission(LfPermission.projectGroupCreate)
+        "
         size="medium"
         type="secondary-ghost"
         @click="onAddProjectGroup"
@@ -19,25 +21,32 @@
     </div>
 
     <div
-      v-if="loading"
-      v-loading="loading"
+      v-if="isPending"
+      v-loading="isPending"
       class="app-page-spinner h-16 !relative !min-h-5 mt-10"
     />
     <div v-else>
       <!-- Empty state -->
       <app-empty-state-cta
-        v-if="!pagination.total"
+        v-if="!pagination.count"
         class="mt-20"
         icon="folders"
         title="No project groups yet"
-        :description="`${!hasPermission(LfPermission.projectGroupCreate)
-          ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
-        :cta-btn="hasPermission(LfPermission.projectGroupCreate) ? 'Add project group' : null"
+        :description="`${
+          !hasPermission(LfPermission.projectGroupCreate)
+            ? 'Ask an administrator to c'
+            : 'C'
+        }reate your first project group and start integrating your projects`"
+        :cta-btn="
+          hasPermission(LfPermission.projectGroupCreate)
+            ? 'Add project group'
+            : null
+        "
         @cta-click="onAddProjectGroup"
       />
 
       <app-empty-state-cta
-        v-else-if="!pagination.count"
+        v-else-if="!pagination.rows.length"
         icon="folders"
         title="No project groups found"
         description="We couldn't find any results that match your search criteria, please try a different query"
@@ -46,33 +55,33 @@
       <!-- Table -->
       <div v-else class="mt-8">
         <app-lf-project-groups-table
-          :search="searchQuery"
+          :pagination="pagination"
+          :loading="isPending"
+          :is-fetching-next-page="isFetchingNextPage"
           @on-edit-project-group="onEditProjectGroup"
           @on-add-project="onAddProject"
+          @on-load-more="onLoadMore"
         />
       </div>
     </div>
 
     <app-lf-project-group-form
       v-if="isProjectGroupFormDrawerOpen"
-      :id="projectGroupForm.id"
+      :id="projectGroupForm.id!"
       v-model="isProjectGroupFormDrawerOpen"
     />
 
     <app-lf-project-form
       v-if="isProjectFormDrawerOpen"
       v-model="isProjectFormDrawerOpen"
-      :parent-slug="projectGroupForm.parentSlug"
+      :parent-slug="projectGroupForm.parentSlug!"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import {
-  computed, onMounted, reactive, ref,
-} from 'vue';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { computed, reactive, ref } from 'vue';
 import AppLfProjectGroupForm from '@/modules/admin/modules/projects/components/form/lf-project-group-form.vue';
 import AppLfProjectForm from '@/modules/admin/modules/projects/components/form/lf-project-form.vue';
 import AppLfProjectGroupsTable from '@/modules/admin/modules/projects/components/view/lf-project-groups-table.vue';
@@ -82,13 +91,17 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = lsSegmentsStore;
+import { useInfiniteQuery } from '@tanstack/vue-query';
+import { Pagination } from '@/shared/types/Pagination';
+import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { segmentService } from '@/modules/lf/segments/segments.service';
 
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
@@ -96,11 +109,12 @@ const { roles } = storeToRefs(authStore);
 const { trackEvent } = useProductTracking();
 const { hasPermission } = usePermissions();
 
-const loading = computed(() => projectGroups.value.loading);
-const pagination = computed(() => projectGroups.value.pagination);
 const searchQuery = ref('');
 
-const projectGroupForm = reactive({
+const projectGroupForm = reactive<{
+  id: string | null;
+  parentSlug: string | null;
+}>({
   id: null,
   parentSlug: null,
 });
@@ -109,15 +123,74 @@ const isProjectFormDrawerOpen = ref(false);
 
 const isProjectAdminUser = computed(() => roles.value.includes(LfRole.projectAdmin));
 
-onMounted(() => {
-  updateSelectedProjectGroup(null);
-  listProjectGroups({
-    reset: true,
-    adminOnly: isProjectAdminUser.value || null,
-  });
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_PROJECT_GROUPS,
+  isProjectAdminUser.value || null,
+  searchQuery.value,
+]);
+
+// const projectGroupsQueryFn = segmentService.queryProjectGroups(() => ({
+//   limit: 20,
+//   offset: 0,
+//   filter: {
+//     name: searchQuery.value,
+//     adminOnly: isProjectAdminUser.value || null,
+//   }
+// }))
+
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<ProjectGroup>, Error>({
+  queryKey,
+  queryFn: (ctx) => segmentService.queryProjectGroups(() => ({
+    limit: 20,
+    offset: 0, // <-- this gets overwritten anyway by pageParam
+    filter: {
+      name: searchQuery.value,
+      adminOnly: isProjectAdminUser.value || null,
+    },
+  }))(ctx), // <-- invoke the function returned by queryProjectGroups
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalPages = Math.ceil(lastPage.count / lastPage.limit);
+    return nextPage < totalPages ? nextPage : undefined;
+  },
+  initialPageParam: 0,
 });
 
-const onAddProject = (parentSlug) => {
+const pagination = computed((): Pagination<ProjectGroup> => {
+  if (isSuccess.value && data.value) {
+    return {
+      count: data.value.pages[0].count,
+      limit: data.value.pages[0].limit,
+      offset: data.value.pages[0].offset,
+      rows: data.value.pages.reduce(
+        (acc, page) => acc.concat(page.rows),
+        [] as ProjectGroup[],
+      ),
+    };
+  }
+  return {
+    count: 0,
+    limit: 20,
+    offset: 0,
+    rows: [],
+  };
+});
+
+const onLoadMore = () => {
+  if (hasNextPage.value && !isFetchingNextPage.value) {
+    fetchNextPage();
+  }
+};
+
+const onAddProject = (parentSlug: string) => {
   projectGroupForm.parentSlug = parentSlug;
   isProjectFormDrawerOpen.value = true;
 };
@@ -127,23 +200,22 @@ const onAddProjectGroup = () => {
   isProjectGroupFormDrawerOpen.value = true;
 };
 
-const onEditProjectGroup = (id) => {
+const onEditProjectGroup = (id: string) => {
   projectGroupForm.id = id;
   isProjectGroupFormDrawerOpen.value = true;
 };
 
-const onSearchProjectGroup = (val) => {
+const onSearchProjectGroup = (val: string) => {
   trackEvent({
     key: FeatureEventKey.SEARCH_PROJECT_GROUPS,
     type: EventType.FEATURE,
   });
 
   searchQuery.value = val;
-  searchProjectGroup(val);
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfProjectGroupsPage',
 };
