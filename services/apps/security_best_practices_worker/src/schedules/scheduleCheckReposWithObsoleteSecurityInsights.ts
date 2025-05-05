@@ -25,7 +25,7 @@ export const scheduleTriggerSecurityInsightsCheckForRepos = async () => {
         },
         args: [
           {
-            failedRepos: [],
+            failedRepoUrls: [],
           },
         ],
       },

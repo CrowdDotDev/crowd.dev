@@ -1,7 +1,7 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-import { scheduleTriggerSecurityInsightsCheckForRepos } from './schedules/scheduleCheck'
+import { scheduleTriggerSecurityInsightsCheckForRepos } from './schedules/scheduleCheckReposWithObsoleteSecurityInsights'
 
 const config: Config = {
   envvars: ['CROWD_SECURITY_INSIGHTS_GITHUB_TOKEN'],
