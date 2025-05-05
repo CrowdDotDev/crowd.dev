@@ -7,7 +7,7 @@ import type {
   ApiPublicConnection,
   ApiPublicConnectionFull,
 } from '@nangohq/types' assert { 'resolution-mode': 'require' }
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 import { SERVICE, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -123,12 +123,33 @@ export const getNangoConnectionData = async (
 
 let frontendModule: any | undefined = undefined
 
+const handleRateLimitError = async (err): Promise<void> => {
+  if (axios.isAxiosError(err)) {
+    const axiosError = err as AxiosError
+
+    if (axiosError.response?.status === 429) {
+      // Rate limit exceeded
+      const retryAfter = axiosError.response.headers['retry-after']
+      const rateLimitLimit = axiosError.response.headers['x-ratelimit-limit']
+      const rateLimitRemaining = axiosError.response.headers['x-ratelimit-remaining']
+      const rateLimitReset = axiosError.response.headers['x-ratelimit-reset']
+
+      log.warn(
+        `Rate limit exceeded. Retry after ${retryAfter} seconds. Rate limit: ${rateLimitLimit}, Remaining: ${rateLimitRemaining}, Reset: ${rateLimitReset}`,
+      )
+
+      await timeout(parseInt(retryAfter) * 1000)
+    }
+  }
+}
+
 export const createNangoGithubConnection = async (
   repoName: string,
   owner: string,
   tokenConnectionIds: string[],
   appId: string,
   installationId: string,
+  integrationId: string,
   retries = 1,
 ): Promise<string> => {
   log.info(
@@ -146,6 +167,7 @@ export const createNangoGithubConnection = async (
         metadata: {
           repo: `${owner}/${repoName}`,
           connection_ids: tokenConnectionIds,
+          integration_id: integrationId,
         },
       },
       {
@@ -160,15 +182,18 @@ export const createNangoGithubConnection = async (
     return result.data.connection_id
   } catch (err) {
     log.error(err, 'Error creating nango GitHub connection')
+    await handleRateLimitError(err)
 
     if (retries <= MAX_RETRIES) {
       await timeout(100)
+
       return await createNangoGithubConnection(
         repoName,
         owner,
         tokenConnectionIds,
         appId,
         installationId,
+        integrationId,
         retries + 1,
       )
     } else {
