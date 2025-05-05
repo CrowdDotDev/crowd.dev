@@ -7,14 +7,13 @@ class SegmentsService {
   queryProjectGroups(
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<ProjectGroup>> {
-    return async ({ pageParam = 0 }) => {
-      const res = await authAxios.post('/segment/projectGroup/query', {
+    return ({ pageParam = 0 }) => authAxios
+      .post('/segment/projectGroup/query', {
         ...query(),
         offset: pageParam,
         excludeSegments: true,
-      });
-      return res.data;
-    };
+      })
+      .then((res) => res.data);
   }
 }
 
