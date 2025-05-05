@@ -13,6 +13,7 @@ SQL >
         null as projectSlug,
         collections_filtered.name
     from collections_filtered
+    order by collections_filtered.projectCount desc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
     union all
     select
@@ -22,6 +23,7 @@ SQL >
         insightsProjects_filtered.slug as "projectSlug",
         insightsProjects_filtered.name
     from insightsProjects_filtered
+    order by insightsProjects_filtered.contributorCount desc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
     union all
     select
@@ -31,4 +33,5 @@ SQL >
         activityRepositories_filtered.projectSlug as "projectSlug",
         null as name
     from activityRepositories_filtered
+    order by activityRepositories_filtered.repo asc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}

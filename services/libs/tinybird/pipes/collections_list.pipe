@@ -11,18 +11,8 @@ SQL >
         collections_filtered.name,
         collections_filtered.slug,
         collections_filtered.description,
-        SUM(
-            CASE WHEN collectionsInsightsProjects.insightsProjectId != '' THEN 1 ELSE 0 END
-        ) as "projectCount"
+        collections_filtered.projectCount
     FROM collections_filtered
-    left join
-        collectionsInsightsProjects
-        on collectionsInsightsProjects.collectionId = collections_filtered.id
-    group by
-        collections_filtered.id,
-        collections_filtered.name,
-        collections_filtered.slug,
-        collections_filtered.description
     order by
         {{
             column(
