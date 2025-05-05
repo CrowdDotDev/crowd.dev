@@ -23,7 +23,7 @@ export const BINARY_HOME = '/.privateer'
 const execAsync = promisify(exec)
 
 export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> {
-  // get owner and repo name from url in a single line
+  // get owner and repo name from url
   const [owner, repoName] = repoUrl.split('/').slice(-2)
 
   const REPORT_OUTPUT_FILE_PATH = `${BINARY_HOME}/evaluation_results/${repoName.toLowerCase()}/${repoName.toLowerCase()}.yaml`
@@ -40,7 +40,7 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
     `${BINARY_HOME}/${repoName}.yml`,
   ])
 
-  // Check if file exists
+  // check if the output file exists
   if (!existsSync(`${REPORT_OUTPUT_FILE_PATH}`)) {
     throw new Error(`Expected output file not found at ${REPORT_OUTPUT_FILE_PATH}!`)
   }
@@ -53,11 +53,11 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
     throw new Error(`Failed to parse YAML from file: ${err}`)
   }
 
-  // Save file contents to redis
+  // save file contents to redis
   const key = Math.random().toString(36).substring(7)
   await saveOSPSBaselineInsightsToRedis(key, parsedYaml)
 
-  // Delete the file
+  // cleanup generated files
   await cleanupFiles(repoName)
 
   return key
