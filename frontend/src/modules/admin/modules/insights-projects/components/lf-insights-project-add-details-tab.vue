@@ -52,58 +52,14 @@
   <!-- Collections -->
   <article class="mb-5">
     <lf-field label-text="Collections">
-      <el-select
-        v-model="cForm.collectionsIds"
-        multiple
-        placeholder="Select collection(s)"
-        class="w-full"
-      >
-        <el-option
-          v-for="item in collectionsOptions"
-          :key="item.id"
-          :label="item.name"
-          :value="item.id"
-        />
-      </el-select>
+      <lf-insights-projects-add-collection-dropdown :form="cForm" />
     </lf-field>
   </article>
 
   <!-- Associated company -->
   <article class="mb-5">
     <lf-field label-text="Associated company">
-      <el-select
-        v-model="cForm.organizationId"
-        placeholder="Select company"
-        class="w-full"
-        @change="onOrganizationChange"
-      >
-        <template v-if="cForm.organizationId" #prefix>
-          <lf-avatar
-            :src="cForm.organization.logo"
-            :name="cForm.organization.displayName"
-            :size="24"
-            class="!rounded-md border border-gray-200"
-          />
-        </template>
-        <template #label="{ label, value }">
-          <span>{{ label }}: </span>
-          <span style="font-weight: bold">{{ value }}</span>
-        </template>
-        <el-option
-          v-for="item in organizations"
-          :key="item.id"
-          :label="item.displayName"
-          :value="item.id"
-        >
-          <lf-avatar
-            :src="item.logo"
-            :name="item.displayName"
-            :size="24"
-            class="!rounded-md border border-gray-200"
-          />
-          <span class="ml-2 text-gray-900 text-sm">{{ item.displayName }}</span>
-        </el-option>
-      </el-select>
+      <lf-insights-projects-add-organizations-dropdown v-if="cForm.segmentId" :form="cForm" />
     </lf-field>
   </article>
 
@@ -115,14 +71,11 @@
 
   <!-- Website -->
   <article class="mb-5">
-    <lf-field label-text="Website" :required="true">
+    <lf-field label-text="Website">
       <lf-input
         v-model="cForm.website"
         class="h-10"
-        :invalid="$v.website.$invalid && $v.website.$dirty"
         placeholder="https://www.example.com"
-        @blur="$v.website.$touch()"
-        @change="$v.website.$touch()"
       />
       <lf-field-messages
         :validation="$v.website"
@@ -167,15 +120,11 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import useVuelidate from '@vuelidate/core';
-import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { computed, reactive } from 'vue';
-import { useCollectionsStore } from '../../collections/pinia';
+import { reactive } from 'vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
-
-const organizationStore = useOrganizationStore();
-const collectionStore = useCollectionsStore();
+import LfInsightsProjectsAddCollectionDropdown from './add-details-tab/lf-insights-projects-add-collection-dropdown.vue';
+import LfInsightsProjectsAddOrganizationsDropdown from './add-details-tab/lf-insights-projects-add-organizations-dropdown.vue';
 
 const props = defineProps<{
   form: InsightsProjectAddFormModel;
@@ -184,21 +133,6 @@ const props = defineProps<{
 const cForm = reactive(props.form);
 const $v = useVuelidate(props.rules, cForm);
 
-const collectionsOptions = computed(
-  () => collectionStore.getCollections() || [],
-);
-const organizations = computed(
-  () => organizationStore.getOrganizations() || [],
-);
-
-const onOrganizationChange = (value: string) => {
-  const organization = organizations.value.find(
-    (organization) => organization.id === value,
-  );
-  if (organization) {
-    Object.assign(cForm.organization, organization);
-  }
-};
 </script>
 
 <script lang="ts">

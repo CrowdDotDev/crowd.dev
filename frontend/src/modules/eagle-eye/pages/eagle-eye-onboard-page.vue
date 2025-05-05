@@ -19,7 +19,7 @@
         <eagle-eye-platforms
           v-if="step === 3"
           v-model:platforms="form.platforms"
-          v-model:publishedDate="form.datePublished"
+          v-model:published-date="form.datePublished"
           @on-step-change="onStepChange"
         />
         <eagle-eye-summary

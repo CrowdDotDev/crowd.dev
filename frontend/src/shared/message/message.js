@@ -1,5 +1,5 @@
 import { ElNotification } from 'element-plus';
-import 'element-plus/es/components/notification/style/css';
+import 'element-plus/dist/index.css';
 
 import { h } from 'vue';
 

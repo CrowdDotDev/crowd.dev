@@ -1,17 +1,12 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
-
 import * as activities from '../../activities'
 import { IScriptBatchTestArgs } from '../../types'
+import { chunkArray } from '../../utils/common'
 
-const {
-  getOrganizationsToCleanup,
-  deleteOrganization,
-  syncRemoveOrganization,
-  doesActivityExistInQuestDb,
-  excludeEntityFromCleanup,
-} = proxyActivities<typeof activities>({
+const { getOrganizationsToCleanup, deleteOrganization, syncRemoveOrganization } = proxyActivities<
+  typeof activities
+>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -28,23 +23,15 @@ export async function cleanupOrganizations(args: IScriptBatchTestArgs): Promise<
 
   const CHUNK_SIZE = 25
 
-  for (let i = 0; i < organizationIds.length; i += CHUNK_SIZE) {
-    const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
-
+  for (const chunk of chunkArray(organizationIds, CHUNK_SIZE)) {
     const cleanupTasks = chunk.map(async (orgId) => {
-      const isInQuestDb = await doesActivityExistInQuestDb(orgId, EntityType.ORGANIZATION)
-
-      if (isInQuestDb) {
-        console.log(`Organization ${orgId} is in QuestDB, skipping!`)
-        return excludeEntityFromCleanup(orgId, EntityType.ORGANIZATION)
-      }
-
-      console.log(`Deleting organization ${orgId} from opensearch and database!`)
       await syncRemoveOrganization(orgId)
       return deleteOrganization(orgId)
     })
 
-    await Promise.all(cleanupTasks)
+    await Promise.all(cleanupTasks).catch((err) => {
+      console.error('Error cleaning up organizations!', err)
+    })
   }
 
   if (args.testRun) {

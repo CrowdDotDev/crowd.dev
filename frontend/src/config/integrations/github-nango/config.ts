@@ -1,4 +1,5 @@
 import { IntegrationConfig } from '@/config/integrations';
+import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue';
 import GithubConnect from './components/github-connect.vue';
 import GithubParams from './components/github-params.vue';
 import GithubDropdown from './components/github-dropdown.vue';
@@ -17,6 +18,8 @@ const github: IntegrationConfig = {
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
   connectedParamsComponent: GithubParams,
+  settingComponent: LfGithubSettingsDrawer,
+  showProgress: false,
 };
 
 export default github;

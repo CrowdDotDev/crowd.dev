@@ -72,7 +72,7 @@ export class ActivityService {
   }
 
   static async listActivityTypes(segment) {
-    const segments = segment || getSelectedProjectGroup().id;
+    const segments = segment || getSelectedProjectGroup()?.id;
     const response = await authAxios.get(
       '/activity/type',
       {
@@ -86,7 +86,7 @@ export class ActivityService {
   }
 
   static async listActivityChannels(segment) {
-    const segments = segment || getSelectedProjectGroup().id;
+    const segments = segment || getSelectedProjectGroup()?.id;
     const response = await authAxios.get(
       '/activity/channel',
       {
