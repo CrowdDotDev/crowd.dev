@@ -197,7 +197,7 @@ const fillForm = (record?: Project) => {
 };
 
 const { isLoading, isSuccess, data } = useQuery({
-  queryKey: [TanstackKey.ADMIN_PROJECT, props.id],
+  queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS, props.id],
   queryFn: () => {
     if (!props.id) {
       return Promise.resolve(null);
@@ -228,7 +228,7 @@ const onSuccess = () => {
   submitLoading.value = false;
   model.value = false;
   queryClient.invalidateQueries({
-    queryKey: [TanstackKey.ADMIN_PROJECT],
+    queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
   });
   Message.success(`Project ${props.id ? 'updated' : 'created'} successfully`);
 };
