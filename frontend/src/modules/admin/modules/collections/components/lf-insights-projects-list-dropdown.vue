@@ -42,9 +42,9 @@
               :src="project.logoUrl"
               :name="project.name"
               :size="24"
-              class="!rounded-md border border-gray-200"
+              class="!rounded-md border border-gray-200 min-w-5"
             />
-            <span class="ml-2 text-gray-900 text-sm">{{ project.name }}</span>
+            <span class="ml-2 text-gray-900 text-sm line-clamp-2">{{ project.name }}</span>
           </div>
         </div>
       </div>

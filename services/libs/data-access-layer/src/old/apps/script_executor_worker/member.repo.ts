@@ -178,20 +178,16 @@ class MemberRepository {
         SELECT m.id as "memberId"
         FROM members m
         WHERE NOT EXISTS (SELECT 1
-                          FROM activities a
+                          FROM "memberIdentities" mi
+                          WHERE mi."memberId" = m.id)
+          AND NOT EXISTS (SELECT 1
+                          FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
           AND NOT EXISTS (SELECT 1
                           FROM "memberOrganizations" mo
                           WHERE mo."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "memberIdentities" mi
-                          WHERE mi."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "cleanupExcludeList" cel
-                          WHERE cel."entityId" = m.id
-                            AND cel."type" = 'member')
           AND m."manuallyCreated" != true
-        limit $(batchSize);
+        LIMIT $(batchSize);
       `,
       {
         batchSize,

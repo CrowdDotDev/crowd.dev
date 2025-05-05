@@ -1,6 +1,7 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
+import { scheduleMembersCleanup, scheduleOrganizationsCleanup } from './schedules/scheduleCleanup'
 import { scheduleCopyActivitiesFromQuestdbToTinybird } from './schedules/scheduleCopyActivitiesFromQuestdbToTinybird'
 import { schedulePopulateActivityRelations } from './schedules/schedulePopulateActivityRelations'
 
@@ -39,6 +40,9 @@ setImmediate(async () => {
 
   await schedulePopulateActivityRelations()
   await scheduleCopyActivitiesFromQuestdbToTinybird()
+
+  await scheduleMembersCleanup()
+  await scheduleOrganizationsCleanup()
 
   await svc.start()
 })

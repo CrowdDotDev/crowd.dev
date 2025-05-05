@@ -56,3 +56,6 @@ services/libs/*/dist
 **/.tinyenv
 **/*copied_ranges.log*
 services/libs/tinybird/.diff_tmp
+
+# custom cursor rules
+.cursor/rules/*.local.mdc
