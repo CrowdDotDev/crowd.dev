@@ -69,6 +69,8 @@ These sources exist in Postgres (i.e., all Tinybird datasources **except `activi
 - `members`
 - `organizations`
 - `segments`
+- `securityInsightsEvaluationSuiteControlEvaluations`
+- `securityInsightsEvaluationSuiteControlEvaluationAssessments`
 
 **Steps:**
 1. **Pause** the related Sequin sink
