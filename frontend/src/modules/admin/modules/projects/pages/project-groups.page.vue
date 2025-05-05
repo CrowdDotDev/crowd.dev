@@ -81,7 +81,9 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, reactive, ref } from 'vue';
+import {
+  computed, reactive, ref, watch,
+} from 'vue';
 import AppLfProjectGroupForm from '@/modules/admin/modules/projects/components/form/lf-project-group-form.vue';
 import AppLfProjectForm from '@/modules/admin/modules/projects/components/form/lf-project-form.vue';
 import AppLfProjectGroupsTable from '@/modules/admin/modules/projects/components/view/lf-project-groups-table.vue';
@@ -102,6 +104,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
+import Message from '@/shared/message/message';
 
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
@@ -125,7 +128,7 @@ const isProjectAdminUser = computed(() => roles.value.includes(LfRole.projectAdm
 
 const queryKey = computed(() => [
   TanstackKey.ADMIN_PROJECT_GROUPS,
-  isProjectAdminUser.value || null,
+  isProjectAdminUser.value,
   searchQuery.value,
 ]);
 
@@ -175,6 +178,12 @@ const pagination = computed((): Pagination<ProjectGroup> => {
     offset: 0,
     rows: [],
   };
+});
+
+watch(error, (err) => {
+  if (err) {
+    Message.error('Something went wrong while fetching project groups');
+  }
 });
 
 const onLoadMore = () => {
