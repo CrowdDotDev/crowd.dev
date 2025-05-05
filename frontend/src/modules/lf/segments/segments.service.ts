@@ -1,7 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
-import { ProjectGroup } from './types/Segments';
+import { Project, ProjectGroup } from './types/Segments';
 
 class SegmentsService {
   queryProjectGroups(
@@ -16,9 +16,9 @@ class SegmentsService {
       .then((res) => res.data);
   }
 
-  getProjectGroupById(id: string) {
+  getSegmentById(id: string) {
     return authAxios
-      .get<ProjectGroup>(`/segment/${id}`, {
+      .get<ProjectGroup | Project>(`/segment/${id}`, {
         params: {
           segments: [id],
         },
@@ -26,22 +26,34 @@ class SegmentsService {
       .then((res) => res.data);
   }
 
-  updateSegment(id: string, data: ProjectGroup) {
+  updateSegment(id: string, data: ProjectGroup | Project) {
     return authAxios
-      .put<ProjectGroup>(`/segment/${id}`, {
+      .put<ProjectGroup | Project>(`/segment/${id}`, {
         ...data,
         segments: [id],
       })
       .then((res) => res.data);
   }
 
-  createSegment(query: () => Record<string, string | number | object>) {
-    console.log('createSegment', query());
+  createProjectGroup(projectGroup: ProjectGroup) {
     return authAxios
       .post<ProjectGroup>('/segment/projectGroup', {
-        ...query(),
+        ...projectGroup,
         excludeSegments: true,
       })
+      .then((res) => res.data);
+  }
+
+  createProject(req: {
+    project: Project;
+    segments: string[];
+
+  }) {
+    return authAxios
+      .post<ProjectGroup>(
+        '/segment/project',
+        req,
+      )
       .then((res) => res.data);
   }
 }

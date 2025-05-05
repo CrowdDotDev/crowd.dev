@@ -8,8 +8,8 @@
   >
     <template #content>
       <div
-        v-if="isPending"
-        v-loading="isPending"
+        v-if="isLoading"
+        v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
       <div v-else>
@@ -122,7 +122,7 @@
       <lf-button
         type="primary"
         size="medium"
-        :disabled="!hasFormChanged || $v.$invalid || isPending"
+        :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
         {{ isEditForm ? "Update" : "Add project group" }}
@@ -150,6 +150,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
+import Message from '@/shared/message/message';
 
 const emit = defineEmits(['update:modelValue', 'onProjectGroupEdited']);
 
@@ -210,7 +211,7 @@ const fillForm = (record?: ProjectGroup) => {
 };
 
 const {
-  isPending,
+  isLoading,
   isSuccess,
   data,
 } = useQuery(
@@ -220,7 +221,7 @@ const {
       if (!props.id) {
         return Promise.resolve(null);
       }
-      return segmentService.getProjectGroupById(props.id);
+      return segmentService.getSegmentById(props.id);
     },
     enabled: !!props.id,
   },
@@ -228,7 +229,7 @@ const {
 
 watch(data, () => {
   if (isSuccess.value && data.value) {
-    fillForm(data.value);
+    fillForm(data.value as ProjectGroup);
   }
 }, { immediate: true });
 
@@ -265,6 +266,20 @@ const onSubmit = () => {
   }
 };
 
+const queryClient = useQueryClient();
+const onSuccess = () => {
+  submitLoading.value = false;
+  model.value = false;
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
+  });
+  Message.success(`Project Group ${props.id ? 'updated' : 'created'} successfully`);
+};
+
+const onError = () => {
+  Message.error(`Something went wrong while ${props.id ? 'updating' : 'creating'} the project group`);
+};
+
 const updateMutation = useMutation({
   mutationFn: ({ id, form }: { id: string; form: ProjectGroup }) => segmentService.updateSegment(
     id,
@@ -274,20 +289,14 @@ const updateMutation = useMutation({
     onSuccess();
     emit('onProjectGroupEdited');
   },
+  onError,
 });
 
-const queryClient = useQueryClient();
-const onSuccess = () => {
-  submitLoading.value = false;
-  model.value = false;
-  queryClient.invalidateQueries({
-    queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
-  });
-};
-
 const createMutation = useMutation({
-  mutationFn: (form: any) => segmentService.createSegment(() => form),
+  mutationFn: (form: any) => segmentService.createProjectGroup(form),
   onSuccess,
+  onError,
+
 });
 </script>
 
