@@ -36,7 +36,9 @@ declare module 'vue' {
   app.use(pinia);
 
   // Create a client
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 1000 * 60 * 5 } },
+  });
 
   // Install the VueQuery plugin
   app.use(VueQueryPlugin, {

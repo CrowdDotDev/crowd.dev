@@ -97,7 +97,7 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { useInfiniteQuery } from '@tanstack/vue-query';
+import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
 import { Pagination } from '@/shared/types/Pagination';
 import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
 import { TanstackKey } from '@/shared/types/tanstack';
@@ -129,14 +129,14 @@ const queryKey = computed(() => [
   searchQuery.value,
 ]);
 
-// const projectGroupsQueryFn = segmentService.queryProjectGroups(() => ({
-//   limit: 20,
-//   offset: 0,
-//   filter: {
-//     name: searchQuery.value,
-//     adminOnly: isProjectAdminUser.value || null,
-//   }
-// }))
+const projectGroupsQueryFn = segmentService.queryProjectGroups(() => ({
+  limit: 20,
+  offset: 0,
+  filter: {
+    name: searchQuery.value,
+    adminOnly: isProjectAdminUser.value || null,
+  },
+})) as QueryFunction<Pagination<ProjectGroup>, readonly unknown[], unknown>;
 
 const {
   data,
@@ -148,14 +148,7 @@ const {
   error,
 } = useInfiniteQuery<Pagination<ProjectGroup>, Error>({
   queryKey,
-  queryFn: (ctx) => segmentService.queryProjectGroups(() => ({
-    limit: 20,
-    offset: 0, // <-- this gets overwritten anyway by pageParam
-    filter: {
-      name: searchQuery.value,
-      adminOnly: isProjectAdminUser.value || null,
-    },
-  }))(ctx), // <-- invoke the function returned by queryProjectGroups
+  queryFn: projectGroupsQueryFn,
   getNextPageParam: (lastPage) => {
     const nextPage = lastPage.offset + lastPage.limit;
     const totalPages = Math.ceil(lastPage.count / lastPage.limit);
