@@ -134,7 +134,7 @@ const projectGroupsQueryFn = segmentService.queryProjectGroups(() => ({
   offset: 0,
   filter: {
     name: searchQuery.value,
-    adminOnly: isProjectAdminUser.value || null,
+    adminOnly: isProjectAdminUser.value,
   },
 })) as QueryFunction<Pagination<ProjectGroup>, readonly unknown[], unknown>;
 
@@ -179,7 +179,6 @@ const pagination = computed((): Pagination<ProjectGroup> => {
 
 const onLoadMore = () => {
   if (hasNextPage.value && !isFetchingNextPage.value && !isPending.value) {
-    console.log('Loading more project groups...');
     fetchNextPage();
   }
 };
