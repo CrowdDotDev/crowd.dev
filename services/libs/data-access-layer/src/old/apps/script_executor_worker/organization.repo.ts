@@ -100,28 +100,19 @@ class OrganizationRepository {
     // No members linked to this organization (considering soft delete)
     const results = await this.connection.any(
       `
-        SELECT o.id as "orgId"
-            FROM organizations o
-            WHERE
-              NOT EXISTS (
-                SELECT 1
-                FROM activities a
-                WHERE a."organizationId" = o.id
-                  AND a."deletedAt" IS NULL
-              )
-              AND NOT EXISTS (
-                SELECT 1
-                FROM "memberOrganizations" mo
-                WHERE mo."organizationId" = o.id
-              )
-              AND NOT EXISTS (
-                SELECT 1
-                FROM "cleanupExcludeList" cel
-                WHERE cel."entityId" = o.id
-                  AND cel."type" = 'organization'
-              )
-              AND o."manuallyCreated" != true
-            LIMIT $(batchSize);
+      SELECT o.id AS "orgId"
+      FROM organizations o
+      WHERE NOT EXISTS (SELECT 1
+                        FROM "activityRelations" a
+                        WHERE a."organizationId" = o.id)
+        AND NOT EXISTS (SELECT 1
+                        FROM "memberOrganizations" mo
+                        WHERE mo."organizationId" = o.id)
+        AND NOT EXISTS (SELECT 1
+                        FROM "organizationIdentities" oi
+                        WHERE oi."organizationId" = o.id)
+        AND o."manuallyCreated" != true
+      LIMIT $(batchSize);
       `,
       {
         batchSize,

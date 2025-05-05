@@ -1,4 +1,3 @@
-import { excludeEntityFromCleanup } from './activities/cleanup/exlcudeEntity'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -84,7 +83,6 @@ export {
   getMembersToCleanup,
   deleteOrganization,
   syncRemoveOrganization,
-  excludeEntityFromCleanup,
   getOrganizationsToCleanup,
   doesActivityExistInQuestDb,
   queueOrgForAggComputation,

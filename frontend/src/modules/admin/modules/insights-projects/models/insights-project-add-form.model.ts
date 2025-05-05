@@ -1,9 +1,12 @@
+import { CollectionModel } from '../../collections/models/collection.model';
+
 export interface InsightsProjectAddFormModel {
   segmentId: string;
   name: string;
   description: string;
   logoUrl: string;
   collectionsIds: string[];
+  collections: CollectionModel[];
   organizationId: string | undefined;
   slug: string;
   organization: {

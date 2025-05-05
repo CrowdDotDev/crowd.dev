@@ -1,6 +1,6 @@
 import { ElMessageBox } from 'element-plus';
 import { h } from 'vue';
-import 'element-plus/es/components/message-box/style/css';
+import 'element-plus/dist/index.css';
 
 export default ({
   vertical = false,
