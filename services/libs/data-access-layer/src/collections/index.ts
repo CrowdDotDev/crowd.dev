@@ -273,9 +273,5 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
   const toUpdate: Record<string, unknown> = {
     ...project,
   }
-  if (project.repositories) {
-    toUpdate.repositories =
-      project.repositories.length > 0 ? JSON.stringify(project.repositories) : '{}'
-  }
   return toUpdate
 }
