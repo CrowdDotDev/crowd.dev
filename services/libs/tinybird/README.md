@@ -36,6 +36,7 @@
 6. Run `libs/tinybird/scripts/format_all.sh` so that our changes conform to the TinyBird format for our TB version.
 7. Create PR for changes, make sure Tinybird-CI passes.
 8. Once Changes are merged, now point to production instance and `tb push` the latest stuff.
+   1. As before with `tb pull`, you may need to use `tb push /path/to/pipe --force` to overwrite the existing files, if your changes are not being pushed.
 
 ---
 
