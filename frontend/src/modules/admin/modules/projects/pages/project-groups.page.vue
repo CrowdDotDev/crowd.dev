@@ -3,7 +3,7 @@
     <div class="flex gap-4">
       <!-- Search input -->
       <app-lf-search-input
-        v-if="pagination.count"
+        v-if="pagination.count || searchQuery.length"
         placeholder="Search project groups..."
         @on-change="onSearchProjectGroup"
       />
@@ -178,7 +178,7 @@ const pagination = computed((): Pagination<ProjectGroup> => {
 });
 
 const onLoadMore = () => {
-  if (hasNextPage.value && !isFetchingNextPage.value) {
+  if (hasNextPage.value && !isFetchingNextPage.value && !isPending.value) {
     fetchNextPage();
   }
 };

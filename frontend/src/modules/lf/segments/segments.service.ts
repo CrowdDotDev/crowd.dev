@@ -7,6 +7,9 @@ class SegmentsService {
   queryProjectGroups(
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<ProjectGroup>> {
+    console.log('queryProjectGroups', query);
+    console.log('this', this);
+
     return ({ pageParam = 0 }) => authAxios
       .post('/segment/projectGroup/query', {
         ...query(),
