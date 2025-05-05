@@ -20,7 +20,7 @@
 
 ---
 
-## Creating new endpoints
+## Making changes to resources
 1. Install the **tb client** for classic tinybird
     - 1.1. Create a new virtual environment for pip `python3 -m venv .venv`
     - 1.2. Source the venv `source .venv/bin/activate`
@@ -30,8 +30,13 @@
 3. Make sure you are pointing to the correct workspace by `tb workspace ls` and `tb workspace use`
 4. Create new endpoints using the staging instance UI
 5. Pull schema changes into code using `tb pull` while you're pointing to staging workspace
-6. Create PR for changes, make sure Tinybird-CI passes.
-7. Once Changes are merged, now point to production instance and `tb push` the latest stuff.
+   1. You may need to use `tb pull --force` to overwrite the existing files, if your changes are not being fetched.
+   2. You can also use `tb pull --match <resource_name>` to pull only specific resources.
+   3. And you can use a combination of the two previous "tricks": `tb pull --force --match <resource_name>`.
+6. Run `libs/tinybird/scripts/format_all.sh` so that our changes conform to the TinyBird format for our TB version.
+7. Create PR for changes, make sure Tinybird-CI passes.
+8. Once Changes are merged, now point to production instance and `tb push` the latest stuff.
+   1. As before with `tb pull`, you may need to use `tb push /path/to/pipe --force` to overwrite the existing files, if your changes are not being pushed.
 
 ---
 

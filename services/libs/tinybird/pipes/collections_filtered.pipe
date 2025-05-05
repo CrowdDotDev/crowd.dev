@@ -4,8 +4,13 @@ DESCRIPTION >
 NODE collections_filtered_0
 SQL >
     %
-    SELECT *
+    SELECT
+        collections.*,
+        SUM(
+            CASE WHEN collectionsInsightsProjects.insightsProjectId != '' THEN 1 ELSE 0 END
+        ) as "projectCount"
     FROM collections FINAL
+    left join collectionsInsightsProjects on collectionsInsightsProjects.collectionId = collections.id
     where
         1 = 1
         {% if defined(slug) %}
@@ -34,3 +39,11 @@ SQL >
                 )
             }}
         {% end %}
+    group by
+        collections.id,
+        collections.name,
+        collections.slug,
+        collections.description,
+        collections.categoryId,
+        collections.createdAt,
+        collections.updatedAt
