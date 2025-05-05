@@ -275,7 +275,9 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
   }
   if (project.repositories) {
     toUpdate.repositories =
-      project.repositories.length > 0 ? JSON.stringify(project.repositories) : '{}'
+      project.repositories.length > 0
+        ? JSON.stringify(project.repositories).replace('[', '{').replace(']', '}')
+        : '{}'
   }
   return toUpdate
 }
