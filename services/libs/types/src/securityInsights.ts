@@ -12,6 +12,7 @@ export interface ISecurityInsightsEvaluationSuite {
 export interface ISecurityInsightsEvaluationSuiteControlEvaluation {
   id?: string
   securityInsightsEvaluationSuiteId?: string
+  name: string
   repo: string
   insightsProjectId: string
   insightsProjectSlug: string

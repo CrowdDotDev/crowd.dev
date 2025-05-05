@@ -126,6 +126,7 @@ export async function addSuiteControlEvaluation(
             (
                 "id", 
                 "securityInsightsEvaluationSuiteId",
+                "name",
                 "repo", 
                 "insightsProjectId", 
                 "insightsProjectSlug",
@@ -141,6 +142,7 @@ export async function addSuiteControlEvaluation(
             (
                 $(id), 
                 $(securityInsightsEvaluationSuiteId), 
+                $(name),
                 $(repo), 
                 $(insightsProjectId),
                 $(insightsProjectSlug),
@@ -154,7 +156,9 @@ export async function addSuiteControlEvaluation(
             )
         on conflict ("securityInsightsEvaluationSuiteId", "repo", "controlId")
             do update
-            set "updatedAt"        = EXCLUDED."updatedAt",
+            set 
+                "updatedAt"        = EXCLUDED."updatedAt",
+                "name"             = EXCLUDED."name",
                 "result"           = EXCLUDED."result",
                 "message"          = EXCLUDED."message",
                 "corruptedState"   = EXCLUDED."corruptedState",
@@ -164,6 +168,7 @@ export async function addSuiteControlEvaluation(
     {
       id: generateUUIDv4(),
       securityInsightsEvaluationSuiteId: evaluation.securityInsightsEvaluationSuiteId,
+      name: evaluation.name,
       repo: evaluation.repo,
       insightsProjectId: evaluation.insightsProjectId,
       insightsProjectSlug: evaluation.insightsProjectSlug,

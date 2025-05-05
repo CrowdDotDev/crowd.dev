@@ -90,6 +90,7 @@ export async function saveOSPSBaselineInsightsToDB(
   for (const evaluation of evaluationSuite.control_evaluations) {
     await addSuiteControlEvaluation(qx, {
       controlId: evaluation.control_id,
+      name: evaluation.name,
       corruptedState: evaluation.corrupted_state,
       message: evaluation.message,
       repo: repo.repoUrl,

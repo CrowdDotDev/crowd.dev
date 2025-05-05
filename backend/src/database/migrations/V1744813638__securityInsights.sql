@@ -22,6 +22,7 @@ create index "ix_securityInsightsEvaluationSuites_updatedAt_id" on "securityInsi
 create table public."securityInsightsEvaluationSuiteControlEvaluations" (
     "id" uuid not null primary key,
     "securityInsightsEvaluationSuiteId" uuid not null,
+    "name" text not null,
     "repo" text not null,
     "controlId" text not null,
     "result" text not null,
