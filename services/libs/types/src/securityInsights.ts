@@ -9,7 +9,7 @@ export interface ISecurityInsightsEvaluationSuite {
   corruptedState: boolean
 }
 
-export interface ISecurityInsightsEvaluationSuiteControlEvaluation {
+export interface ISecurityInsightsEvaluations {
   id?: string
   securityInsightsEvaluationSuiteId?: string
   name: string
@@ -23,9 +23,9 @@ export interface ISecurityInsightsEvaluationSuiteControlEvaluation {
   remediationGuide: string
 }
 
-export interface ISecurityInsightsEvaluationSuiteControlEvaluationAssessment {
+export interface ISecurityInsightsEvaluationAssessment {
   id?: string
-  securityInsightsEvaluationSuiteControlEvaluationId?: string
+  securityInsightsEvaluationId?: string
   repo: string
   insightsProjectId: string
   insightsProjectSlug: string
