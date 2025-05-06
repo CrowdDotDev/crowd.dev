@@ -614,6 +614,7 @@ export default class IntegrationService {
 
         integration = await txService.createOrUpdate({
           id: integrationId,
+          platform: PlatformType.GITHUB_NANGO,
           settings: {
             ...settings,
             ...(integration.settings.nangoMapping
