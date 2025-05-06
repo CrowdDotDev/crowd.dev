@@ -82,10 +82,10 @@ SQL >
                 )
             )
         ) AS assessments
-    FROM securityInsightsEvaluations eval
+    FROM securityInsightsEvaluations eval final
     left join evaluation_controlId_category_map ecm on ecm.controlId = eval.controlId
     left join
-        securityInsightsEvaluationAssessments assessment
+        securityInsightsEvaluationAssessments assessment final
         on eval.id = assessment.securityInsightsEvaluationId
     where
         eval.result <> 'Not Run'
