@@ -119,7 +119,7 @@ export async function saveOSPSBaselineInsightsToDB(
         runDuration: assessment.run_duration,
         steps: assessment.steps,
         stepsExecuted: assessment.steps_executed,
-        securityInsightsEvaluationSuiteControlEvaluationId: controlEvaluation.id,
+        securityInsightsEvaluationId: controlEvaluation.id,
       })
     }
   }

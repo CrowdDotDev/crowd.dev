@@ -2,7 +2,7 @@ TAGS "Security insights widget"
 
 SCHEMA >
     `id` String `json:$.record.id`,
-    `securityInsightsEvaluationSuiteControlEvaluationId` String `json:$.record.securityInsightsEvaluationSuiteControlEvaluationId` DEFAULT '',
+    `securityInsightsEvaluationId` String `json:$.record.securityInsightsEvaluationId` DEFAULT '',
     `insightsProjectId` String `json:$.record.insightsProjectId` DEFAULT '',
     `insightsProjectSlug` String `json:$.record.insightsProjectSlug` DEFAULT '',
     `repo` String `json:$.record.repo` DEFAULT '',

@@ -82,11 +82,11 @@ SQL >
                 )
             )
         ) AS assessments
-    FROM securityInsightsEvaluationSuiteControlEvaluations eval
+    FROM securityInsightsEvaluations eval
     left join evaluation_controlId_category_map ecm on ecm.controlId = eval.controlId
     left join
-        securityInsightsEvaluationSuiteControlEvaluationAssessments assessment
-        on eval.id = assessment.securityInsightsEvaluationSuiteControlEvaluationId
+        securityInsightsEvaluationAssessments assessment
+        on eval.id = assessment.securityInsightsEvaluationId
     where
         eval.result <> 'Not Run'
         and eval.repo in (select arrayJoin(repositories) from segments_filtered)

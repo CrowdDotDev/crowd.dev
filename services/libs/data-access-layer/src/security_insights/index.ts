@@ -1,8 +1,8 @@
 import { generateUUIDv4 } from '@crowd/common'
 import {
+  ISecurityInsightsEvaluationAssessment,
   ISecurityInsightsEvaluationSuite,
-  ISecurityInsightsEvaluationSuiteControlEvaluation,
-  ISecurityInsightsEvaluationSuiteControlEvaluationAssessment,
+  ISecurityInsightsEvaluations,
   ISecurityInsightsObsoleteRepo,
 } from '@crowd/types'
 
@@ -102,11 +102,11 @@ export async function findSuiteControlEvaluation(
   qx: QueryExecutor,
   repo: string,
   controlId: string,
-): Promise<ISecurityInsightsEvaluationSuiteControlEvaluation | null> {
+): Promise<ISecurityInsightsEvaluations | null> {
   return await qx.selectOneOrNone(
     `
       select *
-      from "securityInsightsEvaluationSuiteControlEvaluations"
+      from "securityInsightsEvaluations"
       where "repo" = $(repo) and "controlId" = $(controlId)
     `,
     {
@@ -118,11 +118,11 @@ export async function findSuiteControlEvaluation(
 
 export async function addSuiteControlEvaluation(
   qx: QueryExecutor,
-  evaluation: ISecurityInsightsEvaluationSuiteControlEvaluation,
+  evaluation: ISecurityInsightsEvaluations,
 ): Promise<void> {
   await qx.result(
     `
-        insert into "securityInsightsEvaluationSuiteControlEvaluations"
+        insert into "securityInsightsEvaluations"
             (
                 "id", 
                 "securityInsightsEvaluationSuiteId",
@@ -183,14 +183,14 @@ export async function addSuiteControlEvaluation(
 
 export async function addControlEvaluationAssessment(
   qx: QueryExecutor,
-  assessment: ISecurityInsightsEvaluationSuiteControlEvaluationAssessment,
+  assessment: ISecurityInsightsEvaluationAssessment,
 ): Promise<void> {
   await qx.result(
     `
-        insert into "securityInsightsEvaluationSuiteControlEvaluationAssessments"
+        insert into "securityInsightsEvaluationAssessments"
             (
                 "id", 
-                "securityInsightsEvaluationSuiteControlEvaluationId",
+                "securityInsightsEvaluationId",
                 "repo", 
                 "insightsProjectId",
                 "insightsProjectSlug",
@@ -208,7 +208,7 @@ export async function addControlEvaluationAssessment(
         values 
             (
                 $(id), 
-                $(securityInsightsEvaluationSuiteControlEvaluationId), 
+                $(securityInsightsEvaluationId), 
                 $(repo), 
                 $(insightsProjectId),
                 $(insightsProjectSlug),
@@ -223,7 +223,7 @@ export async function addControlEvaluationAssessment(
                 now(), 
                 now()
             )
-        on conflict ("securityInsightsEvaluationSuiteControlEvaluationId", "repo", "requirementId")
+        on conflict ("securityInsightsEvaluationId", "repo", "requirementId")
             do update
             set "updatedAt"      = EXCLUDED."updatedAt",
                 "applicability"  = EXCLUDED."applicability",
@@ -237,8 +237,7 @@ export async function addControlEvaluationAssessment(
     `,
     {
       id: generateUUIDv4(),
-      securityInsightsEvaluationSuiteControlEvaluationId:
-        assessment.securityInsightsEvaluationSuiteControlEvaluationId,
+      securityInsightsEvaluationId: assessment.securityInsightsEvaluationId,
       repo: assessment.repo,
       insightsProjectId: assessment.insightsProjectId,
       insightsProjectSlug: assessment.insightsProjectSlug,
