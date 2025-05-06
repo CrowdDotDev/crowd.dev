@@ -55,3 +55,5 @@ export * from './dataIssues'
 export * from './enrichment'
 
 export * from './llm'
+
+export * from './securityInsights'
