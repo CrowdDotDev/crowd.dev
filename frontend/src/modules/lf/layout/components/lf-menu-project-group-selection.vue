@@ -6,8 +6,6 @@
     popper-class="project-groups-select-popper"
     :teleported="false"
     width="255px"
-    @show="onShow"
-    @hide="onHide"
   >
     <template #reference>
       <el-input
@@ -19,7 +17,10 @@
       />
     </template>
 
-    <div v-if="isSearchVisible" class="border-b border-gray-100 px-1 w-full sticky top-0 bg-white">
+    <div
+      v-if="isSearchVisible"
+      class="border-b border-gray-100 px-1 w-full sticky top-0 bg-white"
+    >
       <el-input
         id="filterSearch"
         v-model="searchQuery"
@@ -27,18 +28,27 @@
         class="filter-dropdown-search"
         :prefix-icon="SearchIcon"
         clearable
-        @input="onSearchProjects"
       />
     </div>
 
     <div>
-      <div v-if="loading" class="text-gray-400 px-3 h-20 flex items-center justify-center">
-        <lf-icon name="circle-notch" class="animate-spin text-gray-400" :size="16" />
+      <div
+        v-if="isPending"
+        class="text-gray-400 px-3 h-20 flex items-center justify-center"
+      >
+        <lf-icon
+          name="circle-notch"
+          class="animate-spin text-gray-400"
+          :size="16"
+        />
         <span class="text-tiny ml-1 text-gray-400">
           Loading project groups...
         </span>
       </div>
-      <div v-else-if="projectGroupsList.length" class="flex flex-col gap-1 overflow-auto p-2">
+      <div
+        v-else-if="projectGroupsList.length"
+        class="flex flex-col gap-1 overflow-auto p-2"
+      >
         <div
           v-for="projectGroup of projectGroupsList"
           :key="projectGroup.id"
@@ -54,33 +64,55 @@
                 {{ projectGroup.name }}
               </div>
               <div class="text-tiny text-gray-400">
-                {{ pluralize('project', projectGroup.projects.length, true) }}
+                {{ pluralize("project", projectGroup.projects.length, true) }}
               </div>
             </div>
           </div>
         </div>
+        <div
+          v-if="isFetchingNextPage"
+          class="text-gray-400 px-3 h-20 flex items-center justify-center"
+        >
+          <lf-icon
+            name="circle-notch"
+            class="animate-spin text-gray-400"
+            :size="16"
+          />
+          <span class="text-tiny ml-1 text-gray-400">
+            Loading project groups...
+          </span>
+        </div>
       </div>
-      <div v-else class="text-gray-400 px-3 h-20 flex items-center justify-center">
-        <span class="text-tiny text-gray-400">
-          No project groups found
-        </span>
+      <div
+        v-else
+        class="text-gray-400 px-3 h-20 flex items-center justify-center"
+      >
+        <span class="text-tiny text-gray-400"> No project groups found </span>
       </div>
     </div>
   </el-popover>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
-  h, ref, onMounted, computed,
+  h, ref, onMounted, computed, nextTick, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
-import debounce from 'lodash/debounce';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
+import { Pagination } from '@/shared/types/Pagination';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { useDebounce } from '@vueuse/core';
+import Message from '@/shared/message/message';
+import { segmentService } from '../../segments/segments.service';
+import { ProjectGroup } from '../../segments/types/Segments';
 
 const SearchIcon = h(
   'i', // type
@@ -106,9 +138,10 @@ const { updateSelectedProjectGroup } = lsSegmentsStore;
 
 const searchQuery = ref('');
 const isPopoverVisible = ref(false);
-const projectGroupsList = ref([]);
-const loading = ref(false);
-const isSearchVisible = ref(false);
+const searchValue = useDebounce(searchQuery, 300);
+const isSearchVisible = computed(() => projectGroupsList.value.length > 5);
+
+let scrollContainer: HTMLElement | null = null;
 
 const { trackEvent } = useProductTracking();
 
@@ -121,46 +154,81 @@ const model = computed({
   },
 });
 
-const queryProjectGroups = async () => {
-  loading.value = true;
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_PROJECT_GROUPS,
+  searchValue.value,
+]);
 
-  return LfService.queryProjectGroups({
-    limit: null,
-    offset: 0,
-    filter: {
-      name: searchQuery.value,
-    },
-  }).then(({ rows }) => {
-    projectGroupsList.value = rows;
-    if (searchQuery.value.length === 0 && rows.length > 5) {
-      isSearchVisible.value = true;
-    }
-  }).finally(() => {
-    loading.value = false;
-  });
-};
+const projectGroupsQueryFn = segmentService.queryProjectGroups(() => ({
+  limit: 20,
+  offset: 0,
+  filter: {
+    name: searchQuery.value,
+  },
+})) as QueryFunction<Pagination<ProjectGroup>, readonly unknown[], unknown>;
 
-const onShow = () => {
-  isPopoverVisible.value = true;
-  queryProjectGroups();
-};
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<ProjectGroup>, Error>({
+  queryKey,
+  queryFn: projectGroupsQueryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
 
-const onHide = () => {
-  isPopoverVisible.value = false;
-  loading.value = true;
-};
+const projectGroupsList = computed((): ProjectGroup[] => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+      [] as ProjectGroup[],
+    );
+  }
+  return [];
+});
+
+// Infinite scroll handler
+function onScroll(e: Event) {
+  if (!scrollContainer) return;
+  const threshold = 40;
+
+  const target = e.target as HTMLElement;
+  if (
+    !isFetchingNextPage.value
+    && hasNextPage.value
+    && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
+  ) {
+    fetchNextPage();
+  }
+}
+
+watch(error, (err) => {
+  if (err) {
+    Message.error('Something went wrong while fetching project groups');
+  }
+});
 
 onMounted(() => {
-  queryProjectGroups().then(() => {
-    loading.value = true;
+  nextTick(() => {
+    scrollContainer = document.querySelector(
+      '.project-groups-select-popper',
+    );
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', onScroll);
+    }
   });
 });
 
-const onSearchProjects = debounce(() => {
-  queryProjectGroups();
-}, 300);
-
-const onOptionClick = ({ id, name }) => {
+const onOptionClick = ({ id, name }: ProjectGroup) => {
   trackEvent({
     key: FeatureEventKey.SELECT_PROJECT_GROUP,
     type: EventType.FEATURE,
@@ -175,7 +243,7 @@ const onOptionClick = ({ id, name }) => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfSubProjectsGroupSelection',
 };
@@ -183,23 +251,23 @@ export default {
 
 <style lang="scss">
 .project-groups-select-popper.el-popper {
-    max-width: 236px;
-    max-height: 480px;
-    overflow: auto;
-    @apply p-0;
+  max-width: 236px;
+  max-height: 480px;
+  overflow: auto;
+  @apply p-0;
 }
 
 .project-groups-select-input {
-    @apply cursor-pointer relative w-full;
-    height: 32px !important;
+  @apply cursor-pointer relative w-full;
+  height: 32px !important;
 
-    .el-input__wrapper {
-      @apply rounded;
-      @apply h-8 px-3;
-    }
+  .el-input__wrapper {
+    @apply rounded;
+    @apply h-8 px-3;
+  }
 
-    .el-input__inner {
-        @apply cursor-pointer text-xs truncate pr-6;
-    }
+  .el-input__inner {
+    @apply cursor-pointer text-xs truncate pr-6;
+  }
 }
 </style>
