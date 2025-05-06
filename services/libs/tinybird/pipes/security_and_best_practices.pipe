@@ -96,7 +96,7 @@ SQL >
         {% else %} AND false
         {% end %}
         {% if defined(repo) %}
-            eval.repo = {{ String(repo, description="Filter activity repo", required=False) }}
+            AND eval.repo = {{ String(repo, description="Filter activity repo", required=False) }}
         {% end %}
     group by eval.id, ecm.category, ecm.order, eval.repo, eval.controlId, eval.message, eval.result
     order BY ecm.order, eval.controlId asc
