@@ -177,6 +177,27 @@ export const createNangoGithubConnection = async (
   }
 }
 
+export const connectNangoIntegration = async (
+  integration: NangoIntegration,
+  params: any,
+): Promise<string> => {
+  ensureBackendClient()
+
+  log.info({ params, integration }, 'Creating a nango connection...')
+  const data = await getNangoCloudSessionToken()
+
+  if (!frontendModule) {
+    frontendModule = await import('@nangohq/frontend')
+  }
+
+  const frontendClient = new frontendModule.default({
+    connectSessionToken: data.token,
+  }) as Nango
+
+  const result = await frontendClient.auth(integration, params)
+  return result.connectionId
+}
+
 export const createNangoConnection = async (
   integration: NangoIntegration,
   params: any,

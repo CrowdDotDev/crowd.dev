@@ -34,10 +34,9 @@ const job: IJobDefinition = {
     await initNangoCloudClient()
     const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
 
-    const allIntegrations = await fetchNangoIntegrationData(
-      pgpQx(dbConnection),
-      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
-    )
+    const allIntegrations = await fetchNangoIntegrationData(pgpQx(dbConnection), [
+      ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
+    ])
 
     const nangoConnections = await getNangoConnections()
 
@@ -75,7 +74,9 @@ const job: IJobDefinition = {
           ctx.log.warn(`${int.platform} integration with id "${int.id}" is not connected to Nango!`)
         } else {
           const results = await getNangoConnectionStatus(
-            int.platform as NangoIntegration,
+            int.platform == PlatformType.JIRA
+              ? (int.settings.nangoIntegrationName as NangoIntegration)
+              : (int.platform as NangoIntegration),
             nangoConnection.connection_id,
           )
 
