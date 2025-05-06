@@ -1,6 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
+import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+
+const log = getServiceChildLogger('db.integrations')
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -210,6 +214,22 @@ export interface INangoIntegrationData {
   settings: any
 }
 
+export async function fetchIntegrationById(
+  qx: QueryExecutor,
+  id: string,
+): Promise<INangoIntegrationData | null> {
+  return qx.selectOneOrNone(
+    `
+      select id, platform, settings
+      from integrations
+      where "deletedAt" is null and id = $(id)
+    `,
+    {
+      id,
+    },
+  )
+}
+
 export async function fetchNangoIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
@@ -243,7 +263,7 @@ export async function findIntegrationDataForNangoWebhookProcessing(
              "segmentId",
              settings
       from integrations
-      where id = $(id) or (platform = $(platform) and (settings -> 'nangoMapping') ? $(id))
+      where "deletedAt" is null and (id = $(id) or (platform = $(platform) and (settings -> 'nangoMapping') ? $(id)))
     `,
     {
       id,
@@ -303,4 +323,95 @@ export async function fetchIntegrationsForSegment(
     `,
     { segmentId },
   )
+}
+
+export async function removeGithubNangoConnection(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integrations
+    SET settings = jsonb_set(
+      settings,
+      '{nangoMapping}',
+      COALESCE(settings->'nangoMapping', '{}'::jsonb) - $(connectionId)
+    )
+    WHERE id = $(integrationId)
+    AND settings IS NOT NULL
+    AND settings->'nangoMapping' IS NOT NULL
+    AND settings->'nangoMapping' ? $(connectionId)
+    `,
+    {
+      integrationId,
+      connectionId,
+    },
+  )
+}
+
+export async function addGithubNangoConnection(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+  owner: string,
+  repoName: string,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integrations
+    SET settings =
+      CASE
+        -- When settings doesn't contain nangoMapping, add it as a new object with our key-value pair
+        WHEN settings->'nangoMapping' IS NULL THEN
+          jsonb_set(
+            COALESCE(settings, '{}'::jsonb),
+            '{nangoMapping}',
+            jsonb_build_object($(connectionId), jsonb_build_object('owner', $(owner), 'repoName', $(repoName)))
+          )
+        -- When nangoMapping exists, add/update our key-value pair within it
+        ELSE
+          jsonb_set(
+            settings,
+            '{nangoMapping}',
+            jsonb_set(
+              COALESCE(settings->'nangoMapping', '{}'::jsonb),
+              array[$(connectionId)],
+              jsonb_build_object('owner', $(owner), 'repoName', $(repoName))
+            )
+          )
+      END
+    WHERE id = $(integrationId)
+    `,
+    {
+      integrationId,
+      connectionId,
+      owner,
+      repoName,
+    },
+  )
+}
+
+export async function removeGitHubRepoMapping(
+  qx: QueryExecutor,
+  redisClient: RedisClient,
+  integrationId: string,
+  owner: string,
+  repoName: string,
+): Promise<void> {
+  await qx.result(
+    `
+    update "githubRepos"
+    set "deletedAt" = now()
+    where "integrationId" = $(integrationId)
+    and lower(url) = lower($(repo))
+    `,
+    {
+      integrationId,
+      repo: `https://github.com/${owner}/${repoName}`,
+    },
+  )
+
+  const cache = new RedisCache('githubRepos', redisClient, log)
+  await cache.deleteAll()
 }

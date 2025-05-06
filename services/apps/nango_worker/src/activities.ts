@@ -1,3 +1,21 @@
-import { processNangoWebhook } from './activities/nangoActivities'
+import {
+  analyzeGithubIntegration,
+  createGithubConnection,
+  deleteConnection,
+  processNangoWebhook,
+  removeGithubConnection,
+  setGithubConnection,
+  startNangoSync,
+  unmapGithubRepo,
+} from './activities/nangoActivities'
 
-export { processNangoWebhook }
+export {
+  analyzeGithubIntegration,
+  createGithubConnection,
+  deleteConnection,
+  processNangoWebhook,
+  removeGithubConnection,
+  setGithubConnection,
+  startNangoSync,
+  unmapGithubRepo,
+}
