@@ -133,21 +133,14 @@ import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 import Message from '@/shared/message/message';
 
-const emit = defineEmits(['update:modelValue']);
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  id: {
-    type: String,
-    default: () => null,
-  },
-  parentSlug: {
-    type: String,
-    default: () => null,
-  },
-});
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
+}>();
+
+const props = defineProps<{
+  modelValue: boolean;
+  id?: string | null;
+  parentSlug: string;
+}>();
 
 const route = useRoute();
 
@@ -264,7 +257,7 @@ const onSubmit = () => {
       type: EventType.FEATURE,
     });
     updateMutation.mutate({
-      id: props.id,
+      id: props.id!,
       form: form as Project,
     });
   } else {

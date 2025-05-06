@@ -67,7 +67,7 @@
 
     <app-lf-project-group-form
       v-if="isProjectGroupFormDrawerOpen"
-      :id="projectGroupForm.id!"
+      :id="projectGroupForm.id"
       v-model="isProjectGroupFormDrawerOpen"
     />
 

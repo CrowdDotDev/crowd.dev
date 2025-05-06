@@ -152,18 +152,14 @@ import { TanstackKey } from '@/shared/types/tanstack';
 import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
 import Message from '@/shared/message/message';
 
-const emit = defineEmits(['update:modelValue', 'onProjectGroupEdited']);
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
+  (e: 'onProjectGroupEdited'): void;
+}>();
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  id: {
-    type: String,
-    default: () => null,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  id: string | null;
+}>();
 
 const { trackEvent } = useProductTracking();
 
@@ -253,7 +249,7 @@ const onSubmit = () => {
     });
 
     updateMutation.mutate({
-      id: props.id,
+      id: props.id!,
       form: form as ProjectGroup,
     });
   } else {
