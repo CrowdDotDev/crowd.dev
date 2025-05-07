@@ -16,7 +16,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="projectGroup in projectGroups.list" :key="projectGroup.id" class="cursor-pointer" @click="handleRowClick(projectGroup)">
+        <tr v-for="projectGroup in pagination.rows" :key="projectGroup.id" class="cursor-pointer" @click="handleRowClick(projectGroup)">
           <lf-table-cell class="pl-2">
             <app-lf-status-pill :status="projectGroup.status" class="w-20" />
           </lf-table-cell>
@@ -39,12 +39,12 @@
       </tbody>
     </lf-table>
 
-    <div v-if="!!pagination.count && !projectGroups.loading">
+    <div v-if="!!pagination.count && !loading">
       <app-infinite-pagination
         :total="pagination.count"
-        :page-size="Number(pagination.pageSize)"
-        :current-page="pagination.currentPage || 1"
-        :is-loading="projectGroups.paginating"
+        :page-size="pagination.limit"
+        :current-page="(pagination.offset / pagination.limit) || 1"
+        :is-loading="isFetchingNextPage"
         :use-slot="true"
         @load-more="onLoadMore"
       >
@@ -52,13 +52,13 @@
           class="pt-10 pb-6 gap-4 flex justify-center items-center"
         >
           <p class="text-small text-gray-400">
-            {{ projectGroups.list.length }} of {{ pagination.total }} project groups
+            {{ pagination.rows.length }} of {{ pagination.count }} project groups
           </p>
           <lf-button
             type="primary-ghost"
             loading-text="Loading project groups..."
-            :loading="projectGroups.paginating"
-            @click="onLoadMore(pagination.currentPage + 1)"
+            :loading="isFetchingNextPage"
+            @click="onLoadMore()"
           >
             Load more
           </lf-button>
@@ -68,46 +68,35 @@
   </div>
 </template>
 
-<script setup>
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+<script setup lang="ts">
 import AppLfProjectGroupsDropdown from '@/modules/admin/modules/projects/components/lf-project-groups-dropdown.vue';
-import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
+import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
+import { Pagination } from '@/shared/types/Pagination';
 import AppLfStatusPill from '../fragments/lf-status-pill.vue';
 
-const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
+defineProps<{
+  loading: boolean;
+  isFetchingNextPage: boolean;
+  pagination: Pagination<ProjectGroup>;
+}>();
+
+const emit = defineEmits<{(e: 'onEditProjectGroup', id: string): void;
+  (e: 'onAddProject', slug: string): void;
+  (e: 'onLoadMore'): void;
+}>();
 const router = useRouter();
 
-const lsSegmentsStore = useLfSegmentsStore();
-const { projectGroups } = storeToRefs(lsSegmentsStore);
-const { doChangeProjectGroupCurrentPage, searchProjectGroup } = lsSegmentsStore;
-
-const pagination = computed(() => projectGroups.value.pagination);
-
-const props = defineProps({
-  search: {
-    type: String,
-    default: '',
-  },
-});
-
-const onLoadMore = (currentPage) => {
-  if (!projectGroups.value.paginating) {
-    if (props.search && props.search !== '') {
-      searchProjectGroup(props.search, undefined, undefined, currentPage);
-    } else {
-      doChangeProjectGroupCurrentPage(currentPage);
-    }
-  }
+const onLoadMore = () => {
+  emit('onLoadMore');
 };
 
-const handleRowClick = (row) => {
+const handleRowClick = (row: ProjectGroup) => {
   router.push({
     name: 'adminProjects',
     params: { id: row.id },
@@ -115,7 +104,7 @@ const handleRowClick = (row) => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfProjectGroupsTable',
 };
