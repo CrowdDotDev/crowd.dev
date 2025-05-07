@@ -82,7 +82,6 @@
                         :disabled="!form.type?.length"
                         :remote-method="fetchCategories"
                         @clear="() => {
-                          form.type = null
                           form.categoryId = null
                         }"
                       >
