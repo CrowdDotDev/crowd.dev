@@ -222,6 +222,7 @@ const onProjectSelection = ({ project }: any) => {
       form.logoUrl = project.url;
     }
 
+    form.repositories = initialFormState.repositories;
     form.segmentId = project.id;
   });
 };
