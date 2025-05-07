@@ -26,8 +26,8 @@ export async function triggerSecurityInsightsCheckForRepos(
 
   const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
   const LIMIT_REPOS_TO_CHECK_PER_RUN = 1000
+  const MAX_PARALLEL_CHILDREN = 5
 
-  // We won't try same repos again if they already failed(and retried) in the same-day run
   const repos = await findObsoleteRepos(
     REPOS_OBSOLETE_AFTER_SECONDS,
     failedRepoUrls,
@@ -38,9 +38,11 @@ export async function triggerSecurityInsightsCheckForRepos(
     return
   }
 
-  for (const repo of repos) {
-    try {
-      await executeChild(upsertOSPSBaselineSecurityInsights, {
+  for (let i = 0; i < repos.length; i += MAX_PARALLEL_CHILDREN) {
+    const batch = repos.slice(i, i + MAX_PARALLEL_CHILDREN)
+
+    const tasks = batch.map((repo) =>
+      executeChild(upsertOSPSBaselineSecurityInsights, {
         workflowId: `${info.workflowId}->${repo.repoUrl}`,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
@@ -58,11 +60,13 @@ export async function triggerSecurityInsightsCheckForRepos(
           },
         ],
         searchAttributes: {},
-      })
-    } catch (error) {
-      console.error(`Failed to process repo ${repo.repoUrl}:`, error)
-      failedRepoUrls.push(repo.repoUrl)
-    }
+      }).catch((error) => {
+        console.error(`Failed to process repo ${repo.repoUrl}:`, error)
+        failedRepoUrls.push(repo.repoUrl)
+      }),
+    )
+
+    await Promise.all(tasks)
   }
 
   await continueAsNew<typeof triggerSecurityInsightsCheckForRepos>({
