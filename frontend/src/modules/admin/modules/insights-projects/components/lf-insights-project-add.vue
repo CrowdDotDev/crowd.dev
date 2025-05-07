@@ -34,7 +34,6 @@
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
-          v-if="!isEditForm"
           :selected-project-id="form.segmentId"
           @on-change="onProjectSelection"
         />
@@ -207,8 +206,9 @@ const openModalEditMode = (insightsProjectId: string) => {
         loading.value = false;
       });
     } else {
+      const form = buildForm(res, []);
+      fillForm(form);
       loading.value = false;
-      Message.error('Project not found');
     }
   });
 };
