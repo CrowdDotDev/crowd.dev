@@ -13,7 +13,7 @@ import { ITriggerSecurityInsightsCheckForReposParams } from '../types'
 import { upsertOSPSBaselineSecurityInsights } from './upsertOSPSBaselineSecurityInsights'
 
 const { findObsoleteRepos } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '30 seconds',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 

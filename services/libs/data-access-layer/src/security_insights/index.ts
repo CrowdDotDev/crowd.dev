@@ -38,6 +38,7 @@ export async function findObsoleteReposQx(
           AND EXTRACT(EPOCH FROM (now() - s."updatedAt")) < $(insightsObsoleteAfterSeconds)
       )
       ${failedReposSubquery}
+      order by "repoUrl" asc
       limit $(limit)
     `,
     {
