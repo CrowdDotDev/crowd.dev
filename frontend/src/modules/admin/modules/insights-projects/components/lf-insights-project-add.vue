@@ -215,11 +215,14 @@ const openModalEditMode = (insightsProjectId: string) => {
 
 const onProjectSelection = ({ project }: any) => {
   fetchRepositories(project.id, () => {
-    Object.assign(form, initialFormState);
+    if (!isEditForm.value) {
+      Object.assign(form, initialFormState);
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+    }
+
     form.segmentId = project.id;
-    form.name = project.name;
-    form.description = project.description;
-    form.logoUrl = project.url;
   });
 };
 
