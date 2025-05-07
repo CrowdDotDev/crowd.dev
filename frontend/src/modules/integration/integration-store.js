@@ -807,7 +807,6 @@ export default {
         });
       } catch (error) {
         Errors.handle(error);
-        Message.error('Something went wrong. Please try again later.');
         commit('CREATE_ERROR');
       }
     },

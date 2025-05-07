@@ -5,25 +5,17 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import {
-  DEFAULT_TENANT_ID,
-  EDITION,
-  Error400,
-  Error404,
-  Error542,
-  singleOrDefault,
-} from '@crowd/common'
+import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   NangoIntegration,
+  connectNangoIntegration,
   createNangoConnection,
-  createNangoGithubConnection,
   deleteNangoConnection,
-  getNangoConnectionData,
-  getNangoConnections,
   setNangoMetadata,
   startNangoSync,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -60,6 +52,7 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
+import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -597,71 +590,6 @@ export default class IntegrationService {
     const txService = new IntegrationService(txOptions)
 
     try {
-      // settings.orgs[x].repos and settings.repos contain repositories to sync
-      const repos = new Set<{ owner: string; repoName: string }>()
-      if (settings.orgs) {
-        for (const org of settings.orgs) {
-          for (const repo of org.repos) {
-            repos.add(IntegrationService.parseGithubUrl(repo.url))
-          }
-        }
-      }
-      if (settings.repos) {
-        for (const repo of settings.repos) {
-          repos.add(IntegrationService.parseGithubUrl(repo.url))
-        }
-      }
-
-      if (repos.size === 0) {
-        throw new Error('No github repositories to sync!')
-      }
-
-      const allNangoConnections = await getNangoConnections()
-
-      const tokenConnectionIds = allNangoConnections
-        .filter(
-          (c) =>
-            c.provider_config_key === NangoIntegration.GITHUB &&
-            c.connection_id.toLowerCase().startsWith('github-token-'),
-        )
-        .map((c) => c.connection_id)
-
-      if (tokenConnectionIds.length === 0) {
-        throw new Error('No github token connections found!')
-      }
-
-      const connectionData = await getNangoConnectionData(
-        NangoIntegration.GITHUB,
-        tokenConnectionIds[Math.floor(Math.random() * tokenConnectionIds.length)],
-      )
-
-      const tryCreateNangoConnection = async (
-        repoName: string,
-        owner: string,
-      ): Promise<string | undefined> => {
-        let connectionId: string | undefined
-        try {
-          connectionId = await createNangoGithubConnection(
-            repoName,
-            owner,
-            tokenConnectionIds,
-            connectionData.connection_config.app_id,
-            connectionData.connection_config.installation_id,
-          )
-
-          await startNangoSync(NangoIntegration.GITHUB, connectionId)
-          return connectionId
-        } catch (err) {
-          if (connectionId) {
-            await deleteNangoConnection(NangoIntegration.GITHUB, connectionId)
-          }
-
-          // don't rethrow just log the error because we are gonna check later if all connections have been created
-          this.options.log.error(err, 'Error while creating github nango connection!')
-          return undefined
-        }
-      }
-
       let integration
 
       if (!integrationId) {
@@ -677,104 +605,41 @@ export default class IntegrationService {
 
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integration.id, mapping, false)
-
-        // create nango connections per repository
-        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
-        const promises = []
-        for (const repo of repos) {
-          promises.push(
-            (async () => {
-              const connectionId = await tryCreateNangoConnection(repo.repoName, repo.owner)
-              if (connectionId) {
-                nangoMapping[connectionId] = repo
-              }
-            })(),
-          )
-        }
-
-        await Promise.all(promises)
-
-        // check if all connections have been created
-        if (Object.keys(nangoMapping).length !== repos.size) {
-          this.options.log.error('Not all github nango connections have been created!')
-
-          throw new Error('Not all github nango connections have been created!')
-        }
-
-        // update integration settings to include nango connection ids for repos
-        integration = await txService.createOrUpdate(
-          {
-            id: integrationId,
-            platform: PlatformType.GITHUB_NANGO,
-            settings: {
-              ...settings,
-              nangoMapping,
-            },
-            status: 'done',
-          },
-          transaction,
-        )
       } else {
         // update existing integration
         integration = await txService.findById(integrationId)
-
-        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
-
-        const reposToCreate = new Set<{ owner: string; repoName: string }>()
-
-        // we don't need to remove connections because we are gonna do that with a job periodically
-
-        // check all repos to see if some need to be added
-        for (const repo of repos) {
-          const conn = singleOrDefault(
-            allNangoConnections,
-            (c) =>
-              c.provider_config_key === NangoIntegration.GITHUB &&
-              c.metadata &&
-              c.metadata.integrationId === integrationId &&
-              c.metadata.owner === repo.owner &&
-              c.metadata.repoName === repo.repoName,
-          )
-
-          if (!conn) {
-            reposToCreate.add(repo)
-          }
-        }
-
-        const promises = []
-        for (const toCreate of reposToCreate) {
-          promises.push(
-            (async () => {
-              const connectionId = await tryCreateNangoConnection(toCreate.repoName, toCreate.owner)
-              if (connectionId) {
-                nangoMapping[connectionId] = toCreate
-              }
-            })(),
-          )
-        }
-
-        await Promise.all(promises)
-
-        if (Object.keys(nangoMapping).length !== repos.size) {
-          this.options.log.error('Not all github nango connections have been created!')
-
-          throw new Error('Not all github nango connections have been created!')
-        }
 
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integrationId, mapping, false)
 
         integration = await txService.createOrUpdate({
           id: integrationId,
+          platform: PlatformType.GITHUB_NANGO,
           settings: {
-            ...integration.settings,
-            nangoMapping,
+            ...settings,
+            ...(integration.settings.nangoMapping
+              ? {
+                  nangoMapping: integration.settings.nangoMapping,
+                }
+              : {}),
           },
           transaction,
         })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      await this.options.temporal.workflow.start('syncGithubIntegration', {
+        taskQueue: 'nango',
+        workflowId: `github-nango-sync/${integration.id}`,
+        workflowIdReusePolicy:
+          WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [{ integrationIds: [integration.id] }],
+      })
+
       return integration
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -1618,35 +1483,119 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Jira integration
+   * Adds/updates Jira integration (using nango)
    * @param integrationData  to create the integration object
    * @returns integration object
+   * @remarks
+   * Supports the following authentication methods:
+   * 1. Jira Cloud (basic auth): Requires URL, username, and password (API key)
+   * 2. Jira Data Center (PAT): Requires URL and optionally a Personal Access Token
+   * 3. Jira Data Center (basic auth): Requires URL, username, and password (API key)
    */
-  async jiraConnectOrUpdate(integrationData) {
+  async jiraConnectOrUpdate(integrationData: JiraIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
+    let connectionId: string
     try {
+      const constructNangoConnectionPayload = (
+        integrationData: JiraIntegrationData,
+      ): Record<string, any> => {
+        let jiraIntegrationType: NangoIntegration
+        // nangoPayload is different for each integration
+        // check https://github.com/NangoHQ/nango/blob/bf0aa529ad3b6af1c72ca6a30ccdde7a3e47d064/packages/providers/providers.yaml#L5007
+        let nangoPayload: any
+        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+
+        const baseUrl = integrationData.url.trim()
+        const hostname = new URL(baseUrl).hostname
+        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+        if (isCloudUrl && integrationData.username && integrationData.apiToken) {
+          jiraIntegrationType = NangoIntegration.JIRA_CLOUD_BASIC
+          nangoPayload = {
+            params: {
+              subdomain,
+            },
+            credentials: {
+              username: integrationData.username,
+              password: integrationData.apiToken,
+            },
+          }
+          return { jiraIntegrationType, nangoPayload }
+        }
+
+        if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
+          jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_BASIC
+          nangoPayload = {
+            params: {
+              baseUrl,
+            },
+            credentials: {
+              username: integrationData.username,
+              password: integrationData.apiToken,
+            },
+          }
+          return { jiraIntegrationType, nangoPayload }
+        }
+
+        jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_API_KEY
+        nangoPayload = {
+          params: {
+            baseUrl,
+          },
+          credentials: {
+            apiKey: integrationData.personalAccessToken,
+          },
+        }
+
+        return { jiraIntegrationType, nangoPayload }
+      }
+
+      const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
+      this.options.log.info(
+        `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
+      )
+      connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
+
+      if (integrationData.projects && integrationData.projects.length > 0) {
+        await setNangoMetadata(jiraIntegrationType, connectionId, {
+          projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
+        })
+      }
+
       integration = await this.createOrUpdate(
         {
+          id: connectionId,
           platform: PlatformType.JIRA,
           settings: {
             url: integrationData.url,
             auth: {
               username: integrationData.username,
-              personalAccessToken: integrationData.personalAccessToken,
-              apiToken: integrationData.apiToken,
+              personalAccessToken: integrationData.personalAccessToken
+                ? encryptData(integrationData.personalAccessToken)
+                : null,
+              apiToken: integrationData.apiToken ? encryptData(integrationData.apiToken) : null,
             },
+            nangoIntegrationName: jiraIntegrationType,
             projects: integrationData.projects.map((project) => project.toUpperCase()),
           },
           status: 'done',
         },
         transaction,
       )
-
+      await startNangoSync(jiraIntegrationType, connectionId)
       await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
+    } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.url}`)
+        throw new Error400(this.options.language, 'errors.jira.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.jira.invalidCredentials')
+      }
+      throw error
     }
     return integration
   }

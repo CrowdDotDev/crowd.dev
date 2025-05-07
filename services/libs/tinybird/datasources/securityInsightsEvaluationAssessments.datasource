@@ -1,0 +1,21 @@
+TAGS "Security insights widget"
+
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `securityInsightsEvaluationId` String `json:$.record.securityInsightsEvaluationId` DEFAULT '',
+    `insightsProjectId` String `json:$.record.insightsProjectId` DEFAULT '',
+    `insightsProjectSlug` String `json:$.record.insightsProjectSlug` DEFAULT '',
+    `repo` String `json:$.record.repo` DEFAULT '',
+    `requirementId` String `json:$.record.requirementId` DEFAULT '',
+    `applicability` Array(String) `json:$.record.applicability[:]` DEFAULT [],
+    `description` String `json:$.record.description` DEFAULT '',
+    `result` String `json:$.record.result` DEFAULT '',
+    `message` String `json:$.record.message` DEFAULT '',
+    `stepsExecuted` UInt8 `json:$.record.stepsExecuted` DEFAULT 0,
+    `runDuration` String `json:$.record.runDuration` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY insightsProjectSlug, repo, requirementId
+ENGINE_VER updatedAt
