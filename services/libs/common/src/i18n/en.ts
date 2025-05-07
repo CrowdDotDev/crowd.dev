@@ -124,6 +124,8 @@ const en = {
     },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
+      githubRepoAlreadyMapped:
+        'Trying to update github repo {0} mapping with integrationId {1} but it is already mapped to integration {2}!',
     },
     sentiment: {
       mood: 'Invalid sentiment data. The {1} property must exist and be a number.',

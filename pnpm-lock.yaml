@@ -1357,6 +1357,61 @@ importers:
         specifier: ^2.0.22
         version: 2.0.22
 
+  services/apps/security_best_practices_worker:
+    dependencies:
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@temporalio/client':
+        specifier: ~1.11.1
+        version: 1.11.1
+      '@temporalio/workflow':
+        specifier: ~1.11.1
+        version: 1.11.1
+      axios:
+        specifier: ^1.6.8
+        version: 1.8.1
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+      moment:
+        specifier: ~2.29.4
+        version: 2.29.4
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.3
+      typescript:
+        specifier: ^5.6.3
+        version: 5.6.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.12.7
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.1.0
+
   services/apps/template_consumer:
     dependencies:
       '@crowd/archetype-consumer':
