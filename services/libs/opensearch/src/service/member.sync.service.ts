@@ -1,19 +1,19 @@
-import { DEFAULT_TENANT_ID, distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DEFAULT_TENANT_ID, distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   filterMembersWithActivities,
   findMemberById,
+  getMemberActivityCoreAggregates,
 } from '@crowd/data-access-layer'
-import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   cleanupMemberAggregates,
   fetchAbsoluteMemberAggregates,
   findLastSyncDate,
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
-import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { IMemberActivityCoreAggregates } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
@@ -333,13 +333,13 @@ export class MemberSyncService {
       }
 
       let documentsIndexed = 0
-      let memberData: IMemberSegmentAggregates[]
+      let memberData: IMemberActivityCoreAggregates[]
 
       try {
         memberData = await logExecutionTimeV2(
-          () => getMemberAggregates(this.qdbStore.connection(), memberId),
+          () => getMemberActivityCoreAggregates(qx, memberId),
           this.log,
-          'getMemberAggregates',
+          'getMemberActivityCoreAggregates',
         )
 
         // get segment data to aggregate for projects and project groups
@@ -358,7 +358,7 @@ export class MemberSyncService {
         const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
         for (const projectSegmentId of projectSegmentIds) {
           const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-          const filtered: IMemberSegmentAggregates[] = []
+          const filtered: IMemberActivityCoreAggregates[] = []
           for (const subproject of subprojects) {
             filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
           }
@@ -371,7 +371,7 @@ export class MemberSyncService {
         const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
         for (const projectGroupSegmentId of projectGroupSegmentIds) {
           const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
-          const filtered: IMemberSegmentAggregates[] = []
+          const filtered: IMemberActivityCoreAggregates[] = []
           for (const subproject of subprojects) {
             filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
           }
@@ -385,11 +385,9 @@ export class MemberSyncService {
       }
 
       if (memberData.length === 0) {
-        this.log.info({ memberId }, 'No aggregates found for member - cleaned old data')
+        this.log.info({ memberId }, 'No aggregates found for member - cleaning up old data!')
         await cleanupMemberAggregates(qx, memberId)
       } else {
-        // dedup memberData so no same member-segment duplicates
-        memberData = distinctBy(memberData, (m) => `${m.memberId}-${m.segmentId}`)
         try {
           await this.memberRepo.transactionally(
             async (txRepo) => {
@@ -400,9 +398,21 @@ export class MemberSyncService {
                 'cleanupMemberAggregates',
               )
               await logExecutionTimeV2(
-                () => insertMemberSegments(qx, memberData),
+                () =>
+                  insertMemberSegments(
+                    qx,
+                    memberData.map((m) => ({
+                      ...m,
+                      // Default values for non-nullable fields in the table.
+                      // These columns are computed async later, so we set placeholders.
+                      lastActive: '1970-01-01',
+                      activityTypes: [],
+                      averageSentiment: null,
+                      activeDaysCount: 0,
+                    })),
+                  ),
                 this.log,
-                'insertMemberSegments',
+                'insertMemberCoreAggregates',
               )
             },
             undefined,
@@ -570,43 +580,17 @@ export class MemberSyncService {
 
   private static aggregateData(
     segmentId: string,
-    input: IMemberSegmentAggregates[],
-  ): IMemberSegmentAggregates {
-    let activityCount = 0
-    let activityTypes: string[] = []
-    let activeOn: string[] = []
-    let averageSentiment = 0
-    let lastActive = input[0].lastActive
-
-    // TODO questdb this will not be accurate for projects and project groups for now
-    let activeDaysCount = 0
-
-    for (const data of input) {
-      activityCount += data.activityCount
-      activityTypes = distinct(activityTypes.concat(data.activityTypes))
-      activeOn = distinct(activeOn.concat(data.activeOn))
-      averageSentiment += data.averageSentiment
-
-      // let's just pick the biggest one for now
-      if (data.activeDaysCount > activeDaysCount) {
-        activeDaysCount = data.activeDaysCount
-      }
-
-      if (new Date(data.lastActive) > new Date(lastActive)) {
-        lastActive = data.lastActive
-      }
-    }
+    input: IMemberActivityCoreAggregates[],
+  ): IMemberActivityCoreAggregates {
+    const activityCount = input.reduce((sum, data) => sum + data.activityCount, 0)
+    const activeOn = [...new Set(input.flatMap((data) => data.activeOn))]
 
     return {
       segmentId,
       memberId: input[0].memberId,
 
       activityCount,
-      lastActive,
-      activityTypes,
       activeOn,
-      averageSentiment: Math.round(averageSentiment / input.length),
-      activeDaysCount,
     }
   }
 }

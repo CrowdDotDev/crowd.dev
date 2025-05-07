@@ -1,8 +1,8 @@
 import { DEFAULT_TENANT_ID, distinct } from '@crowd/common'
-import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
+import { getOrganizationActivityCoreAggregates } from '@crowd/data-access-layer'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import {
-  IDbOrganizationAggregateData,
+  IOrganizationActivityCoreAggregates,
   cleanupForOganization,
   insertOrganizationSegments,
 } from '@crowd/data-access-layer/src/organizations'
@@ -253,12 +253,12 @@ export class OrganizationSyncService {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IDbOrganizationAggregateData[] = []
+        let orgData: IOrganizationActivityCoreAggregates[] = []
         try {
           orgData = await logExecutionTimeV2(
-            () => getOrgAggregates(this.qdbStore.connection(), organizationId),
+            () => getOrganizationActivityCoreAggregates(qx, organizationId),
             this.log,
-            'getOrgAggregates',
+            'getOrganizationActivityCoreAggregates',
           )
 
           // get segment data to aggregate for projects and project groups
@@ -277,7 +277,7 @@ export class OrganizationSyncService {
           const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
           for (const projectSegmentId of projectSegmentIds) {
             const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-            const filtered: IDbOrganizationAggregateData[] = []
+            const filtered: IOrganizationActivityCoreAggregates[] = []
             for (const subproject of subprojects) {
               filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
             }
@@ -290,7 +290,7 @@ export class OrganizationSyncService {
           const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
           for (const projectGroupSegmentId of projectGroupSegmentIds) {
             const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
-            const filtered: IDbOrganizationAggregateData[] = []
+            const filtered: IOrganizationActivityCoreAggregates[] = []
             for (const subproject of subprojects) {
               filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
             }
@@ -309,7 +309,7 @@ export class OrganizationSyncService {
         if (orgData.length === 0) {
           this.log.info(
             { organizationId },
-            'No aggregates found for organization - cleaned old data',
+            'No aggregates found for organization - cleaning up old data!',
           )
           await cleanupForOganization(qx, organizationId)
           continue // skip to next organization
@@ -325,7 +325,18 @@ export class OrganizationSyncService {
                 'cleanupForOganization',
               )
               await logExecutionTimeV2(
-                () => insertOrganizationSegments(qx, orgData),
+                () =>
+                  insertOrganizationSegments(
+                    qx,
+                    orgData.map((o) => ({
+                      ...o,
+                      // Default values for non-nullable fields in the table.
+                      // These columns are computed async later, so we set placeholders.
+                      joinedAt: '1970-01-01',
+                      lastActive: '1970-01-01',
+                      avgContributorEngagement: 0,
+                    })),
+                  ),
                 this.log,
                 'insertOrganizationSegments',
               )
@@ -389,40 +400,19 @@ export class OrganizationSyncService {
 
   private static aggregateData(
     segmentId: string,
-    input: IDbOrganizationAggregateData[],
-  ): IDbOrganizationAggregateData {
-    let joinedAt = input[0].joinedAt
-    let lastActive = input[0].lastActive
-    let activeOn: string[] = []
-    let activityCount = 0
-    let memberCount = 0
-    let avgContributorEngagement = 0
-
-    for (const data of input) {
-      activeOn = distinct(activeOn.concat(data.activeOn))
-      activityCount += data.activityCount
-      memberCount += data.memberCount
-      avgContributorEngagement += data.avgContributorEngagement
-
-      if (new Date(joinedAt) > new Date(data.joinedAt)) {
-        joinedAt = data.joinedAt
-      }
-
-      if (new Date(lastActive) < new Date(data.lastActive)) {
-        lastActive = data.lastActive
-      }
-    }
+    input: IOrganizationActivityCoreAggregates[],
+  ): IOrganizationActivityCoreAggregates {
+    const activityCount = input.reduce((sum, data) => sum + data.activityCount, 0)
+    const activeOn = [...new Set(input.flatMap((data) => data.activeOn))]
+    const memberCount = input.reduce((sum, data) => sum + data.memberCount, 0)
 
     return {
       organizationId: input[0].organizationId,
       segmentId,
 
-      joinedAt,
-      lastActive,
       activeOn,
       activityCount,
       memberCount,
-      avgContributorEngagement: Math.round(avgContributorEngagement / input.length),
     }
   }
 

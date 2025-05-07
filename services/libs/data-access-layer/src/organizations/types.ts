@@ -72,6 +72,15 @@ export interface IDbOrganizationAggregateData {
   avgContributorEngagement: number
 }
 
+export interface IOrganizationActivityCoreAggregates {
+  organizationId: string
+  segmentId: string
+
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+}
+
 export interface IDbOrgIdentity {
   platform: string
   type: OrganizationIdentityType

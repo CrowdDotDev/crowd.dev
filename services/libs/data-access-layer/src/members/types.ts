@@ -26,7 +26,15 @@ export interface IMemberSegmentAggregates {
   activeDaysCount: number
 }
 
-export interface IMemberAbsoluteAggregates {
+export interface IMemberActivityCoreAggregates {
+  memberId: string
+  segmentId: string
+
+  activityCount: number
+  activeOn: string[]
+}
+
+export interface IMemberActivitySummary {
   activityCount: number
   lastActive: string
 }

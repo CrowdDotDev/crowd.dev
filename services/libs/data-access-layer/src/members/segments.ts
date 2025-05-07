@@ -4,7 +4,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 
-import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
+import { IMemberActivitySummary, IMemberSegmentAggregates } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
@@ -81,7 +81,7 @@ export async function fetchManyMemberSegments(
 export async function fetchAbsoluteMemberAggregates(
   qx: QueryExecutor,
   memberId: string,
-): Promise<IMemberAbsoluteAggregates> {
+): Promise<IMemberActivitySummary> {
   return qx.selectOneOrNone(
     `
       SELECT SUM("activityCount") as "activityCount",

@@ -21,7 +21,6 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { IMemberSegmentAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
@@ -29,7 +28,6 @@ import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
-import { IDbOrganizationAggregateData } from '../organizations'
 import { QueryExecutor, formatQuery } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
@@ -780,184 +778,6 @@ export async function getMostActiveMembers(
   })
 
   return result
-}
-
-export async function getOrgAggregates(
-  qdbConn: DbConnOrTx,
-  organizationId: string,
-): Promise<IDbOrganizationAggregateData[]> {
-  const result = await qdbConn.any(
-    `
-      WITH
-        platforms AS (
-          SELECT
-            DISTINCT
-            a."organizationId",
-            a."segmentId",
-            a.platform
-          FROM activities a
-          WHERE a."organizationId" = $(organizationId)
-        ),
-        platforms_agg AS (
-          SELECT
-            p."organizationId",
-            p."segmentId",
-            string_distinct_agg(p.platform, ':') AS "activeOn"
-          FROM platforms p
-        ),
-        activites_agg AS (
-          SELECT
-            a."organizationId",
-            a."segmentId",
-            count_distinct(a."memberId")      AS "memberCount",
-            count_distinct(a.id)              AS "activityCount",
-            max(a.timestamp)                  AS "lastActive",
-            min(a.timestamp)                  AS "joinedAt",
-            coalesce(round(avg(a.score)), 0)  AS "avgContributorEngagement"
-          FROM activities a
-          WHERE a."organizationId" = $(organizationId)
-            AND a."deletedAt" IS NULL
-          GROUP BY a."organizationId", a."segmentId"
-        )
-      SELECT
-        a."organizationId",
-        a."segmentId",
-        -- <option1>
-        MIN(a."memberCount") AS "memberCount",
-        MIN(a."activityCount") AS "activityCount",
-        MIN(a."lastActive") AS "lastActive",
-        MIN(a."joinedAt") AS "joinedAt",
-        MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        string_distinct_agg(p.platform, ':') AS "activeOn"
-        -- </option1>
-
-        -- -- <option2>
-        -- a.memberCount,
-        -- a.activityCount,
-        -- a.lastActive,
-        -- a.joinedAt,
-        -- p.activeOn
-        -- -- </option2>
-      FROM activites_agg a
-
-      -- <option1>
-      JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
-      GROUP BY a."organizationId", a."segmentId"
-      -- </option1>
-
-      -- -- <option2>
-      -- JOIN platforms_agg p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
-      -- -- </option2>
-      ;
-    `,
-    {
-      organizationId,
-    },
-  )
-
-  return result.map((r) => ({
-    organizationId,
-    segmentId: r.segmentId,
-    memberCount: parseInt(r.memberCount),
-    activityCount: parseInt(r.activityCount),
-    activeOn: r.activeOn.split(':'),
-    lastActive: r.lastActive,
-    joinedAt: r.joinedAt,
-    avgContributorEngagement: parseInt(r.avgContributorEngagement),
-  }))
-}
-
-export async function getMemberAggregates(
-  qdbConn: DbConnOrTx,
-  memberId: string,
-): Promise<IMemberSegmentAggregates[]> {
-  const results = await qdbConn.any(
-    `
-    WITH
-      platforms AS (
-        SELECT
-          DISTINCT
-          a."memberId",
-          a."segmentId",
-          a.platform
-        FROM activities a
-        WHERE a."memberId" = $(memberId)
-      ),
-      activity_types AS (
-        SELECT
-          DISTINCT
-          a."memberId",
-          a."segmentId",
-          a.platform,
-          a.type
-        FROM activities a
-        WHERE a."memberId" = $(memberId)
-      ),
-      platforms_agg AS (
-        SELECT
-          p."memberId",
-          p."segmentId",
-          string_distinct_agg(p.platform, ':') AS "activeOn"
-        FROM platforms p
-        GROUP BY 1, 2
-      ),
-      activity_types_agg AS (
-        SELECT
-          at."memberId",
-          at."segmentId",
-          string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
-        FROM activity_types at
-        GROUP BY 1, 2
-      ),
-      activites_agg AS (
-        SELECT
-          a."memberId",
-          a."segmentId",
-          count_distinct(a.id)              AS "activityCount",
-          max(a.timestamp)                  AS "lastActive",
-          count_distinct(date_trunc('day', a.timestamp))   AS "activeDaysCount",
-          avg(a.sentimentScore)             AS "averageSentiment"
-        FROM activities a
-        WHERE a."memberId" = $(memberId)
-          AND a."deletedAt" IS NULL
-        GROUP BY a."memberId", a."segmentId"
-      )
-    SELECT
-      a."memberId",
-      a."segmentId",
-
-      a.activityCount,
-      a.lastActive,
-      a.activeDaysCount,
-      a.averageSentiment,
-      '' AS "activeOn",
-      '' AS "activityTypes"
-      -- p.activeOn,
-      -- at.activityTypes
-    FROM activites_agg a
-
-    -- JOIN platforms_agg p ON p.memberId = a.memberId AND p.segmentId = a.segmentId
-    -- JOIN activity_types_agg at ON at.memberId = a.memberId AND at.segmentId = a.segmentId
-    ;
-    `,
-    {
-      memberId,
-    },
-  )
-
-  return results.map((result) => {
-    return {
-      memberId: result.memberId,
-      segmentId: result.segmentId,
-      // --
-      activityCount: parseInt(result.activityCount),
-      lastActive: result.lastActive,
-      activeDaysCount: result.activeDaysCount,
-      averageSentiment: parseFloat(result.averageSentiment),
-      activeOn: result.activeOn.split(':'),
-      activityTypes: result.activityTypes.split('|'),
-    }
-  })
 }
 
 export async function getActivityCountOfMemberIdentities(
