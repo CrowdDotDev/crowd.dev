@@ -76,6 +76,7 @@
                         placeholder="Select type"
                         class="w-full category-select"
                         filterable
+                        clearable
                         remote
                         :disabled="!form.type.length"
                         :remote-method="fetchCategories"
