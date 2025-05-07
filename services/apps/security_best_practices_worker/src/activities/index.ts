@@ -156,25 +156,44 @@ async function cleanupFiles(repoName: string): Promise<void> {
   }
 }
 
-async function runBinary(binaryPath: string, args: string[] = []): Promise<void> {
+async function runBinary(
+  binaryPath: string,
+  args: string[] = [],
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     svc.log.info(`Running binary: ${binaryPath} with args: ${args.join(' ')}`)
+
     const proc = spawn(binaryPath, args, {
-      stdio: 'inherit',
       cwd: '/.privateer',
+      shell: false,
+    })
+
+    let stdout = ''
+    let stderr = ''
+
+    proc.stdout?.on('data', (data) => {
+      const text = data.toString()
+      stdout += text
+      svc.log.info(`[stdout] ${text.trim()}`)
+    })
+
+    proc.stderr?.on('data', (data) => {
+      const text = data.toString()
+      stderr += text
+      svc.log.warn(`[stderr] ${text.trim()}`)
     })
 
     proc.on('error', (err) => {
-      svc.log.info(`Error running binary: ${err}`)
+      svc.log.error(`Error running binary: ${err}`)
       reject(err)
     })
 
-    proc.on('exit', (code) => {
+    proc.on('close', (code) => {
       if (code === 0) {
-        svc.log.info(`Binary completed successfully with code ${code}`)
-        resolve()
+        svc.log.info(`Binary completed successfully`)
+        resolve({ stdout, stderr })
       } else {
-        reject(new Error(`Binary exited with code ${code}`))
+        reject(new Error(`Binary exited with code ${code}\nStderr:\n${stderr}`))
       }
     })
   })
