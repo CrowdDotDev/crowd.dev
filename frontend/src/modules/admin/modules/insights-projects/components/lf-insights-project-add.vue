@@ -34,6 +34,7 @@
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
+          v-if="!isEditForm || !form.segmentId"
           :selected-project-id="form.segmentId"
           @on-change="onProjectSelection"
         />
