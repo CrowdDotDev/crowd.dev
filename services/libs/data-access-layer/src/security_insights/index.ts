@@ -26,7 +26,7 @@ export async function findObsoleteReposQx(
                 unnest(repositories) as "repoUrl"
             from "insightsProjects"
       )
-      select
+      select distinct
           "insightsProjectId",
           "insightsProjectSlug",
           "repoUrl"
