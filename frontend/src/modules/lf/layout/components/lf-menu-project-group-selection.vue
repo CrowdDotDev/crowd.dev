@@ -96,6 +96,7 @@
 <script setup lang="ts">
 import {
   h, ref, onMounted, computed, nextTick, watch,
+  onBeforeUnmount,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -241,6 +242,12 @@ const onOptionClick = ({ id, name }: ProjectGroup) => {
   isPopoverVisible.value = false;
   updateSelectedProjectGroup(id);
 };
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
+});
 </script>
 
 <script lang="ts">
