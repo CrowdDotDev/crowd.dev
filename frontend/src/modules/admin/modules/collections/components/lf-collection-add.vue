@@ -87,7 +87,7 @@
                       >
                         <el-option
                           v-if="collection"
-                          :label="props.collection?.category.name"
+                          :label="props.collection?.category?.name"
                           :value="props.collection?.categoryId"
                           class="!px-3 !hidden"
                         />
@@ -212,7 +212,7 @@ const isEditForm = computed(() => !!props.collection?.id);
 const fillForm = (record?: CollectionModel) => {
   if (record) {
     Object.assign(form, record);
-    form.type = record.category.categoryGroupType;
+    form.type = record.category?.categoryGroupType;
     form.categoryId = record.categoryId || null;
   }
 
