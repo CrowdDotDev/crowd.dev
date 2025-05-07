@@ -37,6 +37,7 @@ export async function findObsoleteReposQx(
           where s.repo = all_repos."repoUrl"
           AND EXTRACT(EPOCH FROM (now() - s."updatedAt")) < $(insightsObsoleteAfterSeconds)
       )
+      and "repoUrl" like 'https://github.com%'
       ${failedReposSubquery}
       order by "repoUrl" asc
       limit $(limit)
