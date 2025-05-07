@@ -1371,6 +1371,9 @@ importers:
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging

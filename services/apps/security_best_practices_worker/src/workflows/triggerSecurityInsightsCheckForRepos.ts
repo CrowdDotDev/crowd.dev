@@ -60,7 +60,7 @@ export async function triggerSecurityInsightsCheckForRepos(
         searchAttributes: {},
       })
     } catch (error) {
-      console.error(`Failed to process repo ${repo}:`, error)
+      console.error(`Failed to process repo ${repo.repoUrl}:`, error)
       failedRepoUrls.push(repo.repoUrl)
     }
   }

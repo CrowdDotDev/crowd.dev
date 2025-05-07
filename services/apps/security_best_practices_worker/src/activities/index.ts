@@ -12,6 +12,7 @@ import {
   findSuiteControlEvaluation,
 } from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
 import { ISecurityInsightsObsoleteRepo } from '@crowd/types'
 
@@ -23,6 +24,14 @@ export const BINARY_HOME = '/.privateer'
 const execAsync = promisify(exec)
 
 export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> {
+  const cache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
+  const tokenRotator = new GithubTokenRotator(
+    cache,
+    process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(','),
+  )
+
+  const token = await tokenRotator.getToken()
+
   // get owner and repo name from url
   const [owner, repoName] = repoUrl.split('/').slice(-2)
 
@@ -31,14 +40,39 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
   // prepare config file for privateer
   await execAsync(
     `cp ${BINARY_HOME}/example-config.yml ${BINARY_HOME}/${repoName}.yml &&
-     sed -i.bak -e "s/\\$REPO_NAME/${repoName}/g" -e "s/\\$REPO_OWNER/${owner}/g" -e "s/\\$GITHUB_TOKEN/${process.env.CROWD_SECURITY_INSIGHTS_GITHUB_TOKEN}/g" ${BINARY_HOME}/${repoName}.yml && rm ${BINARY_HOME}/${repoName}.yml.bak`,
+     sed -i.bak -e "s/\\$REPO_NAME/${repoName}/g" -e "s/\\$REPO_OWNER/${owner}/g" -e "s/\\$GITHUB_TOKEN/${token}/g" ${BINARY_HOME}/${repoName}.yml && rm ${BINARY_HOME}/${repoName}.yml.bak`,
   )
 
-  await runBinary(`${BINARY_HOME}/bin/privateer`, [
-    'run',
-    '--config',
-    `${BINARY_HOME}/${repoName}.yml`,
-  ])
+  try {
+    const { stdout, stderr } = await runBinary(`${BINARY_HOME}/bin/privateer`, [
+      'run',
+      '--config',
+      `${BINARY_HOME}/${repoName}.yml`,
+    ])
+
+    const combinedOutput = `${stdout}\n${stderr}`
+
+    if (combinedOutput.includes('403')) {
+      svc.log.warn('Detected 403 error in privateer output!')
+      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
+      throw new Error(
+        '403 error detected in privateer output, token info updated, retrying by throwing this error!',
+      )
+    }
+  } catch (err: any) {
+    svc.log.error(`Privateer run failed: ${err.message}`)
+
+    // check for 403 in captured output if available
+    const output = `${err.stdout || ''}\n${err.stderr || ''}`
+    if (output.includes('403')) {
+      svc.log.warn('Detected 403 error in failed privateer output!')
+      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
+      throw new Error(
+        '403 error detected in privateer output, token info updated, retrying by throwing this error!',
+      )
+    }
+    throw err
+  }
 
   // check if the output file exists
   if (!existsSync(`${REPORT_OUTPUT_FILE_PATH}`)) {
@@ -193,8 +227,36 @@ async function runBinary(
         svc.log.info(`Binary completed successfully`)
         resolve({ stdout, stderr })
       } else {
-        reject(new Error(`Binary exited with code ${code}\nStderr:\n${stderr}`))
+        reject(new Error(`Binary exited with code ${code}\nStderr:\n${stderr}Stdout:\n${stdout}`))
       }
     })
   })
+}
+
+export async function checkTokens(): Promise<boolean> {
+  const cache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
+  const tokenRotator = new GithubTokenRotator(
+    cache,
+    process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(','),
+  )
+
+  const tokens = await tokenRotator.getAllTokens()
+
+  for (const token of tokens) {
+    try {
+      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
+    } catch (e) {
+      // something is wrong with the token, remove it from the list
+      tokenRotator.removeToken(token)
+    }
+  }
+
+  try {
+    const token = await tokenRotator.getToken()
+    if (token) {
+      return true
+    }
+  } catch (e) {
+    return false
+  }
 }

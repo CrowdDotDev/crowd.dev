@@ -4,7 +4,7 @@ import { Options, ServiceWorker } from '@crowd/archetype-worker'
 import { scheduleTriggerSecurityInsightsCheckForRepos } from './schedules/scheduleCheckReposWithObsoleteSecurityInsights'
 
 const config: Config = {
-  envvars: ['CROWD_SECURITY_INSIGHTS_GITHUB_TOKEN'],
+  envvars: ['CROWD_SECURITY_INSIGHTS_GITHUB_TOKEN', 'CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'],
   producer: {
     enabled: false,
   },
