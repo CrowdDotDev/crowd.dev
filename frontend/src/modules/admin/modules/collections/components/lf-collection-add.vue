@@ -56,7 +56,7 @@
                 </lf-field>
               </article>
 
-              <!-- Description -->
+              <!-- Category -->
               <article class="mb-5">
                 <lf-field label-text="Category">
                   <div class="flex">
@@ -65,6 +65,7 @@
                         v-model="form.type"
                         placeholder="Select type"
                         class="w-full type-select"
+                        clearable
                       >
                         <el-option label="Industry" value="vertical" />
                         <el-option label="Stack" value="horizontal" />
@@ -78,8 +79,12 @@
                         filterable
                         clearable
                         remote
-                        :disabled="!form.type.length"
+                        :disabled="!form.type?.length"
                         :remote-method="fetchCategories"
+                        @clear="() => {
+                          form.type = null
+                          form.categoryId = null
+                        }"
                       >
                         <el-option
                           v-if="collection"
@@ -177,7 +182,7 @@ const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
   type: '',
-  categoryId: '',
+  categoryId: null,
   projects: [],
 });
 
@@ -209,7 +214,7 @@ const fillForm = (record?: CollectionModel) => {
   if (record) {
     Object.assign(form, record);
     form.type = record.category.categoryGroupType;
-    form.categoryId = record.categoryId || '';
+    form.categoryId = record.categoryId || null;
   }
 
   formSnapshot();
@@ -291,7 +296,7 @@ const fetchCategories = (query: string) => {
     offset: 0,
     limit: 20,
     query,
-    groupType: form.type,
+    groupType: form.type || undefined,
   })
     .then((res) => {
       form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
@@ -302,7 +307,7 @@ const fetchCategories = (query: string) => {
 watch(
   () => form.type,
   () => {
-    form.categoryId = '';
+    form.categoryId = null;
     fetchCategories('');
   },
 );

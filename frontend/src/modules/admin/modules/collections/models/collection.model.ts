@@ -15,7 +15,7 @@ export interface CollectionModel {
 export interface CollectionFormModel {
   name: string;
   description: string;
-  type: string;
-  categoryId: string;
+  type: string | null;
+  categoryId: string | null;
   projects: InsightsProjectModel[];
 }
