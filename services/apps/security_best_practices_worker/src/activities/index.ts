@@ -261,7 +261,9 @@ export async function getNextToken(tokenInfos: ITokenInfo[]): Promise<ITokenInfo
 
   // sort usable tokens by last used date from oldest to newest
   const sortedTokenInfos = usableTokenInfos.sort((a, b) => {
-    return a.lastUsed.getTime() - b.lastUsed.getTime()
+    const aTime = new Date(a.lastUsed).getTime()
+    const bTime = new Date(b.lastUsed).getTime()
+    return aTime - bTime
   })
 
   if (sortedTokenInfos.length === 0) {
