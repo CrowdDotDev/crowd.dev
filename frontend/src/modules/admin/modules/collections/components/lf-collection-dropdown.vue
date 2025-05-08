@@ -12,7 +12,7 @@
       </lf-dropdown-item>
       <lf-dropdown-item @click="starCollection()">
         <lf-icon name="star" />
-        {{ collection.starred ? 'Unfeature' : 'Feature' }} collection
+        {{ collection.starred ? 'Unmark' : 'Mark' }} as featured
       </lf-dropdown-item>
       <lf-dropdown-item type="danger" @click="deleteCollection()">
         <lf-icon name="trash-can" />
