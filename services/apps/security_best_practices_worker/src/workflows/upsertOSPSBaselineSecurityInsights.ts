@@ -7,7 +7,7 @@ const { getOSPSBaselineInsights, saveOSPSBaselineInsightsToDB } = proxyActivitie
   typeof activities
 >({
   startToCloseTimeout: '2 minutes',
-  retry: { maximumAttempts: 2, initialInterval: 2 * 1000, backoffCoefficient: 3 },
+  retry: { maximumAttempts: 5, initialInterval: 2 * 1000, backoffCoefficient: 1 },
 })
 
 export async function upsertOSPSBaselineSecurityInsights(
