@@ -193,14 +193,14 @@ const onEditCollection = (collectionId: string) => {
 
 const ontoggleStar = (collectionId: string) => {
   Message.info(null, {
-    title: 'Collection is being starred',
+    title: 'Collection is being featured',
   });
   const collection = collections.value.find((collection) => collection.id === collectionId);
   collection!.starred = !collection!.starred;
   CollectionsService.update(collectionId, collection)
     .then(() => {
       Message.closeAll();
-      Message.success('Collection successfully starred');
+      Message.success(`Collection successfully ${collection!.starred ? 'featured' : 'unfeatured'}`);
       offset.value = 0;
       fetchCollections();
     })
