@@ -13,7 +13,9 @@ import { ITokenInfo, ITriggerSecurityInsightsCheckForReposParams } from '../type
 
 import { upsertOSPSBaselineSecurityInsights } from './upsertOSPSBaselineSecurityInsights'
 
-const { findObsoleteRepos, getNextToken } = proxyActivities<typeof activities>({
+const { findObsoleteRepos, getNextToken, initializeTokenInfos } = proxyActivities<
+  typeof activities
+>({
   startToCloseTimeout: '30 seconds',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
@@ -29,14 +31,7 @@ export async function triggerSecurityInsightsCheckForRepos(
   const MAX_PARALLEL_CHILDREN = 3
   const MAX_TOKEN_ATTEMPTS = 5
 
-  const tokenInfos: ITokenInfo[] = process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS']
-    .split(',')
-    .map((token) => ({
-      token,
-      inUse: false,
-      lastUsed: new Date(),
-      isRateLimited: false,
-    }))
+  const tokenInfos: ITokenInfo[] = await initializeTokenInfos()
 
   const repos = await findObsoleteRepos(
     REPOS_OBSOLETE_AFTER_SECONDS,

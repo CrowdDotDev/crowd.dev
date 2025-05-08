@@ -285,3 +285,16 @@ export async function acquireToken(tokenInfos: ITokenInfo[], token: string): Pro
     tokenInfo.inUse = true
   }
 }
+
+export async function initializeTokenInfos(): Promise<ITokenInfo[]> {
+  const tokenInfos: ITokenInfo[] = process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS']
+    .split(',')
+    .map((token) => ({
+      token,
+      inUse: false,
+      lastUsed: new Date(),
+      isRateLimited: false,
+    }))
+
+  return tokenInfos
+}

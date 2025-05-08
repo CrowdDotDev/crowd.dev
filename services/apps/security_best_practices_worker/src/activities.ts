@@ -3,6 +3,7 @@ import {
   findObsoleteRepos,
   getNextToken,
   getOSPSBaselineInsights,
+  initializeTokenInfos,
   releaseToken,
   saveOSPSBaselineInsightsToDB,
 } from './activities/index'
@@ -14,4 +15,5 @@ export {
   acquireToken,
   releaseToken,
   getNextToken,
+  initializeTokenInfos,
 }
