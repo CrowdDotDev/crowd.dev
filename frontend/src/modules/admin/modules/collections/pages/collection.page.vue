@@ -196,6 +196,11 @@ const ontoggleStar = (collectionId: string) => {
     title: 'Collection is being featured',
   });
   const collection = collections.value.find((collection) => collection.id === collectionId);
+  if (!collection) {
+    Message.closeAll();
+    Message.error('Collection not found');
+    return;
+  }
   collection!.starred = !collection!.starred;
   CollectionsService.update(collectionId, collection)
     .then(() => {
