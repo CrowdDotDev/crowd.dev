@@ -13,6 +13,6 @@ const { getOSPSBaselineInsights, saveOSPSBaselineInsightsToDB } = proxyActivitie
 export async function upsertOSPSBaselineSecurityInsights(
   args: IUpsertOSPSBaselineSecurityInsightsParams,
 ): Promise<void> {
-  const key = await getOSPSBaselineInsights(args.repoUrl)
+  const key = await getOSPSBaselineInsights(args.repoUrl, args.token)
   await saveOSPSBaselineInsightsToDB(key, args)
 }

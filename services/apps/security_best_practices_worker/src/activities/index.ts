@@ -1,3 +1,4 @@
+import { ApplicationFailure } from '@temporalio/client'
 import { exec, spawn } from 'child_process'
 import { existsSync, readFileSync } from 'fs'
 import { load as parseYaml } from 'js-yaml'
@@ -17,20 +18,14 @@ import { RedisCache } from '@crowd/redis'
 import { ISecurityInsightsObsoleteRepo } from '@crowd/types'
 
 import { svc } from '../main'
-import { ISecurityInsightsPrivateerResult } from '../types'
+import { ISecurityInsightsPrivateerResult, ITokenInfo } from '../types'
 
 export const BINARY_HOME = '/.privateer'
 
 const execAsync = promisify(exec)
 
-export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> {
-  const cache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
-  const tokenRotator = new GithubTokenRotator(
-    cache,
-    process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(','),
-  )
-
-  const token = await tokenRotator.getToken()
+export async function getOSPSBaselineInsights(repoUrl: string, token: string): Promise<string> {
+  // const token = await tokenRotator.getToken()
 
   // get owner and repo name from url
   const [owner, repoName] = repoUrl.split('/').slice(-2)
@@ -54,10 +49,10 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
 
     if (combinedOutput.includes('403')) {
       svc.log.warn('Detected 403 error in privateer output!')
-      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
-      throw new Error(
-        '403 error detected in privateer output, token info updated, retrying by throwing this error!',
-      )
+      throw ApplicationFailure.create({
+        message: 'GitHub token rate-limited',
+        type: 'Token403Error',
+      })
     }
   } catch (err: any) {
     svc.log.error(`Privateer run failed: ${err.message}`)
@@ -66,10 +61,10 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
     const output = `${err.stdout || ''}\n${err.stderr || ''}`
     if (output.includes('403')) {
       svc.log.warn('Detected 403 error in failed privateer output!')
-      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
-      throw new Error(
-        '403 error detected in privateer output, token info updated, retrying by throwing this error!',
-      )
+      throw ApplicationFailure.create({
+        message: 'GitHub token rate-limited',
+        type: 'Token403Error',
+      })
     }
     throw err
   }
@@ -258,5 +253,35 @@ export async function checkTokens(): Promise<boolean> {
     }
   } catch (e) {
     return false
+  }
+}
+
+export async function getNextToken(tokenInfos: ITokenInfo[]): Promise<ITokenInfo> {
+  const usableTokenInfos = tokenInfos.filter((token) => !token.inUse && !token.isRateLimited)
+
+  // sort usable tokens by last used date from oldest to newest
+  const sortedTokenInfos = usableTokenInfos.sort((a, b) => {
+    return a.lastUsed.getTime() - b.lastUsed.getTime()
+  })
+
+  if (sortedTokenInfos.length === 0) {
+    throw new Error('No usable tokens available')
+  }
+
+  return sortedTokenInfos[0]
+}
+
+export async function releaseToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = false
+    tokenInfo.lastUsed = new Date()
+  }
+}
+
+export async function acquireToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = true
   }
 }
