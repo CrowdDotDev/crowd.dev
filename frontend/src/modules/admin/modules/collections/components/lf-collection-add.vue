@@ -81,9 +81,11 @@
                         remote
                         :disabled="!form.type?.length"
                         :remote-method="fetchCategories"
-                        @clear="() => {
-                          form.categoryId = null
-                        }"
+                        @clear="
+                          () => {
+                            form.categoryId = null;
+                          }
+                        "
                       >
                         <el-option
                           v-if="collection"
@@ -228,7 +230,7 @@ onMounted(() => {
   InsightsProjectsService.list({}).then((response) => {
     insightsProjectsStore.setInsightsProjects(response.rows);
   });
-  if (props.collection?.id) {
+  if (isEditForm.value) {
     loading.value = true;
     fillForm(props.collection);
     loading.value = false;
@@ -269,8 +271,10 @@ const onSuccess = () => {
     queryKey: [TanstackKey.ADMIN_COLLECTIONS],
   });
   Message.closeAll();
-  Message.success(`Collection ${props.collection?.id ? 'updated' : 'created'} successfully`);
-  if (props.collection?.id) {
+  Message.success(
+    `Collection ${isEditForm.value ? 'updated' : 'created'} successfully`,
+  );
+  if (isEditForm.value) {
     emit('onCollectionEdited');
   } else {
     emit('onCollectionCreated');
@@ -279,21 +283,21 @@ const onSuccess = () => {
 
 const onError = () => {
   Message.closeAll();
-  Message.error(`Something went wrong while ${props.collection?.id ? 'updating' : 'creating'} the collection`);
+  Message.error(
+    `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the collection`,
+  );
 };
 
 const createMutation = useMutation({
   mutationFn: (form: CollectionRequest) => COLLECTIONS_SERVICE.create(form),
   onSuccess,
   onError,
-
 });
 
 const updateMutation = useMutation({
-  mutationFn: ({ id, form }:{id: string, form: CollectionRequest}) => COLLECTIONS_SERVICE.update(id, form),
+  mutationFn: ({ id, form }: { id: string; form: CollectionRequest }) => COLLECTIONS_SERVICE.update(id, form),
   onSuccess,
   onError,
-
 });
 
 const categories = ref<CategoryGroup[]>([]);
@@ -304,11 +308,12 @@ const fetchCategories = (query: string) => {
     limit: 20,
     query,
     groupType: form.type || undefined,
-  })
-    .then((res) => {
-      form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
-      categories.value = res.rows;
-    });
+  }).then((res) => {
+    form.categoryId = !form.categoryId
+      ? props.collection?.categoryId || ''
+      : form.categoryId;
+    categories.value = res.rows;
+  });
 };
 
 watch(
