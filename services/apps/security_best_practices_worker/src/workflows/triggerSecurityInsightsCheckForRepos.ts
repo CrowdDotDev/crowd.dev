@@ -16,7 +16,7 @@ import { upsertOSPSBaselineSecurityInsights } from './upsertOSPSBaselineSecurity
 const { findObsoleteRepos, getNextToken, initializeTokenInfos } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '30 seconds',
+  startToCloseTimeout: '5 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
