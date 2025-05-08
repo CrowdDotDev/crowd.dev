@@ -56,7 +56,7 @@
                 </lf-field>
               </article>
 
-              <!-- Description -->
+              <!-- Category -->
               <article class="mb-5">
                 <lf-field label-text="Category">
                   <div class="flex">
@@ -65,6 +65,7 @@
                         v-model="form.type"
                         placeholder="Select type"
                         class="w-full type-select"
+                        clearable
                       >
                         <el-option label="Industry" value="vertical" />
                         <el-option label="Stack" value="horizontal" />
@@ -76,13 +77,17 @@
                         placeholder="Select type"
                         class="w-full category-select"
                         filterable
+                        clearable
                         remote
-                        :disabled="!form.type.length"
+                        :disabled="!form.type?.length"
                         :remote-method="fetchCategories"
+                        @clear="() => {
+                          form.categoryId = null
+                        }"
                       >
                         <el-option
                           v-if="collection"
-                          :label="props.collection?.category.name"
+                          :label="props.collection?.category?.name"
                           :value="props.collection?.categoryId"
                           class="!px-3 !hidden"
                         />
@@ -181,7 +186,7 @@ const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
   type: '',
-  categoryId: '',
+  categoryId: null,
   projects: [],
 });
 
@@ -192,9 +197,6 @@ const rules = {
   },
   description: { required: (value: string) => value.trim().length },
   projects: { required: (value: any) => value.length > 0 },
-  categoryId: {
-    required,
-  },
 };
 
 const $v = useVuelidate(rules, form);
@@ -215,8 +217,8 @@ const isEditForm = computed(() => !!props.collection?.id);
 const fillForm = (record?: CollectionModel) => {
   if (record) {
     Object.assign(form, record);
-    form.type = record.category.categoryGroupType;
-    form.categoryId = record.categoryId || '';
+    form.type = record.category?.categoryGroupType;
+    form.categoryId = record.categoryId || null;
   }
 
   formSnapshot();
@@ -301,19 +303,18 @@ const fetchCategories = (query: string) => {
     offset: 0,
     limit: 20,
     query,
-    groupType: form.type,
-  }).then((res) => {
-    form.categoryId = !form.categoryId
-      ? props.collection?.categoryId || ''
-      : form.categoryId;
-    categories.value = res.rows;
-  });
+    groupType: form.type || undefined,
+  })
+    .then((res) => {
+      form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
+      categories.value = res.rows;
+    });
 };
 
 watch(
   () => form.type,
   () => {
-    form.categoryId = '';
+    form.categoryId = null;
     fetchCategories('');
   },
 );
