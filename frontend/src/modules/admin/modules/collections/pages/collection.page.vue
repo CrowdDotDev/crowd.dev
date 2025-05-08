@@ -25,6 +25,7 @@
       <lf-collection-table
         :collections="collections"
         @on-edit-collection="onEditCollection($event)"
+        @on-star-collection="ontoggleStar($event)"
         @on-delete-collection="openRemoveCollectionDialog($event)"
       />
       <div class="pt-4">
@@ -188,6 +189,25 @@ const onEditCollection = (collectionId: string) => {
   collectionEditObject.value = cloneDeep(
     collections.value.find((collection) => collection.id === collectionId),
   );
+};
+
+const ontoggleStar = (collectionId: string) => {
+  Message.info(null, {
+    title: 'Collection is being starred',
+  });
+  const collection = collections.value.find((collection) => collection.id === collectionId);
+  collection!.starred = !collection!.starred;
+  CollectionsService.update(collectionId, collection)
+    .then(() => {
+      Message.closeAll();
+      Message.success('Collection successfully starred');
+      offset.value = 0;
+      fetchCollections();
+    })
+    .catch(() => {
+      Message.closeAll();
+      Message.error('Something went wrong');
+    });
 };
 
 const onCollectionDialogCloseSuccess = () => {

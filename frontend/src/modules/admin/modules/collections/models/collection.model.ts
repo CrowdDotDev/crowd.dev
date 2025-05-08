@@ -10,6 +10,7 @@ export interface CollectionModel {
   categoryId?: string;
   projects: InsightsProjectModel[];
   category: Category & {categoryGroupType: string, categoryGroupName: string};
+  starred?: boolean;
 }
 
 export interface CollectionFormModel {
