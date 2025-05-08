@@ -15,6 +15,7 @@ export interface ICreateCollection {
   description?: string
   categoryId: string
   slug: string
+  starred: boolean
 }
 
 export interface ICollection extends ICreateCollection {
@@ -74,6 +75,7 @@ export enum CollectionField {
   CATEGORY_ID = 'categoryId',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
+  STARRED = 'starred',
 }
 
 export async function queryCollections<T extends CollectionField>(
@@ -109,8 +111,8 @@ export async function createCollection(
 ): Promise<ICollection> {
   return qx.selectOne(
     `
-      INSERT INTO collections (name, description, slug, "categoryId")
-      VALUES ($(name), $(description), $(slug), $(categoryId))
+      INSERT INTO collections (name, description, slug, "categoryId", starred)
+      VALUES ($(name), $(description), $(slug), $(categoryId), $(starred))
       RETURNING *
     `,
     collection,
