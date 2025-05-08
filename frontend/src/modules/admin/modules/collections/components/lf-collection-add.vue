@@ -87,7 +87,9 @@
                           class="!px-3 !hidden"
                         />
                         <template v-for="group of categories" :key="group.id">
-                          <div class="px-3 pt-1 text-xs font-semibold text-gray-400">
+                          <div
+                            class="px-3 pt-1 text-xs font-semibold text-gray-400"
+                          >
                             {{ group.name }}
                           </div>
                           <el-option
@@ -148,14 +150,17 @@ import Message from '@/shared/message/message';
 import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
 import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 import AppDrawer from '@/shared/drawer/drawer.vue';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 import LfCollectionAddProjectsTab from './lf-collection-add-projects-tab.vue';
 import {
   CollectionFormModel,
   CollectionModel,
+  CollectionRequest,
 } from '../models/collection.model';
 import { InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
-import { CollectionsService } from '../services/collections.service';
+import { COLLECTIONS_SERVICE } from '../services/collections.service';
 
 const insightsProjectsStore = useInsightsProjectsStore();
 
@@ -236,55 +241,58 @@ const onCancel = () => {
 
 const onSubmit = () => {
   submitLoading.value = true;
-  const request = {
+  const request: CollectionRequest = {
     name: form.name,
     description: form.description,
     projects: form.projects.map((project: any) => ({
       id: project.id,
       starred: project?.starred || false,
     })),
-    isLF: true,
     categoryId: form.categoryId,
     slug: form.name.toLowerCase().replace(/ /g, '-'),
   };
   if (isEditForm.value) {
-    handleCollectionUpdate(request);
+    updateMutation.mutate({
+      id: props.collection!.id,
+      form: request,
+    });
   } else {
-    handleCollectionCreate(request);
+    createMutation.mutate(request);
   }
 };
 
-const handleCollectionUpdate = (request: any) => {
-  Message.info(null, {
-    title: 'Collection is being updated',
+const queryClient = useQueryClient();
+const onSuccess = () => {
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_COLLECTIONS],
   });
-  CollectionsService.update(props.collection!.id, request)
-    .then(() => {
-      Message.closeAll();
-      Message.success('Collection successfully updated');
-      emit('onCollectionEdited');
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-    });
+  Message.closeAll();
+  Message.success(`Collection ${props.collection?.id ? 'updated' : 'created'} successfully`);
+  if (props.collection?.id) {
+    emit('onCollectionEdited');
+  } else {
+    emit('onCollectionCreated');
+  }
 };
 
-const handleCollectionCreate = (request: any) => {
-  Message.info(null, {
-    title: 'Collection is being created',
-  });
-  CollectionsService.create(request)
-    .then(() => {
-      Message.closeAll();
-      Message.success('Collection successfully created');
-      emit('onCollectionCreated');
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-    });
+const onError = () => {
+  Message.closeAll();
+  Message.error(`Something went wrong while ${props.collection?.id ? 'updating' : 'creating'} the collection`);
 };
+
+const createMutation = useMutation({
+  mutationFn: (form: CollectionRequest) => COLLECTIONS_SERVICE.create(form),
+  onSuccess,
+  onError,
+
+});
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, form }:{id: string, form: CollectionRequest}) => COLLECTIONS_SERVICE.update(id, form),
+  onSuccess,
+  onError,
+
+});
 
 const categories = ref<CategoryGroup[]>([]);
 
@@ -294,11 +302,12 @@ const fetchCategories = (query: string) => {
     limit: 20,
     query,
     groupType: form.type,
-  })
-    .then((res) => {
-      form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
-      categories.value = res.rows;
-    });
+  }).then((res) => {
+    form.categoryId = !form.categoryId
+      ? props.collection?.categoryId || ''
+      : form.categoryId;
+    categories.value = res.rows;
+  });
 };
 
 watch(
@@ -317,14 +326,14 @@ export default {
 </script>
 
 <style lang="scss">
-.type-select{
-  .el-input__wrapper{
+.type-select {
+  .el-input__wrapper {
     @apply rounded-r-none border-r-0 #{!important};
   }
 }
 
-.category-select{
-  .el-input__wrapper{
+.category-select {
+  .el-input__wrapper {
     @apply rounded-l-none #{!important};
   }
 }

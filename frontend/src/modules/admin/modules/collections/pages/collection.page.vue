@@ -100,8 +100,8 @@
     confirm-button-text="Delete collection"
     cancel-button-text="Cancel"
     confirm-text="delete"
-    @confirm="onRemoveCollection"
-    @close="onCloseRemoveCollection"
+    @confirm="deleteCollectionMutation.mutate(removeCollectionId)"
+    @close="closeRemoveDialog"
   />
 </template>
 
@@ -110,7 +110,6 @@ import { computed, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import {
   COLLECTIONS_SERVICE,
-  CollectionsService,
 } from '@/modules/admin/modules/collections/services/collections.service';
 import { CollectionModel } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
@@ -122,7 +121,9 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
 import { cloneDeep } from 'lodash';
-import { QueryFunction, useInfiniteQuery, useQueryClient } from '@tanstack/vue-query';
+import {
+  QueryFunction, useInfiniteQuery, useMutation, useQueryClient,
+} from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
@@ -227,27 +228,29 @@ const openRemoveCollectionDialog = (collectionId: string) => {
   removeCollection.value = true;
 };
 
-const onRemoveCollection = () => {
-  Message.info(null, {
-    title: 'Collection is being deleted',
-  });
-  CollectionsService.delete(removeCollectionId.value)
-    .then(() => {
-      Message.closeAll();
-      Message.success('Collection successfully deleted');
-      queryClient.invalidateQueries({
-        queryKey: [TanstackKey.ADMIN_COLLECTIONS],
-      });
-      onCloseRemoveCollection();
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-      onCloseRemoveCollection();
+const deleteCollectionMutation = useMutation({
+  mutationFn: (collectionId: string) => COLLECTIONS_SERVICE.delete(collectionId),
+  onSuccess: () => {
+    Message.closeAll();
+    Message.success('Collection successfully deleted');
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.ADMIN_COLLECTIONS],
     });
-};
+    closeRemoveDialog();
+  },
+  onError: () => {
+    Message.closeAll();
+    Message.error('Something went wrong');
+    closeRemoveDialog();
+  },
+  onMutate: () => {
+    Message.info(null, {
+      title: 'Collection is being deleted',
+    });
+  },
+});
 
-const onCloseRemoveCollection = () => {
+const closeRemoveDialog = () => {
   removeCollection.value = false;
   removeCollectionId.value = '';
 };
