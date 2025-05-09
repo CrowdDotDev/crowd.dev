@@ -6,7 +6,7 @@ import { IRefreshDisplayAggregatesArgs } from '../../types/common'
 const {
   getLastOrganizationDisplayAggsSyncedAt,
   touchLastOrganizationDisplayAggsSyncedAt,
-  getOrganizationsForDisplayAggsUpdate,
+  getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
 } = proxyActivities<typeof activities>({
@@ -18,30 +18,39 @@ export async function refreshOrganizationDisplayAggregates(
 ): Promise<void> {
   const BATCH_SIZE = 250
 
-  let lastUuid: string = args.lastUuid ?? null
+  const lastUuid: string = args.lastUuid ?? null
   let lastSyncedAt: string = args.lastSyncedAt ?? null
 
   if (!lastSyncedAt) {
     lastSyncedAt = await getLastOrganizationDisplayAggsSyncedAt()
   }
 
-  const organizationIds = await getOrganizationsForDisplayAggsUpdate(
-    BATCH_SIZE,
-    lastSyncedAt,
-    lastUuid,
-  )
+  // todo:nathan rm this after testing
+  console.log('lastSyncedAt', lastSyncedAt)
 
-  if (organizationIds.length === 0) {
+  const result = await getOrganizationsForDisplayAggsRefresh(BATCH_SIZE, lastSyncedAt, lastUuid)
+
+  if (result.length === 0) {
     await touchLastOrganizationDisplayAggsSyncedAt()
     return
   }
 
-  lastUuid = organizationIds[organizationIds.length - 1]
+  const lastRow = result[result.length - 1]
 
-  for (const organizationId of organizationIds) {
-    const organizationDisplayAggregates = await getOrganizationDisplayAggregates(organizationId)
+  for (const organization of result) {
+    const organizationDisplayAggregates = await getOrganizationDisplayAggregates(
+      organization.entity_id,
+    )
+    // todo:nathan test the changes with console log and testRun
+    console.log(
+      'organizationDisplayAggregates',
+      JSON.stringify(organizationDisplayAggregates, null, 2),
+    )
     await setOrganizationDisplayAggregates(organizationDisplayAggregates)
   }
 
-  await continueAsNew<typeof refreshOrganizationDisplayAggregates>({ lastSyncedAt, lastUuid })
+  await continueAsNew<typeof refreshOrganizationDisplayAggregates>({
+    lastUuid: lastRow.entity_id,
+    lastSyncedAt: lastRow.indexed_at,
+  })
 }
