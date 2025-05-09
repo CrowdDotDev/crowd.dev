@@ -1,10 +1,16 @@
+import lodash from 'lodash'
+
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 
-import { IMemberActivitySummary, IMemberSegmentAggregates } from './types'
+import {
+  IMemberActivitySummary,
+  IMemberSegmentAggregates,
+  IMemberSegmentDisplayAggregates,
+} from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
@@ -93,4 +99,44 @@ export async function fetchAbsoluteMemberAggregates(
       memberId,
     },
   )
+}
+
+export async function updateMemberDisplayAggregates(
+  qx: QueryExecutor,
+  data: IMemberSegmentDisplayAggregates[],
+): Promise<void> {
+  if (data.some((item) => !item.memberId || !item.segmentId)) {
+    throw new Error('Missing memberId or segmentId!')
+  }
+
+  await qx.tx(async (trx) => {
+    for (const item of data) {
+      // dynamically add non-falsy fields to update
+      const updates = lodash.pickBy(
+        {
+          lastActive: item.lastActive,
+          averageSentiment: item.averageSentiment,
+          activityTypes: item.activityTypes,
+          activeDaysCount: item.activeDaysCount,
+        },
+        (value) => !!value,
+      )
+
+      const setClauses = lodash.map(updates, (_value, key) => `"${key}" = $(${key})`)
+      setClauses.push('"updatedAt" = now()')
+
+      await trx.result(
+        `
+        UPDATE "memberSegmentsAgg"
+        SET ${setClauses.join(', ')}
+        WHERE "memberId" = $(memberId) AND "segmentId" = $(segmentId);
+        `,
+        {
+          ...updates,
+          memberId: item.memberId,
+          segmentId: item.segmentId,
+        },
+      )
+    }
+  })
 }

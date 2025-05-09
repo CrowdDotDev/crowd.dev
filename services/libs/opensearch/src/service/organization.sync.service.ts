@@ -191,58 +191,6 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncAllOrganizations(
-    batchSize = 200,
-    opts: { withAggs?: boolean } = { withAggs: true },
-  ): Promise<void> {
-    this.log.warn('Syncing all organizations!')
-    let docCount = 0
-    let organizationCount = 0
-    let previousBatchIds: string[] = []
-    const now = new Date()
-
-    await logExecutionTime(
-      async () => {
-        let organizationIds = await this.readOrgRepo.getOrganizationsForSync(
-          batchSize,
-          previousBatchIds,
-        )
-
-        while (organizationIds.length > 0) {
-          const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
-            organizationIds,
-            opts,
-          )
-
-          organizationCount += organizationsSynced
-          docCount += documentsIndexed
-
-          const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
-          this.log.info(
-            `Synced ${organizationCount} organizations! Speed: ${Math.round(
-              organizationCount / diffInMinutes,
-            )} organizations/minute!`,
-          )
-
-          await this.indexingRepo.markEntitiesIndexed(
-            IndexedEntityType.ORGANIZATION,
-            organizationIds,
-          )
-
-          previousBatchIds = organizationIds
-          organizationIds = await this.readOrgRepo.getOrganizationsForSync(
-            batchSize,
-            previousBatchIds,
-          )
-        }
-      },
-      this.log,
-      'sync-all-organizations',
-    )
-
-    this.log.info(`Synced total of ${organizationCount} organizations with ${docCount} documents!`)
-  }
-
   public async syncOrganizations(
     organizationIds: string[],
     opts: { withAggs?: boolean } = { withAggs: true },
@@ -356,6 +304,8 @@ export class OrganizationSyncService {
           throw e
         }
       }
+
+      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
 
       return {
         organizationsSynced: organizationIds.length,

@@ -13,7 +13,7 @@ import {
   findLastSyncDate,
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
-import { IMemberActivityCoreAggregates } from '@crowd/data-access-layer/src/members/types'
+import { IMemberSegmentCoreAggregates } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
@@ -216,41 +216,6 @@ export class MemberSyncService {
     }
   }
 
-  public async syncAllMembers(
-    batchSize = 200,
-    opts: { withAggs?: boolean } = { withAggs: true },
-  ): Promise<void> {
-    this.log.debug('Syncing all members!')
-    let docCount = 0
-    let memberCount = 0
-
-    const now = new Date()
-
-    let memberIds = await this.memberRepo.getMembersForSync(batchSize)
-
-    while (memberIds.length > 0) {
-      for (const memberId of memberIds) {
-        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId, opts)
-
-        docCount += documentsIndexed
-        memberCount += membersSynced
-      }
-
-      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-      this.log.info(
-        `Synced ${memberCount} members! Speed: ${Math.round(
-          memberCount / diffInSeconds,
-        )} members/second!`,
-      )
-
-      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
-
-      memberIds = await this.memberRepo.getMembersForSync(batchSize)
-    }
-
-    this.log.info(`Synced total of ${memberCount} members with ${docCount} documents!`)
-  }
-
   public async syncOrganizationMembers(
     organizationId: string,
     opts: { syncFrom: Date | null } = { syncFrom: null },
@@ -333,7 +298,7 @@ export class MemberSyncService {
       }
 
       let documentsIndexed = 0
-      let memberData: IMemberActivityCoreAggregates[]
+      let memberData: IMemberSegmentCoreAggregates[]
 
       try {
         memberData = await logExecutionTimeV2(
@@ -358,7 +323,7 @@ export class MemberSyncService {
         const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
         for (const projectSegmentId of projectSegmentIds) {
           const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-          const filtered: IMemberActivityCoreAggregates[] = []
+          const filtered: IMemberSegmentCoreAggregates[] = []
           for (const subproject of subprojects) {
             filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
           }
@@ -371,7 +336,7 @@ export class MemberSyncService {
         const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
         for (const projectGroupSegmentId of projectGroupSegmentIds) {
           const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
-          const filtered: IMemberActivityCoreAggregates[] = []
+          const filtered: IMemberSegmentCoreAggregates[] = []
           for (const subproject of subprojects) {
             filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
           }
@@ -460,7 +425,9 @@ export class MemberSyncService {
       const prefixed = MemberSyncService.prefixData(data, attributes)
       await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prefixed)
     }
+
     await syncMembersToOpensearchForMergeSuggestions(memberId)
+    await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, [memberId])
 
     if (syncResults) {
       return syncResults
@@ -580,8 +547,8 @@ export class MemberSyncService {
 
   private static aggregateData(
     segmentId: string,
-    input: IMemberActivityCoreAggregates[],
-  ): IMemberActivityCoreAggregates {
+    input: IMemberSegmentCoreAggregates[],
+  ): IMemberSegmentCoreAggregates {
     const activityCount = input.reduce((sum, data) => sum + data.activityCount, 0)
     const activeOn = [...new Set(input.flatMap((data) => data.activeOn))]
 

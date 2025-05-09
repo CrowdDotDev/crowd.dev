@@ -1,11 +1,11 @@
-import { IMemberActivityCoreAggregates } from '../members/types'
+import { IMemberSegmentCoreAggregates } from '../members/types'
 import { IOrganizationActivityCoreAggregates } from '../organizations/types'
 import { QueryExecutor } from '../queryExecutor'
 
 export async function getMemberActivityCoreAggregates(
   qx: QueryExecutor,
   memberId: string,
-): Promise<IMemberActivityCoreAggregates[]> {
+): Promise<IMemberSegmentCoreAggregates[]> {
   const results = await qx.result(
     `
     SELECT "segmentId",

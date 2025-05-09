@@ -5,10 +5,11 @@ import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import * as activities from '../../activities'
 import { ISyncArgs } from '../../types'
 
-const { deleteIndexedEntities, markEntitiesIndexed, getMembersForSync, syncMembersBatch } =
-  proxyActivities<typeof activities>({
-    startToCloseTimeout: '30 minutes',
-  })
+const { deleteIndexedEntities, getMembersForSync, syncMembersBatch } = proxyActivities<
+  typeof activities
+>({
+  startToCloseTimeout: '30 minutes',
+})
 
 export async function syncMembers(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
@@ -36,8 +37,6 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
   console.log(
     `Synced ${memberCount} members! Speed: ${Math.round(memberCount / diffInSeconds)} members/second!`,
   )
-
-  await markEntitiesIndexed(IndexedEntityType.MEMBER, memberIds)
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')

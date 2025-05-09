@@ -1,5 +1,9 @@
 export enum IndexedEntityType {
-  ACTIVITY = 'activity',
   MEMBER = 'member',
   ORGANIZATION = 'organization',
+}
+
+export interface IRecentlyIndexedEntity {
+  entity_id: string
+  indexed_at: string
 }
