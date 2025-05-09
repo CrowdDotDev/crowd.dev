@@ -11,7 +11,8 @@ SQL >
         collections_filtered.name,
         collections_filtered.slug,
         collections_filtered.description,
-        collections_filtered.projectCount
+        collections_filtered.projectCount,
+        collections_filtered.starred
     FROM collections_filtered
     order by
         {{
