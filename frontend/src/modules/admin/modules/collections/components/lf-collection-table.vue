@@ -20,6 +20,7 @@
           <div class="text-black text-sm font-semibold flex items-center">
             <lf-icon name="rectangle-history" :size="16" class="text-gray-400 mr-2" />
             {{ collection.name }}
+            <lf-icon v-if="collection.starred" name="star" type="solid" :size="16" class="text-yellow-300 ml-2" />
           </div>
         </lf-table-cell>
 
@@ -39,8 +40,10 @@
         <lf-table-cell class="pr-2 flex justify-end">
           <lf-collection-dropdown
             :id="collection.id"
+            :collection="collection"
             @on-edit-collection="emit('onEditCollection', collection.id)"
             @on-delete-collection="emit('onDeleteCollection', collection.id)"
+            @on-star-collection="emit('onStarCollection', collection.id)"
           />
         </lf-table-cell>
       </tr>
@@ -59,6 +62,7 @@ import { CollectionModel } from '../models/collection.model';
 
 const emit = defineEmits<{(e: 'onEditCollection', id: string): void,
   (e: 'onDeleteCollection', id: string): void,
+  (e: 'onStarCollection', id: string): void,
 }>();
 
 defineProps<{
