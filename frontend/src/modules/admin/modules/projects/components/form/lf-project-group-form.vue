@@ -8,8 +8,8 @@
   >
     <template #content>
       <div
-        v-if="loading"
-        v-loading="loading"
+        v-if="isLoading"
+        v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
       <div v-else>
@@ -40,10 +40,7 @@
             required: 'Slug is required',
           }"
         >
-          <el-input
-            v-model="form.slug"
-            placeholder="E.g. cncf"
-          />
+          <el-input v-model="form.slug" placeholder="E.g. cncf" />
         </app-form-item>
 
         <!-- Source ID -->
@@ -56,9 +53,7 @@
             required: 'Source ID is required',
           }"
         >
-          <el-input
-            v-model="form.sourceId"
-          />
+          <el-input v-model="form.sourceId" />
         </app-form-item>
 
         <!-- Logo URL -->
@@ -71,9 +66,7 @@
             required: 'Logo URL is required',
           }"
         >
-          <el-input
-            v-model="form.url"
-          />
+          <el-input v-model="form.url" />
         </app-form-item>
 
         <!-- Status -->
@@ -95,7 +88,9 @@
             <template v-if="form.status" #prefix>
               <span
                 class="w-1.5 h-1.5 rounded-full mr-1"
-                :class="statusOptions.find((o) => o.value === form.status).color"
+                :class="
+                  statusOptions.find((o) => o.value === form.status)?.color
+                "
               />
             </template>
             <el-option
@@ -105,7 +100,10 @@
               :value="status.value"
             >
               <div class="flex items-center gap-3">
-                <span class="w-1.5 h-1.5 rounded-full" :class="status.color" />{{ status.label }}
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="status.color"
+                />{{ status.label }}
               </div>
             </el-option>
           </el-select>
@@ -124,52 +122,47 @@
       <lf-button
         type="primary"
         size="medium"
-        :disabled="!hasFormChanged || $v.$invalid || loading"
+        :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
-        {{ isEditForm ? 'Update' : 'Add project group' }}
+        {{ isEditForm ? "Update" : "Add project group" }}
       </lf-button>
     </template>
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
 import { required, maxLength } from '@vuelidate/validators';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import statusOptions from '@/modules/lf/config/status';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
+import { segmentService } from '@/modules/lf/segments/segments.service';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
+import Message from '@/shared/message/message';
 
-const emit = defineEmits(['update:modelValue', 'onProjectGroupEdited']);
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
+  (e: 'onProjectGroupEdited'): void;
+}>();
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  id: {
-    type: String,
-    default: () => null,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  id: string | null;
+}>();
 
 const { trackEvent } = useProductTracking();
 
-const lsSegmentsStore = useLfSegmentsStore();
-const {
-  createProjectGroup,
-  updateProjectGroup,
-  findProjectGroup,
-} = lsSegmentsStore;
-
-const loading = ref(false);
 const submitLoading = ref(false);
 const form = reactive({
   name: '',
@@ -205,7 +198,7 @@ const model = computed({
 
 const isEditForm = computed(() => !!props.id);
 
-const fillForm = (record) => {
+const fillForm = (record?: ProjectGroup) => {
   if (record) {
     Object.assign(form, record);
   }
@@ -213,18 +206,31 @@ const fillForm = (record) => {
   formSnapshot();
 };
 
-onMounted(() => {
-  if (props.id) {
-    loading.value = true;
+const {
+  isLoading,
+  isSuccess,
+  data,
+} = useQuery(
+  {
+    queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS, props.id],
+    queryFn: () => {
+      if (!props.id) {
+        return Promise.resolve(null);
+      }
+      return segmentService.getSegmentById(props.id);
+    },
+    enabled: !!props.id,
+  },
+);
 
-    findProjectGroup(props.id)
-      .then((response) => {
-        fillForm(response);
-      })
-      .finally(() => {
-        loading.value = false;
-      });
-  } else {
+watch(data, () => {
+  if (isSuccess.value && data.value) {
+    fillForm(data.value as ProjectGroup);
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  if (!props.id) {
     fillForm();
   }
 });
@@ -242,28 +248,55 @@ const onSubmit = () => {
       type: EventType.FEATURE,
     });
 
-    updateProjectGroup(props.id, form)
-      .finally(() => {
-        submitLoading.value = false;
-        model.value = false;
-        emit('onProjectGroupEdited');
-      });
+    updateMutation.mutate({
+      id: props.id!,
+      form: form as ProjectGroup,
+    });
   } else {
     trackEvent({
       key: FeatureEventKey.ADD_PROJECT_GROUP,
       type: EventType.FEATURE,
     });
 
-    createProjectGroup(form)
-      .finally(() => {
-        submitLoading.value = false;
-        model.value = false;
-      });
+    createMutation.mutate(form);
   }
 };
+
+const queryClient = useQueryClient();
+const onSuccess = () => {
+  submitLoading.value = false;
+  model.value = false;
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
+  });
+  Message.success(`Project Group ${props.id ? 'updated' : 'created'} successfully`);
+};
+
+const onError = () => {
+  Message.error(`Something went wrong while ${props.id ? 'updating' : 'creating'} the project group`);
+};
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, form }: { id: string; form: ProjectGroup }) => segmentService.updateSegment(
+    id,
+    form,
+  ),
+  onSuccess: () => {
+    onSuccess();
+    emit('onProjectGroupEdited');
+  },
+  onError,
+});
+
+const createMutation = useMutation({
+  mutationFn: (form: any) => segmentService.createProjectGroup(form),
+  onSuccess,
+  onError,
+
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfProjectGroupForm',
 };

@@ -413,6 +413,16 @@ export class CollectionService extends LoggerBase {
         }
       }
 
+      if (i.platform === PlatformType.GITHUB_NANGO) {
+        for (const org of (i.settings as any).orgs) {
+          for (const repo of org.repos) {
+            const label = `${org.name}/${repo.name}`
+            const fullUrl = `https://github.com/${label}`
+            addToResult(PlatformType.GITHUB, fullUrl, label)
+          }
+        }
+      }
+
       if (i.platform === PlatformType.GIT) {
         for (const r of (i.settings as any).remotes) {
           let label = r

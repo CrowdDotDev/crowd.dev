@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { debounce } from 'lodash';
 import {
-  nextTick, onMounted, reactive, ref,
+  nextTick, onBeforeUnmount, onMounted, reactive, ref,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -163,6 +163,12 @@ onMounted(() => {
       scrollContainer.addEventListener('scroll', onScroll);
     }
   });
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
 });
 </script>
 

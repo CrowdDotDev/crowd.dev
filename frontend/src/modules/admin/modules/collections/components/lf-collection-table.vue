@@ -28,11 +28,11 @@
         </lf-table-cell>
 
         <lf-table-cell class="pl-3">
-          <p class="text-medium mb-0.5">
-            {{ collection.category.name }}
+          <p v-if="collection.category" class="text-medium mb-0.5">
+            {{ collection.category?.name }}
           </p>
-          <p class="text-tiny text-gray-500">
-            {{ collection.category.categoryGroupName }} ({{ collection.category.categoryGroupType === 'vertical' ? 'Industry' : 'Stack' }})
+          <p v-if="collection.category" class="text-tiny text-gray-500">
+            {{ collection.category?.categoryGroupName }} ({{ collection.category?.categoryGroupType === 'vertical' ? 'Industry' : 'Stack' }})
           </p>
         </lf-table-cell>
 
