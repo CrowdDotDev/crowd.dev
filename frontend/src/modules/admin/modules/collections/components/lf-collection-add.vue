@@ -298,7 +298,7 @@ const fetchCategories = (query: string) => {
     groupType: form.type || undefined,
   })
     .then((res) => {
-      form.categoryId = !form.categoryId ? (props.collection?.categoryId || '') : form.categoryId;
+      form.categoryId = !form.categoryId ? (props.collection?.categoryId || null) : form.categoryId;
       categories.value = res.rows;
     });
 };
