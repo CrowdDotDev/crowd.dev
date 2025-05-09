@@ -13,7 +13,7 @@ import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/org
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
