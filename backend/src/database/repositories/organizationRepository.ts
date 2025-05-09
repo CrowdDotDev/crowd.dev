@@ -1509,6 +1509,58 @@ class OrganizationRepository {
     }
   }
 
+  private static removeLfxMembershipFromFilters(
+    filtersArray: [],
+    index: number,
+    filterName: string,
+  ) {
+    const lfxFilterObj = Object.assign(filtersArray[filterName][index])
+    filtersArray[filterName].splice(index, 1)
+
+    if (filtersArray[filterName].length === 0)
+      // edge case when "lfxMembership" is the only filter
+      delete filtersArray[filterName]
+    return lfxFilterObj
+  }
+
+  private static handleLfxMembershipFilter(filter: any): {
+    lfxMembershipFilter: object | null
+    updatedfilter: object
+  } {
+    if (!filter) {
+      return { lfxMembershipFilter: null, updatedfilter: filter }
+    }
+
+    let lfxMembershipFilter = null
+    const updatedfilter = Object.assign(filter)
+
+    // handle nested "and" filters \\ "or" inside "and"
+    if (updatedfilter.and && Array.isArray(updatedfilter.and))
+      for (let i = 0; i < updatedfilter.and.length; i++) {
+        if (Object.hasOwn(updatedfilter.and[i], 'lfxMembership')) {
+          lfxMembershipFilter = this.removeLfxMembershipFromFilters(updatedfilter, i, 'and')
+          return { lfxMembershipFilter, updatedfilter }
+        }
+        if (
+          Object.hasOwn(updatedfilter.and[i], 'and') ||
+          Object.hasOwn(updatedfilter.and[i], 'or')
+        ) {
+          const result = this.handleLfxMembershipFilter(updatedfilter.and[i])
+          lfxMembershipFilter = result.lfxMembershipFilter
+        }
+      }
+
+    // "or" filters cannot be nested, we can only have "or" inside parent "and" filter
+    if (updatedfilter.or && Array.isArray(updatedfilter.or))
+      for (let i = 0; i < updatedfilter.or.length; i++)
+        if (Object.hasOwn(updatedfilter.or[i], 'lfxMembership')) {
+          lfxMembershipFilter = this.removeLfxMembershipFromFilters(updatedfilter, i, 'or')
+          return { lfxMembershipFilter, updatedfilter }
+        }
+
+    return { lfxMembershipFilter, updatedfilter }
+  }
+
   static async findAndCountAll(
     {
       filter = {} as any,
@@ -1538,8 +1590,9 @@ class OrganizationRepository {
 
     const withAggregates = include.aggregates
 
-    // look for lfxMembership filter
-    const lfxMembershipFilter = filter.and?.find((f) => f.lfxMembership)?.lfxMembership
+    const { lfxMembershipFilter, updatedfilter } =
+      OrganizationRepository.handleLfxMembershipFilter(filter)
+    filter = updatedfilter // updated filter without lfxMembershipFilter
     let lfxMembershipFilterWhereClause = ''
 
     if (lfxMembershipFilter) {
@@ -1548,14 +1601,6 @@ class OrganizationRepository {
         lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
       } else if (filterKey === 'eq') {
         lfxMembershipFilterWhereClause = `AND NOT EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
-      }
-
-      // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter((f) => !f.lfxMembership)
-
-      // handle edge case where filter.and is empty
-      if (filter.and.length === 0) {
-        delete filter.and
       }
     }
 
