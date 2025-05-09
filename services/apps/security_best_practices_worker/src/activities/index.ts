@@ -13,7 +13,6 @@ import {
   findSuiteControlEvaluation,
 } from '@crowd/data-access-layer'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
 import { ISecurityInsightsObsoleteRepo } from '@crowd/types'
 
@@ -25,8 +24,6 @@ export const BINARY_HOME = '/.privateer'
 const execAsync = promisify(exec)
 
 export async function getOSPSBaselineInsights(repoUrl: string, token: string): Promise<string> {
-  // const token = await tokenRotator.getToken()
-
   // get owner and repo name from url
   const [owner, repoName] = repoUrl.split('/').slice(-2)
 
@@ -226,34 +223,6 @@ async function runBinary(
       }
     })
   })
-}
-
-export async function checkTokens(): Promise<boolean> {
-  const cache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
-  const tokenRotator = new GithubTokenRotator(
-    cache,
-    process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(','),
-  )
-
-  const tokens = await tokenRotator.getAllTokens()
-
-  for (const token of tokens) {
-    try {
-      await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
-    } catch (e) {
-      // something is wrong with the token, remove it from the list
-      tokenRotator.removeToken(token)
-    }
-  }
-
-  try {
-    const token = await tokenRotator.getToken()
-    if (token) {
-      return true
-    }
-  } catch (e) {
-    return false
-  }
 }
 
 export async function initializeTokenInfos(): Promise<ITokenInfo[]> {

@@ -23,13 +23,13 @@ const { findObsoleteRepos, initializeTokenInfos, updateTokenInfos } = proxyActiv
 export async function triggerSecurityInsightsCheckForRepos(
   args: ITriggerSecurityInsightsCheckForReposParams,
 ): Promise<void> {
-  const info = workflowInfo()
-  const failedRepoUrls = args?.failedRepoUrls || []
-
   const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
   const LIMIT_REPOS_TO_CHECK_PER_RUN = 100
   const MAX_PARALLEL_CHILDREN = 5
   const MAX_TOKEN_ATTEMPTS = 5
+
+  const info = workflowInfo()
+  const failedRepoUrls = args?.failedRepoUrls || []
 
   const tokenInfos: ITokenInfo[] = await initializeTokenInfos()
   const repos = await findObsoleteRepos(
@@ -51,7 +51,7 @@ export async function triggerSecurityInsightsCheckForRepos(
       const tokenInfo = await getNextToken(tokenInfos)
       const token = tokenInfo.token
 
-      await acquireToken(tokenInfos, tokenInfo.token)
+      await acquireToken(tokenInfos, token)
 
       try {
         await executeChild(upsertOSPSBaselineSecurityInsights, {
@@ -74,16 +74,19 @@ export async function triggerSecurityInsightsCheckForRepos(
             },
           ],
         })
-        return // Success
-      } catch (error: any) {
+        return // success
+      } catch (error) {
         if (error instanceof ApplicationFailure && error.type === 'Token403Error') {
           tokenInfo.isRateLimited = true
           attempts++
-          continue // Retry with a different token
+          continue // retry with a different token
         } else {
           console.error(`Failed to process repo ${repo.repoUrl}:`, error)
+          // we retried this error using the retry policy (because it's not a token non-retryable error)
+          // but it failed in all retries.
+          // to proceed with processing, we don't wanna try this repo again in this run
           failedRepoUrls.push(repo.repoUrl)
-          break // Non-retryable error
+          break
         }
       } finally {
         await releaseToken(tokenInfos, tokenInfo.token)
@@ -91,12 +94,18 @@ export async function triggerSecurityInsightsCheckForRepos(
     }
   }
 
+  /**
+   * We fire up to MAX_PARALLEL_CHILDREN concurrent tasks to process the repos.
+   * Each task will acquire a token, process the repo, and then release the token.
+   * If a task fails with a Token403Error, we will retry it with a different token.
+   * When a task finishes (checked through Promise.race),
+   * it will be removed from the activeTasks array and the next task will be started.
+   * This way we don't need to wait for all tasks to finish before starting new ones.
+   */
   while (queue.length > 0 || activeTasks.length > 0) {
-    // Fill up available slots
     while (queue.length > 0 && activeTasks.length < MAX_PARALLEL_CHILDREN) {
       const repo = queue.shift()
       const task = processRepo(repo).finally(() => {
-        // Remove finished task
         const index = activeTasks.indexOf(task)
         if (index >= 0) activeTasks.splice(index, 1)
       })

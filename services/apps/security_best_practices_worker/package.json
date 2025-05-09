@@ -20,7 +20,6 @@
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
-    "@crowd/integrations": "workspace:*",
     "@temporalio/workflow": "~1.11.1",
     "@temporalio/client": "~1.11.1",
     "axios": "^1.6.8",
