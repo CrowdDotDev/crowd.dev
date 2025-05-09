@@ -13,11 +13,12 @@ import { ITokenInfo, ITriggerSecurityInsightsCheckForReposParams } from '../type
 
 import { upsertOSPSBaselineSecurityInsights } from './upsertOSPSBaselineSecurityInsights'
 
-const { findObsoleteRepos, getNextToken, initializeTokenInfos, acquireToken, releaseToken } =
-  proxyActivities<typeof activities>({
-    startToCloseTimeout: '5 minutes',
-    retry: { maximumAttempts: 3, backoffCoefficient: 3 },
-  })
+const { findObsoleteRepos, initializeTokenInfos, updateTokenInfos } = proxyActivities<
+  typeof activities
+>({
+  startToCloseTimeout: '5 minutes',
+  retry: { maximumAttempts: 3, backoffCoefficient: 3 },
+})
 
 export async function triggerSecurityInsightsCheckForRepos(
   args: ITriggerSecurityInsightsCheckForReposParams,
@@ -108,7 +109,41 @@ export async function triggerSecurityInsightsCheckForRepos(
     }
   }
 
+  await updateTokenInfos(tokenInfos)
+
   await continueAsNew<typeof triggerSecurityInsightsCheckForRepos>({
     failedRepoUrls,
   })
+}
+
+async function getNextToken(tokenInfos: ITokenInfo[]): Promise<ITokenInfo> {
+  const usableTokenInfos = tokenInfos.filter((token) => !token.inUse && !token.isRateLimited)
+
+  // sort usable tokens by last used date from oldest to newest
+  const sortedTokenInfos = usableTokenInfos.sort((a, b) => {
+    const aTime = new Date(a.lastUsed).getTime()
+    const bTime = new Date(b.lastUsed).getTime()
+    return aTime - bTime
+  })
+
+  if (sortedTokenInfos.length === 0) {
+    throw new Error('No usable tokens available')
+  }
+
+  return sortedTokenInfos[0]
+}
+
+async function releaseToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = false
+    tokenInfo.lastUsed = new Date()
+  }
+}
+
+async function acquireToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = true
+  }
 }

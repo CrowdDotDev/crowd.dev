@@ -256,47 +256,24 @@ export async function checkTokens(): Promise<boolean> {
   }
 }
 
-export async function getNextToken(tokenInfos: ITokenInfo[]): Promise<ITokenInfo> {
-  const usableTokenInfos = tokenInfos.filter((token) => !token.inUse && !token.isRateLimited)
-
-  // sort usable tokens by last used date from oldest to newest
-  const sortedTokenInfos = usableTokenInfos.sort((a, b) => {
-    const aTime = new Date(a.lastUsed).getTime()
-    const bTime = new Date(b.lastUsed).getTime()
-    return aTime - bTime
-  })
-
-  if (sortedTokenInfos.length === 0) {
-    throw new Error('No usable tokens available')
-  }
-
-  return sortedTokenInfos[0]
-}
-
-export async function releaseToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
-  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
-  if (tokenInfo) {
-    tokenInfo.inUse = false
-    tokenInfo.lastUsed = new Date()
-  }
-}
-
-export async function acquireToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
-  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
-  if (tokenInfo) {
-    tokenInfo.inUse = true
-  }
-}
-
 export async function initializeTokenInfos(): Promise<ITokenInfo[]> {
-  const tokenInfos: ITokenInfo[] = process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS']
-    .split(',')
-    .map((token) => ({
-      token,
-      inUse: false,
-      lastUsed: new Date(),
-      isRateLimited: false,
-    }))
+  const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
 
-  return tokenInfos
+  const tokenInfosInRedis = await redisCache.get('tokenInfos')
+
+  if (tokenInfosInRedis) {
+    return JSON.parse(tokenInfosInRedis)
+  }
+
+  return process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(',').map((token) => ({
+    token,
+    inUse: false,
+    lastUsed: new Date(),
+    isRateLimited: false,
+  }))
+}
+
+export async function updateTokenInfos(tokenInfos: ITokenInfo[]): Promise<void> {
+  const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
+  await redisCache.set('tokenInfos', JSON.stringify(tokenInfos), 60 * 60 * 24) // 1 day
 }
