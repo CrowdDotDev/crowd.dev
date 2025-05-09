@@ -10,7 +10,6 @@
         class="h-9 flex-grow"
         :lazy="true"
         placeholder="Search collections..."
-        @update:model-value="searchCollections()"
       />
       <lf-button
         size="medium"
@@ -29,18 +28,18 @@
       />
       <div class="pt-4">
         <lf-button
-          v-if="collections.length < total && !loading"
+          v-if="hasNextPage && !isFetchingNextPage"
           type="primary-ghost"
           @click="loadMore()"
         >
           Load more
         </lf-button>
         <div
-          v-else-if="loading && collections.length > 0"
+          v-else-if="isFetchingNextPage"
           class="flex items-center justify-center"
         >
           <span class="text-xs text-gray-400 mr-4">
-            {{ offset }} out of {{ total }} collections
+            {{ collections.length }} out of {{ total }} collections
           </span>
           <div class="flex items-center text-xs text-primary-200">
             <lf-spinner :size="'1rem'" class="mr-1 border-primary-200" />
@@ -50,7 +49,7 @@
       </div>
     </div>
 
-    <div v-else-if="!loading" class="flex flex-col items-center">
+    <div v-else-if="!isPending" class="flex flex-col items-center">
       <app-empty-state-cta
         v-if="search.length"
         class="w-full !pb-0"
@@ -78,10 +77,7 @@
         </lf-button>
       </template>
     </div>
-    <div
-      v-if="loading && collections.length === 0"
-      class="pt-8 flex justify-center"
-    >
+    <div v-else class="pt-8 flex justify-center">
       <lf-spinner />
     </div>
   </div>
@@ -104,15 +100,17 @@
     confirm-button-text="Delete collection"
     cancel-button-text="Cancel"
     confirm-text="delete"
-    @confirm="onRemoveCollection"
-    @close="onCloseRemoveCollection"
+    @confirm="deleteCollectionMutation.mutate(removeCollectionId)"
+    @close="closeRemoveDialog"
   />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
-import { CollectionsService } from '@/modules/admin/modules/collections/services/collections.service';
+import {
+  COLLECTIONS_SERVICE,
+} from '@/modules/admin/modules/collections/services/collections.service';
 import { CollectionModel } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
 import Message from '@/shared/message/message';
@@ -123,60 +121,85 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
 import { cloneDeep } from 'lodash';
+import {
+  QueryFunction, useInfiniteQuery, useMutation, useQueryClient,
+} from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { useDebounce } from '@vueuse/core';
+import { Pagination } from '@/shared/types/Pagination';
+
+const queryClient = useQueryClient();
 
 const search = ref('');
-const loading = ref<boolean>(false);
-const offset = ref(0);
-const limit = ref(20);
-const total = ref(0);
-const collections = ref<CollectionModel[]>([]);
+const searchValue = useDebounce(search, 300);
+
 const removeCollection = ref<boolean>(false);
 const removeCollectionId = ref<string>('');
 const isCollectionDialogOpen = ref<boolean>(false);
 const collectionEditObject = ref<CollectionModel | undefined>(undefined);
 
-const fetchCollections = () => {
-  if (loading.value) {
-    return;
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_COLLECTIONS,
+  searchValue.value,
+]);
+const queryFn = COLLECTIONS_SERVICE.query(() => ({
+  filter: searchValue.value
+    ? {
+      name: {
+        like: `%${searchValue.value}%`,
+      },
+    }
+    : {},
+  offset: 0,
+  limit: 20,
+})) as QueryFunction<Pagination<CollectionModel>, readonly unknown[], unknown>;
+
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<CollectionModel>, Error>({
+  queryKey,
+  queryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
+
+const collections = computed((): CollectionModel[] => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+        [] as CollectionModel[],
+    );
   }
-  loading.value = true;
-  CollectionsService.list({
-    filter: search.value
-      ? {
-        name: {
-          like: `%${search.value}%`,
-        },
-      }
-      : {},
-    offset: offset.value,
-    limit: limit.value,
-  })
-    .then((res) => {
-      if (offset.value > 0) {
-        collections.value = [...collections.value, ...res.rows];
-      } else {
-        collections.value = res.rows;
-      }
+  return [];
+});
 
-      if (res.rows.length < limit.value) {
-        total.value = collections.value.length;
-      } else {
-        total.value = res.total;
-      }
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-};
+const total = computed((): number => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages[0].count;
+  }
+  return 0;
+});
 
-const searchCollections = () => {
-  offset.value = 0;
-  fetchCollections();
-};
+watch(error, (err) => {
+  if (err) {
+    Message.error('Something went wrong while fetching collections');
+  }
+});
 
 const loadMore = () => {
-  offset.value = collections.value.length;
-  fetchCollections();
+  if (hasNextPage.value && !isFetchingNextPage.value) {
+    fetchNextPage();
+  }
 };
 
 const openCollectionAdd = () => {
@@ -193,8 +216,6 @@ const onEditCollection = (collectionId: string) => {
 const onCollectionDialogCloseSuccess = () => {
   isCollectionDialogOpen.value = false;
   collectionEditObject.value = undefined;
-  offset.value = 0;
-  fetchCollections();
 };
 
 const onCollectionDialogClose = () => {
@@ -207,33 +228,33 @@ const openRemoveCollectionDialog = (collectionId: string) => {
   removeCollection.value = true;
 };
 
-const onRemoveCollection = () => {
-  Message.info(null, {
-    title: 'Collection is being deleted',
-  });
-  CollectionsService.delete(removeCollectionId.value)
-    .then(() => {
-      Message.closeAll();
-      Message.success('Collection successfully deleted');
-      offset.value = 0;
-      fetchCollections();
-      onCloseRemoveCollection();
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-      onCloseRemoveCollection();
+const deleteCollectionMutation = useMutation({
+  mutationFn: (collectionId: string) => COLLECTIONS_SERVICE.delete(collectionId),
+  onSuccess: () => {
+    Message.closeAll();
+    Message.success('Collection successfully deleted');
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.ADMIN_COLLECTIONS],
     });
-};
+    closeRemoveDialog();
+  },
+  onError: () => {
+    Message.closeAll();
+    Message.error('Something went wrong');
+    closeRemoveDialog();
+  },
+  onMutate: () => {
+    Message.info(null, {
+      title: 'Collection is being deleted',
+    });
+  },
+});
 
-const onCloseRemoveCollection = () => {
+const closeRemoveDialog = () => {
   removeCollection.value = false;
   removeCollectionId.value = '';
 };
 
-onMounted(() => {
-  searchCollections();
-});
 </script>
 
 <script lang="ts">
