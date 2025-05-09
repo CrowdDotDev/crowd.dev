@@ -6,13 +6,22 @@ export interface CollectionModel {
   name: string;
   description: string;
   slug: string;
-  isLF: boolean;
   categoryId?: string;
   projects: InsightsProjectModel[];
   category: Category & {categoryGroupType: string, categoryGroupName: string};
   starred?: boolean;
 }
 
+export interface CollectionRequest {
+  name: string;
+  description: string;
+  categoryId: string | null;
+  slug: string;
+  projects: {
+    id: string;
+    starred: boolean;
+  }[];
+}
 export interface CollectionFormModel {
   name: string;
   description: string;
