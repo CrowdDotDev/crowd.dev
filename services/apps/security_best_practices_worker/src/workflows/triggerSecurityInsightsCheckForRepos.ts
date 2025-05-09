@@ -1,4 +1,5 @@
 import {
+  ApplicationFailure,
   ChildWorkflowCancellationType,
   ParentClosePolicy,
   continueAsNew,
@@ -8,26 +9,29 @@ import {
 } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { ITriggerSecurityInsightsCheckForReposParams } from '../types'
+import { ITokenInfo, ITriggerSecurityInsightsCheckForReposParams } from '../types'
 
 import { upsertOSPSBaselineSecurityInsights } from './upsertOSPSBaselineSecurityInsights'
 
-const { findObsoleteRepos } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '30 minutes',
+const { findObsoleteRepos, initializeTokenInfos, updateTokenInfos } = proxyActivities<
+  typeof activities
+>({
+  startToCloseTimeout: '5 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 export async function triggerSecurityInsightsCheckForRepos(
   args: ITriggerSecurityInsightsCheckForReposParams,
 ): Promise<void> {
-  const info = workflowInfo()
+  const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
+  const LIMIT_REPOS_TO_CHECK_PER_RUN = 100
+  const MAX_PARALLEL_CHILDREN = 5
+  const MAX_TOKEN_ATTEMPTS = 5
 
+  const info = workflowInfo()
   const failedRepoUrls = args?.failedRepoUrls || []
 
-  const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
-  const LIMIT_REPOS_TO_CHECK_PER_RUN = 1000
-
-  // We won't try same repos again if they already failed(and retried) in the same-day run
+  const tokenInfos: ITokenInfo[] = await initializeTokenInfos()
   const repos = await findObsoleteRepos(
     REPOS_OBSOLETE_AFTER_SECONDS,
     failedRepoUrls,
@@ -38,34 +42,117 @@ export async function triggerSecurityInsightsCheckForRepos(
     return
   }
 
-  for (const repo of repos) {
-    try {
-      await executeChild(upsertOSPSBaselineSecurityInsights, {
-        workflowId: `${info.workflowId}->${repo.repoUrl}`,
-        cancellationType: ChildWorkflowCancellationType.ABANDON,
-        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        retry: {
-          maximumAttempts: 2,
-          backoffCoefficient: 3,
-          initialInterval: 2 * 1000,
-          maximumInterval: 30 * 1000,
-        },
-        args: [
-          {
-            repoUrl: repo.repoUrl,
-            insightsProjectId: repo.insightsProjectId,
-            insightsProjectSlug: repo.insightsProjectSlug,
+  const queue = [...repos]
+  const activeTasks: Promise<void>[] = []
+
+  async function processRepo(repo: (typeof repos)[0]): Promise<void> {
+    let attempts = 0
+    while (attempts < MAX_TOKEN_ATTEMPTS) {
+      const tokenInfo = await getNextToken(tokenInfos)
+      const token = tokenInfo.token
+
+      await acquireToken(tokenInfos, token)
+
+      try {
+        await executeChild(upsertOSPSBaselineSecurityInsights, {
+          workflowId: `${info.workflowId}->${repo.repoUrl}->attempt${attempts}`,
+          cancellationType: ChildWorkflowCancellationType.ABANDON,
+          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+          retry: {
+            maximumAttempts: 3,
+            initialInterval: 2000,
+            backoffCoefficient: 2,
+            maximumInterval: 30000,
+            nonRetryableErrorTypes: ['Token403Error'],
           },
-        ],
-        searchAttributes: {},
-      })
-    } catch (error) {
-      console.error(`Failed to process repo ${repo}:`, error)
-      failedRepoUrls.push(repo.repoUrl)
+          args: [
+            {
+              repoUrl: repo.repoUrl,
+              insightsProjectId: repo.insightsProjectId,
+              insightsProjectSlug: repo.insightsProjectSlug,
+              token,
+            },
+          ],
+        })
+        return // success
+      } catch (error) {
+        if (error instanceof ApplicationFailure && error.type === 'Token403Error') {
+          tokenInfo.isRateLimited = true
+          attempts++
+          continue // retry with a different token
+        } else {
+          console.error(`Failed to process repo ${repo.repoUrl}:`, error)
+          // we retried this error using the retry policy (because it's not a token non-retryable error)
+          // but it failed in all retries.
+          // to proceed with processing, we don't wanna try this repo again in this run
+          failedRepoUrls.push(repo.repoUrl)
+          break
+        }
+      } finally {
+        await releaseToken(tokenInfos, tokenInfo.token)
+      }
     }
   }
+
+  /**
+   * We fire up to MAX_PARALLEL_CHILDREN concurrent tasks to process the repos.
+   * Each task will acquire a token, process the repo, and then release the token.
+   * If a task fails with a Token403Error, we will retry it with a different token.
+   * When a task finishes (checked through Promise.race),
+   * it will be removed from the activeTasks array and the next task will be started.
+   * This way we don't need to wait for all tasks to finish before starting new ones.
+   */
+  while (queue.length > 0 || activeTasks.length > 0) {
+    while (queue.length > 0 && activeTasks.length < MAX_PARALLEL_CHILDREN) {
+      const repo = queue.shift()
+      const task = processRepo(repo).finally(() => {
+        const index = activeTasks.indexOf(task)
+        if (index >= 0) activeTasks.splice(index, 1)
+      })
+      activeTasks.push(task)
+    }
+
+    // Wait for any one to finish before refilling
+    if (activeTasks.length > 0) {
+      await Promise.race(activeTasks)
+    }
+  }
+
+  await updateTokenInfos(tokenInfos)
 
   await continueAsNew<typeof triggerSecurityInsightsCheckForRepos>({
     failedRepoUrls,
   })
+}
+
+async function getNextToken(tokenInfos: ITokenInfo[]): Promise<ITokenInfo> {
+  const usableTokenInfos = tokenInfos.filter((token) => !token.inUse && !token.isRateLimited)
+
+  // sort usable tokens by last used date from oldest to newest
+  const sortedTokenInfos = usableTokenInfos.sort((a, b) => {
+    const aTime = new Date(a.lastUsed).getTime()
+    const bTime = new Date(b.lastUsed).getTime()
+    return aTime - bTime
+  })
+
+  if (sortedTokenInfos.length === 0) {
+    throw new Error('No usable tokens available')
+  }
+
+  return sortedTokenInfos[0]
+}
+
+async function releaseToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = false
+    tokenInfo.lastUsed = new Date()
+  }
+}
+
+async function acquireToken(tokenInfos: ITokenInfo[], token: string): Promise<void> {
+  const tokenInfo = tokenInfos.find((tokenInfo) => tokenInfo.token === token)
+  if (tokenInfo) {
+    tokenInfo.inUse = true
+  }
 }

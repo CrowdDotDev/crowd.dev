@@ -35,8 +35,16 @@ export interface IUpsertOSPSBaselineSecurityInsightsParams {
   insightsProjectId: string
   insightsProjectSlug: string
   repoUrl: string
+  token: string
 }
 
 export interface ITriggerSecurityInsightsCheckForReposParams {
   failedRepoUrls?: string[]
+}
+
+export interface ITokenInfo {
+  token: string
+  inUse: boolean
+  lastUsed: Date
+  isRateLimited: boolean
 }
