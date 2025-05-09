@@ -26,7 +26,7 @@ export async function triggerSecurityInsightsCheckForRepos(
   const failedRepoUrls = args?.failedRepoUrls || []
 
   const REPOS_OBSOLETE_AFTER_SECONDS = 30 * 24 * 60 * 60 // 30 days
-  const LIMIT_REPOS_TO_CHECK_PER_RUN = 1000
+  const LIMIT_REPOS_TO_CHECK_PER_RUN = 100
   const MAX_PARALLEL_CHILDREN = 5
   const MAX_TOKEN_ATTEMPTS = 5
 
