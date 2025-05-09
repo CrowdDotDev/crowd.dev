@@ -252,6 +252,7 @@ const onSubmit = () => {
       id: project.id,
       starred: project?.starred || false,
     })),
+    starred: false,
     categoryId: form.categoryId,
     slug: form.name.toLowerCase().replace(/ /g, '-'),
   };

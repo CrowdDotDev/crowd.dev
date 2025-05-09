@@ -17,6 +17,7 @@ export interface CollectionRequest {
   description: string;
   categoryId: string | null;
   slug: string;
+  starred: boolean;
   projects: {
     id: string;
     starred: boolean;
