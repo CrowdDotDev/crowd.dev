@@ -4,7 +4,7 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * GET /member/:memberId/organization
+ * GET /member/:memberIdOrLfid/organization
  * @summary Query member organizations
  * @tag Members
  * @security Bearer
@@ -16,11 +16,11 @@ import PermissionChecker from '../../../services/user/permissionChecker'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberRead)
+  new PermissionChecker(req).validateHas(Permissions.values.memberOrganizationRead)
 
   const memberOrganizationsService = new MemberOrganizationsService(req)
 
-  const payload = await memberOrganizationsService.list(req.params.memberId)
+  const payload = await memberOrganizationsService.list(req.memberId)
 
   await req.responseHandler.success(req, res, payload)
 }

@@ -1,4 +1,11 @@
-import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import {
+  IMemberAttribute,
+  IMemberUserValidationInput,
+  MemberAttributeType,
+  MemberIdentityUserValidationAction,
+  MemberOrganizationUserValidationAction,
+  MemberUserValidationType,
+} from '@crowd/types'
 
 export interface IQueryNumberOfNewMembers {
   segmentIds?: string[]
@@ -62,4 +69,21 @@ export interface IDbMemberData {
   activeOn?: string[]
   averageSentiment?: number
   activeDaysCount?: number
+}
+
+export interface IMemberUserValidationRecord<T> extends IMemberUserValidationInput<T> {
+  type: MemberUserValidationType
+}
+
+export interface IMemberUserValidationFilter {
+  action?: MemberIdentityUserValidationAction | MemberOrganizationUserValidationAction
+  type?: MemberUserValidationType
+}
+
+export interface IMemberUserValidation {
+  id: string
+  memberId: string
+  action: string
+  type: MemberUserValidationType
+  details: Record<string, unknown>
 }
