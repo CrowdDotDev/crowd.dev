@@ -51,7 +51,7 @@ export async function getOSPSBaselineInsights(repoUrl: string, token: string): P
         type: 'Token403Error',
       })
     }
-  } catch (err: any) {
+  } catch (err) {
     svc.log.error(`Privateer run failed: ${err.message}`)
 
     // check for 403 in captured output if available
