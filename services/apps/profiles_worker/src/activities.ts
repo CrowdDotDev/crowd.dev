@@ -3,7 +3,21 @@ import {
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAt,
 } from './activities/common'
+import {
+  getLastMemberDisplayAggsSyncedAt,
+  getMemberDisplayAggregates,
+  getMembersForDisplayAggsRefresh,
+  setMemberDisplayAggregates,
+  touchLastMemberDisplayAggsSyncedAt,
+} from './activities/member/memberDisplayAggs'
 import { syncMember, updateMemberAffiliations } from './activities/member/memberUpdate'
+import {
+  getLastOrganizationDisplayAggsSyncedAt,
+  getOrganizationDisplayAggregates,
+  getOrganizationsForDisplayAggsRefresh,
+  setOrganizationDisplayAggregates,
+  touchLastOrganizationDisplayAggsSyncedAt,
+} from './activities/organization/organizationDisplayAggs'
 import {
   findMembersInOrganization,
   syncOrganization,
@@ -17,4 +31,16 @@ export {
   syncMember,
   syncOrganization,
   findMembersInOrganization,
+  // -
+  getLastMemberDisplayAggsSyncedAt,
+  touchLastMemberDisplayAggsSyncedAt,
+  getMembersForDisplayAggsRefresh,
+  getMemberDisplayAggregates,
+  setMemberDisplayAggregates,
+  // -
+  getLastOrganizationDisplayAggsSyncedAt,
+  touchLastOrganizationDisplayAggsSyncedAt,
+  getOrganizationsForDisplayAggsRefresh,
+  getOrganizationDisplayAggregates,
+  setOrganizationDisplayAggregates,
 }

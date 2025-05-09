@@ -14,14 +14,12 @@ import {
   Error404,
   Error409,
   RawQueryParser,
-  distinct,
   groupBy,
 } from '@crowd/common'
 import {
   countMembersWithActivities,
   getActiveMembers,
   getLastActivitiesForMembers,
-  getMemberAggregates,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -106,17 +104,6 @@ import {
 const { Op } = Sequelize
 
 const log: boolean = false
-
-interface ActivityAggregates {
-  memberId: string
-  segmentId: string
-  activityCount: number
-  activeDaysCount: number
-  lastActive: string
-  activityTypes: string[]
-  activeOn: string[]
-  averageSentiment: number
-}
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -1236,44 +1223,6 @@ class MemberRepository {
     const segments = await segmentRepository.findInIds(segmentIds)
 
     return segments
-  }
-
-  static async getActivityAggregates(
-    memberId: string,
-    options: IRepositoryOptions,
-    segmentId?: string,
-  ): Promise<ActivityAggregates> {
-    if (segmentId) {
-      // we load data for a specific segment (can be leaf, parent or grand parent id)
-      const member = (
-        await queryMembersAdvanced(optionsQx(options), options.redis, {
-          filter: { and: [{ id: { eq: memberId } }] },
-          limit: 1,
-          offset: 0,
-          fields: ['activityCount', 'activityTypes', 'activeOn', 'averageSentiment', 'lastActive'],
-          segmentId,
-        })
-      ).rows[0]
-
-      return {
-        activeDaysCount: member?.activeDaysCount || 0,
-        activityCount: member?.activityCount || 0,
-        activityTypes: member?.activityTypes || [],
-        activeOn: member?.activeOn || [],
-        averageSentiment: member?.averageSentiment || 0,
-        lastActive: member?.lastActive || null,
-        memberId,
-        segmentId,
-      }
-    }
-
-    const results = await getMemberAggregates(options.qdb, memberId)
-
-    if (results.length > 0) {
-      return results[0]
-    }
-
-    return null
   }
 
   static async setAffiliations(
@@ -2428,147 +2377,6 @@ class MemberRepository {
         return plainRecord
       }),
     )
-  }
-
-  /**
-   * Fill a record with the relations and files (if any)
-   * @param record Record to get relations and files for
-   * @param options IRepository options
-   * @param returnPlain If true: return object, otherwise  return model
-   * @returns The model/object with filled relations and files
-   */
-  static async _populateRelations(
-    record,
-    options: IRepositoryOptions,
-    {
-      returnPlain,
-      segmentId,
-      newIdentities,
-      withActivityAggregates,
-    }: {
-      returnPlain: boolean
-      segmentId: string
-      newIdentities: boolean
-      withActivityAggregates: boolean
-    },
-  ) {
-    if (!record) {
-      return record
-    }
-
-    let output
-
-    if (returnPlain) {
-      output = record.get({ plain: true })
-    } else {
-      output = record
-    }
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    if (withActivityAggregates) {
-      const activityAggregates = await MemberRepository.getActivityAggregates(
-        output.id,
-        options,
-        segmentId,
-      )
-
-      output.activeOn = activityAggregates?.activeOn || []
-      output.activityCount = activityAggregates?.activityCount || 0
-      output.activityTypes = activityAggregates?.activityTypes || []
-      output.activeDaysCount = activityAggregates?.activeDaysCount || 0
-      output.averageSentiment = activityAggregates?.averageSentiment || 0
-    }
-
-    output.lastActivity =
-      (
-        await record.getActivities({
-          order: [['timestamp', 'DESC']],
-          limit: 1,
-          transaction,
-        })
-      )[0]?.get({ plain: true }) ?? null
-
-    output.lastActive = output.lastActivity?.timestamp ?? null
-
-    output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
-
-    output.tags = await record.getTags({
-      transaction,
-      order: [['createdAt', 'ASC']],
-      joinTableAttributes: [],
-    })
-
-    output.organizations = await record.getOrganizations({
-      transaction,
-      order: [['createdAt', 'ASC']],
-      joinTableAttributes: ['dateStart', 'dateEnd', 'title', 'source'],
-      through: {
-        where: {
-          deletedAt: null,
-        },
-      },
-    })
-    MemberRepository.sortOrganizations(output.organizations)
-
-    output.noMerge = (
-      await record.getNoMerge({
-        transaction,
-      })
-    ).map((i) => i.id)
-
-    output.toMerge = (
-      await record.getToMerge({
-        transaction,
-      })
-    ).map((i) => i.id)
-
-    const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
-
-    if (newIdentities === true) {
-      output.identities = memberIdentities
-      output.verifiedEmails = distinct(
-        memberIdentities
-          .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-          .map((i) => i.value),
-      )
-      output.unverifiedEmails = distinct(
-        memberIdentities
-          .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
-          .map((i) => i.value),
-      )
-      output.verifiedUsernames = distinct(
-        memberIdentities
-          .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
-          .map((i) => i.value),
-      )
-      output.unverifiedUsernames = distinct(
-        memberIdentities
-          .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
-          .map((i) => i.value),
-      )
-      output.identityPlatforms = distinct(
-        memberIdentities.filter((i) => i.verified).map((i) => i.platform),
-      )
-    } else {
-      output.username = {}
-
-      for (const identity of memberIdentities.filter(
-        (i) => i.type === MemberIdentityType.USERNAME,
-      )) {
-        if (output.username[identity.platform]) {
-          output.username[identity.platform].push(identity.value)
-        } else {
-          output.username[identity.platform] = [identity.value]
-        }
-      }
-
-      output.identities = Object.keys(output.username)
-    }
-
-    output.affiliations = await this.getAffiliations(record.id, options)
-
-    return output
   }
 
   static async updateMemberOrganizations(

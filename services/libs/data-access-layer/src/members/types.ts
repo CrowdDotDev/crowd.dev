@@ -14,19 +14,29 @@ export interface IQueryTimeseriesOfNewMembers {
   platform?: string
 }
 
-export interface IMemberSegmentAggregates {
+export interface IMemberSegmentCoreAggregates {
   memberId: string
   segmentId: string
 
   activityCount: number
+  activeOn: string[]
+}
+
+export interface IMemberSegmentDisplayAggregates {
+  memberId: string
+  segmentId: string
+
   lastActive: string
   activityTypes: string[]
-  activeOn: string[]
   averageSentiment: number
   activeDaysCount: number
 }
 
-export interface IMemberAbsoluteAggregates {
+export interface IMemberSegmentAggregates
+  extends IMemberSegmentCoreAggregates,
+    IMemberSegmentDisplayAggregates {}
+
+export interface IMemberActivitySummary {
   activityCount: number
   lastActive: string
 }
