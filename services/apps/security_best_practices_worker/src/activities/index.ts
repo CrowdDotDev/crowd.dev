@@ -1,3 +1,4 @@
+import { ApplicationFailure } from '@temporalio/client'
 import { exec, spawn } from 'child_process'
 import { existsSync, readFileSync } from 'fs'
 import { load as parseYaml } from 'js-yaml'
@@ -16,13 +17,13 @@ import { RedisCache } from '@crowd/redis'
 import { ISecurityInsightsObsoleteRepo } from '@crowd/types'
 
 import { svc } from '../main'
-import { ISecurityInsightsPrivateerResult } from '../types'
+import { ISecurityInsightsPrivateerResult, ITokenInfo } from '../types'
 
 export const BINARY_HOME = '/.privateer'
 
 const execAsync = promisify(exec)
 
-export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> {
+export async function getOSPSBaselineInsights(repoUrl: string, token: string): Promise<string> {
   // get owner and repo name from url
   const [owner, repoName] = repoUrl.split('/').slice(-2)
 
@@ -31,14 +32,39 @@ export async function getOSPSBaselineInsights(repoUrl: string): Promise<string> 
   // prepare config file for privateer
   await execAsync(
     `cp ${BINARY_HOME}/example-config.yml ${BINARY_HOME}/${repoName}.yml &&
-     sed -i.bak -e "s/\\$REPO_NAME/${repoName}/g" -e "s/\\$REPO_OWNER/${owner}/g" -e "s/\\$GITHUB_TOKEN/${process.env.CROWD_SECURITY_INSIGHTS_GITHUB_TOKEN}/g" ${BINARY_HOME}/${repoName}.yml && rm ${BINARY_HOME}/${repoName}.yml.bak`,
+     sed -i.bak -e "s/\\$REPO_NAME/${repoName}/g" -e "s/\\$REPO_OWNER/${owner}/g" -e "s/\\$GITHUB_TOKEN/${token}/g" ${BINARY_HOME}/${repoName}.yml && rm ${BINARY_HOME}/${repoName}.yml.bak`,
   )
 
-  await runBinary(`${BINARY_HOME}/bin/privateer`, [
-    'run',
-    '--config',
-    `${BINARY_HOME}/${repoName}.yml`,
-  ])
+  try {
+    const { stdout, stderr } = await runBinary(`${BINARY_HOME}/bin/privateer`, [
+      'run',
+      '--config',
+      `${BINARY_HOME}/${repoName}.yml`,
+    ])
+
+    const combinedOutput = `${stdout}\n${stderr}`
+
+    if (combinedOutput.includes('403')) {
+      svc.log.warn('Detected 403 error in privateer output!')
+      throw ApplicationFailure.create({
+        message: 'GitHub token rate-limited',
+        type: 'Token403Error',
+      })
+    }
+  } catch (err) {
+    svc.log.error(`Privateer run failed: ${err.message}`)
+
+    // check for 403 in captured output if available
+    const output = `${err.stdout || ''}\n${err.stderr || ''}`
+    if (output.includes('403')) {
+      svc.log.warn('Detected 403 error in failed privateer output!')
+      throw ApplicationFailure.create({
+        message: 'GitHub token rate-limited',
+        type: 'Token403Error',
+      })
+    }
+    throw err
+  }
 
   // check if the output file exists
   if (!existsSync(`${REPORT_OUTPUT_FILE_PATH}`)) {
@@ -156,26 +182,67 @@ async function cleanupFiles(repoName: string): Promise<void> {
   }
 }
 
-async function runBinary(binaryPath: string, args: string[] = []): Promise<void> {
+async function runBinary(
+  binaryPath: string,
+  args: string[] = [],
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     svc.log.info(`Running binary: ${binaryPath} with args: ${args.join(' ')}`)
+
     const proc = spawn(binaryPath, args, {
-      stdio: 'inherit',
       cwd: '/.privateer',
+      shell: false,
+    })
+
+    let stdout = ''
+    let stderr = ''
+
+    proc.stdout?.on('data', (data) => {
+      const text = data.toString()
+      stdout += text
+      svc.log.info(`[stdout] ${text.trim()}`)
+    })
+
+    proc.stderr?.on('data', (data) => {
+      const text = data.toString()
+      stderr += text
+      svc.log.warn(`[stderr] ${text.trim()}`)
     })
 
     proc.on('error', (err) => {
-      svc.log.info(`Error running binary: ${err}`)
+      svc.log.error(`Error running binary: ${err}`)
       reject(err)
     })
 
-    proc.on('exit', (code) => {
+    proc.on('close', (code) => {
       if (code === 0) {
-        svc.log.info(`Binary completed successfully with code ${code}`)
-        resolve()
+        svc.log.info(`Binary completed successfully`)
+        resolve({ stdout, stderr })
       } else {
-        reject(new Error(`Binary exited with code ${code}`))
+        reject(new Error(`Binary exited with code ${code}\nStderr:\n${stderr}Stdout:\n${stdout}`))
       }
     })
   })
+}
+
+export async function initializeTokenInfos(): Promise<ITokenInfo[]> {
+  const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
+
+  const tokenInfosInRedis = await redisCache.get('tokenInfos')
+
+  if (tokenInfosInRedis) {
+    return JSON.parse(tokenInfosInRedis)
+  }
+
+  return process.env['CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'].split(',').map((token) => ({
+    token,
+    inUse: false,
+    lastUsed: new Date(),
+    isRateLimited: false,
+  }))
+}
+
+export async function updateTokenInfos(tokenInfos: ITokenInfo[]): Promise<void> {
+  const redisCache = new RedisCache(`osps-baseline-insights`, svc.redis, svc.log)
+  await redisCache.set('tokenInfos', JSON.stringify(tokenInfos), 60 * 60 * 24) // 1 day
 }

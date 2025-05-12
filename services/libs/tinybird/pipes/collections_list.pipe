@@ -11,7 +11,8 @@ SQL >
         collections_filtered.name,
         collections_filtered.slug,
         collections_filtered.description,
-        collections_filtered.projectCount
+        collections_filtered.projectCount,
+        collections_filtered.starred
     FROM collections_filtered
     order by
         {{
@@ -57,6 +58,7 @@ SQL >
             collections_paginated.slug as slug,
             collections_paginated.description as description,
             collections_paginated.projectCount as "projectCount",
+            collections_paginated.starred as starred,
             arrayFilter(
                 x -> x['name'] != '',
                 groupArray(
@@ -79,7 +81,8 @@ SQL >
             collections_paginated.name as name,
             collections_paginated.slug as slug,
             collections_paginated.description as description,
-            collections_paginated.projectCount as "projectCount"
+            collections_paginated.projectCount as "projectCount",
+            collections_paginated.starred as starred
         order by
             {{
                 column(
