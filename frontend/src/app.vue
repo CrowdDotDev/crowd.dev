@@ -15,6 +15,7 @@
       <app-resize-page />
     </div>
     <lf-globals />
+    <VueQueryDevtools />
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfGlobals from '@/shared/components/globals.vue';
+import { VueQueryDevtools } from '@tanstack/vue-query-devtools';
 
 export default {
   name: 'App',
@@ -35,6 +37,7 @@ export default {
   components: {
     LfGlobals,
     AppResizePage,
+    VueQueryDevtools,
   },
 
   setup() {

@@ -1,4 +1,9 @@
-# Commit Message Rules
+---
+description: git commit format spec
+globs: 
+alwaysApply: false
+---
+# Git Commit Format
 
 Always use git commit -s to sign off on the commit
 Format: `<type>(scope): <description>`

@@ -161,7 +161,9 @@ export async function updateTableById<T extends string>(
   return qx.result(
     `
       UPDATE $(table:name)
-      SET ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')}
+      SET
+        ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')},
+        "updatedAt" = CURRENT_TIMESTAMP
       WHERE id = $(id)
       RETURNING *
     `,

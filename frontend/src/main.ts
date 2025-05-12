@@ -17,6 +17,7 @@ import { vueSanitizeOptions } from '@/shared/plugins/sanitize';
 import marked from '@/shared/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
+import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 
 declare module 'vue' {
   interface ComponentCustomProperties {
@@ -33,6 +34,16 @@ declare module 'vue' {
   const pinia = createPinia();
   const app = createApp(App);
   app.use(pinia);
+
+  // Create a client
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 1000 * 60 * 5 } },
+  });
+
+  // Install the VueQuery plugin
+  app.use(VueQueryPlugin, {
+    queryClient,
+  });
 
   const { captureException } = useLogRocket();
 
