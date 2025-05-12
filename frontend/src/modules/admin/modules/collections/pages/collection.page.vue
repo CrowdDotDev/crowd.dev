@@ -215,13 +215,13 @@ const onEditCollection = (collectionId: string) => {
 };
 
 const updateMutation = useMutation({
-  mutationFn: ({ id, collection }: { id: string; collection: CollectionModel }) => COLLECTIONS_SERVICE.update(id, collection as CollectionRequest),
+  mutationFn: ({ id, collection }: { id: string; collection: CollectionRequest }) => COLLECTIONS_SERVICE.update(id, collection),
   onMutate: () => {
     Message.info(null, {
       title: 'Collection is being featured',
     });
   },
-  onSuccess: (collection: CollectionModel) => {
+  onSuccess: (collection: CollectionRequest) => {
     Message.closeAll();
     Message.success(`Collection successfully ${collection!.starred ? 'mark as featured' : 'unmark as featured'}`);
     queryClient.invalidateQueries({
@@ -244,7 +244,14 @@ const ontoggleStar = (collectionId: string) => {
   updateMutation.mutate({
     id: collectionId,
     collection: {
-      ...collection,
+      categoryId: collection.categoryId || null,
+      description: collection.description,
+      name: collection.name,
+      projects: collection.projects.map((project) => ({
+        id: project.id,
+        starred: project.starred,
+      })),
+      slug: collection.slug,
       starred: !collection.starred,
     },
   });
@@ -291,7 +298,6 @@ const closeRemoveDialog = () => {
   removeCollection.value = false;
   removeCollectionId.value = '';
 };
-
 </script>
 
 <script lang="ts">
