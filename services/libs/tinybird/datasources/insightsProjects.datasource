@@ -14,7 +14,7 @@ SCHEMA >
     `twitter` String `json:$.record.twitter` DEFAULT '',
     `widgets` Array(String) `json:$.record.widgets[:]` DEFAULT [],
     `repositories` Array(String) `json:$.record.repositories[:]` DEFAULT [],
-    `enable` UInt8 `json:$.record.enable` DEFAULT 1,
+    `enabled` UInt8 `json:$.record.enabled` DEFAULT 1,
     `isLF` UInt8 `json:$.record.isLF` DEFAULT 0,
     `keywords` Array(String) `json:$.record.keywords[:]` DEFAULT []
 
