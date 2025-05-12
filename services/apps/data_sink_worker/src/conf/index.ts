@@ -20,6 +20,10 @@ export interface IWorkerConfig {
   queuePriorityLevel: QueuePriorityLevel
 }
 
+export interface ITinybirdConfig {
+  token: string
+}
+
 let workerSettings: IWorkerConfig
 export const WORKER_SETTINGS = (): IWorkerConfig => {
   if (workerSettings) return workerSettings
@@ -79,4 +83,12 @@ export const GITHUB_CONFIG = (): IGithubConfig => {
 
   githubConfig = config.get<IGithubConfig>('github')
   return githubConfig
+}
+
+let tinybirdConfig: ITinybirdConfig
+export const TINYBIRD_CONFIG = (): ITinybirdConfig => {
+  if (tinybirdConfig) return tinybirdConfig
+
+  tinybirdConfig = config.get<ITinybirdConfig>('tinybird')
+  return tinybirdConfig
 }
