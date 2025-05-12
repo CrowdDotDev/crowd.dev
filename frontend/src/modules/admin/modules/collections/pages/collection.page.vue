@@ -241,19 +241,22 @@ const ontoggleStar = (collectionId: string) => {
     Message.error('Collection not found');
     return;
   }
+
+  const cleanedPayload: CollectionRequest = {
+    categoryId: collection.categoryId || null,
+    description: collection.description,
+    name: collection.name,
+    projects: collection.projects.map((project) => ({
+      id: project.id,
+      starred: project.starred,
+    })),
+    slug: collection.slug,
+    starred: !collection.starred,
+  };
+
   updateMutation.mutate({
     id: collectionId,
-    collection: {
-      categoryId: collection.categoryId || null,
-      description: collection.description,
-      name: collection.name,
-      projects: collection.projects.map((project) => ({
-        id: project.id,
-        starred: project.starred,
-      })),
-      slug: collection.slug,
-      starred: !collection.starred,
-    },
+    collection: cleanedPayload,
   });
 };
 
