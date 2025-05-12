@@ -109,7 +109,7 @@ SQL >
                     'starred',
                     description="When starred sorting is selected, also sort by projectCount.",
                     required=False,
-                ) == 'starred' %} , projectCount DESC
+                ) == 'starred' %}, projectCount DESC
                 {% end %}
             {% end %}
     {% end %}
