@@ -1514,7 +1514,7 @@ class OrganizationRepository {
     index: number,
     filterName: string,
   ) {
-    const lfxFilterObj = Object.assign(filtersArray[filterName][index])
+    const lfxFilterObj = Object.assign(filtersArray[filterName][index])?.lfxMembership
     filtersArray[filterName].splice(index, 1)
 
     if (filtersArray[filterName].length === 0)
