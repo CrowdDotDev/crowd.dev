@@ -24,6 +24,7 @@
       <lf-collection-table
         :collections="collections"
         @on-edit-collection="onEditCollection($event)"
+        @on-star-collection="ontoggleStar($event)"
         @on-delete-collection="openRemoveCollectionDialog($event)"
       />
       <div class="pt-4">
@@ -111,7 +112,7 @@ import LfSearch from '@/ui-kit/search/Search.vue';
 import {
   COLLECTIONS_SERVICE,
 } from '@/modules/admin/modules/collections/services/collections.service';
-import { CollectionModel } from '@/modules/admin/modules/collections/models/collection.model';
+import { CollectionModel, CollectionRequest } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
 import Message from '@/shared/message/message';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
@@ -211,6 +212,42 @@ const onEditCollection = (collectionId: string) => {
   collectionEditObject.value = cloneDeep(
     collections.value.find((collection) => collection.id === collectionId),
   );
+};
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, collection }: { id: string; collection: CollectionModel }) => COLLECTIONS_SERVICE.update(id, collection as CollectionRequest),
+  onMutate: () => {
+    Message.info(null, {
+      title: 'Collection is being featured',
+    });
+  },
+  onSuccess: (collection: CollectionModel) => {
+    Message.closeAll();
+    Message.success(`Collection successfully ${collection!.starred ? 'mark as featured' : 'unmark as featured'}`);
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.ADMIN_COLLECTIONS],
+    });
+  },
+  onError: () => {
+    Message.closeAll();
+    Message.error('Something went wrong');
+  },
+});
+
+const ontoggleStar = (collectionId: string) => {
+  const collection = collections.value.find((collection) => collection.id === collectionId);
+  if (!collection) {
+    Message.closeAll();
+    Message.error('Collection not found');
+    return;
+  }
+  updateMutation.mutate({
+    id: collectionId,
+    collection: {
+      ...collection,
+      starred: !collection.starred,
+    },
+  });
 };
 
 const onCollectionDialogCloseSuccess = () => {

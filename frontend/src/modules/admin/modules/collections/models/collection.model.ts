@@ -9,6 +9,7 @@ export interface CollectionModel {
   categoryId?: string;
   projects: InsightsProjectModel[];
   category: Category & {categoryGroupType: string, categoryGroupName: string};
+  starred?: boolean;
 }
 
 export interface CollectionRequest {
@@ -16,6 +17,7 @@ export interface CollectionRequest {
   description: string;
   categoryId: string | null;
   slug: string;
+  starred: boolean;
   projects: {
     id: string;
     starred: boolean;
