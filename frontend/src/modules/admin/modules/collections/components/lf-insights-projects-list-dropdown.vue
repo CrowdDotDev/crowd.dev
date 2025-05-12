@@ -118,7 +118,7 @@ const queryKey = computed(() => [
   searchValue.value,
 ]);
 
-const projectGroupsQueryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
+const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
   limit: 20,
   offset: 0,
   filter: searchValue.value
@@ -140,7 +140,7 @@ const {
   error,
 } = useInfiniteQuery<Pagination<InsightsProjectModel>, Error>({
   queryKey,
-  queryFn: projectGroupsQueryFn,
+  queryFn,
   getNextPageParam: (lastPage) => {
     const nextPage = lastPage.offset + lastPage.limit;
     const totalRows = lastPage.total!;
