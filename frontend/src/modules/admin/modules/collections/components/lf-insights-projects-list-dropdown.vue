@@ -77,7 +77,7 @@ import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
 import { TanstackKey } from '@/shared/types/tanstack';
 import Message from '@/shared/message/message';
-import { INSIGHTS_PROJECTS_SERVICE, InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
+import { INSIGHTS_PROJECTS_SERVICE } from '../../insights-projects/services/insights-projects.service';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
 const SearchIcon = h(
@@ -143,7 +143,7 @@ const {
   queryFn: projectGroupsQueryFn,
   getNextPageParam: (lastPage) => {
     const nextPage = lastPage.offset + lastPage.limit;
-    const totalRows = lastPage.count;
+    const totalRows = lastPage.total!;
     return nextPage < totalRows ? nextPage : undefined;
   },
   initialPageParam: 0,
@@ -175,7 +175,7 @@ const onOptionClick = (project: InsightsProjectModel) => {
 // Infinite scroll handler
 function onScroll(e: Event) {
   if (!scrollContainer) return;
-  const threshold = 40;
+  const threshold = 20;
 
   const target = e.target as HTMLElement;
   if (
@@ -211,7 +211,7 @@ watch(error, (err) => {
 onMounted(() => {
   nextTick(() => {
     scrollContainer = document.querySelector(
-      '.insights-projects-select-popper .el-popper',
+      '.insights-projects-select-popper',
     );
     if (scrollContainer) {
       scrollContainer.addEventListener('scroll', onScroll);
