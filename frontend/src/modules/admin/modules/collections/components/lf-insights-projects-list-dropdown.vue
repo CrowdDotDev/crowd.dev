@@ -46,7 +46,18 @@
             />
             <span class="ml-2 text-gray-900 text-sm line-clamp-2">{{ project.name }}</span>
           </div>
+          <div
+            v-if="isFetchingNextPage"
+            class="text-gray-400 px-3 h-20 flex items-center justify-center"
+          >
+            <lf-icon name="circle-notch" class="animate-spin text-gray-400" :size="16" />
+            <span class="text-tiny ml-1 text-gray-400">Loading projects...</span>
+          </div>
         </div>
+      </div>
+      <div v-else-if="isPending" class="text-gray-400 px-3 h-20 flex items-center justify-center">
+        <lf-icon name="circle-notch" class="animate-spin text-gray-400" :size="16" />
+        <span class="text-tiny ml-1 text-gray-400">Loading projects...</span>
       </div>
       <div v-else class="text-gray-400 px-3 h-10 flex items-center">
         No projects found
@@ -56,9 +67,17 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed } from 'vue';
+import {
+  h, ref, computed, onMounted, nextTick, watch, onBeforeUnmount,
+} from 'vue';
 import { InsightsProjectModel } from '@/modules/admin/modules/insights-projects/models/insights-project.model';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
+import { useDebounce } from '@vueuse/core';
+import { Pagination } from '@/shared/types/Pagination';
+import { TanstackKey } from '@/shared/types/tanstack';
+import Message from '@/shared/message/message';
+import { INSIGHTS_PROJECTS_SERVICE } from '../../insights-projects/services/insights-projects.service';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
 const SearchIcon = h(
@@ -83,15 +102,52 @@ const emit = defineEmits<{(e: 'onAddProject', projectId: string): void }>();
 const props = defineProps<{
   selectedProjects: InsightsProjectModel[];
 }>();
+let scrollContainer: HTMLElement | null = null;
 
 const insightsProjectsStore = useInsightsProjectsStore();
 
 const inputRef = ref(null);
 const searchQuery = ref('');
+const searchValue = useDebounce(searchQuery, 300);
 const isPopoverVisible = ref(false);
 const displayProjects = computed(() => removeSelectedProject(
   insightsProjectsStore.searchInsightsProjects(searchQuery.value),
 ));
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_INSIGHTS_PROJECTS,
+  searchValue.value,
+]);
+
+const projectGroupsQueryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
+  limit: 20,
+  offset: 0,
+  filter: searchValue.value
+    ? {
+      name: {
+        like: `%${searchValue.value}%`,
+      },
+    }
+    : {},
+})) as QueryFunction<Pagination<InsightsProjectModel>, readonly unknown[], unknown>;
+
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<InsightsProjectModel>, Error>({
+  queryKey,
+  queryFn: projectGroupsQueryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.total!;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
 
 const removeSelectedProject = (projects: InsightsProjectModel[]) => {
   const selectedProjectsIds = props.selectedProjects.map(
@@ -115,6 +171,59 @@ const onOptionClick = (project: InsightsProjectModel) => {
 
   emit('onAddProject', project.id);
 };
+
+// Infinite scroll handler
+function onScroll(e: Event) {
+  if (!scrollContainer) return;
+  const threshold = 20;
+
+  const target = e.target as HTMLElement;
+  if (
+    !isFetchingNextPage.value
+    && hasNextPage.value
+    && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
+  ) {
+    fetchNextPage();
+  }
+}
+
+watch(data, () => {
+  if (isSuccess.value && data.value) {
+    let result = data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+        [] as InsightsProjectModel[],
+    );
+
+    result = [...props.selectedProjects, ...result].reduce((acc, item) => {
+      if (!acc.find((i) => i.id === item.id)) acc.push(item);
+      return acc;
+    }, [] as InsightsProjectModel[]);
+    insightsProjectsStore.setInsightsProjects(result);
+  }
+}, { immediate: true });
+
+watch(error, (err) => {
+  if (err) {
+    Message.error('Something went wrong while fetching Insights projects');
+  }
+});
+
+onMounted(() => {
+  nextTick(() => {
+    scrollContainer = document.querySelector(
+      '.insights-projects-select-popper',
+    );
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', onScroll);
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
+});
 </script>
 
 <script lang="ts">
