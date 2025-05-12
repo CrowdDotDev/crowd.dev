@@ -29,10 +29,9 @@ const job: IJobDefinition = {
     await initNangoCloudClient()
     const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
 
-    const allIntegrations = await fetchNangoIntegrationData(
-      pgpQx(dbConnection),
-      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
-    )
+    const allIntegrations = await fetchNangoIntegrationData(pgpQx(dbConnection), [
+      ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
+    ])
 
     const nangoConnections = await getNangoConnections()
 

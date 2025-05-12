@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { debounce } from 'lodash';
 import {
-  nextTick, onMounted, reactive, ref,
+  nextTick, onBeforeUnmount, onMounted, reactive, ref,
 } from 'vue';
 import { CollectionsService } from '@/modules/admin/modules/collections/services/collections.service';
 import Message from '@/shared/message/message';
@@ -129,6 +129,12 @@ onMounted(() => {
       scrollContainer.addEventListener('scroll', onScroll);
     }
   });
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
 });
 </script>
 

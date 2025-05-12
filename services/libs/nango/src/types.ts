@@ -3,8 +3,10 @@ import { PlatformType } from '@crowd/types'
 
 export enum NangoIntegration {
   GERRIT = 'gerrit',
-  // JIRA = 'jira',
   GITHUB = 'github',
+  JIRA_CLOUD_BASIC = 'jira-basic',
+  JIRA_DATA_CENTER_API_KEY = 'jira-data-center-api-key',
+  JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
@@ -15,17 +17,27 @@ export const nangoIntegrationToPlatform = (integration: NangoIntegration): Platf
       return PlatformType.GERRIT
     case NangoIntegration.GITHUB:
       return PlatformType.GITHUB_NANGO
+    case NangoIntegration.JIRA_CLOUD_BASIC:
+    case NangoIntegration.JIRA_DATA_CENTER_API_KEY:
+    case NangoIntegration.JIRA_DATA_CENTER_BASIC:
+      return PlatformType.JIRA
     default:
       throw new Error('Unknown integration')
   }
 }
 
-export const platformToNangoIntegration = (platform: PlatformType): NangoIntegration => {
+export const platformToNangoIntegration = (
+  platform: PlatformType,
+  platformSetting: any,
+): NangoIntegration => {
   switch (platform) {
     case PlatformType.GERRIT:
       return NangoIntegration.GERRIT
     case PlatformType.GITHUB_NANGO:
       return NangoIntegration.GITHUB
+    case PlatformType.JIRA:
+      // nango has multiple Jira integrations based on auth method
+      return platformSetting.nangoIntegrationName
     default:
       throw new Error('Unknown platform')
   }
@@ -68,10 +80,42 @@ export const NANGO_INTEGRATION_CONFIG = {
       STARS: 'stars',
     },
   },
-  // [NangoIntegration.JIRA]: {
-  //   models: {},
-  //   syncs: {},
-  // },
+  [NangoIntegration.JIRA_CLOUD_BASIC]: {
+    models: {
+      ISSUES: 'Issues',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
+    },
+    syncs: {
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
+  },
+  [NangoIntegration.JIRA_DATA_CENTER_BASIC]: {
+    models: {
+      ISSUES: 'Issues',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
+    },
+    syncs: {
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
+  },
+  [NangoIntegration.JIRA_DATA_CENTER_API_KEY]: {
+    models: {
+      ISSUES: 'Issues',
+      ISSUE_COMMENT: 'IssueComment',
+      ISSUE_ATTACHMENTS: 'IssueAttachment',
+    },
+    syncs: {
+      ISSUES: 'issues',
+      ISSUE_COMMENT: 'issue-comments',
+      ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
+  },
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {

@@ -1,7 +1,7 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error400 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -76,8 +76,15 @@ export default class GithubReposRepository {
 
     for (const row of existingRows as any[]) {
       if (!row.deletedAt && row.integrationId !== integrationId) {
-        throw new Error(
+        options.log.warn(
           `Trying to update github repo ${row.url} mapping with integrationId ${integrationId} but it is already mapped to integration ${row.integrationId}!`,
+        )
+        throw new Error400(
+          options.language,
+          'errors.integrations.githubRepoAlreadyMapped',
+          row.url,
+          integrationId,
+          row.integrationId,
         )
       }
     }

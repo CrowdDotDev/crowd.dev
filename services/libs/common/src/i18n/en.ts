@@ -124,6 +124,8 @@ const en = {
     },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
+      githubRepoAlreadyMapped:
+        'Trying to update github repo {0} mapping with integrationId {1} but it is already mapped to integration {2}!',
     },
     sentiment: {
       mood: 'Invalid sentiment data. The {1} property must exist and be a number.',
@@ -151,6 +153,12 @@ const en = {
     },
     git: {
       noIntegration: 'The Git integration is not configured.',
+    },
+    jira: {
+      invalidUrl:
+        'The URL provided is invalid. Please enter a valid URL format such as https://example.com or https://example.atlassian.net',
+      invalidCredentials:
+        'The given credentials were found to be invalid. Please check the credentials and try again',
     },
     alreadyExists: '{0}',
   },

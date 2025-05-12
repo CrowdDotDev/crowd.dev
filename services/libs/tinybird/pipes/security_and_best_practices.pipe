@@ -1,0 +1,102 @@
+NODE evaluation_controlId_category_map
+SQL >
+    SELECT
+        controlId_category_map .1 AS controlId,
+        controlId_category_map .2 AS category,
+        controlId_category_map .3 AS order
+    FROM
+        (
+            SELECT
+                arrayJoin(
+                    [
+                        -- Access Control
+                        ('OSPS-AC-01', 'Access Control', 1),
+                        ('OSPS-AC-02', 'Access Control', 1),
+                        ('OSPS-AC-03', 'Access Control', 1),
+                        ('OSPS-AC-04', 'Access Control', 1),
+                        -- Build and Release
+                        ('OSPS-BR-01', 'Build and Release', 2),
+                        ('OSPS-BR-02', 'Build and Release', 2),
+                        ('OSPS-BR-03', 'Build and Release', 2),
+                        ('OSPS-BR-04', 'Build and Release', 2),
+                        ('OSPS-BR-05', 'Build and Release', 2),
+                        ('OSPS-BR-06', 'Build and Release', 2),
+                        -- Documentation
+                        ('OSPS-DO-01', 'Documentation', 3),
+                        ('OSPS-DO-02', 'Documentation', 3),
+                        ('OSPS-DO-03', 'Documentation', 3),
+                        ('OSPS-DO-04', 'Documentation', 3),
+                        ('OSPS-DO-05', 'Documentation', 3),
+                        ('OSPS-DO-06', 'Documentation', 3),
+                        -- Governance
+                        ('OSPS-GV-01', 'Governance', 4),
+                        ('OSPS-GV-02', 'Governance', 4),
+                        ('OSPS-GV-03', 'Governance', 4),
+                        ('OSPS-GV-04', 'Governance', 4),
+                        -- Legal
+                        ('OSPS-LE-01', 'Legal', 5),
+                        ('OSPS-LE-02', 'Legal', 5),
+                        ('OSPS-LE-03', 'Legal', 5),
+                        -- Quality
+                        ('OSPS-QA-01', 'Quality', 6),
+                        ('OSPS-QA-02', 'Quality', 6),
+                        ('OSPS-QA-03', 'Quality', 6),
+                        ('OSPS-QA-04', 'Quality', 6),
+                        ('OSPS-QA-05', 'Quality', 6),
+                        ('OSPS-QA-06', 'Quality', 6),
+                        ('OSPS-QA-07', 'Quality', 6),
+                        -- Security Assessment
+                        ('OSPS-SA-01', 'Security Assessment', 7),
+                        ('OSPS-SA-02', 'Security Assessment', 7),
+                        ('OSPS-SA-03', 'Security Assessment', 7),
+                        -- Vulnerability Management
+                        ('OSPS-VM-01', 'Vulnerability Management', 8),
+                        ('OSPS-VM-02', 'Vulnerability Management', 8),
+                        ('OSPS-VM-03', 'Vulnerability Management', 8),
+                        ('OSPS-VM-04', 'Vulnerability Management', 8),
+                        ('OSPS-VM-05', 'Vulnerability Management', 8),
+                        ('OSPS-VM-06', 'Vulnerability Management', 8)
+                    ]
+                ) AS controlId_category_map
+        )
+
+NODE security_and_best_practices_1
+SQL >
+    %
+    SELECT
+        eval.id,
+        ecm.category,
+        eval.repo as repo,
+        eval.controlId as controlId,
+        eval.message as message,
+        eval.result as result,
+        groupArray(
+            toJSONString(
+                map(
+                    'requirementId',
+                    assessment.requirementId,
+                    'description',
+                    assessment.description,
+                    'result',
+                    assessment.result
+                )
+            )
+        ) AS assessments
+    FROM securityInsightsEvaluations eval final
+    left join evaluation_controlId_category_map ecm on ecm.controlId = eval.controlId
+    left join
+        securityInsightsEvaluationAssessments assessment final
+        on eval.id = assessment.securityInsightsEvaluationId
+    where
+        eval.result <> 'Not Run'
+        and eval.repo in (select arrayJoin(repositories) from segments_filtered)
+        {% if defined(project) %}
+            AND eval.insightsProjectSlug
+            = {{ String(project, description="Filter by project slug", required=True) }}
+        {% else %} AND false
+        {% end %}
+        {% if defined(repo) %}
+            AND eval.repo = {{ String(repo, description="Filter activity repo", required=False) }}
+        {% end %}
+    group by eval.id, ecm.category, ecm.order, eval.repo, eval.controlId, eval.message, eval.result
+    order BY ecm.order, eval.controlId asc

@@ -28,15 +28,14 @@ const job: IJobDefinition = {
 
     const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
 
-    const integrationsToTrigger = await fetchNangoIntegrationData(
-      pgpQx(dbConnection),
-      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
-    )
+    const integrationsToTrigger = await fetchNangoIntegrationData(pgpQx(dbConnection), [
+      ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
+    ])
 
     for (const int of integrationsToTrigger) {
       const { id, settings } = int
 
-      const platform = platformToNangoIntegration(int.platform as PlatformType)
+      const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
       if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
         // ignore non-nango github integrations
