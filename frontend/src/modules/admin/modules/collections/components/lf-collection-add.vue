@@ -165,11 +165,7 @@ import {
   CollectionModel,
   CollectionRequest,
 } from '../models/collection.model';
-import { InsightsProjectsService } from '../../insights-projects/services/insights-projects.service';
-import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 import { COLLECTIONS_SERVICE } from '../services/collections.service';
-
-const insightsProjectsStore = useInsightsProjectsStore();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
   (e: 'onCollectionEdited'): void;
@@ -227,9 +223,6 @@ const fillForm = (record?: CollectionModel) => {
 };
 
 onMounted(() => {
-  InsightsProjectsService.list({}).then((response) => {
-    insightsProjectsStore.setInsightsProjects(response.rows);
-  });
   if (isEditForm.value) {
     loading.value = true;
     fillForm(props.collection);
