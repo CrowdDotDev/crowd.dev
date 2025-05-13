@@ -465,11 +465,11 @@ export async function listCategories(
   }[]
 > {
   return qx.select(
-    `          SELECT c.id, c.name, cg.id as "categoryGroupId", cg.name as "categoryGroupName"
+    `          SELECT c.id, c.name, cg.id as "categoryGroupId", cg.name as "categoryGroupName", cg.type as "categoryGroupType"
                    FROM "categories" c
                             JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
                    WHERE c.name ILIKE $(query)
-                     AND COALESCE($(groupType), type) = type
+                     AND COALESCE($(groupType), cg.type) = cg.type
                    ORDER BY cg.name
                     LIMIT $(limit)
           OFFSET $(offset)
