@@ -1,0 +1,11 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `name` String `json:$.record.name` DEFAULT '',
+    `slug` String `json:$.record.slug` DEFAULT '',
+    `categoryGroupId` String `json:$.record.categoryGroupId` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY slug
+ENGINE_VER updatedAt
