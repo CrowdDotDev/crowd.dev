@@ -1,10 +1,10 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-// import {
-//   scheduleRefreshMemberDisplayAggregates,
-//   scheduleRefreshOrganizationDisplayAggregates,
-// } from './schedules/refreshDisplayAggregates'
+import {
+  scheduleRefreshMemberDisplayAggregates,
+  scheduleRefreshOrganizationDisplayAggregates,
+} from './schedules/refreshDisplayAggregates'
 import { scheduleRecalculateAffiliationsOfNewRoles } from './schedules/triggerRecalculateAffiliationsOfNewRoles'
 
 const config: Config = {
@@ -41,9 +41,8 @@ setImmediate(async () => {
 
   await scheduleRecalculateAffiliationsOfNewRoles()
 
-  // todo:nathan uncomment this after testing workflow
-  // await scheduleRefreshMemberDisplayAggregates()
-  // await scheduleRefreshOrganizationDisplayAggregates()
+  await scheduleRefreshMemberDisplayAggregates()
+  await scheduleRefreshOrganizationDisplayAggregates()
 
   await svc.start()
 })

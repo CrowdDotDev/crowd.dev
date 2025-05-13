@@ -25,9 +25,6 @@ export async function refreshMemberDisplayAggregates(
     lastSyncedAt = await getMemberDisplayAggsLastSyncedAt()
   }
 
-  // todo:nathan rm this after testing
-  console.log('lastSyncedAt', lastSyncedAt)
-
   const result = await getMembersForDisplayAggsRefresh(BATCH_SIZE, lastSyncedAt, lastUuid)
 
   if (result.length === 0) {
@@ -38,10 +35,10 @@ export async function refreshMemberDisplayAggregates(
   const lastRow = result[result.length - 1]
 
   for (const member of result) {
-    const memberDisplayAggregates = await getMemberDisplayAggregates(member.entity_id)
-    // todo:nathan test the changes with console log and testRun
-    console.log('memberDisplayAggregates', JSON.stringify(memberDisplayAggregates, null, 2))
-    await setMemberDisplayAggregates(memberDisplayAggregates)
+    const memberDisplayAggs = await getMemberDisplayAggregates(member.entity_id)
+    if (memberDisplayAggs.length > 0) {
+      await setMemberDisplayAggregates(memberDisplayAggs)
+    }
   }
 
   await continueAsNew<typeof refreshMemberDisplayAggregates>({

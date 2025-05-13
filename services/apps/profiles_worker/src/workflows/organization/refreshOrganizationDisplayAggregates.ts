@@ -25,9 +25,6 @@ export async function refreshOrganizationDisplayAggregates(
     lastSyncedAt = await getOrganizationDisplayAggsLastSyncedAt()
   }
 
-  // todo:nathan rm this after testing
-  console.log('lastSyncedAt', lastSyncedAt)
-
   const result = await getOrganizationsForDisplayAggsRefresh(BATCH_SIZE, lastSyncedAt, lastUuid)
 
   if (result.length === 0) {
@@ -38,15 +35,10 @@ export async function refreshOrganizationDisplayAggregates(
   const lastRow = result[result.length - 1]
 
   for (const organization of result) {
-    const organizationDisplayAggregates = await getOrganizationDisplayAggregates(
-      organization.entity_id,
-    )
-    // todo:nathan test the changes with console log and testRun
-    console.log(
-      'organizationDisplayAggregates',
-      JSON.stringify(organizationDisplayAggregates, null, 2),
-    )
-    await setOrganizationDisplayAggregates(organizationDisplayAggregates)
+    const organizationDisplayAggs = await getOrganizationDisplayAggregates(organization.entity_id)
+    if (organizationDisplayAggs.length > 0) {
+      await setOrganizationDisplayAggregates(organizationDisplayAggs)
+    }
   }
 
   await continueAsNew<typeof refreshOrganizationDisplayAggregates>({
