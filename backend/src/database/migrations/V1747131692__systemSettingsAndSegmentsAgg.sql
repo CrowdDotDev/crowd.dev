@@ -12,13 +12,6 @@ alter table "organizationSegmentsAgg"
 alter table "organizationSegmentsAgg"
     add column if not exists "updatedAt" timestamp with time zone not null default now();
 
--- Index to optimize fetching recently indexed entities
-create index concurrently if not exists "idx_indexed_entities_type_indexed_at_entity_id"
-on "indexed_entities" ("type", "indexed_at", "entity_id");
-
--- Redundant index on indexed_entities
-drop index if exists ix_indexed_entities_type_entity_id;
-
 -- table store system wide settings since we are moving away from tenants
 create table if not exists "systemSettings" (
     name varchar(255) not null primary key,
