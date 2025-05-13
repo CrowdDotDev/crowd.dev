@@ -4,8 +4,8 @@ import * as activities from '../../activities'
 import { IRefreshDisplayAggregatesArgs } from '../../types/common'
 
 const {
-  getLastMemberDisplayAggsSyncedAt,
-  touchLastMemberDisplayAggsSyncedAt,
+  getMemberDisplayAggsLastSyncedAt,
+  touchMemberDisplayAggsLastSyncedAt,
   getMembersForDisplayAggsRefresh,
   getMemberDisplayAggregates,
   setMemberDisplayAggregates,
@@ -22,7 +22,7 @@ export async function refreshMemberDisplayAggregates(
   let lastSyncedAt: string = args.lastSyncedAt ?? null
 
   if (!lastSyncedAt) {
-    lastSyncedAt = await getLastMemberDisplayAggsSyncedAt()
+    lastSyncedAt = await getMemberDisplayAggsLastSyncedAt()
   }
 
   // todo:nathan rm this after testing
@@ -31,7 +31,7 @@ export async function refreshMemberDisplayAggregates(
   const result = await getMembersForDisplayAggsRefresh(BATCH_SIZE, lastSyncedAt, lastUuid)
 
   if (result.length === 0) {
-    await touchLastMemberDisplayAggsSyncedAt()
+    await touchMemberDisplayAggsLastSyncedAt()
     return
   }
 

@@ -1,4 +1,5 @@
-import lodash from 'lodash'
+import map from 'lodash.map'
+import pickBy from 'lodash.pickby'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -121,7 +122,7 @@ export async function updateOrganizationDisplayAggregates(
   await qx.tx(async (trx) => {
     for (const item of data) {
       // dynamically add non-falsy fields to update
-      const updates = lodash.pickBy(
+      const updates = pickBy(
         {
           joinedAt: item.joinedAt,
           lastActive: item.lastActive,
@@ -130,7 +131,7 @@ export async function updateOrganizationDisplayAggregates(
         (value) => !!value,
       )
 
-      const setClauses = lodash.map(updates, (_value, key) => `"${key}" = $(${key})`)
+      const setClauses = map(updates, (_value, key) => `"${key}" = $(${key})`)
       setClauses.push('"updatedAt" = now()')
 
       await trx.result(

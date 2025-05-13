@@ -4,19 +4,19 @@ import {
   updateAffiliationsLastCheckedAt,
 } from './activities/common'
 import {
-  getLastMemberDisplayAggsSyncedAt,
   getMemberDisplayAggregates,
+  getMemberDisplayAggsLastSyncedAt,
   getMembersForDisplayAggsRefresh,
   setMemberDisplayAggregates,
-  touchLastMemberDisplayAggsSyncedAt,
+  touchMemberDisplayAggsLastSyncedAt,
 } from './activities/member/memberDisplayAggs'
 import { syncMember, updateMemberAffiliations } from './activities/member/memberUpdate'
 import {
-  getLastOrganizationDisplayAggsSyncedAt,
   getOrganizationDisplayAggregates,
+  getOrganizationDisplayAggsLastSyncedAt,
   getOrganizationsForDisplayAggsRefresh,
   setOrganizationDisplayAggregates,
-  touchLastOrganizationDisplayAggsSyncedAt,
+  touchOrganizationDisplayAggsLastSyncedAt,
 } from './activities/organization/organizationDisplayAggs'
 import {
   findMembersInOrganization,
@@ -32,14 +32,14 @@ export {
   syncOrganization,
   findMembersInOrganization,
   // -
-  getLastMemberDisplayAggsSyncedAt,
-  touchLastMemberDisplayAggsSyncedAt,
+  getMemberDisplayAggsLastSyncedAt,
+  touchMemberDisplayAggsLastSyncedAt,
   getMembersForDisplayAggsRefresh,
   getMemberDisplayAggregates,
   setMemberDisplayAggregates,
   // -
-  getLastOrganizationDisplayAggsSyncedAt,
-  touchLastOrganizationDisplayAggsSyncedAt,
+  getOrganizationDisplayAggsLastSyncedAt,
+  touchOrganizationDisplayAggsLastSyncedAt,
   getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,

@@ -2,30 +2,35 @@ import {
   fetchMemberDisplayAggregates,
   updateMemberDisplayAggregates,
 } from '@crowd/data-access-layer'
+import { getSystemSettingValue, setSystemSettingValue } from '@crowd/data-access-layer'
 import { IMemberSegmentDisplayAggregates } from '@crowd/data-access-layer/src/members/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  getLastMemberDisplayAggsSyncedAt as getLastMemberDisplayAggsSyncedAtOfTenant,
-  touchLastMemberDisplayAggsSyncedAt as touchLastMemberDisplayAggsSyncedAtOfTenant,
-} from '@crowd/data-access-layer/src/tenantSettings'
 import { IRecentlyIndexedEntity, IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 
 import { svc } from '../../main'
 
-export async function getLastMemberDisplayAggsSyncedAt(): Promise<string> {
+export async function getMemberDisplayAggsLastSyncedAt(): Promise<string | null> {
   try {
     const qx = pgpQx(svc.postgres.reader.connection())
-    return getLastMemberDisplayAggsSyncedAtOfTenant(qx)
+    const setting = await getSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt')
+
+    if (!setting) {
+      throw new Error('Member display aggs last sync at setting not found!')
+    }
+
+    return setting.timestamp
   } catch (error) {
     throw new Error(error)
   }
 }
 
-export async function touchLastMemberDisplayAggsSyncedAt(): Promise<void> {
+export async function touchMemberDisplayAggsLastSyncedAt(): Promise<void> {
   try {
     const qx = pgpQx(svc.postgres.writer.connection())
-    await touchLastMemberDisplayAggsSyncedAtOfTenant(qx)
+    await setSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt', {
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     throw new Error(error)
   }

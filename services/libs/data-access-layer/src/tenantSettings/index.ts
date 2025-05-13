@@ -1,49 +1,28 @@
-import { DEFAULT_TENANT_ID } from '@crowd/common'
-
 import { QueryExecutor } from '../queryExecutor'
 
-const tenantId = DEFAULT_TENANT_ID
+import { SystemSettingKey, SystemSettingTypes } from './types'
 
-export async function getLastMemberDisplayAggsSyncedAt(qx: QueryExecutor): Promise<string> {
-  return qx.selectOne(
-    `
-    SELECT "lastMemberDisplayAggsSyncedAt"
-    FROM "tenants"
-    WHERE "id" = $(tenantId)
-    `,
-    { tenantId },
+export async function getSystemSettingValue<K extends SystemSettingKey>(
+  qx: QueryExecutor,
+  key: K,
+): Promise<SystemSettingTypes[K] | null> {
+  const result = await qx.selectOneOrNone(
+    `SELECT value FROM "systemSettings" WHERE name = $(key)`,
+    { key },
   )
+
+  return result ? (result.value as SystemSettingTypes[K]) : null
 }
 
-export async function touchLastMemberDisplayAggsSyncedAt(qx: QueryExecutor): Promise<void> {
-  return qx.result(
-    `
-    UPDATE "tenants"
-    SET "lastMemberDisplayAggsSyncedAt" = now()
-    WHERE "id" = $(tenantId)
-    `,
-    { tenantId },
-  )
-}
-
-export async function getLastOrganizationDisplayAggsSyncedAt(qx: QueryExecutor): Promise<string> {
-  return qx.selectOne(
-    `
-    SELECT "lastOrganizationDisplayAggsSyncedAt"
-    FROM "tenants"
-    WHERE "id" = $(tenantId)
-    `,
-    { tenantId },
-  )
-}
-
-export async function touchLastOrganizationDisplayAggsSyncedAt(qx: QueryExecutor): Promise<void> {
-  return qx.result(
-    `
-    UPDATE "tenants"
-    SET "lastOrganizationDisplayAggsSyncedAt" = now()
-    WHERE "id" = $(tenantId)
-    `,
-    { tenantId },
+export async function setSystemSettingValue<K extends SystemSettingKey>(
+  qx: QueryExecutor,
+  key: K,
+  value: SystemSettingTypes[K],
+): Promise<void> {
+  await qx.result(
+    `INSERT INTO "systemSettings" (name, value)
+     VALUES ($(key), $(value)::jsonb)
+     ON CONFLICT (name) DO UPDATE SET value = $(value)::jsonb, "updatedAt" = now()`,
+    { key, value },
   )
 }
