@@ -6,7 +6,7 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error409, websiteNormalizer, Error400 } from '@crowd/common'
+import { Error400, Error409, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
