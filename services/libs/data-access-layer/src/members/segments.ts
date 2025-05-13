@@ -118,7 +118,6 @@ export async function updateMemberDisplayAggregates(
           lastActive: item.lastActive,
           averageSentiment: item.averageSentiment,
           activityTypes: item.activityTypes,
-          activeDaysCount: item.activeDaysCount,
         },
         (value) => !!value,
       )

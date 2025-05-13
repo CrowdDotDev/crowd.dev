@@ -29,7 +29,6 @@ export interface IMemberSegmentDisplayAggregates {
   lastActive: string
   activityTypes: string[]
   averageSentiment: number
-  activeDaysCount: number
 }
 
 export interface IMemberSegmentAggregates

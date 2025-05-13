@@ -862,7 +862,6 @@ export async function fetchMemberDisplayAggregates(
         a."memberId",
         a."segmentId",
         a.lastActive as "lastActive",
-        COALESCE(a.activeDaysCount, 0) as "activeDaysCount",
         COALESCE(a.averageSentiment, 0.0) as "averageSentiment",
         COALESCE(at."activityTypes", '') as "activityTypes"
     FROM activities_agg a
@@ -880,7 +879,6 @@ export async function fetchMemberDisplayAggregates(
       segmentId: result.segmentId,
 
       lastActive: result.lastActive || null,
-      activeDaysCount: result.activeDaysCount,
       averageSentiment: parseFloat(result.averageSentiment),
       activityTypes: result.activityTypes ? result.activityTypes.split('|') : [],
     }
