@@ -851,7 +851,6 @@ export async function fetchMemberDisplayAggregates(
             a."memberId",
             a."segmentId",
             max(a.timestamp) AS "lastActive",
-            count_distinct(date_trunc('day', a.timestamp)) AS "activeDaysCount",
             avg(a.sentimentScore) AS "averageSentiment"
         FROM activities a
         WHERE a."memberId" = $(memberId)
