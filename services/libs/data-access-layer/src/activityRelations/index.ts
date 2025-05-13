@@ -6,7 +6,7 @@ export async function getMemberActivityCoreAggregates(
   qx: QueryExecutor,
   memberId: string,
 ): Promise<IMemberSegmentCoreAggregates[]> {
-  const results = await qx.result(
+  const results = await qx.select(
     `
     SELECT "segmentId",
        array_agg(DISTINCT platform) AS "activeOn",
@@ -30,7 +30,7 @@ export async function getOrganizationActivityCoreAggregates(
   qx: QueryExecutor,
   organizationId: string,
 ): Promise<IOrganizationActivityCoreAggregates[]> {
-  const results = await qx.result(
+  const results = await qx.select(
     `
     SELECT "segmentId",
           array_agg(DISTINCT platform) AS "activeOn",
