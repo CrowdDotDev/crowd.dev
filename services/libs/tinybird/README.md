@@ -88,14 +88,12 @@ These sources exist in Postgres (i.e., all Tinybird datasources **except `activi
 
 ---
 
-### Injesting new data into tinybird
+### Add new tables to sequin and tinybird
 
 **Steps:**
 1. Create the table in postgres (or skip if it already exists)
-2. Add migration for the table indexes and sequin publication to include these tables
-```sql
-create index "ix_tableName_updatedAt_id" on "tableName" ("updatedAt", id);
-   
+2. Add migration for the sequin publication to include tables
+```sql   
 ALTER PUBLICATION sequin_pub ADD TABLE "tableName";
 ALTER TABLE public."tableName" REPLICA IDENTITY FULL;
 ```
