@@ -71,15 +71,13 @@ SQL >
         eval.message as message,
         eval.result as result,
         groupArray(
-            toJSONString(
-                map(
-                    'requirementId',
-                    assessment.requirementId,
-                    'description',
-                    assessment.description,
-                    'result',
-                    assessment.result
-                )
+            map(
+                'requirementId',
+                assessment.requirementId,
+                'description',
+                assessment.description,
+                'result',
+                assessment.result
             )
         ) AS assessments
     FROM securityInsightsEvaluations eval final
@@ -89,6 +87,7 @@ SQL >
         on eval.id = assessment.securityInsightsEvaluationId
     where
         eval.result <> 'Not Run'
+        and assessment.result <> 'Not Run'
         and eval.repo in (select arrayJoin(repositories) from segments_filtered)
         {% if defined(project) %}
             AND eval.insightsProjectSlug

@@ -12,7 +12,7 @@
       </lf-dropdown-item>
       <lf-dropdown-item @click="featuredProject()">
         <lf-icon :name="props.starred ? 'bookmark-slash' : 'bookmark'" />
-        {{ props.starred ? "Unfeature project" : "Featured project" }}
+        {{ props.starred ? 'Unmark' : 'Mark' }} as featured
       </lf-dropdown-item>
       <lf-dropdown-separator />
       <lf-dropdown-item @click="removeProject()">

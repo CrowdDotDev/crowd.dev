@@ -34,7 +34,7 @@
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
-          v-if="!isEditForm"
+          v-if="!isEditForm || !form.segmentId"
           :selected-project-id="form.segmentId"
           @on-change="onProjectSelection"
         />
@@ -207,19 +207,24 @@ const openModalEditMode = (insightsProjectId: string) => {
         loading.value = false;
       });
     } else {
+      const form = buildForm(res, []);
+      fillForm(form);
       loading.value = false;
-      Message.error('Project not found');
     }
   });
 };
 
 const onProjectSelection = ({ project }: any) => {
   fetchRepositories(project.id, () => {
-    Object.assign(form, initialFormState);
+    if (!isEditForm.value) {
+      Object.assign(form, initialFormState);
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+    }
+
+    form.repositories = initialFormState.repositories;
     form.segmentId = project.id;
-    form.name = project.name;
-    form.description = project.description;
-    form.logoUrl = project.url;
   });
 };
 

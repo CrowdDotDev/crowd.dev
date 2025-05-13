@@ -146,9 +146,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves when the category group is successfully deleted.
    */
   async deleteCategoryGroup(categoryGroupId: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-    return deleteCategoryGroup(qx, categoryGroupId)
+      return deleteCategoryGroup(qx, categoryGroupId)
+    })
   }
 
   /**
@@ -249,9 +251,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves when the category is successfully deleted.
    */
   async deleteCategory(categoryId: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-    return deleteCategory(qx, categoryId)
+      return deleteCategory(qx, categoryId)
+    })
   }
 
   /**
@@ -261,9 +265,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves with the result of the deletion operation.
    */
   async deleteCategories(ids: string[]) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-    return deleteCategories(qx, ids)
+      return deleteCategories(qx, ids)
+    })
   }
 
   async listCategories(filters: ICategoryFilters) {
