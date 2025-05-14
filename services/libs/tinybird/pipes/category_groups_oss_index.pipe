@@ -1,0 +1,68 @@
+TOKEN "category_groups_oss_index_endpoint_read_7394" READ
+
+NODE category_groups_oss_index_agregates
+SQL >
+    SELECT categoryGroupId, coalesce(countDistinctMerge(contributorCount), 0) as "totalContributors"
+    FROM segments_aggregates_with_ids
+    WHERE categoryGroupId != ''
+    GROUP BY categoryGroupId
+    ORDER BY totalContributors DESC
+
+NODE category_groups_oss_index_collections
+SQL >
+    SELECT *
+    FROM
+        (
+            SELECT
+                categoryGroupId,
+                collectionId,
+                countDistinctMerge(contributorCount) AS totalContributors,
+                ROW_NUMBER() OVER (
+                    PARTITION BY categoryGroupId ORDER BY countDistinctMerge(contributorCount) DESC
+                ) AS rn
+            FROM segments_aggregates_with_ids
+            WHERE categoryGroupId != '' AND collectionId != ''
+            GROUP BY categoryGroupId, collectionId
+        )
+    WHERE rn <= 5
+
+NODE category_groups_oss_index_projects
+SQL >
+    SELECT *
+    FROM
+        (
+            SELECT
+                categoryGroupId,
+                projectId,
+                countDistinctMerge(contributorCount) AS totalContributors,
+                ROW_NUMBER() OVER (
+                    PARTITION BY categoryGroupId ORDER BY countDistinctMerge(contributorCount) DESC
+                ) AS rn
+            FROM segments_aggregates_with_ids
+            WHERE categoryGroupId != '' AND projectId != ''
+            GROUP BY categoryGroupId, projectId
+        )
+    WHERE rn <= 5
+
+NODE category_groups_oss_index_grouped
+SQL >
+    SELECT
+        category_groups_oss_index_agregates.categoryGroupId as "categoryGroupId",
+        category_groups_oss_index_agregates.totalContributors as "totalContributors",
+        category_groups_oss_index_collections.collectionId as "collectionId",
+        category_groups_oss_index_projects.projectId as "projectId",
+        insightsProjects.name as "projectName",
+        insightsProjects.logoUrl as "projectLogo",
+        collections.name as "collectionName"
+    FROM category_groups_oss_index_agregates
+    JOIN
+        category_groups_oss_index_collections
+        ON category_groups_oss_index_collections.categoryGroupId
+        = category_groups_oss_index_agregates.categoryGroupId
+    JOIN
+        category_groups_oss_index_projects
+        ON category_groups_oss_index_projects.categoryGroupId
+        = category_groups_oss_index_agregates.categoryGroupId
+    LEFT JOIN
+        insightsProjects FINAL on insightsProjects.id = category_groups_oss_index_projects.projectId
+    LEFT JOIN collections FINAL on collections.id = category_groups_oss_index_collections.collectionId

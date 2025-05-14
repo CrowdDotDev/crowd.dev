@@ -1,0 +1,22 @@
+NODE segments_aggregates_with_ids_0
+SQL >
+    SELECT
+        segmentsAggregatedMV.segmentId as "segmentId",
+        segmentsAggregatedMV.contributorCount,
+        segmentsAggregatedMV.organizationCount,
+        insightsProjects.id AS "projectId",
+        collections.id as "collectionId",
+        categories.id as "categoryId",
+        categoryGroups.id AS "categoryGroupId"
+    FROM insightsProjects
+    JOIN
+        collectionsInsightsProjects FINAL
+        ON insightsProjects.id = collectionsInsightsProjects.insightsProjectId
+    JOIN segmentsAggregatedMV ON segmentsAggregatedMV.segmentId = insightsProjects.segmentId
+    LEFT JOIN collections ON collections.id = collectionsInsightsProjects.collectionId
+    LEFT JOIN categories ON categories.id = collections.categoryId
+    LEFT JOIN categoryGroups ON categoryGroups.id = categories.categoryGroupId
+
+NODE segments_aggregates_with_ids_1
+SQL >
+    SELECT * FROM segments_aggregates_with_ids_0
