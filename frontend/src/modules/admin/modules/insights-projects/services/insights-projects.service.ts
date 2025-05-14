@@ -1,4 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
+import { Pagination } from '@/shared/types/Pagination';
+import { QueryFunction } from '@tanstack/vue-query';
+import { InsightsProjectModel } from '../models/insights-project.model';
 
 export class InsightsProjectsService {
   static async list(query: any) {
@@ -7,6 +10,17 @@ export class InsightsProjectsService {
       query,
     );
     return response.data;
+  }
+
+  query(
+    query: () => Record<string, string | number | object>,
+  ): QueryFunction<Pagination<InsightsProjectModel>> {
+    return ({ pageParam = 0 }) => authAxios
+      .post<Pagination<InsightsProjectModel>>('/collections/insights-projects/query', {
+        ...query(),
+        offset: pageParam,
+      })
+      .then((res) => res.data);
   }
 
   static async getById(id: string) {
@@ -53,3 +67,4 @@ export class InsightsProjectsService {
     return response.data;
   }
 }
+export const INSIGHTS_PROJECTS_SERVICE = new InsightsProjectsService();

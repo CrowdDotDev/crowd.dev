@@ -102,6 +102,14 @@ SQL >
                 description="Order by direction. ASC or DESC",
                 required=False,
             ) == 'ASC' %} ASC
-            {% else %} DESC
+            {% else %}
+                DESC
+                {% if String(
+                    orderByName,
+                    'starred',
+                    description="When starred sorting is selected, also sort by projectCount.",
+                    required=False,
+                ) == 'starred' %}, projectCount DESC
+                {% end %}
             {% end %}
     {% end %}

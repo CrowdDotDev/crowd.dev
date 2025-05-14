@@ -85,6 +85,25 @@ These sources exist in Postgres (i.e., all Tinybird datasources **except `activi
 4. **Backfill** the resource from Sequin
 5. **Restart** the paused sink
 
+
+---
+
+### Add new tables to sequin and tinybird
+
+**Steps:**
+1. Create the table in postgres (or skip if it already exists)
+2. Add migration for the sequin publication to include tables
+```sql   
+ALTER PUBLICATION sequin_pub ADD TABLE "tableName";
+ALTER TABLE public."tableName" REPLICA IDENTITY FULL;
+```
+3. (only for PROD) u need to create the topic in oracle kafka, it doesn't get created automaticly
+4. Update tinybird kafka connect plugin env ( it's under crowd-kube/lf-prod-oracle(lf-staging-oracle)/kafka-connect/tinybird-sink.properties.enc ), there are list of tracked files in the decrypted file.
+5. Restart kafka-connect
+6. Create sequin sinks for new tables
+7. Create tinybird datasources
+8. Backfill from sequin
+
 ---
 
 ### Downtime Consideration
