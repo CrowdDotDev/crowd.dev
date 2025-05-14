@@ -1,0 +1,88 @@
+NODE categories_oss_index_agregates
+SQL >
+    SELECT categoryId, coalesce(sum(contributorCount), 0) as "totalContributors"
+    FROM segments_aggregates_with_ids_datasource
+    WHERE categoryId != ''
+    GROUP BY categoryId
+    ORDER BY totalContributors DESC
+
+NODE categories_oss_index_projects_data
+SQL >
+    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
+    FROM insightsProjects FINAL
+
+NODE categories_oss_index_collections_data
+SQL >
+    SELECT collections.id, collections.name FROM collections FINAL
+
+NODE categories_oss_index_projects
+SQL >
+    SELECT
+        topProjects.categoryId,
+        topProjects.projectId,
+        topProjects.totalContributors,
+        pd.name AS projectName,
+        pd.logoUrl AS projectLogo
+    FROM
+        (
+            SELECT
+                categoryId,
+                projectId,
+                sum(contributorCount) AS totalContributors,
+                ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY sum(contributorCount) DESC) AS rn
+            FROM segments_aggregates_with_ids_datasource
+            WHERE categoryId != '' AND projectId != ''
+            GROUP BY categoryId, projectId
+        ) topProjects
+    JOIN categories_oss_index_projects_data pd ON pd.id = topProjects.projectId
+    WHERE topProjects.rn <= 5
+
+NODE categories_oss_index_collections
+SQL >
+    SELECT
+        topCollections.categoryId,
+        topCollections.collectionId,
+        topCollections.totalContributors,
+        cd.name AS collectionName
+    FROM
+        (
+            SELECT
+                categoryId,
+                collectionId,
+                sum(contributorCount) AS totalContributors,
+                ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY sum(contributorCount) DESC) AS rn
+            FROM segments_aggregates_with_ids_datasource
+            WHERE categoryId != '' AND collectionId != ''
+            GROUP BY categoryId, collectionId
+        ) topCollections
+    JOIN categories_oss_index_collections_data cd ON cd.id = topCollections.collectionId
+    WHERE topCollections.rn <= 5
+
+NODE categories_oss_index_categories_data
+SQL >
+    SELECT categories.id, categories.name FROM categories FINAL
+
+NODE categories_oss_index_results
+SQL >
+    SELECT
+        a.categoryId as "id", cgd.name as "name", a.totalContributors, c.topCollections, p.topProjects
+    FROM categories_oss_index_agregates a
+    LEFT JOIN
+        (
+            SELECT
+                categoryId,
+                groupArray((collectionId, totalContributors, collectionName)) AS topCollections
+            FROM categories_oss_index_collections
+            GROUP BY categoryId
+        ) c USING (categoryId)
+    LEFT JOIN
+        (
+            SELECT
+                categoryId,
+                groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
+            FROM categories_oss_index_projects
+            GROUP BY categoryId
+        ) p USING (categoryId)
+    LEFT JOIN
+        categories_oss_index_categories_data
+        cgd ON categories_oss_index_categories_data.id = a.categoryId
