@@ -1106,7 +1106,7 @@ export default class MemberService extends LoggerBase {
       )
 
       if (primaryIdentities.length === 0) {
-        throw new Error(`Original member only has one identity, cannot extract it!`)
+        throw new Error400(this.options.language, 'merge.errors.noIdentities')
       }
 
       const secondaryActivityCount = 0
@@ -1252,7 +1252,7 @@ export default class MemberService extends LoggerBase {
       mergeAction?.state === MergeActionState.IN_PROGRESS ||
       mergeAction?.state === MergeActionState.PENDING
     ) {
-      throw new Error409(this.options.language, 'merge.errors.multipleMerge', mergeAction?.state)
+      throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
     }
 
     let tx
