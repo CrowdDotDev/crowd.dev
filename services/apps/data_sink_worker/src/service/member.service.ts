@@ -48,12 +48,10 @@ export default class MemberService extends LoggerBase {
   }
 
   public async create(
-    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
     source: string,
-    fireSync = true,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<string> {
     return logExecutionTimeV2(
@@ -68,7 +66,7 @@ export default class MemberService extends LoggerBase {
             throw new Error('Member must have at least one identity!')
           }
 
-          const { id, organizations } = await this.store.transactionally(async (txStore) => {
+          const { id } = await this.store.transactionally(async (txStore) => {
             const txRepo = new MemberRepository(txStore, this.log)
             const txMemberAttributeService = new MemberAttributeService(
               this.redisClient,
@@ -188,26 +186,8 @@ export default class MemberService extends LoggerBase {
 
             return {
               id,
-              organizations,
             }
           })
-
-          if (fireSync) {
-            await logExecutionTimeV2(
-              () => this.searchSyncWorkerEmitter.triggerMemberSync(id, onboarding, segmentId),
-              this.log,
-              'memberService -> create -> triggerMemberSync',
-            )
-          }
-
-          for (const org of organizations) {
-            await logExecutionTimeV2(
-              () =>
-                this.searchSyncWorkerEmitter.triggerOrganizationSync(org.id, onboarding, segmentId),
-              this.log,
-              'memberService -> create -> triggerOrganizationSync',
-            )
-          }
 
           return id
         } catch (err) {
@@ -222,13 +202,11 @@ export default class MemberService extends LoggerBase {
 
   public async update(
     id: string,
-    onboarding: boolean,
     segmentId: string,
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
     source: string,
-    fireSync = true,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
     await logExecutionTimeV2(
@@ -236,7 +214,7 @@ export default class MemberService extends LoggerBase {
         this.log.trace({ memberId: id }, 'Updating a member!')
 
         try {
-          const { updated, organizations } = await this.store.transactionally(async (txStore) => {
+          await this.store.transactionally(async (txStore) => {
             const txRepo = new MemberRepository(txStore, this.log)
             const txMemberAttributeService = new MemberAttributeService(
               this.redisClient,
@@ -282,7 +260,6 @@ export default class MemberService extends LoggerBase {
               )
             }
 
-            let updated = false
             const identitiesToCreate = toUpdate.identitiesToCreate
             delete toUpdate.identitiesToCreate
             const identitiesToUpdate = toUpdate.identitiesToUpdate
@@ -316,8 +293,6 @@ export default class MemberService extends LoggerBase {
                 this.log,
                 'memberService -> update -> addToSegment',
               )
-
-              updated = true
             } else {
               this.log.debug({ memberId: id }, 'Nothing to update in a member!')
               await logExecutionTimeV2(
@@ -334,7 +309,6 @@ export default class MemberService extends LoggerBase {
                 this.log,
                 'memberService -> update -> insertIdentities',
               )
-              updated = true
             }
 
             if (identitiesToUpdate) {
@@ -344,7 +318,6 @@ export default class MemberService extends LoggerBase {
                 this.log,
                 'memberService -> update -> updateIdentities',
               )
-              updated = true
             }
 
             if (releaseMemberLock) {
@@ -416,31 +389,9 @@ export default class MemberService extends LoggerBase {
                   this.log,
                   'memberService -> update -> addToMember',
                 )
-                updated = true
               }
             }
-
-            return { updated, organizations }
           })
-
-          if (updated && fireSync) {
-            this.log.trace({ memberId: id }, 'Triggering member sync!')
-            await logExecutionTimeV2(
-              () => this.searchSyncWorkerEmitter.triggerMemberSync(id, onboarding, segmentId),
-              this.log,
-              'memberService -> update -> triggerMemberSync',
-            )
-          }
-
-          for (const org of organizations) {
-            this.log.trace({ memberId: id }, 'Triggering organization sync!')
-            await logExecutionTimeV2(
-              () =>
-                this.searchSyncWorkerEmitter.triggerOrganizationSync(org.id, onboarding, segmentId),
-              this.log,
-              'memberService -> update -> triggerOrganizationSync',
-            )
-          }
         } catch (err) {
           this.log.error(err, { memberId: id }, 'Error while updating a member!')
           throw err
@@ -505,88 +456,6 @@ export default class MemberService extends LoggerBase {
     return organizations
   }
 
-  public async processMemberEnrich(
-    integrationId: string,
-    platform: PlatformType,
-    member: IMemberData,
-  ): Promise<void> {
-    this.log = getChildLogger('MemberService.processMemberEnrich', this.log, {
-      integrationId,
-    })
-
-    try {
-      this.log.debug('Processing member enrich.')
-
-      const emailIdentities = member.identities.filter(
-        (i) => i.verified && i.type === MemberIdentityType.EMAIL,
-      )
-      if (emailIdentities.length === 0 && (!member.identities || member.identities.length === 0)) {
-        const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
-        this.log.warn(errorMessage)
-        return
-      }
-
-      await this.store.transactionally(async (txStore) => {
-        const txRepo = new MemberRepository(txStore, this.log)
-        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-        const txService = new MemberService(
-          txStore,
-          this.searchSyncWorkerEmitter,
-          this.temporal,
-          this.redisClient,
-          this.log,
-        )
-
-        const dbIntegration = await txIntegrationRepo.findById(integrationId)
-        const segmentId = dbIntegration.segmentId
-
-        // first try finding the member using the identity
-        const identity = singleOrDefault(
-          member.identities,
-          (i) =>
-            i.platform === platform &&
-            i.sourceId !== undefined &&
-            i.sourceId !== null &&
-            i.type === MemberIdentityType.USERNAME,
-        )
-        let dbMember = await txRepo.findMemberByUsername(segmentId, platform, identity.value)
-
-        if (!dbMember && emailIdentities.length > 0) {
-          const email = emailIdentities[0].value
-
-          // try finding the member using e-mail
-          dbMember = await txRepo.findMemberByEmail(email)
-        }
-
-        if (dbMember) {
-          this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
-
-          await txService.update(
-            dbMember.id,
-            false,
-            segmentId,
-            integrationId,
-            {
-              attributes: member.attributes,
-              joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              identities: member.identities,
-              organizations: member.organizations,
-              displayName: member.displayName || undefined,
-            },
-            dbMember,
-            platform,
-            false,
-          )
-        } else {
-          this.log.debug('No member found for enriching. This member enrich process had no affect.')
-        }
-      })
-    } catch (err) {
-      this.log.error(err, 'Error while processing a member enrich!')
-      throw err
-    }
-  }
-
   public async processMemberUpdate(
     integrationId: string,
     platform: PlatformType,
@@ -624,14 +493,21 @@ export default class MemberService extends LoggerBase {
           member.identities,
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
-        const dbMember = await txRepo.findMemberByUsername(segmentId, platform, identity.value)
+        const dbMembers = await txRepo.findMembersByUsernames([
+          {
+            segmentId,
+            platform,
+            username: identity.value,
+          },
+        ])
+
+        const dbMember = dbMembers.size === 0 ? undefined : Array.from(dbMembers.values())[0]
 
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
           await txService.update(
             dbMember.id,
-            false,
             segmentId,
             integrationId,
             {
@@ -644,7 +520,6 @@ export default class MemberService extends LoggerBase {
             },
             dbMember,
             platform,
-            false,
           )
         } else {
           this.log.debug('No member found for updating. This member update process had no affect.')

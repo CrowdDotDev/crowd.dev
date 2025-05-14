@@ -21,7 +21,6 @@ import {
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
   private readonly selectMemberColumnSet: DbColumnSet
-  private readonly selectMemberQuery: string
 
   private readonly insertMemberSegmentColumnSet: DbColumnSet
 
@@ -30,51 +29,81 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
-
-    this.selectMemberQuery = `
-      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
-      from "members" m
-    `
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
-  public async findMemberByEmail(email: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(
-      `${this.selectMemberQuery}
-      inner join "memberIdentities" mi on m.id = mi."memberId" and mi.verified = true
-      where mi.type = $(type)
-        and mi.value ilike $(email)
-      limit 1
+  public async findMembersByEmails(emails: string[]): Promise<Map<string, IDbMember>> {
+    const data = {
+      type: MemberIdentityType.EMAIL,
+      emails: emails.map((e) => e.toLowerCase()),
+    }
+
+    const results = await this.db().any(
+      `
+      with matching_identities as (
+        select mi."memberId", mi.value
+        from "memberIdentities" mi
+        where mi.type = $(type) and lower(mi.value) in ($(emails:csv))
+        limit ${emails.length}
+      )
+      select mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m inner join matching_identities mi on m.id = mi."memberId"
     `,
-      {
-        type: MemberIdentityType.EMAIL,
-        email,
-      },
+      data,
     )
+
+    const resultMap = new Map<string, IDbMember>()
+
+    for (const result of results) {
+      resultMap.set(result.identityValue, result)
+    }
+
+    return resultMap
   }
 
-  public async findMemberByUsername(
-    segmentId: string,
-    platform: string,
-    username: string,
-  ): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(
-      `${this.selectMemberQuery}
-      where m.id in (select mi."memberId"
-                    from "memberIdentities" mi
-                    where mi.platform = $(platform)
-                      and lower(mi.value) = lower($(username))
-                      and mi.type = $(type)
-                      limit 1
-                    );
+  public async findMembersByUsernames(
+    params: { segmentId: string; platform: string; username: string }[],
+  ): Promise<Map<{ platform: string; value: string }, IDbMember>> {
+    const orConditions: string[] = []
+    let index = 0
+
+    const data: Record<string, string> = {
+      type: MemberIdentityType.USERNAME,
+    }
+
+    for (const param of params) {
+      const platformParam = `platform_${index++}`
+      const usernameParam = `username_${index++}`
+
+      orConditions.push(
+        `(mi.platform = $(${platformParam}) and lower(mi.value) = $(${usernameParam}))`,
+      )
+
+      data[platformParam] = param.platform
+      data[usernameParam] = param.username.toLowerCase()
+    }
+
+    const results = await this.db().any(
+      `
+      with matching_identities as (
+        select mi."memberId", mi.platform, mi.value
+        from "memberIdentities" mi
+        where mi.type = $(type) and (${orConditions.join(' or ')})
+        limit ${params.length}
+      )
+      select mi.platform as "identityPlatform", mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m inner join matching_identities mi on m.id = mi."memberId"
     `,
-      {
-        segmentId,
-        platform,
-        username,
-        type: MemberIdentityType.USERNAME,
-      },
+      data,
     )
+
+    const resultMap = new Map<{ platform: string; value: string }, IDbMember>()
+
+    for (const result of results) {
+      resultMap.set({ platform: result.identityPlatform, value: result.identityValue }, result)
+    }
+
+    return resultMap
   }
 
   public async findIdentities(
@@ -115,8 +144,15 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     return resultMap
   }
 
-  public async findById(id: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(`${this.selectMemberQuery} where m.id = $(id)`, { id })
+  public async findByIds(ids: string[]): Promise<IDbMember[]> {
+    return await this.db().any(
+      `
+      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m
+      where m.id in ($(ids))
+    `,
+      { ids },
+    )
   }
 
   public async create(data: IDbMemberCreateData): Promise<string> {

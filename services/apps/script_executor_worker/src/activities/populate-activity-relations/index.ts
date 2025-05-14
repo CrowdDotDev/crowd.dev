@@ -54,12 +54,12 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
   const activities: IActivityRelationsCreateData[] =
     await getActivitiyDataFromRedis(activitiesRedisKey)
 
-  const chunkSize = 1000
+  const chunkSize = 500
   const activityChunks = partition(activities, chunkSize)
 
   for (const chunk of activityChunks) {
-    const promises = chunk.map((activity) =>
-      createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), {
+    const payload = chunk.map((activity) => {
+      return {
         activityId: activity.id,
         memberId: activity.memberId,
         platform: activity.platform,
@@ -70,10 +70,9 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
         objectMemberUsername: activity.objectMemberUsername,
         organizationId: activity.organizationId,
         parentId: activity.parentId,
-      }),
-    )
-
-    await Promise.all(promises)
+      }
+    })
+    await createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), payload)
   }
 }
 

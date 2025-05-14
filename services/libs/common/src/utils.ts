@@ -18,6 +18,8 @@ export class BatchProcessor<T> {
   private batch: T[] = []
   private timer?: NodeJS.Timeout
 
+  private isStopped = false
+
   constructor(
     private readonly batchSize: number,
     private readonly timeoutSeconds: number,
@@ -27,6 +29,10 @@ export class BatchProcessor<T> {
   ) {}
 
   public async addToBatch(element: T) {
+    if (this.isStopped) {
+      throw new Error('Batch processor is stopped')
+    }
+
     this.batch.push(element)
 
     if (this.batch.length === 1) {
@@ -63,6 +69,11 @@ export class BatchProcessor<T> {
         this.timer = undefined
       }
     }
+  }
+
+  async stop() {
+    this.isStopped = true
+    await this.processBatch()
   }
 }
 

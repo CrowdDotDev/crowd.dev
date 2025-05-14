@@ -26,25 +26,34 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     from integration.results r
         left join integrations i on r."integrationId" = i.id
         left join integration.runs run on run.id = r."runId"
-    where r.id = $(resultId)
+    where 
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
-    const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
+    const result = await this.db().oneOrNone(`${this.getResultInfoQuery} r.id = $(resultId)`, {
+      resultId,
+    })
     return result
   }
 
-  public async getIntegrationInfo(integrationId: string): Promise<IIntegrationData | null> {
-    const result = await this.db().oneOrNone(
+  public async getResultInfos(resultIds: string[]): Promise<IResultData[]> {
+    const results = await this.db().any(`${this.getResultInfoQuery} r.id in ($(resultIds:csv))`, {
+      resultIds,
+    })
+    return results
+  }
+
+  public async getIntegrationInfos(integrationIds: string[]): Promise<IIntegrationData[]> {
+    const results = await this.db().any(
       `select id as "integrationId",
               "segmentId",
               platform
-       from integrations where id = $(integrationId)`,
+       from integrations where id in ($(integrationIds:csv))`,
       {
-        integrationId,
+        integrationIds,
       },
     )
 
-    return result
+    return results
   }
 
   public async getOldResultsToProcessForTenant(limit: number, lastId?: string): Promise<string[]> {
@@ -161,9 +170,9 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     }
   }
 
-  public async deleteResult(resultId: string): Promise<void> {
-    await this.db().none(`delete from integration.results where id = $(resultId)`, {
-      resultId,
+  public async deleteResults(resultIds: string[]): Promise<void> {
+    await this.db().none(`delete from integration.results where id in ($(resultIds:csv))`, {
+      resultIds,
     })
   }
 

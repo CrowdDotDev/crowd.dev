@@ -1,22 +1,13 @@
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   addOrgsToMember,
   addOrgsToSegments,
   findMemberOrganizations,
   findOrCreateOrganization,
-  findOrgBySourceId,
-  findOrgByVerifiedIdentity,
-  getOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import {
-  IMemberOrganization,
-  IOrganization,
-  IOrganizationIdSource,
-  PlatformType,
-} from '@crowd/types'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { IMemberOrganization, IOrganization, IOrganizationIdSource } from '@crowd/types'
 
 export class OrganizationService extends LoggerBase {
   constructor(
@@ -67,86 +58,5 @@ export class OrganizationService extends LoggerBase {
     const qe = dbStoreQx(this.store)
 
     return findMemberOrganizations(qe, memberId, organizationId)
-  }
-
-  public async processOrganizationEnrich(
-    integrationId: string,
-    platform: PlatformType,
-    organization: IOrganization,
-  ): Promise<void> {
-    this.log = getChildLogger('OrganizationService.processOrganizationEnrich', this.log, {
-      integrationId,
-    })
-
-    try {
-      this.log.debug('Processing organization enrich.')
-
-      const verifiedIdentities = organization.identities.filter((i) => i.verified)
-      if (verifiedIdentities.length === 0) {
-        const errorMessage = `Organization can't be enriched. It doesn't have identities!`
-        this.log.warn(errorMessage)
-        return
-      }
-
-      const primaryIdentity = verifiedIdentities[0]
-
-      await this.store.transactionally(async (txStore) => {
-        const qe = dbStoreQx(txStore)
-        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-
-        const txService = new OrganizationService(txStore, this.log)
-
-        const dbIntegration = await txIntegrationRepo.findById(integrationId)
-        const segmentId = dbIntegration.segmentId
-
-        // first try finding the organization using the remote sourceId
-        let dbOrganization = primaryIdentity.sourceId
-          ? await findOrgBySourceId(qe, segmentId, platform, primaryIdentity.sourceId)
-          : null
-
-        if (!dbOrganization) {
-          // try finding the organization using verified identities
-          for (const i of verifiedIdentities) {
-            dbOrganization = await findOrgByVerifiedIdentity(qe, i)
-            if (dbOrganization) {
-              break
-            }
-          }
-        }
-
-        if (dbOrganization) {
-          this.log.trace({ organizationId: dbOrganization.id }, 'Found existing organization.')
-
-          // check if sent primary identity already exists in the org
-          const existingIdentities = await getOrgIdentities(qe, dbOrganization.id)
-
-          // merge existing and incoming identities
-          for (const i of existingIdentities) {
-            if (
-              organization.identities.find(
-                (oi) =>
-                  oi.type === i.type &&
-                  oi.value === i.value &&
-                  oi.platform === i.platform &&
-                  oi.verified === i.verified,
-              )
-            ) {
-              continue
-            }
-
-            organization.identities.push(i)
-          }
-
-          await txService.findOrCreate(segmentId, integrationId, organization)
-        } else {
-          this.log.debug(
-            'No organization found for enriching. This organization enrich process had no affect.',
-          )
-        }
-      })
-    } catch (err) {
-      this.log.error(err, 'Error while processing an organization enrich!')
-      throw err
-    }
   }
 }
