@@ -1,3 +1,5 @@
+import { timeout } from './timing'
+
 export const processPaginated = async <T>(
   dataLoader: (page: number) => Promise<T[]>,
   processor: (data: T[]) => Promise<boolean | void>,
@@ -20,6 +22,8 @@ export class BatchProcessor<T> {
 
   private isStopped = false
 
+  private isProcessing = false
+
   constructor(
     private readonly batchSize: number,
     private readonly timeoutSeconds: number,
@@ -31,6 +35,10 @@ export class BatchProcessor<T> {
   public async addToBatch(element: T) {
     if (this.isStopped) {
       throw new Error('Batch processor is stopped')
+    }
+
+    while (this.isProcessing) {
+      await timeout(50)
     }
 
     this.batch.push(element)
@@ -57,6 +65,7 @@ export class BatchProcessor<T> {
   private async processBatch(): Promise<void> {
     if (this.batch.length === 0) return
 
+    this.isProcessing = true
     const clone = [...this.batch]
     this.batch = []
     try {
@@ -68,11 +77,16 @@ export class BatchProcessor<T> {
         clearTimeout(this.timer)
         this.timer = undefined
       }
+
+      this.isProcessing = false
     }
   }
 
   async stop() {
     this.isStopped = true
+    while (this.isProcessing) {
+      await timeout(50)
+    }
     await this.processBatch()
   }
 }
