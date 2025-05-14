@@ -6,6 +6,7 @@ import {
   singleOrDefault,
   timeout,
 } from '@crowd/common'
+import { UnrepeatableError } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -28,7 +29,6 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 
 import ActivityService from './activity.service'
-import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 
 export default class DataSinkService extends LoggerBase {

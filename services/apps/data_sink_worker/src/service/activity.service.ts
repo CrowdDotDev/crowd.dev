@@ -13,6 +13,7 @@ import {
   singleOrDefault,
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
+import { UnrepeatableError } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   findCommitsForPRSha,
@@ -29,7 +30,6 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
@@ -51,7 +51,6 @@ import {
 } from '@crowd/types'
 
 import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
-import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
 
@@ -597,7 +596,6 @@ export default class ActivityService extends LoggerBase {
 
     await Promise.all(promises)
 
-    // find existing activities
     const orConditions = relevantPayloads.map((r) => {
       return {
         and: [
@@ -615,7 +613,16 @@ export default class ActivityService extends LoggerBase {
         queryActivities(this.qdbStore.connection(), {
           segmentIds: distinct(relevantPayloads.map((r) => r.segmentId)),
           filter: {
-            or: orConditions,
+            and: [
+              {
+                timestamp: {
+                  in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+                },
+              },
+              {
+                or: orConditions,
+              },
+            ],
           },
           limit: relevantPayloads.length,
           noCount: true,
@@ -631,6 +638,7 @@ export default class ActivityService extends LoggerBase {
       payload.dbActivity = singleOrDefault(
         existingActivitiesResult.rows,
         (a) =>
+          a.segmentId === payload.segmentId &&
           a.timestamp === payload.activity.timestamp &&
           a.type === payload.activity.type &&
           a.sourceId === payload.activity.sourceId &&
@@ -750,6 +758,7 @@ export default class ActivityService extends LoggerBase {
           for (const payload of payloadsNotInDb.filter(
             (p) =>
               !p.dbObjectMember &&
+              p.activity.objectMember &&
               p.activity.objectMember.identities.some(
                 (i) =>
                   i.verified &&
@@ -781,22 +790,29 @@ export default class ActivityService extends LoggerBase {
       if (payload.dbMember) {
         payload.memberId = payload.dbMember.id
         promises.push(
-          memberService.update(
-            payload.dbMember.id,
-            payload.segmentId,
-            payload.integrationId,
-            {
-              attributes: payload.activity.member.attributes,
-              joinedAt: payload.activity.member.joinedAt
-                ? new Date(payload.activity.member.joinedAt)
-                : new Date(payload.activity.timestamp),
-              identities: payload.activity.member.identities,
-              organizations: payload.activity.member.organizations,
-              reach: payload.activity.member.reach,
-            },
-            payload.dbMember,
-            payload.platform,
-          ),
+          memberService
+            .update(
+              payload.dbMember.id,
+              payload.segmentId,
+              payload.integrationId,
+              {
+                attributes: payload.activity.member.attributes,
+                joinedAt: payload.activity.member.joinedAt
+                  ? new Date(payload.activity.member.joinedAt)
+                  : new Date(payload.activity.timestamp),
+                identities: payload.activity.member.identities,
+                organizations: payload.activity.member.organizations,
+                reach: payload.activity.member.reach,
+              },
+              payload.dbMember,
+              payload.platform,
+            )
+            .catch((err) => {
+              resultMap.set(payload.resultId, {
+                success: false,
+                err,
+              })
+            }),
         )
       } else {
         promises.push(
@@ -818,6 +834,12 @@ export default class ActivityService extends LoggerBase {
             )
             .then((memberId) => {
               payload.memberId = memberId
+            })
+            .catch((err) => {
+              resultMap.set(payload.resultId, {
+                success: false,
+                err,
+              })
             }),
         )
       }
@@ -825,22 +847,29 @@ export default class ActivityService extends LoggerBase {
       if (payload.dbObjectMember) {
         payload.objectMemberId = payload.dbObjectMember.id
         promises.push(
-          memberService.update(
-            payload.dbObjectMember.id,
-            payload.segmentId,
-            payload.integrationId,
-            {
-              attributes: payload.activity.objectMember.attributes,
-              joinedAt: payload.activity.objectMember.joinedAt
-                ? new Date(payload.activity.objectMember.joinedAt)
-                : new Date(payload.activity.timestamp),
-              identities: payload.activity.objectMember.identities,
-              organizations: payload.activity.objectMember.organizations,
-              reach: payload.activity.objectMember.reach,
-            },
-            payload.dbObjectMember,
-            payload.platform,
-          ),
+          memberService
+            .update(
+              payload.dbObjectMember.id,
+              payload.segmentId,
+              payload.integrationId,
+              {
+                attributes: payload.activity.objectMember.attributes,
+                joinedAt: payload.activity.objectMember.joinedAt
+                  ? new Date(payload.activity.objectMember.joinedAt)
+                  : new Date(payload.activity.timestamp),
+                identities: payload.activity.objectMember.identities,
+                organizations: payload.activity.objectMember.organizations,
+                reach: payload.activity.objectMember.reach,
+              },
+              payload.dbObjectMember,
+              payload.platform,
+            )
+            .catch((err) => {
+              resultMap.set(payload.resultId, {
+                success: false,
+                err,
+              })
+            }),
         )
       } else if (payload.activity.objectMember) {
         promises.push(
@@ -864,11 +893,21 @@ export default class ActivityService extends LoggerBase {
             )
             .then((memberId) => {
               payload.objectMemberId = memberId
+            })
+            .catch((err) => {
+              resultMap.set(payload.resultId, {
+                success: false,
+                err,
+              })
             }),
         )
       }
 
       await Promise.all(promises)
+
+      if (resultMap.has(payload.resultId)) {
+        continue
+      }
 
       // associate activity with organization
       payload.organizationId = await this.memberAffiliationService.findAffiliation(

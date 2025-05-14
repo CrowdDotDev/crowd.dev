@@ -58,7 +58,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       data: IResultData | undefined
       created: boolean
     }>(
-      20,
+      Number(process.env.BATCH_PROCESSOR_SIZE || 20),
       30,
       async (batch) => {
         const batchId = generateUUIDv1()

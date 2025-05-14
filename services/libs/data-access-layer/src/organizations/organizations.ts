@@ -1,4 +1,9 @@
-import { DEFAULT_TENANT_ID, generateUUIDv1, websiteNormalizer } from '@crowd/common'
+import {
+  DEFAULT_TENANT_ID,
+  UnrepeatableError,
+  generateUUIDv1,
+  websiteNormalizer,
+} from '@crowd/common'
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IMemberOrganization,
@@ -467,7 +472,7 @@ export async function findOrCreateOrganization(
   if (verifiedIdentities.length === 0 && !data.displayName) {
     const message = `Missing organization identity or displayName while creating/updating organization!`
     log.error(data, message)
-    throw new Error(message)
+    throw new UnrepeatableError(message)
   }
 
   try {
@@ -488,7 +493,7 @@ export async function findOrCreateOrganization(
     for (const identity of verifiedIdentities) {
       existing = await logExecutionTimeV2(
         async () => findOrgByVerifiedIdentity(qe, identity),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> findOrgByVerifiedIdentity',
       )
 
@@ -496,7 +501,7 @@ export async function findOrCreateOrganization(
         // if primary domain isn't found in the incoming platform, check if the domain exists in any platform
         existing = await logExecutionTimeV2(
           async () => findOrgByVerifiedDomain(qe, identity),
-          this.log,
+          log,
           'organizationService -> findOrCreateOrganization -> findOrgByVerifiedDomain',
         )
       }
@@ -508,7 +513,7 @@ export async function findOrCreateOrganization(
     if (!existing) {
       existing = await logExecutionTimeV2(
         async () => findOrgByName(qe, data.displayName),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> findOrgByName',
       )
     }
@@ -527,7 +532,7 @@ export async function findOrCreateOrganization(
 
       const existingAttributes = await logExecutionTimeV2(
         async () => findOrgAttributes(qe, existing.id),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> findOrgAttributes',
       )
 
@@ -539,25 +544,25 @@ export async function findOrCreateOrganization(
         log.info({ orgId: existing.id }, `Updating organization!`)
         await logExecutionTimeV2(
           async () => updateOrganization(qe, existing.id, processed.organization),
-          this.log,
+          log,
           'organizationService -> findOrCreateOrganization -> updateOrganization',
         )
       }
       await logExecutionTimeV2(
         async () => upsertOrgIdentities(qe, existing.id, data.identities, integrationId),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> upsertOrgIdentities',
       )
       await logExecutionTimeV2(
         async () => upsertOrgAttributes(qe, existing.id, processed.attributes),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> upsertOrgAttributes',
       )
       for (const attr of processed.attributes) {
         if (attr.default) {
           await logExecutionTimeV2(
             async () => markOrgAttributeDefault(qe, existing.id, attr),
-            this.log,
+            log,
             'organizationService -> findOrCreateOrganization -> markOrgAttributeDefault',
           )
         }
@@ -591,20 +596,20 @@ export async function findOrCreateOrganization(
       // if it doesn't exists create it
       id = await logExecutionTimeV2(
         async () => insertOrganization(qe, processed.organization),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> insertOrganization',
       )
 
       await logExecutionTimeV2(
         async () => upsertOrgAttributes(qe, id, processed.attributes),
-        this.log,
+        log,
         'organizationService -> findOrCreateOrganization -> upsertOrgAttributes',
       )
       for (const attr of processed.attributes) {
         if (attr.default) {
           await logExecutionTimeV2(
             async () => markOrgAttributeDefault(qe, id, attr),
-            this.log,
+            log,
             'organizationService -> findOrCreateOrganization -> markOrgAttributeDefault',
           )
         }
@@ -624,7 +629,7 @@ export async function findOrCreateOrganization(
               sourceId: i.sourceId,
               integrationId,
             }),
-          this.log,
+          log,
           'organizationService -> findOrCreateOrganization -> addOrgIdentity',
         )
       }
