@@ -669,15 +669,50 @@ export default class ActivityService extends LoggerBase {
 
       // and map them to payloads
       for (const payload of relevantPayloads.filter((p) => p.dbActivity)) {
-        payload.dbMember = single(dbMembers, (m) => m.id === payload.dbActivity.memberId)
+        payload.dbMember = singleOrDefault(dbMembers, (m) => m.id === payload.dbActivity.memberId)
+        if (!payload.dbMember) {
+          this.log.error(
+            {
+              memberId: payload.dbActivity.memberId,
+            },
+            'Member not found!',
+          )
+
+          resultMap.set(payload.resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Member with id '${payload.dbActivity.memberId}' not found for activity '${payload.dbActivity.id}'!`,
+            ),
+          })
+
+          continue
+        }
 
         if (payload.dbActivity.objectMemberId) {
-          payload.dbObjectMember = single(
+          payload.dbObjectMember = singleOrDefault(
             dbMembers,
             (m) => m.id === payload.dbActivity.objectMemberId,
           )
+
+          if (!payload.dbObjectMember) {
+            this.log.error(
+              {
+                objectMemberId: payload.dbActivity.objectMemberId,
+              },
+              'Object member not found!',
+            )
+
+            resultMap.set(payload.resultId, {
+              success: false,
+              err: new UnrepeatableError(
+                `Object member with id '${payload.dbActivity.objectMemberId}' not found for activity '${payload.dbActivity.id}'`,
+              ),
+            })
+          }
         }
       }
+
+      relevantPayloads = relevantPayloads.filter((p) => !resultMap.has(p.resultId))
     }
 
     if (payloadsNotInDb.length > 0) {
