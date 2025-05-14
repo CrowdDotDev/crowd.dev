@@ -886,6 +886,8 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
+      this.log.info({ record }, 'Organization created/updated')
+
       const result = await this.findById(record.id)
 
       await SequelizeRepository.commitTransaction(transaction)
