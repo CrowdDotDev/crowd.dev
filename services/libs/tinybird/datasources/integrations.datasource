@@ -6,7 +6,7 @@ SCHEMA >
     `integrationIdentifier` String `json:$.record.integrationIdentifier` DEFAULT '',
     `segmentId` String `json:$.record.settings` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_SORTING_KEY segmentId, id
