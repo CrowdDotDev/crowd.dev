@@ -3,12 +3,12 @@ SCHEMA >
     `memberId` String `json:$.record.id`,
     `platform` String `json:$.record.platform`,
     `value` String `json:$.record.value`,
-    `sourceId` String `json:$.record.sourceId`,
-    `integrationId` String `json:$.record.integrationId`,
+    `sourceId` String `json:$.record.sourceId` DEFAULT '',
+    `integrationId` String `json:$.record.integrationId` DEFAULT '',
     `type` String `json:$.record.type`,
-    `verified` UInt8 `json:$.record.verified
+    `verified` UInt8 `json:$.record.verified`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
