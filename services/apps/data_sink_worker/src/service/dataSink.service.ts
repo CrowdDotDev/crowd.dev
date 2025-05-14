@@ -17,6 +17,7 @@ import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
+import telemetry from '@crowd/telemetry'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
@@ -203,6 +204,8 @@ export default class DataSinkService extends LoggerBase {
   public async processResults(
     batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
   ): Promise<void> {
+    const start = performance.now()
+
     const results: IResultData[] = []
 
     const toLoadById: string[] = []
@@ -225,8 +228,8 @@ export default class DataSinkService extends LoggerBase {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resultMap = new Map<string, { success: boolean; err?: any }>()
-
-    for (const type of Array.from(groupedByType.keys())) {
+    const types = Array.from(groupedByType.keys()) as IntegrationResultType[]
+    for (const type of types) {
       if (type === IntegrationResultType.ACTIVITY) {
         const results = groupedByType.get(type)
 
@@ -347,6 +350,20 @@ export default class DataSinkService extends LoggerBase {
 
     if (resultsToDelete.length > 0) {
       await this.repo.deleteResults(resultsToDelete)
+    }
+
+    const end = performance.now()
+    const totalTime = end - start
+
+    for (const type of types) {
+      const items = groupedByType.get(type)
+      const msPerItem = Math.floor(totalTime / items.length)
+
+      items.forEach(() => {
+        telemetry.distribution('data_sink_worker.process_result', msPerItem, {
+          type,
+        })
+      })
     }
   }
 }
