@@ -31,13 +31,11 @@ export {
   syncMember,
   syncOrganization,
   findMembersInOrganization,
-  // -
   getMemberDisplayAggsLastSyncedAt,
   touchMemberDisplayAggsLastSyncedAt,
   getMembersForDisplayAggsRefresh,
   getMemberDisplayAggregates,
   setMemberDisplayAggregates,
-  // -
   getOrganizationDisplayAggsLastSyncedAt,
   touchOrganizationDisplayAggsLastSyncedAt,
   getOrganizationsForDisplayAggsRefresh,

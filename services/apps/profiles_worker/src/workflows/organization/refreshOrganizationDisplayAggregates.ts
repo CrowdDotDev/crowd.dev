@@ -13,6 +13,27 @@ const {
   startToCloseTimeout: '30 minutes',
 })
 
+/*
+  Async Temporal workflow to refresh organization display aggregates daily.
+
+  Two-Tier Aggregation Strategy:
+
+  - Core Aggregates: Real-time, lightweight metrics from Postgres 
+    activityRelations table, calculated synchronously in syncOrganization:
+    - activeOn
+    - activityCount
+    - memberCount
+
+  - Display Aggregates: UI-facing analytics from QuestDB activities 
+    table, calculated asynchronously in this workflow:
+    - joinedAt
+    - lastActive
+    - avgContributorEngagement
+
+  This workflow processes recently indexed organizations via indexed_entities 
+  and a organizationDisplayAggsLastSyncedAt watermark, updates organizationSegmentsAgg, 
+  and advances the watermark.
+*/
 export async function refreshOrganizationDisplayAggregates(
   args: IRefreshDisplayAggregatesArgs,
 ): Promise<void> {
