@@ -886,6 +886,8 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
+      const result = await this.findById(record.id)
+
       await SequelizeRepository.commitTransaction(transaction)
 
       if (syncOptions.doSync) {
@@ -893,11 +895,10 @@ export default class OrganizationService extends LoggerBase {
         await searchSyncService.triggerOrganizationSync(record.id)
       }
 
-      return await this.findById(record.id)
+      return result
     } catch (error) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
+
+      await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
 
