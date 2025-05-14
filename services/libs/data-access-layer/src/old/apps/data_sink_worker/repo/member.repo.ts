@@ -149,7 +149,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       `
       select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
       from "members" m
-      where m.id in ($(ids))
+      where m.id in ($(ids:csv))
     `,
       { ids },
     )

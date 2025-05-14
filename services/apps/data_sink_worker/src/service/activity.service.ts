@@ -108,6 +108,7 @@ export default class ActivityService extends LoggerBase {
         typeToCreate = toUpdate.type
         channelToCreate = toUpdate.channel
 
+        this.log.trace('Updating an existing activity!')
         payload = {
           id,
           memberId: toUpdate.memberId || original.memberId,
@@ -136,6 +137,7 @@ export default class ActivityService extends LoggerBase {
         }
       }
     } else {
+      this.log.trace('Creating a new activity!')
       const sentimentPromise = this.getActivitySentiment({
         body: activity.body,
         title: activity.title,
@@ -639,7 +641,7 @@ export default class ActivityService extends LoggerBase {
         existingActivitiesResult.rows,
         (a) =>
           a.segmentId === payload.segmentId &&
-          a.timestamp === payload.activity.timestamp &&
+          new Date(a.timestamp).getTime() === new Date(payload.activity.timestamp).getTime() &&
           a.type === payload.activity.type &&
           a.sourceId === payload.activity.sourceId &&
           (payload.activity.channel ? a.channel === payload.activity.channel : true),
