@@ -41,7 +41,7 @@ SQL >
     SELECT collectionsInsightsProjects.collectionId, insightsProjects_filtered.*
     from insightsProjects_filtered
     join
-        collectionsInsightsProjects
+        collectionsInsightsProjects final
         on collectionsInsightsProjects.insightsProjectId = insightsProjects_filtered.id
     where
         (collectionsInsightsProjects.collectionId in (select id from collections_paginated))
