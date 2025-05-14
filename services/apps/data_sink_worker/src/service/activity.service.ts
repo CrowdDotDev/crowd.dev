@@ -659,7 +659,11 @@ export default class ActivityService extends LoggerBase {
 
     if (memberIdsToLoad.size > 0) {
       // load members by member ids
-      const dbMembers = await this.memberRepo.findByIds(Array.from(memberIdsToLoad))
+      const dbMembers = await logExecutionTimeV2(
+        async () => this.memberRepo.findByIds(Array.from(memberIdsToLoad)),
+        this.log,
+        'processActivities -> memberRepo.findByIds',
+      )
 
       // and map them to payloads
       for (const payload of relevantPayloads.filter((p) => p.dbActivity)) {
@@ -696,7 +700,11 @@ export default class ActivityService extends LoggerBase {
             }),
         )
 
-      const dbMembersByUsername = await this.memberRepo.findMembersByUsernames(usernameFilter)
+      const dbMembersByUsername = await logExecutionTimeV2(
+        async () => this.memberRepo.findMembersByUsernames(usernameFilter),
+        this.log,
+        'processActivities -> memberRepo.findMembersByUsernames',
+      )
 
       // and map them to payloads
       for (const [identity, dbMember] of dbMembersByUsername) {
@@ -738,7 +746,11 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (emails.size > 0) {
-        const dbMembersByEmail = await this.memberRepo.findMembersByEmails(Array.from(emails))
+        const dbMembersByEmail = await logExecutionTimeV2(
+          async () => this.memberRepo.findMembersByEmails(Array.from(emails)),
+          this.log,
+          'processActivities -> memberRepo.findMembersByEmails',
+        )
 
         // and map them to payloads
         for (const [email, dbMember] of dbMembersByEmail) {

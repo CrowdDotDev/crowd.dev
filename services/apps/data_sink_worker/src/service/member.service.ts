@@ -37,6 +37,8 @@ import MemberAttributeService from './memberAttribute.service'
 import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
+  private readonly memberRepo: MemberRepository
+
   constructor(
     private readonly store: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
@@ -45,7 +47,17 @@ export default class MemberService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
+
+    this.memberRepo = new MemberRepository(store, this.log)
   }
+
+  public async upsert(
+    segmentId: string,
+    integrationId: string,
+    data: IMemberUpdateData,
+    source: string,
+    original?: IDbMember,
+  ): Promise<string> {}
 
   public async create(
     segmentId: string,
