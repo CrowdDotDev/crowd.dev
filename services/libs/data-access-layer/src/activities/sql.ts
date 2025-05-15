@@ -1528,16 +1528,16 @@ export async function createOrUpdateRelations(
     valueList.push(
       `
         (
-          $(activityIdParam), 
-          $(memberIdParam), 
-          $(objectMemberIdParam), 
-          $(organizationIdParam), 
-          $(conversationIdParam), 
-          $(parentIdParam), 
-          $(segmentIdParam), 
-          $(platformParam), 
-          $(usernameParam), 
-          $(objectMemberUsernameParam), 
+          $(${activityIdParam}), 
+          $(${memberIdParam}), 
+          $(${objectMemberIdParam}), 
+          $(${organizationIdParam}), 
+          $(${conversationIdParam}), 
+          $(${parentIdParam}), 
+          $(${segmentIdParam}), 
+          $(${platformParam}), 
+          $(${usernameParam}), 
+          $(${objectMemberUsernameParam}), 
           now(), 
           now()
         )`,
