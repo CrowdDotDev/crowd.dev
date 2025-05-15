@@ -1,3 +1,12 @@
+NODE collections_oss_index_category_ids
+SQL >
+    %
+    SELECT categories.id
+    FROM categories
+    {% if defined(categorySlug) %}
+        WHERE categories.slug = {{ String(categorySlug, description="Category slug", required=True) }}
+    {% end %}
+
 NODE collections_oss_index_agregates
 SQL >
     SELECT collectionId, coalesce(sum(contributorCount), 0) as "totalContributors"
@@ -6,7 +15,7 @@ SQL >
     GROUP BY collectionId
     ORDER BY totalContributors DESC
 
-NODE collections_oss_index_projects_data
+NODE collections_oss_index_projects_deduplicated
 SQL >
     SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
     FROM insightsProjects FINAL
@@ -30,24 +39,27 @@ SQL >
             WHERE collectionId != '' AND projectId != ''
             GROUP BY collectionId, projectId
         ) topProjects
-    JOIN collections_oss_index_projects_data pd ON pd.id = topProjects.projectId
+    JOIN collections_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
 
-NODE collections_oss_index_collections_data
+NODE collections_oss_index_collections_deduplicated
 SQL >
-    SELECT collections.id, collections.slug, collections.name FROM collections FINAL
+    SELECT collections.id, collections.slug, collections.name
+    FROM collections FINAL
+    WHERE collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
+
+NODE collections_oss_index_top_projects
+SQL >
+    SELECT
+        collectionId,
+        groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
+    FROM categories_oss_index_projects
+    GROUP BY collectionId
 
 NODE collections_oss_index_results
 SQL >
     SELECT
         a.collectionId as "id", cd.name as "name", cd.slug as "slug", a.totalContributors, p.topProjects
     FROM collections_oss_index_agregates a
-    LEFT JOIN
-        (
-            SELECT
-                collectionId,
-                groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
-            FROM categories_oss_index_projects
-            GROUP BY collectionId
-        ) p USING (collectionId)
-    LEFT JOIN collections_oss_index_collections_data cd ON cd.id = a.collectionId
+    LEFT JOIN collections_oss_index_top_projects p USING (collectionId)
+    JOIN collections_oss_index_collections_deduplicated cd ON cd.id = a.collectionId

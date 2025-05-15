@@ -1,17 +1,28 @@
+NODE categories_oss_index_categoryGroups
+SQL >
+    %
+    SELECT categoryGroups.id,
+    FROM categoryGroups
+    {% if defined(categoryGroupSlug) %}
+        WHERE
+            categoryGroups.slug
+            = {{ String(categoryGroupSlug, description="Category group slug", required=True) }}
+    {% end %}
+
 NODE categories_oss_index_agregates
 SQL >
     SELECT categoryId, coalesce(sum(contributorCount), 0) as "totalContributors"
     FROM segments_aggregates_with_ids_datasource
-    WHERE categoryId != ''
+    WHERE categoryId != '' AND categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
     GROUP BY categoryId
     ORDER BY totalContributors DESC
 
-NODE categories_oss_index_projects_data
+NODE categories_oss_index_projects_deduplicated
 SQL >
     SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
     FROM insightsProjects FINAL
 
-NODE categories_oss_index_collections_data
+NODE categories_oss_index_collections_deduplicated
 SQL >
     SELECT collections.id, collections.name FROM collections FINAL
 
@@ -34,7 +45,7 @@ SQL >
             WHERE categoryId != '' AND projectId != ''
             GROUP BY categoryId, projectId
         ) topProjects
-    JOIN categories_oss_index_projects_data pd ON pd.id = topProjects.projectId
+    JOIN categories_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
 
 NODE categories_oss_index_collections
@@ -55,34 +66,35 @@ SQL >
             WHERE categoryId != '' AND collectionId != ''
             GROUP BY categoryId, collectionId
         ) topCollections
-    JOIN categories_oss_index_collections_data cd ON cd.id = topCollections.collectionId
+    JOIN categories_oss_index_collections_deduplicated cd ON cd.id = topCollections.collectionId
     WHERE topCollections.rn <= 5
 
-NODE categories_oss_index_categories_data
+NODE categories_oss_index_categories_deduplicated
 SQL >
-    SELECT categories.id, categories.name FROM categories FINAL
+    SELECT categories.id, categories.name
+    FROM categories FINAL
+    WHERE categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
+
+NODE categories_oss_index_top_collections
+SQL >
+    SELECT categoryId, groupArray((collectionId, totalContributors, collectionName)) AS topCollections
+    FROM categories_oss_index_collections
+    GROUP BY categoryId
+
+NODE categories_oss_index_top_projects
+SQL >
+    SELECT
+        categoryId, groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
+    FROM categories_oss_index_projects
+    GROUP BY categoryId
 
 NODE categories_oss_index_results
 SQL >
     SELECT
         a.categoryId as "id", cgd.name as "name", a.totalContributors, c.topCollections, p.topProjects
     FROM categories_oss_index_agregates a
+    LEFT JOIN categories_oss_index_top_collections c USING (categoryId)
+    LEFT JOIN categories_oss_index_top_projects p USING (categoryId)
     LEFT JOIN
-        (
-            SELECT
-                categoryId,
-                groupArray((collectionId, totalContributors, collectionName)) AS topCollections
-            FROM categories_oss_index_collections
-            GROUP BY categoryId
-        ) c USING (categoryId)
-    LEFT JOIN
-        (
-            SELECT
-                categoryId,
-                groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
-            FROM categories_oss_index_projects
-            GROUP BY categoryId
-        ) p USING (categoryId)
-    LEFT JOIN
-        categories_oss_index_categories_data
-        cgd ON categories_oss_index_categories_data.id = a.categoryId
+        categories_oss_index_categories_deduplicated
+        cgd ON categories_oss_index_categories_deduplicated.id = a.categoryId
