@@ -75,7 +75,7 @@ SQL >
 
 NODE categories_oss_index_categories_deduplicated
 SQL >
-    SELECT categories.id, categories.name
+    SELECT categories.id, categories.name, categories.slug
     FROM categories FINAL
     WHERE categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
 
@@ -95,7 +95,12 @@ SQL >
 NODE categories_oss_index_results
 SQL >
     SELECT
-        a.categoryId as "id", cgd.name as "name", a.totalContributors, c.topCollections, p.topProjects
+        a.categoryId as "id",
+        cgd.name as "name",
+        cgd.slug as "slug",
+        a.totalContributors,
+        c.topCollections,
+        p.topProjects
     FROM categories_oss_index_agregates a
     LEFT JOIN categories_oss_index_top_collections c USING (categoryId)
     LEFT JOIN categories_oss_index_top_projects p USING (categoryId)
