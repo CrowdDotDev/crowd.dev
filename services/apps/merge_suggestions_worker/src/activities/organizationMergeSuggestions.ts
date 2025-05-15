@@ -317,7 +317,17 @@ export async function getOrganizationMergeSuggestions(
       },
     )
 
-    console.log('sorted organizations', JSON.stringify(organizationsSorted, null, 2))
+    console.log(
+      'mergeSuggestions',
+      JSON.stringify(
+        {
+          similarity: similarityConfidenceScore,
+          organizations: [organizationsSorted[0], organizationsSorted[1]],
+        },
+        null,
+        2,
+      ),
+    )
 
     mergeSuggestions.push({
       similarity: similarityConfidenceScore,
