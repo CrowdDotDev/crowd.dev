@@ -64,13 +64,21 @@ SQL >
 
 NODE category_groups_oss_index_category_groups_data
 SQL >
-    SELECT categoryGroups.id, categoryGroups.name FROM categoryGroups FINAL
+    %
+    SELECT categoryGroups.id, categoryGroups.name, categoryGroups.type
+    FROM categoryGroups FINAL
+    {% if defined(type) %}
+        WHERE
+            categoryGroups.type
+            = {{ String(type, description="Filter category group type", required=False) }}
+    {% end %}
 
 NODE category_groups_oss_index_results
 SQL >
     SELECT
         a.categoryGroupId as "id",
         cgd.name as "name",
+        cgd.type as "type",
         a.totalContributors,
         c.topCollections,
         p.topProjects
@@ -91,6 +99,6 @@ SQL >
             FROM category_groups_oss_index_projects
             GROUP BY categoryGroupId
         ) p USING (categoryGroupId)
-    LEFT JOIN
+    JOIN
         category_groups_oss_index_category_groups_data
         cgd ON category_groups_oss_index_category_groups_data.id = a.categoryGroupId
