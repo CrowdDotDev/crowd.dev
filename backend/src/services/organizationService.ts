@@ -6,7 +6,7 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error409, websiteNormalizer } from '@crowd/common'
+import { Error400, Error409, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
@@ -459,7 +459,7 @@ export default class OrganizationService extends LoggerBase {
       mergeAction?.state === MergeActionState.IN_PROGRESS ||
       mergeAction?.state === MergeActionState.PENDING
     ) {
-      throw new Error409(this.options.language, 'merge.errors.multipleMerge', mergeAction?.state)
+      throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
     }
 
     try {
@@ -489,8 +489,9 @@ export default class OrganizationService extends LoggerBase {
               mergedId: originalId,
             }
           }
+
           if (toMergeWithLfxMembership) {
-            throw new Error('Cannot merge LFX membership organization as a secondary one!')
+            throw new Error400(this.options.language, 'merge.errors.mergeLfxSecondary')
           }
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
@@ -885,6 +886,8 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
+      const result = await OrganizationRepository.findById(record.id, txOptions)
+
       await SequelizeRepository.commitTransaction(transaction)
 
       if (syncOptions.doSync) {
@@ -892,11 +895,9 @@ export default class OrganizationService extends LoggerBase {
         await searchSyncService.triggerOrganizationSync(record.id)
       }
 
-      return await this.findById(record.id)
+      return result
     } catch (error) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
+      await SequelizeRepository.rollbackTransaction(transaction)
 
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'organization')
 
