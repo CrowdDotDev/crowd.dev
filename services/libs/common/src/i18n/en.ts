@@ -160,6 +160,11 @@ const en = {
       invalidCredentials:
         'The given credentials were found to be invalid. Please check the credentials and try again',
     },
+    groupsio: {
+      isTwoFactorRequired: 'Two-factor authentication code is required',
+      invalidCredentials: 'Invalid email or password',
+      invalid2FA: 'Invalid Two-factor authentication code',
+    },
     alreadyExists: '{0}',
   },
 

@@ -1443,15 +1443,16 @@ export default class IntegrationService {
       const errorType = String(error.response.data.type)
       const isTwoFactorRequired =
         errorType.includes('two_factor_required') || errorType.includes('2nd_factor_required')
+
       if (isTwoFactorRequired) {
-        throw new Error400(this.options.language, 'Two-factor authentication code is required')
+        throw new Error400(this.options.language, 'errors.groupsio.isTwoFactorRequired')
       }
       const invalidCredentials =
         errorType.includes('invalid password') || errorType.includes('invalid email')
-      if (invalidCredentials) throw new Error400(this.options.language, 'Invalid email or password')
+      if (invalidCredentials)
+        throw new Error400(this.options.language, 'errors.groupsio.invalidCredentials')
       const invalid2FA = errorType.includes('2nd_factor_wrong')
-      if (invalid2FA)
-        throw new Error400(this.options.language, 'Invalid Two-factor authentication code')
+      if (invalid2FA) throw new Error400(this.options.language, 'errors.groupsio.invalid2FA')
       throw error
     }
   }
