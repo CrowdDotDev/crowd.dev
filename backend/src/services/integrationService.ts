@@ -1438,11 +1438,21 @@ export default class IntegrationService {
         groupsioCookie: cookie,
         groupsioCookieExpiry: cookieExpiry,
       }
-    } catch (err) {
-      if ('two_factor_required' in response.data) {
-        throw new Error400(this.options.language, 'errors.groupsio.twoFactorRequired')
+    } catch (error) {
+      this.options.log.error(error.response.data, 'Error while login into GroupsIo!')
+      const errorType = String(error.response.data.type)
+      const isTwoFactorRequired =
+        errorType.includes('two_factor_required') || errorType.includes('2nd_factor_required')
+      if (isTwoFactorRequired) {
+        throw new Error400(this.options.language, 'Two-factor authentication code is required')
       }
-      throw new Error400(this.options.language, 'errors.groupsio.invalidCredentials')
+      const invalidCredentials =
+        errorType.includes('invalid password') || errorType.includes('invalid email')
+      if (invalidCredentials) throw new Error400(this.options.language, 'Invalid email or password')
+      const invalid2FA = errorType.includes('2nd_factor_wrong')
+      if (invalid2FA)
+        throw new Error400(this.options.language, 'Invalid Two-factor authentication code')
+      throw error
     }
   }
 
