@@ -384,13 +384,13 @@ const validateAccount = async () => {
     cookieExpiry.value = groupsioCookieExpiry;
     isAPIConnectionValid.value = true;
     getUserSubscriptions();
-  } catch (e) {
+  } catch (error) {
     isAPIConnectionValid.value = false;
     accountVerificationFailed.value = true;
 
     // Only display API error message for status code 400
     if (error?.response?.status === 400 && typeof error?.response?.data === 'string') {
-      errorMessage.value = e.response.data;
+      errorMessage.value = error.response.data;
     } else {
       errorMessage.value = 'Authentication failed';
     }
