@@ -341,11 +341,13 @@ export default class ActivityService extends LoggerBase {
       member.identities = member.identities.filter((i) => i.value)
 
       if (!username) {
-        const identity = singleOrDefault(
-          activity.member.identities,
+        const identities = activity.member.identities.filter(
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
-        if (!identity) {
+
+        if (identities.length === 1) {
+          activity.username = identities[0].value
+        } else if (identities.length === 0) {
           this.log.error(
             { platform, activity },
             `Activity's member does not have an identity for the platform!`,
@@ -358,9 +360,19 @@ export default class ActivityService extends LoggerBase {
           })
 
           continue
+        } else {
+          this.log.error(
+            { platform, activity },
+            `Activity's member does has multiple usernames for the same platform platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's member has multiple usernames for the same platform: ${platform}!`,
+            ),
+          })
+          continue
         }
-
-        activity.username = identity.value
       }
 
       if (!member.attributes) {
@@ -377,11 +389,13 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (objectMember && !objectMemberUsername) {
-        const identity = singleOrDefault(
-          objectMember.identities,
+        const identities = objectMember.identities.filter(
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
-        if (!identity) {
+
+        if (identities.length === 1) {
+          activity.objectMemberUsername = identities[0].value
+        } else if (identities.length === 0) {
           this.log.error(
             { platform, activity },
             `Activity's  object member does not have an identity for the platform!`,
@@ -394,8 +408,19 @@ export default class ActivityService extends LoggerBase {
           })
 
           continue
+        } else {
+          this.log.error(
+            { platform, activity },
+            `Activity's object member does has multiple usernames for the same platform platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's object member has multiple usernames for the same platform: ${platform}!`,
+            ),
+          })
+          continue
         }
-        activity.objectMemberUsername = identity.value
       } else if (objectMemberUsername && !objectMember) {
         objectMember = {
           identities: [
