@@ -341,6 +341,9 @@ export default class DataSinkService extends LoggerBase {
     }
 
     // handle results
+    let errors = 0
+    let successes = 0
+    let deletions = 0
     const resultsToDelete: string[] = []
     for (const [resultId, result] of resultMap) {
       const batchEntry = single(batch, (b) => b.resultId === resultId)
@@ -356,14 +359,24 @@ export default class DataSinkService extends LoggerBase {
           undefined,
           result.err,
         )
-      } else if (batchEntry.created) {
-        resultsToDelete.push(resultId)
+
+        errors++
+      } else {
+        successes++
+        if (batchEntry.created) {
+          deletions++
+          resultsToDelete.push(resultId)
+        }
       }
     }
 
     if (resultsToDelete.length > 0) {
       await this.repo.deleteResults(resultsToDelete)
     }
+
+    this.log.info(
+      `Processed ${successes} results successfully, ${errors} with error, ${deletions} were deleted from db!`,
+    )
 
     const end = performance.now()
     const totalTime = end - start
