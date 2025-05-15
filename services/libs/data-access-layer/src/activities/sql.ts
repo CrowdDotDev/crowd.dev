@@ -621,9 +621,12 @@ export async function queryActivities(
       activities = await queryOverHttp(formatted)
       count = 0
     } else {
+      const formattedQuery = formatQuery(query, params)
+      const formattedCountQuery = formatQuery(countQuery, params)
+
       const [results, countResults] = await Promise.all([
-        qdbConn.any(query, params),
-        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(countQuery, params),
+        qdbConn.any(formattedQuery),
+        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
       ])
 
       activities = results
