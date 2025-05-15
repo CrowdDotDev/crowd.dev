@@ -1,7 +1,7 @@
 import { DEFAULT_TENANT_ID, distinct, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
 import { IDelayedResults, IFailedResultData, IIntegrationData, IResultData } from './dataSink.data'
 
@@ -303,6 +303,26 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
 
       this.checkUpdateRowCount(result.rowCount, 1)
     }
+  }
+
+  public async publishExternalResult(
+    id: string,
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<void> {
+    await this.db().none(
+      `
+      insert into integration.results(id, state, data, "tenantId", "integrationId")
+      values($(id), $(state), $(data)::json, $(tenantId), $(integrationId))
+      `,
+      {
+        id,
+        state: IntegrationResultState.PENDING,
+        tenantId: DEFAULT_TENANT_ID,
+        data: JSON.stringify(result),
+        integrationId,
+      },
+    )
   }
 
   public async getDelayedResults(limit: number): Promise<IDelayedResults[]> {

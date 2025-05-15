@@ -21,6 +21,7 @@ import telemetry from '@crowd/telemetry'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
+  IIntegrationResult,
   IMemberData,
   IntegrationResultState,
   IntegrationResultType,
@@ -125,11 +126,13 @@ export default class DataSinkService extends LoggerBase {
 
     const prepared: { resultId: string; data: IResultData; created: boolean }[] = []
 
+    const promises = []
+
     for (const toProcess of results) {
       const { segmentId, integrationId, data, resultId } = toProcess
       const id = resultId ?? generateUUIDv1()
 
-      const payload = {
+      const payload: IIntegrationResult = {
         type: IntegrationResultType.ACTIVITY,
         data,
         segmentId,
@@ -162,12 +165,12 @@ export default class DataSinkService extends LoggerBase {
             result.platform = PlatformType.GITHUB
           }
 
+          const platform = (payload.data as IActivityData).platform as PlatformType
+
           if (
             segmentId &&
             integration.segmentId !== segmentId &&
-            ![PlatformType.GITHUB, PlatformType.GITLAB].includes(
-              payload.data.platform as PlatformType,
-            )
+            ![PlatformType.GITHUB, PlatformType.GITLAB].includes(platform)
           ) {
             // save error and stop
             await logExecutionTimeV2(
@@ -191,12 +194,20 @@ export default class DataSinkService extends LoggerBase {
         }
       }
 
+      // TODO remove when we have all integrations storing results on their own
+      // create result in db first
+      if (!resultId) {
+        promises.push(this.repo.publishExternalResult(id, integration.integrationId, payload))
+      }
+
       prepared.push({
         resultId: id,
         data: result,
-        created: resultId === undefined,
+        created: true,
       })
     }
+
+    await Promise.all(promises)
 
     return prepared
   }
