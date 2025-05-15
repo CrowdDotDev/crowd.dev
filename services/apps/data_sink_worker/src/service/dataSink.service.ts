@@ -209,6 +209,8 @@ export default class DataSinkService extends LoggerBase {
 
     await Promise.all(promises)
 
+    this.log.info(`Prepared ${prepared.length} in memory results stored ${promises.length} in db!`)
+
     return prepared
   }
 
