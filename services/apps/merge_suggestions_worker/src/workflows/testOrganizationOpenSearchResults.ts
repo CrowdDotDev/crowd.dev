@@ -43,6 +43,6 @@ export async function testOrganizationOpenSearchResults(
     return
   }
 
-  console.log(`Found ${suggestions.length} potential merge suggestions:`)
-  console.log(JSON.stringify(suggestions, null, 2))
+  // console.log(`Found ${suggestions.length} potential merge suggestions:`)
+  // console.log(JSON.stringify(suggestions, null, 2))
 }
