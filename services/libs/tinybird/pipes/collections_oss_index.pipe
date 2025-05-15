@@ -1,3 +1,5 @@
+TOKEN "collections_oss_index_endpoint_read_9807" READ
+
 NODE collections_oss_index_category_ids
 SQL >
     %
@@ -20,6 +22,17 @@ SQL >
     SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
     FROM insightsProjects FINAL
 
+NODE collections_oss_index_projects_ranked_by_collection
+SQL >
+    SELECT
+        collectionId,
+        projectId,
+        sum(contributorCount) AS totalContributors,
+        ROW_NUMBER() OVER (PARTITION BY collectionId ORDER BY sum(contributorCount) DESC) AS rn
+    FROM segments_aggregates_with_ids_datasource
+    WHERE collectionId != '' AND projectId != ''
+    GROUP BY collectionId, projectId
+
 NODE categories_oss_index_projects
 SQL >
     SELECT
@@ -28,17 +41,7 @@ SQL >
         topProjects.totalContributors,
         pd.name AS projectName,
         pd.logoUrl AS projectLogo
-    FROM
-        (
-            SELECT
-                collectionId,
-                projectId,
-                sum(contributorCount) AS totalContributors,
-                ROW_NUMBER() OVER (PARTITION BY collectionId ORDER BY sum(contributorCount) DESC) AS rn
-            FROM segments_aggregates_with_ids_datasource
-            WHERE collectionId != '' AND projectId != ''
-            GROUP BY collectionId, projectId
-        ) topProjects
+    FROM collections_oss_index_projects_ranked_by_collection topProjects
     JOIN collections_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
 

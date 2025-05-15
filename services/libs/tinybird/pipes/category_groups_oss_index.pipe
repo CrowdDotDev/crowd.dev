@@ -1,3 +1,5 @@
+TOKEN "category_groups_oss_index_endpoint_read_7394" READ
+
 NODE category_groups_oss_index_agregates
 SQL >
     SELECT categoryGroupId, coalesce(sum(contributorCount), 0) as "totalContributors"
@@ -15,6 +17,17 @@ NODE category_groups_oss_index_collections_deduplicated
 SQL >
     SELECT collections.id, collections.name FROM collections FINAL
 
+NODE category_groups_oss_index_projects_ranked_by_category_group
+SQL >
+    SELECT
+        categoryGroupId,
+        projectId,
+        sum(contributorCount) AS totalContributors,
+        ROW_NUMBER() OVER (PARTITION BY categoryGroupId ORDER BY sum(contributorCount) DESC) AS rn
+    FROM segments_aggregates_with_ids_datasource
+    WHERE categoryGroupId != '' AND projectId != ''
+    GROUP BY categoryGroupId, projectId
+
 NODE category_groups_oss_index_projects
 SQL >
     SELECT
@@ -23,21 +36,20 @@ SQL >
         topProjects.totalContributors,
         pd.name AS projectName,
         pd.logoUrl AS projectLogo
-    FROM
-        (
-            SELECT
-                categoryGroupId,
-                projectId,
-                sum(contributorCount) AS totalContributors,
-                ROW_NUMBER() OVER (
-                    PARTITION BY categoryGroupId ORDER BY sum(contributorCount) DESC
-                ) AS rn
-            FROM segments_aggregates_with_ids_datasource
-            WHERE categoryGroupId != '' AND projectId != ''
-            GROUP BY categoryGroupId, projectId
-        ) topProjects
+    FROM category_groups_oss_index_projects_ranked_by_category_group topProjects
     JOIN category_groups_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
+
+NODE category_groups_oss_index_collections_ranked_by_category_group
+SQL >
+    SELECT
+        categoryGroupId,
+        collectionId,
+        sum(contributorCount) AS totalContributors,
+        ROW_NUMBER() OVER (PARTITION BY categoryGroupId ORDER BY sum(contributorCount) DESC) AS rn
+    FROM segments_aggregates_with_ids_datasource
+    WHERE categoryGroupId != '' AND collectionId != ''
+    GROUP BY categoryGroupId, collectionId
 
 NODE category_groups_oss_index_collections
 SQL >
@@ -46,19 +58,7 @@ SQL >
         topCollections.collectionId,
         topCollections.totalContributors,
         cd.name AS collectionName
-    FROM
-        (
-            SELECT
-                categoryGroupId,
-                collectionId,
-                sum(contributorCount) AS totalContributors,
-                ROW_NUMBER() OVER (
-                    PARTITION BY categoryGroupId ORDER BY sum(contributorCount) DESC
-                ) AS rn
-            FROM segments_aggregates_with_ids_datasource
-            WHERE categoryGroupId != '' AND collectionId != ''
-            GROUP BY categoryGroupId, collectionId
-        ) topCollections
+    FROM category_groups_oss_index_collections_ranked_by_category_group topCollections
     JOIN category_groups_oss_index_collections_deduplicated cd ON cd.id = topCollections.collectionId
     WHERE topCollections.rn <= 5
 
