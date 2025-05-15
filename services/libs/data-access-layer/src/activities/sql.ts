@@ -1715,11 +1715,16 @@ export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
   cursorActivityTimestamp?: string,
   limit = 100,
+  segmentIds?: string[],
 ): Promise<IActivityRelationsCreateData[]> {
-  let cursorQuery = ''
+  const conditions: string[] = [`"deletedAt" is null`]
 
   if (cursorActivityTimestamp) {
-    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
+    conditions.push('timestamp >= $(cursorActivityTimestamp)')
+  }
+
+  if (segmentIds && segmentIds.length > 0) {
+    conditions.push('"segmentId" in ($(segmentIds:csv))')
   }
 
   const query = `
@@ -1737,14 +1742,14 @@ export async function getActivityRelationsSortedByTimestamp(
       username,
       "objectMemberUsername"
     FROM activities
-    WHERE "deletedAt" IS NULL
-    ${cursorQuery}
+    WHERE ${conditions.join(' AND ')}
     ORDER BY "timestamp" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
     cursorActivityTimestamp,
+    segmentIds,
     limit,
   })
 
