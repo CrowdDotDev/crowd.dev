@@ -16,6 +16,7 @@ import {
 import { UnrepeatableError } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
+  createOrUpdateRelations,
   findCommitsForPRSha,
   findMatchingPullRequestNodeId,
   insertActivities,
@@ -1047,6 +1048,22 @@ export default class ActivityService extends LoggerBase {
       this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
       await insertActivities(this.client, toUpsert)
     }
+
+    await createOrUpdateRelations(
+      dbStoreQx(this.pgStore),
+      preparedForUpsert.map((a) => {
+        return {
+          activityId: a.payload.id,
+          segmentId: a.payload.segmentId,
+          memberId: a.payload.memberId,
+          objectMemberId: a.payload.objectMemberId,
+          organizationId: a.payload.organizationId,
+          platform: a.payload.platform,
+          username: a.payload.username,
+          objectMemberUsername: a.payload.objectMemberUsername,
+        }
+      }),
+    )
 
     const createdTypes = new Set<string>()
     const createdChannels = new Set<string>()

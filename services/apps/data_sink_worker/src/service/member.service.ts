@@ -51,14 +51,6 @@ export default class MemberService extends LoggerBase {
     this.memberRepo = new MemberRepository(store, this.log)
   }
 
-  public async upsert(
-    segmentId: string,
-    integrationId: string,
-    data: IMemberUpdateData,
-    source: string,
-    original?: IDbMember,
-  ): Promise<string> {}
-
   public async create(
     segmentId: string,
     integrationId: string,
