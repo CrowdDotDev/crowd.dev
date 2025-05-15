@@ -77,8 +77,6 @@ import { FormSchema } from '@/shared/form/form-schema';
 import StringField from '@/shared/fields/string-field';
 import twitter from '@/config/integrations/twitter/config';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
@@ -110,12 +108,7 @@ const getConnectUrl = () => {
     ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?success=true`
     : `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
-  const authStore = useAuthStore();
-  const { tenant } = storeToRefs(authStore);
-
-  return `${config.backendUrl}/twitter/${
-    tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
+  return `${config.backendUrl}/twitter/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
     props.segmentId
   }`;
 };
