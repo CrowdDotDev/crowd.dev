@@ -421,6 +421,7 @@ export default class ActivityService extends LoggerBase {
     const resultMap = new Map<string, { success: boolean; err?: any }>()
 
     let relevantPayloads = payloads
+    this.log.trace(`[ACTIVITY] Processing ${relevantPayloads.length} activities!`)
 
     const prepareMemberResults = this.prepareMemberData(relevantPayloads)
 
@@ -436,6 +437,10 @@ export default class ActivityService extends LoggerBase {
     if (relevantPayloads.length === 0) {
       return resultMap
     }
+
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after member preparation!`,
+    )
 
     const allMemberIdentities = relevantPayloads
       .flatMap((a) => a.activity.member.identities)
@@ -597,6 +602,10 @@ export default class ActivityService extends LoggerBase {
     )
 
     await Promise.all(promises)
+
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after finding segments!`,
+    )
 
     const orConditions = relevantPayloads.map((r) => {
       return {
@@ -823,7 +832,9 @@ export default class ActivityService extends LoggerBase {
 
     // we should have now all relevant dbActivity, dbMember and dbObjectMember set
     // we can now upsert activities and members
-
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left after mapping db activities and members!`,
+    )
     const preparedActivities: IActivityPrepareForUpsertResult[] = []
 
     const memberService = new MemberService(
@@ -1028,9 +1039,12 @@ export default class ActivityService extends LoggerBase {
       )
     }
 
+    this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
+
     const preparedForUpsert = preparedActivities.filter((a) => a.payload)
     const toUpsert = preparedForUpsert.map((a) => a.payload)
     if (toUpsert.length > 0) {
+      this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
       await insertActivities(this.client, toUpsert)
     }
 
@@ -1070,8 +1084,6 @@ export default class ActivityService extends LoggerBase {
         )
       }
 
-      resultMap.set(prepared.resultId, { success: true })
-
       await this.searchSyncWorkerEmitter.triggerMemberSync(
         prepared.payload.memberId,
         onboarding,
@@ -1094,6 +1106,11 @@ export default class ActivityService extends LoggerBase {
       }
     }
 
+    for (const prepared of preparedActivities) {
+      resultMap.set(prepared.resultId, { success: true })
+    }
+
+    this.log.trace(`[ACTIVITY] We have ${resultMap.size} results to return!`)
     return resultMap
   }
 

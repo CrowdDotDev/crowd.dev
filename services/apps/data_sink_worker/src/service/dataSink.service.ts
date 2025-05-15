@@ -209,7 +209,9 @@ export default class DataSinkService extends LoggerBase {
 
     await Promise.all(promises)
 
-    this.log.info(`Prepared ${prepared.length} in memory results stored ${promises.length} in db!`)
+    this.log.info(
+      `[RESULTS] Prepared ${prepared.length} in memory results stored ${promises.length} in db!`,
+    )
 
     return prepared
   }
@@ -217,6 +219,7 @@ export default class DataSinkService extends LoggerBase {
   public async processResults(
     batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
   ): Promise<void> {
+    this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
     const start = performance.now()
 
     const results: IResultData[] = []
@@ -233,6 +236,7 @@ export default class DataSinkService extends LoggerBase {
     }
 
     if (toLoadById.length > 0) {
+      this.log.info(`[RESULTS] Loading ${toLoadById.length} results from db!`)
       const infos = await this.repo.getResultInfos(toLoadById)
       results.push(...infos)
     }
@@ -269,10 +273,12 @@ export default class DataSinkService extends LoggerBase {
 
         while (toProcess.length > 0 && retry < 5) {
           if (retry > 0) {
+            this.log.trace(`[RESULTS] Retrying but sleeping first...`)
             await timeout(100)
           }
 
           try {
+            this.log.trace(`[RESULTS] Processing ${toProcess.length} activity results...`)
             const processResults = await service.processActivities(
               toProcess.map((r) => {
                 return {
@@ -296,6 +302,10 @@ export default class DataSinkService extends LoggerBase {
               }
             }
 
+            this.log.trace(
+              `[RESULTS] Processed ${processResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
+            )
+
             // clear last error because we processed without unhandled error
             lastError = undefined
           } catch (err) {
@@ -310,6 +320,9 @@ export default class DataSinkService extends LoggerBase {
 
         // if lastError is still set and we have some left to process, we set the error for them cuz they were retried but failed
         if (lastError && toProcess.length > 0) {
+          this.log.trace(
+            `[RESULTS] Setting error for ${toProcess.length} activity results because we hit a retry limit!`,
+          )
           for (const leftToProcess of toProcess) {
             resultMap.set(leftToProcess.id, {
               success: false,
@@ -331,14 +344,17 @@ export default class DataSinkService extends LoggerBase {
             const memberData = entry.data.data as IMemberData
 
             await service.processMemberUpdate(entry.integrationId, entry.platform, memberData)
+            resultMap.set(entry.id, { success: true })
           } catch (err) {
             resultMap.set(entry.id, { success: false, err })
           }
         }
       } else {
-        this.log.error(`Unknown result type: ${type}!`)
+        this.log.error(`[RESULTS] Unknown result type: ${type}!`)
       }
     }
+
+    this.log.trace(`[RESULTS] Processing ${resultMap.size} process results!`)
 
     // handle results
     let errors = 0
@@ -371,10 +387,11 @@ export default class DataSinkService extends LoggerBase {
     }
 
     if (resultsToDelete.length > 0) {
+      this.log.trace(`[RESULTS] Deleting ${resultsToDelete.length} results from db!`)
       await this.repo.deleteResults(resultsToDelete)
     }
 
-    this.log.info(
+    this.log.trace(
       `Processed ${successes} results successfully, ${errors} with error, ${deletions} were deleted from db!`,
     )
 
