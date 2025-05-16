@@ -1,5 +1,7 @@
 /* eslint-disable no-continue */
 import { randomUUID } from 'crypto'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { diff } from 'deep-object-diff'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
@@ -47,8 +49,7 @@ import {
   OrganizationIdentityType,
   SyncMode,
 } from '@crowd/types'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { diff } from 'deep-object-diff'
+
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -1770,24 +1771,41 @@ export default class MemberService extends LoggerBase {
       exportMode,
     }
 
+    const mode = data.countOnly ? 'COUNT-ONLY' : 'FULL'
+
     const startTimeOriginal = Date.now()
     const resultV1 = await queryMembersAdvanced(qx, redis, params)
     const endTimeOriginal = Date.now()
-    this.log.info(`queryMembersAdvanced (original) took ${endTimeOriginal - startTimeOriginal} ms`)
+    this.log.info(`[${mode}][V1] Took ${endTimeOriginal - startTimeOriginal} ms`)
 
     const startTimeV2 = Date.now()
     const resultV2 = await queryMembersAdvancedV2(qx, redis, params)
     const endTimeV2 = Date.now()
-    this.log.info(`queryMembersAdvancedV2 (optimized) took ${endTimeV2 - startTimeV2} ms`)
+    this.log.info(`[${mode}][V2] Took ${endTimeV2 - startTimeV2} ms`)
 
-    // Compare results
+    // Compare
     const resultsAreDeepEqual = lodash.isEqual(resultV1, resultV2)
-    if (resultsAreDeepEqual) {
-      this.log.info('Results from original and V2 are deeply equal.')
-    } else {
-      this.log.warn('Results from original and V2 are NOT equal. This is unexpected.')
-      this.log.warn({ diff: diff(resultV1, resultV2) }, 'Differences between results')
+    this.log.info(
+      `[${mode}][COMPARE] Results ${
+        resultsAreDeepEqual ? '✅ MATCH' : '❌ DO NOT MATCH'
+      }`,
+    )
+
+    if (!resultsAreDeepEqual) {
+      this.log.warn(
+        {
+          diff: diff(resultV1, resultV2),
+        },
+        `[${mode}][COMPARE] Differences found`,
+      )
     }
+
+    // Performance improvement
+    const perfImprovement =
+      ((endTimeOriginal - startTimeOriginal - (endTimeV2 - startTimeV2)) /
+        (endTimeOriginal - startTimeOriginal)) *
+      100
+    this.log.info(`[${mode}][PERF] V2 is ${perfImprovement.toFixed(2)}% faster`)
 
     return resultV1
   }

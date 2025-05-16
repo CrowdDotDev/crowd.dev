@@ -584,11 +584,18 @@ async function includeLfxMemberships(
     return new Map<string, LfxMembership>()
   }
 
-  const lfxMemberships = await findManyLfxMemberships(qx, {
+  const lfxMembershipsArray = await findManyLfxMemberships(qx, {
     organizationIds,
   })
 
-  return new Map(lfxMemberships.map((m) => [m.organizationId, m]))
+  const lfxMembershipMap = new Map<string, LfxMembership>()
+  for (const membership of lfxMembershipsArray) {
+    // This condition ensures only the FIRST one is stored
+    if (!lfxMembershipMap.has(membership.organizationId)) {
+      lfxMembershipMap.set(membership.organizationId, membership)
+    }
+  }
+  return lfxMembershipMap
 }
 
 // --- MAIN FUNCTION ---
@@ -808,34 +815,16 @@ export async function queryMembersAdvancedV2(
     ...(include.maintainers && { maintainerRoles: maintainers?.get(row.id) || [] }),
   }))
 
-  // if (include.lfxMemberships) {
-  //   const organizationIds = uniq(rows.flatMap((r) => r.organizations?.map((o) => o.id) || []))
-
-  //   const lfxMembershipMap = await includeLfxMemberships(qx, organizationIds)
-
-  //   rows.forEach((member) => {
-  //     member.organizations?.forEach((org) => {
-  //       org.lfxMembership = lfxMembershipMap.get(org.id)
-  //     })
-  //   })
-  // }
-
   if (include.lfxMemberships) {
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      organizationIds: uniq(
-        rows.reduce((acc, r) => {
-          if (r.organizations) {
-            acc.push(...r.organizations.map((o) => o.id))
-          }
-          return acc
-        }, []),
-      ),
-    })
+    const organizationIds = uniq(
+      rows.flatMap((r) => r.organizations?.map((o) => o.id).filter(Boolean) || []),
+    )
+    const lfxMembershipMap = await includeLfxMemberships(qx, organizationIds)
 
     rows.forEach((member) => {
       if (member.organizations) {
-        member.organizations.forEach((o) => {
-          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+        member.organizations.forEach((org) => {
+          org.lfxMembership = lfxMembershipMap.get(org.id)
         })
       }
     })
