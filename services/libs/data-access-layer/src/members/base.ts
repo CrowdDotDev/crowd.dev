@@ -799,16 +799,14 @@ export async function queryMembersAdvancedV2(
     include.maintainers ? includeMaintainers(qx, memberIds) : undefined,
   ])
 
-  rows = rows.map((row) => {
-    return {
-      ...row,
-      tags: [],
-      organizations: memberOrganizations?.get(row.id) || [],
-      identities: identities?.get(row.id) || [],
-      segments: segments?.get(row.id) || [],
-      maintainerRoles: maintainers?.get(row.id) || [],
-    }
-  })
+  rows = rows.map((row) => ({
+    ...row,
+    tags: [],
+    ...(include.memberOrganizations && { organizations: memberOrganizations?.get(row.id) || [] }),
+    ...(include.identities && { identities: identities?.get(row.id) || [] }),
+    ...(include.segments && { segments: segments?.get(row.id) || [] }),
+    ...(include.maintainers && { maintainerRoles: maintainers?.get(row.id) || [] }),
+  }))
 
   if (include.lfxMemberships) {
     const organizationIds = uniq(rows.flatMap((r) => r.organizations?.map((o) => o.id) || []))
