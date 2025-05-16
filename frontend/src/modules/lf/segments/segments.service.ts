@@ -50,9 +50,12 @@ class SegmentsService {
 
   }) {
     return authAxios
-      .post<ProjectGroup>(
+      .post<Project>(
         '/segment/project',
-        req,
+        {
+          ...req.project,
+          segments: req.segments,
+        },
       )
       .then((res) => res.data);
   }
