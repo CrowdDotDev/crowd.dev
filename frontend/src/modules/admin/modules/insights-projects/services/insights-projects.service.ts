@@ -1,7 +1,10 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
-import { InsightsProjectModel } from '../models/insights-project.model';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from '../models/insights-project.model';
 
 export class InsightsProjectsService {
   static async list(query: any) {
@@ -33,24 +36,22 @@ export class InsightsProjectsService {
     return response.data;
   }
 
-  static async create(request: any) {
-    const response = await authAxios.post(
-      '/collections/insights-projects',
-      request,
-    );
-    return response.data;
+  create(project: InsightsProjectRequest) {
+    return authAxios
+      .post<InsightsProjectModel>('/collections/insights-projects', project)
+      .then((res) => res.data);
   }
 
-  static async update(id: string, request: any) {
-    const response = await authAxios.post(
-      `/collections/insights-projects/${id}`,
-      request,
-    );
-    return response.data;
+  update(id: string, project: InsightsProjectRequest) {
+    return authAxios
+      .post<InsightsProjectModel>(`/collections/insights-projects/${id}`, project)
+      .then((res) => res.data);
   }
 
   delete(id: string) {
-    return authAxios.delete(`/collections/insights-projects/${id}`).then((res) => res.data);
+    return authAxios
+      .delete(`/collections/insights-projects/${id}`)
+      .then((res) => res.data);
   }
 
   static async querySubProjects(query: any) {
