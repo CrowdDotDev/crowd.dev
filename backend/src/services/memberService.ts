@@ -1,7 +1,5 @@
 /* eslint-disable no-continue */
 import { randomUUID } from 'crypto'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { diff } from 'deep-object-diff'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
@@ -1754,10 +1752,7 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    const qx = optionsQx(this.options)
-    const redis = this.options.redis
-
-    const params = {
+    return queryMembersAdvancedV2(optionsQx(this.options), this.options.redis, {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
@@ -1769,45 +1764,7 @@ export default class MemberService extends LoggerBase {
         maintainers: true,
       },
       exportMode,
-    }
-
-    const mode = data.countOnly ? 'COUNT-ONLY' : 'FULL'
-
-    const startTimeOriginal = Date.now()
-    const resultV1 = await queryMembersAdvanced(qx, redis, params)
-    const endTimeOriginal = Date.now()
-    this.log.info(`[${mode}][V1] Took ${endTimeOriginal - startTimeOriginal} ms`)
-
-    const startTimeV2 = Date.now()
-    const resultV2 = await queryMembersAdvancedV2(qx, redis, params)
-    const endTimeV2 = Date.now()
-    this.log.info(`[${mode}][V2] Took ${endTimeV2 - startTimeV2} ms`)
-
-    // Compare
-    const resultsAreDeepEqual = lodash.isEqual(resultV1, resultV2)
-    this.log.info(
-      `[${mode}][COMPARE] Results ${
-        resultsAreDeepEqual ? '✅ MATCH' : '❌ DO NOT MATCH'
-      }`,
-    )
-
-    if (!resultsAreDeepEqual) {
-      this.log.warn(
-        {
-          diff: diff(resultV1, resultV2),
-        },
-        `[${mode}][COMPARE] Differences found`,
-      )
-    }
-
-    // Performance improvement
-    const perfImprovement =
-      ((endTimeOriginal - startTimeOriginal - (endTimeV2 - startTimeV2)) /
-        (endTimeOriginal - startTimeOriginal)) *
-      100
-    this.log.info(`[${mode}][PERF] V2 is ${perfImprovement.toFixed(2)}% faster`)
-
-    return resultV2
+    })
   }
 
   async queryForCsv(data) {

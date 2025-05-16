@@ -444,8 +444,6 @@ export async function findMemberById<T extends MemberField>(
   return queryTableById(qx, 'members', Object.values(MemberField), memberId, fields)
 }
 
-// --- INCLUDE HELPERS ---
-
 async function includeMemberOrganizations(
   qx: QueryExecutor,
   memberIds: string[],
@@ -597,8 +595,6 @@ async function includeLfxMemberships(
   }
   return lfxMembershipMap
 }
-
-// --- MAIN FUNCTION ---
 
 export async function queryMembersAdvancedV2(
   qx: QueryExecutor,
