@@ -23,6 +23,7 @@ import {
   findMemberTags,
   insertMemberSegments,
   queryMembersAdvanced,
+  queryMembersAdvancedV2,
   removeMemberTags,
 } from '@crowd/data-access-layer/src/members'
 import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
@@ -1751,7 +1752,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const redis = this.options.redis
+
+    const params = {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
@@ -1763,7 +1767,31 @@ export default class MemberService extends LoggerBase {
         maintainers: true,
       },
       exportMode,
-    })
+    }
+
+    // Benchmark: Original queryMembersAdvanced
+    this.log.info('Starting queryMembersAdvanced (original)')
+    const startTimeOriginal = Date.now()
+    const resultOriginal = await queryMembersAdvanced(qx, redis, params)
+    const endTimeOriginal = Date.now()
+    this.log.info(`queryMembersAdvanced (original) took ${endTimeOriginal - startTimeOriginal} ms`)
+
+    // Benchmark: New queryMembersAdvancedV2
+    this.log.info('Starting queryMembersAdvancedV2 (optimized)')
+    const startTimeV2 = Date.now()
+    const resultV2 = await queryMembersAdvancedV2(qx, redis, params)
+    const endTimeV2 = Date.now()
+    this.log.info(`queryMembersAdvancedV2 (optimized) took ${endTimeV2 - startTimeV2} ms`)
+
+    // Compare results
+    const resultsAreDeepEqual = lodash.isEqual(resultOriginal, resultV2)
+    if (resultsAreDeepEqual) {
+      this.log.info('Results from original and V2 are deeply equal.')
+    } else {
+      this.log.warn('Results from original and V2 are NOT equal. This is unexpected.')
+    }
+
+    return resultOriginal
   }
 
   async queryForCsv(data) {
