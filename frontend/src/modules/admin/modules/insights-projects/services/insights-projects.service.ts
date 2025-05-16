@@ -16,10 +16,13 @@ export class InsightsProjectsService {
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<InsightsProjectModel>> {
     return ({ pageParam = 0 }) => authAxios
-      .post<Pagination<InsightsProjectModel>>('/collections/insights-projects/query', {
-        ...query(),
-        offset: pageParam,
-      })
+      .post<Pagination<InsightsProjectModel>>(
+        '/collections/insights-projects/query',
+        {
+          ...query(),
+          offset: pageParam,
+        },
+      )
       .then((res) => res.data);
   }
 
@@ -46,12 +49,8 @@ export class InsightsProjectsService {
     return response.data;
   }
 
-  static async delete(collectionId: string) {
-    const response = await authAxios.delete(
-      `/collections/insights-projects/${collectionId}`,
-    );
-
-    return response.data;
+  delete(id: string) {
+    return authAxios.delete(`/collections/insights-projects/${id}`).then((res) => res.data);
   }
 
   static async querySubProjects(query: any) {
