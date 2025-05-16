@@ -37,8 +37,8 @@
     </template>
     <template #content>
       <div
-        v-if="loading"
-        v-loading="loading"
+        v-if="isLoading"
+        v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
       <div v-else>
@@ -96,12 +96,12 @@
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
         Cancel
       </lf-button>
-      <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
+      <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || isLoading" @click="onSubmit">
         {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button> -->
       <lf-button
         type="primary"
-        :disabled="!hasFormChanged || $v.$invalid || loading"
+        :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
         {{ isEditForm ? "Update" : "Add project" }}
@@ -115,7 +115,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -125,7 +125,7 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
 import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
-import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
@@ -160,7 +160,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 
-const loading = ref(false);
 const submitLoading = ref(false);
 const insightsProject = ref<InsightsProjectModel | null>(null);
 
@@ -223,31 +222,40 @@ const fillForm = (record?: InsightsProjectAddFormModel) => {
 };
 
 onMounted(() => {
-  if (props.insightsProjectId) {
-    loading.value = true;
-    openModalEditMode(props.insightsProjectId);
-  } else {
+  if (!props.insightsProjectId) {
     fillForm();
   }
 });
 
-const openModalEditMode = (insightsProjectId: string) => {
-  InsightsProjectsService.getById(insightsProjectId).then((res) => {
-    insightsProject.value = res;
-
-    if (res.segment.id) {
-      fetchRepositories(res.segment.id, () => {
-        const form = buildForm(res, initialFormState.repositories);
-        fillForm(form);
-        loading.value = false;
-      });
-    } else {
-      const form = buildForm(res, []);
-      fillForm(form);
-      loading.value = false;
+const { isLoading, isSuccess, data } = useQuery({
+  queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS, props.insightsProjectId],
+  queryFn: () => {
+    if (props.insightsProjectId === undefined) {
+      return Promise.resolve(null);
     }
-  });
-};
+    return INSIGHTS_PROJECTS_SERVICE.getById(props.insightsProjectId);
+  },
+  enabled: !!props.insightsProjectId,
+});
+
+watch(
+  data,
+  () => {
+    if (isSuccess.value && data.value) {
+      insightsProject.value = data.value;
+      if (data.value.segment.id) {
+        fetchRepositories(data.value.segment.id, () => {
+          const form = buildForm(data.value!, initialFormState.repositories);
+          fillForm(form);
+        });
+      } else {
+        const form = buildForm(data.value, []);
+        fillForm(form);
+      }
+    }
+  },
+  { immediate: true },
+);
 
 const onProjectSelection = ({ project }: any) => {
   fetchRepositories(project.id, () => {

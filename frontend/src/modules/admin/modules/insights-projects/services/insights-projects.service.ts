@@ -7,14 +7,6 @@ import {
 } from '../models/insights-project.model';
 
 export class InsightsProjectsService {
-  static async list(query: any) {
-    const response = await authAxios.post(
-      '/collections/insights-projects/query',
-      query,
-    );
-    return response.data;
-  }
-
   query(
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<InsightsProjectModel>> {
@@ -29,11 +21,10 @@ export class InsightsProjectsService {
       .then((res) => res.data);
   }
 
-  static async getById(id: string) {
-    const response = await authAxios.get(
+  getById(id: string) {
+    return authAxios.get<InsightsProjectModel>(
       `/collections/insights-projects/${id}`,
-    );
-    return response.data;
+    ).then((res) => res.data);
   }
 
   create(project: InsightsProjectRequest) {
