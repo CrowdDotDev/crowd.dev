@@ -1771,7 +1771,7 @@ export default class MemberService extends LoggerBase {
     }
 
     const startTimeOriginal = Date.now()
-    const resultOriginal = await queryMembersAdvanced(qx, redis, params)
+    const resultV1 = await queryMembersAdvanced(qx, redis, params)
     const endTimeOriginal = Date.now()
     this.log.info(`queryMembersAdvanced (original) took ${endTimeOriginal - startTimeOriginal} ms`)
 
@@ -1781,18 +1781,15 @@ export default class MemberService extends LoggerBase {
     this.log.info(`queryMembersAdvancedV2 (optimized) took ${endTimeV2 - startTimeV2} ms`)
 
     // Compare results
-    const resultsAreDeepEqual = lodash.isEqual(resultOriginal, resultV2)
+    const resultsAreDeepEqual = lodash.isEqual(resultV1, resultV2)
     if (resultsAreDeepEqual) {
       this.log.info('Results from original and V2 are deeply equal.')
     } else {
       this.log.warn('Results from original and V2 are NOT equal. This is unexpected.')
-      const differences = diff(resultOriginal, resultV2)
-      if (differences) {
-        this.log.warn(`Detailed differences: ${JSON.stringify(differences, null, 2)}`)
-      }
+      this.log.warn({ diff: diff(resultV1, resultV2) }, 'Differences between results')
     }
 
-    return resultOriginal
+    return resultV1
   }
 
   async queryForCsv(data) {

@@ -808,15 +808,36 @@ export async function queryMembersAdvancedV2(
     ...(include.maintainers && { maintainerRoles: maintainers?.get(row.id) || [] }),
   }))
 
-  if (include.lfxMemberships) {
-    const organizationIds = uniq(rows.flatMap((r) => r.organizations?.map((o) => o.id) || []))
+  // if (include.lfxMemberships) {
+  //   const organizationIds = uniq(rows.flatMap((r) => r.organizations?.map((o) => o.id) || []))
 
-    const lfxMembershipMap = await includeLfxMemberships(qx, organizationIds)
+  //   const lfxMembershipMap = await includeLfxMemberships(qx, organizationIds)
+
+  //   rows.forEach((member) => {
+  //     member.organizations?.forEach((org) => {
+  //       org.lfxMembership = lfxMembershipMap.get(org.id)
+  //     })
+  //   })
+  // }
+
+  if (include.lfxMemberships) {
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      organizationIds: uniq(
+        rows.reduce((acc, r) => {
+          if (r.organizations) {
+            acc.push(...r.organizations.map((o) => o.id))
+          }
+          return acc
+        }, []),
+      ),
+    })
 
     rows.forEach((member) => {
-      member.organizations?.forEach((org) => {
-        org.lfxMembership = lfxMembershipMap.get(org.id)
-      })
+      if (member.organizations) {
+        member.organizations.forEach((o) => {
+          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+        })
+      }
     })
   }
 
