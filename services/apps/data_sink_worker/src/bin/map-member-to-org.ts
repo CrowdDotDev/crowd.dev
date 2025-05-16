@@ -49,7 +49,9 @@ setImmediate(async () => {
   const orgService = new OrganizationService(store, log)
 
   try {
-    const member = await memberRepo.findById(memberId)
+    const members = await memberRepo.findByIds([memberId])
+
+    const member = members[0]
 
     if (!member) {
       log.error({ memberId }, 'Member not found!')

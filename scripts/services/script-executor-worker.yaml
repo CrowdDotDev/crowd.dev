@@ -57,7 +57,7 @@ services:
       - ../../services/libs/telemetry/src:/usr/crowd/app/services/libs/telemetry/src
       - ../../services/libs/temporal/src:/usr/crowd/app/services/libs/temporal/src
       - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
-      - ../../services/apps/script-executor_worker/src:/usr/crowd/app/services/apps/script-executor_worker/src
+      - ../../services/apps/script_executor_worker/src:/usr/crowd/app/services/apps/script_executor_worker/src
 
 networks:
   crowd-bridge:
