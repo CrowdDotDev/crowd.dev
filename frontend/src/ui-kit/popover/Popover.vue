@@ -38,6 +38,7 @@ const props = withDefaults(defineProps<{
   triggerEvent?: PopoverTrigger,
   persistent?: boolean;
   isDropdown?: boolean;
+  zIndex?: number | string;
 }>(), {
   placement: 'bottom-start',
   disabled: false,
@@ -46,6 +47,7 @@ const props = withDefaults(defineProps<{
   triggerEvent: 'click',
   persistent: false,
   isDropdown: false,
+  zIndex: 'auto',
 });
 
 const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();
@@ -110,6 +112,7 @@ const popoverStyle = computed(() => {
     '--lf-popover-content-width': `${popover.value.offsetWidth / 16}rem`,
     '--lf-popover-content-height': `${popover.value.offsetHeight / 16}rem`,
     '--lf-popover-spacing': `${props.spacing / 16}rem`,
+    'z-index': props.zIndex,
   };
 });
 

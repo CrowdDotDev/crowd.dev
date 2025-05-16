@@ -1,5 +1,10 @@
 <template>
-  <lf-popover :placement="props.placement" :persistent="props.persistent" :is-dropdown="true">
+  <lf-popover
+    :placement="props.placement"
+    :persistent="props.persistent"
+    :is-dropdown="true"
+    :z-index="props.zIndex"
+  >
     <template #trigger>
       <slot name="trigger" />
     </template>
@@ -7,7 +12,7 @@
       <div
         v-click-outside="close"
         class="c-dropdown"
-        :style="{ 'min-width': props.width, zIndex: props.zIndex }"
+        :style="{ 'min-width': props.width }"
         @click="close"
       >
         <slot />

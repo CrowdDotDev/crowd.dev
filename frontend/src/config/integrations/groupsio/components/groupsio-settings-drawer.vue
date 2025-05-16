@@ -114,7 +114,7 @@
               :size="14"
               class="text-red-500 mr-2"
             />
-            <span class="text-red-500 text-sm">Authentication failed</span>
+            <span class="text-red-500 text-sm">{{ errorMessage || "Authentication failed" }}</span>
           </div>
         </div>
       </el-form>
@@ -322,6 +322,7 @@ const isVerificationEnabled = ref(false);
 const isVerifyingAccount = ref(false);
 const isAPIConnectionValid = ref(false);
 const accountVerificationFailed = ref(false);
+const errorMessage = ref('');
 const cookie = ref('');
 const cookieExpiry = ref('');
 const loading = ref(false);
@@ -371,6 +372,7 @@ const $v = useVuelidate(rules, form, { $stopPropagation: true });
 const validateAccount = async () => {
   isVerifyingAccount.value = true;
   accountVerificationFailed.value = false;
+  errorMessage.value = '';
   try {
     const response = await IntegrationService.groupsioGetToken(
       form.email,
@@ -383,9 +385,16 @@ const validateAccount = async () => {
     cookieExpiry.value = groupsioCookieExpiry;
     isAPIConnectionValid.value = true;
     getUserSubscriptions();
-  } catch (e) {
+  } catch (error) {
     isAPIConnectionValid.value = false;
     accountVerificationFailed.value = true;
+
+    // Only display API error message for status code 400
+    if (error?.response?.status === 400 && typeof error?.response?.data === 'string') {
+      errorMessage.value = error.response.data;
+    } else {
+      errorMessage.value = 'Authentication failed';
+    }
   }
   isVerifyingAccount.value = false;
 };
@@ -492,6 +501,7 @@ const handleCancel = () => {
     isAPIConnectionValid.value = false;
     isVerifyingAccount.value = false;
     accountVerificationFailed.value = false;
+    errorMessage.value = '';
     $v.value.$reset();
   } else {
     form.email = props.integration?.settings?.email;
@@ -505,6 +515,7 @@ const handleCancel = () => {
     isAPIConnectionValid.value = true;
     isVerifyingAccount.value = false;
     accountVerificationFailed.value = false;
+    errorMessage.value = '';
     $v.value.$reset();
   }
   userSubscriptions.value = [];
