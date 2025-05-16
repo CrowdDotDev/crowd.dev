@@ -1807,7 +1807,7 @@ export default class MemberService extends LoggerBase {
       100
     this.log.info(`[${mode}][PERF] V2 is ${perfImprovement.toFixed(2)}% faster`)
 
-    return resultV1
+    return resultV2
   }
 
   async queryForCsv(data) {
