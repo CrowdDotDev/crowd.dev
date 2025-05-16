@@ -47,7 +47,8 @@ import {
   OrganizationIdentityType,
   SyncMode,
 } from '@crowd/types'
-
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { diff } from 'deep-object-diff'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -1769,15 +1770,11 @@ export default class MemberService extends LoggerBase {
       exportMode,
     }
 
-    // Benchmark: Original queryMembersAdvanced
-    this.log.info('Starting queryMembersAdvanced (original)')
     const startTimeOriginal = Date.now()
     const resultOriginal = await queryMembersAdvanced(qx, redis, params)
     const endTimeOriginal = Date.now()
     this.log.info(`queryMembersAdvanced (original) took ${endTimeOriginal - startTimeOriginal} ms`)
 
-    // Benchmark: New queryMembersAdvancedV2
-    this.log.info('Starting queryMembersAdvancedV2 (optimized)')
     const startTimeV2 = Date.now()
     const resultV2 = await queryMembersAdvancedV2(qx, redis, params)
     const endTimeV2 = Date.now()
@@ -1789,6 +1786,10 @@ export default class MemberService extends LoggerBase {
       this.log.info('Results from original and V2 are deeply equal.')
     } else {
       this.log.warn('Results from original and V2 are NOT equal. This is unexpected.')
+      const differences = diff(resultOriginal, resultV2)
+      if (differences) {
+        this.log.warn(`Detailed differences: ${JSON.stringify(differences, null, 2)}`)
+      }
     }
 
     return resultOriginal

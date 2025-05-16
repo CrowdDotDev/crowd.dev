@@ -787,7 +787,7 @@ export async function queryMembersAdvancedV2(
   let rows = results[0]
   const count = parseInt(results[1].count, 10)
 
-  const memberIds = rows.map((org) => org.id)
+  const memberIds = rows.map((m) => m.id)
   if (memberIds.length === 0) {
     return { rows: [], count, limit, offset }
   }
