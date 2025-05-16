@@ -54,6 +54,7 @@
           <el-input
             ref="focus"
             v-model="form.password"
+            :type="'password'"
             @blur="onBlurPassword()"
           >
             <template #suffix>
@@ -262,9 +263,9 @@
 import {
   ref, reactive, onMounted, computed,
 } from 'vue';
-import groupsio from '@/config/integrations/groupsio/config';
 import { required, email } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import groupsio from '@/config/integrations/groupsio/config';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
