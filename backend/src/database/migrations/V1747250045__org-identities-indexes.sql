@@ -1,0 +1,2 @@
+create index if not exists "ix_organizationIdentities_plat_val_type_verified" on "organizationIdentities" (platform, lower(value), type, verified);
+create index if not exists "ix_organizations_displayName" on organizations(trim(lower("displayName")));
