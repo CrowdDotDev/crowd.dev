@@ -36,7 +36,7 @@ export default class MemberAttributeService extends LoggerBase {
 
     for (const attributeName of Object.keys(attributes)) {
       if (!memberAttributeSettings[attributeName]) {
-        this.log.error('Attribute does not exist', {
+        this.log.warn('Attribute does not exist', {
           attributeName,
           attributes,
         })
