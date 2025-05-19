@@ -1,0 +1,6 @@
+SCHEMA >
+    `memberId` String,
+    `publicName` String
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY memberId, publicName
