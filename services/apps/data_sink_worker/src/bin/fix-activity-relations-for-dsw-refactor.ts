@@ -6,7 +6,7 @@ import { streamActivities } from '@crowd/data-access-layer/src/activities/update
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { IActivityRelationCreateOrUpdateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { getServiceLogger } from '@crowd/logging'
+import { getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
@@ -16,7 +16,7 @@ interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
 }
 
 const errorBatchesFile = 'error-batches.txt'
-const fromUpdatedAt = new Date('2025-05-15T05:02:25.000Z')
+const fromUpdatedAt = new Date('2025-05-15T05:05:15.000Z')
 const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
 
 const maxInterval = 5 * 60000
@@ -54,7 +54,11 @@ setImmediate(async () => {
     10,
     async (batch) => {
       if (batch.length > 0) {
-        await createOrUpdateRelations(pgpQx(dbConnection), batch, true)
+        await logExecutionTimeV2(
+          async () => await createOrUpdateRelations(pgpQx(dbConnection), batch, true),
+          log,
+          'createOrUpdateRelations',
+        )
         totalProcessed += batch.length
 
         const duration = performance.now() - start
