@@ -18,7 +18,7 @@ setImmediate(async () => {
   const start = performance.now()
 
   const batchProcessor = new BatchProcessor<IActivityRelationCreateOrUpdateData>(
-    10,
+    100,
     10,
     async (batch) => {
       await createOrUpdateRelations(pgpQx(dbConnection), batch, true)
@@ -34,26 +34,42 @@ setImmediate(async () => {
     },
   )
 
-  await streamActivities(
-    qdbConnection,
-    async (activity) => {
-      await batchProcessor.addToBatch({
-        activityId: activity.id,
-        segmentId: activity.segmentId,
-        memberId: activity.memberId,
-        objectMemberId: activity.objectMemberId,
-        organizationId: activity.organizationId,
-        platform: activity.platform,
-        username: activity.username,
-        objectMemberUsername: activity.objectMemberUsername,
-      })
-    },
-    `
-    "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
-  `,
-    {
-      fromUpdatedAt: '2025-05-14T21:10:25+02:00',
-      toUpdatedAt: '2025-05-15T15:15:20+02:00',
-    },
-  )
+  const fromUpdatedAt = new Date('2025-05-14T21:10:25+02:00')
+  const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
+
+  let currentFrom = fromUpdatedAt
+  while (currentFrom < toUpdatedAt) {
+    const currentTo = new Date(currentFrom.getTime() + 5000)
+    let processed = 0
+    await streamActivities(
+      qdbConnection,
+      async (activity) => {
+        await batchProcessor.addToBatch({
+          activityId: activity.id,
+          segmentId: activity.segmentId,
+          memberId: activity.memberId,
+          objectMemberId: activity.objectMemberId,
+          organizationId: activity.organizationId,
+          platform: activity.platform,
+          username: activity.username,
+          objectMemberUsername: activity.objectMemberUsername,
+        })
+
+        processed++
+      },
+      `
+      "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
+    `,
+      {
+        fromUpdatedAt: currentFrom,
+        toUpdatedAt: currentTo,
+      },
+    )
+
+    log.info(
+      `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
+    )
+
+    currentFrom = currentTo
+  }
 })
