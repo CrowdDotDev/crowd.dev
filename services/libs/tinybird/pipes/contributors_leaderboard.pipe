@@ -19,13 +19,28 @@ SQL >
         OFFSET {{ Int32(offset, 0) }}
     {% end %}
 
+NODE is_request_from_non_lf_project
+SQL >
+    %
+    SELECT not isLF AS result
+    FROM insightsProjects
+    WHERE slug = {{ String(project, description="Filter by project slug", required=True) }}
+
 NODE contributors_leaderboard_2
 SQL >
     %
     {% if Boolean(count, false) %}
         SELECT count(distinct af.memberId) as count FROM activities_filtered af
     {% else %}
-        SELECT m.id, m.avatar, m.displayName, ma.contributionCount, ma.contributionPercentage
+        WITH (SELECT result FROM is_request_from_non_lf_project LIMIT 1) AS is_non_lf
+        SELECT
+            m.id,
+            m.avatar,
+            m.publicName,
+            is_non_lf,
+            case when is_non_lf then m.publicName else m.displayName end as displayName,
+            ma.contributionCount,
+            ma.contributionPercentage
         FROM members_sorted AS m any
         inner join memberId_aggregates ma on ma.memberId = m.id
         where m.id in (select memberId from memberId_aggregates)
