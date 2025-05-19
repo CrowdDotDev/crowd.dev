@@ -19,7 +19,7 @@ SQL >
 
 NODE insightsProjects_filtered_connected_platforms
 SQL >
-    SELECT id, groupUniqArray(platform) AS connectedPlatforms
+    SELECT id, groupUniqArray(distinct platform) AS connectedPlatforms
     FROM insightsProjects_filtered_segment_id_mapping
     JOIN insightsProjects_filtered_integrations_deduplicated USING (segmentId)
     GROUP BY id

@@ -23,7 +23,7 @@ NODE is_request_from_non_lf_project
 SQL >
     %
     SELECT not isLF AS result
-    FROM insightsProjects
+    FROM insightsProjects final
     WHERE slug = {{ String(project, description="Filter by project slug", required=True) }}
 
 NODE contributors_leaderboard_2
