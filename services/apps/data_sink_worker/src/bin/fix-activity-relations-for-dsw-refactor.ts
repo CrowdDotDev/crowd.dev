@@ -16,7 +16,7 @@ interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
 }
 
 const errorBatchesFile = 'error-batches.txt'
-const fromUpdatedAt = new Date('2025-05-15T05:00:25.000Z')
+const fromUpdatedAt = new Date('2025-05-15T05:02:25.000Z')
 const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
 
 function createOrRecreateFile(filePath: string): void {
@@ -135,7 +135,7 @@ setImmediate(async () => {
       interval = 5 * 60000
     } catch (err) {
       if ((err.message as string).includes('timeout, query aborted')) {
-        interval -= 60000
+        interval -= interval * 0.5 // reduce interval by 50%
         totalProcessed -= processed
         log.info(`Timeout, reducing interval... by 60 seconds! New interval: ${interval}`)
       } else {
