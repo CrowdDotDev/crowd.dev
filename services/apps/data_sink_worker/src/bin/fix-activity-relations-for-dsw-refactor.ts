@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 import { BatchProcessor } from '@crowd/common'
 import { createOrUpdateRelations } from '@crowd/data-access-layer'
 import { streamActivities } from '@crowd/data-access-layer/src/activities/update'
@@ -9,7 +11,33 @@ import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
+interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
+  updatedAt: string
+}
+
+const errorBatchesFile = 'error-batches.txt'
+
+function createOrRecreateFile(filePath: string): void {
+  // Check if the file exists
+  if (fs.existsSync(filePath)) {
+    // Delete the existing file
+    fs.unlinkSync(filePath)
+  }
+
+  // Create the file (by writing an empty string to it)
+  fs.writeFileSync(filePath, '')
+
+  log.info(`File created: ${filePath}`)
+}
+
+// Function to append text to a file
+function appendToFile(filePath: string, content: string): void {
+  fs.appendFileSync(filePath, content)
+}
+
 setImmediate(async () => {
+  createOrRecreateFile(errorBatchesFile)
+
   const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
   const qdbConnection = await getClientSQL()
 
@@ -17,20 +45,50 @@ setImmediate(async () => {
 
   const start = performance.now()
 
-  const batchProcessor = new BatchProcessor<IActivityRelationCreateOrUpdateData>(
+  const batchProcessor = new BatchProcessor<IActivityBatchItem>(
     100,
     10,
     async (batch) => {
-      await createOrUpdateRelations(pgpQx(dbConnection), batch, true)
-      totalProcessed += batch.length
+      if (batch.length > 0) {
+        await createOrUpdateRelations(pgpQx(dbConnection), batch, true)
+        totalProcessed += batch.length
 
-      const duration = performance.now() - start
-      const rate = (totalProcessed / (duration / 1000)).toFixed(2)
+        const duration = performance.now() - start
+        const rate = (totalProcessed / (duration / 1000)).toFixed(2)
 
-      log.info(`So far processed ${totalProcessed} activities! Rate: ${rate} activities/s`)
+        log.info(`So far processed ${totalProcessed} activities! Rate: ${rate} activities/s`)
+      }
     },
-    async (_, err) => {
+    async (batch, err) => {
       log.error(err, 'Error while processing batch!')
+      if (batch.length > 0) {
+        let minUpdatedAt = new Date(batch[0].updatedAt)
+        let maxUpdatedAt = new Date(batch[0].updatedAt)
+
+        for (const activity of batch) {
+          const updatedAt = new Date(activity.updatedAt)
+          if (updatedAt.getTime() < minUpdatedAt.getTime()) {
+            minUpdatedAt = updatedAt
+          }
+
+          if (updatedAt.getTime() > maxUpdatedAt.getTime()) {
+            maxUpdatedAt = updatedAt
+          }
+        }
+
+        appendToFile(
+          errorBatchesFile,
+          `
+          -----------------------------------------------------------------------------------------------
+          Batch error
+          Message: ${err.message}
+          Stack: ${JSON.stringify(err.stack)}
+          Whole error: ${JSON.stringify(err)}
+          Min updated at: ${minUpdatedAt.toISOString()}
+          Max updated at: ${maxUpdatedAt.toISOString()}
+          `,
+        )
+      }
     },
   )
 
@@ -53,6 +111,7 @@ setImmediate(async () => {
           platform: activity.platform,
           username: activity.username,
           objectMemberUsername: activity.objectMemberUsername,
+          updatedAt: activity.updatedAt,
         })
 
         processed++
