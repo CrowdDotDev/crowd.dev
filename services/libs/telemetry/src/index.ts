@@ -53,6 +53,7 @@ const telemetry = {
     datadog.dogstatsd.gauge(prefixName(name), value, tags)
   },
   distribution: (name: string, value: number, tags?: Record<string, string | number>) => {
+    // milliseconds
     datadog.dogstatsd.distribution(prefixName(name), value, tags)
   },
   flush: () => {
