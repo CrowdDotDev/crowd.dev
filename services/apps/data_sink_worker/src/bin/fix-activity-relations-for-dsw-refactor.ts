@@ -16,6 +16,7 @@ interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
 }
 
 const errorBatchesFile = 'error-batches.txt'
+const latestUpdatedAtFile = 'latest-updated-at.txt'
 const fromUpdatedAt = new Date('2025-05-15T05:05:15.000Z')
 const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
 
@@ -39,8 +40,13 @@ function appendToFile(filePath: string, content: string): void {
   fs.appendFileSync(filePath, content)
 }
 
+function replaceFileContent(filePath: string, content: string): void {
+  fs.writeFileSync(filePath, content)
+}
+
 setImmediate(async () => {
   createOrRecreateFile(errorBatchesFile)
+  createOrRecreateFile(latestUpdatedAtFile)
 
   const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
   const qdbConnection = await getClientSQL()
@@ -136,6 +142,8 @@ setImmediate(async () => {
       log.info(
         `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
       )
+
+      replaceFileContent(latestUpdatedAtFile, currentTo.toISOString())
 
       currentFrom = currentTo
       if (interval <= maxInterval) {
