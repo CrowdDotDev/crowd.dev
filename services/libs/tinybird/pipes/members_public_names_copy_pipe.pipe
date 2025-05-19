@@ -2,7 +2,7 @@ NODE segmentIds_in_nonlf_projects
 SQL >
     select segmentId from insightsProjects where isLF = 0 and segmentId != ''
 
-NODE members_public_names_2
+NODE members_public_names_result
 SQL >
     select memberId, any (username) as publicName
     from activityRelations_deduplicated_ds
