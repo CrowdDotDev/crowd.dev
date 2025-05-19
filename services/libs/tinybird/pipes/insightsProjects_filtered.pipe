@@ -9,6 +9,21 @@ SQL >
     FROM collectionsInsightsProjects cip final
     join collections c on c.id = cip.collectionId
 
+NODE insightsProjects_filtered_integrations_deduplicated
+SQL >
+    SELECT platform, segmentId FROM integrations FINAL
+
+NODE insightsProjects_filtered_segment_id_mapping
+SQL >
+    SELECT id, segmentId from insightsProjects FINAL
+
+NODE insightsProjects_filtered_connected_platforms
+SQL >
+    SELECT id, groupArray(platform) AS connectedPlatforms
+    FROM insightsProjects_filtered_segment_id_mapping
+    JOIN insightsProjects_filtered_integrations_deduplicated USING (segmentId)
+    GROUP BY id
+
 NODE insightsProjects_filtered_1
 SQL >
     %
@@ -27,10 +42,12 @@ SQL >
         insightsProjects.github,
         insightsProjects.twitter,
         coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
-        coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
+        coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount",
+        insightsProjects_filtered_connected_platforms.connectedPlatforms
     FROM insightsProjects FINAL
     left join collection_info on collection_info.insightsProjectId = insightsProjects.id
     left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
+    left join insightsProjects_filtered_connected_platforms using (id)
     where
         insightsProjects.enabled = 1
         {% if defined(slug) %}
@@ -67,4 +84,5 @@ SQL >
         insightsProjects.website,
         insightsProjects.linkedin,
         insightsProjects.github,
-        insightsProjects.twitter
+        insightsProjects.twitter,
+        insightsProjects_filtered_connected_platforms.connectedPlatforms
