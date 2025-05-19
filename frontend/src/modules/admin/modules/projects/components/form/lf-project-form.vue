@@ -3,7 +3,7 @@
     v-model="model"
     has-border
     :title="isEditForm ? 'Edit project' : 'Add project'"
-    :size="480"
+    :size="600"
     @close="model = false"
   >
     <template #content>
@@ -13,6 +13,22 @@
         class="app-page-spinner h-16 !relative !min-h-5"
       />
       <div v-else>
+        <lf-field class="mb-6" :required="true">
+          <div class="flex items-center pt-2">
+            <lf-radio v-model="form.type" value="LF" class="mr-4">
+              <div class="flex items-center">
+                <lf-svg
+                  name="lfx"
+                  class="w-5 h-4 mr-1 flex items-center"
+                />
+                Linux Foundation project
+              </div>
+            </lf-radio>
+            <lf-radio v-model="form.type" value="nonLF" class="mr-4">
+              Non-Linux Foundation project
+            </lf-radio>
+          </div>
+        </lf-field>
         <!-- Name -->
         <app-form-item
           label="Name"
@@ -105,7 +121,7 @@
         :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
-        {{ isEditForm ? "Update" : "Add project" }}
+        {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -127,14 +143,16 @@ import {
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { Project } from '@/modules/lf/segments/types/Segments';
+import { Project, ProjectRequest } from '@/modules/lf/segments/types/Segments';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 import Message from '@/shared/message/message';
+import LfField from '@/ui-kit/field/Field.vue';
+import LfRadio from '@/ui-kit/radio/Radio.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
-const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
-}>();
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void }>();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -152,6 +170,7 @@ const form = reactive({
   slug: '',
   sourceId: '',
   status: '',
+  type: 'LF',
   parentSlug: props.parentSlug,
 });
 
@@ -161,6 +180,7 @@ const rules = {
     maxLength: maxLength(50),
   },
   slug: { required },
+  type: { required },
   sourceId: { required },
   status: { required },
   parentSlug: { required },
@@ -233,13 +253,13 @@ const onError = () => {
 };
 
 const updateMutation = useMutation({
-  mutationFn: ({ id, form }: { id: string; form: Project }) => segmentService.updateSegment(id, form),
+  mutationFn: ({ id, project }: { id: string; project: ProjectRequest }) => segmentService.updateSegment(id, project),
   onSuccess,
   onError,
 });
 
 const createMutation = useMutation({
-  mutationFn: (req: { project: Project; segments: string[] }) => segmentService.createProject(req),
+  mutationFn: (req: { project: ProjectRequest; segments: string[] }) => segmentService.createProject(req),
   onSuccess,
   onError,
 });
@@ -258,7 +278,7 @@ const onSubmit = () => {
     });
     updateMutation.mutate({
       id: props.id!,
-      form: form as Project,
+      project: buildRequest(),
     });
   } else {
     trackEvent({
@@ -267,11 +287,20 @@ const onSubmit = () => {
     });
 
     createMutation.mutate({
-      project: form as Project,
+      project: buildRequest(),
       segments: [route.params.id as string],
     });
   }
 };
+
+const buildRequest = (): ProjectRequest => ({
+  name: form.name,
+  slug: form.slug,
+  sourceId: form.sourceId,
+  status: form.status,
+  isLF: form.type === 'LF',
+  parentSlug: form.parentSlug,
+});
 </script>
 
 <script lang="ts">

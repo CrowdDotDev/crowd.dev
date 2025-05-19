@@ -44,3 +44,12 @@ export interface ProjectGroup {
   updatedAt: string;
   projects: Project[];
 }
+
+export interface ProjectRequest {
+  name: string;
+    slug: string;
+    sourceId: string;
+    status: string;
+    isLF: boolean;
+    parentSlug: string;
+}
