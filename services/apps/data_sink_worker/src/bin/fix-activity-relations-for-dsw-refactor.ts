@@ -49,6 +49,7 @@ setImmediate(async () => {
       })
     },
     `
+    "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
   `,
     {
       fromUpdatedAt: '2025-05-14T21:10:25+02:00',
