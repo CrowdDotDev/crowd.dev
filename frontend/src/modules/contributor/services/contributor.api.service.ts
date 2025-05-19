@@ -50,12 +50,12 @@ export class ContributorApiService {
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async create(data: Partial<Contributor>) {
+  static async create(data: Partial<Contributor>, segments: string[]) {
     const response = await authAxios.post(
       '/member',
       {
         ...data,
-        segments: getSegments(),
+        segments,
       },
     );
 
