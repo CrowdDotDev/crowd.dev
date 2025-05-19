@@ -28,7 +28,7 @@ NODE insightsProjects_filtered_1
 SQL >
     %
     SELECT
-        insightsProjects.id,
+        insightsProjects.id as id,
         insightsProjects.name,
         insightsProjects.slug,
         insightsProjects.description,
