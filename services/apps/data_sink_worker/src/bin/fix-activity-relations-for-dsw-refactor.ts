@@ -19,6 +19,8 @@ const errorBatchesFile = 'error-batches.txt'
 const fromUpdatedAt = new Date('2025-05-15T05:02:25.000Z')
 const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
 
+const maxInterval = 5 * 60000
+
 function createOrRecreateFile(filePath: string): void {
   // Check if the file exists
   if (fs.existsSync(filePath)) {
@@ -132,12 +134,15 @@ setImmediate(async () => {
       )
 
       currentFrom = currentTo
-      interval = 5 * 60000
+      if (interval <= maxInterval) {
+        interval += 10000
+        log.info(`Increasing interval by 10 seconds! New interval: ${interval}`)
+      }
     } catch (err) {
       if ((err.message as string).includes('timeout, query aborted')) {
-        interval -= interval * 0.5 // reduce interval by 50%
+        interval = 5000
         totalProcessed -= processed
-        log.info(`Timeout, reducing interval... by 60 seconds! New interval: ${interval}`)
+        log.info(`Timeout, reducing interval to 5 seconds!`)
       } else {
         log.error(err, 'Error while processing activities!')
         throw err
