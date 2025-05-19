@@ -16,6 +16,8 @@ interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
 }
 
 const errorBatchesFile = 'error-batches.txt'
+const fromUpdatedAt = new Date('2025-05-15T05:00:25.000Z')
+const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
 
 function createOrRecreateFile(filePath: string): void {
   // Check if the file exists
@@ -92,43 +94,58 @@ setImmediate(async () => {
     },
   )
 
-  const fromUpdatedAt = new Date('2025-05-14T21:10:25+02:00')
-  const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
-
   let currentFrom = fromUpdatedAt
+  let interval = 5 * 60000 // start with 5 minutes
   while (currentFrom < toUpdatedAt) {
-    const currentTo = new Date(currentFrom.getTime() + 5000)
+    const currentTo = new Date(currentFrom.getTime() + interval)
     let processed = 0
-    await streamActivities(
-      qdbConnection,
-      async (activity) => {
-        await batchProcessor.addToBatch({
-          activityId: activity.id,
-          segmentId: activity.segmentId,
-          memberId: activity.memberId,
-          objectMemberId: activity.objectMemberId,
-          organizationId: activity.organizationId,
-          platform: activity.platform,
-          username: activity.username,
-          objectMemberUsername: activity.objectMemberUsername,
-          updatedAt: activity.updatedAt,
-        })
+    try {
+      await streamActivities(
+        qdbConnection,
+        async (activity) => {
+          await batchProcessor.addToBatch({
+            activityId: activity.id,
+            segmentId: activity.segmentId,
+            memberId: activity.memberId,
+            objectMemberId: activity.objectMemberId,
+            organizationId: activity.organizationId,
+            platform: activity.platform,
+            username: activity.username,
+            objectMemberUsername: activity.objectMemberUsername,
+            updatedAt: activity.updatedAt,
+          })
 
-        processed++
-      },
-      `
-      "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
-    `,
-      {
-        fromUpdatedAt: currentFrom,
-        toUpdatedAt: currentTo,
-      },
-    )
+          processed++
+        },
+        `
+        "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
+      `,
+        {
+          fromUpdatedAt: currentFrom,
+          toUpdatedAt: currentTo,
+        },
+      )
 
-    log.info(
-      `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
-    )
+      log.info(
+        `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
+      )
 
-    currentFrom = currentTo
+      currentFrom = currentTo
+    } catch (err) {
+      if ((err.message as string).includes('timeout, query aborted')) {
+        interval -= 30000
+        log.info(`Timeout, reducing interval... by 30 seconds! New interval: ${interval}`)
+      } else {
+        log.error(err, 'Error while processing activities!')
+        throw err
+      }
+    }
+
+    if (interval <= 0) {
+      log.error(
+        `Interval is 0, breaking...! From: ${currentFrom.toISOString()} To: ${currentTo.toISOString()}`,
+      )
+      break
+    }
   }
 })
