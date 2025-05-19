@@ -96,6 +96,7 @@ setImmediate(async () => {
 
   let currentFrom = fromUpdatedAt
   let interval = 5 * 60000 // start with 5 minutes
+
   while (currentFrom < toUpdatedAt) {
     const currentTo = new Date(currentFrom.getTime() + interval)
     let processed = 0
@@ -131,10 +132,12 @@ setImmediate(async () => {
       )
 
       currentFrom = currentTo
+      interval = 5 * 60000
     } catch (err) {
       if ((err.message as string).includes('timeout, query aborted')) {
-        interval -= 30000
-        log.info(`Timeout, reducing interval... by 30 seconds! New interval: ${interval}`)
+        interval -= 60000
+        totalProcessed -= processed
+        log.info(`Timeout, reducing interval... by 60 seconds! New interval: ${interval}`)
       } else {
         log.error(err, 'Error while processing activities!')
         throw err
