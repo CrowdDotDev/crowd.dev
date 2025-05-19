@@ -359,7 +359,7 @@ export default class ActivityService extends LoggerBase {
         } else {
           this.log.error(
             { platform, activity },
-            `Activity's member does has multiple usernames for the same platform platform!`,
+            `Activity's member has multiple usernames for the same platform platform!`,
           )
           results.set(resultId, {
             success: false,
@@ -407,7 +407,7 @@ export default class ActivityService extends LoggerBase {
         } else {
           this.log.error(
             { platform, activity },
-            `Activity's object member does has multiple usernames for the same platform platform!`,
+            `Activity's object member has multiple usernames for the same platform platform!`,
           )
           results.set(resultId, {
             success: false,
