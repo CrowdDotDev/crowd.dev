@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<{
   triggerEvent: 'click',
   persistent: false,
   isDropdown: false,
-  zIndex: 'auto',
+  zIndex: undefined,
 });
 
 const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();
