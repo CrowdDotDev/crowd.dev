@@ -55,10 +55,6 @@ import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// TODO: uros remove this
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 export default class ActivityService extends LoggerBase {
   private readonly settingsRepo: SettingsRepository
   private readonly memberRepo: MemberRepository
@@ -309,8 +305,8 @@ export default class ActivityService extends LoggerBase {
 
   private prepareMemberData(
     data: { resultId: string; activity: IActivityData; platform: PlatformType }[],
-  ): Map<string, { success: boolean; err?: any }> {
-    const results = new Map<string, { success: boolean; err?: any }>()
+  ): Map<string, { success: boolean; err?: Error }> {
+    const results = new Map<string, { success: boolean; err?: Error }>()
 
     for (const { resultId, activity, platform } of data) {
       if (!activity.username && !activity.member) {
@@ -443,8 +439,8 @@ export default class ActivityService extends LoggerBase {
   public async processActivities(
     payloads: IActivityProcessData[],
     onboarding: boolean,
-  ): Promise<Map<string, { success: boolean; err?: any }>> {
-    const resultMap = new Map<string, { success: boolean; err?: any }>()
+  ): Promise<Map<string, { success: boolean; err?: Error }>> {
+    const resultMap = new Map<string, { success: boolean; err?: Error }>()
 
     let relevantPayloads = payloads
     this.log.trace(`[ACTIVITY] Processing ${relevantPayloads.length} activities!`)
@@ -568,7 +564,9 @@ export default class ActivityService extends LoggerBase {
       } else if (!payload.segmentId) {
         resultMap.set(payload.resultId, {
           success: false,
-          err: 'No segmentId provided! Something went wrong - it should be integrations.segmentId by default!',
+          err: new UnrepeatableError(
+            'No segmentId provided! Something went wrong - it should be integrations.segmentId by default!',
+          ),
         })
         relevantPayloads = relevantPayloads.filter((a) => a.resultId !== payload.resultId)
       }
