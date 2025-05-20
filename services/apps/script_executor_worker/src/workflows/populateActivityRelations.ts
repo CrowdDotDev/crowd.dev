@@ -25,6 +25,7 @@ export async function populateActivityRelations(
   let { activitiesLength, activitiesRedisKey, lastTimestamp } = await activity.getActivitiesToCopy(
     latestSyncedActivityTimestamp ?? undefined,
     BATCH_SIZE_PER_RUN,
+    args.segmentIds,
   )
 
   if (activitiesLength === 0) {
@@ -44,6 +45,7 @@ export async function populateActivityRelations(
       const result = await activity.getActivitiesToCopy(
         lastTimestamp,
         BATCH_SIZE_PER_RUN * batchSizeMultiplier,
+        args.segmentIds,
       )
       activitiesLength = result.activitiesLength
       activitiesRedisKey = result.activitiesRedisKey
