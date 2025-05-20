@@ -307,6 +307,7 @@ export class CollectionService extends LoggerBase {
       limit,
       offset,
       fields: Object.values(InsightsProjectField),
+      orderBy: '"name" ASC',
     })
 
     if (projects.length === 0) {
