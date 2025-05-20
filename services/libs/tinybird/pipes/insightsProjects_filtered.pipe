@@ -28,7 +28,7 @@ NODE insightsProjects_filtered_activities_commit
 SQL >
     SELECT timestamp, segmentId
     FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE type = 'authored-commit'
+    WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
 
 NODE insightsProjects_filtered_first_commit_by_project
 SQL >
