@@ -1796,7 +1796,7 @@ export default class MemberService extends LoggerBase {
     )
 
     if (!resultsAreDeepEqual) {
-      this.log.warn(
+      this.log.info(
         {
           diff: diff(resultV1, resultV2),
         },
