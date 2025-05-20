@@ -17,10 +17,7 @@
           <div class="flex items-center pt-2">
             <lf-radio v-model="form.type" value="LF" class="mr-4">
               <div class="flex items-center">
-                <lf-svg
-                  name="lfx"
-                  class="w-5 h-4 mr-1 flex items-center"
-                />
+                <lf-svg name="lfx" class="w-5 h-4 mr-1 flex items-center" />
                 Linux Foundation project
               </div>
             </lf-radio>
@@ -62,6 +59,7 @@
 
         <!-- Source ID -->
         <app-form-item
+          v-if="form.type === 'LF'"
           label="Source ID"
           class="mb-6"
           :required="true"
@@ -75,6 +73,7 @@
 
         <!-- Status -->
         <app-form-item
+          v-if="form.type === 'LF'"
           label="Status"
           class="mb-6"
           :required="true"
@@ -174,17 +173,17 @@ const form = reactive({
   parentSlug: props.parentSlug,
 });
 
-const rules = {
+const rules = computed(() => ({
   name: {
     required,
     maxLength: maxLength(50),
   },
   slug: { required },
   type: { required },
-  sourceId: { required },
-  status: { required },
+  sourceId: form.type === 'LF' ? { required } : {},
+  status: form.type === 'LF' ? { required } : {},
   parentSlug: { required },
-};
+}));
 
 const $v = useVuelidate(rules, form);
 
