@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<{
   placement: 'bottom-start',
   width: 'auto',
   persistent: false,
-  zIndex: 'auto',
+  zIndex: undefined,
 });
 </script>
 
