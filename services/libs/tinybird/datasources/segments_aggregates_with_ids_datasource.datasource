@@ -1,0 +1,11 @@
+SCHEMA >
+    `segmentId` String,
+    `contributorCount` UInt64,
+    `organizationCount` UInt64,
+    `projectId` String,
+    `collectionId` String,
+    `categoryId` String,
+    `categoryGroupId` String
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY segmentId, projectId, collectionId, categoryId, categoryGroupId

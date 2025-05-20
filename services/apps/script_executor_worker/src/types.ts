@@ -27,6 +27,7 @@ export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
+  segmentIds?: string[]
 }
 
 export interface IScriptBatchTestArgs {

@@ -186,6 +186,7 @@ const form = reactive<CollectionFormModel>({
   type: '',
   categoryId: null,
   projects: [],
+  starred: false,
 });
 
 const rules = {
@@ -245,7 +246,7 @@ const onSubmit = () => {
       id: project.id,
       starred: project?.starred || false,
     })),
-    starred: false,
+    starred: !!form.starred,
     categoryId: form.categoryId,
     slug: form.name.toLowerCase().replace(/ /g, '-'),
   };

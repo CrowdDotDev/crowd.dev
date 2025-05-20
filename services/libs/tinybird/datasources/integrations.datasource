@@ -1,0 +1,13 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `platform` String `json:$.record.platform` DEFAULT '',
+    `status` String `json:$.record.status` DEFAULT '',
+    `settings` String `json:$.record.settings` DEFAULT '',
+    `integrationIdentifier` String `json:$.record.integrationIdentifier` DEFAULT '',
+    `segmentId` String `json:$.record.segmentId` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY segmentId, id
+ENGINE_VER updatedAt

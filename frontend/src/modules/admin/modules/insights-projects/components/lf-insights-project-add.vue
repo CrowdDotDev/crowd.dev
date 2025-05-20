@@ -8,7 +8,13 @@
   >
     <template #header>
       <section class="flex items-center">
-        <lf-button v-if="displayBackButton" type="secondary" :icon-only="true" class="mr-4" @click="onCancel">
+        <lf-button
+          v-if="displayBackButton"
+          type="secondary"
+          :icon-only="true"
+          class="mr-4"
+          @click="onCancel"
+        >
           <lf-icon name="arrow-left" />
         </lf-button>
         <div class="flex flex-col">
@@ -30,7 +36,11 @@
       </section>
     </template>
     <template #content>
-      <div v-if="loading" v-loading="loading" class="app-page-spinner h-16 !relative !min-h-5" />
+      <div
+        v-if="isLoading"
+        v-loading="isLoading"
+        class="app-page-spinner h-16 !relative !min-h-5"
+      />
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
@@ -39,7 +49,10 @@
           @on-change="onProjectSelection"
         />
         <div class="relative">
-          <div v-if="!form.segmentId" class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20" />
+          <div
+            v-if="!form.segmentId"
+            class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20"
+          />
           <lf-tabs v-model="activeTab" :fragment="false">
             <lf-tab name="details">
               Details
@@ -56,14 +69,24 @@
           </lf-tabs>
           <div class="pt-6">
             <div class="tab-content">
-              <lf-insights-project-add-details-tab v-if="activeTab === 'details'" :form="form" :rules="rules" />
+              <lf-insights-project-add-details-tab
+                v-if="activeTab === 'details'"
+                :form="form"
+                :rules="rules"
+              />
               <lf-insights-project-add-repository-tab
                 v-else-if="activeTab === 'repositories'"
                 :form="form"
                 :repositories="form.repositories"
               />
-              <lf-insights-project-add-widgets-tab v-else-if="activeTab === 'widgets'" :form="form" />
-              <lf-insights-project-add-advanced-tab v-else-if="activeTab === 'advanced'" :form="form" />
+              <lf-insights-project-add-widgets-tab
+                v-else-if="activeTab === 'widgets'"
+                :form="form"
+              />
+              <lf-insights-project-add-advanced-tab
+                v-else-if="activeTab === 'advanced'"
+                :form="form"
+              />
             </div>
           </div>
         </div>
@@ -73,10 +96,14 @@
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
         Cancel
       </lf-button>
-      <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
+      <!-- <lf-button type="secondary" class="mr-2" :disabled="!hasFormChanged || $v.$invalid || isLoading" @click="onSubmit">
         {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button> -->
-      <lf-button type="primary" :disabled="!hasFormChanged || $v.$invalid || loading" @click="onSubmit">
+      <lf-button
+        type="primary"
+        :disabled="!hasFormChanged || $v.$invalid || isLoading"
+        @click="onSubmit"
+      >
         {{ isEditForm ? "Update" : "Add project" }}
       </lf-button>
     </template>
@@ -88,7 +115,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -98,13 +125,21 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
 import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
-import { InsightsProjectModel } from '../models/insights-project.model';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
 import { defaultWidgetsValues } from '../widgets';
-import { InsightsProjectsService } from '../services/insights-projects.service';
+import {
+  INSIGHTS_PROJECTS_SERVICE,
+  InsightsProjectsService,
+} from '../services/insights-projects.service';
 import {
   buildForm,
   buildRepositories,
@@ -125,7 +160,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 
-const loading = ref(false);
 const submitLoading = ref(false);
 const insightsProject = ref<InsightsProjectModel | null>(null);
 
@@ -188,31 +222,40 @@ const fillForm = (record?: InsightsProjectAddFormModel) => {
 };
 
 onMounted(() => {
-  if (props.insightsProjectId) {
-    loading.value = true;
-    openModalEditMode(props.insightsProjectId);
-  } else {
+  if (!props.insightsProjectId) {
     fillForm();
   }
 });
 
-const openModalEditMode = (insightsProjectId: string) => {
-  InsightsProjectsService.getById(insightsProjectId).then((res) => {
-    insightsProject.value = res;
-
-    if (res.segment.id) {
-      fetchRepositories(res.segment.id, () => {
-        const form = buildForm(res, initialFormState.repositories);
-        fillForm(form);
-        loading.value = false;
-      });
-    } else {
-      const form = buildForm(res, []);
-      fillForm(form);
-      loading.value = false;
+const { isLoading, isSuccess, data } = useQuery({
+  queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS, props.insightsProjectId],
+  queryFn: () => {
+    if (props.insightsProjectId === undefined) {
+      return Promise.resolve(null);
     }
-  });
-};
+    return INSIGHTS_PROJECTS_SERVICE.getById(props.insightsProjectId);
+  },
+  enabled: !!props.insightsProjectId,
+});
+
+watch(
+  data,
+  () => {
+    if (isSuccess.value && data.value) {
+      insightsProject.value = data.value;
+      if (data.value.segment.id) {
+        fetchRepositories(data.value.segment.id, () => {
+          const form = buildForm(data.value!, initialFormState.repositories);
+          fillForm(form);
+        });
+      } else {
+        const form = buildForm(data.value, []);
+        fillForm(form);
+      }
+    }
+  },
+  { immediate: true },
+);
 
 const onProjectSelection = ({ project }: any) => {
   fetchRepositories(project.id, () => {
@@ -234,49 +277,53 @@ const onCancel = () => {
 
 const onSubmit = () => {
   submitLoading.value = true;
-
-  if (isEditForm.value) {
-    handleUpdate();
-  } else {
-    handleCreate();
-  }
-};
-
-const handleCreate = () => {
   const request = buildRequest({
     ...form,
   });
-  Message.info(null, {
-    title: 'Insights project is being created',
-  });
-  InsightsProjectsService.create(request)
-    .then((res) => {
-      Message.closeAll();
-      Message.success('Insights project successfully created');
-      emit('onInsightsProjectCreated', res);
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
+  if (isEditForm.value) {
+    updateMutation.mutate({
+      id: props.insightsProjectId as string,
+      form: request,
     });
+  } else {
+    createMutation.mutate(request);
+  }
 };
 
-const handleUpdate = () => {
-  const request = buildRequest(form);
-  Message.info(null, {
-    title: 'Insights project is being updated',
+const queryClient = useQueryClient();
+const onSuccess = (res: InsightsProjectModel) => {
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
-  InsightsProjectsService.update(props.insightsProjectId!, request)
-    .then((res) => {
-      Message.closeAll();
-      Message.success('Insights project successfully updated');
-      emit('onInsightsProjectEdited', res);
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-    });
+  Message.closeAll();
+  Message.success(
+    `Insights project ${isEditForm.value ? 'updated' : 'created'} successfully`,
+  );
+  if (isEditForm.value) {
+    emit('onInsightsProjectEdited', res);
+  } else {
+    emit('onInsightsProjectCreated', res);
+  }
 };
+
+const onError = () => {
+  Message.closeAll();
+  Message.error(
+    `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the project`,
+  );
+};
+
+const createMutation = useMutation({
+  mutationFn: (form: InsightsProjectRequest) => INSIGHTS_PROJECTS_SERVICE.create(form),
+  onSuccess,
+  onError,
+});
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, form }: { id: string; form: InsightsProjectRequest }) => INSIGHTS_PROJECTS_SERVICE.update(id, form),
+  onSuccess,
+  onError,
+});
 
 const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   InsightsProjectsService.getRepositories(segmentId).then((res) => {

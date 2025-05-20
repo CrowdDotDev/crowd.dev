@@ -11,7 +11,8 @@ SCHEMA >
     `createdAt` DateTime64(3),
     `updatedAt` DateTime64(3),
     `displayName` String,
-    `score` Int32
+    `score` Int32,
+    `publicName` String
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(joinedAt)
