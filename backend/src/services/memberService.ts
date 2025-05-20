@@ -1,7 +1,5 @@
 /* eslint-disable no-continue */
 import { randomUUID } from 'crypto'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { diff } from 'deep-object-diff'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
@@ -32,7 +30,7 @@ import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { LoggerBase , logExecutionTimeV2 } from '@crowd/logging'
+import { LoggerBase } from '@crowd/logging'
 import {
   IMemberIdentity,
   IMemberRoleWithOrganization,
@@ -1773,19 +1771,22 @@ export default class MemberService extends LoggerBase {
     }
 
     const mode = data.countOnly ? 'COUNT-ONLY' : 'FULL'
+  
+    const startV1 = performance.now()
+    const resultV1 = await queryMembersAdvanced(qx, redis, params)
+    const endV1 = performance.now()
+    const durationV1 = endV1 - startV1
+    const durationInSeconds = durationV1 / 1000
+  
+    this.log.info(`[V1] [${mode}] queryMembersAdvanced took ${durationInSeconds} seconds`)
 
-    const resultV1 = await logExecutionTimeV2(
-      () => queryMembersAdvanced(qx, redis, params),
-      this.log,
-      `[V1] [${mode}] queryMembersAdvanced`,
-    )
+    const startV2 = performance.now()
+    const resultV2 = await queryMembersAdvancedV2(qx, redis, params)
+    const endV2 = performance.now()
+    const durationV2 = endV2 - startV2
+    const durationInSecondsV2 = durationV2 / 1000
 
-    const resultV2 = await logExecutionTimeV2(
-      () => queryMembersAdvancedV2(qx, redis, params),
-      this.log,
-      `[V2] [${mode}] queryMembersAdvancedV2`,
-    )
-
+    this.log.info(`[V2] [${mode}] queryMembersAdvancedV2 took ${durationInSecondsV2} seconds`)
 
     // Compare
     const resultsAreDeepEqual = lodash.isEqual(resultV1, resultV2)
@@ -1796,6 +1797,19 @@ export default class MemberService extends LoggerBase {
     )
 
     if (!resultsAreDeepEqual) {
+      // create me a small func to basically get the diff between two objects
+      const diff = (obj1, obj2) => {
+        const diffs = {}
+        for (const key in obj1) {
+          if (obj1[key] !== obj2[key]) {
+            diffs[key] = {
+              from: obj1[key],
+              to: obj2[key],
+            }
+          }
+        }
+        return diffs
+      }
       this.log.info(
         {
           diff: diff(resultV1, resultV2),
@@ -1804,7 +1818,7 @@ export default class MemberService extends LoggerBase {
       )
     }
 
-    return resultV2
+    return resultV1
   }
 
   async queryForCsv(data) {
