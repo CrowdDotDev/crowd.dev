@@ -785,6 +785,8 @@ export async function queryMembersAdvancedV2(
           OFFSET $(offset)
         `
 
+  console.log('queryMembersAdvancedV2 sql', query)
+
   const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
   let rows = results[0]

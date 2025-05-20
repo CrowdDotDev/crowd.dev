@@ -1,5 +1,7 @@
 /* eslint-disable no-continue */
 import { randomUUID } from 'crypto'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { diff } from 'deep-object-diff'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
@@ -30,7 +32,7 @@ import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { LoggerBase } from '@crowd/logging'
+import { LoggerBase , logExecutionTimeV2 } from '@crowd/logging'
 import {
   IMemberIdentity,
   IMemberRoleWithOrganization,
@@ -74,6 +76,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
+
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1752,7 +1755,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvancedV2(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const redis = this.options.redis
+
+    const params = {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
@@ -1764,7 +1770,41 @@ export default class MemberService extends LoggerBase {
         maintainers: true,
       },
       exportMode,
-    })
+    }
+
+    const mode = data.countOnly ? 'COUNT-ONLY' : 'FULL'
+
+    const resultV1 = await logExecutionTimeV2(
+      () => queryMembersAdvanced(qx, redis, params),
+      this.log,
+      `[V1] [${mode}] queryMembersAdvanced`,
+    )
+
+    const resultV2 = await logExecutionTimeV2(
+      () => queryMembersAdvancedV2(qx, redis, params),
+      this.log,
+      `[V2] [${mode}] queryMembersAdvancedV2`,
+    )
+
+
+    // Compare
+    const resultsAreDeepEqual = lodash.isEqual(resultV1, resultV2)
+    this.log.info(
+      `[${mode}][COMPARE] Results ${
+        resultsAreDeepEqual ? '✅ MATCH' : '❌ DO NOT MATCH'
+      }`,
+    )
+
+    if (!resultsAreDeepEqual) {
+      this.log.warn(
+        {
+          diff: diff(resultV1, resultV2),
+        },
+        `[${mode}][COMPARE] Differences found`,
+      )
+    }
+
+    return resultV2
   }
 
   async queryForCsv(data) {
