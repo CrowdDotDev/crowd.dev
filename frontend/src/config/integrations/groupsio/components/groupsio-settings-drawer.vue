@@ -20,6 +20,10 @@
         <div class="text-2xs text-gray-500 leading-normal mb-1">
           Connect a Groups.io account. You must be a group owner to
           authenticate.
+          <span class="block mt-1">
+            <strong>Note:</strong> If you signed up for Groups.io using Google login, you may not have a password set.<br />
+            To use this integration, you’ll need to set a password in your Groups.io account settings.
+          </span>
         </div>
       </div>
       <el-form label-position="top" class="form" @submit.prevent>
