@@ -65,8 +65,8 @@
               />
             </template>
           </el-input>
-          <div class="text-tiny text-gray-400 mt-1">
-            <lf-icon name="circle-info" class="!inline-flex" />
+          <div class="flex items-baseline text-tiny text-gray-400 mt-1">
+            <lf-icon name="circle-info" class="mr-1" />
             If you signed up for Groups.io using Google login, you may not have a password set.<br />
             To use this integration, you’ll need to set a password in your Groups.io account settings.
           </div>
