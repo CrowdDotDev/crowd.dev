@@ -179,7 +179,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 const loading = ref(false);
-const submitLoading = ref(false);
 const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
@@ -238,7 +237,6 @@ const onCancel = () => {
 };
 
 const onSubmit = () => {
-  submitLoading.value = true;
   const request: CollectionRequest = {
     name: form.name,
     description: form.description,
