@@ -165,6 +165,7 @@ const form = reactive({
   slug: '',
   sourceId: '',
   status: '',
+  isLF: props.isLFProject,
   parentSlug: props.parentSlug,
   grandparentSlug: props.grandparentSlug,
 });

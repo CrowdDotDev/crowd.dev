@@ -8,9 +8,9 @@
           {{ props.project.name }}
         </p>
 
-        <!-- <span v-if="!props.project.isLF" class="px-2 py-1 text-tiny text-gray-900 bg-gray-200 border border-gray-200 rounded-[100px]">
+        <span v-if="!props.project.isLF" class="px-2 py-1 text-tiny text-gray-900 bg-gray-200 border border-gray-200 rounded-[100px]">
           Non-Linux Foundation
-        </span> -->
+        </span>
       </div>
       <div class="flex items-center gap-2">
         <lf-button

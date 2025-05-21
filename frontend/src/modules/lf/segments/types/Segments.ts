@@ -23,6 +23,7 @@ export interface Project {
   updatedAt: string;
   subproject_count: number;
   subprojects: SubProject[];
+  isLF: boolean;
 }
 
 export interface ProjectGroup {

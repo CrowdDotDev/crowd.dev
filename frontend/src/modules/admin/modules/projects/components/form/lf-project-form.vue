@@ -203,6 +203,7 @@ const isEditForm = computed(() => !!props.id);
 const fillForm = (record?: Project) => {
   if (record) {
     Object.assign(form, record);
+    form.type = record.isLF ? 'LF' : 'nonLF';
   }
 
   formSnapshot();
