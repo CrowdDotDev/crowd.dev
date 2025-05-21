@@ -2,6 +2,7 @@ import fs from 'fs'
 
 import { BatchProcessor } from '@crowd/common'
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { DbConnection } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 
@@ -37,6 +38,29 @@ function appendToFile(filePath: string, content: string): void {
 const checkedIds: string[] = []
 const incorrectIds: string[] = []
 
+async function findLastMemberId(db: DbConnection, id: string): Promise<string | null> {
+  const data = await db.oneOrNone(
+    `select * from "mergeActions" where type = 'member' and "secondaryId" = $(id) and state = 'merged' order by "updatedAt" desc limit 1`,
+    { id },
+  )
+
+  if (data) {
+    // check if member exists
+    const member = await db.oneOrNone(
+      `select id from members where "deletedAt" is null and id = $(id)`,
+      { id: data.primaryId },
+    )
+
+    if (!member) {
+      return findLastMemberId(db, data.primaryId)
+    }
+
+    return member.id
+  }
+
+  return null
+}
+
 setImmediate(async () => {
   createOrRecreateFile('incorrect-object-member-ids.txt')
 
@@ -64,7 +88,13 @@ setImmediate(async () => {
 
             if (!existing) {
               incorrectIds.push(id)
-              appendToFile('incorrect-object-member-ids.txt', id + '\n')
+              const newMemberId = await findLastMemberId(dbConnection, id)
+
+              if (newMemberId) {
+                appendToFile('incorrect-object-member-ids.txt', `${id} -> ${newMemberId}\n`)
+              } else {
+                appendToFile('incorrect-object-member-ids.txt', `${id} -> NOT FOUND!\n`)
+              }
             }
           }
         }
