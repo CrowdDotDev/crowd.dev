@@ -1,3 +1,5 @@
+import { error } from 'console'
+
 const en = {
   app: {
     title: 'crowd.dev',
@@ -27,6 +29,11 @@ const en = {
       errors: {
         typeRequiredWhenCreating: `Type field is required when creating a custom activity channel.`,
         notFound: `Activity type with key {0} is not found.`,
+      },
+    },
+    segments: {
+      errors: {
+        isLfNotMatchingParent: `isLF doesn't match the parent project`,
       },
     },
   },

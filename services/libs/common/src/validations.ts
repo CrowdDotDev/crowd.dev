@@ -1,3 +1,5 @@
+import Error400 from './errors/Error400'
+
 const URL_REGEXP = new RegExp(
   '^(https?:\\/\\/)?' + // validate protocol
     '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // validate domain name
@@ -24,4 +26,23 @@ export const isEmail = (value: string): boolean => {
 
 export const isPartialEmail = (value: string): boolean => {
   return PARTIAL_EMAIL_REGEXP.test(value)
+}
+
+/**
+ * Validates non-lf slug to ensure it doesn't contain "illegal" prefixes not supported by LFX (#, !, or %)
+ * and returns it prefixed with 'nonlf_'
+ * @param slug The slug to validate
+ * @returns The validated slug prefixed with 'nonlf_', or throws an error if invalid
+ */
+export const validateNonLfSlug = (slug: string): string => {
+  const illegalLfxPrefixes = ['#', '!', '%']
+  const nonLfPrefix = 'nonlf_'
+
+  if (illegalLfxPrefixes.some((prefix) => slug.startsWith(prefix))) {
+    throw new Error400(
+      `Non-LF Slug cannot start with illegal characters (${illegalLfxPrefixes.join(', ')})`,
+    )
+  }
+  if (!slug.startsWith(nonLfPrefix)) slug = `${nonLfPrefix}${slug}`
+  return slug
 }

@@ -23,6 +23,7 @@ export interface SegmentBase {
   sourceId: string
   sourceParentId: string
   type: SegmentType
+  isLF: boolean
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -48,6 +49,7 @@ export interface SegmentActivityTypesCreateData {
 export interface SegmentUpdateChildrenPartialData {
   name?: string
   slug?: string
+  isLF?: boolean
 }
 
 export interface SegmentUpdateData {
@@ -62,6 +64,7 @@ export interface SegmentUpdateData {
   grandparentName?: string
   sourceId?: string
   sourceParentId?: string
+  isLF?: boolean
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customActivityTypes?: any
   activityChannels?: { [key: string]: string[] }

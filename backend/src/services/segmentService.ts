@@ -1,4 +1,4 @@
-import { Error400 } from '@crowd/common'
+import { Error400, validateNonLfSlug } from '@crowd/common'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
@@ -40,18 +40,25 @@ export default class SegmentService extends LoggerBase {
     try {
       const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+      if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // do the update
       await segmentRepository.update(id, data)
-
+      // make sure non-lf projects' slug are namespaced appropriately
       // update relation fields of parent objects
       if (!isSegmentSubproject(segment) && (data.name || data.slug)) {
-        await segmentRepository.updateChildrenBulk(segment, { name: data.name, slug: data.slug })
+        await segmentRepository.updateChildrenBulk(segment, {
+          name: data.name,
+          slug: data.slug,
+          isLF: data.isLF,
+        })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
 
       return await this.findById(id)
     } catch (error) {
+      if (error?.message.includes("must match its parent's isLF value"))
+        throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
@@ -118,6 +125,10 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.parentName} does not exist.`)
     }
 
+    if (parent.isLF !== data.isLF)
+      throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+    if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
+
     try {
       // create project
       const project = await segmentRepository.create({ ...data, parentId: parent.id })
@@ -179,6 +190,7 @@ export default class SegmentService extends LoggerBase {
         ...data,
         parentId: parent.id,
         grandparentId: grandparent.id,
+        isLF: parent.isLF,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
