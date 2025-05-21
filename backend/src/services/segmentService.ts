@@ -40,10 +40,10 @@ export default class SegmentService extends LoggerBase {
     try {
       const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+      // make sure non-lf projects' slug are namespaced appropriately
       if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // do the update
       await segmentRepository.update(id, data)
-      // make sure non-lf projects' slug are namespaced appropriately
       // update relation fields of parent objects
       if (!isSegmentSubproject(segment) && (data.name || data.slug)) {
         await segmentRepository.updateChildrenBulk(segment, {
@@ -58,7 +58,10 @@ export default class SegmentService extends LoggerBase {
       return await this.findById(id)
     } catch (error) {
       if (error?.message.includes("must match its parent's isLF value"))
+      {
+        // No rollback needed here, check_segment_isLF_consistency() failed at commit due to a deferred constraint.
         throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
