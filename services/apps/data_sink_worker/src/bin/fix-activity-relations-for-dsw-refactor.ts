@@ -20,7 +20,7 @@ const latestUpdatedAtFile = 'latest-updated-at.txt'
 
 const intervals: { from: Date; to: Date }[] = [
   {
-    from: new Date('2025-05-15T05:05:15.000Z'),
+    from: new Date('2025-05-14T22:00:25+02:00'),
     to: new Date('2025-05-15T15:15:20+02:00'),
   },
 ]
