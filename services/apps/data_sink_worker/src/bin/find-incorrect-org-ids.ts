@@ -84,22 +84,21 @@ setImmediate(async () => {
 
     while (currentFrom < entry.to) {
       const currentTo = new Date(currentFrom.getTime() + interval)
-      let processed = 0
+      const processed = 0
       try {
-        await streamQuery(
-          qdbConnection,
-          async (row: { organizationId: string }) => {
-            if (row && row.organizationId && row.organizationId !== 'null') {
-              await batchProcessor.addToBatch(row.organizationId)
-              processed++
-            }
-          },
+        const results = await qdbConnection.any(
           `select distinct "organizationId" from activities where "deletedAt" is null and "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)`,
           {
             fromUpdatedAt: currentFrom,
             toUpdatedAt: currentTo,
           },
         )
+
+        for (const { organizationId } of results) {
+          if (organizationId && organizationId !== 'null') {
+            await batchProcessor.addToBatch(organizationId)
+          }
+        }
 
         log.info(
           `Processed ${processed} distinct org ids for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
