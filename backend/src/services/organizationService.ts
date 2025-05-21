@@ -163,7 +163,10 @@ export default class OrganizationService extends LoggerBase {
       )
 
       if (primaryIdentities.length === 0) {
-        throw new Error(`Original organization only has one identity, cannot extract it!`)
+        throw new Error400(
+          this.options.language,
+          'organization.unmerge.errors.cannotExtractSingleIdentity',
+        )
       }
 
       let secondaryMemberCount: number
