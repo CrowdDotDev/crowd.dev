@@ -10,7 +10,7 @@ const {
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '45 minutes',
 })
 
 /*
@@ -37,7 +37,7 @@ const {
 export async function refreshOrganizationDisplayAggregates(
   args: IRefreshDisplayAggregatesArgs,
 ): Promise<void> {
-  const BATCH_SIZE = 250
+  const BATCH_SIZE = 100
 
   const lastUuid: string = args.lastUuid ?? null
   let lastSyncedAt: string = args.lastSyncedAt ?? null
