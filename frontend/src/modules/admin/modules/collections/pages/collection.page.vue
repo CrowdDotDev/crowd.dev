@@ -168,7 +168,7 @@ const {
   queryFn,
   getNextPageParam: (lastPage) => {
     const nextPage = lastPage.offset + lastPage.limit;
-    const totalRows = lastPage.count;
+    const totalRows = lastPage.total || lastPage.count;
     return nextPage < totalRows ? nextPage : undefined;
   },
   initialPageParam: 0,
@@ -186,7 +186,7 @@ const collections = computed((): CollectionModel[] => {
 
 const total = computed((): number => {
   if (isSuccess.value && data.value) {
-    return data.value.pages[0].count;
+    return data.value.pages[0].total || data.value.pages[0].count;
   }
   return 0;
 });

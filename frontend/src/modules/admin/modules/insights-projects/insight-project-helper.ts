@@ -1,8 +1,8 @@
 import { InsightsProjectAddFormModel } from './models/insights-project-add-form.model';
-import { InsightsProjectModel } from './models/insights-project.model';
+import { InsightsProjectModel, InsightsProjectRequest } from './models/insights-project.model';
 import { defaultWidgetsValues } from './widgets';
 
-export const buildRequest = (form: InsightsProjectAddFormModel) => ({
+export const buildRequest = (form: InsightsProjectAddFormModel): InsightsProjectRequest => ({
   segmentId: form.segmentId,
   name: form.name,
   slug: form.slug,

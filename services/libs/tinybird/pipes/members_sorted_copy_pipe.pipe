@@ -3,9 +3,12 @@ DESCRIPTION >
 
 NODE members_pre_filter
 SQL >
-    SELECT * FROM members final where not isBot and not isTeamMember
+    SELECT members.*, pub.publicName
+    FROM members final
+    left join members_public_names_ds pub on pub.memberId = members.id
+    where not isBot and not isTeamMember
 
 TYPE COPY
 TARGET_DATASOURCE members_sorted
 COPY_MODE replace
-COPY_SCHEDULE 0 * * * *
+COPY_SCHEDULE 10 * * * *

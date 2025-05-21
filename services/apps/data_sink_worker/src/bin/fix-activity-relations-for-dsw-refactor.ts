@@ -17,8 +17,13 @@ interface IActivityBatchItem extends IActivityRelationCreateOrUpdateData {
 
 const errorBatchesFile = 'error-batches.txt'
 const latestUpdatedAtFile = 'latest-updated-at.txt'
-const fromUpdatedAt = new Date('2025-05-15T05:05:15.000Z')
-const toUpdatedAt = new Date('2025-05-15T15:15:20+02:00')
+
+const intervals: { from: Date; to: Date }[] = [
+  {
+    from: new Date('2025-05-15T05:05:15.000Z'),
+    to: new Date('2025-05-15T15:15:20+02:00'),
+  },
+]
 
 const maxInterval = 5 * 60000
 
@@ -106,66 +111,68 @@ setImmediate(async () => {
     },
   )
 
-  let currentFrom = fromUpdatedAt
-  let interval = 5 * 60000 // start with 5 minutes
+  for (const entry of intervals) {
+    let currentFrom = entry.from
+    let interval = 5 * 60000 // start with 5 minutes
 
-  while (currentFrom < toUpdatedAt) {
-    const currentTo = new Date(currentFrom.getTime() + interval)
-    let processed = 0
-    try {
-      await streamActivities(
-        qdbConnection,
-        async (activity) => {
-          await batchProcessor.addToBatch({
-            activityId: activity.id,
-            segmentId: activity.segmentId,
-            memberId: activity.memberId,
-            objectMemberId: activity.objectMemberId,
-            organizationId: activity.organizationId,
-            platform: activity.platform,
-            username: activity.username,
-            objectMemberUsername: activity.objectMemberUsername,
-            updatedAt: activity.updatedAt,
-          })
+    while (currentFrom < entry.to) {
+      const currentTo = new Date(currentFrom.getTime() + interval)
+      let processed = 0
+      try {
+        await streamActivities(
+          qdbConnection,
+          async (activity) => {
+            await batchProcessor.addToBatch({
+              activityId: activity.id,
+              segmentId: activity.segmentId,
+              memberId: activity.memberId,
+              objectMemberId: activity.objectMemberId,
+              organizationId: activity.organizationId,
+              platform: activity.platform,
+              username: activity.username,
+              objectMemberUsername: activity.objectMemberUsername,
+              updatedAt: activity.updatedAt,
+            })
 
-          processed++
-        },
-        `
-        "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
-      `,
-        {
-          fromUpdatedAt: currentFrom,
-          toUpdatedAt: currentTo,
-        },
-      )
+            processed++
+          },
+          `
+          "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)
+        `,
+          {
+            fromUpdatedAt: currentFrom,
+            toUpdatedAt: currentTo,
+          },
+        )
 
-      log.info(
-        `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
-      )
+        log.info(
+          `Processed ${processed} activities for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
+        )
 
-      replaceFileContent(latestUpdatedAtFile, currentTo.toISOString())
+        replaceFileContent(latestUpdatedAtFile, currentTo.toISOString())
 
-      currentFrom = currentTo
-      if (interval <= maxInterval) {
-        interval += 10000
-        log.info(`Increasing interval by 10 seconds! New interval: ${interval}`)
+        currentFrom = currentTo
+        if (interval <= maxInterval) {
+          interval += 10000
+          log.info(`Increasing interval by 10 seconds! New interval: ${interval}`)
+        }
+      } catch (err) {
+        if ((err.message as string).includes('timeout, query aborted')) {
+          interval = 5000
+          totalProcessed -= processed
+          log.info(`Timeout, reducing interval to 5 seconds!`)
+        } else {
+          log.error(err, 'Error while processing activities!')
+          throw err
+        }
       }
-    } catch (err) {
-      if ((err.message as string).includes('timeout, query aborted')) {
-        interval = 5000
-        totalProcessed -= processed
-        log.info(`Timeout, reducing interval to 5 seconds!`)
-      } else {
-        log.error(err, 'Error while processing activities!')
-        throw err
-      }
-    }
 
-    if (interval <= 0) {
-      log.error(
-        `Interval is 0, breaking...! From: ${currentFrom.toISOString()} To: ${currentTo.toISOString()}`,
-      )
-      break
+      if (interval <= 0) {
+        log.error(
+          `Interval is 0, breaking...! From: ${currentFrom.toISOString()} To: ${currentTo.toISOString()}`,
+        )
+        break
+      }
     }
   }
 })

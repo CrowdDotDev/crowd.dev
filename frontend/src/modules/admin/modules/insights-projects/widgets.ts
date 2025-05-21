@@ -33,6 +33,7 @@ export const WIDGETS_GROUPS = [
     name: 'Development',
     widgets: [
       { name: 'Issues resolution', key: 'issuesResolution' },
+      { name: 'Commit activities', key: 'commitActivities' },
       { name: 'Pull requests', key: 'pullRequests' },
       { name: 'Active days', key: 'activeDays' },
       {

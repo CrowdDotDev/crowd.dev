@@ -1,0 +1,16 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `memberId` String `json:$.record.memberId`,
+    `platform` String `json:$.record.platform`,
+    `value` String `json:$.record.value`,
+    `sourceId` String `json:$.record.sourceId` DEFAULT '',
+    `integrationId` String `json:$.record.integrationId` DEFAULT '',
+    `type` String `json:$.record.type`,
+    `verified` UInt8 `json:$.record.verified`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY integrationId, memberId, id
+ENGINE_VER updatedAt

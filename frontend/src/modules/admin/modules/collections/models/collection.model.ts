@@ -29,4 +29,5 @@ export interface CollectionFormModel {
   type: string | null;
   categoryId: string | null;
   projects: InsightsProjectModel[];
+  starred: boolean;
 }

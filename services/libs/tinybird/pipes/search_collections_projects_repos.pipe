@@ -23,6 +23,11 @@ SQL >
         insightsProjects_filtered.slug as "projectSlug",
         insightsProjects_filtered.name
     from insightsProjects_filtered
+    where
+        not (
+            insightsProjects_filtered."organizationCount" = 0
+            and insightsProjects_filtered."contributorCount" = 0
+        )
     order by insightsProjects_filtered.contributorCount desc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
     union all
