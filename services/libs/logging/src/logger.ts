@@ -22,7 +22,7 @@ export const getServiceLogger = (): Logger => {
   const options = {
     name: SERVICE,
     level: LOG_LEVEL as Bunyan.LogLevel,
-    stream: IS_DEV_ENV || IS_TEST_ENV ? PRETTY_FORMAT : JSON_FORMAT,
+    stream: IS_DEV_ENV || IS_TEST_ENV || SERVICE === 'script' ? PRETTY_FORMAT : JSON_FORMAT,
   }
 
   serviceLoggerInstance = Bunyan.createLogger(options as unknown as Bunyan.LoggerOptions)
