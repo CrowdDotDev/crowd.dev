@@ -60,7 +60,7 @@
 
         <!-- Source ID -->
         <app-form-item
-          v-if="form.type === 'LF'"
+          v-if="form.type === ProjectType.LF"
           label="Source ID"
           class="mb-6"
           :required="true"
@@ -74,7 +74,7 @@
 
         <!-- Status -->
         <app-form-item
-          v-if="form.type === 'LF'"
+          v-if="form.type === ProjectType.LF"
           label="Status"
           class="mb-6"
           :required="true"
@@ -152,6 +152,11 @@ import LfField from '@/ui-kit/field/Field.vue';
 import LfRadio from '@/ui-kit/radio/Radio.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 
+const enum ProjectType {
+  LF = 'LF',
+  NON_LF = 'nonLF',
+}
+
 const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void }>();
 
 const props = defineProps<{
@@ -171,7 +176,7 @@ const form = reactive({
   slug: '',
   sourceId: '',
   status: '',
-  type: props.isLFProject ? 'LF' : 'nonLF',
+  type: props.isLFProject ? ProjectType.LF : ProjectType.NON_LF,
   parentSlug: props.parentSlug,
 });
 
@@ -186,10 +191,10 @@ const rules = computed(() => ({
     required,
     maxLength: maxLength(50),
   },
-  slug: form.type === 'LF' ? { required } : { required, mustNotStartWithSpecial },
+  slug: form.type === ProjectType.LF ? { required } : { required, mustNotStartWithSpecial },
   type: { required },
-  sourceId: form.type === 'LF' ? { required } : {},
-  status: form.type === 'LF' ? { required } : {},
+  sourceId: form.type === ProjectType.LF ? { required } : {},
+  status: form.type === ProjectType.LF ? { required } : {},
   parentSlug: { required },
 }));
 
@@ -211,7 +216,7 @@ const isEditForm = computed(() => !!props.id);
 const fillForm = (record?: Project) => {
   if (record) {
     Object.assign(form, record);
-    form.type = record.isLF ? 'LF' : 'nonLF';
+    form.type = record.isLF ? ProjectType.LF : ProjectType.NON_LF;
   }
 
   formSnapshot();
@@ -306,7 +311,7 @@ const buildRequest = (): ProjectRequest => ({
   slug: form.slug,
   sourceId: form.sourceId,
   status: form.status,
-  isLF: form.type === 'LF',
+  isLF: form.type === ProjectType.LF,
   parentSlug: form.parentSlug,
 });
 </script>

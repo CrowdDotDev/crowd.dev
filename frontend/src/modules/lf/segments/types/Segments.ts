@@ -49,9 +49,9 @@ export interface ProjectGroup {
 
 export interface ProjectRequest {
   name: string;
-    slug: string;
-    sourceId: string;
-    status: string;
-    isLF: boolean;
-    parentSlug: string;
+  slug: string;
+  sourceId: string;
+  status: string;
+  isLF: boolean;
+  parentSlug: string;
 }
