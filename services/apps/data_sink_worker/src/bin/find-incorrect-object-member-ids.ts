@@ -91,6 +91,13 @@ setImmediate(async () => {
               const newMemberId = await findLastMemberId(dbConnection, id)
 
               if (newMemberId) {
+                await qdbConnection.result(
+                  `update activities set "objectMemberId" = $(newId) where "objectMemberId" = $(oldId)`,
+                  {
+                    newId: newMemberId,
+                    oldId: id,
+                  },
+                )
                 appendToFile('incorrect-object-member-ids.txt', `${id} -> ${newMemberId}\n`)
               } else {
                 appendToFile('incorrect-object-member-ids.txt', `${id} -> NOT FOUND!\n`)
