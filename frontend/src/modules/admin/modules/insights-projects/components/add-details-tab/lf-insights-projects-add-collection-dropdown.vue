@@ -16,7 +16,7 @@
         :value="item.id"
       />
       <el-option
-        v-if="loading && collections.length > 0"
+        v-if="isFetchingNextPage || isPending"
         :key="'loading'"
         label="Loading..."
         value=""
@@ -27,14 +27,25 @@
 </template>
 
 <script setup lang="ts">
-import { debounce } from 'lodash';
 import {
-  nextTick, onBeforeUnmount, onMounted, reactive, ref,
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
 } from 'vue';
-import { CollectionsService } from '@/modules/admin/modules/collections/services/collections.service';
+import {
+  COLLECTIONS_SERVICE,
+} from '@/modules/admin/modules/collections/services/collections.service';
 import Message from '@/shared/message/message';
-import { CollectionModel } from '../../../collections/models/collection.model';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
+import { Pagination } from '@/shared/types/Pagination';
+import { debounce } from 'lodash';
 import { InsightsProjectAddFormModel } from '../../models/insights-project-add-form.model';
+import { CollectionModel } from '../../../collections/models/collection.model';
 
 const props = defineProps<{
   form: InsightsProjectAddFormModel;
@@ -42,59 +53,68 @@ const props = defineProps<{
 
 const cForm = reactive(props.form);
 
-const loading = ref(false);
-const collections = ref<CollectionModel[]>([]);
-const page = ref(0);
-const pageSize = 20;
-const noMoreData = ref(false);
 const searchQuery = ref('');
 let scrollContainer: HTMLElement | null = null;
 
-// Your API service method
-function fetchCollections(query = '', pageNum = 0) {
-  loading.value = true;
-  CollectionsService.list({
-    filter: query
-      ? {
-        name: {
-          like: `%${query}%`,
-        },
-      }
-      : {},
-    offset: pageNum * pageSize,
-    limit: pageSize,
-  })
-    .then((res: { rows: CollectionModel[], total: string }) => {
-      const { rows } = res;
-      const selectedItems = cForm.collections;
-      if (pageNum === 0) {
-        collections.value = [...selectedItems, ...rows].reduce((acc, item) => {
-          if (!acc.find((i) => i.id === item.id)) acc.push(item);
-          return acc;
-        }, [] as CollectionModel[]);
-      } else {
-        collections.value = [...collections.value, ...rows].reduce((acc, item) => {
-          if (!acc.find((i) => i.id === item.id)) acc.push(item);
-          return acc;
-        }, [] as CollectionModel[]);
-      }
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_COLLECTIONS,
+  searchQuery.value,
+]);
+const queryFn = COLLECTIONS_SERVICE.query(() => ({
+  filter: searchQuery.value
+    ? {
+      name: {
+        like: `%${searchQuery.value}%`,
+      },
+    }
+    : {},
+  offset: 0,
+  limit: 20,
+})) as QueryFunction<Pagination<CollectionModel>, readonly unknown[], unknown>;
 
-      noMoreData.value = collections.value.length >= +res.total;
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Failed to load collections');
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-}
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<CollectionModel>, Error>({
+  queryKey,
+  queryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.total || lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
+
+const collections = computed((): CollectionModel[] => {
+  if (isSuccess.value && data.value) {
+    const selectedItems = cForm.collections;
+    const rows = data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+      [] as CollectionModel[],
+    );
+    return [...selectedItems, ...rows].reduce((acc, item) => {
+      if (!acc.find((i) => i.id === item.id)) acc.push(item);
+      return acc;
+    }, [] as CollectionModel[]);
+  }
+  return [];
+});
+
+watch(error, (err) => {
+  if (err) {
+    Message.error('Something went wrong while fetching collections');
+  }
+});
 
 // Debounced search input handler
 const debouncedSearch = debounce((query: string) => {
-  page.value = 0;
-  noMoreData.value = false;
-  fetchCollections(query, page.value);
+  searchQuery.value = query;
 }, 300);
 
 function onSearchInput(query: string) {
@@ -109,18 +129,16 @@ function onScroll(e: Event) {
 
   const target = e.target as HTMLElement;
   if (
-    !loading.value
-    && !noMoreData.value
+    !isFetchingNextPage.value
+    && hasNextPage.value
     && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
   ) {
-    page.value += 1;
-    fetchCollections(searchQuery.value, page.value);
+    fetchNextPage();
   }
 }
 
 // Attach scroll listener after dropdown renders
 onMounted(() => {
-  fetchCollections('', 0);
   nextTick(() => {
     scrollContainer = document.querySelector(
       '.collection-infinite-select-dropdown .el-select-dropdown__wrap',
@@ -145,9 +163,18 @@ export default {
 </script>
 
 <style>
-
 .collection-infinite-select-dropdown .el-select-dropdown__wrap {
   max-height: 200px;
   overflow: auto;
+}
+
+.collection-infinite-select-dropdown .el-select-dropdown__item span {
+  max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.el-select-dropdown {
+  max-width: 552px;
 }
 </style>

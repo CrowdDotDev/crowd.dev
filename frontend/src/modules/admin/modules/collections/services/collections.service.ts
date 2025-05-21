@@ -4,15 +4,6 @@ import { QueryFunction } from '@tanstack/vue-query';
 import { CollectionModel, CollectionRequest } from '../models/collection.model';
 
 export class CollectionsService {
-  static async list(query: any) {
-    const response = await authAxios.post(
-      '/collections/query',
-      query,
-    );
-
-    return response.data;
-  }
-
   query(
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<CollectionModel>> {
