@@ -61,7 +61,7 @@ setImmediate(async () => {
     } else {
       await repo.resetResults([resultId])
 
-      await service.processResult(resultId)
+      await service.processResults([{ resultId, data: result, created: true }])
     }
   }
 

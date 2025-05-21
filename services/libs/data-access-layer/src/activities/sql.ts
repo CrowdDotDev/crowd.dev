@@ -21,7 +21,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { IMemberSegmentAggregates } from '../members/types'
+import { IMemberSegmentDisplayAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
@@ -29,7 +29,7 @@ import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
-import { IDbOrganizationAggregateData } from '../organizations'
+import { IOrganizationDisplayAggregates } from '../organizations/types'
 import { QueryExecutor, formatQuery } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
@@ -621,9 +621,12 @@ export async function queryActivities(
       activities = await queryOverHttp(formatted)
       count = 0
     } else {
+      const formattedQuery = formatQuery(query, params)
+      const formattedCountQuery = formatQuery(countQuery, params)
+
       const [results, countResults] = await Promise.all([
-        qdbConn.any(query, params),
-        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(countQuery, params),
+        qdbConn.any(formattedQuery),
+        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
       ])
 
       activities = results
@@ -782,163 +785,90 @@ export async function getMostActiveMembers(
   return result
 }
 
-export async function getOrgAggregates(
+export async function fetchOrganizationDisplayAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
-): Promise<IDbOrganizationAggregateData[]> {
-  const result = await qdbConn.any(
-    `
-      WITH
-        platforms AS (
-          SELECT
-            DISTINCT
-            a."organizationId",
-            a."segmentId",
-            a.platform
-          FROM activities a
-          WHERE a."organizationId" = $(organizationId)
-        ),
-        platforms_agg AS (
-          SELECT
-            p."organizationId",
-            p."segmentId",
-            string_distinct_agg(p.platform, ':') AS "activeOn"
-          FROM platforms p
-        ),
-        activites_agg AS (
-          SELECT
-            a."organizationId",
-            a."segmentId",
-            count_distinct(a."memberId")      AS "memberCount",
-            count_distinct(a.id)              AS "activityCount",
-            max(a.timestamp)                  AS "lastActive",
-            min(a.timestamp)                  AS "joinedAt",
-            coalesce(round(avg(a.score)), 0)  AS "avgContributorEngagement"
-          FROM activities a
-          WHERE a."organizationId" = $(organizationId)
-            AND a."deletedAt" IS NULL
-          GROUP BY a."organizationId", a."segmentId"
-        )
-      SELECT
-        a."organizationId",
-        a."segmentId",
-        -- <option1>
-        MIN(a."memberCount") AS "memberCount",
-        MIN(a."activityCount") AS "activityCount",
-        MIN(a."lastActive") AS "lastActive",
-        MIN(a."joinedAt") AS "joinedAt",
-        MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        string_distinct_agg(p.platform, ':') AS "activeOn"
-        -- </option1>
-
-        -- -- <option2>
-        -- a.memberCount,
-        -- a.activityCount,
-        -- a.lastActive,
-        -- a.joinedAt,
-        -- p.activeOn
-        -- -- </option2>
-      FROM activites_agg a
-
-      -- <option1>
-      JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
-      GROUP BY a."organizationId", a."segmentId"
-      -- </option1>
-
-      -- -- <option2>
-      -- JOIN platforms_agg p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
-      -- -- </option2>
-      ;
-    `,
-    {
-      organizationId,
-    },
-  )
-
-  return result.map((r) => ({
-    organizationId,
-    segmentId: r.segmentId,
-    memberCount: parseInt(r.memberCount),
-    activityCount: parseInt(r.activityCount),
-    activeOn: r.activeOn.split(':'),
-    lastActive: r.lastActive,
-    joinedAt: r.joinedAt,
-    avgContributorEngagement: parseInt(r.avgContributorEngagement),
-  }))
-}
-
-export async function getMemberAggregates(
-  qdbConn: DbConnOrTx,
-  memberId: string,
-): Promise<IMemberSegmentAggregates[]> {
+): Promise<IOrganizationDisplayAggregates[]> {
   const results = await qdbConn.any(
     `
-    WITH
-      platforms AS (
-        SELECT
-          DISTINCT
-          a."memberId",
-          a."segmentId",
-          a.platform
+    WITH activity_agg AS (
+        SELECT 
+            a."organizationId",
+            a."segmentId",
+            max(a.timestamp) AS "lastActive",
+            min(a.timestamp) AS "joinedAt",
+            coalesce(round(avg(a.score)), 0) AS "avgContributorEngagement"
         FROM activities a
-        WHERE a."memberId" = $(memberId)
-      ),
-      activity_types AS (
-        SELECT
-          DISTINCT
-          a."memberId",
-          a."segmentId",
-          a.platform,
-          a.type
-        FROM activities a
-        WHERE a."memberId" = $(memberId)
-      ),
-      platforms_agg AS (
-        SELECT
-          p."memberId",
-          p."segmentId",
-          string_distinct_agg(p.platform, ':') AS "activeOn"
-        FROM platforms p
+        WHERE a."organizationId" = $(organizationId)
+        AND a."deletedAt" IS NULL
         GROUP BY 1, 2
-      ),
-      activity_types_agg AS (
-        SELECT
-          at."memberId",
-          at."segmentId",
-          string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
+    )
+    SELECT 
+        organizationId,
+        segmentId,
+        "joinedAt",
+        "lastActive",
+        "avgContributorEngagement"
+    FROM activity_agg
+    `,
+    { organizationId },
+  )
+
+  return results.map((result) => {
+    return {
+      organizationId: result.organizationId,
+      segmentId: result.segmentId,
+
+      joinedAt: result.joinedAt,
+      lastActive: result.lastActive,
+      avgContributorEngagement: parseInt(result.avgContributorEngagement),
+    }
+  })
+}
+
+export async function fetchMemberDisplayAggregates(
+  qdbConn: DbConnOrTx,
+  memberId: string,
+): Promise<IMemberSegmentDisplayAggregates[]> {
+  const results = await qdbConn.any(
+    `
+    WITH activity_types AS (
+        SELECT DISTINCT 
+            a."memberId",
+            a."segmentId",
+            a.platform,
+            a.type
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+    ),
+    activity_types_agg AS (
+        SELECT 
+            at."memberId",
+            at."segmentId",
+            string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
         FROM activity_types at
         GROUP BY 1, 2
-      ),
-      activites_agg AS (
-        SELECT
-          a."memberId",
-          a."segmentId",
-          count_distinct(a.id)              AS "activityCount",
-          max(a.timestamp)                  AS "lastActive",
-          count_distinct(date_trunc('day', a.timestamp))   AS "activeDaysCount",
-          avg(a.sentimentScore)             AS "averageSentiment"
+    ),
+    activities_agg AS (
+        SELECT 
+            a."memberId",
+            a."segmentId",
+            max(a.timestamp) AS "lastActive",
+            avg(a.sentimentScore) AS "averageSentiment"
         FROM activities a
         WHERE a."memberId" = $(memberId)
-          AND a."deletedAt" IS NULL
-        GROUP BY a."memberId", a."segmentId"
-      )
-    SELECT
-      a."memberId",
-      a."segmentId",
-
-      a.activityCount,
-      a.lastActive,
-      a.activeDaysCount,
-      a.averageSentiment,
-      '' AS "activeOn",
-      '' AS "activityTypes"
-      -- p.activeOn,
-      -- at.activityTypes
-    FROM activites_agg a
-
-    -- JOIN platforms_agg p ON p.memberId = a.memberId AND p.segmentId = a.segmentId
-    -- JOIN activity_types_agg at ON at.memberId = a.memberId AND at.segmentId = a.segmentId
-    ;
+        AND a."deletedAt" IS NULL
+        GROUP BY 1, 2
+    )
+    SELECT 
+        a."memberId",
+        a."segmentId",
+        a.lastActive as "lastActive",
+        COALESCE(a.averageSentiment, 0.0) as "averageSentiment",
+        COALESCE(at."activityTypes", '') as "activityTypes"
+    FROM activities_agg a
+    LEFT JOIN activity_types_agg at 
+        ON at.memberId = a.memberId AND at.segmentId = a.segmentId;
     `,
     {
       memberId,
@@ -949,13 +879,10 @@ export async function getMemberAggregates(
     return {
       memberId: result.memberId,
       segmentId: result.segmentId,
-      // --
-      activityCount: parseInt(result.activityCount),
-      lastActive: result.lastActive,
-      activeDaysCount: result.activeDaysCount,
+
+      lastActive: result.lastActive || null,
       averageSentiment: parseFloat(result.averageSentiment),
-      activeOn: result.activeOn.split(':'),
-      activityTypes: result.activityTypes.split('|'),
+      activityTypes: result.activityTypes ? result.activityTypes.split('|') : [],
     }
   })
 }
@@ -1428,146 +1355,196 @@ export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): P
 
 export async function createOrUpdateRelations(
   qe: QueryExecutor,
-  data: IActivityRelationCreateOrUpdateData,
+  relations: IActivityRelationCreateOrUpdateData[],
   skipChecks = false,
 ): Promise<void> {
-  if (data.username === undefined || data.username === null) {
+  if (relations.length === 0) {
     return
   }
 
-  if (data.platform === undefined || data.platform === null) {
-    return
-  }
+  const params: Record<string, string> = {}
+  let index = 0
 
-  if (data.segmentId === undefined || data.segmentId === null) {
-    return
-  }
+  const valueList: string[] = []
+  for (const data of relations) {
+    if (data.username === undefined || data.username === null) {
+      continue
+    }
 
-  if (!skipChecks) {
-    // check objectMember exists
-    if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
-      let objectMember = await qe.select(
+    if (data.platform === undefined || data.platform === null) {
+      continue
+    }
+
+    if (data.segmentId === undefined || data.segmentId === null) {
+      continue
+    }
+
+    if (!skipChecks) {
+      // check objectMember exists
+      if (data.objectMemberId !== undefined && data.objectMemberId !== null) {
+        let objectMember = await qe.select(
+          `
+      SELECT id
+      FROM members
+      WHERE id = $(objectMemberId)
+    `,
+          {
+            objectMemberId: data.objectMemberId,
+          },
+        )
+
+        if (objectMember.length === 0) {
+          if (data.objectMemberUsername && data.platform) {
+            objectMember = await qe.select(
+              `
+          SELECT "memberId"
+          FROM "memberIdentities"
+          WHERE value = $(value) and platform = $(platform) and verified = true
+          limit 1
+        `,
+              {
+                value: data.objectMemberUsername,
+                platform: data.platform,
+              },
+            )
+
+            if (objectMember.length === 0) {
+              data.objectMemberId = null
+            } else {
+              data.objectMemberId = objectMember[0].memberId
+            }
+          } else {
+            data.objectMemberId = null
+          }
+        }
+      }
+
+      // check conversation exists
+      if (data.conversationId !== undefined && data.conversationId !== null) {
+        const conversation = await qe.select(
+          `
+      SELECT id
+      FROM conversations
+      WHERE id = $(conversationId)
+    `,
+          {
+            conversationId: data.conversationId,
+          },
+        )
+
+        if (conversation.length === 0) {
+          data.conversationId = null
+        }
+      }
+
+      // check segmentId exists
+      const segment = await qe.select(
         `
-    SELECT id
-    FROM members
-    WHERE id = $(objectMemberId)
-  `,
+      SELECT id
+      FROM segments
+      WHERE id = $(segmentId)
+    `,
         {
-          objectMemberId: data.objectMemberId,
+          segmentId: data.segmentId,
         },
       )
 
-      if (objectMember.length === 0) {
-        if (data.objectMemberUsername && data.platform) {
-          objectMember = await qe.select(
-            `
+      if (segment.length === 0) {
+        // segment not found, skip adding this activity relation
+        continue
+      }
+
+      // check member exists
+      let member = await qe.select(
+        `
+      SELECT id
+      FROM members
+      WHERE id = $(memberId)
+    `,
+        {
+          memberId: data.memberId,
+        },
+      )
+
+      if (member.length === 0) {
+        // find member using identity
+        member = await qe.select(
+          `
         SELECT "memberId"
         FROM "memberIdentities"
         WHERE value = $(value) and platform = $(platform) and verified = true
         limit 1
       `,
-            {
-              value: data.objectMemberUsername,
-              platform: data.platform,
-            },
-          )
-
-          if (objectMember.length === 0) {
-            data.objectMemberId = null
-          } else {
-            data.objectMemberId = objectMember[0].memberId
-          }
+          {
+            value: data.username,
+            platform: data.platform,
+          },
+        )
+        if (member.length === 0) {
+          // member not found, skip adding this activity relation
+          continue
         } else {
-          data.objectMemberId = null
+          data.memberId = member[0].memberId
+        }
+      }
+
+      if (data.organizationId !== undefined && data.organizationId !== null) {
+        const organization = await qe.select(
+          `
+        SELECT id
+        FROM organizations
+        WHERE id = $(organizationId)
+      `,
+          {
+            organizationId: data.organizationId,
+          },
+        )
+
+        if (organization.length === 0) {
+          data.organizationId = null
         }
       }
     }
 
-    // check conversation exists
-    if (data.conversationId !== undefined && data.conversationId !== null) {
-      const conversation = await qe.select(
-        `
-    SELECT id
-    FROM conversations
-    WHERE id = $(conversationId)
-  `,
-        {
-          conversationId: data.conversationId,
-        },
-      )
+    const activityIdParam = `activityId_${index++}`
+    const memberIdParam = `memberId_${index++}`
+    const objectMemberIdParam = `objectMemberId_${index++}`
+    const organizationIdParam = `organizationId_${index++}`
+    const conversationIdParam = `conversationId_${index++}`
+    const parentIdParam = `parentId_${index++}`
+    const segmentIdParam = `segmentId_${index++}`
+    const platformParam = `platform_${index++}`
+    const usernameParam = `username_${index++}`
+    const objectMemberUsernameParam = `objectMemberUsername_${index++}`
 
-      if (conversation.length === 0) {
-        data.conversationId = null
-      }
-    }
+    params[activityIdParam] = data.activityId
+    params[memberIdParam] = data.memberId
+    params[objectMemberIdParam] = data.objectMemberId ?? null
+    params[organizationIdParam] = data.organizationId ?? null
+    params[conversationIdParam] = data.conversationId ?? null
+    params[parentIdParam] = data.parentId ?? null
+    params[segmentIdParam] = data.segmentId
+    params[platformParam] = data.platform
+    params[usernameParam] = data.username
+    params[objectMemberUsernameParam] = data.objectMemberUsername ?? null
 
-    // check segmentId exists
-    const segment = await qe.select(
+    valueList.push(
       `
-    SELECT id
-    FROM segments
-    WHERE id = $(segmentId)
-  `,
-      {
-        segmentId: data.segmentId,
-      },
+        (
+          $(${activityIdParam}), 
+          $(${memberIdParam}), 
+          $(${objectMemberIdParam}), 
+          $(${organizationIdParam}), 
+          $(${conversationIdParam}), 
+          $(${parentIdParam}), 
+          $(${segmentIdParam}), 
+          $(${platformParam}), 
+          $(${usernameParam}), 
+          $(${objectMemberUsernameParam}), 
+          now(), 
+          now()
+        )`,
     )
-
-    if (segment.length === 0) {
-      // segment not found, skip adding this activity relation
-      return
-    }
-
-    // check member exists
-    let member = await qe.select(
-      `
-    SELECT id
-    FROM members
-    WHERE id = $(memberId)
-  `,
-      {
-        memberId: data.memberId,
-      },
-    )
-
-    if (member.length === 0) {
-      // find member using identity
-      member = await qe.select(
-        `
-      SELECT "memberId"
-      FROM "memberIdentities"
-      WHERE value = $(value) and platform = $(platform) and verified = true
-      limit 1
-    `,
-        {
-          value: data.username,
-          platform: data.platform,
-        },
-      )
-      if (member.length === 0) {
-        // member not found, skip adding this activity relation
-        return
-      } else {
-        data.memberId = member[0].memberId
-      }
-    }
-
-    if (data.organizationId !== undefined && data.organizationId !== null) {
-      const organization = await qe.select(
-        `
-      SELECT id
-      FROM organizations
-      WHERE id = $(organizationId)
-    `,
-        {
-          organizationId: data.organizationId,
-        },
-      )
-
-      if (organization.length === 0) {
-        data.organizationId = null
-      }
-    }
   }
 
   await qe.result(
@@ -1585,21 +1562,8 @@ export async function createOrUpdateRelations(
             "objectMemberUsername",
             "createdAt", 
             "updatedAt")
-    VALUES
-        (
-            $(activityId), 
-            $(memberId), 
-            $(objectMemberId),
-            $(organizationId),
-            $(conversationId),
-            $(parentId),
-            $(segmentId),
-            $(platform),
-            $(username),
-            $(objectMemberUsername),
-            now(), 
-            now()
-        )
+    VALUES ${valueList.join(',')}
+
     ON CONFLICT ("activityId") 
     DO UPDATE 
     SET 
@@ -1612,18 +1576,7 @@ export async function createOrUpdateRelations(
         "objectMemberUsername" = EXCLUDED."objectMemberUsername";
 
     `,
-    {
-      activityId: data.activityId,
-      memberId: data.memberId,
-      segmentId: data.segmentId,
-      objectMemberId: data.objectMemberId ?? null,
-      organizationId: data.organizationId ?? null,
-      conversationId: data.conversationId ?? null,
-      parentId: data.parentId ?? null,
-      platform: data.platform,
-      username: data.username,
-      objectMemberUsername: data.objectMemberUsername ?? null,
-    },
+    params,
   )
 }
 
@@ -1765,11 +1718,16 @@ export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
   cursorActivityTimestamp?: string,
   limit = 100,
+  segmentIds?: string[],
 ): Promise<IActivityRelationsCreateData[]> {
-  let cursorQuery = ''
+  const conditions: string[] = [`"deletedAt" is null`]
 
   if (cursorActivityTimestamp) {
-    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
+    conditions.push('timestamp >= $(cursorActivityTimestamp)')
+  }
+
+  if (segmentIds && segmentIds.length > 0) {
+    conditions.push('"segmentId" in ($(segmentIds:csv))')
   }
 
   const query = `
@@ -1787,14 +1745,14 @@ export async function getActivityRelationsSortedByTimestamp(
       username,
       "objectMemberUsername"
     FROM activities
-    WHERE "deletedAt" IS NULL
-    ${cursorQuery}
+    WHERE ${conditions.join(' AND ')}
     ORDER BY "timestamp" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
     cursorActivityTimestamp,
+    segmentIds,
     limit,
   })
 

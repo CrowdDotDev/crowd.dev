@@ -1,5 +1,10 @@
-import { DEFAULT_TENANT_ID, generateUUIDv1, websiteNormalizer } from '@crowd/common'
-import { getServiceChildLogger } from '@crowd/logging'
+import {
+  DEFAULT_TENANT_ID,
+  UnrepeatableError,
+  generateUUIDv1,
+  websiteNormalizer,
+} from '@crowd/common'
+import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IMemberOrganization,
   IOrganization,
@@ -467,7 +472,7 @@ export async function findOrCreateOrganization(
   if (verifiedIdentities.length === 0 && !data.displayName) {
     const message = `Missing organization identity or displayName while creating/updating organization!`
     log.error(data, message)
-    throw new Error(message)
+    throw new UnrepeatableError(message)
   }
 
   try {
@@ -486,11 +491,19 @@ export async function findOrCreateOrganization(
     let existing
     // find existing org by sent verified identities
     for (const identity of verifiedIdentities) {
-      existing = await findOrgByVerifiedIdentity(qe, identity)
+      existing = await logExecutionTimeV2(
+        async () => findOrgByVerifiedIdentity(qe, identity),
+        log,
+        'organizationService -> findOrCreateOrganization -> findOrgByVerifiedIdentity',
+      )
 
       if (!existing && identity.type === OrganizationIdentityType.PRIMARY_DOMAIN) {
         // if primary domain isn't found in the incoming platform, check if the domain exists in any platform
-        existing = await findOrgByVerifiedDomain(qe, identity)
+        existing = await logExecutionTimeV2(
+          async () => findOrgByVerifiedDomain(qe, identity),
+          log,
+          'organizationService -> findOrCreateOrganization -> findOrgByVerifiedDomain',
+        )
       }
       if (existing) {
         break
@@ -498,7 +511,11 @@ export async function findOrCreateOrganization(
     }
 
     if (!existing) {
-      existing = await findOrgByName(qe, data.displayName)
+      existing = await logExecutionTimeV2(
+        async () => findOrgByName(qe, data.displayName),
+        log,
+        'organizationService -> findOrCreateOrganization -> findOrgByName',
+      )
     }
 
     let id
@@ -513,7 +530,11 @@ export async function findOrCreateOrganization(
     if (existing) {
       log.trace(`Found existing organization, organization will be updated!`)
 
-      const existingAttributes = await findOrgAttributes(qe, existing.id)
+      const existingAttributes = await logExecutionTimeV2(
+        async () => findOrgAttributes(qe, existing.id),
+        log,
+        'organizationService -> findOrCreateOrganization -> findOrgAttributes',
+      )
 
       const processed = prepareOrganizationData(data, source, existing, existingAttributes)
 
@@ -521,13 +542,29 @@ export async function findOrCreateOrganization(
 
       if (Object.keys(processed.organization).length > 0) {
         log.info({ orgId: existing.id }, `Updating organization!`)
-        await updateOrganization(qe, existing.id, processed.organization)
+        await logExecutionTimeV2(
+          async () => updateOrganization(qe, existing.id, processed.organization),
+          log,
+          'organizationService -> findOrCreateOrganization -> updateOrganization',
+        )
       }
-      await upsertOrgIdentities(qe, existing.id, data.identities, integrationId)
-      await upsertOrgAttributes(qe, existing.id, processed.attributes)
+      await logExecutionTimeV2(
+        async () => upsertOrgIdentities(qe, existing.id, data.identities, integrationId),
+        log,
+        'organizationService -> findOrCreateOrganization -> upsertOrgIdentities',
+      )
+      await logExecutionTimeV2(
+        async () => upsertOrgAttributes(qe, existing.id, processed.attributes),
+        log,
+        'organizationService -> findOrCreateOrganization -> upsertOrgAttributes',
+      )
       for (const attr of processed.attributes) {
         if (attr.default) {
-          await markOrgAttributeDefault(qe, existing.id, attr)
+          await logExecutionTimeV2(
+            async () => markOrgAttributeDefault(qe, existing.id, attr),
+            log,
+            'organizationService -> findOrCreateOrganization -> markOrgAttributeDefault',
+          )
         }
       }
 
@@ -557,27 +594,44 @@ export async function findOrCreateOrganization(
       log.trace({ payload: processed }, `Creating new organization!`)
 
       // if it doesn't exists create it
-      id = await insertOrganization(qe, processed.organization)
+      id = await logExecutionTimeV2(
+        async () => insertOrganization(qe, processed.organization),
+        log,
+        'organizationService -> findOrCreateOrganization -> insertOrganization',
+      )
 
-      await upsertOrgAttributes(qe, id, processed.attributes)
+      await logExecutionTimeV2(
+        async () => upsertOrgAttributes(qe, id, processed.attributes),
+        log,
+        'organizationService -> findOrCreateOrganization -> upsertOrgAttributes',
+      )
       for (const attr of processed.attributes) {
         if (attr.default) {
-          await markOrgAttributeDefault(qe, id, attr)
+          await logExecutionTimeV2(
+            async () => markOrgAttributeDefault(qe, id, attr),
+            log,
+            'organizationService -> findOrCreateOrganization -> markOrgAttributeDefault',
+          )
         }
       }
 
       // create identities
       for (const i of data.identities) {
         // add the identity
-        await addOrgIdentity(qe, {
-          organizationId: id,
-          platform: i.platform,
-          type: i.type,
-          value: i.value,
-          verified: i.verified,
-          sourceId: i.sourceId,
-          integrationId,
-        })
+        await logExecutionTimeV2(
+          async () =>
+            addOrgIdentity(qe, {
+              organizationId: id,
+              platform: i.platform,
+              type: i.type,
+              value: i.value,
+              verified: i.verified,
+              sourceId: i.sourceId,
+              integrationId,
+            }),
+          log,
+          'organizationService -> findOrCreateOrganization -> addOrgIdentity',
+        )
       }
     }
 

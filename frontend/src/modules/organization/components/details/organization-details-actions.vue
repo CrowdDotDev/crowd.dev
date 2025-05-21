@@ -46,6 +46,7 @@
         </template>
 
         <lf-organization-dropdown
+          :has-segments="!!hasSegments"
           :organization="props.organization"
           @reload="emit('reload')"
           @unmerge="unmerge = props.organization"

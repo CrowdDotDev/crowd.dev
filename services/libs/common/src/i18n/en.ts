@@ -160,12 +160,27 @@ const en = {
       invalidCredentials:
         'The given credentials were found to be invalid. Please check the credentials and try again',
     },
+    groupsio: {
+      isTwoFactorRequired: 'Two-factor authentication code is required',
+      invalidCredentials: 'Invalid email or password',
+      invalid2FA: 'Invalid Two-factor authentication code',
+    },
     alreadyExists: '{0}',
+    organization: {
+      unmerge: {
+        errors: {
+          cannotExtractSingleIdentity:
+            'Original organization only has one identity, cannot extract it!',
+        },
+      },
+    },
   },
 
   merge: {
     errors: {
-      multipleMerge: 'Cannot merge suggestions - found existing merge with {0} state',
+      multiple: 'Cannot merge suggestions - found existing merge with {0} state',
+      lfxSecondary: 'Cannot merge LFX membership organization as a secondary one!',
+      noIdentities: 'Original member only has one identity, cannot extract it!',
     },
   },
 

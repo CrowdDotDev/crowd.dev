@@ -1,0 +1,15 @@
+NODE segmentIds_in_nonlf_projects
+SQL >
+    select segmentId from insightsProjects where isLF = 0 and segmentId != ''
+
+NODE members_public_names_result
+SQL >
+    select memberId, any (username) as publicName
+    from activityRelations_deduplicated_ds
+    where segmentId in (select segmentId from segmentIds_in_nonlf_projects)
+    group by memberId
+
+TYPE COPY
+TARGET_DATASOURCE members_public_names_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 * * * *

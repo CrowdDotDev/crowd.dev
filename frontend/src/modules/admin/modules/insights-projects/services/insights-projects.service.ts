@@ -1,43 +1,48 @@
 import authAxios from '@/shared/axios/auth-axios';
+import { Pagination } from '@/shared/types/Pagination';
+import { QueryFunction } from '@tanstack/vue-query';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from '../models/insights-project.model';
 
 export class InsightsProjectsService {
-  static async list(query: any) {
-    const response = await authAxios.post(
-      '/collections/insights-projects/query',
-      query,
-    );
-    return response.data;
+  query(
+    query: () => Record<string, string | number | object>,
+  ): QueryFunction<Pagination<InsightsProjectModel>> {
+    return ({ pageParam = 0 }) => authAxios
+      .post<Pagination<InsightsProjectModel>>(
+        '/collections/insights-projects/query',
+        {
+          ...query(),
+          offset: pageParam,
+        },
+      )
+      .then((res) => res.data);
   }
 
-  static async getById(id: string) {
-    const response = await authAxios.get(
+  getById(id: string) {
+    return authAxios.get<InsightsProjectModel>(
       `/collections/insights-projects/${id}`,
-    );
-    return response.data;
+    ).then((res) => res.data);
   }
 
-  static async create(request: any) {
-    const response = await authAxios.post(
-      '/collections/insights-projects',
-      request,
-    );
-    return response.data;
+  create(project: InsightsProjectRequest) {
+    return authAxios
+      .post<InsightsProjectModel>('/collections/insights-projects', project)
+      .then((res) => res.data);
   }
 
-  static async update(id: string, request: any) {
-    const response = await authAxios.post(
-      `/collections/insights-projects/${id}`,
-      request,
-    );
-    return response.data;
+  update(id: string, project: InsightsProjectRequest) {
+    return authAxios
+      .post<InsightsProjectModel>(`/collections/insights-projects/${id}`, project)
+      .then((res) => res.data);
   }
 
-  static async delete(collectionId: string) {
-    const response = await authAxios.delete(
-      `/collections/insights-projects/${collectionId}`,
-    );
-
-    return response.data;
+  delete(id: string) {
+    return authAxios
+      .delete(`/collections/insights-projects/${id}`)
+      .then((res) => res.data);
   }
 
   static async querySubProjects(query: any) {
@@ -53,3 +58,4 @@ export class InsightsProjectsService {
     return response.data;
   }
 }
+export const INSIGHTS_PROJECTS_SERVICE = new InsightsProjectsService();

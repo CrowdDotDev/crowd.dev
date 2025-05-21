@@ -4,7 +4,7 @@ SQL >
     SELECT "segmentId" as id, repositories
     FROM insightsProjects FINAL
     where
-        insightsProjects.enable
+        insightsProjects.enabled
         {% if defined(project) %}
             AND slug = {{ String(project, description="Filter by project slug", required=True) }}
         {% else %} AND false
