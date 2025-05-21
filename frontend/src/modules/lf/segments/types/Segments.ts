@@ -44,6 +44,7 @@ export interface ProjectGroup {
   createdAt: string;
   updatedAt: string;
   projects: Project[];
+  isLF: boolean;
 }
 
 export interface ProjectRequest {

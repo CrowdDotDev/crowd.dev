@@ -126,6 +126,7 @@
       :id="projectForm.id"
       v-model="isProjectFormDrawerOpen"
       :parent-slug="projectGroupForm.slug"
+      :is-l-f-project="projectGroupForm.isLF"
     />
 
     <app-lf-sub-project-form
@@ -185,6 +186,7 @@ const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
   slug: null,
   name: null,
+  isLF: true,
 });
 const projectForm = reactive({
   id: null,
