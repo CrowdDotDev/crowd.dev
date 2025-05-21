@@ -89,8 +89,10 @@ setImmediate(async () => {
         await streamQuery(
           qdbConnection,
           async (row: { organizationId: string }) => {
-            await batchProcessor.addToBatch(row.organizationId)
-            processed++
+            if (row && row.organizationId && row.organizationId !== 'null') {
+              await batchProcessor.addToBatch(row.organizationId)
+              processed++
+            }
           },
           `select distinct "organizationId" from activities where "deletedAt" is null and "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)`,
           {
