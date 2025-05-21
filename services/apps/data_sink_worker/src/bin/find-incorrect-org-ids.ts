@@ -2,7 +2,6 @@ import fs from 'fs'
 
 import { BatchProcessor } from '@crowd/common'
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { streamQuery } from '@crowd/data-access-layer/src/utils'
 import { getServiceLogger } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 
@@ -84,7 +83,7 @@ setImmediate(async () => {
 
     while (currentFrom < entry.to) {
       const currentTo = new Date(currentFrom.getTime() + interval)
-      const processed = 0
+      let processed = 0
       try {
         const results = await qdbConnection.any(
           `select distinct "organizationId" from activities where "deletedAt" is null and "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)`,
@@ -97,11 +96,12 @@ setImmediate(async () => {
         for (const { organizationId } of results) {
           if (organizationId && organizationId !== 'null') {
             await batchProcessor.addToBatch(organizationId)
+            processed++
           }
         }
 
         log.info(
-          `Processed ${processed} distinct org ids for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
+          `Processed ${processed} org ids for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
         )
 
         currentFrom = currentTo
@@ -127,4 +127,7 @@ setImmediate(async () => {
       }
     }
   }
+
+  log.info(`Found ${incorrectOrgIds.length} incorrect org ids!`)
+  process.exit(0)
 })
