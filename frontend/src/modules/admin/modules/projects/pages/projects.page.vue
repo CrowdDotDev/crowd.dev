@@ -132,6 +132,7 @@
       v-if="isSubProjectFormDrawerOpen"
       :id="subProjectForm.id"
       v-model="isSubProjectFormDrawerOpen"
+      :is-l-f-project="projectForm.isLF"
       :parent-slug="projectForm.slug"
       :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
@@ -188,6 +189,7 @@ const projectGroupForm = reactive({
 const projectForm = reactive({
   id: null,
   slug: null,
+  isLF: true,
 });
 const subProjectForm = reactive({
   id: null,
@@ -252,10 +254,11 @@ const onEditSubProject = (id, parentSlug) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-const onAddSubProject = ({ slug, id }) => {
+const onAddSubProject = ({ slug, id, isLF }) => {
   subProjectForm.id = null;
   projectForm.id = id;
   projectForm.slug = slug;
+  projectForm.isLF = isLF;
   isSubProjectFormDrawerOpen.value = true;
 };
 
