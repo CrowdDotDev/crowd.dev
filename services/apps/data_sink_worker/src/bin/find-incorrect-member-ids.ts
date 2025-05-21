@@ -34,11 +34,11 @@ function appendToFile(filePath: string, content: string): void {
   fs.appendFileSync(filePath, content)
 }
 
-const checkedOrgIds: string[] = []
-const incorrectOrgIds: string[] = []
+const checkedIds: string[] = []
+const incorrectIds: string[] = []
 
 setImmediate(async () => {
-  createOrRecreateFile('incorrect-org-ids.txt')
+  createOrRecreateFile('incorrect-member-ids.txt')
 
   const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
   const qdbConnection = await getClientSQL()
@@ -48,23 +48,23 @@ setImmediate(async () => {
     10,
     async (batch) => {
       if (batch.length > 0) {
-        const newOrgIds = batch.filter((orgId) => !checkedOrgIds.includes(orgId))
+        const newIds = batch.filter((orgId) => !checkedIds.includes(orgId))
 
-        if (newOrgIds.length > 0) {
-          checkedOrgIds.push(...newOrgIds)
+        if (newIds.length > 0) {
+          checkedIds.push(...newIds)
           const results = await dbConnection.any(
-            `select id from organizations where "deletedAt" is null and id in ($(ids:csv))`,
+            `select id from members where "deletedAt" is null and id in ($(ids:csv))`,
             {
-              ids: newOrgIds,
+              ids: newIds,
             },
           )
 
-          for (const orgId of newOrgIds) {
-            const existing = results.find((row) => row.id === orgId)
+          for (const id of newIds) {
+            const existing = results.find((row) => row.id === id)
 
             if (!existing) {
-              incorrectOrgIds.push(orgId)
-              appendToFile('incorrect-org-ids.txt', orgId + '\n')
+              incorrectIds.push(id)
+              appendToFile('incorrect-member-ids.txt', id + '\n')
             }
           }
         }
@@ -84,22 +84,22 @@ setImmediate(async () => {
       let processed = 0
       try {
         const results = await qdbConnection.any(
-          `select distinct "organizationId" from activities where "deletedAt" is null and "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)`,
+          `select distinct "memberId" from activities where "deletedAt" is null and "updatedAt" >= $(fromUpdatedAt) and "updatedAt" <= $(toUpdatedAt)`,
           {
             fromUpdatedAt: currentFrom,
             toUpdatedAt: currentTo,
           },
         )
 
-        for (const { organizationId } of results) {
-          if (organizationId && organizationId !== 'null') {
-            await batchProcessor.addToBatch(organizationId)
+        for (const { memberId } of results) {
+          if (memberId && memberId !== 'null') {
+            await batchProcessor.addToBatch(memberId)
             processed++
           }
         }
 
         log.info(
-          `Processed ${processed} org ids (${incorrectOrgIds.length} incorrect) for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
+          `Processed ${processed} member ids (${incorrectIds.length} incorrect) for period ${currentFrom.toISOString()} - ${currentTo.toISOString()}`,
         )
 
         currentFrom = currentTo
@@ -126,6 +126,6 @@ setImmediate(async () => {
     }
   }
 
-  log.info(`Found ${incorrectOrgIds.length} incorrect org ids!`)
+  log.info(`Found ${incorrectIds.length} incorrect ids!`)
   process.exit(0)
 })
