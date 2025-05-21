@@ -1,10 +1,11 @@
 import pgp from 'pg-promise'
+import QueryStream from 'pg-query-stream'
 
 import { RawQueryParser } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 
 import { QueryFilter } from './query'
-import { QueryExecutor } from './queryExecutor'
+import { QueryExecutor, formatQuery } from './queryExecutor'
 
 export function prepareBulkInsert(
   table: string,
@@ -185,4 +186,47 @@ export async function refreshMaterializedView(
   concurrently = false,
 ) {
   await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
+}
+
+export const streamQuery = async <T>(
+  db: DbConnOrTx,
+  onRow: (row: T) => Promise<void>,
+  query: string,
+  params?: Record<string, unknown>,
+): Promise<{ processed: number; duration: number }> => {
+  const queryString = formatQuery(query, params)
+  const qs = new QueryStream(queryString, [], {
+    batchSize: 1000,
+    highWaterMark: 250,
+  })
+
+  return new Promise((resolve, reject) => {
+    let processedAllRows = false
+    let streamResult = null
+
+    function tryFinish() {
+      if (processedAllRows && streamResult) {
+        resolve(streamResult)
+      }
+    }
+
+    db.stream(qs, async (stream) => {
+      try {
+        for await (const item of stream) {
+          const activity = item as T
+          await onRow(activity)
+        }
+
+        processedAllRows = true
+        tryFinish()
+      } catch (error) {
+        reject(error)
+      }
+    })
+      .then((res) => {
+        streamResult = res
+        tryFinish()
+      })
+      .catch(reject)
+  })
 }
