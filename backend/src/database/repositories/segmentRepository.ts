@@ -747,8 +747,8 @@ class SegmentRepository extends RepositoryBase<
     )
 
     const rows = subprojects
-      .map((i) => removeFieldsFromObject(i, 'totalCount'));
-    const count = subprojects.length > 0 ? +subprojects[0].totalCount : 0;
+      .map((i) => removeFieldsFromObject(i, 'totalCount'))
+    const count = subprojects.length > 0 ? +subprojects[0].totalCount : 0
     return {
       count,
       rows,
