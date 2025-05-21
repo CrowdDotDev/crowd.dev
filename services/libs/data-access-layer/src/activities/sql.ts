@@ -1594,7 +1594,7 @@ export async function updateActivityRelationsById(
 
   if (fields.length === 0) return
 
-  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "activityId" = $(activityId)`
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE "activityId" = $(activityId)`
 
   await qe.result(query, data)
 }

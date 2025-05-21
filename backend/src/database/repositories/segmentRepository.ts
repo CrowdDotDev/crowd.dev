@@ -723,7 +723,8 @@ class SegmentRepository extends RepositoryBase<
           s.name,
           s.url,
           s.slug,
-          s.description
+          s.description,
+          COUNT(*) OVER () AS "totalCount"
         FROM segments s
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
@@ -745,10 +746,10 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const rows = subprojects
-
+    const rows = subprojects.map((i) => removeFieldsFromObject(i, 'totalCount'))
+    const count = subprojects.length > 0 ? +subprojects[0].totalCount : 0
     return {
-      count: 1,
+      count,
       rows,
       limit: criteria.limit,
       offset: criteria.offset,

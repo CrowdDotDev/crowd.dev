@@ -30,7 +30,7 @@
             </span>
           </div>
           <h5 class="text-black mt-2">
-            {{ isEditForm ? "Edit project" : "Add project" }}
+            {{ isEditForm ? 'Edit project' : 'Add project' }}
           </h5>
         </div>
       </section>
@@ -104,7 +104,7 @@
         :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
-        {{ isEditForm ? "Update" : "Add project" }}
+        {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -160,7 +160,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 
-const submitLoading = ref(false);
 const insightsProject = ref<InsightsProjectModel | null>(null);
 
 const initialFormState: InsightsProjectAddFormModel = {
@@ -238,25 +237,6 @@ const { isLoading, isSuccess, data } = useQuery({
   enabled: !!props.insightsProjectId,
 });
 
-watch(
-  data,
-  () => {
-    if (isSuccess.value && data.value) {
-      insightsProject.value = data.value;
-      if (data.value.segment.id) {
-        fetchRepositories(data.value.segment.id, () => {
-          const form = buildForm(data.value!, initialFormState.repositories);
-          fillForm(form);
-        });
-      } else {
-        const form = buildForm(data.value, []);
-        fillForm(form);
-      }
-    }
-  },
-  { immediate: true },
-);
-
 const onProjectSelection = ({ project }: any) => {
   fetchRepositories(project.id, () => {
     if (!isEditForm.value) {
@@ -276,7 +256,6 @@ const onCancel = () => {
 };
 
 const onSubmit = () => {
-  submitLoading.value = true;
   const request = buildRequest({
     ...form,
   });
@@ -333,6 +312,26 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
     }
   });
 };
+
+watch(
+  data,
+  () => {
+    if (isSuccess.value && data.value) {
+      insightsProject.value = data.value;
+      if (data.value.segment.id) {
+        fetchRepositories(data.value.segment.id, () => {
+          const form = buildForm(data.value!, initialFormState.repositories);
+          fillForm(form);
+        });
+      } else {
+        const form = buildForm(data.value, []);
+        fillForm(form);
+      }
+    }
+  },
+  { immediate: true },
+);
+
 </script>
 
 <script lang="ts">
