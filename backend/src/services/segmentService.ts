@@ -57,8 +57,7 @@ export default class SegmentService extends LoggerBase {
 
       return await this.findById(id)
     } catch (error) {
-      if (error?.message.includes("must match its parent's isLF value"))
-      {
+      if (error?.message.includes("must match its parent's isLF value")) {
         // No rollback needed here, check_segment_isLF_consistency() failed at commit due to a deferred constraint.
         throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
       }

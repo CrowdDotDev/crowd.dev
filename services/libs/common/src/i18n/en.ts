@@ -1,5 +1,3 @@
-import { error } from 'console'
-
 const en = {
   app: {
     title: 'crowd.dev',
