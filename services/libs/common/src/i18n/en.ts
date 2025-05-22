@@ -29,6 +29,11 @@ const en = {
         notFound: `Activity type with key {0} is not found.`,
       },
     },
+    segments: {
+      errors: {
+        isLfNotMatchingParent: `isLF doesn't match the parent project`,
+      },
+    },
   },
 
   auth: {

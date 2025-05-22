@@ -23,6 +23,7 @@ export interface Project {
   updatedAt: string;
   subproject_count: number;
   subprojects: SubProject[];
+  isLF: boolean;
 }
 
 export interface ProjectGroup {
@@ -43,4 +44,14 @@ export interface ProjectGroup {
   createdAt: string;
   updatedAt: string;
   projects: Project[];
+  isLF: boolean;
+}
+
+export interface ProjectRequest {
+  name: string;
+  slug: string;
+  sourceId: string;
+  status: string;
+  isLF: boolean;
+  parentSlug: string;
 }
