@@ -166,6 +166,14 @@ const en = {
       invalid2FA: 'Invalid Two-factor authentication code',
     },
     alreadyExists: '{0}',
+    organization: {
+      unmerge: {
+        errors: {
+          cannotExtractSingleIdentity:
+            'Original organization only has one identity, cannot extract it!',
+        },
+      },
+    },
   },
 
   merge: {

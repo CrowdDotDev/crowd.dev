@@ -6,7 +6,7 @@ TAGS "Utility"
 NODE generate_timeseriez
 SQL >
     %
-    SELECT
+    SELECT DISTINCT
         CASE
             WHEN {{ granularity }} = 'daily'
             THEN toDate(addDays(generate_timeseries_bounds.actual_start_date, number))

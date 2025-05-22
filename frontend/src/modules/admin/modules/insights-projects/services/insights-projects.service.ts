@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
+import { Project } from '@/modules/lf/segments/types/Segments';
 import {
   InsightsProjectModel,
   InsightsProjectRequest,
@@ -22,9 +23,9 @@ export class InsightsProjectsService {
   }
 
   getById(id: string) {
-    return authAxios.get<InsightsProjectModel>(
-      `/collections/insights-projects/${id}`,
-    ).then((res) => res.data);
+    return authAxios
+      .get<InsightsProjectModel>(`/collections/insights-projects/${id}`)
+      .then((res) => res.data);
   }
 
   create(project: InsightsProjectRequest) {
@@ -35,7 +36,10 @@ export class InsightsProjectsService {
 
   update(id: string, project: InsightsProjectRequest) {
     return authAxios
-      .post<InsightsProjectModel>(`/collections/insights-projects/${id}`, project)
+      .post<InsightsProjectModel>(
+        `/collections/insights-projects/${id}`,
+        project,
+      )
       .then((res) => res.data);
   }
 
@@ -45,12 +49,18 @@ export class InsightsProjectsService {
       .then((res) => res.data);
   }
 
-  static async querySubProjects(query: any) {
-    const response = await authAxios.post(
-      '/segment/subproject/query-lite',
-      query,
-    );
-    return response.data;
+  querySubProjects(
+    query: () => Record<string, string | number | object>,
+  ): QueryFunction<Pagination<Project>> {
+    return ({ pageParam = 0 }) => authAxios
+      .post<Pagination<Project>>(
+        '/segment/subproject/query-lite',
+        {
+          ...query(),
+          offset: pageParam,
+        },
+      )
+      .then((res) => res.data);
   }
 
   static async getRepositories(segmentId: string) {
