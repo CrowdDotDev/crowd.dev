@@ -1,11 +1,17 @@
 /* eslint-disable no-continue */
-import { LoggerBase } from '@crowd/logging'
-import { IAttributes } from '@crowd/types'
 import * as lodash from 'lodash'
 
 import { captureApiChange, memberEditProfileAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
-import { fetchMemberAttributes, getMemberManuallyChangedFields, setMemberManuallyChangedFields, updateMemberAttributes } from '@crowd/data-access-layer/src/members'
+import {
+  fetchMemberAttributes,
+  getMemberManuallyChangedFields,
+  setMemberManuallyChangedFields,
+  updateMemberAttributes,
+} from '@crowd/data-access-layer/src/members'
+import { LoggerBase } from '@crowd/logging'
+import { IAttributes } from '@crowd/types'
+
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
