@@ -38,7 +38,11 @@ function appendToFile(filePath: string, content: string): void {
 const checkedIds: string[] = []
 const incorrectIds: string[] = []
 
-async function findLastMemberId(db: DbConnection, id: string): Promise<string | null> {
+async function findLastMemberId(
+  db: DbConnection,
+  qdb: DbConnection,
+  id: string,
+): Promise<string | null> {
   const data = await db.oneOrNone(
     `select * from "mergeActions" where type = 'member' and "secondaryId" = $(id) and state = 'merged' order by "updatedAt" desc limit 1`,
     { id },
@@ -52,10 +56,30 @@ async function findLastMemberId(db: DbConnection, id: string): Promise<string | 
     )
 
     if (!member) {
-      return findLastMemberId(db, data.primaryId)
+      return findLastMemberId(db, qdb, data.primaryId)
     }
 
     return member.id
+  }
+
+  // lets find an activity and then the member by identity
+
+  const activity = await qdb.oneOrNone(
+    `select * from activities where "objectMemberId" = $(id) and "deletedAt" is null limit 1`,
+    { id },
+  )
+
+  if (activity) {
+    const data = await db.oneOrNone(
+      `select * from "memberIdentities" where platform = $(platform) and type = 'username' and verified = true and value = $(username) limit 1`,
+      {
+        platform: activity.platform,
+        value: activity.objectMemberUsername,
+      },
+    )
+    if (data) {
+      return data.memberId
+    }
   }
 
   return null
@@ -88,7 +112,7 @@ setImmediate(async () => {
 
             if (!existing) {
               incorrectIds.push(id)
-              const newMemberId = await findLastMemberId(dbConnection, id)
+              const newMemberId = await findLastMemberId(dbConnection, qdbConnection, id)
 
               if (newMemberId) {
                 await qdbConnection.result(
