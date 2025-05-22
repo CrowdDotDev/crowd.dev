@@ -609,9 +609,13 @@ export default class MemberService extends LoggerBase {
       if (manuallyChangedFields.length > 0) {
         const prefix = 'attributes.'
 
-        const manuallyChangedAttributes = manuallyChangedFields
-          .filter((f) => f.startsWith(prefix))
-          .map((f) => f.slice(prefix.length))
+        const manuallyChangedAttributes = [
+          ...new Set(
+            manuallyChangedFields
+              .filter((f) => f.startsWith(prefix))
+              .map((f) => f.slice(prefix.length)),
+          ),
+        ]
 
         // Preserve manually changed attributes
         for (const key of manuallyChangedAttributes) {
