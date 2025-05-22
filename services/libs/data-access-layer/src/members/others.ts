@@ -82,3 +82,38 @@ export async function updateMemberReach(
 export async function touchMemberUpdatedAt(qx: QueryExecutor, memberId: string): Promise<void> {
   return qx.result(`UPDATE members SET "updatedAt" = NOW() WHERE id = $(memberId)`, { memberId })
 }
+
+export async function getMemberManuallyChangedFields(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<string[]> {
+  return qx.select(
+    `
+      SELECT "manuallyChangedFields"
+      FROM "members"
+      WHERE "id" = $(memberId)
+      LIMIT 1;
+    `,
+    {
+      memberId,
+    },
+  )
+}
+
+export async function setMemberManuallyChangedFields(
+  qx: QueryExecutor,
+  memberId: string,
+  fields: string[],
+): Promise<void> {
+  return qx.result(
+    `
+      UPDATE "members"
+      SET "manuallyChangedFields" = $(fields)
+      WHERE "id" = $(memberId)
+    `,
+    {
+      memberId,
+      fields,
+    },
+  )
+}
