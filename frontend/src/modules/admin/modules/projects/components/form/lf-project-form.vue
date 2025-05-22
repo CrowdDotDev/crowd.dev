@@ -3,7 +3,7 @@
     v-model="model"
     has-border
     :title="isEditForm ? 'Edit project' : 'Add project'"
-    :size="480"
+    :size="600"
     @close="model = false"
   >
     <template #content>
@@ -13,6 +13,19 @@
         class="app-page-spinner h-16 !relative !min-h-5"
       />
       <div v-else>
+        <lf-field class="mb-6" :required="true">
+          <div class="flex items-center pt-2">
+            <lf-radio v-model="form.type" value="LF" class="mr-4">
+              <div class="flex items-center">
+                <lf-svg name="lfx" class="w-5 h-4 mr-1 flex items-center" />
+                Linux Foundation project
+              </div>
+            </lf-radio>
+            <lf-radio v-model="form.type" value="nonLF" class="mr-4">
+              Non-Linux Foundation project
+            </lf-radio>
+          </div>
+        </lf-field>
         <!-- Name -->
         <app-form-item
           label="Name"
@@ -39,13 +52,19 @@
           :validation="$v.slug"
           :error-messages="{
             required: 'Slug is required',
+            mustNotStartWithSpecial: 'Cannot start with %, #, or !',
           }"
         >
-          <el-input v-model="form.slug" placeholder="E.g. kubernetes" />
+          <el-input
+            v-model="form.slug"
+            placeholder="E.g. kubernetes"
+            @blur="$v.slug.$touch"
+          />
         </app-form-item>
 
         <!-- Source ID -->
         <app-form-item
+          v-if="form.type === ProjectType.LF"
           label="Source ID"
           class="mb-6"
           :required="true"
@@ -59,6 +78,7 @@
 
         <!-- Status -->
         <app-form-item
+          v-if="form.type === ProjectType.LF"
           label="Status"
           class="mb-6"
           :required="true"
@@ -105,7 +125,7 @@
         :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
-        {{ isEditForm ? "Update" : "Add project" }}
+        {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -127,19 +147,30 @@ import {
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { Project } from '@/modules/lf/segments/types/Segments';
+import { Project, ProjectRequest } from '@/modules/lf/segments/types/Segments';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 import Message from '@/shared/message/message';
+import LfField from '@/ui-kit/field/Field.vue';
+import LfRadio from '@/ui-kit/radio/Radio.vue';
+import LfSvg from '@/shared/svg/svg.vue';
+import { AxiosError } from 'axios';
+
+const enum ProjectType {
+  LF = 'LF',
+  NON_LF = 'nonLF',
+}
 
 const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
+  (e: 'onSuccess'): void;
 }>();
 
 const props = defineProps<{
   modelValue: boolean;
   id?: string | null;
   parentSlug: string;
+  isLFProject?: boolean;
 }>();
 
 const route = useRoute();
@@ -152,19 +183,30 @@ const form = reactive({
   slug: '',
   sourceId: '',
   status: '',
+  type: props.isLFProject ? ProjectType.LF : ProjectType.NON_LF,
   parentSlug: props.parentSlug,
 });
 
-const rules = {
+// Custom prefix validator
+const mustNotStartWithSpecial = (value: string) => {
+  if (!value) return true;
+  return !/^[%#!]/.test(value);
+};
+
+const rules = computed(() => ({
   name: {
     required,
     maxLength: maxLength(50),
   },
-  slug: { required },
-  sourceId: { required },
-  status: { required },
+  slug:
+    form.type === ProjectType.LF
+      ? { required }
+      : { required, mustNotStartWithSpecial },
+  type: { required },
+  sourceId: form.type === ProjectType.LF ? { required } : {},
+  status: form.type === ProjectType.LF ? { required } : {},
   parentSlug: { required },
-};
+}));
 
 const $v = useVuelidate(rules, form);
 
@@ -184,6 +226,7 @@ const isEditForm = computed(() => !!props.id);
 const fillForm = (record?: Project) => {
   if (record) {
     Object.assign(form, record);
+    form.type = record.isLF ? ProjectType.LF : ProjectType.NON_LF;
   }
 
   formSnapshot();
@@ -224,22 +267,24 @@ const onSuccess = () => {
     queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
   });
   Message.success(`Project ${props.id ? 'updated' : 'created'} successfully`);
+  emit('onSuccess');
 };
 
-const onError = () => {
+const onError = (error: AxiosError) => {
   Message.error(
-    `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
+    error?.response?.data ? error.response.data
+      : `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
   );
 };
 
 const updateMutation = useMutation({
-  mutationFn: ({ id, form }: { id: string; form: Project }) => segmentService.updateSegment(id, form),
+  mutationFn: ({ id, project }: { id: string; project: ProjectRequest }) => segmentService.updateSegment(id, project),
   onSuccess,
   onError,
 });
 
 const createMutation = useMutation({
-  mutationFn: (req: { project: Project; segments: string[] }) => segmentService.createProject(req),
+  mutationFn: (req: { project: ProjectRequest; segments: string[] }) => segmentService.createProject(req),
   onSuccess,
   onError,
 });
@@ -258,7 +303,7 @@ const onSubmit = () => {
     });
     updateMutation.mutate({
       id: props.id!,
-      form: form as Project,
+      project: buildRequest(),
     });
   } else {
     trackEvent({
@@ -267,11 +312,20 @@ const onSubmit = () => {
     });
 
     createMutation.mutate({
-      project: form as Project,
+      project: buildRequest(),
       segments: [route.params.id as string],
     });
   }
 };
+
+const buildRequest = (): ProjectRequest => ({
+  name: form.name,
+  slug: form.slug,
+  sourceId: form.sourceId,
+  status: form.status,
+  isLF: form.type === ProjectType.LF,
+  parentSlug: form.parentSlug,
+});
 </script>
 
 <script lang="ts">

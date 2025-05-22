@@ -39,16 +39,15 @@
           :validation="$v.slug"
           :error-messages="{
             required: 'Slug is required',
+            mustNotStartWithSpecial: 'Cannot start with %, #, or !',
           }"
         >
-          <el-input
-            v-model="form.slug"
-            placeholder="E.g. kubernetes"
-          />
+          <el-input v-model="form.slug" placeholder="E.g. kubernetes" @blur="$v.slug.$touch()" />
         </app-form-item>
 
         <!-- Source ID -->
         <app-form-item
+          v-if="isLFProject"
           label="Source ID"
           class="mb-6"
           :required="true"
@@ -57,13 +56,12 @@
             required: 'Source ID is required',
           }"
         >
-          <el-input
-            v-model="form.sourceId"
-          />
+          <el-input v-model="form.sourceId" />
         </app-form-item>
 
         <!-- Status -->
         <app-form-item
+          v-if="isLFProject"
           label="Status"
           class="mb-6"
           :required="true"
@@ -85,7 +83,10 @@
               :value="status.value"
             >
               <div class="flex items-center gap-3">
-                <span class="w-1.5 h-1.5 rounded-full" :class="status.color" />{{ status.label }}
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="status.color"
+                />{{ status.label }}
               </div>
             </el-option>
           </el-select>
@@ -113,7 +114,7 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
 import { required, maxLength } from '@vuelidate/validators';
@@ -124,45 +125,39 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import statusOptions from '@/modules/lf/config/status';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { SubProject } from '@/modules/lf/segments/types/Segments';
 
-const emit = defineEmits(['update:modelValue']);
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean;
+    id?: string | null;
+    isLFProject?: boolean;
+    parentSlug?: string | null;
+    parentId?: string | null;
+    grandparentSlug?: string | null;
+    grandparentId?: string | null;
+  }>(),
+  {
+    id: null,
+    isLFProject: true,
+    parentSlug: null,
+    parentId: null,
+    grandparentSlug: null,
+    grandparentId: null,
   },
-  id: {
-    type: String,
-    default: () => null,
-  },
-  parentSlug: {
-    type: String,
-    default: () => null,
-  },
-  parentId: {
-    type: String,
-    default: () => null,
-  },
-  grandparentSlug: {
-    type: String,
-    default: () => null,
-  },
-  grandparentId: {
-    type: String,
-    default: () => null,
-  },
-});
+);
 
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'onSuccess'): void
+}>();
 const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
-const {
-  createSubProject,
-  updateSubProject,
-  findSubProject,
-} = lsSegmentsStore;
+const { createSubProject, updateSubProject, findSubProject } = lsSegmentsStore;
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -171,18 +166,27 @@ const form = reactive({
   slug: '',
   sourceId: '',
   status: '',
+  isLF: props.isLFProject,
   parentSlug: props.parentSlug,
   grandparentSlug: props.grandparentSlug,
 });
+
+// Custom prefix validator
+const mustNotStartWithSpecial = (value: string) => {
+  if (!value) return true;
+  return !/^[%#!]/.test(value);
+};
 
 const rules = {
   name: {
     required,
     maxLength: maxLength(50),
   },
-  slug: { required },
-  sourceId: { required },
-  status: { required },
+  slug: props.isLFProject
+    ? { required }
+    : { required, mustNotStartWithSpecial },
+  sourceId: props.isLFProject ? { required } : {},
+  status: props.isLFProject ? { required } : {},
   parentSlug: { required },
   grandparentSlug: { required },
 };
@@ -202,7 +206,7 @@ const model = computed({
 
 const isEditForm = computed(() => !!props.id);
 
-const fillForm = (record) => {
+const fillForm = (record?: SubProject) => {
   if (record) {
     Object.assign(form, record);
   }
@@ -239,11 +243,10 @@ const onSubmit = () => {
       type: EventType.FEATURE,
     });
 
-    updateSubProject(props.id, form)
-      .finally(() => {
-        submitLoading.value = false;
-        model.value = false;
-      });
+    updateSubProject(props.id, form).then(() => emit('onSuccess')).finally(() => {
+      submitLoading.value = false;
+      model.value = false;
+    });
   } else {
     trackEvent({
       key: FeatureEventKey.ADD_SUB_PROJECT,
@@ -253,16 +256,15 @@ const onSubmit = () => {
     createSubProject({
       ...form,
       segments: [props.parentId, props.grandparentId],
-    })
-      .finally(() => {
-        submitLoading.value = false;
-        model.value = false;
-      });
+    }).then(() => emit('onSuccess')).finally(() => {
+      submitLoading.value = false;
+      model.value = false;
+    });
   }
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppLfSubProjectForm',
 };

@@ -126,16 +126,20 @@
       :id="projectForm.id"
       v-model="isProjectFormDrawerOpen"
       :parent-slug="projectGroupForm.slug"
+      :is-l-f-project="projectGroupForm.isLF"
+      @on-success="onProjectGroupEdited"
     />
 
     <app-lf-sub-project-form
       v-if="isSubProjectFormDrawerOpen"
       :id="subProjectForm.id"
       v-model="isSubProjectFormDrawerOpen"
+      :is-l-f-project="projectGroupForm.isLF"
       :parent-slug="projectForm.slug"
       :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
       :grandparent-id="projectGroupForm.id"
+      @on-success="onProjectGroupEdited"
     />
 
     <app-lf-project-group-form
@@ -184,6 +188,7 @@ const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
   slug: null,
   name: null,
+  isLF: true,
 });
 const projectForm = reactive({
   id: null,
