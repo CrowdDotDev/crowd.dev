@@ -44,7 +44,7 @@ export class CategoryService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      let slug = getCleanString(categoryGroup.name).replace(' ', '-')
+      let slug = getCleanString(categoryGroup.name).replace(/\s+/g, '-')
 
       const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -59,7 +59,7 @@ export class CategoryService extends LoggerBase {
 
       if (categoryGroup.categories) {
         for (const category of categoryGroup.categories) {
-          let slug = getCleanString(category.name).replace(' ', '-')
+          let slug = getCleanString(category.name).replace(/\s+/g, '-')
 
           const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -94,7 +94,7 @@ export class CategoryService extends LoggerBase {
       let slug = currentCategoryGroup.slug
 
       if (currentCategoryGroup.name !== data.name) {
-        slug = getCleanString(data.name).replace(' ', '-')
+        slug = getCleanString(data.name).replace(/\s+/g, '-')
 
         const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -196,7 +196,7 @@ export class CategoryService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      let slug = getCleanString(category.name).replace(' ', '-')
+      let slug = getCleanString(category.name).replace(/\s+/g, '-')
 
       const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -228,7 +228,7 @@ export class CategoryService extends LoggerBase {
       let slug = currentCategory.slug
 
       if (currentCategory.name !== data.name) {
-        slug = getCleanString(data.name).replace(' ', '-')
+        slug = getCleanString(data.name).replace(/\s+/g, '-')
 
         const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 

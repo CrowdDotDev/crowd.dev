@@ -46,7 +46,7 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const slug = getCleanString(collection.name).replace(' ', '-')
+      const slug = getCleanString(collection.name).replace(/\s+/g, '-')
 
       const createdCollection = await createCollection(qx, {
         ...collection,
@@ -212,7 +212,7 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
-      const slug = getCleanString(project.name).replace(' ', '-')
+      const slug = getCleanString(project.name).replace(/\s+/g, '-')
 
       const createdProject = await createInsightsProject(qx, {
         ...project,
