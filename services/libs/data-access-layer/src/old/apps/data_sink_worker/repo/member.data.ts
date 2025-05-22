@@ -7,6 +7,7 @@ export interface IDbMember {
   joinedAt: string
   attributes: Record<string, unknown>
   reach: Partial<Record<PlatformType | 'total', number>>
+  manuallyChangedFields?: string[]
 }
 
 let getMemberColumnSet: DbColumnSet
@@ -14,7 +15,7 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'score', 'joinedAt', 'reach', 'attributes', 'displayName'],
+    ['id', 'score', 'joinedAt', 'reach', 'attributes', 'displayName', 'manuallyChangedFields'],
     {
       table: {
         table: 'members',

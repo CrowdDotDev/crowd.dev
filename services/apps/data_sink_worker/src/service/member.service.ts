@@ -604,6 +604,22 @@ export default class MemberService extends LoggerBase {
     let attributes: Record<string, unknown> | undefined
     if (member.attributes) {
       const temp = mergeWith({}, dbMember.attributes, member.attributes)
+
+      const manuallyChangedFields: string[] = dbMember.manuallyChangedFields || []
+      if (manuallyChangedFields.length > 0) {
+        const attrColumn = 'attributes'
+        const manuallyChangedAttributes = (dbMember.manuallyChangedFields || [])
+          .filter((f) => f.startsWith(attrColumn))
+          .map((f) => f.substring(attrColumn.length))
+
+        // Preserve manually changed attributes
+        for (const key of manuallyChangedAttributes) {
+          if (dbMember.attributes[key] !== undefined) {
+            temp[key] = dbMember.attributes[key]
+          }
+        }
+      }
+
       if (!isEqual(temp, dbMember.attributes)) {
         attributes = temp
       }
