@@ -127,6 +127,7 @@
       v-model="isProjectFormDrawerOpen"
       :parent-slug="projectGroupForm.slug"
       :is-l-f-project="projectGroupForm.isLF"
+      @on-success="onProjectGroupEdited"
     />
 
     <app-lf-sub-project-form
@@ -138,6 +139,7 @@
       :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
       :grandparent-id="projectGroupForm.id"
+      @on-success="onProjectGroupEdited"
     />
 
     <app-lf-project-group-form

@@ -151,7 +151,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'onSuccess'): void
 }>();
 const { trackEvent } = useProductTracking();
 
@@ -234,7 +234,7 @@ const onSubmit = () => {
       type: EventType.FEATURE,
     });
 
-    updateSubProject(props.id, form).finally(() => {
+    updateSubProject(props.id, form).then(() => emit('onSuccess')).finally(() => {
       submitLoading.value = false;
       model.value = false;
     });
@@ -247,7 +247,7 @@ const onSubmit = () => {
     createSubProject({
       ...form,
       segments: [props.parentId, props.grandparentId],
-    }).finally(() => {
+    }).then(() => emit('onSuccess')).finally(() => {
       submitLoading.value = false;
       model.value = false;
     });

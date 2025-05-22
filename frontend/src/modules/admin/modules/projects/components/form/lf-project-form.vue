@@ -157,7 +157,7 @@ const enum ProjectType {
   NON_LF = 'nonLF',
 }
 
-const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void }>();
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void, (e: 'onSuccess'): void }>();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -257,6 +257,7 @@ const onSuccess = () => {
     queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
   });
   Message.success(`Project ${props.id ? 'updated' : 'created'} successfully`);
+  emit('onSuccess');
 };
 
 const onError = () => {
