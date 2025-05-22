@@ -54,9 +54,9 @@ class SegmentRepository extends RepositoryBase<
     const id = uuid()
 
     await this.options.database.sequelize.query(
-      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId")
+      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId", "isLF")
           VALUES
-              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId)
+              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId, :isLF)
         `,
       {
         replacements: {
@@ -74,6 +74,7 @@ class SegmentRepository extends RepositoryBase<
           tenantId: this.options.currentTenant.id,
           parentId: data.parentId || null,
           grandparentId: data.grandparentId || null,
+          isLF: data.isLF ?? true,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -126,6 +127,7 @@ class SegmentRepository extends RepositoryBase<
         {
           parentName: data.name,
           parentSlug: data.slug,
+          isLF: data.isLF,
         },
       )
     }
@@ -137,9 +139,10 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     // strip arbitrary fields
+    const nullishValues = [undefined, null, '', NaN]
     const updateFields = Object.keys(data).filter(
       (key) =>
-        data[key] &&
+        !nullishValues.includes(data[key]) &&
         [
           'name',
           'slug',
@@ -152,6 +155,7 @@ class SegmentRepository extends RepositoryBase<
           'sourceId',
           'sourceParentId',
           'grandparentName',
+          'isLF',
         ].includes(key),
     )
 
@@ -202,6 +206,7 @@ class SegmentRepository extends RepositoryBase<
         'sourceId',
         'sourceParentId',
         'customActivityTypes',
+        'isLF',
       ].includes(key),
     )
 

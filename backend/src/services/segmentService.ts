@@ -1,4 +1,4 @@
-import { Error400 } from '@crowd/common'
+import { Error400, validateNonLfSlug } from '@crowd/common'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
@@ -40,18 +40,27 @@ export default class SegmentService extends LoggerBase {
     try {
       const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+      // make sure non-lf projects' slug are namespaced appropriately
+      if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // do the update
       await segmentRepository.update(id, data)
-
       // update relation fields of parent objects
       if (!isSegmentSubproject(segment) && (data.name || data.slug)) {
-        await segmentRepository.updateChildrenBulk(segment, { name: data.name, slug: data.slug })
+        await segmentRepository.updateChildrenBulk(segment, {
+          name: data.name,
+          slug: data.slug,
+          isLF: data.isLF,
+        })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
 
       return await this.findById(id)
     } catch (error) {
+      if (error?.message.includes("must match its parent's isLF value")) {
+        // No rollback needed here, check_segment_isLF_consistency() failed at commit due to a deferred constraint.
+        throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+      }
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
@@ -118,6 +127,10 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.parentName} does not exist.`)
     }
 
+    if (parent.isLF !== data.isLF)
+      throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+    if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
+
     try {
       // create project
       const project = await segmentRepository.create({ ...data, parentId: parent.id })
@@ -151,7 +164,6 @@ export default class SegmentService extends LoggerBase {
     if (!data.grandparentSlug) {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -165,6 +177,7 @@ export default class SegmentService extends LoggerBase {
       if (parent === null) {
         throw new Error(`Project ${data.parentSlug} does not exist.`)
       }
+      if (parent.isLF === false) data.slug = validateNonLfSlug(data.slug)
 
       const grandparent = await segmentRepository.findBySlug(
         data.grandparentSlug,
@@ -179,6 +192,7 @@ export default class SegmentService extends LoggerBase {
         ...data,
         parentId: parent.id,
         grandparentId: grandparent.id,
+        isLF: parent.isLF,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
