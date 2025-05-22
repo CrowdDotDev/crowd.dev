@@ -55,7 +55,11 @@
             mustNotStartWithSpecial: 'Cannot start with %, #, or !',
           }"
         >
-          <el-input v-model="form.slug" placeholder="E.g. kubernetes" @blur="$v.slug.$touch" />
+          <el-input
+            v-model="form.slug"
+            placeholder="E.g. kubernetes"
+            @blur="$v.slug.$touch"
+          />
         </app-form-item>
 
         <!-- Source ID -->
@@ -151,13 +155,16 @@ import Message from '@/shared/message/message';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfRadio from '@/ui-kit/radio/Radio.vue';
 import LfSvg from '@/shared/svg/svg.vue';
+import { AxiosError } from 'axios';
 
 const enum ProjectType {
   LF = 'LF',
   NON_LF = 'nonLF',
 }
 
-const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void, (e: 'onSuccess'): void }>();
+const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
+  (e: 'onSuccess'): void;
+}>();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -191,7 +198,10 @@ const rules = computed(() => ({
     required,
     maxLength: maxLength(50),
   },
-  slug: form.type === ProjectType.LF ? { required } : { required, mustNotStartWithSpecial },
+  slug:
+    form.type === ProjectType.LF
+      ? { required }
+      : { required, mustNotStartWithSpecial },
   type: { required },
   sourceId: form.type === ProjectType.LF ? { required } : {},
   status: form.type === ProjectType.LF ? { required } : {},
@@ -260,9 +270,10 @@ const onSuccess = () => {
   emit('onSuccess');
 };
 
-const onError = () => {
+const onError = (error: AxiosError) => {
   Message.error(
-    `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
+    error?.response?.data ? error.response.data
+      : `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
   );
 };
 
