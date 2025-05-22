@@ -71,7 +71,7 @@ async function findLastMemberId(
 
   if (activity) {
     const data = await db.oneOrNone(
-      `select * from "memberIdentities" where platform = $(platform) and type = 'username' and verified = true and value = $(username) limit 1`,
+      `select * from "memberIdentities" where platform = $(platform) and type = 'username' and verified = true and value = $(value) limit 1`,
       {
         platform: activity.platform,
         value: activity.objectMemberUsername,
