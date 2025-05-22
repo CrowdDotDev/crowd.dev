@@ -61,7 +61,16 @@ export async function processNangoWebhook(
     integrationId: integration.id,
   })
 
-  const cursor = integration.settings.cursors ? integration.settings.cursors[args.model] : undefined
+  const settings = integration.settings
+  let cursor = args.nextPageCursor
+  if (
+    !cursor &&
+    settings.cursors &&
+    settings.cursors[args.connectionId] &&
+    settings.cursors[args.connectionId][args.model]
+  ) {
+    cursor = settings.cursors[args.connectionId][args.model]
+  }
 
   await initNangoCloudClient()
 
@@ -96,6 +105,7 @@ export async function processNangoWebhook(
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
+        args.connectionId,
         args.model,
         records.nextCursor,
       )
@@ -105,6 +115,7 @@ export async function processNangoWebhook(
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
+        args.connectionId,
         args.model,
         records.records[records.records.length - 1].metadata.cursor,
       )
