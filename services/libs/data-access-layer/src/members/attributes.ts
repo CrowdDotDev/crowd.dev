@@ -1,12 +1,12 @@
-import { IAttributes, IMember } from '@crowd/types'
+import { IAttributes } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
 export async function fetchMemberAttributes(
   qx: QueryExecutor,
   memberId: string,
-): Promise<Partial<IMember>[]> {
-  return qx.select(
+): Promise<IAttributes> {
+  const result = await qx.select(
     `
       SELECT attributes
       FROM "members"
@@ -17,6 +17,8 @@ export async function fetchMemberAttributes(
       memberId,
     },
   )
+
+  return result[0]?.attributes
 }
 
 export async function updateMemberAttributes(
