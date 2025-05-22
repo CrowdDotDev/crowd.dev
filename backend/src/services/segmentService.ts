@@ -164,7 +164,6 @@ export default class SegmentService extends LoggerBase {
     if (!data.grandparentSlug) {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -178,6 +177,7 @@ export default class SegmentService extends LoggerBase {
       if (parent === null) {
         throw new Error(`Project ${data.parentSlug} does not exist.`)
       }
+      if (parent.isLF === false) data.slug = validateNonLfSlug(data.slug)
 
       const grandparent = await segmentRepository.findBySlug(
         data.grandparentSlug,
