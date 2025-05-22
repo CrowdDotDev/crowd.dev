@@ -12,6 +12,39 @@ import { ACTIVITY_ALL_COLUMNS } from './sql'
 
 const logger = getServiceChildLogger('insert-activities')
 
+function isTrue(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return false
+  }
+
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true'
+  }
+
+  return false
+}
+
+function toInt(value: unknown): number {
+  if (value === null || value === undefined) {
+    return 0
+  }
+
+  if (typeof value === 'number') {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const num = parseInt(value, 10)
+    return isNaN(num) ? 0 : num
+  }
+
+  return 0
+}
+
 export async function insertActivities(
   queueClient: IQueue,
   activities: IDbActivityCreateData[],
@@ -26,12 +59,14 @@ export async function insertActivities(
         // we keep these ones in front of `...activity` because these fields might exist in the activity object
         member_isBot: activity.isBotActivity || false,
         member_isTeamMember: activity.isTeamMemberActivity || false,
-        gitIsMainBranch: activity.attributes['isMainBranch'],
-        gitIsIndirectFork: activity.attributes['isIndirectFork'],
-        gitInsertions: activity.attributes['insertions'] || activity.attributes['additions'],
-        gitDeletions: activity.attributes['deletions'],
-        gitLines: activity.attributes['lines'],
-        gitIsMerge: activity.attributes['isMerge'],
+        gitIsMainBranch: isTrue(activity.attributes['isMainBranch']),
+        gitIsIndirectFork: isTrue(activity.attributes['isIndirectFork']),
+        gitInsertions: activity.attributes['insertions']
+          ? toInt(activity.attributes['insertions'])
+          : toInt(activity.attributes['additions']),
+        gitDeletions: toInt(activity.attributes['deletions']),
+        gitLines: toInt(activity.attributes['lines']),
+        gitIsMerge: isTrue(activity.attributes['isMerge']),
 
         ...activity,
 
