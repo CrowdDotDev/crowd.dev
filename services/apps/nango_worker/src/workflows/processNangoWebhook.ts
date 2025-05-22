@@ -11,6 +11,9 @@ export async function processNangoWebhook(args: IProcessNangoWebhookArguments): 
   let nextCursor = await activity.processNangoWebhook(args)
 
   while (nextCursor) {
-    nextCursor = await activity.processNangoWebhook(args)
+    nextCursor = await activity.processNangoWebhook({
+      ...args,
+      nextPageCursor: nextCursor,
+    })
   }
 }
