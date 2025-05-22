@@ -3,6 +3,7 @@ export interface IProcessNangoWebhookArguments {
   providerConfigKey: string
   model: string
   syncType: 'INITIAL' | 'INCREMENTAL'
+  nextPageCursor?: string
 }
 
 export interface ISyncGithubIntegrationArguments {
