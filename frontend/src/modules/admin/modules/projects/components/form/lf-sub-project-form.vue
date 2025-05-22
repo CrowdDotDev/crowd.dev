@@ -39,9 +39,10 @@
           :validation="$v.slug"
           :error-messages="{
             required: 'Slug is required',
+            mustNotStartWithSpecial: 'Cannot start with %, #, or !',
           }"
         >
-          <el-input v-model="form.slug" placeholder="E.g. kubernetes" />
+          <el-input v-model="form.slug" placeholder="E.g. kubernetes" @blur="$v.slug.$touch()" />
         </app-form-item>
 
         <!-- Source ID -->
@@ -170,12 +171,20 @@ const form = reactive({
   grandparentSlug: props.grandparentSlug,
 });
 
+// Custom prefix validator
+const mustNotStartWithSpecial = (value: string) => {
+  if (!value) return true;
+  return !/^[%#!]/.test(value);
+};
+
 const rules = {
   name: {
     required,
     maxLength: maxLength(50),
   },
-  slug: { required },
+  slug: props.isLFProject
+    ? { required }
+    : { required, mustNotStartWithSpecial },
   sourceId: props.isLFProject ? { required } : {},
   status: props.isLFProject ? { required } : {},
   parentSlug: { required },
