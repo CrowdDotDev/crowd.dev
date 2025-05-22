@@ -49,6 +49,14 @@ export interface IActivitySentiment {
   negative: number
 }
 
+export interface IActivityUniqueIdentifier {
+  timestamp: string
+  sourceId: string
+  type: string
+  channel: string
+  segmentId: string
+}
+
 export interface IQueryActivitiesParameters {
   segmentIds?: string[]
   filter?: any

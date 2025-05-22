@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import merge from 'lodash.merge'
 import moment from 'moment'
+import { ParameterizedQuery } from 'pg-promise'
 
 import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
@@ -38,6 +39,7 @@ import {
   IActiveMemberData,
   IActiveOrganizationData,
   IActivitySentiment,
+  IActivityUniqueIdentifier,
   IMemberSegment,
   INewActivityPlatforms,
   INumberOfActivitiesPerMember,
@@ -450,6 +452,60 @@ export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT
 ])
 
 const logger = getServiceChildLogger('activities')
+
+export async function findExistingActivities(
+  qdbConn: DbConnOrTx,
+  activities: IActivityUniqueIdentifier[],
+): Promise<any[]> {
+  if (activities.length === 0) {
+    return []
+  }
+
+  // param value to index map
+  let index = 1
+  const params = []
+
+  const columnString = DEFAULT_COLUMNS_TO_SELECT.map((c) => {
+    if (c === 'body') {
+      return `left(a."${c}", 512) AS body`
+    }
+
+    return `a."${c}"`
+  }).join(', ')
+
+  const timestampInConditions: string[] = []
+  const orConditions: string[] = []
+  for (const activity of activities) {
+    params.push(activity.timestamp)
+    params.push(activity.sourceId)
+    params.push(activity.channel)
+    params.push(activity.segmentId)
+    params.push(activity.type)
+
+    timestampInConditions.push(`$${index}`)
+    orConditions.push(
+      `(a.timestamp = $${index++} and a."sourceId" = $${index++} and a.channel = $${index++} and a."segmentId" = $${index++} and a.type = $${index++})`,
+    )
+  }
+
+  params.push(activities.length)
+
+  const query = `
+    select ${columnString}
+    from activities a
+    where a."deletedAt" is null and a.timestamp in (${timestampInConditions.join(',')})
+    and (
+      ${orConditions.join(' or ')}
+    )
+    limit $${index++}
+  `
+
+  const data = await qdbConn.query(new ParameterizedQuery({ text: query, values: params }))
+
+  const results: any[] = data.map((a) => mapActivityRowToResult(a, DEFAULT_COLUMNS_TO_SELECT))
+
+  return results
+}
 
 export async function queryActivities(
   qdbConn: DbConnOrTx,

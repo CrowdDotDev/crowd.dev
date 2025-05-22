@@ -4,7 +4,7 @@ import mergeWith from 'lodash.mergewith'
 import moment from 'moment-timezone'
 
 import {
-  distinct,
+  UnrepeatableError,
   distinctBy,
   escapeNullByte,
   generateUUIDv1,
@@ -13,11 +13,11 @@ import {
   singleOrDefault,
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
-import { UnrepeatableError } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
   findCommitsForPRSha,
+  findExistingActivities,
   findMatchingPullRequestNodeId,
   insertActivities,
   queryActivities,
@@ -631,47 +631,66 @@ export default class ActivityService extends LoggerBase {
       `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after finding segments!`,
     )
 
-    const orConditions = relevantPayloads.map((r) => {
-      return {
-        and: [
-          { timestamp: { eq: r.activity.timestamp } },
-          { sourceId: { eq: r.activity.sourceId } },
-          { platform: { eq: r.activity.platform } },
-          { type: { eq: r.activity.type } },
-          { channel: { eq: r.activity.channel } },
-        ],
-      }
-    })
-
-    const existingActivitiesResult = await logExecutionTimeV2(
+    const existingActivities = await logExecutionTimeV2(
       async () =>
-        queryActivities(this.qdbStore.connection(), {
-          segmentIds: distinct(relevantPayloads.map((r) => r.segmentId)),
-          filter: {
-            and: [
-              {
-                timestamp: {
-                  in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
-                },
-              },
-              {
-                or: orConditions,
-              },
-            ],
-          },
-          limit: relevantPayloads.length,
-          noCount: true,
-        }),
+        findExistingActivities(
+          this.qdbStore.connection(),
+          relevantPayloads.map((r) => {
+            return {
+              segmentId: r.segmentId,
+              timestamp: r.activity.timestamp,
+              sourceId: r.activity.sourceId,
+              platform: r.activity.platform,
+              type: r.activity.type,
+              channel: r.activity.channel,
+            }
+          }),
+        ),
       this.log,
-      'processActivities -> queryActivities',
+      'processActivities -> findExistingActivities',
     )
+
+    // const orConditions = relevantPayloads.map((r) => {
+    //   return {
+    //     and: [
+    //       { timestamp: { eq: r.activity.timestamp } },
+    //       { sourceId: { eq: r.activity.sourceId } },
+    //       { platform: { eq: r.activity.platform } },
+    //       { type: { eq: r.activity.type } },
+    //       { channel: { eq: r.activity.channel } },
+    //     ],
+    //   }
+    // })
+
+    // const existingActivitiesResult = await logExecutionTimeV2(
+    //   async () =>
+    //     queryActivities(this.qdbStore.connection(), {
+    //       segmentIds: distinct(relevantPayloads.map((r) => r.segmentId)),
+    //       filter: {
+    //         and: [
+    //           {
+    //             timestamp: {
+    //               in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+    //             },
+    //           },
+    //           {
+    //             or: orConditions,
+    //           },
+    //         ],
+    //       },
+    //       limit: relevantPayloads.length,
+    //       noCount: true,
+    //     }),
+    //   this.log,
+    //   'processActivities -> queryActivities',
+    // )
 
     // map existing activities to payloads for further processing
     const memberIdsToLoad = new Set<string>()
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
       payload.dbActivity = singleOrDefault(
-        existingActivitiesResult.rows,
+        existingActivities,
         (a) =>
           a.segmentId === payload.segmentId &&
           new Date(a.timestamp).getTime() === new Date(payload.activity.timestamp).getTime() &&
