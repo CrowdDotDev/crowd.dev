@@ -12,6 +12,7 @@ import {
 import { LoggerBase } from '@crowd/logging'
 import { IAttributes } from '@crowd/types'
 
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -39,45 +40,57 @@ export default class MemberAttributesService extends LoggerBase {
 
   // Update member attributes
   async update(memberId: string, data: IAttributes): Promise<IAttributes> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-    const currentMemberAttributes = await fetchMemberAttributes(qx, memberId)
-    if (!currentMemberAttributes) {
-      throw new Error404('Attributes not found for the given member!')
-    }
-
-    const existingManuallyChangedFields = (await getMemberManuallyChangedFields(qx, memberId)) || []
-
-    const updatedManuallyChangedFields = [...existingManuallyChangedFields]
-
-    const result = await captureApiChange(
+    return captureApiChange(
       this.options,
       memberEditProfileAction(memberId, async (captureOldState, captureNewState) => {
-        captureOldState({ attributes: currentMemberAttributes })
+        const repoOptions: IRepositoryOptions =
+          await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-        for (const key of Object.keys(data)) {
-          if (
-            !currentMemberAttributes[key] ||
-            !lodash.isEqual(currentMemberAttributes[key].default, data[key].default)
-          ) {
-            const fieldName = `attributes.${key}`
-            if (!updatedManuallyChangedFields.includes(fieldName)) {
-              updatedManuallyChangedFields.push(fieldName)
+        const tx = repoOptions.transaction
+        const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+
+        try {
+          const currentMemberAttributes = await fetchMemberAttributes(qx, memberId)
+
+          if (!currentMemberAttributes) {
+            throw new Error404('Attributes not found for the given member during update!')
+          }
+
+          captureOldState({ attributes: currentMemberAttributes })
+
+          const existingManuallyChangedFields =
+            (await getMemberManuallyChangedFields(qx, memberId)) || []
+
+          const updatedManuallyChangedFields = [...existingManuallyChangedFields]
+
+          for (const key of Object.keys(data)) {
+            if (
+              !currentMemberAttributes[key] ||
+              !lodash.isEqual(currentMemberAttributes[key].default, data[key].default)
+            ) {
+              const fieldName = `attributes.${key}`
+              if (!updatedManuallyChangedFields.includes(fieldName)) {
+                updatedManuallyChangedFields.push(fieldName)
+              }
             }
           }
+
+          await updateMemberAttributes(qx, memberId, data)
+
+          await setMemberManuallyChangedFields(qx, memberId, updatedManuallyChangedFields)
+
+          const updatedAttributes = await fetchMemberAttributes(qx, memberId)
+
+          captureNewState({ attributes: updatedAttributes })
+
+          await SequelizeRepository.commitTransaction(tx)
+
+          return updatedAttributes
+        } catch (error) {
+          await SequelizeRepository.rollbackTransaction(tx)
+          throw error
         }
-
-        await updateMemberAttributes(qx, memberId, data)
-
-        await setMemberManuallyChangedFields(qx, memberId, updatedManuallyChangedFields)
-
-        captureNewState({ attributes: data })
-
-        // Get updated member attributes
-        return fetchMemberAttributes(qx, memberId)
       }),
     )
-
-    return result
   }
 }
