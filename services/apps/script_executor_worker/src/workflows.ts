@@ -8,6 +8,7 @@ import { fixActivityForiegnKeys } from './workflows/fixActivityForiegnKeys'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
 import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
+import { restoreBotProfiles } from './workflows/restoreBotProfiles'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -24,4 +25,5 @@ export {
   cleanupOrganizations,
   fixActivityForiegnKeys,
   processLLMVerifiedMerges,
+  restoreBotProfiles,
 }

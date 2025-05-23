@@ -74,6 +74,7 @@ export interface IMember {
   location?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contributions?: any
+  manuallyChangedFields?: string[]
 }
 
 export interface MemberIdentity {
