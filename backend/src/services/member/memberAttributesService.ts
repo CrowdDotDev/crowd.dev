@@ -25,13 +25,11 @@ export default class MemberAttributesService extends LoggerBase {
     this.options = options
   }
 
-  // Member attributes
   async list(memberId: string): Promise<IAttributes> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-    // Get member attributes
+  
     const result = await fetchMemberAttributes(qx, memberId)
-    if (!result.length) {
+    if (!result) {
       throw new Error404('Attributes not found for the given member!')
     }
 
