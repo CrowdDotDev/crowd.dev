@@ -1365,6 +1365,7 @@ export async function createOrUpdateRelations(
   const params: Record<string, string> = {}
   let index = 0
 
+  const activityIds = new Set<string>()
   const valueList: string[] = []
   for (const data of relations) {
     if (data.username === undefined || data.username === null) {
@@ -1505,6 +1506,12 @@ export async function createOrUpdateRelations(
         }
       }
     }
+
+    if (activityIds.has(data.activityId)) {
+      continue
+    }
+
+    activityIds.add(data.activityId)
 
     const activityIdParam = `activityId_${index++}`
     const memberIdParam = `memberId_${index++}`
