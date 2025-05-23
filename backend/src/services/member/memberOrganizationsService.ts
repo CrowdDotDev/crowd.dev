@@ -1,17 +1,27 @@
 /* eslint-disable no-continue */
+import { captureApiChange, memberUserValidationAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
   OrganizationField,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
+  createMemberUserValidation,
   deleteMemberOrganization,
   fetchMemberOrganizations,
+  getMemberOrganizationStatus,
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IMemberOrganizationUserValidationDetails,
+  IMemberUserValidationInput,
+  IOrganization,
+  IRenderFriendlyMemberOrganization,
+  MemberUserValidationType,
+} from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -178,6 +188,35 @@ export default class MemberOrganizationsService extends LoggerBase {
       return result
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  async getStatus(memberId: string): Promise<boolean> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return getMemberOrganizationStatus(qx, memberId)
+  }
+
+  async userValidation(
+    memberId: string,
+    data: IMemberUserValidationInput<IMemberOrganizationUserValidationDetails>,
+  ): Promise<void> {
+    try {
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const result = await createMemberUserValidation(qx, memberId, {
+        type: MemberUserValidationType.WORK_HISTORY,
+        ...data,
+      })
+
+      // record changes for audit logs
+      await captureApiChange(
+        this.options,
+        memberUserValidationAction(memberId, async (captureState) => {
+          captureState(result)
+        }),
+      )
+    } catch (error) {
+      this.log.error(error)
       throw error
     }
   }
