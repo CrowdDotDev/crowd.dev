@@ -23,13 +23,14 @@ export async function restoreBotProfiles(args: IScriptBatchTestArgs): Promise<vo
   for (const member of botMembers) {
     if (args.testRun) {
       log.info(`Restoring bot profile for member ${member.id}`, {
-        attributes: member.attributes,
+        originalAttributes: member.attributes,
         manuallyChangedFields: member.manuallyChangedFields,
       })
     }
 
+    // Deduplicate manually changed fields and update isBot attribute
     member.manuallyChangedFields = [...new Set(member.manuallyChangedFields)]
-    member.attributes.isBot.default = 'true'
+    member.attributes.isBot.default = true
 
     await updateMemberAttributesAndManuallyChangedFields(
       member.id,
