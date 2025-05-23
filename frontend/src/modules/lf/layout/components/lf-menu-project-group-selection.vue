@@ -140,7 +140,7 @@ const { updateSelectedProjectGroup } = lsSegmentsStore;
 const searchQuery = ref('');
 const isPopoverVisible = ref(false);
 const searchValue = useDebounce(searchQuery, 300);
-const isSearchVisible = computed(() => projectGroupsList.value.length > 5);
+const isSearchVisible = computed(() => projectGroupsList.value.length > 5 || searchQuery.value.length > 0);
 
 let scrollContainer: HTMLElement | null = null;
 
