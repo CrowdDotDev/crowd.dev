@@ -1,7 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
-import { IMember } from '@crowd/types'
+import { IAttributes, IMember } from '@crowd/types'
 
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 
@@ -217,6 +217,34 @@ class MemberRepository {
         await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { memberId })
       }
     })
+  }
+
+  public async getMembersManuallyMarkedAsBots(
+    limit: number,
+  ): Promise<Pick<IMember, 'id' | 'attributes' | 'manuallyChangedFields'>[]> {
+    return this.connection.query(
+      `
+      SELECT m.id, m.attributes, m."manuallyChangedFields"
+      FROM "members" m
+      WHERE 'attributes.isBot' = ANY ("manuallyChangedFields")
+        AND (m.attributes -> 'isBot' ->> 'default' != 'true')
+      LIMIT $(limit);
+    `,
+      {
+        limit,
+      },
+    )
+  }
+
+  public async updateMemberAttributesAndManuallyChangedFields(
+    memberId: string,
+    attributes: IAttributes,
+    manuallyChangedFields: string[],
+  ): Promise<void> {
+    await this.connection.none(
+      `UPDATE "members" SET "attributes" = $(attributes), "manuallyChangedFields" = $(manuallyChangedFields) WHERE id = $(memberId)`,
+      { memberId, attributes, manuallyChangedFields },
+    )
   }
 }
 
