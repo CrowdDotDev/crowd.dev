@@ -14,12 +14,14 @@ SQL >
             min(toDate(activities_filtered.timestamp)) as actual_start_date,
             toDate({{ endDate }}) as actual_end_date
         from activities_filtered
+        where activities_filtered.timestamp > '1980-01-01'
     {% end %}
     {% if not defined(startDate) and not defined(endDate) %}
         select
             min(toDate(activities_filtered.timestamp)) as actual_start_date,
             toDate(now()) as actual_end_date
         from activities_filtered
+        where activities_filtered.timestamp > '1980-01-01'
     {% end %}
     {% if defined(startDate) and defined(endDate) %}
         select toDate({{ startDate }}) as actual_start_date, toDate({{ endDate }}) as actual_end_date
