@@ -4,7 +4,7 @@ SCHEMA >
     `location` String `json:$.record.location` DEFAULT '',
     `logo` String `json:$.record.logo` DEFAULT '',
     `tags` Array(String) `json:$.record.tags[:]` DEFAULT [],
-    `employees` UInt16 `json:$.record.employees` DEFAULT 0,
+    `employees` UInt32 `json:$.record.employees` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `isTeamOrganization` UInt8 `json:$.record.isTeamOrganization` DEFAULT 0,
