@@ -20,12 +20,15 @@ export default {
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
+        const {
+          attributes, affiliations, identities, organizations, ...rest
+        } = contributor;
         this.contributor = {
           ...this.contributor,
-          ...contributor,
+          ...rest,
         };
         this.getContributorMergeActions(id);
-        return Promise.resolve(contributor);
+        return Promise.resolve(this.contributor);
       });
   },
   getContributorMergeActions(id: string): Promise<MergeAction[]> {
