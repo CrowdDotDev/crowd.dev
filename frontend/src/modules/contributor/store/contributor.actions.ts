@@ -10,6 +10,10 @@ import { ContributorOrganizationsApiService } from '@/modules/contributor/servic
 import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
 import { ContributorAttributesApiService } from '@/modules/contributor/services/contributor.attributes.api.service';
 
+const getPureContributor = (contributor: Contributor) => Object.fromEntries(
+  Object.entries(contributor).filter(([key]) => !['attributes', 'affiliations', 'organizations', 'identities'].includes(key)),
+);
+
 export default {
   getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
@@ -20,12 +24,9 @@ export default {
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
-        const {
-          attributes, affiliations, identities, organizations, ...rest
-        } = contributor;
         this.contributor = {
           ...this.contributor,
-          ...rest,
+          ...getPureContributor(contributor),
         };
         this.getContributorMergeActions(id);
         return Promise.resolve(this.contributor);
