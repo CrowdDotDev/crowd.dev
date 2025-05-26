@@ -8,7 +8,9 @@ SQL >
     %
     select
         round(avg(dateDiff('second', prf.openedAt, prf.mergedAt))) AS openedToMergedSeconds,
-        round(avg(dateDiff('second', prf.openedAt, prf.reviewRequestedAt))) AS openedToReviewAssignedSeconds,
+        round(
+            avg(dateDiff('second', prf.openedAt, prf.reviewRequestedAt))
+        ) AS openedToReviewAssignedSeconds,
         round(
             avg(dateDiff('second', prf.reviewRequestedAt, prf.reviewedAt))
         ) AS reviewAssignedToFirstReviewSeconds,
