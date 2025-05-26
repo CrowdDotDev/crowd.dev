@@ -33,6 +33,9 @@ type TimelineItem = {
 }
 
 export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberId: string) {
+  // todo: rm this debugger log
+  logger.info({ memberId }, 'Starting member affiliations update preparation')
+
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }
@@ -185,6 +188,15 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      manualAffiliationsCount: manualAffiliations.length,
+    },
+    'Retrieved manual affiliations',
+  )
+
   let memberOrganizations = await qx.select(
     `
       WITH aggs as (
@@ -220,6 +232,23 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     { memberId },
   )
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      memberOrganizationsCount: memberOrganizations.length,
+      memberOrganizations: memberOrganizations.map((mo) => ({
+        id: mo.id,
+        organizationId: mo.organizationId,
+        dateStart: mo.dateStart,
+        dateEnd: mo.dateEnd,
+        isPrimaryWorkExperience: mo.isPrimaryWorkExperience,
+        memberCount: mo.memberCount,
+      })),
+    },
+    'Retrieved member organizations',
+  )
+
   const blacklistedTitles = ['Investor', 'Mentor', 'Board Member']
 
   memberOrganizations = memberOrganizations.filter(
@@ -242,6 +271,15 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
   }
 
   const timeline = buildTimeline(memberOrganizations)
+
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      timeline,
+    },
+    'Built timeline',
+  )
 
   const orgCases: Condition[] = [
     ..._.chain(manualAffiliations)
@@ -318,6 +356,17 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      fullCase,
+      fallbackOrganizationId,
+      orgCasesCount: orgCases.length,
+    },
+    'Generated SQL CASE statement for organization affiliation',
+  )
+
   return { orgCases, fullCase, fallbackOrganizationId }
 }
 
@@ -343,6 +392,9 @@ export async function runMemberAffiliationsUpdate(
   queueClient: IQueue,
   memberId: string,
 ) {
+  // todo: rm this debugger log
+  logger.info({ memberId }, 'Starting member affiliations update')
+
   const qx = pgpQx(pgDb.connection())
 
   const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
@@ -350,20 +402,45 @@ export async function runMemberAffiliationsUpdate(
     memberId,
   )
 
+  const whereCondition = `
+  "memberId" = $(memberId)
+  AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+    ${fullCase},
+    cast('00000000-0000-0000-0000-000000000000' as uuid)
+  )
+  `
+
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      whereCondition,
+      fullCase,
+      fallbackOrganizationId,
+    },
+    'Generated WHERE clause for activity updates',
+  )
+
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => ({
-      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-    }),
-    `
-      "memberId" = $(memberId)
-      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-        ${fullCase},
-        cast('00000000-0000-0000-0000-000000000000' as uuid)
+    async (activity) => {
+      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
+      logger.trace(
+        {
+          activityId: activity.id,
+          activityTimestamp: activity.timestamp,
+          currentOrgId: activity.organizationId,
+          newOrgId,
+          memberId,
+        },
+        'Mapping activity to new organization',
       )
-    `,
+
+      return { organizationId: newOrgId }
+    },
+    whereCondition,
     { memberId },
   )
 
