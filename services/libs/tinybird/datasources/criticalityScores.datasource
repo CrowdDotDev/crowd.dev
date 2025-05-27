@@ -1,7 +1,7 @@
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name` DEFAULT '',
-    `repourl` String `json:$.record.repourl` DEFAULT '',
+    `repoUrl` String `json:$.record.repoUrl` DEFAULT '',
     `score` Float64 `json:$.record.score` DEFAULT 0,
     `rank` UInt64 `json:$.record.rank` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
@@ -9,5 +9,5 @@ SCHEMA >
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY tuple()
-ENGINE_SORTING_KEY repourl
+ENGINE_SORTING_KEY repoUrl
 ENGINE_VER updatedAt
