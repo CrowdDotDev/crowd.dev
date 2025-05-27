@@ -1,0 +1,23 @@
+NODE category_list_categories_deduplicated
+SQL >
+    %
+    SELECT name, slug, categoryGroupId
+    FROM categories FINAL
+    {% if defined(slug) %} WHERE slug = {{ String(slug, description="category slug") }} {% end %}
+
+NODE category_list_category_groups_deduplicated
+SQL >
+    SELECT id, name, slug FROM categoryGroups FINAL
+
+NODE category_groups_list_result
+SQL >
+    SELECT
+        category_list_categories_deduplicated.name as name,
+        category_list_categories_deduplicated.slug as slug,
+        category_list_category_groups_deduplicated.name as categoryGroupName,
+        category_list_category_groups_deduplicated.slug as categoryGroupSlug
+    FROM category_list_categories_deduplicated
+    LEFT JOIN
+        category_list_category_groups_deduplicated
+        ON category_list_category_groups_deduplicated.id
+        = category_list_categories_deduplicated.categoryGroupId

@@ -1,0 +1,8 @@
+TOKEN "category_groups_list_endpoint_read_6353" READ
+
+NODE category_groups_list_result
+SQL >
+    %
+    SELECT name, slug, type
+    FROM categoryGroups
+    {% if defined(slug) %} WHERE slug = {{ String(slug, description="category group slug") }} {% end %}
