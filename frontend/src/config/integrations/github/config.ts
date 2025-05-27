@@ -1,10 +1,8 @@
 import { IntegrationConfig } from '@/config/integrations';
-import AppGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 import GithubConnect from './components/connect/github-connect.vue';
 import GithubStatus from './components/github-status.vue';
 import GithubAction from './components/github-action.vue';
 import GithubParams from './components/github-params.vue';
-import GithubDropdown from '../github-nango/components/github-dropdown.vue';
 
 const image = new URL(
   '@/assets/images/integrations/github.png',
@@ -20,8 +18,6 @@ const github: IntegrationConfig = {
   connectComponent: GithubConnect,
   statusComponent: GithubStatus,
   actionComponent: GithubAction,
-  dropdownComponent: GithubDropdown,
-  settingComponent: AppGithubSettingsDrawer,
   connectedParamsComponent: GithubParams,
   showProgress: true,
 };
