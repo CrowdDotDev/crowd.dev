@@ -20,7 +20,8 @@
     "script:map-member-to-org": "SERVICE=script tsx src/bin/map-member-to-org.ts",
     "script:fix-activity-obj-member-data": "SERVICE=script tsx src/bin/fix-activity-obj-member-data.ts",
     "script:fix-member-displayName": "SERVICE=script tsx src/bin/fix-member-displayName.ts",
-    "script:fix-members-joinedAt": "SERVICE=script tsx src/bin/fix-members-joinedAt.ts"
+    "script:fix-members-joinedAt": "SERVICE=script tsx src/bin/fix-members-joinedAt.ts",
+    "script:import-criticality-score": "SERVICE=script tsx src/bin/import-criticality-score.ts"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
@@ -39,6 +40,7 @@
     "@types/node": "^18.16.3",
     "config": "^3.3.9",
     "crowd-sentiment": "^1.1.7",
+    "csv": "^6.3.11",
     "lodash.isequal": "^4.5.0",
     "lodash.mergewith": "^4.6.2",
     "lodash.uniqby": "^4.7.0",
