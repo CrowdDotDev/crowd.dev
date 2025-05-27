@@ -1,0 +1,6 @@
+NODE category_groups_list_result
+SQL >
+    %
+    SELECT name, slug, type
+    FROM categoryGroups
+    {% if defined(slug) %} WHERE slug = {{ String(slug, description="category group slug") }} {% end %}
