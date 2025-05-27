@@ -171,11 +171,21 @@ onMounted(() => {
   localStorage.setItem('segmentId', id);
   localStorage.setItem('segmentGrandparentId', grandparentId);
 
-  doFetch();
+  doFetch().then(() => {
+    selectedGitHubVersion.value = updateGithubVersion();
+  });
   findSubProject(id).then((res) => {
     subproject.value = res;
   });
 });
+
+const updateGithubVersion = () => {
+  const githubIntegration = array.value.find((integration: any) => integration.platform === 'github');
+  if (githubIntegration) {
+    return !!githubIntegration.isNango;
+  }
+  return !!isTeamUser();
+};
 
 const isTeamUser = () => {
   const authStore = useAuthStore();
