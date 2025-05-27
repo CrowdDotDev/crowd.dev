@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "criticalityScores"
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-create index "ix_criticality_scores_updatedAt_id" on "categories" ("updatedAt", id);
+create index "ix_criticality_scores_updatedAt_id" on "criticalityScores" ("updatedAt", id);
 
 ALTER PUBLICATION sequin_pub ADD TABLE "criticalityScores";
 ALTER TABLE public."criticalityScores" REPLICA IDENTITY FULL;
