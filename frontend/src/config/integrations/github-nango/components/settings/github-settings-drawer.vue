@@ -107,8 +107,6 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { Project, SubProject } from '@/modules/lf/segments/types/Segments';
-import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -118,8 +116,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
-
-const route = useRoute();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
@@ -144,7 +140,7 @@ const isDrawerVisible = computed({
 
 const fetchSubProjects = () => {
   LfService.findSegment(props.grandparentId).then((segment) => {
-    subprojects.value = segment.projects.map((p: Project) => p.subprojects).flat().filter((s: SubProject) => s !== undefined);
+    subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
   });
 };
 
@@ -231,15 +227,13 @@ const fetchGithubMappings = () => {
       const mappings = res.reduce(
         (rm, mapping) => ({
           ...rm,
-          [mapping.url]: route.params.id,
+          [mapping.url]: mapping.segment.id,
         }),
         {},
       );
       // Create new objects to ensure no reference sharing
       repoMappings.value = { ...mappings };
       initialRepoMappings.value = { ...mappings };
-      console.log('Fetched GitHub mappings:', repoMappings.value);
-      console.log('initialRepoMappings:', initialRepoMappings.value);
     },
   );
 };
