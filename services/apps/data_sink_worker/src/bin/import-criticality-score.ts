@@ -40,7 +40,7 @@ setImmediate(async () => {
     try {
       await dbClient.none(
         `
-                INSERT INTO "criticalityScores" (name, "repoUrl", score, rank, "createdAt")
+                INSERT INTO "criticalityScores" (name, repourl, score, rank, "createdAt")
                 VALUES ($1, $2, $3, $4, $5)
             `,
         [name, url, score, rank, created_at],
