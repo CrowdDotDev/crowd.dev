@@ -96,22 +96,27 @@ export async function updateActivities(
     return newActivity
   }
 
-  return streamActivities(
-    qdb,
-    async (activity) => {
-      const newActivity = await mapNewActivity(activity, mapActivity)
-      await insertActivities(queueClient, [newActivity])
-      const changedRelations = getChangedRelationshipFields(activity, newActivity)
-      if (Object.keys(changedRelations).length > 0) {
-        await updateActivityRelationsById(pgQx, {
-          ...changedRelations,
-          activityId: activity.id,
-        })
-      }
-    },
-    where,
-    params,
-  )
+  try {
+    return streamActivities(
+      qdb,
+      async (activity) => {
+        const newActivity = await mapNewActivity(activity, mapActivity)
+        await insertActivities(queueClient, [newActivity])
+        const changedRelations = getChangedRelationshipFields(activity, newActivity)
+        if (Object.keys(changedRelations).length > 0) {
+          await updateActivityRelationsById(pgQx, {
+            ...changedRelations,
+            activityId: activity.id,
+          })
+        }
+      },
+      where,
+      params,
+    )
+  } catch (error) {
+    logger.error(error, 'Error in updateActivities!')
+    throw error
+  }
 }
 
 function getChangedRelationshipFields(
