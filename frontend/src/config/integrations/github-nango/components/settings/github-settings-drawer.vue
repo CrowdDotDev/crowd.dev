@@ -238,6 +238,8 @@ const fetchGithubMappings = () => {
       // Create new objects to ensure no reference sharing
       repoMappings.value = { ...mappings };
       initialRepoMappings.value = { ...mappings };
+      console.log('Fetched GitHub mappings:', repoMappings.value);
+      console.log('initialRepoMappings:', initialRepoMappings.value);
     },
   );
 };
