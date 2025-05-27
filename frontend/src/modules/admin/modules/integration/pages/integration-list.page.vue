@@ -27,7 +27,8 @@
           Integrations
         </h4>
         <p class="text-small text-gray-500">
-          Connect with the data sources where interactions happen within your community.
+          Connect with the data sources where interactions happen within your
+          community.
         </p>
       </div>
 
@@ -46,25 +47,47 @@
             >
               <div class="flex items-center gap-1.5">
                 <span>{{ status.tabs.text }}</span>
-                <div v-if="getIntegrationCountPerStatus[key] > 0" class="rounded py-0.5 px-1 text-tiny text-black" :class="status.tabs.badge">
+                <div
+                  v-if="getIntegrationCountPerStatus[key] > 0"
+                  class="rounded py-0.5 px-1 text-tiny text-black"
+                  :class="status.tabs.badge"
+                >
                   {{ getIntegrationCountPerStatus[key] }}
                 </div>
               </div>
             </lf-tab>
           </lf-tabs>
         </div>
-        <div class="w-full h-8 bg-gradient-to-b from-white to-transparent pl-10" />
+        <div
+          class="w-full h-8 bg-gradient-to-b from-white to-transparent pl-10"
+        />
       </section>
     </div>
 
     <section v-loading="loadingFetch">
-      <app-integration-progress-wrapper v-if="!loadingFetch" :segments="[route.params.id]">
+      <app-integration-progress-wrapper
+        v-if="!loadingFetch"
+        :segments="[route.params.id]"
+      >
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
+            <lf-switch
+              v-if="isTeamUser()"
+              v-model="selectedGitHubVersion"
+              class="ml-auto"
+              :size="'small'"
+            >
+              <template #inactive>
+                <span class="text-gray-500 text-small mr-2">Use old GitHub integration</span>
+              </template>
+              <template #default>
+                <span class="text-gray-500 text-small">Use new GitHub integration</span>
+              </template>
+            </lf-switch>
             <lf-integration-list-item
               v-for="key in platformsByStatus"
               :key="key"
-              :config="lfIntegrations()[key]"
+              :config="lfIntegrations(selectedGitHubVersion)[key]"
               :progress="progress"
               :progress-error="progressError"
             />
@@ -72,7 +95,10 @@
           <div v-else class="pt-12 flex flex-col items-center">
             <lf-icon name="grid-round" :size="120" class="text-gray-300" />
             <h6 class="text-center pt-6">
-              {{ lfIntegrationStatusesTabs[tab]?.tabs?.empty || 'No integrations connected' }}
+              {{
+                lfIntegrationStatusesTabs[tab]?.tabs?.empty
+                  || 'No integrations connected'
+              }}
             </h6>
           </div>
         </template>
@@ -95,6 +121,9 @@ import LfIntegrationListItem from '@/modules/admin/modules/integration/component
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import LfSwitch from '@/ui-kit/switch/Switch.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import config from '@/config';
 
 const route = useRoute();
 
@@ -104,20 +133,28 @@ const { array, loadingFetch } = mapGetters('integration');
 
 const { id, grandparentId } = route.params;
 
+const selectedGitHubVersion = ref(false); // true for v2, false for v1
+
 const subproject = ref<any>();
 
 const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const all = Object.keys(lfIntegrations());
+  const all = Object.keys(lfIntegrations(selectedGitHubVersion.value));
   if (!statusConfig) {
     return all;
   }
   if (statusConfig.key === 'notConnected') {
-    return all.filter((platform) => !array.value.map((integration: any) => integration.platform).includes(platform));
+    return all.filter(
+      (platform) => !array.value
+        .map((integration: any) => integration.platform)
+        .includes(platform),
+    );
   }
-  const matching = array.value.filter((integration: any) => statusConfig.show(integration)).map((integration: any) => integration.platform);
+  const matching = array.value
+    .filter((integration: any) => statusConfig.show(integration))
+    .map((integration: any) => integration.platform);
   return all.filter((platform) => matching.includes(platform));
 });
 
@@ -126,7 +163,7 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
     statusCount[key] = array.value.filter((integration: any) => statusConfig.show(integration)).length;
   });
-  statusCount.notConnected = Object.keys(lfIntegrations()).length - array.value.length;
+  statusCount.notConnected = Object.keys(lfIntegrations(selectedGitHubVersion.value)).length - array.value.length;
   return statusCount;
 });
 
@@ -135,11 +172,16 @@ onMounted(() => {
   localStorage.setItem('segmentGrandparentId', grandparentId);
 
   doFetch();
-  findSubProject(id)
-    .then((res) => {
-      subproject.value = res;
-    });
+  findSubProject(id).then((res) => {
+    subproject.value = res;
+  });
 });
+
+const isTeamUser = () => {
+  const authStore = useAuthStore();
+  const userId = authStore.user?.id;
+  return config.permissions.teamUserIds?.includes(userId) || config.env === 'local';
+};
 </script>
 
 <script lang="ts">
