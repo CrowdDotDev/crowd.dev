@@ -1,5 +1,4 @@
 import config from '@/config';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import github from './github/config';
 import githubNango from './github-nango/config';
 import git from './git/config';
