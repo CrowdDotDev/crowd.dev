@@ -95,7 +95,7 @@ if (parameters.help || !parameters.file) {
 
       try {
         // Find matching insights project
-        const [rowsUpdated] = await qx.result(
+        const result = await qx.result(
           `UPDATE "insightsProjects" 
            SET 
              description = CASE WHEN $1 IS NOT NULL THEN $1 ELSE description END,
@@ -105,7 +105,8 @@ if (parameters.help || !parameters.file) {
              website = CASE WHEN $5 IS NOT NULL THEN $5 ELSE website END,
              "logoUrl" = CASE WHEN $6 IS NOT NULL THEN $6 ELSE "logoUrl" END,
              "updatedAt" = NOW()
-           WHERE slug = $7`,
+           WHERE slug = $7
+           RETURNING *`,
           [
             record['DESCRIPTION__C'] || null,
             record['REPOSITORYURL__C'] || null,
@@ -117,7 +118,7 @@ if (parameters.help || !parameters.file) {
           ]
         )
 
-        if (rowsUpdated > 0) {
+        if (result.rows?.length > 0) {
           console.log('Updated project:', slug)
           updatedCount++
         } else {
