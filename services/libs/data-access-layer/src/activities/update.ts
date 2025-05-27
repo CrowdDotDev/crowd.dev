@@ -33,12 +33,37 @@ export async function streamActivities(
   return new Promise((resolve, reject) => {
     let processedAllRows = false
     let streamResult = null
+    let isSettled = false
+
+    function safeResolve(result) {
+      if (!isSettled) {
+        isSettled = true
+        process.removeListener('unhandledRejection', unhandledRejectionHandler)
+        resolve(result)
+      }
+    }
+
+    function safeReject(error) {
+      if (!isSettled) {
+        isSettled = true
+        process.removeListener('unhandledRejection', unhandledRejectionHandler)
+        reject(error)
+      }
+    }
 
     function tryFinish() {
       if (processedAllRows && streamResult) {
-        resolve(streamResult)
+        safeResolve(streamResult)
       }
     }
+
+    // Handle unhandled rejections to prevent pod crashes
+    const unhandledRejectionHandler = (reason) => {
+      logger.error(reason, 'Unhandled rejection in streamActivities!')
+      safeReject(reason)
+    }
+
+    process.once('unhandledRejection', unhandledRejectionHandler)
 
     qdb
       .stream(qs, async (stream) => {
@@ -53,14 +78,16 @@ export async function streamActivities(
           processedAllRows = true
           tryFinish()
         } catch (error) {
-          reject(error)
+          safeReject(error)
         }
       })
       .then((res) => {
         streamResult = res
         tryFinish()
       })
-      .catch(reject)
+      .catch((error) => {
+        safeReject(error)
+      })
   })
 }
 
@@ -96,27 +123,22 @@ export async function updateActivities(
     return newActivity
   }
 
-  try {
-    return streamActivities(
-      qdb,
-      async (activity) => {
-        const newActivity = await mapNewActivity(activity, mapActivity)
-        await insertActivities(queueClient, [newActivity])
-        const changedRelations = getChangedRelationshipFields(activity, newActivity)
-        if (Object.keys(changedRelations).length > 0) {
-          await updateActivityRelationsById(pgQx, {
-            ...changedRelations,
-            activityId: activity.id,
-          })
-        }
-      },
-      where,
-      params,
-    )
-  } catch (error) {
-    logger.error(error, 'Error in updateActivities!')
-    throw error
-  }
+  return streamActivities(
+    qdb,
+    async (activity) => {
+      const newActivity = await mapNewActivity(activity, mapActivity)
+      await insertActivities(queueClient, [newActivity])
+      const changedRelations = getChangedRelationshipFields(activity, newActivity)
+      if (Object.keys(changedRelations).length > 0) {
+        await updateActivityRelationsById(pgQx, {
+          ...changedRelations,
+          activityId: activity.id,
+        })
+      }
+    },
+    where,
+    params,
+  )
 }
 
 function getChangedRelationshipFields(
