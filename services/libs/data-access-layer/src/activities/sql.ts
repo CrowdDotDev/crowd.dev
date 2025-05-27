@@ -1365,6 +1365,7 @@ export async function createOrUpdateRelations(
   const params: Record<string, string> = {}
   let index = 0
 
+  const activityIds = new Set<string>()
   const valueList: string[] = []
   for (const data of relations) {
     if (data.username === undefined || data.username === null) {
@@ -1506,6 +1507,12 @@ export async function createOrUpdateRelations(
       }
     }
 
+    if (activityIds.has(data.activityId)) {
+      continue
+    }
+
+    activityIds.add(data.activityId)
+
     const activityIdParam = `activityId_${index++}`
     const memberIdParam = `memberId_${index++}`
     const objectMemberIdParam = `objectMemberId_${index++}`
@@ -1594,7 +1601,7 @@ export async function updateActivityRelationsById(
 
   if (fields.length === 0) return
 
-  const query = `UPDATE "activityRelations" SET ${fields.join(', ')} WHERE "activityId" = $(activityId)`
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE "activityId" = $(activityId)`
 
   await qe.result(query, data)
 }

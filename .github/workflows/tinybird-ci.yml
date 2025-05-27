@@ -223,3 +223,10 @@ jobs:
               echo "Config file not found at '${CONFIG_FILE}', running with default values"
               ${BASE_CMD} coverage --wait ${LABELS_CMD}
           fi
+
+      - name: Cleanup test Branch
+        if: always()
+        run: |
+          BRANCH_NAME="tmp_ci_${_NORMALIZED_BRANCH_NAME}_${{ github.event.pull_request.number }}"
+          echo "Attempting to delete branch: $BRANCH_NAME"
+          tb --host ${{ secrets.TB_HOST }} --token ${{ secrets.TB_ADMIN_TOKEN }} branch rm $BRANCH_NAME --yes || echo "Branch deletion failed or branch may not exist."

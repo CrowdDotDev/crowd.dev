@@ -59,7 +59,6 @@ export const connectSocket = (token) => {
   });
 
   socketIoClient.on(SocketEvents.memberMerge, (data) => {
-    console.info('Member merge done', data);
     const parsedData = JSON.parse(data);
     if (!parsedData.success) {
       return;
