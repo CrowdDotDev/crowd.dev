@@ -1,0 +1,12 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `name` String `json:$.record.name` DEFAULT '',
+    `repourl` String `json:$.record.repourl` DEFAULT '',
+    `score` Double `json:$.record.score` DEFAULT 0,
+    `rank` UInt64 `json:$.record.score` DEFAULT 0,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY repourl
+ENGINE_VER updatedAt
