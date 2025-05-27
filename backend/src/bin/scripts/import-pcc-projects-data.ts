@@ -98,7 +98,6 @@ if (parameters.help || !parameters.file) {
         const [rowsUpdated] = await qx.result(
           `UPDATE "insightsProjects" 
            SET 
-             name = CASE WHEN $1 IS NOT NULL THEN $1 ELSE name END,
              description = CASE WHEN $2 IS NOT NULL THEN $2 ELSE description END,
              github = CASE WHEN $3 IS NOT NULL THEN $3 ELSE github END,
              twitter = CASE WHEN $4 IS NOT NULL THEN $4 ELSE twitter END,
@@ -108,7 +107,6 @@ if (parameters.help || !parameters.file) {
              "updatedAt" = NOW()
            WHERE slug = $8`,
           [
-            record['NAME'] || null,
             record['DESCRIPTION__C'] || null,
             record['REPOSITORYURL__C'] || null,
             record['TWITTER__C'] || null,
