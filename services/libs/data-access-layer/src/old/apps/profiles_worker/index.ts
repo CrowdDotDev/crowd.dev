@@ -447,6 +447,18 @@ export async function runMemberAffiliationsUpdate(
   logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
+export async function runMemberAffiliationsUpdateV2(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  memberId: string,
+) {
+  // todo
+  // get member activity timestamp ranges from questDb
+  // get activityIds, currentOrgId from questDb using the timestamp ranges in batches
+  // ...existing logic to build memberOrg and timeline
+  // update activityRelations in batches
+}
+
 export async function getAffiliationsLastCheckedAt(db: DbStore) {
   try {
     const result: IAffiliationsLastCheckedAt = await db.connection().oneOrNone(
