@@ -59,17 +59,20 @@ export async function* queryStreamIter<T>(
   sql: string,
   params: unknown[],
   opts: QueryStreamOptions,
-): AsyncIterable<T, void, undefined> {
-  const stream = await new Promise<QueryStream>((resolve) => {
-    dbQueryStream(
-      db,
-      sql,
-      params,
-      async (stream) => {
-        resolve(stream)
-      },
-      opts,
-    )
-  })
-  return yield* stream as AsyncIterable<T>
+): AsyncIterable<T> {
+  let stream: QueryStream
+
+  // Get the stream through the callback
+  await dbQueryStream(
+    db,
+    sql,
+    params,
+    async (queryStream) => {
+      stream = queryStream
+    },
+    opts,
+  )
+
+  // Now yield from the stream
+  yield* stream as AsyncIterable<T>
 }
