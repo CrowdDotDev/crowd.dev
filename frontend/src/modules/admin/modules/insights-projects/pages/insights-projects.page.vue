@@ -125,7 +125,7 @@ import {
 } from '@tanstack/vue-query';
 import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
 import { INSIGHTS_PROJECTS_SERVICE } from '../services/insights-projects.service';
 import { InsightsProjectModel } from '../models/insights-project.model';
@@ -164,6 +164,7 @@ const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
 >;
 
 const route = useRoute();
+const router = useRouter();
 
 const {
   data,
@@ -195,17 +196,24 @@ const projects = computed((): InsightsProjectModel[] => {
 });
 
 watch(() => route.query, (query) => {
-  console.log('query', query);
-  if (query?.search) {
+  if (query?.search !== search.value) {
     search.value = query.search as string;
   }
 
   if (query?.id) {
     onEditInsightsProject(query.id as string);
   }
-}, {
-  immediate: true,
-  deep: true,
+});
+
+watch(search, (value) => {
+  if (value !== route.query?.search) {
+    router.replace({
+      query: {
+        ...route.query,
+        search: value || undefined,
+      },
+    });
+  }
 });
 
 watch(error, (err) => {
@@ -256,6 +264,12 @@ const onEditInsightsProject = (projectId: string) => {
 const onInsightsProjectDialogClose = () => {
   isProjectDialogOpen.value = false;
   selectedProject.value = undefined;
+  router.replace({
+    query: {
+      ...route.query,
+      id: undefined,
+    },
+  });
 };
 
 const onDeleteProject = (projectId: string) => {
