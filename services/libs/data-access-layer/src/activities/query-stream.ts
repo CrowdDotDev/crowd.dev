@@ -14,7 +14,7 @@ export function dbQueryStream(
   db: DbConnOrTx,
   sql: string,
   params: unknown[],
-  initCb: (stream: QueryStream) => Promise<void>,
+  initCb: (stream: QueryStream) => void,
   opts?: QueryStreamOptions,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,19 +60,9 @@ export async function* queryStreamIter<T>(
   params: unknown[],
   opts: QueryStreamOptions,
 ): AsyncIterable<T> {
-  let stream: QueryStream
+  const stream = await new Promise((resolve) => {
+    dbQueryStream(db, sql, params, resolve, opts)
+  })
 
-  // Get the stream through the callback
-  await dbQueryStream(
-    db,
-    sql,
-    params,
-    async (queryStream) => {
-      stream = queryStream
-    },
-    opts,
-  )
-
-  // Now yield from the stream
   yield* stream as AsyncIterable<T>
 }
