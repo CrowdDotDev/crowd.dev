@@ -196,17 +196,17 @@ const projects = computed((): InsightsProjectModel[] => {
 });
 
 watch(() => route.query, (query) => {
+  console.log('query', query);
   if (query?.search !== search.value) {
     search.value = query.search as string;
   }
-
-  if (query?.id) {
-    onEditInsightsProject(query.id as string);
-  }
+}, {
+  immediate: true,
 });
 
 watch(search, (value) => {
   if (value !== route.query?.search) {
+    console.log('search', value);
     router.replace({
       query: {
         ...route.query,
@@ -264,12 +264,6 @@ const onEditInsightsProject = (projectId: string) => {
 const onInsightsProjectDialogClose = () => {
   isProjectDialogOpen.value = false;
   selectedProject.value = undefined;
-  router.replace({
-    query: {
-      ...route.query,
-      id: undefined,
-    },
-  });
 };
 
 const onDeleteProject = (projectId: string) => {
