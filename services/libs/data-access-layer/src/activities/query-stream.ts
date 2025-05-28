@@ -8,7 +8,7 @@ export interface QueryStreamOptions {
   queryTimeout?: number
 }
 
-// Wrapper around pg-query-stream to handle read timeouts
+// Wrapper for pg-query-stream to manage errors and timeouts gracefully.
 // Monkey-patch based on https://github.com/brianc/node-postgres/issues/1860#issuecomment-489582161
 export function dbQueryStream(
   db: DbConnOrTx,
