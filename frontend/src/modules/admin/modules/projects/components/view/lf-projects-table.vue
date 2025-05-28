@@ -42,6 +42,20 @@
         <p class="text-medium">
           {{ subproject.name }}
         </p>
+        <router-link
+          :to="{
+            name: 'adminPanel',
+            query: {
+              search: subproject.insightsProjectName,
+              id: subproject.insightsProjectId,
+            },
+            hash: 'projects',
+          }"
+        >
+          <lf-pill type="outline">
+            Insights: {{ subproject.insightsProjectName }}
+          </lf-pill>
+        </router-link>
         <app-lf-project-integration-column
           :segment-id="subproject.id"
           :integrations="subproject.integrations"
@@ -82,6 +96,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfProjectStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
+import LfPill from '@/ui-kit/pill/Pill.vue';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
 
 const route = useRoute();

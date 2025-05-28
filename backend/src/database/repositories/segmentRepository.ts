@@ -570,11 +570,18 @@ class SegmentRepository extends RepositoryBase<
             SELECT
                 s.*,
                 COUNT(DISTINCT sp.id)                                       AS subproject_count,
-                jsonb_agg(jsonb_build_object('id', sp.id, 'name', sp.name, 'status', sp.status)) as subprojects,
+                jsonb_agg(jsonb_build_object(
+                    'id', sp.id,
+                    'name', sp.name,
+                    'status', sp.status,
+                    'insightsProjectName', ip.name,
+                    'insightsProjectId', ip.id
+                )) as subprojects,
                 count(*) over () as "totalCount"
             FROM segments s
                 JOIN segments sp ON sp."parentSlug" = s."slug" and sp."grandparentSlug" is not null
                 AND sp."tenantId" = s."tenantId"
+                LEFT JOIN "insightsProjects" ip ON ip."segmentId" = sp.id
             WHERE
                 s."grandparentSlug" IS NULL
             and s."parentSlug" is not null

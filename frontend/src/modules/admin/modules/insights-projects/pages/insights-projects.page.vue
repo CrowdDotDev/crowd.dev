@@ -162,6 +162,8 @@ const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
   unknown
 >;
 
+const router = useRouter();
+
 const {
   data,
   isPending,
@@ -189,6 +191,16 @@ const projects = computed((): InsightsProjectModel[] => {
     );
   }
   return [];
+});
+
+watch(router.currentRoute.value.query, (query) => {
+  if (query?.search) {
+    search.value = query.search as string;
+  }
+
+  if (query?.id) {
+    onEditInsightsProject(query.id as string);
+  }
 });
 
 watch(error, (err) => {
