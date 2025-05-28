@@ -48,7 +48,6 @@
             name: 'adminPanel',
             query: {
               search: subproject.insightsProjectName,
-              id: subproject.insightsProjectId,
             },
             hash: '#projects',
           }"
