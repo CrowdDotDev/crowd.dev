@@ -26,6 +26,7 @@
     "lodash.merge": "^4.6.2",
     "lodash.pickby": "^4.6.0",
     "moment": "~2.29.4",
+    "pg-iterator": "^0.3.0",
     "pg-promise": "^11.4.3",
     "pg-query-stream": "^4.7.0",
     "uuid": "^9.0.1",

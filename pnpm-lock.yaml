@@ -1790,6 +1790,9 @@ importers:
       moment:
         specifier: ~2.29.4
         version: 2.29.4
+      pg-iterator:
+        specifier: ^0.3.0
+        version: 0.3.0(pg@8.11.5)
       pg-promise:
         specifier: ^11.4.3
         version: 11.6.0
@@ -8101,6 +8104,10 @@ packages:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
 
+  pg-iterator@0.3.0:
+    resolution: {integrity: sha512-wiWXQRWj8VZKDoINIA4YfQCI/0cFxvk1NCBEQsFKL5wMqWeTnX+mNwbPSEZmdZ++7/QvDZAarZsswxoi//HD+A==}
+    engines: {node: '>=12'}
+
   pg-minify@1.6.3:
     resolution: {integrity: sha512-NoSsPqXxbkD8RIe+peQCqiea4QzXgosdTKY8p7PsbbGsh2F8TifDj/vJxfuR8qJwNYrijdSs7uf0tAe6WOyCsQ==}
     engines: {node: '>=12.0.0'}
@@ -8116,6 +8123,11 @@ packages:
 
   pg-protocol@1.6.1:
     resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
+
+  pg-query-stream@4.4.0:
+    resolution: {integrity: sha512-shmP973/ruBw3exSmIEBW9iubWvyyZMzp6oWfcHgvlqAe4LtaRyVqPGxgnuorbRqksK03mjOC9PU+Ohz3b0GkQ==}
+    peerDependencies:
+      pg: ^8
 
   pg-query-stream@4.7.0:
     resolution: {integrity: sha512-aQpK8yfFTvOzvPmhXEzWfkwM24lv2Y3TfFY0HJYwx0YM/2fL4DhqpBhLni2Kd+l9p/XoDEi+HFvEvOCm7oqaLg==}
@@ -9007,6 +9019,9 @@ packages:
 
   timers-ext@0.1.7:
     resolution: {integrity: sha512-b85NUNzTSdodShTIbky6ZF02e8STtVVfD+fu4aXXShEELpozH+bCpJLYMPZbsABN2wDH7fJpqIoXxJpzbf0NqQ==}
+
+  tiny-typed-emitter@2.1.0:
+    resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==}
 
   tinyexec@0.3.2:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
@@ -17605,6 +17620,13 @@ snapshots:
 
   pg-int8@1.0.1: {}
 
+  pg-iterator@0.3.0(pg@8.11.5):
+    dependencies:
+      pg-query-stream: 4.4.0(pg@8.11.5)
+      tiny-typed-emitter: 2.1.0
+    transitivePeerDependencies:
+      - pg
+
   pg-minify@1.6.3: {}
 
   pg-pool@3.6.2(pg@8.11.5):
@@ -17621,6 +17643,11 @@ snapshots:
       - pg-native
 
   pg-protocol@1.6.1: {}
+
+  pg-query-stream@4.4.0(pg@8.11.5):
+    dependencies:
+      pg: 8.11.5
+      pg-cursor: 2.12.0(pg@8.11.5)
 
   pg-query-stream@4.7.0(pg@8.11.5):
     dependencies:
@@ -18683,6 +18710,8 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
       next-tick: 1.1.0
+
+  tiny-typed-emitter@2.1.0: {}
 
   tinyexec@0.3.2: {}
 

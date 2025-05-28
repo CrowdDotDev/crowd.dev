@@ -1,4 +1,4 @@
-import QueryStream from 'pg-query-stream'
+import { createQueryIterable } from 'pg-iterator'
 
 import { DbConnOrTx } from '@crowd/database'
 import { getServiceChildLogger, timer } from '@crowd/logging'
@@ -19,76 +19,44 @@ export async function streamActivities(
   params?: Record<string, unknown>,
 ): Promise<{ processed: number; duration: number }> {
   const whereClause = formatQuery(where, params)
-  const qs = new QueryStream(
-    `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`,
-    [],
-    {
-      batchSize: 1000,
-      highWaterMark: 250,
-    },
-  )
+  const sqlQuery = `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`
 
+  // eslint-disable-next-line
+  const qi = createQueryIterable(qdb as any)
   const t = timer(logger, `query activities with ${whereClause}`)
+  const startTime = performance.now()
 
-  return new Promise((resolve, reject) => {
-    let processedAllRows = false
-    let streamResult = null
-    let isSettled = false
+  let processed = 0
+  let promises: Promise<void>[] = []
+  const chunkSize = 100
 
-    function safeResolve(result) {
-      if (!isSettled) {
-        isSettled = true
-        process.removeListener('unhandledRejection', unhandledRejectionHandler)
-        resolve(result)
+  try {
+    const iterable = qi.query(sqlQuery, [])
+
+    for await (const row of iterable) {
+      promises.push(onActivity(row as IDbActivityCreateData))
+      processed++
+
+      if (promises.length >= chunkSize) {
+        await Promise.all(promises)
+        promises = []
       }
     }
 
-    function safeReject(error) {
-      if (!isSettled) {
-        isSettled = true
-        process.removeListener('unhandledRejection', unhandledRejectionHandler)
-        reject(error)
-      }
+    // process remaining items in the partial chunk
+    if (promises.length > 0) {
+      await Promise.all(promises)
     }
 
-    function tryFinish() {
-      if (processedAllRows && streamResult) {
-        safeResolve(streamResult)
-      }
-    }
+    t.end()
 
-    // Handle unhandled rejections to prevent pod crashes
-    const unhandledRejectionHandler = (reason) => {
-      logger.error(reason, 'Unhandled rejection in streamActivities!')
-      safeReject(reason)
-    }
-
-    process.once('unhandledRejection', unhandledRejectionHandler)
-
-    qdb
-      .stream(qs, async (stream) => {
-        try {
-          for await (const item of stream) {
-            t.end()
-
-            const activity = item as unknown as IDbActivityCreateData
-            await onActivity(activity)
-          }
-
-          processedAllRows = true
-          tryFinish()
-        } catch (error) {
-          safeReject(error)
-        }
-      })
-      .then((res) => {
-        streamResult = res
-        tryFinish()
-      })
-      .catch((error) => {
-        safeReject(error)
-      })
-  })
+    return { processed, duration: performance.now() - startTime }
+  } catch (error) {
+    logger.error(error, 'Error streaming activities!')
+    throw error
+  } finally {
+    await qi.release()
+  }
 }
 
 export type MapActivityFunction = (
