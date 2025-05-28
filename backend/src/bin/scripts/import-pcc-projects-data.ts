@@ -7,6 +7,20 @@
  * Create a new worksheet and run the query below.
  * Download the results as a CSV file.
  * 
+ * How to run this script:
+ * 1. Push and deploy your changes on this file if needed
+ * 2. cd crowd-kube/lf-production
+ * 3. kubectl config use-context <prod-context-name>
+ * 4. kubepods | grep script-
+ * 5. kubectl cp /local/path/report.csv <pod-name>://usr/crowd/app/crowd.dev/backend/pcc_projects_data.csv
+ * 6. kubectl exec -it <pod-name> -- sh
+ * 7. cd crowd.dev
+ * 8. git status
+ * 9. git pull (make sure you are on the right branch)
+ * 10. cd backend
+ * 11. Make sure your csv file is in the right location and that you have all changes you need. And then run the script.
+ * 12. LOG_LEVEL=debug SERVICE=script ./node_modules/.bin/tsx src/bin/scripts/import-pcc-projects-data.ts --file ./pcc_projects_data.csv
+ *  
 SELECT 
   CASE WHEN p.NAME IN ('', 'nil') THEN NULL ELSE p.name END AS NAME,
   CASE WHEN p.SLUG__C IN ('', 'nil') THEN NULL ELSE p.slug__c END AS SLUG__C,
