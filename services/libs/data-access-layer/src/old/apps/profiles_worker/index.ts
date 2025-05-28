@@ -453,9 +453,10 @@ export async function runMemberAffiliationsUpdateV2(
   memberId: string,
 ) {
   // todo
-  // get member activity timestamp ranges from questDb
-  // get activityIds, currentOrgId from questDb using the timestamp ranges in batches
   // ...existing logic to build memberOrg and timeline
+  // get member activity timestamp ranges from questDb
+  // logic to chunk the timestamp ranges into batches of 6 months
+  // get activityIds, currentOrgId from questDb using the timestamp ranges in batches
   // update activityRelations in batches
 }
 
