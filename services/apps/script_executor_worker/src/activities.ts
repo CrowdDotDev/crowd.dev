@@ -1,4 +1,4 @@
-import { ProcessingStats, processMembersInBatches } from './activities/cleanup-duplicate-members'
+import { processMembersInBatches } from './activities/cleanup-duplicate-members'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -100,5 +100,4 @@ export {
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
   processMembersInBatches,
-  ProcessingStats,
 }
