@@ -195,6 +195,7 @@ const projects = computed((): InsightsProjectModel[] => {
 });
 
 watch(router.currentRoute.value.query, (query) => {
+  console.log('query', query);
   if (query?.search) {
     search.value = query.search as string;
   }
@@ -202,6 +203,9 @@ watch(router.currentRoute.value.query, (query) => {
   if (query?.id) {
     onEditInsightsProject(query.id as string);
   }
+}, {
+  immediate: true,
+  deep: true,
 });
 
 watch(error, (err) => {
