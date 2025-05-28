@@ -37,7 +37,7 @@ export async function findMembersWithoutIdentities(
           FROM "memberIdentities" mi
           WHERE mi."memberId" = m.id
         )
-      ORDER BY m."createdAt" ASC
+      ORDER BY m."createdAt" DESC
       LIMIT $2
       OFFSET $3
     `
@@ -60,7 +60,7 @@ export async function findMatchingMemberWithIdentities(
       INNER JOIN "memberIdentities" mi ON mi."memberId" = m.id
       WHERE m."displayName" = $1
         AND m."tenantId" = $2
-      ORDER BY m."createdAt" ASC
+      ORDER BY m."createdAt" DESC
       LIMIT 1
     `
     const result = await svc.postgres.reader.connection().query(query, [displayName, tenantId])
