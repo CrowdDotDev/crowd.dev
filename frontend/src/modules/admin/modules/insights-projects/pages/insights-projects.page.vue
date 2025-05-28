@@ -125,6 +125,7 @@ import {
 } from '@tanstack/vue-query';
 import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
+import { useRouter } from 'vue-router';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
 import { INSIGHTS_PROJECTS_SERVICE } from '../services/insights-projects.service';
 import { InsightsProjectModel } from '../models/insights-project.model';
