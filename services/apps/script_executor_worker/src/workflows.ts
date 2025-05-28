@@ -1,3 +1,4 @@
+import { cleanupDuplicatedMembers } from './workflows/cleanup/duplicated-members'
 import { cleanupMembers } from './workflows/cleanup/members'
 import { cleanupOrganizations } from './workflows/cleanup/organizations'
 import { copyActivitiesFromQuestdbToTinybird } from './workflows/copyActivitiesFromQuestdbToTinybird'
@@ -24,4 +25,5 @@ export {
   cleanupOrganizations,
   fixActivityForiegnKeys,
   processLLMVerifiedMerges,
+  cleanupDuplicatedMembers,
 }
