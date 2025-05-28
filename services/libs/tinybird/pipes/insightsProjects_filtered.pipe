@@ -38,6 +38,10 @@ SQL >
     GROUP BY maping.id
     HAVING firstCommit IS NOT NULL AND firstCommit > toDateTime('1970-01-01')
 
+NODE insightsProjects_filtered_criticality_scores_deduplicated
+SQL >
+    SELECT score, repoUrl, rank FROM criticalityScores FINAL
+
 NODE insightsProjects_filtered_1
 SQL >
     %
@@ -60,7 +64,9 @@ SQL >
         {% if defined(details) and details == "true" %}
             ,
             insightsProjects_filtered_connected_platforms.connectedPlatforms,
-            insightsProjects_filtered_first_commit_by_project.firstCommit
+            insightsProjects_filtered_first_commit_by_project.firstCommit,
+            insightsProjects_filtered_criticality_scores_deduplicated.score,
+            insightsProjects_filtered_criticality_scores_deduplicated.rank
         {% end %}
     FROM insightsProjects FINAL
     left join collection_info on collection_info.insightsProjectId = insightsProjects.id
@@ -68,6 +74,10 @@ SQL >
     {% if defined(details) and details == "true" %}
         left join insightsProjects_filtered_connected_platforms using (id)
         left join insightsProjects_filtered_first_commit_by_project using (id)
+        left join
+            insightsProjects_filtered_criticality_scores_deduplicated
+            on insightsProjects_filtered_criticality_scores_deduplicated.repoUrl
+            = insightsProjects.github
     {% end %}
     where
         insightsProjects.enabled = 1
@@ -109,5 +119,7 @@ SQL >
         {% if defined(details) and details == "true" %}
             ,
             insightsProjects_filtered_connected_platforms.connectedPlatforms,
-            insightsProjects_filtered_first_commit_by_project.firstCommit
+            insightsProjects_filtered_first_commit_by_project.firstCommit,
+            insightsProjects_filtered_criticality_scores_deduplicated.score,
+            insightsProjects_filtered_criticality_scores_deduplicated.rank
         {% end %}
