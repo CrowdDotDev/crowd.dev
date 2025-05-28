@@ -22,7 +22,7 @@ export async function streamActivities(
   const sqlQuery = `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`
 
   // eslint-disable-next-line
-  const qi = createQueryIterable(qdb as any)
+  const qi = createQueryIterable((qdb as any).$pool)
   const t = timer(logger, `query activities with ${whereClause}`)
   const startTime = performance.now()
 
