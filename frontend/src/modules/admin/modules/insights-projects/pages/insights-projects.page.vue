@@ -95,7 +95,7 @@
     v-if="removeProjectDialog"
     v-model="removeProjectDialog"
     title="Are you sure you want to remove this project from Insights?"
-    description="This will remove the project permanently. You can’t undo this action."
+    description="This will remove the project permanently. You can't undo this action."
     icon="circle-minus"
     confirm-button-text="Remove project"
     cancel-button-text="Cancel"
@@ -125,7 +125,7 @@ import {
 } from '@tanstack/vue-query';
 import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
 import { INSIGHTS_PROJECTS_SERVICE } from '../services/insights-projects.service';
 import { InsightsProjectModel } from '../models/insights-project.model';
@@ -163,7 +163,7 @@ const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
   unknown
 >;
 
-const router = useRouter();
+const route = useRoute();
 
 const {
   data,
@@ -194,7 +194,7 @@ const projects = computed((): InsightsProjectModel[] => {
   return [];
 });
 
-watch(router.currentRoute.value.query, (query) => {
+watch(route.query, (query) => {
   console.log('query', query);
   if (query?.search) {
     search.value = query.search as string;
