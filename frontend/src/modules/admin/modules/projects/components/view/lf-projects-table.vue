@@ -43,13 +43,14 @@
           {{ subproject.name }}
         </p>
         <router-link
+          v-if="subproject.insightsProjectId && subproject.insightsProjectName"
           :to="{
             name: 'adminPanel',
             query: {
               search: subproject.insightsProjectName,
               id: subproject.insightsProjectId,
             },
-            hash: 'projects',
+            hash: '#projects',
           }"
         >
           <lf-pill type="outline">
