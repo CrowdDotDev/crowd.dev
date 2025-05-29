@@ -43,7 +43,7 @@
           {{ subproject.name }}
         </p>
         <router-link
-          v-if="subproject.insightsProjectId && subproject.insightsProjectName"
+          v-if="subproject.insightsProjectId && subproject.insightsProjectName && isTeamUser"
           :to="{
             name: 'adminPanel',
             query: {
@@ -97,6 +97,9 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfProjectStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
 import LfPill from '@/ui-kit/pill/Pill.vue';
+import { computed } from 'vue';
+import config from '@/config';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
 
 const route = useRoute();
@@ -123,6 +126,9 @@ const props = defineProps({
 });
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
+
+const authStore = useAuthStore();
+const isTeamUser = computed(() => config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id));
 
 </script>
 
