@@ -7,7 +7,6 @@ import moment from 'moment'
 
 import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
-  NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
   connectNangoIntegration,
   createNangoConnection,
@@ -1049,7 +1048,7 @@ export default class IntegrationService {
             baseUrl,
           },
           credentials: {
-            //TODO: double check if this works for DC instance, once we have creds
+            // TODO: double check if this works for DC instance, once we have creds
             apiKey: process.env.ATLASSIAN_AUTH_PASSWORD,
           },
         }
