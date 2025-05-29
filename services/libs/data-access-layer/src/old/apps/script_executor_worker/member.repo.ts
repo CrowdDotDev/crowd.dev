@@ -240,7 +240,7 @@ class MemberRepository {
         LEFT JOIN "mergeActions" ma ON ma."primaryId" = m_primary.id 
             AND ma."secondaryId" = m_secondary.id 
             AND ma.type = 'member'
-            AND ma.step = 'merge-done'
+            AND (ma.state = 'in-progress' OR ma.state = 'pending' OR ma.step = 'merge-done')
         WHERE m_secondary."createdAt" > $(cutoffDate)
             AND mi_secondary."memberId" IS NULL
             AND ma.id IS NULL
