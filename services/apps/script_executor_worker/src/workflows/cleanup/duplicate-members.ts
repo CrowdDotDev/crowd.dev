@@ -23,7 +23,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     console.log(`Too many running finishMemberMerging workflows (count: ${workflowsCount})`)
 
     // Wait for 5 minutes
-    await sleep('5 minutes')
+    await sleep('3 minutes')
 
     workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
   }
@@ -39,7 +39,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
   await Promise.all(
     results.map((result) => {
       console.log(`Merging members ${result.primaryId} and ${result.secondaryId}`)
-      return mergeMembers(result.primaryId, result.secondaryId)
+      return mergeMembers(result.primaryId, result.secondaryId, true)
     }),
   )
 
