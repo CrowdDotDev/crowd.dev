@@ -50,3 +50,7 @@ export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
 export interface IProcessLLMVerifiedMergesArgs extends IScriptBatchTestArgs {
   type: string
 }
+
+export interface ICleanupDuplicatedMembersArgs extends IScriptBatchTestArgs {
+  cutoffDate?: string
+}

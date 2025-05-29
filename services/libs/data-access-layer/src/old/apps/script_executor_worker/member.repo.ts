@@ -3,7 +3,11 @@ import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
-import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
+import {
+  IDuplicateMembersToMerge,
+  IFindMemberIdentitiesGroupedByPlatformResult,
+  ISimilarMember,
+} from './types'
 
 class MemberRepository {
   constructor(
@@ -217,6 +221,32 @@ class MemberRepository {
         await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { memberId })
       }
     })
+  }
+
+  public async findDuplicateMembersAfterDate(
+    cutoffDate: string,
+    limit: number,
+  ): Promise<IDuplicateMembersToMerge[]> {
+    return this.connection.query(
+      `
+        SELECT DISTINCT ON (m_secondary.id)
+            m_primary.id as "primaryId",
+            m_secondary.id as "secondaryId"
+        FROM members m_secondary
+        LEFT JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
+        JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
+            AND m_primary.id != m_secondary.id
+        JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
+        WHERE m_secondary."createdAt" > $(cutoffDate)
+            AND mi_secondary."memberId" IS NULL
+        ORDER BY m_secondary.id, m_primary."createdAt" DESC
+        LIMIT $(limit)
+      `,
+      {
+        cutoffDate,
+        limit,
+      },
+    )
   }
 }
 
