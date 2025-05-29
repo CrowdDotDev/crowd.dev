@@ -7,6 +7,7 @@ import moment from 'moment'
 
 import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
+  NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
   connectNangoIntegration,
   createNangoConnection,
@@ -36,6 +37,7 @@ import {
   GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
+import { ConfluenceIntegrationData } from '@/types/confluenceTypes'
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
@@ -1009,23 +1011,85 @@ export default class IntegrationService {
    * @param integrationData  to create the integration object
    * @returns integration object
    */
-  async confluenceConnectOrUpdate(integrationData) {
+  async confluenceConnectOrUpdate(integrationData: ConfluenceIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let integration
+    let integration: any
+    let connectionId: string
     try {
+      const constructNangoConnectionPayload = (
+        integrationData: ConfluenceIntegrationData,
+      ): Record<string, any> => {
+        let confluenceIntegrationType: NangoIntegration
+        // nangoPayload is different for each integration
+        // check https://github.com/NangoHQ/nango/blob/master/packages/providers/providers.yaml#L2547
+        let nangoPayload: any
+        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+
+        const baseUrl = integrationData.settings.url.trim()
+        const hostname = new URL(baseUrl).hostname
+        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+        if (isCloudUrl) {
+          confluenceIntegrationType = NangoIntegration.CONFLUENCE_BASIC
+          nangoPayload = {
+            params: {
+              subdomain,
+            },
+            credentials: {
+              username: process.env.ATLASSIAN_AUTH_USERNAME,
+              password: process.env.ATLASSIAN_AUTH_PASSWORD,
+            },
+          }
+          return { confluenceIntegrationType, nangoPayload }
+        }
+        confluenceIntegrationType = NangoIntegration.CONFLUENCE_DATA_CENTER
+        nangoPayload = {
+          params: {
+            baseUrl,
+          },
+          credentials: {
+            //TODO: double check if this works for DC instance, once we have creds
+            apiKey: process.env.ATLASSIAN_AUTH_PASSWORD,
+          },
+        }
+
+        return { confluenceIntegrationType, nangoPayload }
+      }
+      const { confluenceIntegrationType, nangoPayload } =
+        constructNangoConnectionPayload(integrationData)
+      this.options.log.info(
+        `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
+      )
+      connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
       integration = await this.createOrUpdate(
         {
+          id: connectionId,
           platform: PlatformType.CONFLUENCE,
-          settings: integrationData.settings,
+          settings: {
+            ...integrationData.settings,
+            nangoIntegrationName: confluenceIntegrationType,
+          },
           status: 'done',
         },
         transaction,
       )
 
+      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
+        spaceKeysToSync: integrationData.settings.spaces,
+      })
+      await startNangoSync(NangoIntegration.CONFLUENCE_BASIC, connectionId)
       await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
+    } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.settings.url}`)
+        throw new Error400(this.options.language, 'errors.confluence.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.confluence.invalidCredentials')
+      }
+      throw error
     }
     return integration
   }
