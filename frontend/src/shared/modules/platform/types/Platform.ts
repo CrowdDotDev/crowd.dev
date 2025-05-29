@@ -19,4 +19,5 @@ export enum Platform {
     EMAILS = 'emails',
     PHONE_NUMBERS = 'phoneNumbers',
     CRUNCHBASE = 'crunchbase',
+    CONFLUENCE = 'confluence',
 }
