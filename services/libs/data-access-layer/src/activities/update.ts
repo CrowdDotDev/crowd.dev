@@ -6,7 +6,7 @@ import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activit
 import { QueryExecutor, formatQuery } from '../queryExecutor'
 
 import { insertActivities } from './ilp'
-import { queryStreamIter } from './query-stream'
+import { queryStreamIter } from './safeQueryStream'
 import { updateActivityRelationsById } from './sql'
 
 const logger = getServiceChildLogger('activities.update')
@@ -27,10 +27,6 @@ export async function streamActivities(
     qdb,
     `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`,
     [],
-    {
-      batchSize: 1000,
-      highWaterMark: 250,
-    },
   )
 
   try {

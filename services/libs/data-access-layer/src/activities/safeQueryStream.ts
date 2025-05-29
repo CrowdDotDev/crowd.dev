@@ -8,9 +8,17 @@ export interface QueryStreamOptions {
   queryTimeout?: number
 }
 
-// Wrapper for pg-query-stream to manage errors and timeouts gracefully.
-// Monkey-patch based on https://github.com/brianc/node-postgres/issues/1860#issuecomment-489582161
-export function dbQueryStream(
+/**
+ * Safe wrapper for `pg-query-stream` to prevent `TypeError: queryCallback is not a function`
+ * when using `query_timeout` with streaming queries.
+ *
+ * node-postgres expects a `.callback` method on all query objects, which `pg-query-stream`
+ * lacks. This monkey-patch injects a no-op `callback` and overrides internal handlers to
+ * clear timeouts safely once data starts flowing or the query completes.
+ *
+ * @see https://github.com/brianc/node-postgres/issues/1860#issuecomment-489582161
+ */
+function safeQueryStream(
   db: DbConnOrTx,
   sql: string,
   params: unknown[],
@@ -54,14 +62,22 @@ export function dbQueryStream(
   return db.stream(qs, initCb)
 }
 
+/**
+ * Async generator for streaming large query results with sane defaults.
+ * Wraps `safeQueryStream` and supports custom stream options.
+ */
 export async function* queryStreamIter<T>(
   db: DbConnOrTx,
   sql: string,
   params: unknown[],
-  opts: QueryStreamOptions,
+  opts?: QueryStreamOptions,
 ): AsyncIterable<T> {
   const stream = await new Promise((resolve) => {
-    dbQueryStream(db, sql, params, resolve, opts)
+    safeQueryStream(db, sql, params, resolve, {
+      batchSize: 1000,
+      highWaterMark: 250,
+      ...opts,
+    })
   })
 
   yield* stream as AsyncIterable<T>
