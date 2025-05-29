@@ -237,8 +237,13 @@ class MemberRepository {
         JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
             AND m_primary.id != m_secondary.id
         JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
+        LEFT JOIN "mergeActions" ma ON ma."primaryId" = m_primary.id 
+            AND ma."secondaryId" = m_secondary.id 
+            AND ma.type = 'member'
+            AND (ma.state = 'in-progress' OR ma.state = 'pending')
         WHERE m_secondary."createdAt" > $(cutoffDate)
             AND mi_secondary."memberId" IS NULL
+            AND ma.id IS NULL
         LIMIT $(limit)
       `,
       {

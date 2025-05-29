@@ -9,7 +9,6 @@ export async function findDuplicateMembersAfterDate(
 ): Promise<IDuplicateMembersToMerge[]> {
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-
     return memberRepo.findDuplicateMembersAfterDate(cutoffDate, limit)
   } catch (error) {
     svc.log.error(error, 'Error finding duplicate members after cutoff date!')

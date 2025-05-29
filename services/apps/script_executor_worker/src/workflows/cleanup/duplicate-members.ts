@@ -36,16 +36,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
   }
 
   // execute merge in parallel
-  await Promise.all(
-    results.map((result) => {
-      try {
-        return mergeMembers(result.primaryId, result.secondaryId)
-      } catch (error) {
-        console.error(`Error merging members ${result.primaryId} and ${result.secondaryId}:`, error)
-        return null
-      }
-    }),
-  )
+  await Promise.all(results.map((result) => mergeMembers(result.primaryId, result.secondaryId)))
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
