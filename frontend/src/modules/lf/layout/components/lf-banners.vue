@@ -1,7 +1,6 @@
 <template>
-  <!-- TODO: Remove the || true once the integrations are back up -->
   <div
-    v-if="showBanner || true"
+    v-if="showBanner"
   >
     <div class="pt-14">
       <!-- Links to {sub-project} integrations page -->
@@ -125,18 +124,6 @@
               Project group settings
             </lf-button>
           </router-link>
-        </div>
-      </banner>
-      <!-- TODO: Remove this banner once Confluence integrations is back up -->
-      <banner
-        variant="alert"
-      >
-        <div
-          class="flex flex-wrap items-center justify-center grow text-sm py-2"
-        >
-          <span class="font-semibold">Temporary Disruption of Confluence Integration</span>
-          <span>&nbsp;Confluence integration is currently stopped.
-            The team is actively working on bringing the integration back and restore full functionality.</span>
         </div>
       </banner>
     </div>
