@@ -36,7 +36,7 @@ export class OrganizationService extends LoggerBase {
   }
 
   public async addToMember(
-    segmentId: string,
+    segmentIds: string[],
     memberId: string,
     orgs: IOrganizationIdSource[],
   ): Promise<void> {
@@ -44,7 +44,7 @@ export class OrganizationService extends LoggerBase {
 
     await addOrgsToSegments(
       qe,
-      segmentId,
+      segmentIds,
       orgs.map((org) => org.id),
     )
 
