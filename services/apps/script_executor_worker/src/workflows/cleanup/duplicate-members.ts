@@ -1,7 +1,7 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../../activities'
-import { ICleanupDuplicatedMembersArgs } from '../../types'
+import { ICleanupDuplicateMembersArgs } from '../../types'
 
 const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxyActivities<
   typeof activities
@@ -10,7 +10,7 @@ const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxy
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function cleanupDuplicateMembers(args: ICleanupDuplicatedMembersArgs): Promise<void> {
+export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
   const cutoffDate = args.cutoffDate ?? '2025-05-18'
   const WORKFLOWS_THRESHOLD = 20
