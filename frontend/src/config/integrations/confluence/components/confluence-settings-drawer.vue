@@ -26,30 +26,30 @@
           spellcheck="false"
           placeholder="Enter Organization URL"
         />
-        <el-input
-          v-if="form.space"
-          id="spaceId"
-          v-model="form.space.id"
+        <app-array-input
+          v-for="(_, index) of form.spaces"
+          :id="`spaceKey-${index}`"
+          :key="index"
+          v-model="form.spaces[index]"
           class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space ID"
-        />
-        <el-input
-          v-if="form.space"
-          id="spaceKey"
-          v-model="form.space.key"
-          class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space Key"
-        />
-        <el-input
-          v-if="form.space"
-          id="spaceName"
-          v-model="form.space.name"
-          class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space Name"
-        />
+          placeholder="Enter Space key"
+        >
+          <template #after>
+            <lf-button
+              type="primary-link"
+              size="medium"
+              class="w-10 h-10"
+              icon-only
+              @click="removeSpaceKey(index)"
+            >
+              <lf-icon name="trash-can" :size="20" />
+            </lf-button>
+          </template>
+        </app-array-input>
+
+        <lf-button type="primary-link" @click="addSpaceKey()">
+          + Add Space Key
+        </lf-button>
       </el-form>
     </template>
 
@@ -79,7 +79,7 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
 import {
   computed, onMounted, reactive, ref,
@@ -88,9 +88,14 @@ import confluence from '@/config/integrations/confluence/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppArrayInput from '@/shared/form/array-input.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -117,15 +122,16 @@ const { trackEvent } = useProductTracking();
 const loading = ref(false);
 const form = reactive({
   url: '',
-  space: {
-    id: '',
-    key: '',
-    name: '',
-  },
+  spaces: [''],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
-const $v = useVuelidate({}, form, { $stopPropagation: true });
+const $v = useVuelidate({
+  url: { required: true },
+  spaces: {
+    required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
+  },
+}, form, { $stopPropagation: true });
 
 const { doConfluenceConnect } = mapActions('integration');
 const isVisible = computed({
@@ -138,10 +144,23 @@ const isVisible = computed({
 });
 const logoUrl = confluence.image;
 
+const addSpaceKey = () => {
+  form.spaces.push('');
+};
+
+const removeSpaceKey = (index: number) => {
+  form.spaces.splice(index, 1);
+};
+
 onMounted(() => {
   if (props.integration?.settings) {
     form.url = props.integration?.settings.url;
-    form.space = props.integration?.settings.space;
+    // to handle both single and multiple spaces
+    if (props.integration?.settings.space) {
+      form.spaces = [props.integration?.settings.space.key];
+    } else {
+      form.spaces = props.integration?.settings.spaces;
+    }
   }
   formSnapshot();
 });
@@ -158,7 +177,7 @@ const connect = async () => {
   doConfluenceConnect({
     settings: {
       url: form.url,
-      space: form.space,
+      spaces: form.spaces,
     },
     isUpdate,
     segmentId: props.segmentId,
@@ -166,7 +185,9 @@ const connect = async () => {
   })
     .then(() => {
       trackEvent({
-        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        key: isUpdate
+          ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS
+          : FeatureEventKey.CONNECT_INTEGRATION,
         type: EventType.FEATURE,
         properties: {
           platform: Platform.CONFLUENCE,
@@ -181,7 +202,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfConfluenceSettingsDrawer',
 };
