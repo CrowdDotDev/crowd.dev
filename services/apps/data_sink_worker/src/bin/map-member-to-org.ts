@@ -70,11 +70,11 @@ setImmediate(async () => {
     if (emailIdentities.length > 0) {
       const emails = emailIdentities.map((i) => i.value)
       log.info({ memberId, emails }, 'Member emails!')
-      const orgs = await memberService.assignOrganizationByEmailDomain(segmentId, null, emails)
+      const orgs = await memberService.assignOrganizationByEmailDomain(null, emails)
 
       if (orgs.length > 0) {
         log.info('Organizations found with matching email domains:', JSON.stringify(orgs))
-        orgService.addToMember(segmentId, member.id, orgs)
+        orgService.addToMember([segmentId], member.id, orgs)
 
         for (const org of orgs) {
           await searchSyncWorkerEmitter.triggerOrganizationSync(org.id, true, segmentId)
