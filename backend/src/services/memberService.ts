@@ -1233,7 +1233,7 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(originalId, toMergeId) {
+  async merge(originalId, toMergeId, doNotDeleteSecondaryMember = false) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     if (originalId === toMergeId) {
@@ -1248,10 +1248,7 @@ export default class MemberService extends LoggerBase {
     const mergeAction = await findMergeAction(qx, originalId, toMergeId)
 
     // prevent multiple merge operations
-    if (
-      mergeAction?.state === MergeActionState.IN_PROGRESS ||
-      mergeAction?.state === MergeActionState.PENDING
-    ) {
+    if (mergeAction && mergeAction?.step !== MergeActionStep.MERGE_DONE) {
       throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
     }
 
@@ -1426,6 +1423,7 @@ export default class MemberService extends LoggerBase {
           toMerge.displayName,
           this.options.currentTenant.id,
           this.options.currentUser.id,
+          doNotDeleteSecondaryMember,
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
