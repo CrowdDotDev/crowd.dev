@@ -73,10 +73,20 @@ const job: IJobDefinition = {
         if (!nangoConnection) {
           ctx.log.warn(`${int.platform} integration with id "${int.id}" is not connected to Nango!`)
         } else {
+          let nangoPlatform: NangoIntegration = int.platform as NangoIntegration
+          if (int.platform == PlatformType.JIRA || int.platform == PlatformType.CONFLUENCE) {
+            // those integrations are mapped with multiple nango integrations based on auth method
+            if (!int.settings.nangoIntegrationName) {
+              // old integrations in db
+              ctx.log.warn(
+                `Could not get nangoIntegrationName from integration.settings for integrationId: ${int.id} - should re-connect it`,
+              )
+              continue
+            }
+            nangoPlatform = int.settings.nangoIntegrationName as NangoIntegration
+          }
           const results = await getNangoConnectionStatus(
-            int.platform == PlatformType.JIRA
-              ? (int.settings.nangoIntegrationName as NangoIntegration)
-              : (int.platform as NangoIntegration),
+            nangoPlatform,
             nangoConnection.connection_id,
           )
 

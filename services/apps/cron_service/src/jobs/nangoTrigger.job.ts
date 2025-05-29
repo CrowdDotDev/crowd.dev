@@ -37,7 +37,7 @@ const job: IJobDefinition = {
 
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
-      if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
+      if (!platform || (platform === NangoIntegration.GITHUB && !settings.nangoMapping)) {
         // ignore non-nango github integrations
         continue
       }
