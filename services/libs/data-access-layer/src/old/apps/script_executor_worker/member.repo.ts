@@ -239,7 +239,6 @@ class MemberRepository {
         JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
         WHERE m_secondary."createdAt" > $(cutoffDate)
             AND mi_secondary."memberId" IS NULL
-        ORDER BY m_secondary.id, m_primary."createdAt" DESC
         LIMIT $(limit)
       `,
       {
