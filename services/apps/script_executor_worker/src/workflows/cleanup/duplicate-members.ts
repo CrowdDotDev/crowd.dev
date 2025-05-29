@@ -1,4 +1,4 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities, sleep } from '@temporalio/workflow'
 
 import * as activities from '../../activities'
 import { ICleanupDuplicateMembersArgs } from '../../types'
@@ -23,15 +23,29 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     console.log(`Too many running finishMemberMerging workflows (count: ${workflowsCount})`)
 
     // Wait for 5 minutes
-    await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
+    await sleep('5 minutes')
 
     workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
   }
 
   const results = await findDuplicateMembersAfterDate(cutoffDate, BATCH_SIZE)
 
+  if (results.length === 0) {
+    console.log('No duplicate members found!')
+    return
+  }
+
   // execute merge in parallel
-  await Promise.all(results.map((result) => mergeMembers(result.primaryId, result.secondaryId)))
+  await Promise.all(
+    results.map((result) => {
+      try {
+        return mergeMembers(result.primaryId, result.secondaryId)
+      } catch (error) {
+        console.error(`Error merging members ${result.primaryId} and ${result.secondaryId}:`, error)
+        return null
+      }
+    }),
+  )
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
