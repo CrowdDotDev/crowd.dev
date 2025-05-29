@@ -63,19 +63,3 @@ export interface IDbMemberSegment {
   memberId: string
   segmentId: string
 }
-
-let insertMemberSegmentColumnSet: DbColumnSet
-export function getInsertMemberSegmentColumnSet(instance: DbInstance): DbColumnSet {
-  if (insertMemberSegmentColumnSet) return insertMemberSegmentColumnSet
-
-  insertMemberSegmentColumnSet = new instance.helpers.ColumnSet(
-    ['memberId', 'tenantId', 'segmentId'],
-    {
-      table: {
-        table: 'memberSegments',
-      },
-    },
-  )
-
-  return insertMemberSegmentColumnSet
-}

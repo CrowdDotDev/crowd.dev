@@ -68,14 +68,10 @@ setImmediate(async () => {
         currentMemberId = member.id
         currentEmails = member.emails
         if (member.emails) {
-          const orgs = await memberService.assignOrganizationByEmailDomain(
-            segmentId,
-            null,
-            member.emails,
-          )
+          const orgs = await memberService.assignOrganizationByEmailDomain(null, member.emails)
 
           if (orgs.length > 0) {
-            orgService.addToMember(segmentId, member.id, orgs)
+            orgService.addToMember([segmentId], member.id, orgs)
 
             for (const org of orgs) {
               await searchSyncWorkerEmitter.triggerOrganizationSync(org.id, true, segmentId)
