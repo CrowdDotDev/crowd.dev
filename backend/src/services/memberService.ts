@@ -1233,7 +1233,7 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(originalId, toMergeId, doNotDeleteSecondaryMember) {
+  async merge(originalId, toMergeId, doNotDeleteSecondaryMember = false) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     if (originalId === toMergeId) {
