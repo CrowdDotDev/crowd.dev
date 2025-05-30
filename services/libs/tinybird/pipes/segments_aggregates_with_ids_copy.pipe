@@ -26,12 +26,33 @@ SQL >
     FROM segmentsAggregatedMV
     GROUP BY segmentId
 
+NODE segments_aggregates_with_ids_criticality_scores_deduplicated
+SQL >
+    SELECT score, repoUrl FROM criticalityScores FINAL
+
+NODE segments_aggregates_with_ids_criticality_scores_by_project
+SQL >
+    SELECT id as id, segmentId as segmentId, score as score
+    FROM insightsProjects
+    JOIN
+        segments_aggregates_with_ids_criticality_scores_deduplicated
+        ON segments_aggregates_with_ids_criticality_scores_deduplicated.repoUrl
+        = insightsProjects.github
+
+NODE segments_aggregates_with_ids_copy_software_value_deduplicated
+SQL >
+    SELECT segment_id as segmentId, estimated_cost as estimatedCost
+    from softwareValueProjectCosts FINAL
+    WHERE segment_id != ''
+
 NODE segments_aggregates_with_ids_results
 SQL >
     SELECT
         segments_aggregates_with_ids_aggregates.segmentId as "segmentId",
         segments_aggregates_with_ids_aggregates.contributorCount,
         segments_aggregates_with_ids_aggregates.organizationCount,
+        segments_aggregates_with_ids_criticality_scores_by_project.score AS "score",
+        segments_aggregates_with_ids_copy_software_value_deduplicated.estimatedCost as "softwareValue",
         segments_aggregates_with_ids_projects.id AS "projectId",
         segments_aggregates_with_ids_collections.id as "collectionId",
         segments_aggregates_with_ids_categories.id as "categoryId",
@@ -53,6 +74,14 @@ SQL >
         segments_aggregates_with_ids_categories
         ON segments_aggregates_with_ids_categories.id
         = segments_aggregates_with_ids_collections.categoryId
+    LEFT JOIN
+        segments_aggregates_with_ids_criticality_scores_by_project
+        ON segments_aggregates_with_ids_criticality_scores_by_project.id
+        = segments_aggregates_with_ids_projects.id
+    LEFT JOIN
+        segments_aggregates_with_ids_copy_software_value_deduplicated
+        ON segments_aggregates_with_ids_copy_software_value_deduplicated.segmentId
+        = segments_aggregates_with_ids_projects.segmentId
 
 TYPE COPY
 TARGET_DATASOURCE segments_aggregates_with_ids_datasource

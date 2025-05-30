@@ -1,6 +1,10 @@
 DESCRIPTION >
     Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
 
+TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
+TOKEN "raul_dev_access_token" READ
+TOKEN "insights-app-token" READ
+
 TAGS "Widget"
 
 NODE collection_info
@@ -42,6 +46,12 @@ NODE insightsProjects_filtered_criticality_scores_deduplicated
 SQL >
     SELECT score, repoUrl, rank FROM criticalityScores FINAL
 
+NODE insightsProjects_filtered_software_value
+SQL >
+    SELECT projectId, softwareValue as "softwareValue"
+    FROM segments_aggregates_with_ids_datasource
+    WHERE projectId != ''
+
 NODE insightsProjects_filtered_1
 SQL >
     %
@@ -61,6 +71,7 @@ SQL >
         insightsProjects.twitter,
         insightsProjects_filtered_criticality_scores_deduplicated.score,
         insightsProjects_filtered_criticality_scores_deduplicated.rank,
+        insightsProjects_filtered_software_value.softwareValue as softwareValue,
         coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
         coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
         {% if defined(details) and details == "true" %}
@@ -74,6 +85,9 @@ SQL >
     left join
         insightsProjects_filtered_criticality_scores_deduplicated
         on insightsProjects_filtered_criticality_scores_deduplicated.repoUrl = insightsProjects.github
+    left join
+        insightsProjects_filtered_software_value
+        ON insightsProjects_filtered_software_value.projectId = insightsProjects.id
     {% if defined(details) and details == "true" %}
         left join insightsProjects_filtered_connected_platforms using (id)
         left join insightsProjects_filtered_first_commit_by_project using (id)
@@ -116,7 +130,8 @@ SQL >
         insightsProjects.github,
         insightsProjects.twitter,
         insightsProjects_filtered_criticality_scores_deduplicated.score,
-        insightsProjects_filtered_criticality_scores_deduplicated.rank
+        insightsProjects_filtered_criticality_scores_deduplicated.rank,
+        insightsProjects_filtered_software_value.softwareValue
         {% if defined(details) and details == "true" %}
             ,
             insightsProjects_filtered_connected_platforms.connectedPlatforms,
