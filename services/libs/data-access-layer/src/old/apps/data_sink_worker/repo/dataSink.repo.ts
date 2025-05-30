@@ -332,10 +332,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       const resultData = await this.db().any(
         `
         select r.id,
-               i.platform,
                r."runId"
         from integration.results r
-        inner join integrations i on r."integrationId" = i.id
         where r.state = $(delayedState) and r."delayedUntil" < now()
         limit ${limit}
         for update skip locked;
