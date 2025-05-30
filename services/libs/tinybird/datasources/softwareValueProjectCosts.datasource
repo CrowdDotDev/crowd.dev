@@ -1,0 +1,9 @@
+SCHEMA >
+    `repoUrl` String `json:$.record.repo_url`,
+    `estimatedCost` UInt64 `json:$.record.estimated_cost`,
+    `updatedAt` DateTime64(3) `json:$.record.updated_at`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(updatedAt)
+ENGINE_SORTING_KEY repoUrl
+ENGINE_VER updatedAt
