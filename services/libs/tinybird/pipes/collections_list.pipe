@@ -1,10 +1,6 @@
 DESCRIPTION >
     Serves collections page with pagination and sorting
 
-TOKEN "collections_list_endpoint_read_0317" READ
-TOKEN "raul_dev_access_token" READ
-TOKEN "insights-app-token" READ
-
 TAGS "Widget"
 
 NODE collections_paginated
