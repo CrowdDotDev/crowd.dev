@@ -1,7 +1,10 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
+import {
+  getMemberActivityTimestampRanges,
+  updateActivities,
+} from '@crowd/data-access-layer/src/activities/update'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
@@ -142,6 +145,8 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
   const qx = pgpQx(pgDb.connection())
   const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
 
+  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
+
   await updateActivities(
     qDb,
     pgpQx(svc.postgres.writer.connection()),
@@ -152,9 +157,11 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
         organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
       }),
     ],
-    `"memberId" = $(memberId)`,
+    `"memberId" = $(memberId) AND "timestamp" >= $(minTimestamp) AND "timestamp" <= $(maxTimestamp)`,
     {
       memberId,
+      minTimestamp,
+      maxTimestamp,
     },
   )
 }
@@ -193,6 +200,8 @@ export async function finishMemberUnmergingUpdateActivities({
   const qx = pgpQx(pgDb.connection())
   const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
 
+  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
+
   await updateActivities(
     qDb,
     pgpQx(svc.postgres.writer.connection()),
@@ -203,7 +212,7 @@ export async function finishMemberUnmergingUpdateActivities({
         organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
       }),
     ],
-    `"memberId" = $(memberId)`,
-    { memberId },
+    `"memberId" = $(memberId) AND "timestamp" >= $(minTimestamp) AND "timestamp" <= $(maxTimestamp)`,
+    { memberId, minTimestamp, maxTimestamp },
   )
 }

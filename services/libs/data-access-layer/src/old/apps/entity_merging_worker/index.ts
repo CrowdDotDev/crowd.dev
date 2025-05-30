@@ -2,7 +2,7 @@ import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IQueue } from '@crowd/queue'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
-import { updateActivities } from '../../../activities/update'
+import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
 import { formatQuery, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
@@ -106,6 +106,7 @@ export async function moveIdentityActivitiesToNewMember(
   username: string,
   platform: string,
 ) {
+  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(db, fromId)
   await updateActivities(
     db,
     pgpQx(pgDb),
@@ -116,11 +117,15 @@ export async function moveIdentityActivitiesToNewMember(
         "memberId" = $(fromId)
         and "username" = $(username)
         and "platform" = $(platform)
+        and "timestamp" >= $(minTimestamp)
+        and "timestamp" <= $(maxTimestamp)
       `,
       {
         fromId,
         username,
         platform,
+        minTimestamp,
+        maxTimestamp,
       },
     ),
     {
