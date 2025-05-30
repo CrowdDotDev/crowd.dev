@@ -6,7 +6,7 @@ import { ICleanupDuplicateMembersArgs } from '../../types'
 const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '10 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
