@@ -1248,7 +1248,7 @@ export default class MemberService extends LoggerBase {
     const mergeAction = await findMergeAction(qx, originalId, toMergeId)
 
     // prevent multiple merge operations
-    if (mergeAction && mergeAction?.step !== MergeActionStep.MERGE_DONE) {
+    if (mergeAction && mergeAction?.state === MergeActionState.IN_PROGRESS) {
       throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
     }
 
