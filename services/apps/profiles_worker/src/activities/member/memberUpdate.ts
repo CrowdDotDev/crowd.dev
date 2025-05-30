@@ -9,16 +9,7 @@ updateMemberAffiliations is a Temporal activity that updates all affiliations fo
 a given member.
 */
 export async function updateMemberAffiliations(input: MemberUpdateInput): Promise<void> {
-  try {
-    await runMemberAffiliationsUpdate(
-      svc.postgres.writer,
-      svc.questdbSQL,
-      svc.queue,
-      input.member.id,
-    )
-  } catch (err) {
-    throw new Error(err)
-  }
+  await runMemberAffiliationsUpdate(svc.postgres.writer, svc.questdbSQL, svc.queue, input.member.id)
 }
 
 export async function syncMember(memberId: string, withAggs: boolean): Promise<void> {
