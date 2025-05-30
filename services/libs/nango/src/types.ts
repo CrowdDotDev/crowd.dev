@@ -7,6 +7,8 @@ export enum NangoIntegration {
   JIRA_CLOUD_BASIC = 'jira-basic',
   JIRA_DATA_CENTER_API_KEY = 'jira-data-center-api-key',
   JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic',
+  CONFLUENCE_BASIC = 'confluence-basic',
+  CONFLUENCE_DATA_CENTER = 'confluence-data-center',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
@@ -21,6 +23,9 @@ export const nangoIntegrationToPlatform = (integration: NangoIntegration): Platf
     case NangoIntegration.JIRA_DATA_CENTER_API_KEY:
     case NangoIntegration.JIRA_DATA_CENTER_BASIC:
       return PlatformType.JIRA
+    case NangoIntegration.CONFLUENCE_BASIC:
+    case NangoIntegration.CONFLUENCE_DATA_CENTER:
+      return PlatformType.CONFLUENCE
     default:
       throw new Error('Unknown integration')
   }
@@ -36,7 +41,8 @@ export const platformToNangoIntegration = (
     case PlatformType.GITHUB_NANGO:
       return NangoIntegration.GITHUB
     case PlatformType.JIRA:
-      // nango has multiple Jira integrations based on auth method
+    case PlatformType.CONFLUENCE:
+      // nango has multiple Jira/Confluence integrations based on auth method
       return platformSetting.nangoIntegrationName
     default:
       throw new Error('Unknown platform')
@@ -114,6 +120,34 @@ export const NANGO_INTEGRATION_CONFIG = {
       ISSUES: 'issues',
       ISSUE_COMMENT: 'issue-comments',
       ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
+  },
+  [NangoIntegration.CONFLUENCE_BASIC]: {
+    models: {
+      BLOG_POST: 'BlogPost',
+      PAGE_ATTACHMENT: 'PageAttachment',
+      PAGE_COMMENT: 'PageComment',
+      PAGE: 'Page',
+    },
+    syncs: {
+      BLOG_POST: 'blog-posts',
+      PAGE_ATTACHMENT: 'page-attachments',
+      PAGE_COMMENT: 'page-attachments',
+      PAGE: 'pages',
+    },
+  },
+  [NangoIntegration.CONFLUENCE_DATA_CENTER]: {
+    models: {
+      BLOG_POST: 'BlogPost',
+      PAGE_ATTACHMENT: 'PageAttachment',
+      PAGE_COMMENT: 'PageComment',
+      PAGE: 'Page',
+    },
+    syncs: {
+      BLOG_POST: 'blog-posts',
+      PAGE_ATTACHMENT: 'page-attachments',
+      PAGE_COMMENT: 'page-attachments',
+      PAGE: 'pages',
     },
   },
 } as const satisfies IntegrationConfig
