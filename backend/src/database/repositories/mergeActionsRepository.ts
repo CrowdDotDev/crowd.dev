@@ -24,7 +24,7 @@ class MergeActionsRepository {
     secondaryId: string,
     options: IRepositoryOptions,
     step: MergeActionStep,
-    state: MergeActionState = MergeActionState.PENDING,
+    state: MergeActionState = MergeActionState.IN_PROGRESS,
     backup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup> = undefined,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
