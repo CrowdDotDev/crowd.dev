@@ -206,6 +206,7 @@ export default {
             return {
               ...row,
               platform: 'github',
+              isNango: true,
             };
           }
 

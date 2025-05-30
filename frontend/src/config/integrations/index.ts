@@ -1,5 +1,4 @@
 import config from '@/config';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import github from './github/config';
 import githubNango from './github-nango/config';
 import git from './git/config';
@@ -33,24 +32,17 @@ export interface IntegrationConfig {
 }
 
 export const getGithubIntegration = () => {
-  if (config.env === 'local') return githubNango;
-
   if (config.env === 'staging') {
     const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true';
 
     return useGitHubNango ? githubNango : github;
   }
 
-  const authStore = useAuthStore();
-  const userId = authStore.user?.id;
-
-  return config.permissions.teamUserIds?.includes(userId)
-    ? githubNango
-    : github;
+  return github;
 };
 
-export const lfIntegrations: () => Record<string, IntegrationConfig> = () => ({
-  github: getGithubIntegration(),
+export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, IntegrationConfig> = (useGitHubNango?: boolean) => ({
+  github: useGitHubNango ? githubNango : getGithubIntegration(),
   git,
   groupsio,
   confluence,

@@ -1,0 +1,3 @@
+NODE ping_0
+SQL >
+    SELECT 'pong' as result

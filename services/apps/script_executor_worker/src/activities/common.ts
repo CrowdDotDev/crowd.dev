@@ -16,6 +16,7 @@ import { svc } from '../main'
 export async function mergeMembers(
   primaryMemberId: string,
   secondaryMemberId: string,
+  doNotDeleteSecondaryMember?: boolean,
 ): Promise<void> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${primaryMemberId}/merge`
   const requestOptions = {
@@ -26,6 +27,7 @@ export async function mergeMembers(
     },
     data: {
       memberToMerge: secondaryMemberId,
+      doNotDeleteSecondaryMember,
     },
   }
 

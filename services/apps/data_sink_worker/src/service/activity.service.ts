@@ -1,9 +1,9 @@
 import vader from 'crowd-sentiment'
 import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
-import moment from 'moment-timezone'
 
 import {
+  UnrepeatableError,
   distinct,
   distinctBy,
   escapeNullByte,
@@ -13,16 +13,13 @@ import {
   singleOrDefault,
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
-import { UnrepeatableError } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
-  findCommitsForPRSha,
   findMatchingPullRequestNodeId,
   insertActivities,
   queryActivities,
 } from '@crowd/data-access-layer'
-import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -37,10 +34,9 @@ import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-la
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
-import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
-import { RedisClient } from '@crowd/redis'
+import { RedisCache, RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
@@ -63,6 +59,8 @@ export default class ActivityService extends LoggerBase {
   private readonly gitlabReposRepo: GitlabReposRepository
   private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
 
+  private readonly memberCache: RedisCache
+
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -81,6 +79,8 @@ export default class ActivityService extends LoggerBase {
     this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
     this.requestedForErasureMemberIdentitiesRepo =
       new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
+
+    this.memberCache = new RedisCache('dswMemberCache', this.redisClient, this.log)
   }
 
   public async prepareForUpsert(
@@ -541,7 +541,7 @@ export default class ActivityService extends LoggerBase {
       return true
     }
 
-    const promises = []
+    let promises = []
 
     const gitlabPayloads: IActivityProcessData[] = []
     const githubPayloads: IActivityProcessData[] = []
@@ -868,6 +868,136 @@ export default class ActivityService extends LoggerBase {
       this.redisClient,
       this.log,
     )
+
+    // find distinct members to create
+    const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(
+      (p) => !p.dbMember,
+    )
+    const payloadsWithoutDbObjectMembers: IActivityProcessData[] = relevantPayloads.filter(
+      (p) => p.activity.objectMember && !p.dbObjectMember,
+    )
+
+    // gather all the data we need to create members
+    // key: platform:username
+    const membersToCreateMap = new Map<
+      string,
+      {
+        member: IMemberData
+        segmentIds: Set<string>
+        resultIds: Set<string>
+        integrationId: string
+        platform: string
+        username: string
+        timestamp: string
+      }
+    >()
+
+    // find members to create
+    for (const payload of payloadsWithoutDbMembers) {
+      const key = `${payload.platform}:${payload.activity.username}`
+      if (!membersToCreateMap.has(key)) {
+        const segmentIds = new Set<string>()
+        segmentIds.add(payload.segmentId)
+
+        const resultIds = new Set<string>()
+        resultIds.add(payload.resultId)
+
+        membersToCreateMap.set(key, {
+          member: payload.activity.member,
+          integrationId: payload.integrationId,
+          platform: payload.platform,
+          username: payload.activity.username,
+          timestamp: payload.activity.timestamp,
+          segmentIds,
+          resultIds,
+        })
+      } else {
+        const value = membersToCreateMap.get(key)
+        value.segmentIds.add(payload.segmentId)
+        value.resultIds.add(payload.resultId)
+      }
+    }
+
+    // find object members to create
+    for (const payload of payloadsWithoutDbObjectMembers) {
+      const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+      if (!membersToCreateMap.has(key)) {
+        const segmentIds = new Set<string>()
+        segmentIds.add(payload.segmentId)
+
+        const resultIds = new Set<string>()
+        resultIds.add(payload.resultId)
+
+        membersToCreateMap.set(key, {
+          member: payload.activity.member,
+          integrationId: payload.integrationId,
+          platform: payload.platform,
+          username: payload.activity.objectMemberUsername,
+          timestamp: payload.activity.timestamp,
+          segmentIds,
+          resultIds,
+        })
+      } else {
+        const value = membersToCreateMap.get(key)
+        value.segmentIds.add(payload.segmentId)
+        value.resultIds.add(payload.resultId)
+      }
+    }
+
+    // clear the promises array - should be all completed by now
+    promises = []
+    for (const value of membersToCreateMap.values()) {
+      promises.push(
+        memberService
+          .create(
+            Array.from(value.segmentIds),
+            value.integrationId,
+            {
+              displayName: value.member.displayName || value.username,
+              attributes: value.member.attributes,
+              joinedAt: value.member.joinedAt
+                ? new Date(value.member.joinedAt)
+                : new Date(value.timestamp),
+              identities: value.member.identities,
+              organizations: value.member.organizations,
+              reach: value.member.reach,
+            },
+            value.platform,
+          )
+          .then((memberId) => {
+            // map ids for members
+            for (const payload of relevantPayloads.filter(
+              (p) =>
+                !p.dbMember &&
+                p.platform === value.platform &&
+                p.activity.username === value.username,
+            )) {
+              payload.memberId = memberId
+            }
+
+            // map ids for object members
+            for (const payload of relevantPayloads.filter(
+              (p) =>
+                p.activity.objectMember &&
+                !p.dbObjectMember &&
+                p.platform === value.platform &&
+                p.activity.objectMemberUsername === value.username,
+            )) {
+              payload.objectMemberId = memberId
+            }
+          })
+          .catch((err) => {
+            for (const resultId of value.resultIds) {
+              resultMap.set(resultId, {
+                success: false,
+                err,
+              })
+            }
+          }),
+      )
+    }
+    await Promise.all(promises)
+
     for (const payload of relevantPayloads) {
       const promises = []
       // update members and orgs with them
@@ -898,34 +1028,6 @@ export default class ActivityService extends LoggerBase {
               })
             }),
         )
-      } else {
-        promises.push(
-          memberService
-            .create(
-              payload.segmentId,
-              payload.integrationId,
-              {
-                displayName: payload.activity.member.displayName || payload.activity.username,
-                attributes: payload.activity.member.attributes,
-                joinedAt: payload.activity.member.joinedAt
-                  ? new Date(payload.activity.member.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.member.identities,
-                organizations: payload.activity.member.organizations,
-                reach: payload.activity.member.reach,
-              },
-              payload.platform,
-            )
-            .then((memberId) => {
-              payload.memberId = memberId
-            })
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err,
-              })
-            }),
-        )
       }
 
       if (payload.dbObjectMember) {
@@ -948,36 +1050,6 @@ export default class ActivityService extends LoggerBase {
               payload.dbObjectMember,
               payload.platform,
             )
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err,
-              })
-            }),
-        )
-      } else if (payload.activity.objectMember) {
-        promises.push(
-          memberService
-            .create(
-              payload.segmentId,
-              payload.integrationId,
-              {
-                displayName:
-                  payload.activity.objectMember.displayName ||
-                  payload.activity.objectMemberUsername,
-                attributes: payload.activity.objectMember.attributes,
-                joinedAt: payload.activity.objectMember.joinedAt
-                  ? new Date(payload.activity.objectMember.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.objectMember.identities,
-                organizations: payload.activity.objectMember.organizations,
-                reach: payload.activity.objectMember.reach,
-              },
-              payload.platform,
-            )
-            .then((memberId) => {
-              payload.objectMemberId = memberId
-            })
             .catch((err) => {
               resultMap.set(payload.resultId, {
                 success: false,
@@ -1154,6 +1226,29 @@ export default class ActivityService extends LoggerBase {
     return resultMap
   }
 
+  private areTheSameMember(
+    platform: PlatformType,
+    member1: IMemberData,
+    member2: IMemberData,
+  ): boolean {
+    const m1Identities = (member1.identities || []).filter(
+      (i) => i.verified && i.platform === platform,
+    )
+    const m2Identities = (member2.identities || []).filter(
+      (i) => i.verified && i.platform === platform,
+    )
+
+    for (const i1 of m1Identities) {
+      for (const i2 of m2Identities) {
+        if (i1.type === i2.type && i1.value === i2.value) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
   private memberAttValue(
     attName: MemberAttributeName,
     member: IMemberData,
@@ -1240,160 +1335,6 @@ export default class ActivityService extends LoggerBase {
     }
 
     return null
-  }
-
-  private async findMatchingActivity({
-    segmentId,
-    platform,
-    activity,
-  }: {
-    segmentId: string
-    platform: PlatformType
-    activity: IActivityData
-  }): Promise<IDbActivityCreateData | null> {
-    const { rows } = await logExecutionTimeV2(
-      () =>
-        queryActivities(this.qdbStore.connection(), {
-          segmentIds: [segmentId],
-          filter: {
-            platform: { eq: platform },
-            sourceId: { eq: activity.sourceId },
-            type: { eq: activity.type },
-            channel: { eq: activity.channel },
-            and: [
-              { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
-              { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
-            ],
-          },
-          limit: 1,
-          noCount: true,
-        }),
-      this.log,
-      'findMatchingActivity -> queryActivities',
-    )
-
-    if (rows.length > 0) {
-      return rows[0]
-    }
-
-    return null
-  }
-
-  private async findMatchingGitActivityAttributes({
-    segmentId,
-    activity,
-    attributes,
-  }: {
-    segmentId: string
-    activity: IActivityData
-    attributes: Record<string, unknown>
-  }): Promise<Record<string, unknown>> {
-    if (
-      activity.platform !== PlatformType.GITHUB ||
-      activity.type !== GithubActivityType.AUTHORED_COMMIT
-    ) {
-      this.log.error(
-        { activity },
-        'You need to use github authored commit activity for finding matching git activity attributes',
-      )
-      return attributes
-    }
-
-    const gitActivity = await this.findMatchingActivity({
-      segmentId,
-      platform: PlatformType.GIT,
-      activity,
-    })
-    if (!gitActivity) {
-      return attributes
-    }
-
-    return {
-      ...gitActivity.attributes,
-      ...attributes,
-    }
-  }
-
-  private async pushAttributesToMatchingGithubActivity({
-    segmentId,
-    activity,
-  }: {
-    segmentId: string
-    activity: IActivityData
-  }) {
-    if (
-      activity.platform !== PlatformType.GIT ||
-      activity.type !== GitActivityType.AUTHORED_COMMIT
-    ) {
-      this.log.error(
-        { activity },
-        'You need to use git authored commit activity for pushing attributes to matching github activity',
-      )
-      return
-    }
-
-    const { attributes } = activity
-
-    const updateActivityWithAttributes = async ({
-      githubActivityId,
-      gitAttributes,
-    }: {
-      githubActivityId: string
-      gitAttributes: Record<string, unknown>
-    }) => {
-      await updateActivities(
-        this.qdbStore.connection(),
-        dbStoreQx(this.pgStore),
-        this.client,
-        async (activity) => ({
-          attributes: {
-            ...gitAttributes,
-            ...activity.attributes,
-          },
-        }),
-        `id = $(id)`,
-        { id: githubActivityId },
-      )
-    }
-
-    const githubActivity = await this.findMatchingActivity({
-      segmentId,
-      platform: PlatformType.GITHUB,
-      activity,
-    })
-    if (!githubActivity) {
-      return
-    }
-
-    await updateActivityWithAttributes({
-      githubActivityId: githubActivity.id,
-      gitAttributes: attributes,
-    })
-  }
-
-  private async pushPRSourceIdToMatchingGithubCommits({ activity }: { activity: IActivityData }) {
-    if (
-      activity.platform !== PlatformType.GITHUB ||
-      activity.type !== GithubActivityType.PULL_REQUEST_OPENED
-    ) {
-      return
-    }
-
-    const commits = await findCommitsForPRSha(
-      this.qdbStore.connection(),
-      activity.attributes.sha as string,
-    )
-
-    await updateActivities(
-      this.qdbStore.connection(),
-      dbStoreQx(this.pgStore),
-      this.client,
-      async () => ({
-        sourceParentId: activity.sourceId,
-      }),
-      `id IN ($(commits))`,
-      { commits },
-    )
   }
 }
 

@@ -4,7 +4,6 @@ export enum MergeActionType {
 }
 
 export enum MergeActionState {
-  PENDING = 'pending',
   IN_PROGRESS = 'in-progress',
   MERGED = 'merged',
   UNMERGED = 'unmerged',
