@@ -157,11 +157,13 @@ export async function finishMemberMergingUpdateActivities(memberId: string, newM
         organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
       }),
     ],
-    `"memberId" = $(memberId) AND "timestamp" >= $(minTimestamp) AND "timestamp" <= $(maxTimestamp)`,
+    `"memberId" = $(memberId) 
+    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
+    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
     {
       memberId,
-      minTimestamp,
-      maxTimestamp,
+      ...(minTimestamp && { minTimestamp }),
+      ...(maxTimestamp && { maxTimestamp }),
     },
   )
 }
@@ -212,7 +214,9 @@ export async function finishMemberUnmergingUpdateActivities({
         organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
       }),
     ],
-    `"memberId" = $(memberId) AND "timestamp" >= $(minTimestamp) AND "timestamp" <= $(maxTimestamp)`,
-    { memberId, minTimestamp, maxTimestamp },
+    `"memberId" = $(memberId) 
+    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
+    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
+    { memberId, ...(minTimestamp && { minTimestamp }), ...(maxTimestamp && { maxTimestamp }) },
   )
 }

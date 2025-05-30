@@ -365,10 +365,14 @@ export async function runMemberAffiliationsUpdate(
         ${fullCase},
         cast('00000000-0000-0000-0000-000000000000' as uuid)
       )
-      AND "timestamp" >= $(minTimestamp)
-      AND "timestamp" <= $(maxTimestamp)
+      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
+      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
     `,
-    { memberId, minTimestamp, maxTimestamp },
+    {
+      memberId,
+      ...(minTimestamp && { minTimestamp }),
+      ...(maxTimestamp && { maxTimestamp }),
+    },
   )
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)

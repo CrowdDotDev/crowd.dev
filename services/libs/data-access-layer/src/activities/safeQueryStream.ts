@@ -72,12 +72,21 @@ export async function* queryStreamIter<T>(
   params: unknown[],
   opts?: QueryStreamOptions,
 ): AsyncIterable<T> {
-  const stream = await new Promise((resolve) => {
-    safeQueryStream(db, sql, params, resolve, {
-      batchSize: 1000,
-      highWaterMark: 250,
-      ...opts,
-    })
+  const stream = await new Promise((resolve, reject) => {
+    safeQueryStream(
+      db,
+      sql,
+      params,
+      (streamObj) => {
+        streamObj.on('error', reject)
+        resolve(streamObj)
+      },
+      {
+        batchSize: 1000,
+        highWaterMark: 250,
+        ...opts,
+      },
+    )
   })
 
   yield* stream as AsyncIterable<T>

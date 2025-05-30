@@ -117,15 +117,15 @@ export async function moveIdentityActivitiesToNewMember(
         "memberId" = $(fromId)
         and "username" = $(username)
         and "platform" = $(platform)
-        and "timestamp" >= $(minTimestamp)
-        and "timestamp" <= $(maxTimestamp)
+        ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
+        ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
       `,
       {
         fromId,
         username,
         platform,
-        minTimestamp,
-        maxTimestamp,
+        ...(minTimestamp && { minTimestamp }),
+        ...(maxTimestamp && { maxTimestamp }),
       },
     ),
     {
