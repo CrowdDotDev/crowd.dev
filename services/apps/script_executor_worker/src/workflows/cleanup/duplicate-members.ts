@@ -13,7 +13,7 @@ const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxy
 export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
   const cutoffDate = args.cutoffDate ?? '2025-05-18'
-  const WORKFLOWS_THRESHOLD = 20
+  const WORKFLOWS_THRESHOLD = 40
 
   const workflowTypeToCheck = 'finishMemberMerging'
   let workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
