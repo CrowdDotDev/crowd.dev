@@ -102,6 +102,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:organizations', value: GitHubOrganization[]): void;
   (e: 'update:repositories', value: GitHubRepository[]): void;
+  (e: 'remove-mapping', repoUrl: string[]): void;
 }>();
 
 const orgs = computed<GitHubOrganization[]>({
@@ -144,10 +145,17 @@ const unsync = () => {
 };
 
 const remove = () => {
+  const reposToRemove = repos.value
+    .filter((repo) => repo.org!.url === props.organization.url)
+    .map((repo) => repo.url);
+
   unsync();
   repos.value = repos.value.filter(
     (repo) => repo.org!.url !== props.organization.url,
   );
+
+  // Emit all repository URLs that need to be removed from mapping
+  emit('remove-mapping', reposToRemove);
 };
 </script>
 
