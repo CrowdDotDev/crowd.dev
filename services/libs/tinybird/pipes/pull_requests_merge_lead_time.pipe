@@ -12,7 +12,7 @@ SQL >
             avg(dateDiff('second', prf.openedAt, prf.reviewRequestedAt))
         ) AS openedToReviewAssignedSeconds,
         round(
-            avg(dateDiff('second', prf.reviewRequestedAt, prf.reviewedAt))
+            avg(max2(dateDiff('second', prf.reviewRequestedAt, prf.reviewedAt), 0))
         ) AS reviewAssignedToFirstReviewSeconds,
         round(avg(dateDiff('second', prf.reviewedAt, prf.approvedAt))) AS firstReviewToApprovedSeconds,
         round(avg(dateDiff('second', prf.approvedAt, prf.mergedAt))) AS approvedToMergedSeconds
