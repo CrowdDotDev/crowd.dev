@@ -1,0 +1,70 @@
+---
+- name: Deploy LFX Software Value Tool
+  hosts: git_integration
+  become: yes
+  vars:
+    svc_user: ubuntu
+    svc_home: "/home/ubuntu/lfx-insights-software-value"
+    svc_bin: "{{ svc_home }}/software-value"
+    systemd_dir: "/etc/systemd/system"
+    service_unit: lfx-insights-software-value.service
+    timer_unit: lfx-insights-software-value.timer
+
+  tasks:
+    - name: Ensure lfx-insights-software-value directory exists in ubuntu's home
+      file:
+        path: "{{ svc_home }}"
+        state: directory
+        owner: "{{ svc_user }}"
+        group: "{{ svc_user }}"
+        mode: '0755'
+
+    - name: Copy software-value binary to the service directory
+      copy:
+        src: "../software-value"
+        dest: "{{ svc_home }}/software-value"
+        owner: "{{ svc_user }}"
+        group: "{{ svc_user }}"
+        mode: '0755'
+
+    - name: Copy scc binary to the service directory
+      copy:
+        src: "../scc"
+        dest: "{{ svc_home }}/scc"
+        owner: "{{ svc_user }}"
+        group: "{{ svc_user }}"
+        mode: '0755'
+
+    - name: Template config.toml to the service directory
+      template:
+        src: "templates/config.toml.j2"
+        dest: "{{ svc_home }}/config.toml"
+        owner: "{{ svc_user }}"
+        group: "{{ svc_user }}"
+        mode: '0644'
+
+    - name: Copy systemd service unit
+      template:
+        src: "templates/lfx-software-value.service.j2"
+        dest: "{{ systemd_dir }}/{{ service_unit }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy systemd timer unit
+      template:
+        src: "templates/lfx-software-value.timer.j2"
+        dest: "{{ systemd_dir }}/{{ timer_unit }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and restart timer to apply any changes
+      systemd:
+        name: "{{ timer_unit }}"
+        enabled: yes
+        state: restarted

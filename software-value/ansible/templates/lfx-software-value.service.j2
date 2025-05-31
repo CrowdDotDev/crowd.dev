@@ -1,0 +1,14 @@
+[Unit]
+Description=Run the LFX Software Value tool
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory={{ svc_home }}
+ExecStart={{ svc_bin }}
+User={{ svc_user }}
+Restart=on-failure
+RestartSec=10
+RestartSteps=5
+RestartMaxDelaySec=300

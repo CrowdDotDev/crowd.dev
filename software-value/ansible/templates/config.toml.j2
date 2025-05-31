@@ -1,0 +1,29 @@
+[database.insights]
+host = "{{ db_insights_host }}"
+port = {{ db_insights_port }}
+user = "{{ db_insights_user }}"
+password = "{{ db_insights_password }}"
+dbname = "{{ db_insights_dbname }}"
+sslmode = "require"
+pool_max = {{ db_insights_pool_max }}
+readonly = false
+
+[database.cm]
+host = "{{ db_cm_host }}"
+port = {{ db_cm_port }}
+user = "{{ db_cm_user }}"
+password = "{{ db_cm_password }}"
+dbname = "{{ db_cm_dbname }}"
+sslmode = "require"
+pool_max = {{ db_cm_pool_max }}
+readonly = true
+
+[scc]
+path = "{{ scc_path }}"
+
+[target]
+path = "/data/prod/repos"
+
+[batch]
+size = {{ batch_size }}
+

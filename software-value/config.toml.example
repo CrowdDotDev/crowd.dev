@@ -1,0 +1,28 @@
+[database.insights]
+host = "localhost"
+port = 5432
+user = "lfx"
+password = "password"
+dbname = "lfx"
+sslmode = "require"  # or "disable" if you want to run this locally without SSL
+pool_max = 10
+readonly = false
+
+[database.cm]
+host = "localhost"
+port = 5432
+user = "lfx"
+password = "password"
+dbname = "lfx"
+sslmode = "require"  # or "disable" if you want to run this locally without SSL
+pool_max = 10
+readonly = true
+
+[scc]
+path = "/path/to/scc-binary"
+
+[target]
+path = "/path/to/repositories/directory"
+
+[batch]
+size = 100
