@@ -3,7 +3,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-import { distinct } from '@crowd/common'
+import { IS_PROD_ENV, distinct } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
@@ -12,9 +12,9 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'queue-monitoring',
-  cronTime: CronTime.every(1).minutes(),
-  timeout: 5 * 60,
-  enabled: async () => true, // IS_PROD_ENV,
+  cronTime: CronTime.everyDayAt(8, 0),
+  timeout: 30 * 60,
+  enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
     try {
       ensureOciConfig()
