@@ -1,5 +1,3 @@
-TOKEN "collections_oss_index_endpoint_read_9807" READ
-
 NODE collections_oss_index_category_ids
 DESCRIPTION >
     Return category ids filtered by slug, needed for later filtering

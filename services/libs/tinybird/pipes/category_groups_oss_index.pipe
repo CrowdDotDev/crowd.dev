@@ -1,5 +1,3 @@
-TOKEN "category_groups_oss_index_endpoint_read_7394" READ
-
 NODE category_groups_oss_index_agregates
 DESCRIPTION >
     Returns aggregates such as top contributors, software value and average score by category group
