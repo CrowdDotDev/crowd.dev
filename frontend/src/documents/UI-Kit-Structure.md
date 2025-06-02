@@ -11,16 +11,18 @@ The `ui-kit` folder in our project (`src/ui-kit/`) acts as our **shared UI compo
 ---
 
 ## 📁 Folder Structure
-
+```text
 src/
 └── ui-kit/
-├── <component-name>/
-│ ├── <ComponentName>.vue
-│ ├── <component-name>.scss
-│ ├── <ComponentName>.stories.ts
-│ └── types/ (optional)
-│ └── <ComponentName>Type.ts
-└── ...
+    ├── <component-name>/
+    │   ├── <ComponentName>.vue
+    │   ├── <component-name>.scss
+    │   ├── <ComponentName>.stories.ts
+    │   ├── types/ (optional)
+    │   │   └── <ComponentName>Type.ts
+    └── ...
+
+---
 
 ## 🔎 Component Folder Structure
 
