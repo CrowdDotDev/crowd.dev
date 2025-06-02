@@ -23,6 +23,7 @@ src/
     └── ...
 
 ---
+```
 
 ## 🔎 Component Folder Structure
 
