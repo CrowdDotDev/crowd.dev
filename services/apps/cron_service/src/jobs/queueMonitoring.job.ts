@@ -35,30 +35,29 @@ const job: IJobDefinition = {
 
     const map = await getTopicsAndConsumerGroups(ctx.log, admin)
 
-    const topicsWithoutConsumers: string[] = []
     for (const [topic, groups] of map) {
+      const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
+      telemetry.gauge(`kafka.${topic}.total`, totalMessages)
+
       if (groups.length === 0) {
-        ctx.log.warn(`No consumer groups found for topic ${topic}!`)
-        topicsWithoutConsumers.push(topic)
+        ctx.log.warn(
+          {
+            slackQueueMonitoringNotify: true,
+          },
+          `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}`,
+        )
         continue
       }
+
       for (const group of groups) {
         const counts = await getMessageCounts(ctx.log, admin, topic, group)
         ctx.log.info(
           `Topic ${topic} group ${group} has ${counts.total} total messages, ${counts.consumed} consumed, ${counts.unconsumed} unconsumed!`,
         )
 
-        telemetry.gauge(`kafka.${topic}.${group}.total`, counts.total)
         telemetry.gauge(`kafka.${topic}.${group}.consumed`, counts.consumed)
         telemetry.gauge(`kafka.${topic}.${group}.unconsumed`, counts.unconsumed)
       }
-    }
-
-    if (topicsWithoutConsumers.length > 0) {
-      ctx.log.warn(
-        { slackQueueMonitoringNotify: true },
-        `Topics without consumer groups: ${topicsWithoutConsumers.join(', ')}`,
-      )
     }
   },
 }
@@ -295,6 +294,26 @@ async function getMessageCounts(
     }
   } catch (err) {
     log.error(err, 'Failed to get message count!')
+    throw err
+  }
+}
+
+async function getTopicMessageCount(
+  log: Logger,
+  admin: KafkaAdmin,
+  topic: string,
+): Promise<number> {
+  try {
+    const topicOffsets = await admin.fetchTopicOffsets(topic)
+
+    // Sum up all partition offsets to get total messages
+    const totalMessages = topicOffsets.reduce((sum, partition) => {
+      return sum + Number(partition.offset)
+    }, 0)
+
+    return totalMessages
+  } catch (err) {
+    log.error(err, `Failed to get message count for topic ${topic}!`)
     throw err
   }
 }
