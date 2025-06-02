@@ -26,7 +26,7 @@ SQL >
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != ''
     GROUP BY collectionId
-    ORDER BY {{ String(orderBy, 'totalContributors') }} DESC
+    ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
 
 NODE collections_oss_index_projects_deduplicated
 DESCRIPTION >
@@ -49,7 +49,7 @@ SQL >
         sum(softwareValue) AS softwareValue,
         avg(score) AS avgScore,
         ROW_NUMBER() OVER (
-            PARTITION BY collectionId ORDER BY {{ String(orderBy, 'totalContributors') }} DESC
+            PARTITION BY collectionId ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
         ) AS rn
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != '' AND projectId != ''
