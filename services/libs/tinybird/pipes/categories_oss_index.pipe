@@ -119,7 +119,7 @@ DESCRIPTION >
     Returns category details filtered by category group
 
 SQL >
-    SELECT categories.id, categories.name
+    SELECT categories.id, categories.name, categories.slug
     FROM categories FINAL
     WHERE categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
 
@@ -154,6 +154,7 @@ SQL >
     SELECT
         a.categoryId as "id",
         cgd.name as "name",
+        cgd.slug as "slug",
         a.totalContributors,
         a.softwareValue,
         a.avgScore,

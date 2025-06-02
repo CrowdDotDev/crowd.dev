@@ -108,11 +108,12 @@ SQL >
     %
     SELECT categoryGroups.id, categoryGroups.name, categoryGroups.type, categoryGroups.slug
     FROM categoryGroups FINAL
-    {% if defined(type) %}
-        WHERE
-            categoryGroups.type
+    WHERE
+        1 = 1
+        {% if defined(type) %}
+            AND categoryGroups.type
             = {{ String(type, description="Filter category group type", required=False) }}
-    {% end %}
+        {% end %}
 
 NODE category_groups_oss_index_top_collections
 DESCRIPTION >
