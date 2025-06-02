@@ -20,6 +20,7 @@
     "@crowd/temporal": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/queue": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "cron": "^2.1.0",
     "cron-time-generator": "^1.3.0",
     "oci-common": "^2.109.1",

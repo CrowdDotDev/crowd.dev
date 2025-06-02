@@ -570,6 +570,9 @@ importers:
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
+      '@crowd/telemetry':
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       '@crowd/temporal':
         specifier: workspace:*
         version: link:../../libs/temporal

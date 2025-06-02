@@ -3,7 +3,10 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-import { QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
+import { distinct } from '@crowd/common'
+import { Logger } from '@crowd/logging'
+import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
+import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
 
@@ -23,53 +26,146 @@ const job: IJobDefinition = {
     const streams = await getAllStreams()
 
     for (const stream of streams) {
-      ctx.log.info(`Found stream ${stream.name}!`)
+      ctx.log.debug(`Found stream ${stream.name}!`)
     }
 
     const kafkaClient = getKafkaClient(QUEUE_CONFIG())
     const admin = kafkaClient.admin()
     await admin.connect()
 
-    const groupsResponse = await admin.listGroups()
-    const consumerGroups = groupsResponse.groups
+    const map = await getTopicsAndConsumerGroups(ctx.log, admin)
 
-    for (const group of consumerGroups) {
-      ctx.log.info(`Found group ${group.groupId}!`)
-    }
-
-    for (const stream of streams) {
-      ctx.log.info(`Stream ${stream.name} (${stream.id})`)
-
-      const topicOffsets = await admin.fetchTopicOffsets(stream.name)
-
-      for (const group of consumerGroups) {
-        const offsetsResponse = await admin.fetchOffsets({
-          groupId: group.groupId,
-          topics: [stream.name],
-        })
-
-        if (
-          offsetsResponse.length === 0 ||
-          offsetsResponse[0].topic !== stream.name ||
-          offsetsResponse[0].partitions.length === 0
-        ) {
-          continue
-        }
-
-        let totalLeft = 0
-        for (const offset of offsetsResponse[0].partitions) {
-          const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
-          if (topicOffset.offset !== offset.offset) {
-            totalLeft += Number(topicOffset.offset) - Number(offset.offset)
-          }
-        }
-
+    const topicsWithoutConsumers: string[] = []
+    for (const [topic, groups] of map) {
+      if (groups.length === 0) {
+        ctx.log.warn(`No consumer groups found for topic ${topic}!`)
+        topicsWithoutConsumers.push(topic)
+        continue
+      }
+      for (const group of groups) {
+        const counts = await getMessageCounts(ctx.log, admin, topic, group)
         ctx.log.info(
-          `Group ${group.groupId} has ${totalLeft} messages left to process in topic ${stream.name}!`,
+          `Topic ${topic} group ${group} has ${counts.total} total messages, ${counts.consumed} consumed, ${counts.unconsumed} unconsumed!`,
         )
+
+        telemetry.gauge(`kafka.${topic}.${group}.total`, counts.total)
+        telemetry.gauge(`kafka.${topic}.${group}.consumed`, counts.consumed)
+        telemetry.gauge(`kafka.${topic}.${group}.unconsumed`, counts.unconsumed)
       }
     }
+
+    if (topicsWithoutConsumers.length > 0) {
+      ctx.log.warn(
+        { slackQueueMonitoringNotify: true },
+        `Topics without consumer groups: ${topicsWithoutConsumers.join(', ')}`,
+      )
+    }
   },
+}
+
+async function getTopicsAndConsumerGroups(log: Logger, admin: KafkaAdmin) {
+  const topics = await admin.listTopics()
+  const groupsResponse = await admin.listGroups()
+  const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
+
+  for (const group of consumerGroups) {
+    log.debug(`Group ${group}!`)
+  }
+
+  const topicConsumerMap = new Map<string, string[]>()
+
+  for (const topic of topics) {
+    log.debug(`Checking topic ${topic} consumer groups!`)
+    const consumers = []
+    for (const group of consumerGroups) {
+      log.debug(`Checking group ${group} if it is listening to topic ${topic}!`)
+      if (await isConsumerListeningToTopic(log, admin, group, topic)) {
+        log.debug(`Group ${group} is listening to topic ${topic}!`)
+        consumers.push(group)
+      }
+    }
+    topicConsumerMap.set(topic, consumers)
+  }
+
+  return topicConsumerMap
+}
+
+async function isConsumerListeningToTopic(
+  log: Logger,
+  admin: KafkaAdmin,
+  groupId: string,
+  topic: string,
+): Promise<boolean> {
+  try {
+    // Method 1: Check subscriptions via group description (most accurate)
+    try {
+      const groupDetails = await admin.describeGroups([groupId])
+
+      // Skip empty or Dead groups
+      if (!groupDetails.groups[0] || groupDetails.groups[0].state === 'Dead') {
+        log.debug(`Group ${groupId} is dead!`)
+        return false
+      }
+
+      // Check if any member is subscribed to the topic
+      for (const member of groupDetails.groups[0].members) {
+        if (member.memberMetadata) {
+          try {
+            // Parse member metadata which contains subscription info
+            const metadata = JSON.parse(member.memberMetadata.toString())
+
+            // Check if topic is in the subscription list
+            if (metadata.subscription && Array.isArray(metadata.subscription)) {
+              if (metadata.subscription.includes(topic)) {
+                log.debug(`Group ${groupId} is listening to topic ${topic}!`)
+                return true
+              }
+            }
+          } catch (metadataErr) {
+            // Failed to parse metadata, try alternative approach
+          }
+        }
+      }
+    } catch (describeErr) {
+      // Group might not exist or other error occurred
+      // Fall through to alternative method
+      log.error(describeErr, `Error describing group ${groupId}`)
+    }
+
+    // Method 2: Check committed offsets (less accurate but works as fallback)
+    try {
+      const offsetsResponse = await admin.fetchOffsets({
+        groupId: groupId,
+        topics: [topic],
+      })
+
+      // No data returned
+      if (offsetsResponse.length === 0 || !offsetsResponse[0].partitions) {
+        log.debug(`Group ${groupId} is not listening to topic ${topic}!`)
+        return false
+      }
+
+      // Check if any partition has a valid offset
+      const hasConsumedPartitions = offsetsResponse[0].partitions.some((partition) => {
+        // An offset of -1 means the consumer has never committed an offset
+        // Any other value means it has consumed from this topic
+        log.debug(
+          `Group ${groupId} Partition ${partition.partition} has offset ${partition.offset}!`,
+        )
+        return partition.offset !== '-1'
+      })
+
+      return hasConsumedPartitions
+    } catch (offsetErr) {
+      // Likely means this consumer doesn't consume this topic
+      log.error(offsetErr, `Group ${groupId} is not listening to topic ${topic}!`)
+      return false
+    }
+  } catch (error) {
+    // Log the error but don't crash the application
+    log.error(error, `Error checking if group ${groupId} listens to topic ${topic}`)
+    return false
+  }
 }
 
 function ensureOciConfig() {
@@ -155,6 +251,52 @@ async function getAllStreams() {
   }
 
   return streams
+}
+
+async function getMessageCounts(
+  log: Logger,
+  admin: KafkaAdmin,
+  topic: string,
+  groupId: string,
+): Promise<{
+  total: number
+  consumed: number
+  unconsumed: number
+}> {
+  try {
+    const topicOffsets = await admin.fetchTopicOffsets(topic)
+    const offsetsResponse = await admin.fetchOffsets({
+      groupId: groupId,
+      topics: [topic],
+    })
+
+    const offsets = offsetsResponse[0].partitions
+
+    let totalMessages = 0
+    let consumedMessages = 0
+    let totalLeft = 0
+
+    for (const offset of offsets) {
+      const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
+      if (topicOffset) {
+        // Total messages is the latest offset
+        totalMessages += Number(topicOffset.offset)
+        // Consumed messages is the consumer group's offset
+        consumedMessages += Number(offset.offset)
+        // Unconsumed is the difference
+        totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+      }
+    }
+
+    return {
+      total: totalMessages,
+      consumed: consumedMessages,
+      unconsumed: totalLeft,
+    }
+  } catch (err) {
+    log.error(err, 'Failed to get message count!')
+    throw err
+  }
 }
 
 interface IStream {
