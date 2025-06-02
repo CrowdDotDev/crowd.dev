@@ -52,7 +52,7 @@ export default class MemberService extends LoggerBase {
   }
 
   public async create(
-    segmentId: string,
+    segmentIds: string[],
     integrationId: string,
     data: IMemberCreateData,
     source: string,
@@ -109,16 +109,23 @@ export default class MemberService extends LoggerBase {
               'memberService -> create -> create',
             )
 
-            await logExecutionTimeV2(
-              () => txRepo.addToSegment(id, segmentId),
-              this.log,
-              'memberService -> create -> addToSegment',
-            )
+            try {
+              await logExecutionTimeV2(
+                () => txRepo.insertIdentities(id, integrationId, data.identities),
+                this.log,
+                'memberService -> create -> insertIdentities',
+              )
+            } catch (err) {
+              this.log.error(err, 'Error while inserting identities!')
+              await txRepo.destroyMemberAfterError(id)
+
+              throw err
+            }
 
             await logExecutionTimeV2(
-              () => txRepo.insertIdentities(id, integrationId, data.identities),
+              () => txRepo.addToSegments(id, segmentIds),
               this.log,
-              'memberService -> create -> insertIdentities',
+              'memberService -> create -> addToSegments',
             )
 
             if (releaseMemberLock) {
@@ -148,7 +155,6 @@ export default class MemberService extends LoggerBase {
               const orgs = await logExecutionTimeV2(
                 () =>
                   this.assignOrganizationByEmailDomain(
-                    segmentId,
                     integrationId,
                     emailIdentities.map((i) => i.value),
                   ),
@@ -181,7 +187,7 @@ export default class MemberService extends LoggerBase {
 
               if (orgsToAdd.length > 0) {
                 await logExecutionTimeV2(
-                  () => orgService.addToMember(segmentId, id, orgsToAdd),
+                  () => orgService.addToMember(segmentIds, id, orgsToAdd),
                   this.log,
                   'memberService -> create -> addToMember',
                 )
@@ -293,14 +299,14 @@ export default class MemberService extends LoggerBase {
 
               this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
               await logExecutionTimeV2(
-                () => txRepo.addToSegment(id, segmentId),
+                () => txRepo.addToSegments(id, [segmentId]),
                 this.log,
                 'memberService -> update -> addToSegment',
               )
             } else {
               this.log.debug({ memberId: id }, 'Nothing to update in a member!')
               await logExecutionTimeV2(
-                () => txRepo.addToSegment(id, segmentId),
+                () => txRepo.addToSegments(id, [segmentId]),
                 this.log,
                 'memberService -> update -> addToSegment',
               )
@@ -354,7 +360,6 @@ export default class MemberService extends LoggerBase {
               const orgs = await logExecutionTimeV2(
                 () =>
                   this.assignOrganizationByEmailDomain(
-                    segmentId,
                     integrationId,
                     emailIdentities.map((i) => i.value),
                   ),
@@ -389,7 +394,7 @@ export default class MemberService extends LoggerBase {
               if (orgsToAdd.length > 0) {
                 this.log.trace({ memberId: id }, 'Adding organizations to member!')
                 await logExecutionTimeV2(
-                  () => orgService.addToMember(segmentId, id, orgsToAdd),
+                  () => orgService.addToMember([segmentId], id, orgsToAdd),
                   this.log,
                   'memberService -> update -> addToMember',
                 )
@@ -407,7 +412,6 @@ export default class MemberService extends LoggerBase {
   }
 
   public async assignOrganizationByEmailDomain(
-    segmentId: string,
     integrationId: string,
     emails: string[],
   ): Promise<IOrganizationIdSource[]> {

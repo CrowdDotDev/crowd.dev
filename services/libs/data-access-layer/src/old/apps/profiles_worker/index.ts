@@ -6,7 +6,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { IMemberOrganization } from '@crowd/types'
 
-import { updateActivities } from '../../../activities/update'
+import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
 import { QueryExecutor, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
@@ -402,46 +402,29 @@ export async function runMemberAffiliationsUpdate(
     memberId,
   )
 
-  const whereCondition = `
-  "memberId" = $(memberId)
-  AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-    ${fullCase},
-    cast('00000000-0000-0000-0000-000000000000' as uuid)
-  )
-  `
-
-  // todo: rm this debugger log
-  logger.debug(
-    {
-      memberId,
-      whereCondition,
-      fullCase,
-      fallbackOrganizationId,
-    },
-    'Generated WHERE clause for activity updates',
-  )
+  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
 
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => {
-      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
-      logger.trace(
-        {
-          activityId: activity.id,
-          activityTimestamp: activity.timestamp,
-          currentOrgId: activity.organizationId,
-          newOrgId,
-          memberId,
-        },
-        'Mapping activity to new organization',
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
+    `
+      "memberId" = $(memberId)
+      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+        ${fullCase},
+        cast('00000000-0000-0000-0000-000000000000' as uuid)
       )
-
-      return { organizationId: newOrgId }
+      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
+      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
+    `,
+    {
+      memberId,
+      ...(minTimestamp && { minTimestamp }),
+      ...(maxTimestamp && { maxTimestamp }),
     },
-    whereCondition,
-    { memberId },
   )
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)

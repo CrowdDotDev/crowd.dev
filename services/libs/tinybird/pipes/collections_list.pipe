@@ -47,6 +47,13 @@ SQL >
         (collectionsInsightsProjects.collectionId in (select id from collections_paginated))
         and collectionsInsightsProjects.starred
 
+NODE collections_list_software_value
+SQL >
+    SELECT collectionId, coalesce(sum(softwareValue), 0) as "softwareValue"
+    FROM segments_aggregates_with_ids_datasource
+    WHERE collectionId != ''
+    GROUP BY collectionId
+
 NODE merging_fields_together
 SQL >
     %
@@ -59,6 +66,7 @@ SQL >
             collections_paginated.description as description,
             collections_paginated.projectCount as "projectCount",
             collections_paginated.starred as starred,
+            collections_list_software_value.softwareValue as softwareValue,
             arrayFilter(
                 x -> x['name'] != '',
                 groupArray(
@@ -76,13 +84,17 @@ SQL >
         LEFT JOIN
             collections_featured_projects
             ON collections_featured_projects.collectionId = collections_paginated.id
+        LEFT JOIN
+            collections_list_software_value
+            ON collections_list_software_value.collectionId = collections_paginated.id
         GROUP BY
             collections_paginated.id as id,
             collections_paginated.name as name,
             collections_paginated.slug as slug,
             collections_paginated.description as description,
             collections_paginated.projectCount as "projectCount",
-            collections_paginated.starred as starred
+            collections_paginated.starred as starred,
+            collections_list_software_value.softwareValue as softwareValue
         order by
             {{
                 column(

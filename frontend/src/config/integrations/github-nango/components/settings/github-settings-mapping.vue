@@ -35,6 +35,7 @@
         v-model:organizations="orgs"
         v-model:repositories="repos"
         :organization="o"
+        @remove-mapping="(urls) => urls.forEach((url) => removeMapping(url))"
       >
         <lf-table>
           <thead>
