@@ -2,6 +2,8 @@ SCHEMA >
     `segmentId` String,
     `contributorCount` UInt64,
     `organizationCount` UInt64,
+    `score` Float64,
+    `softwareValue` UInt64,
     `projectId` String,
     `collectionId` String,
     `categoryId` String,

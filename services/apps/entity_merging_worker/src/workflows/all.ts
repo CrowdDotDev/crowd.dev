@@ -30,6 +30,7 @@ export async function finishMemberMerging(
   primaryDisplayName: string,
   secondaryDisplayName: string,
   userId: string,
+  doNotDeleteSecondaryMember?: boolean,
 ): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
@@ -39,7 +40,11 @@ export async function finishMemberMerging(
 
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
-  await deleteMember(secondaryId)
+
+  if (!doNotDeleteSecondaryMember) {
+    await deleteMember(secondaryId)
+  }
+
   await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
