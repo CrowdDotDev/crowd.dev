@@ -106,7 +106,7 @@ DESCRIPTION >
 
 SQL >
     %
-    SELECT categoryGroups.id, categoryGroups.name, categoryGroups.type
+    SELECT categoryGroups.id, categoryGroups.name, categoryGroups.type, categoryGroups.slug
     FROM categoryGroups FINAL
     {% if defined(type) %}
         WHERE
@@ -146,6 +146,7 @@ SQL >
         a.categoryGroupId as "id",
         cgd.name as "name",
         cgd.type as "type",
+        cgd.slug as "slug",
         a.totalContributors,
         a.softwareValue,
         a.avgScore,
