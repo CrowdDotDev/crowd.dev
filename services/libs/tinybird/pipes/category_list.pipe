@@ -1,24 +1,48 @@
 NODE category_list_categories_deduplicated
 SQL >
     %
-    SELECT name, slug, categoryGroupId
+    SELECT id, name, slug, categoryGroupId
     FROM categories FINAL
-    {% if defined(slug) %} WHERE slug = {{ String(slug, description="category slug") }} {% end %}
+    WHERE
+        1 = 1
+        {% if defined(slug) %} AND slug = {{ String(slug, description="category slug") }} {% end %}
+        {% if defined(search) %}
+            AND name ILIKE '%' || {{ String(search, description="search by name") }} || '%'
+        {% end %}
 
 NODE category_list_category_groups_deduplicated
 SQL >
-    SELECT id, name, slug, type FROM categoryGroups FINAL
+    %
+    SELECT id, name, slug, type
+    FROM categoryGroups FINAL
+    WHERE
+        1 = 1
+        {% if defined(categoryGroupType) %}
+            AND type = {{ String(categoryGroupType, description="category group type") }}
+        {% end %}
 
 NODE category_groups_list_result
 SQL >
+    %
     SELECT
+        category_list_categories_deduplicated.id as id,
         category_list_categories_deduplicated.name as name,
         category_list_categories_deduplicated.slug as slug,
+        category_list_category_groups_deduplicated.id as categoryGroupId,
         category_list_category_groups_deduplicated.name as categoryGroupName,
         category_list_category_groups_deduplicated.slug as categoryGroupSlug,
         category_list_category_groups_deduplicated.type as categoryGroupType
     FROM category_list_categories_deduplicated
-    LEFT JOIN
+    JOIN
         category_list_category_groups_deduplicated
         ON category_list_category_groups_deduplicated.id
         = category_list_categories_deduplicated.categoryGroupId
+    {% if defined(orderBy) %}
+        ORDER BY
+            {{ column(orderBy) }}
+            {% if defined(orderDirection) and orderDirection == 'desc' %} DESC
+            {% else %} ASC
+            {% end %}
+    {% end %}
+    LIMIT {{ Int32(pageSize, 10) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
