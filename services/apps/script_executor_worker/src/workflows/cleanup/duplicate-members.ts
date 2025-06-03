@@ -22,11 +22,13 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     return
   }
 
-  const startTime = Date.now()
   let processedCount = 0
+  const startTime = Date.now()
 
   // chunk and execute in parallel
   for (const chunk of chunkArray(results, 50)) {
+    const batchStartTime = Date.now()
+
     await Promise.all(
       chunk.map((result) => {
         console.log(`Moving activity relations: ${result.secondaryId} --> ${result.primaryId}`)
@@ -35,9 +37,12 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     )
 
     processedCount += chunk.length
-    const elapsedMinutes = (Date.now() - startTime) / (1000 * 60)
-    const ratePerMinute = processedCount / elapsedMinutes
-    console.log(`Processing ${ratePerMinute.toFixed(1)}/min`)
+    const batchTime = (Date.now() - batchStartTime) / 1000
+    const totalTime = (Date.now() - startTime) / 1000
+    const itemsPerSecond = processedCount / totalTime
+
+    console.log(`Processed batch in ${batchTime.toFixed(1)}s`)
+    console.log(`Processing ${itemsPerSecond.toFixed(1)} items/sec`)
   }
 
   // Note: Secondary members are not deleted here. The cleanupMembers workflow will automatically
