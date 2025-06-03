@@ -266,7 +266,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects, true)
   }
 
   public async addToSegments(memberId: string, segmentIds: string[]): Promise<void> {

@@ -15,6 +15,7 @@ export async function insertManyMemberIdentities(
     type: MemberIdentityType
     verified: boolean
   }[],
+  failOnConflict = false,
 ) {
   return qx.result(
     prepareBulkInsert(
@@ -35,7 +36,7 @@ export async function insertManyMemberIdentities(
           ...i,
         }
       }),
-      'DO NOTHING',
+      failOnConflict ? undefined : 'DO NOTHING',
     ),
   )
 }
