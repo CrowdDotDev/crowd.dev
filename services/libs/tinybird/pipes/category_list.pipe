@@ -37,12 +37,10 @@ SQL >
         category_list_category_groups_deduplicated
         ON category_list_category_groups_deduplicated.id
         = category_list_categories_deduplicated.categoryGroupId
-    {% if defined(orderBy) %}
-        ORDER BY
-            {{ column(orderBy) }}
-            {% if defined(orderDirection) and orderDirection == 'desc' %} DESC
-            {% else %} ASC
-            {% end %}
-    {% end %}
+    ORDER BY
+        {{ column(orderBy, 'name') }}
+        {% if defined(orderDirection) and orderDirection == 'desc' %} DESC
+        {% else %} ASC
+        {% end %}
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
