@@ -20,7 +20,7 @@ import { IJobDefinition } from '../types'
 const job: IJobDefinition = {
   name: 'nango-trigger',
   cronTime: IS_DEV_ENV ? CronTime.everyMinute() : CronTime.every(15).minutes(),
-  timeout: 5 * 60,
+  timeout: 60 * 60,
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
 
@@ -69,7 +69,7 @@ const job: IJobDefinition = {
               taskQueue: 'nango',
               workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
               workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
               retry: {
                 maximumAttempts: 10,
               },
@@ -90,8 +90,7 @@ const job: IJobDefinition = {
           await temporal.workflow.start('processNangoWebhook', {
             taskQueue: 'nango',
             workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-            workflowIdReusePolicy:
-              WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
             retry: {
               maximumAttempts: 10,
             },

@@ -1,6 +1,6 @@
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
-import { Logger } from '@crowd/logging'
+import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import {
@@ -151,20 +151,43 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async destroyMemberAfterError(id: string): Promise<void> {
-    await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
-      id,
-    })
+  public async destroyMemberAfterError(
+    id: string,
+    deleteIdentities: boolean,
+    deleteSegments: boolean,
+  ): Promise<void> {
+    await logExecutionTimeV2(
+      async () => {
+        const promises = []
+        if (deleteIdentities) {
+          promises.push(
+            this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+              id,
+            }),
+          )
+        }
 
-    await this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
-      id,
-    })
+        if (deleteSegments) {
+          promises.push(
+            this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
+              id,
+            }),
+          )
+        }
 
-    await this.db().none(
-      `
+        if (promises.length > 0) {
+          await Promise.all(promises)
+        }
+
+        await this.db().none(
+          `
       delete from "members" where id = $(id)
       `,
-      { id },
+          { id },
+        )
+      },
+      this.log,
+      'memberRepo -> destroyMemberAfterError',
     )
   }
 

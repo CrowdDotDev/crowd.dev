@@ -6,13 +6,14 @@ import path from 'path'
 import { IS_PROD_ENV, distinct } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
+import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'queue-monitoring',
-  cronTime: CronTime.everyDayAt(8, 0),
+  cronTime: CronTime.everyHour(),
   timeout: 30 * 60,
   enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
@@ -62,18 +63,32 @@ const job: IJobDefinition = {
   },
 }
 
-async function getTopicsAndConsumerGroups(log: Logger, admin: KafkaAdmin) {
+async function getTopicsAndConsumerGroups(
+  log: Logger,
+  admin: KafkaAdmin,
+): Promise<Map<string, string[]>> {
   const topics = await admin.listTopics()
-  const groupsResponse = await admin.listGroups()
-  const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
 
-  for (const group of consumerGroups) {
-    log.debug(`Group ${group}!`)
-  }
+  const redis = await getRedisClient(REDIS_CONFIG())
+  const cache = new RedisCache('queueMonitor', redis, log)
 
   const topicConsumerMap = new Map<string, string[]>()
 
   for (const topic of topics) {
+    const consumers = await cache.get(topic)
+    if (consumers) {
+      topicConsumerMap.set(topic, JSON.parse(consumers))
+    }
+  }
+
+  const groupsResponse = await admin.listGroups()
+  const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
+
+  for (const topic of topics) {
+    if (topicConsumerMap.has(topic)) {
+      continue
+    }
+
     log.debug(`Checking topic ${topic} consumer groups!`)
     const consumers = []
     for (const group of consumerGroups) {
@@ -84,6 +99,8 @@ async function getTopicsAndConsumerGroups(log: Logger, admin: KafkaAdmin) {
       }
     }
     topicConsumerMap.set(topic, consumers)
+    // save to cache for 24 hours
+    await cache.set(topic, JSON.stringify(consumers), 24 * 60 * 60)
   }
 
   return topicConsumerMap
