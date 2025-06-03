@@ -125,4 +125,4 @@ SQL >
 TYPE COPY
 TARGET_DATASOURCE insights_projects_populated_datasource
 COPY_MODE replace
-COPY_SCHEDULE 50 * * * *
+COPY_SCHEDULE */15 * * * *
