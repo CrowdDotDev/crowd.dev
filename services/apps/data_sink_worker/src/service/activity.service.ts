@@ -702,23 +702,17 @@ export default class ActivityService extends LoggerBase {
 
       // and map them to payloads
       for (const payload of relevantPayloads.filter((p) => p.dbActivity)) {
+        let addToPayloadsNotInDb = false
         payload.dbMember = singleOrDefault(dbMembers, (m) => m.id === payload.dbActivity.memberId)
         if (!payload.dbMember) {
-          this.log.error(
+          this.log.warn(
             {
               memberId: payload.dbActivity.memberId,
             },
-            'Member not found!',
+            'Member not found! We will try to find an existing one or create a new one!',
           )
 
-          resultMap.set(payload.resultId, {
-            success: false,
-            err: new UnrepeatableError(
-              `Member with id '${payload.dbActivity.memberId}' not found for activity '${payload.dbActivity.id}'!`,
-            ),
-          })
-
-          continue
+          addToPayloadsNotInDb = true
         }
 
         if (payload.dbActivity.objectMemberId) {
@@ -728,29 +722,27 @@ export default class ActivityService extends LoggerBase {
           )
 
           if (!payload.dbObjectMember) {
-            this.log.error(
+            this.log.warn(
               {
                 objectMemberId: payload.dbActivity.objectMemberId,
               },
-              'Object member not found!',
+              'Object member not found! We will try to find an existing one or create a new one!',
             )
 
-            resultMap.set(payload.resultId, {
-              success: false,
-              err: new UnrepeatableError(
-                `Object member with id '${payload.dbActivity.objectMemberId}' not found for activity '${payload.dbActivity.id}'`,
-              ),
-            })
+            addToPayloadsNotInDb = true
           }
         }
-      }
 
-      relevantPayloads = relevantPayloads.filter((p) => !resultMap.has(p.resultId))
+        if (addToPayloadsNotInDb) {
+          payloadsNotInDb.push(payload)
+        }
+      }
     }
 
     if (payloadsNotInDb.length > 0) {
-      // if we don't have db activity we need to load members by username
+      // if we don't have db activity or db member or db object member we need to load members by username
       const usernameFilter = payloadsNotInDb
+        .filter((p) => !p.dbMember)
         .map((p) => {
           return {
             platform: p.platform,
@@ -760,7 +752,7 @@ export default class ActivityService extends LoggerBase {
         })
         .concat(
           payloadsNotInDb
-            .filter((p) => p.activity.objectMemberUsername)
+            .filter((p) => !p.dbObjectMember && p.activity.objectMemberUsername)
             .map((p) => {
               return {
                 platform: p.platform,
@@ -780,6 +772,7 @@ export default class ActivityService extends LoggerBase {
       for (const [identity, dbMember] of dbMembersByUsername) {
         for (const payload of payloadsNotInDb.filter(
           (p) =>
+            !p.dbMember &&
             p.activity.platform === identity.platform &&
             p.activity.username.toLowerCase() === identity.value.toLowerCase(),
         )) {
@@ -788,6 +781,7 @@ export default class ActivityService extends LoggerBase {
 
         for (const payload of payloadsNotInDb.filter(
           (p) =>
+            !p.dbObjectMember &&
             p.activity.platform === identity.platform &&
             p.activity.objectMemberUsername &&
             p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
