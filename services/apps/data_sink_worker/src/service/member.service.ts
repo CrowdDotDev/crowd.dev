@@ -113,21 +113,20 @@ export default class MemberService extends LoggerBase {
               this.log,
               'memberService -> create -> insertIdentities',
             )
+
+            await logExecutionTimeV2(
+              () => this.memberRepo.addToSegments(id, segmentIds),
+              this.log,
+              'memberService -> create -> addToSegments',
+            )
+
+            if (releaseMemberLock) {
+              await releaseMemberLock()
+            }
           } catch (err) {
-            this.log.error(err, 'Error while inserting identities!')
+            this.log.error(err, 'Error while creating a new member!')
             await this.memberRepo.destroyMemberAfterError(id)
-
             throw err
-          }
-
-          await logExecutionTimeV2(
-            () => this.memberRepo.addToSegments(id, segmentIds),
-            this.log,
-            'memberService -> create -> addToSegments',
-          )
-
-          if (releaseMemberLock) {
-            await releaseMemberLock()
           }
 
           const organizations = []
