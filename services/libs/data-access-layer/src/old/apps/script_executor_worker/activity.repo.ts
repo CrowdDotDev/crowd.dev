@@ -38,6 +38,22 @@ class ActivityRepository {
       },
     )
   }
+
+  async moveActivityRelations(
+    primaryId: string,
+    secondaryId: string,
+    type: EntityType,
+  ): Promise<void> {
+    const columnName = this.getEntityColumn(type)
+
+    await this.connection.none(
+      `UPDATE "activityRelations" SET "${columnName}" = $(primaryId), "updatedAt" = now() WHERE "${columnName}" = $(secondaryId)`,
+      {
+        primaryId,
+        secondaryId,
+      },
+    )
+  }
 }
 
 export default ActivityRepository
