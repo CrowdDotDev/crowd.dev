@@ -22,7 +22,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     return
   }
 
-  const startTime = performance.now()
+  const startTime = Date.now()
   let processedCount = 0
 
   // chunk and execute in parallel
@@ -35,7 +35,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     )
 
     processedCount += chunk.length
-    const elapsedMinutes = (performance.now() - startTime) / (1000 * 60)
+    const elapsedMinutes = (Date.now() - startTime) / (1000 * 60)
     const ratePerMinute = processedCount / elapsedMinutes
     console.log(`Processing ${ratePerMinute.toFixed(1)}/min`)
   }
