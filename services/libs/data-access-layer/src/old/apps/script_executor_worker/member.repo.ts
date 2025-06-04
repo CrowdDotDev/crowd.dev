@@ -187,9 +187,6 @@ class MemberRepository {
           AND NOT EXISTS (SELECT 1
                           FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "memberOrganizations" mo
-                          WHERE mo."memberId" = m.id)
           AND m."manuallyCreated" != true
         LIMIT $(batchSize);
       `,
@@ -206,6 +203,7 @@ class MemberRepository {
       { name: 'memberEnrichmentCache', conditions: ['memberId'] },
       { name: 'memberEnrichments', conditions: ['memberId'] },
       { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberOrganizations', conditions: ['memberId'] },
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
