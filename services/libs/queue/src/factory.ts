@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { Kafka } from 'kafkajs'
+import { Admin, Kafka } from 'kafkajs'
 
 import { SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -12,18 +12,27 @@ export class QueueFactory {
     const log = getServiceChildLogger('queue-service-factory')
 
     log.info({ config }, 'Creating kafka queue service...')
-    const kafkaClient = new Kafka({
-      clientId: config.clientId,
-      logLevel: process.env.KAFKA_LOG_LEVEL ? Number(process.env.KAFKA_LOG_LEVEL) : undefined,
-      brokers: config.brokers.split(','),
-      retry: {
-        initialRetryTime: 100,
-        retries: 8,
-      },
-      ...(config.extra ? JSON.parse(config.extra) : {}),
-    })
-    return new KafkaQueueService(kafkaClient, log)
+
+    return new KafkaQueueService(getKafkaClient(config), log)
   }
+}
+
+export type KafkaClient = Kafka
+export type KafkaAdmin = Admin
+
+export const getKafkaClient = (config: IQueueClientConfig): Kafka => {
+  const kafkaClient = new Kafka({
+    clientId: config.clientId,
+    logLevel: process.env.KAFKA_LOG_LEVEL ? Number(process.env.KAFKA_LOG_LEVEL) : undefined,
+    brokers: config.brokers.split(','),
+    retry: {
+      initialRetryTime: 100,
+      retries: 8,
+    },
+    ...(config.extra ? JSON.parse(config.extra) : {}),
+  })
+
+  return kafkaClient
 }
 
 let queueConfig: IQueueClientConfig | undefined = undefined

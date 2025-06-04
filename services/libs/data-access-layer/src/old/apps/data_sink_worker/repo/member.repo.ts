@@ -14,7 +14,6 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
   getInsertMemberColumnSet,
-  getInsertMemberSegmentColumnSet,
   getSelectMemberColumnSet,
 } from './member.data'
 
@@ -22,14 +21,11 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
   private readonly selectMemberColumnSet: DbColumnSet
 
-  private readonly insertMemberSegmentColumnSet: DbColumnSet
-
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
-    this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
   public async findMembersByEmails(emails: string[]): Promise<Map<string, IDbMember>> {
@@ -155,6 +151,23 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
+  public async destroyMemberAfterError(id: string): Promise<void> {
+    await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+      id,
+    })
+
+    await this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
+      id,
+    })
+
+    await this.db().none(
+      `
+      delete from "members" where id = $(id)
+      `,
+      { id },
+    )
+  }
+
   public async create(data: IDbMemberCreateData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -261,23 +274,32 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects, true)
   }
 
-  public async addToSegment(memberId: string, segmentId: string): Promise<void> {
-    const prepared = RepositoryBase.prepare(
-      {
-        memberId,
-        segmentId,
-        tenantId: DEFAULT_TENANT_ID,
-      },
-      this.insertMemberSegmentColumnSet,
-    )
+  public async addToSegments(memberId: string, segmentIds: string[]): Promise<void> {
+    if (segmentIds.length === 0) {
+      return
+    }
 
-    const query =
-      this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
-      ' ON CONFLICT DO NOTHING'
-    await this.db().none(query)
+    const params: Record<string, unknown> = {
+      tenantId: DEFAULT_TENANT_ID,
+      memberId,
+    }
+
+    const values: string[] = []
+    for (let i = 0; i < segmentIds.length; i++) {
+      const paramName = `segmentId_${i}`
+      params[paramName] = segmentIds[i]
+      values.push(`($(memberId), $(tenantId), $(${paramName}))`)
+    }
+
+    const query = `
+      insert into "memberSegments"("memberId", "tenantId", "segmentId")
+      values ${values.join(', ')}
+      on conflict do nothing
+    `
+    await this.db().none(query, params)
   }
 
   public async getMemberIdsAndEmailsAndCount(

@@ -6,7 +6,11 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-  const payload = await new MemberService(req).merge(req.params.memberId, req.body.memberToMerge)
+  const payload = await new MemberService(req).merge(
+    req.params.memberId,
+    req.body.memberToMerge,
+    req.body.doNotDeleteSecondaryMember ?? false,
+  )
 
   track(
     'Merge members',

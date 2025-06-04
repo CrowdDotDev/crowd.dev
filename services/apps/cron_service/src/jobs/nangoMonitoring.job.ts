@@ -140,7 +140,7 @@ const job: IJobDefinition = {
       }
     }
 
-    ctx.log.warn({ slackNotify: true }, slackMessage)
+    ctx.log.warn({ slackNangoNotify: true }, slackMessage)
   },
 }
 
