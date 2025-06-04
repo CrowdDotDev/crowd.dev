@@ -65,16 +65,32 @@ const job: IJobDefinition = {
               modifiedAfter: new Date().toISOString(),
             }
 
-            await temporal.workflow.start('processNangoWebhook', {
-              taskQueue: 'nango',
-              workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
-              workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-              retry: {
-                maximumAttempts: 10,
-              },
-              args: [payload],
-            })
+            try {
+              await temporal.workflow.start('processNangoWebhook', {
+                taskQueue: 'nango',
+                workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
+                workflowIdReusePolicy:
+                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+                retry: {
+                  maximumAttempts: 10,
+                },
+                args: [payload],
+              })
+            } catch (error) {
+              if (error.name === 'WorkflowExecutionAlreadyStartedError') {
+                ctx.log.info(
+                  {
+                    integrationId: id,
+                    platform,
+                    model,
+                    connectionId,
+                  },
+                  'Workflow already running, skipping...',
+                )
+                continue
+              }
+              throw error
+            }
           }
         } else {
           const payload: INangoWebhookPayload = {
@@ -87,15 +103,31 @@ const job: IJobDefinition = {
             modifiedAfter: new Date().toISOString(),
           }
 
-          await temporal.workflow.start('processNangoWebhook', {
-            taskQueue: 'nango',
-            workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-            retry: {
-              maximumAttempts: 10,
-            },
-            args: [payload],
-          })
+          try {
+            await temporal.workflow.start('processNangoWebhook', {
+              taskQueue: 'nango',
+              workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
+              workflowIdReusePolicy:
+                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+              retry: {
+                maximumAttempts: 10,
+              },
+              args: [payload],
+            })
+          } catch (error) {
+            if (error.name === 'WorkflowExecutionAlreadyStartedError') {
+              ctx.log.info(
+                {
+                  integrationId: id,
+                  platform,
+                  model,
+                },
+                'Workflow already running, skipping...',
+              )
+              continue
+            }
+            throw error
+          }
         }
       }
     }
