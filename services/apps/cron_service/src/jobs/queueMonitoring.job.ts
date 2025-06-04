@@ -23,10 +23,20 @@ const job: IJobDefinition = {
       throw err
     }
 
-    const streams = await getAllStreams()
+    const allStreams = await getAllStreams()
 
-    for (const stream of streams) {
+    const toIgnore = (
+      process.env.CROWD_KAFKA_STREAMS_TO_IGNORE_ON_MONITORING?.split(',') ?? []
+    ).map((s) => s.trim())
+
+    const streams: IStream[] = []
+    for (const stream of allStreams) {
       ctx.log.debug(`Found stream ${stream.name}!`)
+      if (!toIgnore.includes(stream.name)) {
+        streams.push(stream)
+      } else {
+        ctx.log.debug(`Ignoring stream ${stream.name}!`)
+      }
     }
 
     const kafkaClient = getKafkaClient(QUEUE_CONFIG())
