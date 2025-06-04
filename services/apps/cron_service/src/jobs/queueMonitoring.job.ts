@@ -203,8 +203,28 @@ function ensureOciConfig() {
   const keyBase64 = process.env.CROWD_KAFKA_KEY
   const compartmentId = process.env.CROWD_KAFKA_COMPARMENT_OCID
 
-  if (!user || !keyFingerprint || !tenant || !region || !keyBase64 || !compartmentId) {
-    throw new Error('Missing required environment variables')
+  if (!user) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_USER_OCID')
+  }
+
+  if (!keyFingerprint) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_KEY_FINGERPRINT')
+  }
+
+  if (!tenant) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_TENANCY_OCID')
+  }
+
+  if (!region) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_REGION')
+  }
+
+  if (!keyBase64) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_KEY')
+  }
+
+  if (!compartmentId) {
+    throw new Error('Missing required environment variables - CROWD_KAFKA_COMPARMENT_OCID')
   }
 
   const privateKey = Buffer.from(keyBase64, 'base64').toString('ascii')
