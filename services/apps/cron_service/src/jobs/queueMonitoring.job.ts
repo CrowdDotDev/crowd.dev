@@ -138,7 +138,10 @@ async function isConsumerListeningToTopic(
               }
             }
           } catch (metadataErr) {
-            log.error(metadataErr, `Failed to parse metadata for group ${groupId}!`)
+            // log.error(
+            //   metadataErr,
+            //   `Failed to parse metadata for group ${groupId}! - "${member.memberMetadata.toString()}"`,
+            // )
             // Failed to parse metadata, try alternative approach
           }
         }

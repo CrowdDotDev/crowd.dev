@@ -151,46 +151,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async destroyMemberAfterError(
-    id: string,
-    deleteIdentities: boolean,
-    deleteSegments: boolean,
-  ): Promise<void> {
-    await logExecutionTimeV2(
-      async () => {
-        const promises = []
-        if (deleteIdentities) {
-          promises.push(
-            this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
-              id,
-            }),
-          )
-        }
-
-        if (deleteSegments) {
-          promises.push(
-            this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
-              id,
-            }),
-          )
-        }
-
-        if (promises.length > 0) {
-          await Promise.all(promises)
-        }
-
-        await this.db().none(
-          `
-      delete from "members" where id = $(id)
-      `,
-          { id },
-        )
-      },
-      this.log,
-      'memberRepo -> destroyMemberAfterError',
-    )
-  }
-
   public async create(data: IDbMemberCreateData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
