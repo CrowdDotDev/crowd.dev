@@ -3,99 +3,39 @@ DESCRIPTION >
 
 TAGS "Widget"
 
-NODE collection_info
-SQL >
-    SELECT cip.insightsProjectId, c.slug AS "collectionSlug"
-    FROM collectionsInsightsProjects cip FINAL
-    JOIN collections c ON c.id = cip.collectionId
-
-NODE insightsProjects_filtered_integrations_deduplicated
-SQL >
-    SELECT platform, segmentId FROM integrations FINAL
-
-NODE insightsProjects_filtered_segment_id_mapping
-SQL >
-    SELECT id, segmentId from insightsProjects FINAL
-
-NODE insightsProjects_filtered_connected_platforms
-SQL >
-    SELECT id, groupUniqArray(platform) AS connectedPlatforms
-    FROM insightsProjects_filtered_segment_id_mapping
-    JOIN insightsProjects_filtered_integrations_deduplicated USING (segmentId)
-    GROUP BY id
-
-NODE insightsProjects_filtered_activities_commit
-SQL >
-    SELECT timestamp, segmentId
-    FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
-
-NODE insightsProjects_filtered_first_commit_by_project
-SQL >
-    SELECT maping.id AS id, minOrNull(ac.timestamp) AS firstCommit
-    FROM insightsProjects_filtered_segment_id_mapping AS maping
-    LEFT JOIN insightsProjects_filtered_activities_commit AS ac ON maping.segmentId = ac.segmentId
-    GROUP BY maping.id
-    HAVING firstCommit IS NOT NULL AND firstCommit > toDateTime('1970-01-01')
-
-NODE insightsProjects_filtered_criticality_scores_deduplicated
-SQL >
-    SELECT score, repoUrl, rank FROM criticalityScores FINAL
-
-NODE insightsProjects_filtered_software_value
-SQL >
-    SELECT projectId, softwareValue as "softwareValue"
-    FROM segments_aggregates_with_ids_datasource
-    WHERE projectId != ''
-
 NODE insightsProjects_filtered_1
 SQL >
     %
     SELECT
-        insightsProjects.id as id,
-        insightsProjects.name,
-        insightsProjects.slug,
-        insightsProjects.description,
-        insightsProjects.logoUrl as logo,
-        insightsProjects.repositories,
-        insightsProjects.isLF,
-        insightsProjects.widgets,
-        insightsProjects.keywords,
-        insightsProjects.website,
-        insightsProjects.linkedin,
-        insightsProjects.github,
-        insightsProjects.twitter,
-        insightsProjects_filtered_criticality_scores_deduplicated.score,
-        insightsProjects_filtered_criticality_scores_deduplicated.rank,
-        insightsProjects_filtered_software_value.softwareValue as softwareValue,
-        coalesce(countDistinctMerge(segmentsAggregatedMV.organizationCount), 0) as "organizationCount",
-        coalesce(countDistinctMerge(segmentsAggregatedMV.contributorCount), 0) as "contributorCount"
-        {% if defined(details) and details == "true" %}
-            ,
-            insightsProjects_filtered_connected_platforms.connectedPlatforms,
-            insightsProjects_filtered_first_commit_by_project.firstCommit
-        {% end %}
-    FROM insightsProjects FINAL
-    left join collection_info on collection_info.insightsProjectId = insightsProjects.id
-    left join segmentsAggregatedMV on segmentsAggregatedMV.segmentId = insightsProjects.segmentId
-    left join
-        insightsProjects_filtered_criticality_scores_deduplicated
-        on insightsProjects_filtered_criticality_scores_deduplicated.repoUrl = insightsProjects.github
-    left join
-        insightsProjects_filtered_software_value
-        ON insightsProjects_filtered_software_value.projectId = insightsProjects.id
-    {% if defined(details) and details == "true" %}
-        left join insightsProjects_filtered_connected_platforms using (id)
-        left join insightsProjects_filtered_first_commit_by_project using (id)
-    {% end %}
+        insights_projects_populated_ds.id,
+        insights_projects_populated_ds.name,
+        insights_projects_populated_ds.slug,
+        insights_projects_populated_ds.description,
+        insights_projects_populated_ds.logoUrl as logo,
+        insights_projects_populated_ds.repositories,
+        insights_projects_populated_ds.isLF,
+        insights_projects_populated_ds.widgets,
+        insights_projects_populated_ds.keywords,
+        insights_projects_populated_ds.website,
+        insights_projects_populated_ds.github,
+        insights_projects_populated_ds.linkedin,
+        insights_projects_populated_ds.twitter,
+        insights_projects_populated_ds.score,
+        insights_projects_populated_ds.rank,
+        insights_projects_populated_ds.softwareValue,
+        insights_projects_populated_ds.organizationCount,
+        insights_projects_populated_ds.contributorCount,
+        insights_projects_populated_ds.connectedPlatforms,
+        insights_projects_populated_ds.firstCommit
+    FROM insights_projects_populated_ds
     where
-        insightsProjects.enabled = 1
+        insights_projects_populated_ds.enabled = 1
         {% if defined(slug) %}
-            AND insightsProjects.slug
+            AND insights_projects_populated_ds.slug
             = {{ String(slug, description="Filter collection by slug", required=False) }}
         {% end %}
         {% if defined(search) %}
-            AND insightsProjects.name
+            AND insights_projects_populated_ds.name
             ilike '%'
             || {{
                 String(
@@ -107,29 +47,9 @@ SQL >
             || '%'
         {% end %}
         {% if defined(collectionSlug) %}
-            AND collection_info.collectionSlug
-            = {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+            AND has(
+                insights_projects_populated_ds.collectionsSlugs,
+                {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+            )
         {% end %}
-        {% if defined(isLF) %} AND insightsProjects.isLF = {{ Boolean(isLF) }} {% end %}
-    group by
-        insightsProjects.id,
-        insightsProjects.name,
-        insightsProjects.slug,
-        insightsProjects.description,
-        insightsProjects.logoUrl,
-        insightsProjects.repositories,
-        insightsProjects.isLF,
-        insightsProjects.widgets,
-        insightsProjects.keywords,
-        insightsProjects.website,
-        insightsProjects.linkedin,
-        insightsProjects.github,
-        insightsProjects.twitter,
-        insightsProjects_filtered_criticality_scores_deduplicated.score,
-        insightsProjects_filtered_criticality_scores_deduplicated.rank,
-        insightsProjects_filtered_software_value.softwareValue
-        {% if defined(details) and details == "true" %}
-            ,
-            insightsProjects_filtered_connected_platforms.connectedPlatforms,
-            insightsProjects_filtered_first_commit_by_project.firstCommit
-        {% end %}
+        {% if defined(isLF) %} AND insights_projects_populated_ds.isLF = {{ Boolean(isLF) }} {% end %}
