@@ -6,7 +6,27 @@ TAGS "Widget"
 NODE insightsProjects_filtered_1
 SQL >
     %
-    SELECT *
+    SELECT
+        insights_projects_populated_ds.id,
+        insights_projects_populated_ds.name,
+        insights_projects_populated_ds.slug,
+        insights_projects_populated_ds.description,
+        insights_projects_populated_ds.logoUrl as logo,
+        insights_projects_populated_ds.repositories,
+        insights_projects_populated_ds.isLF,
+        insights_projects_populated_ds.widgets,
+        insights_projects_populated_ds.keywords,
+        insights_projects_populated_ds.website,
+        insights_projects_populated_ds.github,
+        insights_projects_populated_ds.linkedin,
+        insights_projects_populated_ds.twitter,
+        insights_projects_populated_ds.score,
+        insights_projects_populated_ds.rank,
+        insights_projects_populated_ds.softwareValue,
+        insights_projects_populated_ds.organizationCount,
+        insights_projects_populated_ds.contributorCount,
+        insights_projects_populated_ds.connectedPlatforms,
+        insights_projects_populated_ds.firstCommit
     FROM insights_projects_populated_ds
     where
         insights_projects_populated_ds.enabled = 1
@@ -33,3 +53,24 @@ SQL >
             )
         {% end %}
         {% if defined(isLF) %} AND insights_projects_populated_ds.isLF = {{ Boolean(isLF) }} {% end %}
+    GROUP BY
+        insights_projects_populated_ds.id,
+        insights_projects_populated_ds.name,
+        insights_projects_populated_ds.slug,
+        insights_projects_populated_ds.description,
+        insights_projects_populated_ds.logoUrl as logo,
+        insights_projects_populated_ds.repositories,
+        insights_projects_populated_ds.isLF,
+        insights_projects_populated_ds.widgets,
+        insights_projects_populated_ds.keywords,
+        insights_projects_populated_ds.website,
+        insights_projects_populated_ds.github,
+        insights_projects_populated_ds.linkedin,
+        insights_projects_populated_ds.twitter,
+        insights_projects_populated_ds.score,
+        insights_projects_populated_ds.rank,
+        insights_projects_populated_ds.softwareValue,
+        insights_projects_populated_ds.organizationCount,
+        insights_projects_populated_ds.contributorCount,
+        insights_projects_populated_ds.connectedPlatforms,
+        insights_projects_populated_ds.firstCommit
