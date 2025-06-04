@@ -1,0 +1,31 @@
+SCHEMA >
+    `id` String,
+    `name` String,
+    `slug` String,
+    `description` String,
+    `segmentId` String,
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `logoUrl` String,
+    `organizationId` String,
+    `website` String,
+    `github` String,
+    `linkedin` String,
+    `twitter` String,
+    `widgets` Array(String),
+    `repositories` Array(String),
+    `enabled` UInt8,
+    `isLF` UInt8,
+    `keywords` Array(String),
+    `collectionsSlugs` Array(String),
+    `connectedPlatforms` Array(String),
+    `firstCommit` Nullable(DateTime),
+    `score` Float64,
+    `rank` UInt64,
+    `softwareValue` UInt64,
+    `contributorCount` UInt64,
+    `organizationCount` UInt64
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id, slug
