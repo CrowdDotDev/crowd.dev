@@ -35,6 +35,8 @@ const job: IJobDefinition = {
     for (const int of integrationsToTrigger) {
       const { id, settings } = int
 
+      ctx.log.info(`Triggering nango integration check for ${id} (${int.platform})`)
+
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
       if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
@@ -43,7 +45,7 @@ const job: IJobDefinition = {
       }
 
       for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
-        ctx.log.info(
+        ctx.log.debug(
           {
             integrationId: id,
             platform,
@@ -70,7 +72,7 @@ const job: IJobDefinition = {
                 taskQueue: 'nango',
                 workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
                 workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
                 retry: {
                   maximumAttempts: 10,
                 },
@@ -78,7 +80,7 @@ const job: IJobDefinition = {
               })
             } catch (error) {
               if (error.name === 'WorkflowExecutionAlreadyStartedError') {
-                ctx.log.info(
+                ctx.log.debug(
                   {
                     integrationId: id,
                     platform,
@@ -107,8 +109,7 @@ const job: IJobDefinition = {
             await temporal.workflow.start('processNangoWebhook', {
               taskQueue: 'nango',
               workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-              workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+              workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
               retry: {
                 maximumAttempts: 10,
               },
@@ -116,7 +117,7 @@ const job: IJobDefinition = {
             })
           } catch (error) {
             if (error.name === 'WorkflowExecutionAlreadyStartedError') {
-              ctx.log.info(
+              ctx.log.debug(
                 {
                   integrationId: id,
                   platform,
