@@ -1,3 +1,4 @@
+
 SCHEMA >
     `id` String,
     `name` String,
@@ -26,6 +27,6 @@ SCHEMA >
     `contributorCount` UInt64,
     `organizationCount` UInt64
 
-ENGINE MergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY id, slug
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id, slug"
