@@ -201,7 +201,7 @@ function ensureOciConfig() {
   const tenant = process.env.CROWD_KAFKA_TENANCY_OCID
   const region = process.env.CROWD_KAFKA_REGION
   const keyBase64 = process.env.CROWD_KAFKA_KEY
-  const compartmentId = process.env.CROWD_KAFKA_COMPARMENT_OCID
+  const compartmentId = process.env.CROWD_KAFKA_COMPARTMENT_OCID
 
   if (!user) {
     throw new Error('Missing required environment variables - CROWD_KAFKA_USER_OCID')
@@ -224,7 +224,7 @@ function ensureOciConfig() {
   }
 
   if (!compartmentId) {
-    throw new Error('Missing required environment variables - CROWD_KAFKA_COMPARMENT_OCID')
+    throw new Error('Missing required environment variables - CROWD_KAFKA_COMPARTMENT_OCID')
   }
 
   const privateKey = Buffer.from(keyBase64, 'base64').toString('ascii')
@@ -270,7 +270,7 @@ async function getAllStreams() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listStreamsRequest: any = {
-    compartmentId: process.env.CROWD_KAFKA_COMPARMENT_OCID,
+    compartmentId: process.env.CROWD_KAFKA_COMPARTMENT_OCID,
     lifecycleState: st.models.StreamSummary.LifecycleState.Active,
     limit: 50,
   }
