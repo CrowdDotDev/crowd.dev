@@ -7,15 +7,15 @@ NODE insightsProjects_filtered_1
 SQL >
     %
     SELECT *
-    FROM insights_projects_populated_datasource
+    FROM insights_projects_populated_ds
     where
-        insights_projects_populated_datasource.enabled = 1
+        insights_projects_populated_ds.enabled = 1
         {% if defined(slug) %}
-            AND insights_projects_populated_datasource.slug
+            AND insights_projects_populated_ds.slug
             = {{ String(slug, description="Filter collection by slug", required=False) }}
         {% end %}
         {% if defined(search) %}
-            AND insights_projects_populated_datasource.name
+            AND insights_projects_populated_ds.name
             ilike '%'
             || {{
                 String(
@@ -28,10 +28,8 @@ SQL >
         {% end %}
         {% if defined(collectionSlug) %}
             AND has(
-                insights_projects_populated_datasource.collectionsSlugs,
+                insights_projects_populated_ds.collectionsSlugs,
                 {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
             )
         {% end %}
-        {% if defined(isLF) %}
-            AND insights_projects_populated_datasource.isLF = {{ Boolean(isLF) }}
-        {% end %}
+        {% if defined(isLF) %} AND insights_projects_populated_ds.isLF = {{ Boolean(isLF) }} {% end %}
