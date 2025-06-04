@@ -1,6 +1,7 @@
 import { IMemberSegmentCoreAggregates } from '../members/types'
 import { IOrganizationActivityCoreAggregates } from '../organizations/types'
 import { QueryExecutor } from '../queryExecutor'
+import { updateTable } from '../utils'
 
 export async function getMemberActivityCoreAggregates(
   qx: QueryExecutor,
@@ -50,4 +51,32 @@ export async function getOrganizationActivityCoreAggregates(
     activityCount: parseInt(result.activityCount),
     memberCount: parseInt(result.memberCount),
   }))
+}
+
+interface IActivityRelationsUpdate {
+  memberId?: string
+  objectMemberId?: string
+  organizationId?: string
+  conversationId?: string
+  parentId?: string
+  segmentId?: string
+  platform?: string
+  username?: string
+  objectMemberUsername?: string
+}
+
+/**
+ * Updates activityRelations table
+ * @param qx - Query executor
+ * @param data - Update data
+ * @param whereClause - SQL WHERE clause (without the WHERE keyword)
+ * @param params - Parameters for the WHERE clause
+ */
+export async function updateActivityRelations(
+  qx: QueryExecutor,
+  dataToUpdate: Partial<IActivityRelationsUpdate>,
+  whereClause: string,
+  params: Record<string, unknown> = {},
+): Promise<void> {
+  return updateTable(qx, 'activityRelations', dataToUpdate, whereClause, params)
 }

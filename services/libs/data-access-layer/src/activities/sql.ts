@@ -20,7 +20,6 @@ import {
   PageData,
   PlatformType,
 } from '@crowd/types'
-import { TimestampRange } from '@crowd/types'
 
 import { IMemberSegmentDisplayAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
@@ -1608,26 +1607,6 @@ export async function updateActivityRelationsById(
   await qe.result(query, { ...data, id })
 }
 
-export async function updateActivityRelationsForIds(
-  qe: QueryExecutor,
-  data: Partial<IActivityRelationUpdate>,
-  ids: string[],
-) {
-  const fields: string[] = []
-
-  for (const [key, value] of Object.entries(data)) {
-    if (value !== undefined) {
-      fields.push(`"${key}" = $(${key})`)
-    }
-  }
-
-  if (fields.length === 0) return
-
-  const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE "activityId" IN ($(ids:csv))`
-
-  await qe.result(query, { ...data, ids })
-}
-
 export async function moveActivityRelationsToAnotherMember(
   qe: QueryExecutor,
   fromId: string,
@@ -1823,41 +1802,4 @@ export async function getActivitiesSortedByTimestamp(
   })
 
   return rows
-}
-
-export async function getActivitiesByTimestamp<T extends readonly (keyof IQueryActivityResult)[]>(
-  qDb: DbConnOrTx,
-  memberId: string,
-  timeline: TimestampRange,
-  columns: T,
-  options: { limit?: number; lastId?: string } = { limit: 1000 },
-): Promise<Pick<IQueryActivityResult, T[number]>[]> {
-  const whereClause: string[] = [`"memberId" = $(memberId)`]
-
-  const params: Record<string, unknown> = { memberId }
-
-  if (timeline.start) {
-    whereClause.push(`"timestamp" >= $(start)`)
-    params.start = timeline.start
-  }
-
-  if (timeline.end) {
-    whereClause.push(`"timestamp" <= $(end)`)
-    params.end = timeline.end
-  }
-
-  if (options.lastId) {
-    whereClause.push(`"id" > $(lastId)`)
-    params.lastId = options.lastId
-  }
-
-  const query = `
-    SELECT ${columns.join(', ')}
-    FROM activities
-    WHERE ${whereClause.join(' AND ')}
-    ORDER BY "id" ASC
-    LIMIT $(limit)
-  `
-
-  return qDb.any(query, params)
 }

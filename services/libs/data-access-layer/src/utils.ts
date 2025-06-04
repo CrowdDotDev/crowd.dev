@@ -186,3 +186,44 @@ export async function refreshMaterializedView(
 ) {
   await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
 }
+
+/**
+ * Generic function to update any table with any data and WHERE conditions
+ * @param qx - Query executor
+ * @param tableName - Name of the table to update
+ * @param data - Data to update (undefined values are filtered out)
+ * @param whereClause - SQL WHERE clause (without the WHERE keyword)
+ * @param params - Parameters for the WHERE clause
+ */
+export async function updateTable<T>(
+  qx: QueryExecutor,
+  tableName: string,
+  data: Partial<T>,
+  whereClause: string,
+  params: Record<string, unknown> = {},
+): Promise<void> {
+  const validDataEntries = Object.entries(data).filter(([, value]) => value !== undefined)
+
+  if (validDataEntries.length === 0) {
+    return
+  }
+
+  const columns = validDataEntries.map(([key]) => key)
+
+  const query = `
+    UPDATE "${tableName}" 
+    SET
+      ${columns.map((c) => `"${c}" = $(data_${c})`).join(',\n')},
+      "updatedAt" = now()
+    WHERE ${whereClause}
+  `
+
+  // Create prefixed data parameters to avoid conflicts with where params
+  const dataParams = Object.fromEntries(
+    validDataEntries.map(([key, value]) => [`data_${key}`, value]),
+  )
+
+  const allParams = { ...params, ...dataParams }
+
+  return qx.result(query, allParams)
+}

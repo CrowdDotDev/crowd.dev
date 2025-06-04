@@ -32,8 +32,3 @@ export enum SuggestionType {
   MEMBERS = 'members',
   ORGANIZATIONS = 'organizations',
 }
-
-export interface TimestampRange {
-  start: string
-  end: string
-}
