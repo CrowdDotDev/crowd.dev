@@ -3,7 +3,11 @@ import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
-import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
+import {
+  IDuplicateMembersToCleanup,
+  IFindMemberIdentitiesGroupedByPlatformResult,
+  ISimilarMember,
+} from './types'
 
 class MemberRepository {
   constructor(
@@ -183,9 +187,6 @@ class MemberRepository {
           AND NOT EXISTS (SELECT 1
                           FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "memberOrganizations" mo
-                          WHERE mo."memberId" = m.id)
           AND m."manuallyCreated" != true
         LIMIT $(batchSize);
       `,
@@ -202,6 +203,7 @@ class MemberRepository {
       { name: 'memberEnrichmentCache', conditions: ['memberId'] },
       { name: 'memberEnrichments', conditions: ['memberId'] },
       { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberOrganizations', conditions: ['memberId'] },
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
@@ -217,6 +219,37 @@ class MemberRepository {
         await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { memberId })
       }
     })
+  }
+
+  public async findDuplicateMembersAfterDate(
+    cutoffDate: string,
+    limit: number,
+  ): Promise<IDuplicateMembersToCleanup[]> {
+    return this.connection.query(
+      `
+        SELECT DISTINCT
+            m_primary.id as "primaryId",
+            m_secondary.id as "secondaryId"
+        FROM members m_secondary
+        LEFT JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
+        JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
+            AND m_primary.id != m_secondary.id
+        JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
+        WHERE m_secondary."createdAt" > $(cutoffDate)
+            AND mi_secondary."memberId" IS NULL
+            AND EXISTS (
+                SELECT 1 
+                FROM "activityRelations" ar 
+                WHERE ar."memberId" = m_secondary.id
+            )
+        ORDER BY m_primary.id, m_secondary.id
+        LIMIT $(limit)
+      `,
+      {
+        cutoffDate,
+        limit,
+      },
+    )
   }
 }
 

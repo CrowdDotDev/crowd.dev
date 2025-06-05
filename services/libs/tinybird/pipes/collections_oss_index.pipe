@@ -1,6 +1,7 @@
-TOKEN "collections_oss_index_endpoint_read_9807" READ
-
 NODE collections_oss_index_category_ids
+DESCRIPTION >
+    Return category ids filtered by slug, needed for later filtering
+
 SQL >
     %
     SELECT categories.id
@@ -10,35 +11,59 @@ SQL >
     {% end %}
 
 NODE collections_oss_index_agregates
+DESCRIPTION >
+    Returns aggregates by collection
+
 SQL >
-    SELECT collectionId, coalesce(sum(contributorCount), 0) as "totalContributors"
+    %
+    SELECT
+        collectionId,
+        coalesce(sum(contributorCount), 0) as "totalContributors",
+        coalesce(sum(softwareValue), 0) as "softwareValue",
+        coalesce(avg(score), 0) as "avgScore"
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != ''
     GROUP BY collectionId
-    ORDER BY totalContributors DESC
+    ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
 
 NODE collections_oss_index_projects_deduplicated
+DESCRIPTION >
+    Returns only needed columns from insights projects
+
 SQL >
     SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
     FROM insightsProjects FINAL
 
 NODE collections_oss_index_projects_ranked_by_collection
+DESCRIPTION >
+    Returns projects by collection ranked by sorting parameter
+
 SQL >
+    %
     SELECT
         collectionId,
         projectId,
         sum(contributorCount) AS totalContributors,
-        ROW_NUMBER() OVER (PARTITION BY collectionId ORDER BY sum(contributorCount) DESC) AS rn
+        sum(softwareValue) AS softwareValue,
+        avg(score) AS avgScore,
+        ROW_NUMBER() OVER (
+            PARTITION BY collectionId ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
+        ) AS rn
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != '' AND projectId != ''
     GROUP BY collectionId, projectId
 
-NODE categories_oss_index_projects
+NODE collections_oss_index_projects
+DESCRIPTION >
+    Returns top 5 projects per category
+
 SQL >
     SELECT
         topProjects.collectionId,
         topProjects.projectId,
         topProjects.totalContributors,
+        topProjects.softwareValue,
+        topProjects.avgScore,
         pd.name AS projectName,
         pd.logoUrl AS projectLogo
     FROM collections_oss_index_projects_ranked_by_collection topProjects
@@ -46,23 +71,38 @@ SQL >
     WHERE topProjects.rn <= 5
 
 NODE collections_oss_index_collections_deduplicated
+DESCRIPTION >
+    Returns only needed columns from collections filtered by category
+
 SQL >
     SELECT collections.id, collections.slug, collections.name
     FROM collections FINAL
     WHERE collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
 
 NODE collections_oss_index_top_projects
+DESCRIPTION >
+    Maps top 5 projects per collection into single row per collection
+
 SQL >
     SELECT
         collectionId,
-        groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
-    FROM categories_oss_index_projects
+        groupArray(
+            (projectId, totalContributors, projectName, projectLogo, softwareValue, avgScore)
+        ) AS topProjects
+    FROM collections_oss_index_projects
     GROUP BY collectionId
 
 NODE collections_oss_index_results
 SQL >
     SELECT
-        a.collectionId as "id", cd.name as "name", cd.slug as "slug", a.totalContributors, p.topProjects
+        a.collectionId as "id",
+        cd.name as "name",
+        cd.slug as "slug",
+        a.totalContributors,
+        a.softwareValue,
+        a.avgScore,
+        a.softwareValue,
+        p.topProjects
     FROM collections_oss_index_agregates a
     LEFT JOIN collections_oss_index_top_projects p USING (collectionId)
     JOIN collections_oss_index_collections_deduplicated cd ON cd.id = a.collectionId

@@ -152,6 +152,14 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async destroyMemberAfterError(id: string): Promise<void> {
+    await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+      id,
+    })
+
+    await this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
+      id,
+    })
+
     await this.db().none(
       `
       delete from "members" where id = $(id)
@@ -266,7 +274,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects, true)
   }
 
   public async addToSegments(memberId: string, segmentIds: string[]): Promise<void> {

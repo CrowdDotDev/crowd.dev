@@ -1,3 +1,7 @@
+import {
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
+} from './activities/cleanup/duplicate-members'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -98,4 +102,6 @@ export {
   calculateMemberAffiliations,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
 }
