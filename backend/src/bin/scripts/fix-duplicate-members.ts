@@ -74,11 +74,15 @@ setImmediate(async () => {
     let processedCount = 0
     const startTime = performance.now()
 
-    for (const chunk of chunkArray(results, 50)) {
+    for (const chunk of chunkArray(results, 100)) {
       const chunkStartTime = performance.now()
       await Promise.all(
         chunk.map((result) => {
-          log.info(`Moving activity relations from ${result.secondaryId} --> ${result.primaryId}`)
+          // log the update only in test mode
+          if (testRun) {
+            log.info(`Updating activity relations: ${result.secondaryId} --> ${result.primaryId}`)
+          }
+
           return activityRepo.moveActivityRelations(
             result.primaryId,
             result.secondaryId,
