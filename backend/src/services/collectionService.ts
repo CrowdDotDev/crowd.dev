@@ -214,9 +214,11 @@ export class CollectionService extends LoggerBase {
 
       const slug = getCleanString(project.name).replace(/\s+/g, '-')
 
+      const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
+
       const createdProject = await createInsightsProject(qx, {
         ...project,
-        isLF: false,
+        isLF: segment?.isLF ?? false,
         slug,
       })
 
@@ -362,6 +364,13 @@ export class CollectionService extends LoggerBase {
   async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+
+      // If segmentId is being updated, fetch the new segment's isLF value
+      if (project.segmentId) {
+        const segment = await findSegmentById(qx, project.segmentId)
+        project.isLF = segment?.isLF ?? false
+      }
+
       await updateInsightsProject(qx, id, project)
 
       if (project.collections) {
