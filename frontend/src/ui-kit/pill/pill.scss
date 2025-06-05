@@ -24,8 +24,4 @@
   &--transparent {
     @apply bg-transparent text-gray-900;
   }
-
-  &--outline {
-    @apply bg-transparent text-gray-900 outline-1 outline-gray-200 outline;
-  }
 }
