@@ -52,9 +52,12 @@
             hash: '#projects',
           }"
         >
-          <lf-pill type="outline">
+          <span
+            class="text-tiny font-semibold rounded-full px-2.5 text-center h-4
+          bg-transparent text-gray-900 outline-1 outline-gray-200 outline truncate block max-w-[150px]"
+          >
             Insights: {{ subproject.insightsProjectName }}
-          </lf-pill>
+          </span>
         </router-link>
         <app-lf-project-integration-column
           :segment-id="subproject.id"
