@@ -288,7 +288,7 @@ class MemberRepository {
           AND mi.verified = TRUE
           AND mi."memberId" != sc.secondary_id
       )
-      SELECT DISTINCT primary_id, secondary_id
+      SELECT DISTINCT primary_id as "primaryId", secondary_id as "secondaryId"
       FROM matches
       ORDER BY primary_id, secondary_id
       LIMIT $(limit);
