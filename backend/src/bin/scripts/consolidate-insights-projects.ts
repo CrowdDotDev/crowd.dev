@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+
 /* eslint-disable no-continue */
 
 /**
@@ -9,10 +10,10 @@
  * It will skip projects that have only one repository.
  * It will skip projects that are not LF projects.
  */
-import { parse } from 'csv-parse/sync'
-import * as fs from 'fs'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
+import { parse } from 'csv-parse/sync'
+import * as fs from 'fs'
 import path from 'path'
 
 import { databaseInit } from '@/database/databaseConnection'
@@ -20,15 +21,15 @@ import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 interface NewProjectRow {
-  name: string;
-  url: string;
-  organization: string;
-  project_main_repo_url: string;
+  name: string
+  url: string
+  organization: string
+  project_main_repo_url: string
 }
 
 interface ProjectGroup {
-  repositories: string[];
-  github: string;
+  repositories: string[]
+  github: string
 }
 
 const options = [
@@ -43,7 +44,7 @@ const options = [
     alias: 'f',
     type: String,
     description: 'Path to CSV file to consolidate projects from',
-  }
+  },
 ]
 
 const sections = [
@@ -109,7 +110,7 @@ function groupProjects(projects: NewProjectRow[]): Map<string, ProjectGroup> {
  */
 async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>) {
   const projectsToSkip: string[] = []
-  
+
   for (const [mainRepo, group] of projectGroups.entries()) {
     if (group.repositories.length === 1) {
       // Skip projects with only one repository
@@ -125,7 +126,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
       FROM "insightsProjects"
       WHERE github = $1
         AND "isLF" = false`,
-      [mainRepo]
+      [mainRepo],
     )
 
     const mainProject = mainProjectResult.rows?.[0]
@@ -144,7 +145,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
       FROM "insightsProjects"
       WHERE github = ANY($1)
         AND "isLF" = false`,
-      [group.repositories.filter(repo => repo !== mainRepo)]
+      [group.repositories.filter((repo) => repo !== mainRepo)],
     )
 
     const relatedProjects = relatedProjectsResult.rows || []
@@ -153,7 +154,9 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
     for (const project of relatedProjects) {
       if (project.segmentId !== null) {
         projectsToSkip.push(project.github)
-        console.log(`Warning: Project ${project.github} has segmentId ${project.segmentId}. Skipping deletion.`)
+        console.log(
+          `Warning: Project ${project.github} has segmentId ${project.segmentId}. Skipping deletion.`,
+        )
       }
     }
 
@@ -162,19 +165,19 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
       `UPDATE "insightsProjects" 
        SET repositories = $1
        WHERE id = $2`,
-      [group.repositories, mainProject.id]
+      [group.repositories, mainProject.id],
     )
 
     // Delete related projects that don't have segmentId
     const projectsToDelete = relatedProjects
-      .filter(project => !projectsToSkip.includes(project.github))
-      .map(project => project.id)
+      .filter((project) => !projectsToSkip.includes(project.github))
+      .map((project) => project.id)
 
     if (projectsToDelete.length > 0) {
       await qx.result(
         `DELETE FROM "insightsProjects"
         WHERE id = ANY($1)`,
-        [projectsToDelete]
+        [projectsToDelete],
       )
       console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
     }
@@ -182,7 +185,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
 
   if (projectsToSkip.length > 0) {
     console.log('\nProjects skipped due to non-null segmentId:')
-    projectsToSkip.forEach(project => console.log(project))
+    projectsToSkip.forEach((project) => console.log(project))
   }
 }
 

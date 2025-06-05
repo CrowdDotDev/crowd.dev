@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/dot-notation */
+
 /* eslint-disable no-console */
+
 /* eslint-disable import/no-extraneous-dependencies */
 
 /**
@@ -39,7 +41,6 @@ WHERE
   AND s.grandparentslug IS NOT NULL;
 
 */
-
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import { parse } from 'csv-parse/sync'
@@ -62,7 +63,7 @@ const options = [
     alias: 'f',
     type: String,
     description: 'Path to CSV file to import',
-  }
+  },
 ]
 
 const sections = [
@@ -125,8 +126,8 @@ if (parameters.help || !parameters.file) {
             record['TWITTER__C'] || null,
             record['LINKEDIN__C'] || null,
             record['WEBSITE__C'] || null,
-            slug
-          ]
+            slug,
+          ],
         )
 
         if (result.rows?.length > 0) {
@@ -151,4 +152,4 @@ if (parameters.help || !parameters.file) {
     console.log('Processing complete')
     process.exit(0)
   })
-} 
+}

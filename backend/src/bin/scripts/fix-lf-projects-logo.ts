@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/dot-notation */
+
 /* eslint-disable no-console */
+
 /* eslint-disable import/no-extraneous-dependencies */
 
 /**
  * Access Snowflake's instance: https://app.snowflake.com/jnmhvwd/xpb85243
  * Create a new worksheet and run the query below.
  * Download the results as a CSV file.
-*/
-
+ */
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import { parse } from 'csv-parse/sync'
@@ -30,7 +31,7 @@ const options = [
     alias: 'f',
     type: String,
     description: 'Path to CSV file to import',
-  }
+  },
 ]
 
 const sections = [
@@ -84,10 +85,7 @@ if (parameters.help || !parameters.file) {
            WHERE slug = $2
            AND "isLF" = true
            RETURNING *`,
-          [
-            record['logoUrl'] || null,
-            slug
-          ]
+          [record['logoUrl'] || null, slug],
         )
 
         if (result.rows?.length > 0) {
@@ -112,4 +110,4 @@ if (parameters.help || !parameters.file) {
     console.log('Processing complete')
     process.exit(0)
   })
-} 
+}
