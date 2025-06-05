@@ -64,7 +64,10 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
       `
       select id, platform from integrations
       where platform = $(platform) and "deletedAt" is null
-      and settings -> 'groups' ? $(groupName)
+      and exists (
+        select 1 from jsonb_array_elements(settings -> 'groups') as group_item
+        where group_item ->> 'slug' = $(groupName)
+      )
       `,
       {
         platform: PlatformType.GROUPSIO,
