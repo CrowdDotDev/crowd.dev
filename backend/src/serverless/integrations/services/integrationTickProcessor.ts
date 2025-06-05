@@ -140,7 +140,6 @@ export class IntegrationTickProcessor extends LoggerBase {
                   } minutes!`,
                 )
                 await emitter.triggerIntegrationRun(
-                  integration.tenantId,
                   integration.platform,
                   integration.id,
                   false,
@@ -149,7 +148,6 @@ export class IntegrationTickProcessor extends LoggerBase {
             } else {
               logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
               await emitter.triggerIntegrationRun(
-                integration.tenantId,
                 integration.platform,
                 integration.id,
                 false,
