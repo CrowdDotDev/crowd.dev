@@ -5,7 +5,7 @@ import { chunkArray } from '@crowd/data-access-layer/src/old/apps/merge_suggesti
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
-import { getServiceLogger } from '@crowd/logging'
+import { getServiceLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 
 import { DB_CONFIG } from '@/conf'
@@ -62,11 +62,13 @@ setImmediate(async () => {
   const memberRepo = new MemberRepository(db, log)
   const activityRepo = new ActivityRepository(db, log, qdb)
 
-  let results = await memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize)
+  let results = await logExecutionTimeV2(
+    () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
+    log,
+    'findDuplicateMembersAfterDate',
+  )
 
   while (results.length > 0) {
-    log.info(`Processing ${results.length} duplicate member pairs...`)
-
     let processedCount = 0
     const startTime = Date.now()
 
@@ -97,10 +99,14 @@ setImmediate(async () => {
       break
     }
 
-    results = await memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize)
+    results = await logExecutionTimeV2(
+      () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
+      log,
+      'findDuplicateMembersAfterDate',
+    )
   }
 
-  log.info('No more duplicate members to cleanup! Script completed successfully.')
+  log.info('No more duplicate members to cleanup')
 
   // Note: Secondary members are not deleted here. The cleanupMembers workflow will automatically
   // pick them up later since they'll have no activities, identities, or memberOrganizations.
