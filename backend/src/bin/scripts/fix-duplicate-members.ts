@@ -92,11 +92,17 @@ setImmediate(async () => {
       )
 
       processedCount += chunk.length
-      const chunkTime = (performance.now() - chunkStartTime) / 1000
-      const totalTime = (performance.now() - startTime) / 1000
-      const itemsPerSecond = processedCount / totalTime
+      const chunkTime = performance.now() - chunkStartTime
+      const totalTime = performance.now() - startTime
+      const itemsPerSecond = processedCount / (totalTime / 1000)
 
-      log.info({ chunkTime, itemsPerSecond }, 'Processed chunk!')
+      log.info(
+        {
+          chunkTime: Math.round(chunkTime),
+          itemsPerSecond: Math.round(itemsPerSecond),
+        },
+        'Processed chunk!',
+      )
     }
 
     if (testRun) {
@@ -105,7 +111,7 @@ setImmediate(async () => {
     }
 
     totalProcessed += processedCount
-    log.info({ totalProcessed }, 'Total duplicate members processed so far!')
+    log.info(`Total duplicate members processed: ${totalProcessed}`)
 
     results = await logExecutionTimeV2(
       () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
