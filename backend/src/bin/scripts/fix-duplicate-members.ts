@@ -59,6 +59,8 @@ setImmediate(async () => {
     password: DB_CONFIG.password,
   })
 
+  let totalProcessed = 0
+
   const memberRepo = new MemberRepository(db, log)
   const activityRepo = new ActivityRepository(db, log, qdb)
 
@@ -70,13 +72,13 @@ setImmediate(async () => {
 
   while (results.length > 0) {
     let processedCount = 0
-    const startTime = Date.now()
+    const startTime = performance.now()
 
     for (const chunk of chunkArray(results, 50)) {
-      const chunkStartTime = Date.now()
+      const chunkStartTime = performance.now()
       await Promise.all(
         chunk.map((result) => {
-          log.info(`Moving activity relations: ${result.secondaryId} --> ${result.primaryId}`)
+          log.info(`Moving activity relations from ${result.secondaryId} --> ${result.primaryId}`)
           return activityRepo.moveActivityRelations(
             result.primaryId,
             result.secondaryId,
@@ -86,18 +88,20 @@ setImmediate(async () => {
       )
 
       processedCount += chunk.length
-      const chunkTime = (Date.now() - chunkStartTime) / 1000
-      const totalTime = (Date.now() - startTime) / 1000
+      const chunkTime = (performance.now() - chunkStartTime) / 1000
+      const totalTime = (performance.now() - startTime) / 1000
       const itemsPerSecond = processedCount / totalTime
 
-      log.info(`Processed chunk in ${chunkTime.toFixed(1)}s`)
-      log.info(`Processing ${itemsPerSecond.toFixed(1)} items/sec`)
+      log.info({ chunkTime, itemsPerSecond }, 'Processed chunk!')
     }
 
     if (testRun) {
       log.info('Test run completed - stopping after first batch!')
       break
     }
+
+    totalProcessed += processedCount
+    log.info({ totalProcessed }, 'Total duplicate members processed so far!')
 
     results = await logExecutionTimeV2(
       () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
