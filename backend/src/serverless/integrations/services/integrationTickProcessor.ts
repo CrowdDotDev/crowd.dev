@@ -139,21 +139,11 @@ export class IntegrationTickProcessor extends LoggerBase {
                     delay / 60 / 1000
                   } minutes!`,
                 )
-                await emitter.triggerIntegrationRun(
-                  integration.tenantId,
-                  integration.platform,
-                  integration.id,
-                  false,
-                )
+                await emitter.triggerIntegrationRun(integration.platform, integration.id, false)
               }, delay)
             } else {
               logger.info({ integrationId: integration.id }, 'Triggering new integration check!')
-              await emitter.triggerIntegrationRun(
-                integration.tenantId,
-                integration.platform,
-                integration.id,
-                false,
-              )
+              await emitter.triggerIntegrationRun(integration.platform, integration.id, false)
             }
           } else {
             logger.info({ integrationId: integration.id }, 'Existing run found, skipping!')
