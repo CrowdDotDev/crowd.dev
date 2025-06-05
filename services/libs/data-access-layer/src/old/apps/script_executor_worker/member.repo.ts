@@ -227,23 +227,29 @@ class MemberRepository {
   ): Promise<IDuplicateMembersToCleanup[]> {
     return this.connection.query(
       `
+        WITH valid_primary AS (
+          SELECT DISTINCT m.id, m."displayName"
+          FROM members m
+          JOIN "memberIdentities" mi ON mi."memberId" = m.id
+        )
         SELECT DISTINCT
-            m_primary.id as "primaryId",
-            m_secondary.id as "secondaryId"
+          m_primary.id AS "primaryId",
+          m_secondary.id AS "secondaryId"
         FROM members m_secondary
-        LEFT JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
-        JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
-            AND m_primary.id != m_secondary.id
-        JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
+        JOIN valid_primary m_primary
+          ON m_primary."displayName" = m_secondary."displayName"
+          AND m_primary.id != m_secondary.id
         WHERE m_secondary."createdAt" > $(cutoffDate)
-            AND mi_secondary."memberId" IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi
+              WHERE mi."memberId" = m_secondary.id
+            )
             AND EXISTS (
-                SELECT 1 
-                FROM "activityRelations" ar 
-                WHERE ar."memberId" = m_secondary.id
+              SELECT 1 FROM "activityRelations" ar
+              WHERE ar."memberId" = m_secondary.id
             )
         ORDER BY m_primary.id, m_secondary.id
-        LIMIT $(limit)
+        LIMIT $(limit);
       `,
       {
         cutoffDate,
