@@ -1,12 +1,14 @@
 import commandLineArgs from 'command-line-args'
 
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { chunkArray } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/utils'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 import { getServiceLogger } from '@crowd/logging'
+import { getClientSQL } from '@crowd/questdb'
 
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { DB_CONFIG } from '@/conf'
 
 const log = getServiceLogger()
 
@@ -46,10 +48,19 @@ setImmediate(async () => {
   const batchSize = parameters.batchSize ? parseInt(parameters.batchSize, 10) : 50
   const testRun = parameters.testRun ?? false
 
-  const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+  log.info({ cutoffDate, batchSize, testRun }, 'Running script with the following parameters!')
 
-  const memberRepo = new MemberRepository(options.database, log)
-  const activityRepo = new ActivityRepository(options.database, log, options.qdb)
+  const qdb = await getClientSQL()
+  const db = await getDbConnection({
+    host: DB_CONFIG.writeHost,
+    port: DB_CONFIG.port,
+    database: DB_CONFIG.database,
+    user: DB_CONFIG.username,
+    password: DB_CONFIG.password,
+  })
+
+  const memberRepo = new MemberRepository(db, log)
+  const activityRepo = new ActivityRepository(db, log, qdb)
 
   let results = await memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize)
 
