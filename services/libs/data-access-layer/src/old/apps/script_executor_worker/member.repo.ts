@@ -224,9 +224,11 @@ class MemberRepository {
   public async findDuplicateMembersAfterDate(
     cutoffDate: string,
     limit: number,
+    checkByActivityIdentity = false,
   ): Promise<IDuplicateMembersToCleanup[]> {
-    return this.connection.query(
-      `
+    if (!checkByActivityIdentity) {
+      return this.connection.query(
+        `
         WITH valid_primary AS (
           SELECT DISTINCT m.id, m."displayName"
           FROM members m
@@ -250,6 +252,46 @@ class MemberRepository {
             )
         ORDER BY m_primary.id, m_secondary.id
         LIMIT $(limit);
+      `,
+        {
+          cutoffDate,
+          limit,
+        },
+      )
+    }
+
+    return this.connection.query(
+      `
+      WITH secondary_candidates AS (
+        SELECT m.id AS secondary_id
+        FROM members m
+        where m."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi 
+              WHERE mi."memberId" = m.id
+          )
+          AND EXISTS (
+              SELECT 1 FROM "activityRelations" ar 
+              WHERE ar."memberId" = m.id
+          )
+      ),
+      matches AS (
+        SELECT
+          mi."memberId" AS primary_id,
+          sc.secondary_id
+        FROM secondary_candidates sc
+        JOIN "activityRelations" ar
+          ON ar."memberId" = sc.secondary_id
+        JOIN "memberIdentities" mi
+          ON mi.value = ar.username
+          AND mi.platform = ar.platform
+          AND mi.verified = TRUE
+          AND mi."memberId" != sc.secondary_id
+      )
+      SELECT DISTINCT primary_id, secondary_id
+      FROM matches
+      ORDER BY primary_id, secondary_id
+      LIMIT $(limit);
       `,
       {
         cutoffDate,

@@ -28,6 +28,13 @@ const options = [
     description: 'The maximum number of duplicate members to fix in a batch.',
   },
   {
+    name: 'checkByActivityIdentity',
+    alias: 'i',
+    typeLabel: '{underline checkByActivityIdentity}',
+    type: String,
+    description: 'Whether to check for duplicate members by activity identity.',
+  },
+  {
     name: 'testRun',
     alias: 't',
     type: Boolean,
@@ -46,6 +53,7 @@ const parameters = commandLineArgs(options)
 setImmediate(async () => {
   const cutoffDate = parameters.cutoffDate ?? '2025-05-18'
   const batchSize = parameters.batchSize ? parseInt(parameters.batchSize, 10) : 50
+  const checkByActivityIdentity = parameters.checkByActivityIdentity ?? false
   const testRun = parameters.testRun ?? false
 
   log.info({ cutoffDate, batchSize, testRun }, 'Running script with the following parameters!')
@@ -65,7 +73,7 @@ setImmediate(async () => {
   const activityRepo = new ActivityRepository(db, log, qdb)
 
   let results = await logExecutionTimeV2(
-    () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
+    () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity),
     log,
     'findDuplicateMembersAfterDate',
   )
@@ -114,7 +122,8 @@ setImmediate(async () => {
     log.info(`Total duplicate members processed: ${totalProcessed}`)
 
     results = await logExecutionTimeV2(
-      () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize),
+      () =>
+        memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity),
       log,
       'findDuplicateMembersAfterDate',
     )
