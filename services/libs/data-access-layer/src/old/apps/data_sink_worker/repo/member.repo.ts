@@ -1,6 +1,6 @@
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
-import { Logger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 import {
@@ -238,6 +238,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       ' where t."memberId" = v."memberId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
 
     await this.db().none(query)
+  }
+
+  public async destroyMemberAfterError(id: string, clearIdentities = false): Promise<void> {
+    if (clearIdentities) {
+      await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+        id,
+      })
+    }
+
+    await this.db().none(
+      `
+      delete from "members" where id = $(id)
+      `,
+      { id },
+    )
   }
 
   public async insertIdentities(

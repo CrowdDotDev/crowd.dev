@@ -107,17 +107,37 @@ export default class MemberService extends LoggerBase {
             'memberService -> create -> create',
           )
 
-          await logExecutionTimeV2(
-            () => this.memberRepo.insertIdentities(id, integrationId, data.identities),
-            this.log,
-            'memberService -> create -> insertIdentities',
-          )
+          try {
+            await logExecutionTimeV2(
+              () => this.memberRepo.insertIdentities(id, integrationId, data.identities),
+              this.log,
+              'memberService -> create -> insertIdentities',
+            )
+          } catch (err) {
+            this.log.error(err, { memberId: id }, 'Error while inserting identities!')
+            await logExecutionTimeV2(
+              async () => this.memberRepo.destroyMemberAfterError(id, false),
+              this.log,
+              'memberService -> create -> destroyMemberAfterError',
+            )
+            throw err
+          }
 
-          await logExecutionTimeV2(
-            () => this.memberRepo.addToSegments(id, segmentIds),
-            this.log,
-            'memberService -> create -> addToSegments',
-          )
+          try {
+            await logExecutionTimeV2(
+              () => this.memberRepo.addToSegments(id, segmentIds),
+              this.log,
+              'memberService -> create -> addToSegments',
+            )
+          } catch (err) {
+            this.log.error(err, { memberId: id }, 'Error while adding member to segments!')
+            await logExecutionTimeV2(
+              async () => this.memberRepo.destroyMemberAfterError(id, true),
+              this.log,
+              'memberService -> create -> destroyMemberAfterError',
+            )
+            throw err
+          }
 
           if (releaseMemberLock) {
             await releaseMemberLock()
