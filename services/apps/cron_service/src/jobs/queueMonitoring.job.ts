@@ -30,13 +30,15 @@ const job: IJobDefinition = {
       process.env.CROWD_KAFKA_STREAMS_TO_IGNORE_ON_MONITORING?.split(',') ?? []
     ).map((s) => s.trim())
 
+    ctx.log.info(`To ignore: ${toIgnore.join(', ')}`)
+
     const streams: IStream[] = []
     for (const stream of allStreams) {
       ctx.log.debug(`Found stream ${stream.name}!`)
-      if (!toIgnore.includes(stream.name)) {
+      if (!toIgnore.includes(stream.name.trim())) {
         streams.push(stream)
       } else {
-        ctx.log.debug(`Ignoring stream ${stream.name}!`)
+        ctx.log.info(`Ignoring stream ${stream.name}!`)
       }
     }
 
@@ -46,17 +48,14 @@ const job: IJobDefinition = {
 
     const map = await getTopicsAndConsumerGroups(ctx.log, admin)
 
+    let msg = ``
+
     for (const [topic, groups] of map) {
       const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
       telemetry.gauge(`kafka.${topic}.total`, totalMessages)
 
       if (groups.length === 0) {
-        ctx.log.warn(
-          {
-            slackQueueMonitoringNotify: true,
-          },
-          `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}`,
-        )
+        msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
         continue
       }
 
@@ -69,6 +68,10 @@ const job: IJobDefinition = {
         telemetry.gauge(`kafka.${topic}.${group}.consumed`, counts.consumed)
         telemetry.gauge(`kafka.${topic}.${group}.unconsumed`, counts.unconsumed)
       }
+    }
+
+    if (msg && msg.trim().length > 0) {
+      ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
     }
   },
 }
