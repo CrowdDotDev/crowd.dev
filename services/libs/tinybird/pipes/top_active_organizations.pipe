@@ -1,17 +1,11 @@
-TOKEN "top_active_organizations_endpoint_read_6787" READ
-
-NODE top_active_contributors_organization_activity_count
+NODE top_active_organizations_activity_count
 DESCRIPTION >
     Returns activity count by organization
 
 SQL >
-    SELECT organizationId, COUNT(id) AS activityCount
-    FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE
-        timestamp >= (now() - INTERVAL 10 YEAR)
-        AND timestamp < now()
-        AND organizationId != ''
-        AND isContribution
+    SELECT organizationId, countMerge(activityCount) as activityCount
+    FROM member_org_activity_count_mv_ds
+    WHERE organizationId != ''
     GROUP BY organizationId
     ORDER BY activityCount DESC
 
@@ -29,12 +23,11 @@ DESCRIPTION >
 SQL >
     %
     SELECT id, displayName, logo, activityCount
-    FROM top_active_contributors_organization_activity_count
+    FROM top_active_organizations_activity_count
     JOIN
         top_active_organizations_organizations_deduplicated
         ON top_active_organizations_organizations_deduplicated.id
-        = top_active_contributors_organization_activity_count.organizationId
-    GROUP BY id, displayName, logo, activityCount
+        = top_active_organizations_activity_count.organizationId
     ORDER BY activityCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}

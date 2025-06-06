@@ -1,26 +1,9 @@
-TOKEN "top_active_contributors_endpoint_read_1874" READ
-
-NODE top_active_contributors_member_activity_count
-DESCRIPTION >
-    Returns activity count by member
-
+NODE top_active_contributors_activity_counts
 SQL >
-    SELECT memberId, COUNT(id) AS activityCount
-    FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE
-        timestamp >= (now() - INTERVAL 10 YEAR)
-        AND timestamp < now()
-        AND memberId != ''
-        AND isContribution
+    SELECT memberId, countMerge(activityCount) as activityCount
+    FROM member_org_activity_count_mv_ds
     GROUP BY memberId
     ORDER BY activityCount DESC
-
-NODE top_active_contributors_members_deduplicated
-DESCRIPTION >
-    Returns necessary columns from members
-
-SQL >
-    SELECT id, avatar, displayName FROM members WHERE isBot != 1
 
 NODE top_active_contributors_result
 DESCRIPTION >
@@ -29,12 +12,8 @@ DESCRIPTION >
 SQL >
     %
     SELECT id, avatar, activityCount, displayName
-    FROM top_active_contributors_member_activity_count
-    JOIN
-        top_active_contributors_members_deduplicated
-        ON top_active_contributors_members_deduplicated.id
-        = top_active_contributors_member_activity_count.memberId
-    GROUP BY id, avatar, activityCount, displayName
+    FROM top_active_contributors_activity_counts
+    JOIN members_sorted ON members_sorted.id = top_active_contributors_activity_counts.memberId
     ORDER BY activityCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
