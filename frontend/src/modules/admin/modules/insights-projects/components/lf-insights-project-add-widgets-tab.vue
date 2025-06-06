@@ -14,7 +14,7 @@
         <span class="text-sm">
           {{ widget.name }}
         </span>
-        <lf-switch v-model="cForm.widgets[widget.key]" size="small" />
+        <lf-switch v-model="cForm.widgets[widget.key].enabled" size="small" />
       </div>
     </div>
   </div>

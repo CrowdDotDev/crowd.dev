@@ -356,7 +356,9 @@ watch(
 );
 
 watch(() => form.segmentId, (updatedSegmentId) => {
-  fetchIntegration(updatedSegmentId);
+  if (!isEditForm.value) {
+    fetchIntegration(updatedSegmentId);
+  }
 });
 
 </script>
