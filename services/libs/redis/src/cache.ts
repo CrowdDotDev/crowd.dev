@@ -201,4 +201,38 @@ return cjson.encode(results)`
 
     return map
   }
+
+  public async setIfNotExistsOrGet(
+    key: string,
+    value: string,
+    ttlSeconds?: number,
+  ): Promise<string> {
+    const actualKey = this.prefixer(key)
+
+    const script = `
+local key = KEYS[1]
+local value = ARGV[1]
+local ttl = ARGV[2]
+
+-- Try to set the key if it doesn't exist
+local wasSet = redis.call('setnx', key, value)
+
+if wasSet == 1 then
+  -- If we set it and TTL was provided, set the expiration
+  if ttl ~= '' then
+    redis.call('expire', key, ttl)
+  end
+  return value
+else
+  -- If we didn't set it, get the existing value
+  return redis.call('get', key)
+end`
+
+    const result = await this.client.eval(script, {
+      keys: [actualKey],
+      arguments: [value, ttlSeconds?.toString() ?? ''],
+    })
+
+    return result as string
+  }
 }
