@@ -1,5 +1,6 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col relative">
+    <div v-if="isLoading" class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20" />
     <div v-for="group in WIDGETS_GROUPS" :key="group.name" class="flex flex-col">
       <div class="text-2xs font-semibold bg-gray-50 border-t border-b border-gray-200 mx-[-24px] px-6 py-4">
         {{ group.name }}
@@ -27,6 +28,7 @@ import { WIDGETS_GROUPS } from '../widgets';
 
 const props = defineProps<{
     form: InsightsProjectAddFormModel;
+    isLoading: boolean;
 }>();
 
 const cForm = reactive(props.form);
