@@ -327,10 +327,13 @@ const fetchIntegration = async (segmentId: string) => {
     .filter((value: any) => !!defaultWidgetsValues[value as Widgets].enabled)
     .reduce((acc, key: string) => ({
       ...acc,
-      [key]: defaultWidgetsValues[key as Widgets].platform
-        .includes(Platform.ALL) || platforms
-        .some((platform) => defaultWidgetsValues[key as Widgets].platform
-          .includes(platform)),
+      [key]: {
+        enabled: defaultWidgetsValues[key as Widgets].platform
+          .includes(Platform.ALL) || platforms
+          .some((platform) => defaultWidgetsValues[key as Widgets].platform
+            .includes(platform)),
+        platform: defaultWidgetsValues[key as Widgets].platform,
+      },
     }), {});
 
   isLoadingIntegrations.value = false;
