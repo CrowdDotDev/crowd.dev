@@ -24,8 +24,6 @@
     "@crowd/redis": "workspace:*",
     "cron": "^2.1.0",
     "cron-time-generator": "^1.3.0",
-    "oci-common": "^2.109.1",
-    "oci-streaming": "^2.109.1",
     "p-queue": "^8.1.0",
     "pidusage": "^3.0.2",
     "tsx": "^4.7.1",
