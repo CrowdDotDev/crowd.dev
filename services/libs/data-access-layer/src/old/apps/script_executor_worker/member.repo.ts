@@ -224,26 +224,74 @@ class MemberRepository {
   public async findDuplicateMembersAfterDate(
     cutoffDate: string,
     limit: number,
+    checkByActivityIdentity = false,
   ): Promise<IDuplicateMembersToCleanup[]> {
-    return this.connection.query(
-      `
+    if (!checkByActivityIdentity) {
+      return this.connection.query(
+        `
+        WITH valid_primary AS (
+          SELECT DISTINCT m.id, m."displayName"
+          FROM members m
+          JOIN "memberIdentities" mi ON mi."memberId" = m.id
+        )
         SELECT DISTINCT
-            m_primary.id as "primaryId",
-            m_secondary.id as "secondaryId"
+          m_primary.id AS "primaryId",
+          m_secondary.id AS "secondaryId"
         FROM members m_secondary
-        LEFT JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
-        JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
-            AND m_primary.id != m_secondary.id
-        JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
+        JOIN valid_primary m_primary
+          ON m_primary."displayName" = m_secondary."displayName"
+          AND m_primary.id != m_secondary.id
         WHERE m_secondary."createdAt" > $(cutoffDate)
-            AND mi_secondary."memberId" IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi
+              WHERE mi."memberId" = m_secondary.id
+            )
             AND EXISTS (
-                SELECT 1 
-                FROM "activityRelations" ar 
-                WHERE ar."memberId" = m_secondary.id
+              SELECT 1 FROM "activityRelations" ar
+              WHERE ar."memberId" = m_secondary.id
             )
         ORDER BY m_primary.id, m_secondary.id
-        LIMIT $(limit)
+        LIMIT $(limit);
+      `,
+        {
+          cutoffDate,
+          limit,
+        },
+      )
+    }
+
+    return this.connection.query(
+      `
+      WITH secondary_candidates AS (
+        SELECT m.id AS secondary_id
+        FROM members m
+        where m."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi 
+              WHERE mi."memberId" = m.id
+          )
+          AND EXISTS (
+              SELECT 1 FROM "activityRelations" ar 
+              WHERE ar."memberId" = m.id
+          )
+      ),
+      matches AS (
+        SELECT
+          mi."memberId" AS primary_id,
+          sc.secondary_id
+        FROM secondary_candidates sc
+        JOIN "activityRelations" ar
+          ON ar."memberId" = sc.secondary_id
+        JOIN "memberIdentities" mi
+          ON mi.value = ar.username
+          AND mi.platform = ar.platform
+          AND mi.verified = TRUE
+          AND mi."memberId" != sc.secondary_id
+      )
+      SELECT DISTINCT primary_id as "primaryId", secondary_id as "secondaryId"
+      FROM matches
+      ORDER BY primary_id, secondary_id
+      LIMIT $(limit);
       `,
       {
         cutoffDate,
