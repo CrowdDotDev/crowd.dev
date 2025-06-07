@@ -2,15 +2,21 @@ import _ from 'lodash'
 
 import { getLongestDateRange } from '@crowd/common'
 import { DbConnOrTx, DbStore } from '@crowd/database'
-import { getServiceChildLogger } from '@crowd/logging'
+import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { IMemberOrganization } from '@crowd/types'
 
+import { insertActivities } from '../../../activities'
+import { getActivitiesByTimestamp, updateActivityRelationsForIds } from '../../../activities/sql'
 import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
 import { QueryExecutor, pgpQx } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
+import {
+  MemberOrganizationTimeline,
+  prepareMemberOrganizationAffiliationTimeline,
+} from './affiliation-timeline'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
@@ -33,6 +39,9 @@ type TimelineItem = {
 }
 
 export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberId: string) {
+  // todo: rm this debugger log
+  logger.info({ memberId }, 'Starting member affiliations update preparation')
+
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }
@@ -185,6 +194,15 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      manualAffiliationsCount: manualAffiliations.length,
+    },
+    'Retrieved manual affiliations',
+  )
+
   let memberOrganizations = await qx.select(
     `
       WITH aggs as (
@@ -220,6 +238,23 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     { memberId },
   )
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      memberOrganizationsCount: memberOrganizations.length,
+      memberOrganizations: memberOrganizations.map((mo) => ({
+        id: mo.id,
+        organizationId: mo.organizationId,
+        dateStart: mo.dateStart,
+        dateEnd: mo.dateEnd,
+        isPrimaryWorkExperience: mo.isPrimaryWorkExperience,
+        memberCount: mo.memberCount,
+      })),
+    },
+    'Retrieved member organizations',
+  )
+
   const blacklistedTitles = ['Investor', 'Mentor', 'Board Member']
 
   memberOrganizations = memberOrganizations.filter(
@@ -242,6 +277,15 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
   }
 
   const timeline = buildTimeline(memberOrganizations)
+
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      timeline,
+    },
+    'Built timeline',
+  )
 
   const orgCases: Condition[] = [
     ..._.chain(manualAffiliations)
@@ -318,6 +362,17 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
     fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      fullCase,
+      fallbackOrganizationId,
+      orgCasesCount: orgCases.length,
+    },
+    'Generated SQL CASE statement for organization affiliation',
+  )
+
   return { orgCases, fullCase, fallbackOrganizationId }
 }
 
@@ -343,6 +398,9 @@ export async function runMemberAffiliationsUpdate(
   queueClient: IQueue,
   memberId: string,
 ) {
+  // todo: rm this debugger log
+  logger.info({ memberId }, 'Starting member affiliations update')
+
   const qx = pgpQx(pgDb.connection())
 
   const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
@@ -352,22 +410,47 @@ export async function runMemberAffiliationsUpdate(
 
   const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
 
+  const whereCondition = `
+  "memberId" = $(memberId)
+  AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+    ${fullCase},
+    cast('00000000-0000-0000-0000-000000000000' as uuid)
+  )
+  ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
+  ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
+  `
+
+  // todo: rm this debugger log
+  logger.debug(
+    {
+      memberId,
+      whereCondition,
+      fullCase,
+      fallbackOrganizationId,
+    },
+    'Generated WHERE clause for activity updates',
+  )
+
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => ({
-      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-    }),
-    `
-      "memberId" = $(memberId)
-      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-        ${fullCase},
-        cast('00000000-0000-0000-0000-000000000000' as uuid)
+    async (activity) => {
+      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
+      logger.trace(
+        {
+          activityId: activity.id,
+          activityTimestamp: activity.timestamp,
+          currentOrgId: activity.organizationId,
+          newOrgId,
+          memberId,
+        },
+        'Mapping activity to new organization',
       )
-      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
-      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
-    `,
+
+      return { organizationId: newOrgId }
+    },
+    whereCondition,
     {
       memberId,
       ...(minTimestamp && { minTimestamp }),
@@ -376,6 +459,137 @@ export async function runMemberAffiliationsUpdate(
   )
 
   logger.info(`Updated ${processed} activities in ${duration}ms`)
+}
+
+export async function refreshMemberOrganizationAffiliations(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  queueClient: IQueue,
+  memberId: string,
+) {
+  const qx = pgpQx(pgDb.connection())
+  const start = performance.now()
+  const timelines = await logExecutionTimeV2(
+    () => prepareMemberOrganizationAffiliationTimeline(qx, memberId),
+    logger,
+    'refreshMemberOrganizationAffiliations -> prepareMemberOrganizationAffiliationTimeline',
+  )
+
+  if (timelines.length === 0) {
+    logger.info({ memberId }, 'No valid timelines found for member, skipping affiliation refresh!')
+    return
+  }
+
+  // ?? Previously, figureOutNewOrgId handled org assignment by setting a fallback or null for activities outside memberOrg timelines. With the new approach, how are we handling activities that don't fit any memberOrg timeline now?
+
+  // ?? check if we handle conflicts in prepareMemberOrganizationAffiliationTimeline function like we do in prepareMemberAffiliationsUpdate? make sure we dont break any of the existing conflict handling and stuff and dont introduce new bugs. just fix that if needed and give me prepareMemberOrganizationAffiliationTimeline alone
+
+  // process timelines in parallel
+  const results = await Promise.all(
+    timelines.map((timeline) =>
+      processAffiliationTimeline(qDb, qx, queueClient, memberId, timeline),
+    ),
+  )
+
+  const duration = performance.now() - start
+  const processed = results.reduce((acc, processed) => acc + processed, 0)
+
+  logger.info(`Updated ${processed} activities in ${duration}ms`)
+}
+
+const AFFILIATION_SELECT_COLUMNS = [
+  'id',
+  'timestamp',
+  'organizationId',
+  'memberId',
+  'type',
+  'platform',
+  'isContribution',
+  'score',
+  'sourceId',
+  'sourceParentId',
+  'attributes',
+  'title',
+  'body',
+  'channel',
+  'url',
+  'username',
+  'objectMemberId',
+  'objectMemberUsername',
+  'segmentId',
+] as const
+
+async function getTimelineActivities(
+  qDb: DbConnOrTx,
+  memberId: string,
+  timeline: MemberOrganizationTimeline,
+  options: { limit?: number; lastId?: string } = {},
+) {
+  return getActivitiesByTimestamp(
+    qDb,
+    memberId,
+    { start: timeline.startDate, end: timeline.endDate },
+    AFFILIATION_SELECT_COLUMNS,
+    // todo: check what is the best limit for this
+    { limit: 1000, ...options },
+  )
+}
+
+async function processAffiliationTimeline(
+  qDb: DbConnOrTx,
+  qx: QueryExecutor,
+  queueClient: IQueue,
+  memberId: string,
+  timeline: MemberOrganizationTimeline,
+): Promise<number> {
+  let processed = 0
+
+  let activities = await getTimelineActivities(qDb, memberId, timeline)
+
+  while (activities.length > 0) {
+    const activitiesToUpdate = activities.filter(
+      (a) => a.organizationId !== timeline.organizationId,
+    )
+
+    if (activitiesToUpdate.length > 0) {
+      // todo: check if we need this, we can update only in relation
+      // await logExecutionTimeV2(
+      //   () =>
+      //     insertActivities(
+      //       queueClient,
+      //       activitiesToUpdate.map((a) => {
+      //         const activity = a as IDbActivityCreateData
+      //         return {
+      //           ...activity,
+      //           organizationId: timeline.organizationId,
+      //         }
+      //       }),
+      //     ),
+      //   logger,
+      //   'processAffiliationTimeline -> insertActivities (qDb, queueClient)',
+      // )
+
+      await logExecutionTimeV2(
+        () =>
+          updateActivityRelationsForIds(
+            qx,
+            { organizationId: timeline.organizationId },
+            activitiesToUpdate.map((a) => a.id),
+          ),
+        logger,
+        'processAffiliationTimeline -> updateActivityRelationsById',
+      )
+    }
+
+    processed += activities.length
+
+    // Get next batch
+    activities = await getTimelineActivities(qDb, memberId, timeline, {
+      lastId: activities[activities.length - 1].id,
+    })
+  }
+
+  return processed
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore) {

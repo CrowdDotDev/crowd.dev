@@ -23,11 +23,20 @@ export async function streamActivities(
   let processed = 0
   const startTime = performance.now()
 
-  const iterable = queryStreamIter(
-    qdb,
-    `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`,
-    [],
+  const fullQuery = `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`
+
+  // todo: rm this debugger log
+  logger.info(
+    {
+      where,
+      params,
+      whereClause,
+      fullQuery,
+    },
+    'Starting activities update with query',
   )
+
+  const iterable = queryStreamIter(qdb, fullQuery, [])
 
   try {
     for await (const item of iterable) {
@@ -83,10 +92,7 @@ export async function updateActivities(
       await insertActivities(queueClient, [newActivity])
       const changedRelations = getChangedRelationshipFields(activity, newActivity)
       if (Object.keys(changedRelations).length > 0) {
-        await updateActivityRelationsById(pgQx, {
-          ...changedRelations,
-          activityId: activity.id,
-        })
+        await updateActivityRelationsById(pgQx, activity.id, changedRelations)
       }
     },
     where,
