@@ -81,6 +81,7 @@
               />
               <lf-insights-project-add-widgets-tab
                 v-else-if="activeTab === 'widgets'"
+                :is-loading="isLoadingIntegrations"
                 :form="form"
               />
               <lf-insights-project-add-advanced-tab
@@ -127,6 +128,8 @@ import Message from '@/shared/message/message';
 import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
@@ -135,7 +138,7 @@ import {
 } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
-import { defaultWidgetsValues } from '../widgets';
+import { defaultWidgetsValues, Widgets } from '../widgets';
 import {
   INSIGHTS_PROJECTS_SERVICE,
   InsightsProjectsService,
@@ -193,13 +196,14 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
   widgets: {
-    required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]),
+    required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key].enabled),
   },
 };
 
 const $v = useVuelidate(rules, form);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+const isLoadingIntegrations = ref(false);
 
 const model = computed({
   get() {
@@ -313,6 +317,28 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
+const fetchIntegration = async (segmentId: string) => {
+  isLoadingIntegrations.value = true;
+
+  const response = await IntegrationService.list(null, null, null, null, [segmentId]);
+  const platforms: Platform[] = response.rows.map((integration: any) => integration.platform);
+
+  form.widgets = Object.keys(defaultWidgetsValues)
+    .filter((value: any) => !!defaultWidgetsValues[value as Widgets].enabled)
+    .reduce((acc, key: string) => ({
+      ...acc,
+      [key]: {
+        enabled: defaultWidgetsValues[key as Widgets].platform
+          .includes(Platform.ALL) || platforms
+          .some((platform) => defaultWidgetsValues[key as Widgets].platform
+            .includes(platform)),
+        platform: defaultWidgetsValues[key as Widgets].platform,
+      },
+    }), {});
+
+  isLoadingIntegrations.value = false;
+};
+
 watch(
   data,
   () => {
@@ -331,6 +357,12 @@ watch(
   },
   { immediate: true },
 );
+
+watch(() => form.segmentId, (updatedSegmentId) => {
+  if (!isEditForm.value) {
+    fetchIntegration(updatedSegmentId);
+  }
+});
 
 </script>
 

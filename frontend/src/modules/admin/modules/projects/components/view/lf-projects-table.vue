@@ -99,7 +99,6 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfProjectStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
-import LfPill from '@/ui-kit/pill/Pill.vue';
 import { computed } from 'vue';
 import config from '@/config';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
