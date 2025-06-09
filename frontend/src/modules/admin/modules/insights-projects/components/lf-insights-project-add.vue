@@ -358,8 +358,11 @@ watch(
   { immediate: true },
 );
 
-watch(() => form.segmentId, (updatedSegmentId) => {
-  if (!isEditForm.value) {
+watch(() => form.segmentId, (updatedSegmentId, previousSegmentId) => {
+  if (
+    !!updatedSegmentId
+    && updatedSegmentId !== previousSegmentId
+  ) {
     fetchIntegration(updatedSegmentId);
   }
 });

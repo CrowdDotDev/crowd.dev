@@ -11,11 +11,11 @@ export enum Widgets {
   GEOGRAPHICAL_DISTRIBUTION = 'geographicalDistribution',
   STARS = 'stars',
   FORKS = 'forks',
-  SOCIAL_MENTIONS = 'socialMentions',
-  GITHUB_MENTIONS = 'githubMentions',
-  PRESS_MENTIONS = 'pressMentions',
-  SEARCH_QUERIES = 'searchQueries',
-  PACKAGE_DOWNLOADS = 'packageDownloads',
+  // SOCIAL_MENTIONS = 'socialMentions',
+  // GITHUB_MENTIONS = 'githubMentions',
+  // PRESS_MENTIONS = 'pressMentions',
+  // SEARCH_QUERIES = 'searchQueries',
+  // PACKAGE_DOWNLOADS = 'packageDownloads',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
   ISSUES_RESOLUTION = 'issuesResolution',
   COMMIT_ACTIVITIES = 'commitActivities',
@@ -192,7 +192,7 @@ export const defaultWidgetsValues = {
   },
   [Widgets.FORKS]: {
     enabled: true,
-    platform: [Platform.GITHUB],
+    platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
   },
   // [Widgets.SOCIAL_MENTIONS]: {
   //   enabled: false,
@@ -245,7 +245,7 @@ export const defaultWidgetsValues = {
   },
   [Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE]: {
     enabled: true,
-    platform: [Platform.GITHUB, Platform.GITLAB],
+    platform: [Platform.GITHUB, Platform.GITLAB, Platform.GITHUB_NANGO],
   },
   [Widgets.AVERAGE_TIME_TO_MERGE]: {
     enabled: true,
