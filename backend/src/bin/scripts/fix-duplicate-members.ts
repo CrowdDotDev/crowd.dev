@@ -55,7 +55,10 @@ setImmediate(async () => {
   const checkByActivityIdentity = parameters.checkByActivityIdentity ?? false
   const testRun = parameters.testRun ?? false
 
-  log.info({ cutoffDate, batchSize, testRun, checkByActivityIdentity }, 'Running script with the following parameters!')
+  log.info(
+    { cutoffDate, batchSize, testRun, checkByActivityIdentity },
+    'Running script with the following parameters!',
+  )
 
   const qdb = await getClientSQL()
   const db = await getDbConnection({
