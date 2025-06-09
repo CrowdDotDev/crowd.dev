@@ -48,22 +48,44 @@ function prefixName(name: string) {
   return `crowd.${name}`
 }
 
+// Normalize metric names to follow Datadog conventions
+function normalizeMetricName(name: string): string {
+  return name.replace(/-/g, '_')
+}
+
+// Normalize tags to follow Datadog conventions
+function normalizeTags(
+  tags?: Record<string, string | number>,
+): Record<string, string | number> | undefined {
+  if (!tags) return tags
+
+  const normalizedTags: Record<string, string | number> = {}
+  for (const [key, value] of Object.entries(tags)) {
+    normalizedTags[normalizeMetricName(key)] = value
+  }
+  return normalizedTags
+}
+
 const telemetry = {
   gauge: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.gauge(prefixName(name), value, tags)
+    datadog.dogstatsd.gauge(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
   },
   distribution: (name: string, value: number, tags?: Record<string, string | number>) => {
     // milliseconds
-    datadog.dogstatsd.distribution(prefixName(name), value, tags)
+    datadog.dogstatsd.distribution(
+      prefixName(normalizeMetricName(name)),
+      value,
+      normalizeTags(tags),
+    )
   },
   flush: () => {
     datadog.dogstatsd.flush()
   },
   increment: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.increment(prefixName(name), value, tags)
+    datadog.dogstatsd.increment(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
   },
   decrement: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.decrement(prefixName(name), value, tags)
+    datadog.dogstatsd.decrement(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
   },
   timer: (name: string, tags?: Record<string, string | number>) => {
     const start = process.hrtime()

@@ -151,23 +151,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async destroyMemberAfterError(id: string): Promise<void> {
-    await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
-      id,
-    })
-
-    await this.db().none(`delete from "memberSegments" where "memberId" = $(id)`, {
-      id,
-    })
-
-    await this.db().none(
-      `
-      delete from "members" where id = $(id)
-      `,
-      { id },
-    )
-  }
-
   public async create(data: IDbMemberCreateData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -255,6 +238,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       ' where t."memberId" = v."memberId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
 
     await this.db().none(query)
+  }
+
+  public async destroyMemberAfterError(id: string, clearIdentities = false): Promise<void> {
+    if (clearIdentities) {
+      await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+        id,
+      })
+    }
+
+    await this.db().none(
+      `
+      delete from "members" where id = $(id)
+      `,
+      { id },
+    )
   }
 
   public async insertIdentities(
