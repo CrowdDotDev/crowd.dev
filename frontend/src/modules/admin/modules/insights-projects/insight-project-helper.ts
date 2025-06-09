@@ -1,6 +1,6 @@
 import { InsightsProjectAddFormModel } from './models/insights-project-add-form.model';
 import { InsightsProjectModel, InsightsProjectRequest } from './models/insights-project.model';
-import { defaultWidgetsValues } from './widgets';
+import { defaultWidgetsValues, Widgets } from './widgets';
 
 export const buildRequest = (form: InsightsProjectAddFormModel): InsightsProjectRequest => ({
   segmentId: form.segmentId,
@@ -43,7 +43,10 @@ export const buildForm = (
   widgets: Object.keys(defaultWidgetsValues).reduce(
     (acc, key: string) => ({
       ...acc,
-      [key]: !!result.widgets.includes(key),
+      [key]: {
+        enabled: !!result.widgets.includes(key),
+        platform: defaultWidgetsValues[key as Widgets].platform,
+      },
     }),
     {},
   ),
