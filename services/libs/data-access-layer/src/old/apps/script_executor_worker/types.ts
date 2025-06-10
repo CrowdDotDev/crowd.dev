@@ -27,7 +27,7 @@ export enum EntityType {
   ORGANIZATION = 'organization',
 }
 
-export interface IDuplicateMembersToMerge {
+export interface IDuplicateMembersToCleanup {
   primaryId: string
   secondaryId: string
 }

@@ -815,7 +815,6 @@ export default class MemberService extends LoggerBase {
           payload.secondary.identities,
           member.displayName,
           secondaryMember.displayName,
-          this.options.currentTenant.id,
           this.options.currentUser.id,
         ],
         searchAttributes: {
@@ -1421,7 +1420,6 @@ export default class MemberService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
-          this.options.currentTenant.id,
           this.options.currentUser.id,
         ],
         searchAttributes: {
