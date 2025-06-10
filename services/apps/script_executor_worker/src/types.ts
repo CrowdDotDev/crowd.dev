@@ -53,4 +53,5 @@ export interface IProcessLLMVerifiedMergesArgs extends IScriptBatchTestArgs {
 
 export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
   cutoffDate?: string
+  checkByActivityIdentity?: boolean
 }

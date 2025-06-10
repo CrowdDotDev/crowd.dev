@@ -14,8 +14,13 @@ const { findDuplicateMembersAfterDate, moveMemberActivityRelations } = proxyActi
 export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 500
   const cutoffDate = args.cutoffDate ?? '2025-05-18'
+  const checkByActivityIdentity = args.checkByActivityIdentity ?? true
 
-  const results = await findDuplicateMembersAfterDate(cutoffDate, BATCH_SIZE)
+  const results = await findDuplicateMembersAfterDate(
+    cutoffDate,
+    BATCH_SIZE,
+    checkByActivityIdentity,
+  )
 
   if (results.length === 0) {
     console.log('No more duplicate members to cleanup!')
