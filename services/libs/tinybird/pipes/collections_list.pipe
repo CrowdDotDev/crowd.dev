@@ -49,7 +49,10 @@ SQL >
 
 NODE collections_list_software_value
 SQL >
-    SELECT collectionId, coalesce(sum(softwareValue), 0) as "softwareValue"
+    SELECT
+        collectionId,
+        coalesce(sum(softwareValue), 0) as "softwareValue",
+        coalesce(sum(contributorCount), 0) as "contributorCount"
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != ''
     GROUP BY collectionId
@@ -67,6 +70,7 @@ SQL >
             collections_paginated.projectCount as "projectCount",
             collections_paginated.starred as starred,
             collections_list_software_value.softwareValue as softwareValue,
+            collections_list_software_value.contributorCount as contributorCount,
             arrayFilter(
                 x -> x['name'] != '',
                 groupArray(
@@ -94,7 +98,8 @@ SQL >
             collections_paginated.description as description,
             collections_paginated.projectCount as "projectCount",
             collections_paginated.starred as starred,
-            collections_list_software_value.softwareValue as softwareValue
+            collections_list_software_value.softwareValue as softwareValue,
+            collections_list_software_value.contributorCount as contributorCount
         order by
             {{
                 column(
