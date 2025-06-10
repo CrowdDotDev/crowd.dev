@@ -2,7 +2,8 @@ UPDATE "insightsProjects"
 SET widgets     = ARRAY(
         SELECT DISTINCT unnest(
                                 widgets || ARRAY [
-                                    'packageDownloads'
+                                    'packageDownloads',
+                                    'packageDependency'
                                     ]
                         )
                   ),
