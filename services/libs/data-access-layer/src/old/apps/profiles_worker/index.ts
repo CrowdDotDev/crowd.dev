@@ -352,35 +352,22 @@ export async function runMemberAffiliationsUpdate(
 
   const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
 
-  const whereCondition = `
-  "memberId" = $(memberId)
-  AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-    ${fullCase},
-    cast('00000000-0000-0000-0000-000000000000' as uuid)
-  )
-  ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
-  ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
-  `
   const { processed, duration } = await updateActivities(
     qDb,
     qx,
     queueClient,
-    async (activity) => {
-      const newOrgId = figureOutNewOrgId(activity, orgCases, fallbackOrganizationId)
-      logger.trace(
-        {
-          activityId: activity.id,
-          activityTimestamp: activity.timestamp,
-          currentOrgId: activity.organizationId,
-          newOrgId,
-          memberId,
-        },
-        'Mapping activity to new organization',
+    async (activity) => ({
+      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
+    }),
+    `
+      "memberId" = $(memberId)
+      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
+        ${fullCase},
+        cast('00000000-0000-0000-0000-000000000000' as uuid)
       )
-
-      return { organizationId: newOrgId }
-    },
-    whereCondition,
+      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
+      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
+    `,
     {
       memberId,
       ...(minTimestamp && { minTimestamp }),

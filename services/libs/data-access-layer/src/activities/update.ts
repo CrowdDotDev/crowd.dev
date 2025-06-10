@@ -23,9 +23,11 @@ export async function streamActivities(
   let processed = 0
   const startTime = performance.now()
 
-  const fullQuery = `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`
-
-  const iterable = queryStreamIter(qdb, fullQuery, [])
+  const iterable = queryStreamIter(
+    qdb,
+    `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`,
+    [],
+  )
 
   try {
     for await (const item of iterable) {
