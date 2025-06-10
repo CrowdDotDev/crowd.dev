@@ -57,6 +57,7 @@ import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
+import SegmentRepository from '@/database/repositories/segmentRepository'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -268,7 +269,16 @@ export default class IntegrationService {
   }
 
   async findById(id) {
-    return IntegrationRepository.findById(id, this.options)
+    const record = await IntegrationRepository.findById(id, this.options)
+    if (record) {
+      const segmentRepository = new SegmentRepository(this.options)
+      const segment = await segmentRepository.findById(record.segmentId)
+      return {
+        ...record,
+        segment,
+      }
+    }
+    return record;
   }
 
   async findAllAutocomplete(search, limit) {
