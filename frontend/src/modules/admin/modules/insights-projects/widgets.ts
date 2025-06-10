@@ -15,7 +15,8 @@ export enum Widgets {
   // GITHUB_MENTIONS = 'githubMentions',
   // PRESS_MENTIONS = 'pressMentions',
   // SEARCH_QUERIES = 'searchQueries',
-  // PACKAGE_DOWNLOADS = 'packageDownloads',
+  PACKAGE_DOWNLOADS = 'packageDownloads',
+  PACKAGE_DEPENDENCY = 'packageDependency',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
   ISSUES_RESOLUTION = 'issuesResolution',
   COMMIT_ACTIVITIES = 'commitActivities',
@@ -94,10 +95,14 @@ export const WIDGETS_GROUPS = [
       //   name: 'Search queries',
       //   key: Widgets.SEARCH_QUERIES,
       // },
-      // {
-      //   name: 'Package downloads',
-      //   key: Widgets.PACKAGE_DOWNLOADS,
-      // },
+      {
+        name: 'Package downloads',
+        key: Widgets.PACKAGE_DOWNLOADS,
+      },
+      {
+        name: 'Package dependency',
+        key: Widgets.PACKAGE_DEPENDENCY,
+      },
       {
         name: 'Mailing lists messages',
         key: Widgets.MAILING_LIST_MESSAGES,
