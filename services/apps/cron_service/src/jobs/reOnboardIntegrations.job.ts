@@ -68,7 +68,7 @@ async function getPrioritizedIntegrations(query: QueryExecutor, log: Logger): Pr
 
 const job: IJobDefinition = {
   name: 're-onboard-integrations',
-  cronTime: CronTime.every(1).minutes(),
+  cronTime: CronTime.every(5).hours(),
   timeout: 15 * 60,
   process: async (ctx) => {
     ctx.log.info('Starting re-onboarding integrations job')
