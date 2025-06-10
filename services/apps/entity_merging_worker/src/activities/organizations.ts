@@ -1,14 +1,14 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { moveActivityRelationsBetweenOrganizations } from '@crowd/data-access-layer/src/activityRelations'
 import {
   deleteOrganizationById,
   deleteOrganizationSegments,
-  moveActivitiesToNewOrg,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import {
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
 } from '@crowd/data-access-layer/src/organizations'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisPubSubEmitter } from '@crowd/redis'
 import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
@@ -25,17 +25,12 @@ export async function deleteOrganization(organizationId: string): Promise<void> 
   await deleteOrganizationById(svc.postgres.writer, organizationId)
 }
 
-export async function moveActivitiesBetweenOrgs(
+export async function finishOrganizationMergingUpdateActivities(
   primaryId: string,
   secondaryId: string,
 ): Promise<void> {
-  await moveActivitiesToNewOrg(
-    svc.questdbSQL,
-    svc.postgres.writer.connection(),
-    svc.queue,
-    primaryId,
-    secondaryId,
-  )
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await moveActivityRelationsBetweenOrganizations(qx, primaryId, secondaryId)
 }
 
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(

@@ -7,7 +7,7 @@ import * as activities from '../activities'
 const {
   deleteMember,
   deleteOrganization,
-  moveActivitiesBetweenOrgs,
+  finishOrganizationMergingUpdateActivities,
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
   recalculateActivityAffiliationsOfMemberAsync,
@@ -30,21 +30,15 @@ export async function finishMemberMerging(
   primaryDisplayName: string,
   secondaryDisplayName: string,
   userId: string,
-  doNotDeleteSecondaryMember?: boolean,
 ): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-
-  await finishMemberMergingUpdateActivities(secondaryId, primaryId)
-
+  await finishMemberMergingUpdateActivities(primaryId, secondaryId)
+  await recalculateActivityAffiliationsOfMemberAsync(primaryId)
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
-
-  if (!doNotDeleteSecondaryMember) {
-    await deleteMember(secondaryId)
-  }
-
+  await deleteMember(secondaryId)
   await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
@@ -69,12 +63,7 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-
-  await finishMemberUnmergingUpdateActivities({
-    memberId: primaryId,
-    newMemberId: secondaryId,
-    identities,
-  })
+  await finishMemberUnmergingUpdateActivities(primaryId, secondaryId, identities)
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)
@@ -102,8 +91,7 @@ export async function finishOrganizationMerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-
-  await moveActivitiesBetweenOrgs(primaryId, secondaryId)
+  await finishOrganizationMergingUpdateActivities(primaryId, secondaryId)
 
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)

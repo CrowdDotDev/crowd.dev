@@ -25,17 +25,6 @@ export async function streamActivities(
 
   const fullQuery = `SELECT * FROM activities WHERE "deletedAt" is null and ${whereClause}`
 
-  // todo: rm this debugger log
-  logger.info(
-    {
-      where,
-      params,
-      whereClause,
-      fullQuery,
-    },
-    'Starting activities update with query',
-  )
-
   const iterable = queryStreamIter(qdb, fullQuery, [])
 
   try {

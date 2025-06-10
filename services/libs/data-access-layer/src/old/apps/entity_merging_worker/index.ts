@@ -1,10 +1,5 @@
-import { DbConnOrTx, DbStore } from '@crowd/database'
-import { IQueue } from '@crowd/queue'
+import { DbStore } from '@crowd/database'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
-
-import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
-import { formatQuery, pgpQx } from '../../../queryExecutor'
-import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { ISegmentIds } from './types'
 
@@ -95,43 +90,6 @@ export async function getIdentitiesWithActivity(
   query += ` and (${identityFilters.join(' or ')})`
 
   return db.connection().any(query, replacements)
-}
-
-export async function moveIdentityActivitiesToNewMember(
-  db: DbConnOrTx,
-  pgDb: DbConnOrTx,
-  queueClient: IQueue,
-  fromId: string,
-  toId: string,
-  username: string,
-  platform: string,
-) {
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(db, fromId)
-  await updateActivities(
-    db,
-    pgpQx(pgDb),
-    queueClient,
-    async (activity: IDbActivityCreateData) => ({ ...activity, memberId: toId }),
-    formatQuery(
-      `
-        "memberId" = $(fromId)
-        and "username" = $(username)
-        and "platform" = $(platform)
-        ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
-        ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
-      `,
-      {
-        fromId,
-        username,
-        platform,
-        ...(minTimestamp && { minTimestamp }),
-        ...(maxTimestamp && { maxTimestamp }),
-      },
-    ),
-    {
-      memberId: fromId,
-    },
-  )
 }
 
 export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {
