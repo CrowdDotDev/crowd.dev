@@ -295,11 +295,13 @@ export default class MemberService extends LoggerBase {
 
             this.log.trace({ memberId: id }, 'Updating member data in db!')
 
-            await logExecutionTimeV2(
-              () => this.memberRepo.update(id, dataToUpdate),
-              this.log,
-              'memberService -> update -> update',
-            )
+            if (!isObjectEmpty(dataToUpdate)) {
+              await logExecutionTimeV2(
+                () => this.memberRepo.update(id, dataToUpdate),
+                this.log,
+                'memberService -> update -> update',
+              )
+            }
 
             this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
             await logExecutionTimeV2(
