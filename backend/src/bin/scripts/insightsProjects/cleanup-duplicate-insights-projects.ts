@@ -61,8 +61,8 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
     for (const project of internalProjects) {
         const result = await qx.result(
             `SELECT * FROM "insightsProjects" 
-                WHERE github = $1
-                AND segmentId IS NULL`,
+                WHERE "github" = $1
+                AND "segmentId" IS NULL`,
             [project],
         )
 
