@@ -49,16 +49,15 @@ async function getProjectsWithDuplicateRepos(qx) {
         ),
         duplicate_repos as (
             select
-                array_agg(distinct id) as projectIds
+                array_agg(distinct id) as "projectIds"
             from unnested_repos
             group by repo_url
             having count(distinct id) > 1
             and repo_url ilike '%github%'
         )
         select
-            projectIds
-        from duplicate_repos
-        order by repo_url;
+            "projectIds"
+        from duplicate_repos;
         `,
     )
 
