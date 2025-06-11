@@ -62,8 +62,7 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
         const result = await qx.result(
             `SELECT * FROM "insightsProjects" 
                 WHERE github = $1
-                AND segmentId IS NULL
-                RETURNING *`,
+                AND segmentId IS NULL`,
             [project],
         )
 
@@ -71,15 +70,15 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
             console.log(`Project ${result.rows[0].name} match`)
         } else {
             console.log(`No match for ${project}`)
+            continue
         }
 
         if(!dryRun) {
             await qx.result(
                 `DELETE FROM "insightsProjects" 
-                    WHERE id = $1`,
+                    WHERE id = $1 RETURNING *`,
                 [result.rows[0].id],
             )
-
             console.log(`Deleted ${result.rows[0].name} project`)
         }
     }
@@ -104,8 +103,7 @@ if (parameters.help || !parameters.file) {
         .filter((project) => projects[project].internal)
         .map((project) => `https://github.com/${project}`)
       
-      console.log(`Parsed ${projects.length} projects from JSON and ${parsedProjects.length} are internal`)
-      
+      console.log(`Found ${Object.keys(projects).length} total projects in JSON and ${parsedProjects.length} are internal`)
       
       // Consolidate projects
       await cleanUpDuplicateProjects(qx, parsedProjects, parameters.dryRun || false)
