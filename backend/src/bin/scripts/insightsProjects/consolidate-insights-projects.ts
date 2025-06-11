@@ -205,15 +205,12 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
         const conflictLinksDeletion = await qx.result(
           `
           -- Step 1: Delete rows that would cause conflict
-          DELETE FROM "collectionsInsightsProjects"
-          WHERE ("collectionId", "insightsProjectId") IN (
-            SELECT cip1."collectionId", cip1."insightsProjectId"
-            FROM "collectionsInsightsProjects" cip1
-            JOIN "collectionsInsightsProjects" cip2
-              ON cip1."collectionId" = cip2."collectionId"
+          DELETE FROM "collectionsInsightsProjects" cip1
+          USING "collectionsInsightsProjects" cip2
+          WHERE cip1."collectionId" = cip2."collectionId"
+            AND cip1."insightsProjectId" = ANY($2::uuid[])
             AND cip2."insightsProjectId" = $1::uuid
-            WHERE cip1."insightsProjectId" = ANY($2::uuid[])
-          );
+          RETURNING *;
           `,
           [mainProject.id, projectsToDelete],
         )
