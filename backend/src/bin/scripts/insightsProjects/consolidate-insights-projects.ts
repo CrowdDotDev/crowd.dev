@@ -184,8 +184,10 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
     if (projectsToDelete.length > 0) {
       if (!dryRun) {
         await qx.result(`DELETE FROM "insightsProjects" WHERE id = ANY($1)`, [projectsToDelete])
+        console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
+      } else {
+        console.log(`Would have deleted ${projectsToDelete.length}`)
       }
-      console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
     }
   }
 
