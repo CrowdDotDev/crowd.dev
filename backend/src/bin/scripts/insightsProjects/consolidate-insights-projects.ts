@@ -174,7 +174,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
         `UPDATE "insightsProjects" 
          SET repositories = $1,
          "updatedAt" = NOW()
-         WHERE id = $2
+         WHERE id = $2::uuid
          AND "isLF" = false
          RETURNING *`,
         [group.repositories, mainProject.id],
@@ -198,7 +198,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
       if (!dryRun) {
         const deleted = await qx.result(
           `DELETE FROM "insightsProjects"
-          WHERE id = ANY($1)
+          WHERE id = ANY($1::uuid[])
           AND "isLF" = false
           RETURNING *`,
           [projectsToDelete],
