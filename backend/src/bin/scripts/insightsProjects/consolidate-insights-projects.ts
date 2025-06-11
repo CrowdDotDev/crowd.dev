@@ -207,9 +207,12 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
           -- Step 1: Delete rows that would cause conflict
           DELETE FROM "collectionsInsightsProjects"
           WHERE ("collectionId", "insightsProjectId") IN (
-            SELECT "collectionId", $1::uuid
-            FROM "collectionsInsightsProjects"
-            WHERE "insightsProjectId" = ANY($2::uuid[])
+            SELECT cip1."collectionId", cip1."insightsProjectId"
+            FROM "collectionsInsightsProjects" cip1
+            JOIN "collectionsInsightsProjects" cip2
+              ON cip1."collectionId" = cip2."collectionId"
+            AND cip2."insightsProjectId" = $1::uuid
+            WHERE cip1."insightsProjectId" = ANY($2::uuid[])
           );
           `,
           [mainProject.id, projectsToDelete],
