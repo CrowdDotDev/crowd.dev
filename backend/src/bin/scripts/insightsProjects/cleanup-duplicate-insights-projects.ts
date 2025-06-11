@@ -90,7 +90,7 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
 
             if (replacementProject.rows.length > 0) {
                 await qx.result(
-                    `UPDATE "collectionInsightsProjects"
+                    `UPDATE "collectionsInsightsProjects"
                         SET
                             "insightsProjectId" = $1,
                             "updatedAt" = NOW()
