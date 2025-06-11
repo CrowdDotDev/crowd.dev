@@ -110,18 +110,21 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
                 if(updatedLinks.rows.length > 0) {
                     console.log(`Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`)
                 } else {
-                    const deletedLinks = await qx.result(
-                        `DELETE FROM "collectionsInsightsProjects" 
-                        WHERE "insightsProjectId" = $1
-                        RETURNING *`,
-                        [projectToDelete.rows[0].id],
-                    )
-                    if(deletedLinks.rows.length > 0) {
-                        console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
-                    } else {
-                        console.log(`Skipping ${projectToDelete.rows[0].name} project because no replacement project found`)
-                    }
+                    console.log(`Skipping to update links for ${projectToDelete.rows[0].name} project`)
+                } 
+                
+                const deletedLinks = await qx.result(
+                    `DELETE FROM "collectionsInsightsProjects" 
+                    WHERE "insightsProjectId" = $1
+                    RETURNING *`,
+                    [projectToDelete.rows[0].id],
+                )
+                if(deletedLinks.rows.length > 0) {
+                    console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
+                } else {
+                    console.log(`Skipping to delete links for ${projectToDelete.rows[0].name} project`)
                 }
+                
 
                 await qx.result(
                     `DELETE FROM "insightsProjects" 
