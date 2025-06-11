@@ -116,6 +116,7 @@ function groupProjects(projects: NewProjectRow[]): Map<string, ProjectGroup> {
  */
 async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>, dryRun: boolean) {
   let deletedCount = 0
+  let updatedCount = 0
   const projectsToSkip: string[] = []
 
   for (const [mainRepo, group] of projectGroups.entries()) {
@@ -169,12 +170,23 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     // Update main project with all repositories
     if (!dryRun) {
-      await qx.result(
+     const updated =  await qx.result(
         `UPDATE "insightsProjects" 
-         SET repositories = $1
-         WHERE id = $2`,
+         SET repositories = $1,
+         "updatedAt" = NOW()
+         WHERE id = $2
+         AND "isLF" = false
+         RETURNING *`,
         [group.repositories, mainProject.id],
       )
+
+      if(updated.rows.length > 0) {
+        updatedCount += updated.rows.length
+
+        for(const updatedProject of updated.rows) {
+          console.log(`Updated ${updatedProject.name}`)
+        }
+      }
     }
 
     // Delete related projects that don't have segmentId
@@ -183,10 +195,23 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
       .map((project) => project.id)
 
     if (projectsToDelete.length > 0) {
-      deletedCount += projectsToDelete.length
       if (!dryRun) {
-        await qx.result(`DELETE FROM "insightsProjects" WHERE id = ANY($1)`, [projectsToDelete])
-        console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
+        const deleted = await qx.result(
+          `DELETE FROM "insightsProjects"
+          WHERE id = ANY($1)
+          AND "isLF" = false
+          RETURNING *`,
+          [projectsToDelete],
+        )
+
+        if(deleted.rows.length > 0) {
+          deletedCount += deleted.rows.length
+
+          for(const deletedProject of deleted.rows) {
+            console.log(`Deleted ${deletedProject.name}`)
+          }
+          console.log(`Deleted ${deleted.rows.length} related projects for ${mainRepo}`)
+        }
       } else {
         console.log(`Would have deleted ${projectsToDelete.length}`)
       }
@@ -198,6 +223,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
     projectsToSkip.forEach((project) => console.log(project))
   }
 
+  console.log(`Updated ${updatedCount} projects`)
   console.log(`Deleted ${deletedCount} projects`)
 }
 
