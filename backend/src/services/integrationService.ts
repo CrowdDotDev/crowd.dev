@@ -22,6 +22,7 @@ import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
+import SegmentRepository from '@/database/repositories/segmentRepository'
 import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
 import {
   fetchAllGitlabGroups,
@@ -57,7 +58,6 @@ import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import SegmentRepository from '@/database/repositories/segmentRepository'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
