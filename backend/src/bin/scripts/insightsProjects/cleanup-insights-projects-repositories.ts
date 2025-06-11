@@ -113,7 +113,7 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
             console.log(`Project to delete: ${projectToDelete}`)
             console.log(`Project to keep: ${projectToKeep}`)
 
-            if(!dryRun && projectToDelete) {
+            if(!dryRun && projectToDelete && projectToKeep) {
     
                 const updatedLinks = await qx.result(
                     `
