@@ -45,6 +45,12 @@ const options = [
     type: String,
     description: 'Path to CSV file to consolidate projects from',
   },
+  {
+    name: 'dryRun',
+    alias: 'd',
+    type: Boolean,
+    description: 'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
+  },
 ]
 
 const sections = [
@@ -108,7 +114,7 @@ function groupProjects(projects: NewProjectRow[]): Map<string, ProjectGroup> {
  * @param qx - Database query executor
  * @param projectGroups - Map of project groups to consolidate
  */
-async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>) {
+async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>, dryRun: boolean) {
   const projectsToSkip: string[] = []
 
   for (const [mainRepo, group] of projectGroups.entries()) {
@@ -161,12 +167,14 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
     }
 
     // Update main project with all repositories
-    await qx.result(
-      `UPDATE "insightsProjects" 
-       SET repositories = $1
-       WHERE id = $2`,
-      [group.repositories, mainProject.id],
-    )
+    if (!dryRun) {
+      await qx.result(
+        `UPDATE "insightsProjects" 
+         SET repositories = $1
+         WHERE id = $2`,
+        [group.repositories, mainProject.id],
+      )
+    }
 
     // Delete related projects that don't have segmentId
     const projectsToDelete = relatedProjects
@@ -174,11 +182,9 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>)
       .map((project) => project.id)
 
     if (projectsToDelete.length > 0) {
-      await qx.result(
-        `DELETE FROM "insightsProjects"
-        WHERE id = ANY($1)`,
-        [projectsToDelete],
-      )
+      if (!dryRun) {
+        await qx.result(`DELETE FROM "insightsProjects" WHERE id = ANY($1)`, [projectsToDelete])
+      }
       console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
     }
   }
@@ -211,7 +217,7 @@ if (parameters.help || !parameters.file) {
       console.log(`Grouped into ${projectGroups.size} unique projects`)
 
       // Consolidate projects
-      await consolidateProjects(qx, projectGroups)
+      await consolidateProjects(qx, projectGroups, parameters.dryRun || false)
 
       console.log('Project consolidation completed successfully')
       process.exit(0)
