@@ -3,11 +3,11 @@ import CronTime from 'cron-time-generator'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger } from '@crowd/logging'
+import { PlatformType } from '@crowd/types'
 
 import { IntegrationRunWorkerEmitter } from '../../../../libs/common_services/src/services/emitters/integrationRunWorker.emitter'
 import { QUEUE_CONFIG, QueueFactory } from '../../../../libs/queue/src/factory'
 import { IJobDefinition } from '../types'
-import { PlatformType } from '@crowd/types'
 
 const maxIntegrationResults = 10000000
 const maxIntegrationsToOnboard = 10
