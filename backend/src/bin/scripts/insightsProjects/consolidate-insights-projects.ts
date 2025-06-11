@@ -202,56 +202,58 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     if (projectsToDelete.length > 0) {
       if (!dryRun) {
-        const conflictLinksDeletion = await qx.result(
-          `
-          -- Step 1: Delete rows that would cause conflict
-          DELETE FROM "collectionsInsightsProjects" cip1
-          USING "collectionsInsightsProjects" cip2
-          WHERE cip1."collectionId" = cip2."collectionId"
-            AND cip1."insightsProjectId" = ANY($2::uuid[])
-            AND cip2."insightsProjectId" = $1::uuid
-          RETURNING *;
-          `,
-          [mainProject.id, projectsToDelete],
-        )
-
-        if (conflictLinksDeletion.rows.length > 0) {
-          console.log(`Deleted conflict links`)
-        } else {
-          console.log(`Skipping to delete links`)
-        }
-
-        const updatedLinks = await qx.result(
-          `
-          -- Step 2: Now safely do the update
-          UPDATE "collectionsInsightsProjects" cip
-          SET
-            "insightsProjectId" = $1,
-            "updatedAt" = NOW()
-          WHERE "insightsProjectId" = ANY($2::uuid[])
-          RETURNING *;
-          `,
-          [mainProject.id, projectsToDelete],
-        )
-
-        if (updatedLinks.rows.length > 0) {
-          console.log(
-            `Updated collection insights project to point to replacement project ${mainProject.id}`,
+        for(const projectToDelete of projectsToDelete) {
+          const conflictLinksDeletion = await qx.result(
+            `
+            -- Step 1: Delete rows that would cause conflict
+            DELETE FROM "collectionsInsightsProjects" cip1
+            USING "collectionsInsightsProjects" cip2
+            WHERE cip1."collectionId" = cip2."collectionId"
+              AND cip1."insightsProjectId" = $2::uuid
+              AND cip2."insightsProjectId" = $1::uuid
+            RETURNING *;
+            `,
+            [mainProject.id, projectToDelete],
           )
-        } else {
-          console.log(`Skipping to update links`)
-        }
-
-        const deletedLinks = await qx.result(
-          `DELETE FROM "collectionsInsightsProjects" 
-            WHERE "insightsProjectId" = ANY($1::uuid[])
-            RETURNING *`,
-          [projectsToDelete],
-        )
-        if (deletedLinks.rows.length > 0) {
-          console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
-        } else {
-          console.log(`Skipping to delete links`)
+  
+          if (conflictLinksDeletion.rows.length > 0) {
+            console.log(`Deleted conflict links`)
+          } else {
+            console.log(`Skipping to delete links`)
+          }
+  
+          const updatedLinks = await qx.result(
+            `
+            -- Step 2: Now safely do the update
+            UPDATE "collectionsInsightsProjects" cip
+            SET
+              "insightsProjectId" = $1,
+              "updatedAt" = NOW()
+            WHERE "insightsProjectId" = $2::uuid
+            RETURNING *;
+            `,
+            [mainProject.id, projectToDelete],
+          )
+  
+          if (updatedLinks.rows.length > 0) {
+            console.log(
+              `Updated collection insights project to point to replacement project ${mainProject.id}`,
+            )
+          } else {
+            console.log(`Skipping to update links`)
+          }
+  
+          const deletedLinks = await qx.result(
+            `DELETE FROM "collectionsInsightsProjects" 
+              WHERE "insightsProjectId" = $1::uuid
+              RETURNING *`,
+            [projectToDelete],
+          )
+          if (deletedLinks.rows.length > 0) {
+            console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
+          } else {
+            console.log(`Skipping to delete links`)
+          }
         }
 
         const deleted = await qx.result(
