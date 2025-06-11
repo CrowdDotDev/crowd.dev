@@ -57,16 +57,21 @@ function parseJSON(filePath: string) {
 }
 
 async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
+    let matchedCount = 0
+    let deletedCount = 0
+
     // Check for segmentId in related projects
     for (const project of internalProjects) {
         const result = await qx.result(
             `SELECT * FROM "insightsProjects" 
                 WHERE "github" = $1
-                AND "segmentId" IS NULL`,
+                AND "segmentId" IS NULL
+                AND "isLF" = false`,
             [project],
         )
 
         if (result.rows.length > 0) {
+            matchedCount++
             console.log(`Project ${result.rows[0].name} match`)
         } else {
             console.log(`No match for ${project}`)
@@ -76,11 +81,20 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
         if(!dryRun) {
             await qx.result(
                 `DELETE FROM "insightsProjects" 
-                    WHERE id = $1 RETURNING *`,
+                    WHERE id = $1`,
                 [result.rows[0].id],
             )
+            deletedCount++
             console.log(`Deleted ${result.rows[0].name} project`)
         }
+    }
+
+    console.log(`\nSummary:`)
+    console.log(`- Found ${matchedCount} matching projects`)
+    if (!dryRun) {
+        console.log(`- Deleted ${deletedCount} projects`)
+    } else {
+        console.log(`- Would delete ${matchedCount} projects (dry run)`)
     }
 }
 
