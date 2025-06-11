@@ -94,6 +94,23 @@ export async function updateActivities(
   )
 }
 
+export async function getMemberActivityTimestampRanges(
+  qdb: DbConnOrTx,
+  memberId: string,
+): Promise<{ minTimestamp: string; maxTimestamp: string } | null> {
+  return qdb.oneOrNone(
+    `
+    SELECT 
+      MIN(timestamp) as "minTimestamp",
+      MAX(timestamp) as "maxTimestamp"
+    FROM activities 
+    WHERE "deletedAt" IS NULL 
+      AND "memberId" = $(memberId)
+  `,
+    { memberId },
+  )
+}
+
 function getChangedRelationshipFields(
   activity: IDbActivityCreateData,
   newActivity: IDbActivityCreateData,

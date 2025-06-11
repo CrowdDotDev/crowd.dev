@@ -4,7 +4,7 @@ import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
 import {
-  IDuplicateMembersToMerge,
+  IDuplicateMembersToCleanup,
   IFindMemberIdentitiesGroupedByPlatformResult,
   ISimilarMember,
 } from './types'
@@ -187,9 +187,6 @@ class MemberRepository {
           AND NOT EXISTS (SELECT 1
                           FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "memberOrganizations" mo
-                          WHERE mo."memberId" = m.id)
           AND m."manuallyCreated" != true
         LIMIT $(batchSize);
       `,
@@ -206,6 +203,7 @@ class MemberRepository {
       { name: 'memberEnrichmentCache', conditions: ['memberId'] },
       { name: 'memberEnrichments', conditions: ['memberId'] },
       { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberOrganizations', conditions: ['memberId'] },
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
@@ -226,25 +224,74 @@ class MemberRepository {
   public async findDuplicateMembersAfterDate(
     cutoffDate: string,
     limit: number,
-  ): Promise<IDuplicateMembersToMerge[]> {
+    checkByActivityIdentity = false,
+  ): Promise<IDuplicateMembersToCleanup[]> {
+    if (!checkByActivityIdentity) {
+      return this.connection.query(
+        `
+        WITH valid_primary AS (
+          SELECT DISTINCT m.id, m."displayName"
+          FROM members m
+          JOIN "memberIdentities" mi ON mi."memberId" = m.id
+        )
+        SELECT DISTINCT
+          m_primary.id AS "primaryId",
+          m_secondary.id AS "secondaryId"
+        FROM members m_secondary
+        JOIN valid_primary m_primary
+          ON m_primary."displayName" = m_secondary."displayName"
+          AND m_primary.id != m_secondary.id
+        WHERE m_secondary."createdAt" > $(cutoffDate)
+            AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi
+              WHERE mi."memberId" = m_secondary.id
+            )
+            AND EXISTS (
+              SELECT 1 FROM "activityRelations" ar
+              WHERE ar."memberId" = m_secondary.id
+            )
+        ORDER BY m_primary.id, m_secondary.id
+        LIMIT $(limit);
+      `,
+        {
+          cutoffDate,
+          limit,
+        },
+      )
+    }
+
     return this.connection.query(
       `
-        SELECT DISTINCT ON (m_secondary.id)
-            m_primary.id as "primaryId",
-            m_secondary.id as "secondaryId"
-        FROM members m_secondary
-        LEFT JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
-        JOIN members m_primary ON m_primary."displayName" = m_secondary."displayName" 
-            AND m_primary.id != m_secondary.id
-        JOIN "memberIdentities" mi_primary ON mi_primary."memberId" = m_primary.id
-        LEFT JOIN "mergeActions" ma ON ma."primaryId" = m_primary.id 
-            AND ma."secondaryId" = m_secondary.id 
-            AND ma.type = 'member'
-            AND (ma.state = 'in-progress' OR ma.state = 'pending' OR ma.step = 'merge-done')
-        WHERE m_secondary."createdAt" > $(cutoffDate)
-            AND mi_secondary."memberId" IS NULL
-            AND ma.id IS NULL
-        LIMIT $(limit)
+      WITH secondary_candidates AS (
+        SELECT m.id AS secondary_id
+        FROM members m
+        where m."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi 
+              WHERE mi."memberId" = m.id
+          )
+          AND EXISTS (
+              SELECT 1 FROM "activityRelations" ar 
+              WHERE ar."memberId" = m.id
+          )
+      ),
+      matches AS (
+        SELECT
+          mi."memberId" AS primary_id,
+          sc.secondary_id
+        FROM secondary_candidates sc
+        JOIN "activityRelations" ar
+          ON ar."memberId" = sc.secondary_id
+        JOIN "memberIdentities" mi
+          ON mi.value = ar.username
+          AND mi.platform = ar.platform
+          AND mi.verified = TRUE
+          AND mi."memberId" != sc.secondary_id
+      )
+      SELECT DISTINCT primary_id as "primaryId", secondary_id as "secondaryId"
+      FROM matches
+      ORDER BY primary_id, secondary_id
+      LIMIT $(limit);
       `,
       {
         cutoffDate,

@@ -151,15 +151,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async destroyMemberAfterError(id: string): Promise<void> {
-    await this.db().none(
-      `
-      delete from "members" where id = $(id)
-      `,
-      { id },
-    )
-  }
-
   public async create(data: IDbMemberCreateData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -180,6 +171,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async update(id: string, data: IDbMemberUpdateData): Promise<void> {
     const keys = Object.keys(data)
+    if (keys.length === 0) {
+      return
+    }
+
     keys.push('updatedAt')
     // construct custom column set
     const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
@@ -249,6 +244,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     await this.db().none(query)
   }
 
+  public async destroyMemberAfterError(id: string, clearIdentities = false): Promise<void> {
+    if (clearIdentities) {
+      await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+        id,
+      })
+    }
+
+    await this.db().none(
+      `
+      delete from "members" where id = $(id)
+      `,
+      { id },
+    )
+  }
+
   public async insertIdentities(
     memberId: string,
     integrationId: string,
@@ -266,7 +276,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects, true)
   }
 
   public async addToSegments(memberId: string, segmentIds: string[]): Promise<void> {

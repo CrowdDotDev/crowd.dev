@@ -70,134 +70,140 @@ export default class MemberService extends LoggerBase {
             throw new Error('Member must have at least one identity!')
           }
 
-          const { id } = await this.store.transactionally(async (txStore) => {
-            const txRepo = new MemberRepository(txStore, this.log)
-            const txMemberAttributeService = new MemberAttributeService(
-              this.redisClient,
-              txStore,
+          const memberAttributeService = new MemberAttributeService(
+            this.redisClient,
+            this.store,
+            this.log,
+          )
+
+          let attributes: Record<string, unknown> = {}
+          if (data.attributes) {
+            attributes = await logExecutionTimeV2(
+              () => memberAttributeService.validateAttributes(data.attributes),
               this.log,
+              'memberService -> create -> validateAttributes',
             )
 
-            let attributes: Record<string, unknown> = {}
-            if (data.attributes) {
-              attributes = await logExecutionTimeV2(
-                () => txMemberAttributeService.validateAttributes(data.attributes),
-                this.log,
-                'memberService -> create -> validateAttributes',
-              )
-
-              attributes = await logExecutionTimeV2(
-                () => txMemberAttributeService.setAttributesDefaultValues(attributes),
-                this.log,
-                'memberService -> create -> setAttributesDefaultValues',
-              )
-            }
-
-            // validate emails
-            data.identities = this.validateEmails(data.identities)
-
-            const id = await logExecutionTimeV2(
-              () =>
-                txRepo.create({
-                  displayName: getProperDisplayName(data.displayName),
-                  joinedAt: data.joinedAt.toISOString(),
-                  attributes,
-                  identities: data.identities,
-                  reach: MemberService.calculateReach({}, data.reach),
-                }),
+            attributes = await logExecutionTimeV2(
+              () => memberAttributeService.setAttributesDefaultValues(attributes),
               this.log,
-              'memberService -> create -> create',
+              'memberService -> create -> setAttributesDefaultValues',
             )
+          }
 
-            try {
-              await logExecutionTimeV2(
-                () => txRepo.insertIdentities(id, integrationId, data.identities),
-                this.log,
-                'memberService -> create -> insertIdentities',
-              )
-            } catch (err) {
-              this.log.error(err, 'Error while inserting identities!')
-              await txRepo.destroyMemberAfterError(id)
+          // validate emails
+          data.identities = this.validateEmails(data.identities)
 
-              throw err
-            }
+          const id = await logExecutionTimeV2(
+            () =>
+              this.memberRepo.create({
+                displayName: getProperDisplayName(data.displayName),
+                joinedAt: data.joinedAt.toISOString(),
+                attributes,
+                identities: data.identities,
+                reach: MemberService.calculateReach({}, data.reach),
+              }),
+            this.log,
+            'memberService -> create -> create',
+          )
 
+          try {
             await logExecutionTimeV2(
-              () => txRepo.addToSegments(id, segmentIds),
+              () => this.memberRepo.insertIdentities(id, integrationId, data.identities),
+              this.log,
+              'memberService -> create -> insertIdentities',
+            )
+          } catch (err) {
+            this.log.error(err, { memberId: id }, 'Error while inserting identities!')
+            await logExecutionTimeV2(
+              async () => this.memberRepo.destroyMemberAfterError(id, false),
+              this.log,
+              'memberService -> create -> destroyMemberAfterError',
+            )
+            throw err
+          }
+
+          try {
+            await logExecutionTimeV2(
+              () => this.memberRepo.addToSegments(id, segmentIds),
               this.log,
               'memberService -> create -> addToSegments',
             )
-
-            if (releaseMemberLock) {
-              await releaseMemberLock()
-            }
-
-            const organizations = []
-            const orgService = new OrganizationService(txStore, this.log)
-            if (data.organizations) {
-              for (const org of data.organizations) {
-                const id = await logExecutionTimeV2(
-                  () => orgService.findOrCreate(source, integrationId, org),
-                  this.log,
-                  'memberService -> create -> findOrCreateOrg',
-                )
-                organizations.push({
-                  id,
-                  source: org.source,
-                })
-              }
-            }
-
-            const emailIdentities = data.identities.filter(
-              (i) => i.type === MemberIdentityType.EMAIL && i.verified,
+          } catch (err) {
+            this.log.error(err, { memberId: id }, 'Error while adding member to segments!')
+            await logExecutionTimeV2(
+              async () => this.memberRepo.destroyMemberAfterError(id, true),
+              this.log,
+              'memberService -> create -> destroyMemberAfterError',
             )
-            if (emailIdentities.length > 0) {
-              const orgs = await logExecutionTimeV2(
-                () =>
-                  this.assignOrganizationByEmailDomain(
-                    integrationId,
-                    emailIdentities.map((i) => i.value),
-                  ),
+            throw err
+          }
+
+          if (releaseMemberLock) {
+            await releaseMemberLock()
+          }
+
+          const organizations = []
+          const orgService = new OrganizationService(this.store, this.log)
+          if (data.organizations) {
+            for (const org of data.organizations) {
+              const id = await logExecutionTimeV2(
+                () => orgService.findOrCreate(source, integrationId, org),
                 this.log,
-                'memberService -> create -> assignOrganizationByEmailDomain',
+                'memberService -> create -> findOrCreateOrg',
               )
-              if (orgs.length > 0) {
-                organizations.push(...orgs)
-              }
+              organizations.push({
+                id,
+                source: org.source,
+              })
             }
+          }
 
-            if (organizations.length > 0) {
-              const uniqOrgs = uniqby(organizations, 'id')
-              const orgService = new OrganizationService(txStore, this.log)
-
-              const orgsToAdd = (
-                await Promise.all(
-                  uniqOrgs.map(async (org) => {
-                    // Check if the org was already added to the member in the past, including deleted ones.
-                    // If it was, we ignore this org to prevent from adding it again.
-                    const existingMemberOrgs = await logExecutionTimeV2(
-                      () => orgService.findMemberOrganizations(id, org.id),
-                      this.log,
-                      'memberService -> create -> findMemberOrganizations',
-                    )
-                    return existingMemberOrgs.length > 0 ? null : org
-                  }),
-                )
-              ).filter((org) => org !== null)
-
-              if (orgsToAdd.length > 0) {
-                await logExecutionTimeV2(
-                  () => orgService.addToMember(segmentIds, id, orgsToAdd),
-                  this.log,
-                  'memberService -> create -> addToMember',
-                )
-              }
+          const emailIdentities = data.identities.filter(
+            (i) => i.type === MemberIdentityType.EMAIL && i.verified,
+          )
+          if (emailIdentities.length > 0) {
+            const orgs = await logExecutionTimeV2(
+              () =>
+                this.assignOrganizationByEmailDomain(
+                  integrationId,
+                  emailIdentities.map((i) => i.value),
+                ),
+              this.log,
+              'memberService -> create -> assignOrganizationByEmailDomain',
+            )
+            if (orgs.length > 0) {
+              organizations.push(...orgs)
             }
+          }
 
-            return {
-              id,
+          if (organizations.length > 0) {
+            const uniqOrgs = uniqby(organizations, 'id')
+            const orgService = new OrganizationService(this.store, this.log)
+
+            const orgsToAdd = (
+              await Promise.all(
+                uniqOrgs.map(async (org) => {
+                  // Check if the org was already added to the member in the past, including deleted ones.
+                  // If it was, we ignore this org to prevent from adding it again.
+                  const existingMemberOrgs = await logExecutionTimeV2(
+                    () => orgService.findMemberOrganizations(id, org.id),
+                    this.log,
+                    'memberService -> create -> findMemberOrganizations',
+                  )
+                  return existingMemberOrgs.length > 0 ? null : org
+                }),
+              )
+            ).filter((org) => org !== null)
+
+            if (orgsToAdd.length > 0) {
+              await logExecutionTimeV2(
+                () => orgService.addToMember(segmentIds, id, orgsToAdd),
+                this.log,
+                'memberService -> create -> addToMember',
+              )
             }
-          })
+          }
 
           return id
         } catch (err) {
@@ -224,183 +230,182 @@ export default class MemberService extends LoggerBase {
         this.log.trace({ memberId: id }, 'Updating a member!')
 
         try {
-          await this.store.transactionally(async (txStore) => {
-            const txRepo = new MemberRepository(txStore, this.log)
-            const txMemberAttributeService = new MemberAttributeService(
-              this.redisClient,
-              txStore,
+          const memberAttributeService = new MemberAttributeService(
+            this.redisClient,
+            this.store,
+            this.log,
+          )
+
+          this.log.trace({ memberId: id }, 'Fetching member identities!')
+          const dbIdentities = await logExecutionTimeV2(
+            () => this.memberRepo.getIdentities(id),
+            this.log,
+            'memberService -> update -> getIdentities',
+          )
+
+          if (data.attributes) {
+            this.log.trace({ memberId: id }, 'Validating member attributes!')
+            data.attributes = await logExecutionTimeV2(
+              () => memberAttributeService.validateAttributes(data.attributes),
               this.log,
+              'memberService -> update -> validateAttributes',
             )
+          }
 
-            this.log.trace({ memberId: id }, 'Fetching member identities!')
-            const dbIdentities = await logExecutionTimeV2(
-              () => txRepo.getIdentities(id),
+          // prevent empty identity handles
+          data.identities = data.identities.filter((i) => i.value)
+
+          // validate emails
+          data.identities = this.validateEmails(data.identities)
+
+          // make sure displayName is proper
+          if (data.displayName) {
+            data.displayName = getProperDisplayName(data.displayName)
+          }
+
+          const toUpdate = MemberService.mergeData(original, dbIdentities, data)
+
+          if (toUpdate.attributes) {
+            this.log.trace({ memberId: id }, 'Setting attribute default values!')
+            toUpdate.attributes = await logExecutionTimeV2(
+              () => memberAttributeService.setAttributesDefaultValues(toUpdate.attributes),
               this.log,
-              'memberService -> update -> getIdentities',
+              'memberService -> update -> setAttributesDefaultValues',
             )
+          }
 
-            if (data.attributes) {
-              this.log.trace({ memberId: id }, 'Validating member attributes!')
-              data.attributes = await logExecutionTimeV2(
-                () => txMemberAttributeService.validateAttributes(data.attributes),
-                this.log,
-                'memberService -> update -> validateAttributes',
-              )
-            }
+          const identitiesToCreate = toUpdate.identitiesToCreate
+          delete toUpdate.identitiesToCreate
+          const identitiesToUpdate = toUpdate.identitiesToUpdate
+          delete toUpdate.identitiesToUpdate
 
-            // prevent empty identity handles
-            data.identities = data.identities.filter((i) => i.value)
+          if (!isObjectEmpty(toUpdate)) {
+            this.log.debug({ memberId: id }, 'Updating a member!')
 
-            // validate emails
-            data.identities = this.validateEmails(data.identities)
-
-            // make sure displayName is proper
-            if (data.displayName) {
-              data.displayName = getProperDisplayName(data.displayName)
-            }
-
-            const toUpdate = MemberService.mergeData(original, dbIdentities, data)
-
-            if (toUpdate.attributes) {
-              this.log.trace({ memberId: id }, 'Setting attribute default values!')
-              toUpdate.attributes = await logExecutionTimeV2(
-                () => txMemberAttributeService.setAttributesDefaultValues(toUpdate.attributes),
-                this.log,
-                'memberService -> update -> setAttributesDefaultValues',
-              )
-            }
-
-            const identitiesToCreate = toUpdate.identitiesToCreate
-            delete toUpdate.identitiesToCreate
-            const identitiesToUpdate = toUpdate.identitiesToUpdate
-            delete toUpdate.identitiesToUpdate
-
-            if (!isObjectEmpty(toUpdate)) {
-              this.log.debug({ memberId: id }, 'Updating a member!')
-
-              const dataToUpdate = Object.entries(toUpdate).reduce((acc, [key, value]) => {
-                if (key === 'identities') {
-                  return acc
-                }
-
-                if (value) {
-                  acc[key] = value
-                }
+            const dataToUpdate = Object.entries(toUpdate).reduce((acc, [key, value]) => {
+              if (key === 'identities') {
                 return acc
-              }, {} as IDbMemberUpdateData)
+              }
 
-              this.log.trace({ memberId: id }, 'Updating member data in db!')
+              if (value) {
+                acc[key] = value
+              }
+              return acc
+            }, {} as IDbMemberUpdateData)
 
+            this.log.trace({ memberId: id }, 'Updating member data in db!')
+
+            if (!isObjectEmpty(dataToUpdate)) {
               await logExecutionTimeV2(
-                () => txRepo.update(id, dataToUpdate),
+                () => this.memberRepo.update(id, dataToUpdate),
                 this.log,
                 'memberService -> update -> update',
               )
-
-              this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
-              await logExecutionTimeV2(
-                () => txRepo.addToSegments(id, [segmentId]),
-                this.log,
-                'memberService -> update -> addToSegment',
-              )
-            } else {
-              this.log.debug({ memberId: id }, 'Nothing to update in a member!')
-              await logExecutionTimeV2(
-                () => txRepo.addToSegments(id, [segmentId]),
-                this.log,
-                'memberService -> update -> addToSegment',
-              )
             }
 
-            if (identitiesToCreate) {
-              this.log.trace({ memberId: id }, 'Inserting new identities!')
-              await logExecutionTimeV2(
-                () => txRepo.insertIdentities(id, integrationId, identitiesToCreate),
-                this.log,
-                'memberService -> update -> insertIdentities',
-              )
-            }
-
-            if (identitiesToUpdate) {
-              this.log.trace({ memberId: id }, 'Updating identities!')
-              await logExecutionTimeV2(
-                () => txRepo.updateIdentities(id, identitiesToUpdate),
-                this.log,
-                'memberService -> update -> updateIdentities',
-              )
-            }
-
-            if (releaseMemberLock) {
-              await releaseMemberLock()
-            }
-
-            const organizations = []
-            const orgService = new OrganizationService(txStore, this.log)
-            if (data.organizations) {
-              for (const org of data.organizations) {
-                this.log.trace({ memberId: id }, 'Finding or creating organization!')
-
-                const orgId = await logExecutionTimeV2(
-                  () => orgService.findOrCreate(source, integrationId, org),
-                  this.log,
-                  'memberService -> update -> findOrCreateOrg',
-                )
-                organizations.push({
-                  id: orgId,
-                  source: data.source,
-                })
-              }
-            }
-
-            const emailIdentities = data.identities.filter(
-              (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+            this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
+            await logExecutionTimeV2(
+              () => this.memberRepo.addToSegments(id, [segmentId]),
+              this.log,
+              'memberService -> update -> addToSegment',
             )
-            if (emailIdentities.length > 0) {
-              this.log.trace({ memberId: id }, 'Assigning organization by email domain!')
-              const orgs = await logExecutionTimeV2(
-                () =>
-                  this.assignOrganizationByEmailDomain(
-                    integrationId,
-                    emailIdentities.map((i) => i.value),
-                  ),
+          } else {
+            this.log.debug({ memberId: id }, 'Nothing to update in a member!')
+            await logExecutionTimeV2(
+              () => this.memberRepo.addToSegments(id, [segmentId]),
+              this.log,
+              'memberService -> update -> addToSegment',
+            )
+          }
+
+          if (identitiesToCreate) {
+            this.log.trace({ memberId: id }, 'Inserting new identities!')
+            await logExecutionTimeV2(
+              () => this.memberRepo.insertIdentities(id, integrationId, identitiesToCreate),
+              this.log,
+              'memberService -> update -> insertIdentities',
+            )
+          }
+
+          if (identitiesToUpdate) {
+            this.log.trace({ memberId: id }, 'Updating identities!')
+            await logExecutionTimeV2(
+              () => this.memberRepo.updateIdentities(id, identitiesToUpdate),
+              this.log,
+              'memberService -> update -> updateIdentities',
+            )
+          }
+
+          if (releaseMemberLock) {
+            await releaseMemberLock()
+          }
+
+          const organizations = []
+          const orgService = new OrganizationService(this.store, this.log)
+          if (data.organizations) {
+            for (const org of data.organizations) {
+              this.log.trace({ memberId: id }, 'Finding or creating organization!')
+
+              const orgId = await logExecutionTimeV2(
+                () => orgService.findOrCreate(source, integrationId, org),
                 this.log,
-                'memberService -> update -> assignOrganizationByEmailDomain',
+                'memberService -> update -> findOrCreateOrg',
               )
-              if (orgs.length > 0) {
-                organizations.push(...orgs)
-              }
+              organizations.push({
+                id: orgId,
+                source: data.source,
+              })
             }
+          }
 
-            if (organizations.length > 0) {
-              const uniqOrgs = uniqby(organizations, 'id')
-              const orgService = new OrganizationService(txStore, this.log)
-
-              this.log.trace({ memberId: id }, 'Finding member organizations!')
-              const orgsToAdd = (
-                await Promise.all(
-                  uniqOrgs.map(async (org) => {
-                    // Check if the org was already added to the member in the past, including deleted ones.
-                    // If it was, we ignore this org to prevent from adding it again.
-                    const existingMemberOrgs = await logExecutionTimeV2(
-                      () => orgService.findMemberOrganizations(id, org.id),
-                      this.log,
-                      'memberService -> update -> findMemberOrganizations',
-                    )
-                    return existingMemberOrgs.length > 0 ? null : org
-                  }),
-                )
-              ).filter((org) => org !== null)
-
-              if (orgsToAdd.length > 0) {
-                this.log.trace({ memberId: id }, 'Adding organizations to member!')
-                await logExecutionTimeV2(
-                  () => orgService.addToMember([segmentId], id, orgsToAdd),
-                  this.log,
-                  'memberService -> update -> addToMember',
-                )
-              }
+          const emailIdentities = data.identities.filter(
+            (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+          )
+          if (emailIdentities.length > 0) {
+            this.log.trace({ memberId: id }, 'Assigning organization by email domain!')
+            const orgs = await logExecutionTimeV2(
+              () =>
+                this.assignOrganizationByEmailDomain(
+                  integrationId,
+                  emailIdentities.map((i) => i.value),
+                ),
+              this.log,
+              'memberService -> update -> assignOrganizationByEmailDomain',
+            )
+            if (orgs.length > 0) {
+              organizations.push(...orgs)
             }
-          })
+          }
+
+          if (organizations.length > 0) {
+            const uniqOrgs = uniqby(organizations, 'id')
+            const orgService = new OrganizationService(this.store, this.log)
+
+            this.log.trace({ memberId: id }, 'Finding member organizations!')
+            const orgsToAdd = (
+              await Promise.all(
+                uniqOrgs.map(async (org) => {
+                  // Check if the org was already added to the member in the past, including deleted ones.
+                  // If it was, we ignore this org to prevent from adding it again.
+                  const existingMemberOrgs = await logExecutionTimeV2(
+                    () => orgService.findMemberOrganizations(id, org.id),
+                    this.log,
+                    'memberService -> update -> findMemberOrganizations',
+                  )
+                  return existingMemberOrgs.length > 0 ? null : org
+                }),
+              )
+            ).filter((org) => org !== null)
+
+            if (orgsToAdd.length > 0) {
+              this.log.trace({ memberId: id }, 'Adding organizations to member!')
+              await logExecutionTimeV2(
+                () => orgService.addToMember([segmentId], id, orgsToAdd),
+                this.log,
+                'memberService -> update -> addToMember',
+              )
+            }
+          }
         } catch (err) {
           this.log.error(err, { memberId: id }, 'Error while updating a member!')
           throw err
@@ -482,57 +487,47 @@ export default class MemberService extends LoggerBase {
         return
       }
 
-      await this.store.transactionally(async (txStore) => {
-        const txRepo = new MemberRepository(txStore, this.log)
-        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-        const txService = new MemberService(
-          txStore,
-          this.searchSyncWorkerEmitter,
-          this.temporal,
-          this.redisClient,
-          this.log,
-        )
+      const integrationRepo = new IntegrationRepository(this.store, this.log)
 
-        const dbIntegration = await txIntegrationRepo.findById(integrationId)
-        const segmentId = dbIntegration.segmentId
+      const dbIntegration = await integrationRepo.findById(integrationId)
+      const segmentId = dbIntegration.segmentId
 
-        // first try finding the member using the identity
-        const identity = singleOrDefault(
-          member.identities,
-          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
-        )
-        const dbMembers = await txRepo.findMembersByUsernames([
+      // first try finding the member using the identity
+      const identity = singleOrDefault(
+        member.identities,
+        (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+      )
+      const dbMembers = await this.memberRepo.findMembersByUsernames([
+        {
+          segmentId,
+          platform,
+          username: identity.value,
+        },
+      ])
+
+      const dbMember = dbMembers.size === 0 ? undefined : Array.from(dbMembers.values())[0]
+
+      if (dbMember) {
+        this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+        await this.update(
+          dbMember.id,
+          segmentId,
+          integrationId,
           {
-            segmentId,
-            platform,
-            username: identity.value,
+            attributes: member.attributes,
+            joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
+            identities: member.identities,
+            organizations: member.organizations,
+            displayName: member.displayName || undefined,
+            reach: member.reach || undefined,
           },
-        ])
-
-        const dbMember = dbMembers.size === 0 ? undefined : Array.from(dbMembers.values())[0]
-
-        if (dbMember) {
-          this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
-
-          await txService.update(
-            dbMember.id,
-            segmentId,
-            integrationId,
-            {
-              attributes: member.attributes,
-              joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              identities: member.identities,
-              organizations: member.organizations,
-              displayName: member.displayName || undefined,
-              reach: member.reach || undefined,
-            },
-            dbMember,
-            platform,
-          )
-        } else {
-          this.log.debug('No member found for updating. This member update process had no affect.')
-        }
-      })
+          dbMember,
+          platform,
+        )
+      } else {
+        this.log.debug('No member found for updating. This member update process had no affect.')
+      }
     } catch (err) {
       this.log.error(err, 'Error while processing a member update!')
       throw err

@@ -72,12 +72,62 @@ export async function* queryStreamIter<T>(
   params: unknown[],
   opts?: QueryStreamOptions,
 ): AsyncIterable<T> {
-  const stream = await new Promise((resolve) => {
-    safeQueryStream(db, sql, params, resolve, {
-      batchSize: 1000,
-      highWaterMark: 250,
-      ...opts,
-    })
+  const stream = await new Promise<QueryStream>((resolve, reject) => {
+    // Flag to prevent multiple rejections/resolutions
+    let streamReleased = false
+
+    const safeReject = (err: Error) => {
+      if (!streamReleased) {
+        streamReleased = true
+        reject(err)
+      }
+    }
+
+    const safeResolve = (s: QueryStream) => {
+      if (!streamReleased) {
+        streamReleased = true
+        resolve(s)
+      }
+    }
+
+    try {
+      // pg-promise's db.stream(qs, initCb)
+      // initCb is called with the QueryStream object when pg starts streaming
+      // db.stream ALSO returns a Promise that resolves/rejects based on the stream's lifecycle
+      const dbStreamPromise = safeQueryStream(
+        // safeQueryStream returns the promise from db.stream
+        db,
+        sql,
+        params,
+        (streamObj: QueryStream) => {
+          // This is the initCb for db.stream
+          // Attach error handler to the QueryStream instance itself
+          // This should catch errors like 'Query read timeout' emitted by the stream
+          streamObj.on('error', (err) => {
+            safeReject(err)
+          })
+          // If no error during init, resolve Promise A with the stream
+          safeResolve(streamObj)
+        },
+        {
+          batchSize: 1000,
+          highWaterMark: 250,
+          ...opts,
+        },
+      )
+
+      // Handle rejection of the promise returned by db.stream itself
+      // This covers cases where db.stream might fail before initCb is called,
+      // or if the stream finishes with an error state that pg-promise handles.
+      if (dbStreamPromise && typeof dbStreamPromise.catch === 'function') {
+        dbStreamPromise.catch((err) => {
+          safeReject(err)
+        })
+      }
+    } catch (syncError) {
+      // Catch synchronous errors from calling safeQueryStream
+      safeReject(syncError)
+    }
   })
 
   yield* stream as AsyncIterable<T>

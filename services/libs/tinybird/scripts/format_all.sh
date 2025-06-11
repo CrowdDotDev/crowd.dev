@@ -1,14 +1,16 @@
+#!/bin/bash
+
 PIPES_FOLDER="../pipes"
 DATA_SOURCES_FOLDER="../datasources"
 
-for file in "$PIPES_FOLDER"/*; do
-  if [ -f "$file" ]; then
-    tb fmt --yes "../pipes/$file"
-  fi
-done
+format_files_in_folder() {
+  local folder="$1"
+  for file in "$folder"/*; do
+    [ -f "$file" ] && tb fmt --yes "$file" &
+  done
+}
 
-for file in "$DATA_SOURCES_FOLDER"/*; do
-  if [ -f "$file" ]; then
-    tb fmt --yes "../datasources/$file"
-  fi
-done
+format_files_in_folder "$PIPES_FOLDER"
+format_files_in_folder "$DATA_SOURCES_FOLDER"
+
+wait
