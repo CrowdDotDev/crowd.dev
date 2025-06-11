@@ -62,7 +62,7 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
 
     // Check for segmentId in related projects
     for (const project of internalProjects) {
-        const result = await qx.result(
+        const projectToDelete = await qx.result(
             `SELECT * FROM "insightsProjects" 
                 WHERE "github" = $1
                 AND "segmentId" IS NULL
@@ -70,9 +70,9 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
             [project],
         )
 
-        if (result.rows.length > 0) {
+        if (projectToDelete.rows.length > 0) {
             matchedCount++
-            console.log(`Project ${result.rows[0].name} match`)
+            console.log(`Project ${projectToDelete.rows[0].name} match`)
         } else {
             console.log(`No match for ${project}`)
             continue
@@ -85,34 +85,53 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
                 WHERE ip.id != $1 
                 AND $2 = ANY(ip."repositories")
                 LIMIT 1`,
-                [result.rows[0].id, project]
+                [projectToDelete.rows[0].id, project]
             )
 
             if (replacementProject.rows.length > 0) {
-                await qx.result(
-                    `UPDATE "collectionsInsightsProjects" cip
+                const updatedLinks = await qx.result(
+                    `
+                    UPDATE "collectionsInsightsProjects" cip
                     SET
                         "insightsProjectId" = $1,
                         "updatedAt" = NOW()
                     WHERE "insightsProjectId" = $2
                     AND NOT EXISTS (
-                        SELECT 1 FROM "collectionsInsightsProjects"
+                        SELECT 1 
+                        FROM "collectionsInsightsProjects"
                         WHERE "collectionId" = cip."collectionId"
                         AND "insightsProjectId" = $1
-                    )`,
-                    [replacementProject.rows[0].id, result.rows[0].id],
+                    )
+                    RETURNING *
+                    `,
+                    [replacementProject.rows[0].id, projectToDelete.rows[0].id],
                 )
-                console.log(`Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`)
+
+                if(updatedLinks.rows.length > 0) {
+                    console.log(`Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`)
+                } else {
+                    const deletedLinks = await qx.result(
+                        `DELETE FROM "collectionsInsightsProjects" 
+                        WHERE "insightsProjectId" = $1
+                        RETURNING *`,
+                        [projectToDelete.rows[0].id],
+                    )
+                    if(deletedLinks.rows.length > 0) {
+                        console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
+                    } else {
+                        console.log(`Skipping ${projectToDelete.rows[0].name} project because no replacement project found`)
+                    }
+                }
 
                 await qx.result(
                     `DELETE FROM "insightsProjects" 
                         WHERE id = $1`,
-                    [result.rows[0].id],
+                    [projectToDelete.rows[0].id],
                 )
                 deletedCount++
-                console.log(`Deleted ${result.rows[0].name} project`)
+                console.log(`Deleted ${projectToDelete.rows[0].name} project`)
             } else {
-                console.log(`Skipping ${result.rows[0].name} project because no replacement project found`)
+                console.log(`Skipping ${projectToDelete.rows[0].name} project because no replacement project found`)
             }
         }
     }
