@@ -7,18 +7,19 @@ import { Logger } from '@crowd/logging'
 import { IntegrationRunWorkerEmitter } from '../../../../libs/common_services/src/services/emitters/integrationRunWorker.emitter'
 import { QUEUE_CONFIG, QueueFactory } from '../../../../libs/queue/src/factory'
 import { IJobDefinition } from '../types'
+import { PlatformType } from '@crowd/types'
 
 const maxIntegrationResults = 10000000
 const maxIntegrationsToOnboard = 10
 const platformsByPriority = new Set([
-  'groupsio',
-  'linkedin',
-  'jira',
-  'hackernews',
-  'reddit',
-  'stackoverflow',
-  'twitter',
-  'slack',
+  PlatformType.GROUPSIO,
+  PlatformType.LINKEDIN,
+  PlatformType.JIRA,
+  PlatformType.HACKERNEWS,
+  PlatformType.REDDIT,
+  PlatformType.STACKOVERFLOW,
+  PlatformType.TWITTER,
+  PlatformType.SLACK,
 ])
 const fixDate = new Date('2025-06-06').toISOString() //any integration connected after this date shouldn't be re-onboarded
 
