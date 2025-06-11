@@ -90,11 +90,16 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
 
             if (replacementProject.rows.length > 0) {
                 await qx.result(
-                    `UPDATE "collectionsInsightsProjects"
-                        SET
-                            "insightsProjectId" = $1,
-                            "updatedAt" = NOW()
-                        WHERE "insightsProjectId" = $2`,
+                    `UPDATE "collectionsInsightsProjects" cip
+                    SET
+                        "insightsProjectId" = $1,
+                        "updatedAt" = NOW()
+                    WHERE "insightsProjectId" = $2
+                    AND NOT EXISTS (
+                        SELECT 1 FROM "collectionsInsightsProjects"
+                        WHERE "collectionId" = cip."collectionId"
+                        AND "insightsProjectId" = $1
+                    )`,
                     [replacementProject.rows[0].id, result.rows[0].id],
                 )
                 console.log(`Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`)
