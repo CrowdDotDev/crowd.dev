@@ -68,24 +68,65 @@ function normalizeTags(
 
 const telemetry = {
   gauge: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.gauge(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
+    const finalName = prefixName(normalizeMetricName(name))
+    const finalTags = normalizeTags(tags)
+
+    try {
+      datadog.dogstatsd.gauge(finalName, value, finalTags)
+      logger.debug(`Sent gauge metric: ${finalName} = ${value}`, { tags: finalTags })
+    } catch (error) {
+      logger.error(error, `Failed to send gauge metric: ${finalName} = ${value}`, {
+        tags: finalTags,
+      })
+    }
   },
   distribution: (name: string, value: number, tags?: Record<string, string | number>) => {
-    // milliseconds
-    datadog.dogstatsd.distribution(
-      prefixName(normalizeMetricName(name)),
-      value,
-      normalizeTags(tags),
-    )
+    const finalName = prefixName(normalizeMetricName(name))
+    const finalTags = normalizeTags(tags)
+
+    try {
+      // milliseconds
+      datadog.dogstatsd.distribution(finalName, value, finalTags)
+      logger.debug(`Sent distribution metric: ${finalName} = ${value}`, { tags: finalTags })
+    } catch (error) {
+      logger.error(error, `Failed to send distribution metric: ${finalName} = ${value}`, {
+        tags: finalTags,
+      })
+    }
   },
   flush: () => {
-    datadog.dogstatsd.flush()
+    try {
+      datadog.dogstatsd.flush()
+      logger.debug('Flushed dogstatsd metrics')
+    } catch (error) {
+      logger.error(error, 'Failed to flush dogstatsd metrics')
+    }
   },
   increment: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.increment(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
+    const finalName = prefixName(normalizeMetricName(name))
+    const finalTags = normalizeTags(tags)
+
+    try {
+      datadog.dogstatsd.increment(finalName, value, finalTags)
+      logger.debug(`Sent increment metric: ${finalName} = ${value}`, { tags: finalTags })
+    } catch (error) {
+      logger.error(error, `Failed to send increment metric: ${finalName} = ${value}`, {
+        tags: finalTags,
+      })
+    }
   },
   decrement: (name: string, value: number, tags?: Record<string, string | number>) => {
-    datadog.dogstatsd.decrement(prefixName(normalizeMetricName(name)), value, normalizeTags(tags))
+    const finalName = prefixName(normalizeMetricName(name))
+    const finalTags = normalizeTags(tags)
+
+    try {
+      datadog.dogstatsd.decrement(finalName, value, finalTags)
+      logger.debug(`Sent decrement metric: ${finalName} = ${value}`, { tags: finalTags })
+    } catch (error) {
+      logger.error(error, `Failed to send decrement metric: ${finalName} = ${value}`, {
+        tags: finalTags,
+      })
+    }
   },
   timer: (name: string, tags?: Record<string, string | number>) => {
     const start = process.hrtime()

@@ -35,7 +35,9 @@ const job: IJobDefinition = {
       }
 
       const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
-      telemetry.gauge(`kafka.${topic}.total`, totalMessages)
+      const totalMetricName = `kafka.${topic}.total`
+      ctx.log.debug(`Sending telemetry gauge: ${totalMetricName} = ${totalMessages}`)
+      telemetry.gauge(totalMetricName, totalMessages)
 
       if (groups.length === 0) {
         msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
@@ -48,14 +50,26 @@ const job: IJobDefinition = {
           `Topic ${topic} group ${group} has ${counts.total} total messages, ${counts.consumed} consumed, ${counts.unconsumed} unconsumed!`,
         )
 
-        telemetry.gauge(`kafka.${topic}.${group}.consumed`, counts.consumed)
-        telemetry.gauge(`kafka.${topic}.${group}.unconsumed`, counts.unconsumed)
+        const consumedMetricName = `kafka.${topic}.${group}.consumed`
+        const unconsumedMetricName = `kafka.${topic}.${group}.unconsumed`
+
+        ctx.log.debug(`Sending telemetry gauge: ${consumedMetricName} = ${counts.consumed}`)
+        ctx.log.debug(`Sending telemetry gauge: ${unconsumedMetricName} = ${counts.unconsumed}`)
+
+        telemetry.gauge(consumedMetricName, counts.consumed)
+        telemetry.gauge(unconsumedMetricName, counts.unconsumed)
       }
     }
+
+    // Flush all telemetry data to ensure it's sent to Datadog
+    ctx.log.debug('Flushing telemetry data')
+    telemetry.flush()
 
     if (msg && msg.trim().length > 0) {
       ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
     }
+
+    await admin.disconnect()
   },
 }
 
