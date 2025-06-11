@@ -278,7 +278,7 @@ export default class IntegrationService {
         segment,
       }
     }
-    return record;
+    return record
   }
 
   async findAllAutocomplete(search, limit) {
