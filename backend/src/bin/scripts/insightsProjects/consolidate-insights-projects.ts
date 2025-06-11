@@ -49,7 +49,8 @@ const options = [
     name: 'dryRun',
     alias: 'd',
     type: Boolean,
-    description: 'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
+    description:
+      'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
   },
 ]
 
@@ -170,7 +171,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     // Update main project with all repositories
     if (!dryRun) {
-     const updated =  await qx.result(
+      const updated = await qx.result(
         `UPDATE "insightsProjects" 
          SET repositories = $1,
          "updatedAt" = NOW()
@@ -180,10 +181,10 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
         [group.repositories, mainProject.id],
       )
 
-      if(updated.rows.length > 0) {
+      if (updated.rows.length > 0) {
         updatedCount += updated.rows.length
 
-        for(const updatedProject of updated.rows) {
+        for (const updatedProject of updated.rows) {
           console.log(`Updated ${updatedProject.name}`)
         }
       }
@@ -196,6 +197,44 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     if (projectsToDelete.length > 0) {
       if (!dryRun) {
+        const updatedLinks = await qx.result(
+          `
+          UPDATE "collectionsInsightsProjects" cip
+          SET
+              "insightsProjectId" = $1,
+              "updatedAt" = NOW()
+          WHERE "insightsProjectId" = ANY($2::uuid[])
+          AND NOT EXISTS (
+              SELECT 1 
+              FROM "collectionsInsightsProjects"
+              WHERE "collectionId" = cip."collectionId"
+              AND "insightsProjectId" = $1
+          )
+          RETURNING *
+          `,
+          [mainProject.id, projectsToDelete],
+        )
+  
+        if (updatedLinks.rows.length > 0) {
+          console.log(
+            `Updated collection insights project to point to replacement project ${mainProject.id}`,
+          )
+        } else {
+          console.log(`Skipping to update links`)
+        }
+  
+        const deletedLinks = await qx.result(
+          `DELETE FROM "collectionsInsightsProjects" 
+            WHERE "insightsProjectId" = ANY($1::uuid[])
+            RETURNING *`,
+          [projectsToDelete],
+        )
+        if (deletedLinks.rows.length > 0) {
+          console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
+        } else {
+          console.log(`Skipping to delete links`)
+        }
+
         const deleted = await qx.result(
           `DELETE FROM "insightsProjects"
           WHERE id = ANY($1::uuid[])
@@ -204,10 +243,10 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
           [projectsToDelete],
         )
 
-        if(deleted.rows.length > 0) {
+        if (deleted.rows.length > 0) {
           deletedCount += deleted.rows.length
 
-          for(const deletedProject of deleted.rows) {
+          for (const deletedProject of deleted.rows) {
             console.log(`Deleted ${deletedProject.name}`)
           }
           console.log(`Deleted ${deleted.rows.length} related projects for ${mainRepo}`)
