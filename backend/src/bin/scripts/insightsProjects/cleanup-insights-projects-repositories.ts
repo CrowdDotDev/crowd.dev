@@ -70,83 +70,74 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
     let matchedCount = 0
     let updatedCount = 0
 
-    // Check for segmentId in related projects
     for (const project of projects) {
-        const projects = await qx.result(
+        console.log(`\nProcessing duplicate repos for ${project.repoUrl}`)
+        console.log(`Found ${project.projectIds.length} projects with this repo`)
+
+        // First find the project to keep - the one with matching segmentId from githubRepos
+        const projectToKeep = await qx.result(
             `
-            WITH input_projects AS (
-                SELECT
-                    ip.id,
-                    ip."segmentId"
-                FROM "insightsProjects" ip
-                WHERE ip.id IN ($1, $2)
-            ),
-            target_repo AS (
+            WITH target_repo AS (
                 SELECT "segmentId"
                 FROM "githubRepos"
-                WHERE url = $3
+                WHERE url = $1
                 LIMIT 1
-            ),
-            marked AS (
-                SELECT
-                    p.id,
-                    CASE
-                        WHEN p."segmentId" = tr."segmentId" THEN true
-                        ELSE false
-                    END AS to_keep
-                FROM input_projects p
-                CROSS JOIN target_repo tr
             )
-            SELECT
-                (SELECT id FROM marked WHERE NOT to_keep LIMIT 1) AS "reposToDelete",
-                (SELECT id FROM marked WHERE to_keep LIMIT 1) AS "reposToKeep";
-
+            SELECT ip.id, ip.name
+            FROM "insightsProjects" ip
+            CROSS JOIN target_repo tr
+            WHERE ip.id = ANY($2)
+            AND ip."segmentId" = tr."segmentId"
+            LIMIT 1
             `,
-            [project.projectIds[0], project.projectIds[1], project.repoUrl],
+            [project.repoUrl, project.projectIds],
         )
 
-        if (projects.rows.length > 0) {
-            matchedCount++
-            const reposToKeep = projects.rows[0].reposToKeep
-            const reposToDelete = projects.rows[0].reposToDelete
+        if (projectToKeep.rows.length === 0) {
+            console.log(`No project found with matching segmentId for ${project.repoUrl}`)
+            continue
+        }
 
-            console.log(`Project with repos to delete: ${reposToDelete}`)
-            console.log(`Project with repos to keep: ${reposToKeep}`)
+        matchedCount++
+        const keepId = projectToKeep.rows[0].id
+        console.log(`Project to keep: ${projectToKeep.rows[0].name} (${keepId})`)
 
-            if(!dryRun && reposToDelete && reposToKeep) {                
+        // Get projects to update (all except the one to keep)
+        const projectsToUpdate = project.projectIds.filter(id => id !== keepId)
+        console.log(`Projects to update: ${projectsToUpdate.length}`)
+
+        if (!dryRun) {
+            for (const updateId of projectsToUpdate) {
                 const result = await qx.result(
                     `UPDATE "insightsProjects" ip1
                     SET repositories = (
                         SELECT array_agg(DISTINCT repo)
                         FROM unnest(ip1.repositories) repo
-                        WHERE repo NOT IN (
-                            SELECT unnest(ip2.repositories)
-                            FROM "insightsProjects" ip2
-                            WHERE ip2.id = $2
-                        )
-                    )
-                    WHERE id = $1`,
-                    [reposToDelete, reposToKeep],
+                        WHERE repo != $2
+                    ),
+                    "updatedAt" = NOW()
+                    WHERE id = $1
+                    RETURNING *
+                    `,
+                    [updateId, project.repoUrl],
                 )
-                if(result.rows.length > 0) {
+                
+                if (result.rows.length > 0) {
                     updatedCount++
-                    console.log(`Updated ${reposToDelete} project`)
+                    console.log(`Removed ${project.repoUrl} from project ${updateId}`)
                 } else {
-                    console.log(`Skipping to update ${reposToDelete} project`)
+                    console.log(`Failed to update project ${updateId}`)
                 }
             }
-        } else {
-            console.log(`No match for ${project.projectIds[0]} and ${project.projectIds[1]}`)
-            continue
         }
     }
 
     console.log(`\nSummary:`)
-    console.log(`- Found ${matchedCount} matching projects`)
+    console.log(`- Found ${matchedCount} groups of projects with duplicate repos`)
     if (!dryRun) {
         console.log(`- Updated ${updatedCount} projects`)
     } else {
-        console.log(`- Would update ${matchedCount} projects (dry run)`)
+        console.log(`- Would update ${matchedCount} groups of projects (dry run)`)
     }
 }
 
