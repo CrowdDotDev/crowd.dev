@@ -78,7 +78,7 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
         const projectToKeep = await qx.result(
             `
             WITH target_repo AS (
-                SELECT "segmentId"
+                SELECT "segmentId"::uuid
                 FROM "githubRepos"
                 WHERE url = $1
                 LIMIT 1
