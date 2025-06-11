@@ -115,6 +115,7 @@ function groupProjects(projects: NewProjectRow[]): Map<string, ProjectGroup> {
  * @param projectGroups - Map of project groups to consolidate
  */
 async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>, dryRun: boolean) {
+  let deletedCount = 0
   const projectsToSkip: string[] = []
 
   for (const [mainRepo, group] of projectGroups.entries()) {
@@ -182,6 +183,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
       .map((project) => project.id)
 
     if (projectsToDelete.length > 0) {
+      deletedCount += projectsToDelete.length
       if (!dryRun) {
         await qx.result(`DELETE FROM "insightsProjects" WHERE id = ANY($1)`, [projectsToDelete])
         console.log(`Deleted ${projectsToDelete.length} related projects for ${mainRepo}`)
@@ -195,6 +197,8 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
     console.log('\nProjects skipped due to non-null segmentId:')
     projectsToSkip.forEach((project) => console.log(project))
   }
+
+  console.log(`Deleted ${deletedCount} projects`)
 }
 
 const usage = commandLineUsage(sections)
