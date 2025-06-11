@@ -68,11 +68,11 @@ async function getProjectsWithDuplicateRepos(qx) {
 
 async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
     let matchedCount = 0
-    let deletedCount = 0
+    let updatedCount = 0
 
     // Check for segmentId in related projects
     for (const project of projects) {
-        const result = await qx.result(
+        const projects = await qx.result(
             `
             WITH input_projects AS (
                 SELECT
@@ -98,67 +98,42 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
                 CROSS JOIN target_repo tr
             )
             SELECT
-                (SELECT id FROM marked WHERE NOT to_keep LIMIT 1) AS "projectToDelete",
-                (SELECT id FROM marked WHERE to_keep LIMIT 1) AS "projectToKeep";
+                (SELECT id FROM marked WHERE NOT to_keep LIMIT 1) AS "reposToDelete",
+                (SELECT id FROM marked WHERE to_keep LIMIT 1) AS "reposToKeep";
 
             `,
             [project.projectIds[0], project.projectIds[1], project.repoUrl],
         )
 
-        if (result.rows.length > 0) {
+        if (projects.rows.length > 0) {
             matchedCount++
-            const projectToKeep = result.rows[0].projectToKeep
-            const projectToDelete = result.rows[0].projectToDelete
+            const reposToKeep = projects.rows[0].reposToKeep
+            const reposToDelete = projects.rows[0].reposToDelete
 
-            console.log(`Project to delete: ${projectToDelete}`)
-            console.log(`Project to keep: ${projectToKeep}`)
+            console.log(`Project with repos to delete: ${reposToDelete}`)
+            console.log(`Project with repos to keep: ${reposToKeep}`)
 
-            if(!dryRun && projectToDelete && projectToKeep) {
-    
-                const updatedLinks = await qx.result(
-                    `
-                    UPDATE "collectionsInsightsProjects" cip
-                    SET
-                        "insightsProjectId" = $1,
-                        "updatedAt" = NOW()
-                    WHERE "insightsProjectId" = $2
-                    AND NOT EXISTS (
-                        SELECT 1 
-                        FROM "collectionsInsightsProjects"
-                        WHERE "collectionId" = cip."collectionId"
-                        AND "insightsProjectId" = $1
+            if(!dryRun && reposToDelete && reposToKeep) {                
+                const result = await qx.result(
+                    `UPDATE "insightsProjects" ip1
+                    SET repositories = (
+                        SELECT array_agg(DISTINCT repo)
+                        FROM unnest(ip1.repositories) repo
+                        WHERE repo NOT IN (
+                            SELECT unnest(ip2.repositories)
+                            FROM "insightsProjects" ip2
+                            WHERE ip2.id = $2
+                        )
                     )
-                    RETURNING *
-                    `,
-                    [projectToKeep, projectToDelete],
+                    WHERE id = $1`,
+                    [reposToDelete, reposToKeep],
                 )
-
-                if(updatedLinks.rows.length > 0) {
-                    console.log(`Updated collection insights project to point to replacement project ${projectToKeep}`)
+                if(result.rows.length > 0) {
+                    updatedCount++
+                    console.log(`Updated ${reposToDelete} project`)
                 } else {
-                    console.log(`Skipping to update links for ${projectToDelete} project`)
-                } 
-                
-                const deletedLinks = await qx.result(
-                    `DELETE FROM "collectionsInsightsProjects" 
-                    WHERE "insightsProjectId" = $1
-                    RETURNING *`,
-                    [projectToDelete],
-                )
-                if(deletedLinks.rows.length > 0) {
-                    console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
-                } else {
-                    console.log(`Skipping to delete links for ${projectToDelete} project`)
+                    console.log(`Skipping to update ${reposToDelete} project`)
                 }
-                
-
-                await qx.result(
-                    `DELETE FROM "insightsProjects" 
-                        WHERE id = $1`,
-                    [projectToDelete],
-                )
-                deletedCount++
-                console.log(`Deleted ${projectToDelete} project`)
             }
         } else {
             console.log(`No match for ${project.projectIds[0]} and ${project.projectIds[1]}`)
@@ -169,9 +144,9 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
     console.log(`\nSummary:`)
     console.log(`- Found ${matchedCount} matching projects`)
     if (!dryRun) {
-        console.log(`- Deleted ${deletedCount} projects`)
+        console.log(`- Updated ${updatedCount} projects`)
     } else {
-        console.log(`- Would delete ${matchedCount} projects (dry run)`)
+        console.log(`- Would update ${matchedCount} projects (dry run)`)
     }
 }
 
