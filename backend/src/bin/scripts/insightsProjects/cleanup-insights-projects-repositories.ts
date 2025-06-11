@@ -86,8 +86,8 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
             SELECT ip.id, ip.name
             FROM "insightsProjects" ip
             CROSS JOIN target_repo tr
-            WHERE ip.id = ANY($2)
-            AND ip."segmentId" = tr."segmentId"
+            WHERE ip.id = ANY($2::uuid[])
+            AND ip."segmentId" = tr."segmentId"::uuid
             LIMIT 1
             `,
             [project.repoUrl, project.projectIds],
