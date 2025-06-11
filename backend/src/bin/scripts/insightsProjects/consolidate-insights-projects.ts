@@ -159,6 +159,11 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     const relatedProjects = relatedProjectsResult.rows || []
 
+    if (relatedProjects.length === 0) {
+      console.log(`Warning: No related projects found for ${mainRepo}`)
+      continue
+    }
+
     // Check for segmentId in related projects
     for (const project of relatedProjects) {
       if (project.segmentId !== null) {
@@ -197,24 +202,38 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     if (projectsToDelete.length > 0) {
       if (!dryRun) {
-        const updatedLinks = await qx.result(
+        const conflictLinksDeletion = await qx.result(
           `
-          UPDATE "collectionsInsightsProjects" cip
-          SET
-              "insightsProjectId" = $1,
-              "updatedAt" = NOW()
-          WHERE "insightsProjectId" = ANY($2::uuid[])
-          AND NOT EXISTS (
-              SELECT 1 
-              FROM "collectionsInsightsProjects"
-              WHERE "collectionId" = cip."collectionId"
-              AND "insightsProjectId" = $1
-          )
-          RETURNING *
+          -- Step 1: Delete rows that would cause conflict
+          DELETE FROM "collectionsInsightsProjects"
+          WHERE ("collectionId", "insightsProjectId") IN (
+            SELECT "collectionId", $1
+            FROM "collectionsInsightsProjects"
+            WHERE "insightsProjectId" = ANY($2::uuid[])
+          );
           `,
           [mainProject.id, projectsToDelete],
         )
-  
+
+        if (conflictLinksDeletion.rows.length > 0) {
+          console.log(`Deleted conflict links`)
+        } else {
+          console.log(`Skipping to delete links`)
+        }
+
+        const updatedLinks = await qx.result(
+          `
+          -- Step 2: Now safely do the update
+          UPDATE "collectionsInsightsProjects" cip
+          SET
+            "insightsProjectId" = $1,
+            "updatedAt" = NOW()
+          WHERE "insightsProjectId" = ANY($2::uuid[])
+          RETURNING *;
+          `,
+          [mainProject.id, projectsToDelete],
+        )
+
         if (updatedLinks.rows.length > 0) {
           console.log(
             `Updated collection insights project to point to replacement project ${mainProject.id}`,
@@ -222,7 +241,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
         } else {
           console.log(`Skipping to update links`)
         }
-  
+
         const deletedLinks = await qx.result(
           `DELETE FROM "collectionsInsightsProjects" 
             WHERE "insightsProjectId" = ANY($1::uuid[])
