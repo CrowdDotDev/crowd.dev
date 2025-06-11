@@ -9,7 +9,7 @@ import { QUEUE_CONFIG, QueueFactory } from '../../../../libs/queue/src/factory'
 import { IJobDefinition } from '../types'
 
 const maxIntegrationResults = 10000000
-const maxIntegrationsToOnboard = 5
+const maxIntegrationsToOnboard = 10
 const platformsByPriority = new Set([
   'groupsio',
   'linkedin',
@@ -68,7 +68,7 @@ async function getPrioritizedIntegrations(query: QueryExecutor, log: Logger): Pr
 
 const job: IJobDefinition = {
   name: 're-onboard-integrations',
-  cronTime: CronTime.every(5).hours(),
+  cronTime: CronTime.every(24).hours(),
   timeout: 15 * 60,
   process: async (ctx) => {
     ctx.log.info('Starting re-onboarding integrations job')
