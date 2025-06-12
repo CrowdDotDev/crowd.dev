@@ -65,17 +65,7 @@ async function getTopicsAndConsumerGroups(
 ): Promise<Map<string, string[]>> {
   const topics = await admin.listTopics()
 
-  const redis = await getRedisClient(REDIS_CONFIG())
-  const cache = new RedisCache('queueMonitor', redis, log)
-
   const topicConsumerMap = new Map<string, string[]>()
-
-  for (const topic of topics) {
-    const consumers = await cache.get(topic)
-    if (consumers) {
-      topicConsumerMap.set(topic, JSON.parse(consumers))
-    }
-  }
 
   const groupsResponse = await admin.listGroups()
   const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
@@ -95,8 +85,6 @@ async function getTopicsAndConsumerGroups(
       }
     }
     topicConsumerMap.set(topic, consumers)
-    // save to cache for 24 hours
-    await cache.set(topic, JSON.stringify(consumers), 24 * 60 * 60)
   }
 
   return topicConsumerMap
