@@ -581,6 +581,10 @@ export default class MemberService extends LoggerBase {
       const oldDate = new Date(dbMember.joinedAt)
 
       joinedAt = getEarliestValidDate(oldDate, newDate).toISOString()
+
+      if (joinedAt === oldDate.toISOString()) {
+        joinedAt = undefined
+      }
     }
 
     let identitiesToCreate: IMemberIdentity[] | undefined
