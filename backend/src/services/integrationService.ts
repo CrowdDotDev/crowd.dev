@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -846,8 +846,8 @@ export default class IntegrationService {
     throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
   }
 
-  async linkedinConnect() {
-    const nangoId = `${DEFAULT_TENANT_ID}-${PlatformType.LINKEDIN}`
+  async linkedinConnect(segmentId: string) {
+    const nangoId = `${segmentId}-${PlatformType.LINKEDIN}`
 
     let token: string
     try {
