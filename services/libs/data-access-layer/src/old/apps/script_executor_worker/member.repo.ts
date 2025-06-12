@@ -203,6 +203,7 @@ class MemberRepository {
       { name: 'memberEnrichmentCache', conditions: ['memberId'] },
       { name: 'memberEnrichments', conditions: ['memberId'] },
       { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberOrganizationAffiliationOverrides', conditions: ['memberId'] },
       { name: 'memberOrganizations', conditions: ['memberId'] },
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
