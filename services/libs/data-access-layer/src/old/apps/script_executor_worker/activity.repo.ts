@@ -57,21 +57,11 @@ class ActivityRepository {
     )
   }
 
-  async updateActivityRelations(
-    data: Partial<IActivityRelationUpdateById>,
-    where: string,
-  ): Promise<void> {
-    const fields: string[] = []
-
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== undefined) {
-        fields.push(`"${key}" = $(${key})`)
-      }
-    }
-
-    const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE ${where}`
-
-    await this.connection.none(query, data)
+  async removeOrganizationForMembers(memberIds: string[]): Promise<void> {
+    await this.connection.none(
+      `UPDATE "activityRelations" SET "organizationId" = null, "updatedAt" = now() WHERE "organizationId" IS NOT NULL AND "memberId" IN ($(memberIds:csv))`,
+      { memberIds },
+    )
   }
 }
 

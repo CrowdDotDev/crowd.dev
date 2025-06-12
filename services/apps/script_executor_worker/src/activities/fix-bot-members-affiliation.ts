@@ -35,12 +35,7 @@ export async function unlinkOrganizationFromBotActivities(memberIds: string[]): 
 
     // unlink organization for bot activities
     // this is to prevent bots from showing up in insights leaderboard
-    await activityRepo.updateActivityRelations(
-      { organizationId: null },
-      formatQuery(`"organizationId" IS NOT NULL AND "memberId" IN ($(memberIds:csv))`, {
-        memberIds,
-      }),
-    )
+    await activityRepo.removeOrganizationForMembers(memberIds)
   } catch (error) {
     svc.log.error(error, 'Error unlinking organization from bot activities!')
     throw error
