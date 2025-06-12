@@ -3,7 +3,7 @@ import CronTime from 'cron-time-generator'
 import { IS_PROD_ENV, distinct } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
-import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis'
+import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis' 
 import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
@@ -65,7 +65,7 @@ async function getTopicsAndConsumerGroups(
 ): Promise<Map<string, string[]>> {
   const topics = await admin.listTopics()
 
-  const redis = await getRedisClient(REDIS_CONFIG())
+  const redis = await getRedisClient(REDIS_CONFIG()) 
   const cache = new RedisCache('queueMonitor', redis, log)
 
   const topicConsumerMap = new Map<string, string[]>()
