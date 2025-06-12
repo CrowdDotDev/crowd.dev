@@ -3,7 +3,7 @@ import CronTime from 'cron-time-generator'
 import { IS_PROD_ENV, distinct } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
-import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis' 
+import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
@@ -65,17 +65,7 @@ async function getTopicsAndConsumerGroups(
 ): Promise<Map<string, string[]>> {
   const topics = await admin.listTopics()
 
-  const redis = await getRedisClient(REDIS_CONFIG()) 
-  const cache = new RedisCache('queueMonitor', redis, log)
-
   const topicConsumerMap = new Map<string, string[]>()
-
-  for (const topic of topics) {
-    const consumers = await cache.get(topic)
-    if (consumers) {
-      topicConsumerMap.set(topic, JSON.parse(consumers))
-    }
-  }
 
   const groupsResponse = await admin.listGroups()
   const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
@@ -95,8 +85,6 @@ async function getTopicsAndConsumerGroups(
       }
     }
     topicConsumerMap.set(topic, consumers)
-    // save to cache for 24 hours
-    await cache.set(topic, JSON.stringify(consumers), 24 * 60 * 60)
   }
 
   return topicConsumerMap
