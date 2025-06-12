@@ -22,6 +22,7 @@ import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
+import SegmentRepository from '@/database/repositories/segmentRepository'
 import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
 import {
   fetchAllGitlabGroups,
@@ -268,7 +269,16 @@ export default class IntegrationService {
   }
 
   async findById(id) {
-    return IntegrationRepository.findById(id, this.options)
+    const record = await IntegrationRepository.findById(id, this.options)
+    if (record) {
+      const segmentRepository = new SegmentRepository(this.options)
+      const segment = await segmentRepository.findById(record.segmentId)
+      return {
+        ...record,
+        segment,
+      }
+    }
+    return record
   }
 
   async findAllAutocomplete(search, limit) {
