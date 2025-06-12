@@ -1,6 +1,8 @@
 import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
+import { IActivityRelationUpdateById } from '../data_sink_worker/repo/activity.data'
+
 import { EntityType } from './types'
 
 class ActivityRepository {
@@ -53,6 +55,23 @@ class ActivityRepository {
         secondaryId,
       },
     )
+  }
+
+  async updateActivityRelations(
+    data: Partial<IActivityRelationUpdateById>,
+    where: string,
+  ): Promise<void> {
+    const fields: string[] = []
+
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        fields.push(`"${key}" = $(${key})`)
+      }
+    }
+
+    const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE ${where}`
+
+    await this.connection.none(query, data)
   }
 }
 

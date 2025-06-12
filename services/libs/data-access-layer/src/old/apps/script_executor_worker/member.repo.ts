@@ -299,6 +299,41 @@ class MemberRepository {
       },
     )
   }
+
+  public async getBotMembersWithOrgAffiliation(batchSize: number): Promise<string[]> {
+    const results = await this.connection.query(
+      `
+      SELECT 
+        m.id as "memberId"
+      FROM members m
+      WHERE m.attributes->'isBot'->>'default' = 'true'
+        AND EXISTS (
+          SELECT 1 FROM "activityRelations" ar 
+          WHERE ar."memberId" = m.id and ar."organizationId" is not null
+        )
+      LIMIT $(batchSize);
+      `,
+      {
+        batchSize,
+      },
+    )
+
+    return results.map((r) => r.memberId)
+  }
+
+  public async markMemberAsBot(memberIds: string[]): Promise<void> {
+    await this.connection.none(
+      `UPDATE members SET 
+        "attributes" = jsonb_set(
+          "attributes",
+          '{isBot}',
+          (coalesce("attributes"->'isBot', '{}'::jsonb) || '{"default": true}'::jsonb)
+        ),
+        "updatedAt" = now()
+      WHERE id IN ($(memberIds:csv))`,
+      { memberIds },
+    )
+  }
 }
 
 export default MemberRepository
