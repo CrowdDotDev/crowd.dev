@@ -2,7 +2,6 @@ import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
 import { IScriptBatchTestArgs } from '../types'
-import { chunkArray } from '../utils/common'
 
 const {
   getBotMembersWithOrgAffiliation,
@@ -20,17 +19,19 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
   const memberIds = await getBotMembersWithOrgAffiliation(BATCH_SIZE)
 
   if (memberIds.length === 0) {
-    console.log('No more bot members with org affiliation to process!')
+    console.log('No more bot members to fix!')
     return
   }
 
-  for (const chunk of chunkArray(memberIds, 50)) {
-    if (args.testRun) console.log('Processing chunk', chunk)
+  for (const memberId of memberIds) {
+    if (args.testRun) console.log('Processing member', memberId)
 
-    for (const memberId of chunk) {
+    try {
       await removeBotMemberOrganization(memberId)
       await unlinkOrganizationFromBotActivities(memberId)
       await syncMembersBatch([memberId], true)
+    } catch (error) {
+      console.error('Error fixing bot member affiliation!', error)
     }
   }
 
