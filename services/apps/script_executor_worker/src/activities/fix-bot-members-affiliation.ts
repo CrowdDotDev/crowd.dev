@@ -40,6 +40,8 @@ export async function unlinkOrganizationFromBotActivities(memberId: string): Pro
 
     while (activityIds.length > 0) {
       await activityRepo.removeOrgAffiliationForActivities(activityIds)
+
+      svc.log.info({ memberId }, 'Fetching next batch to process!')
       activityIds = await activityRepo.getActivityIdsForMember(memberId, where, batchSize)
     }
 
