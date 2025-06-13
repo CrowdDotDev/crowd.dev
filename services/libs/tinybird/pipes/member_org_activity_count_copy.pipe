@@ -3,7 +3,7 @@ DESCRIPTION >
 
 NODE member_org_activity_count_copy_members_deduplicated
 SQL >
-    SELECT id, displayName, avatar FROM members FINAL
+    SELECT id, displayName, avatar, isBot FROM members FINAL
 
 NODE member_org_activity_count_copy_organizations_deduplicated
 SQL >
@@ -46,6 +46,7 @@ SQL >
         member_org_activity_count_copy_organizations_deduplicated
         ON member_org_activity_count_copy_organizations_deduplicated.id
         = member_org_activity_count_copy_activity_count.organizationId
+    WHERE member_org_activity_count_copy_members_deduplicated.isBot = 0
 
 TYPE COPY
 TARGET_DATASOURCE member_org_activity_count_copy_ds

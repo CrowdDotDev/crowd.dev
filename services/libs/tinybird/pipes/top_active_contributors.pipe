@@ -9,7 +9,7 @@ SQL >
         memberDisplayName as displayName,
         memberAvatar as avatar,
         memberRoles as roles,
-        count(activityCount) as activityCount
+        sum(activityCount) as activityCount
     FROM member_org_activity_count_copy_ds
     GROUP BY memberId, memberDisplayName, memberAvatar, memberRoles
     ORDER BY activityCount DESC
