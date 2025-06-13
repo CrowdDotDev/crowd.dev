@@ -19,6 +19,7 @@ import {
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
+  PlatformType,
   RateLimitError,
   WebhookType,
 } from '@crowd/types'
@@ -284,12 +285,16 @@ export default class IntegrationStreamService extends LoggerBase {
     )
 
     const nangoConfig = NANGO_CONFIG()
-
+    //TODO: use integrationId instead of tenantId in integrations other than linkedin using self-hosted-nango
+    const nangoId =
+      streamInfo.integrationType == PlatformType.LINKEDIN
+        ? `${streamInfo.integrationId}-${streamInfo.integrationType}`
+        : `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`
     const context: IProcessWebhookStreamContext = {
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
+        nangoId: nangoId,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
@@ -447,13 +452,17 @@ export default class IntegrationStreamService extends LoggerBase {
     )
 
     const nangoConfig = NANGO_CONFIG()
-
+    //TODO: use integrationId instead of tenantId in integrations other than linkedin using self-hosted-nango
+    const nangoId =
+      streamInfo.integrationType == PlatformType.LINKEDIN
+        ? `${streamInfo.integrationId}-${streamInfo.integrationType}`
+        : `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`
     const context: IProcessStreamContext = {
       onboarding: streamInfo.onboarding,
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
+        nangoId: nangoId,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
