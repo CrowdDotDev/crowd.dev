@@ -55,10 +55,10 @@ class ActivityRepository {
     )
   }
 
-  async removeOrganizationAffiliationForMembers(memberIds: string[]): Promise<void> {
+  async removeOrganizationAffiliationForMembers(memberId: string): Promise<void> {
     await this.connection.none(
-      `UPDATE "activityRelations" SET "organizationId" = null, "updatedAt" = now() WHERE "organizationId" IS NOT NULL AND "memberId" IN ($(memberIds:csv))`,
-      { memberIds },
+      `UPDATE "activityRelations" SET "organizationId" = null, "updatedAt" = now() WHERE "organizationId" IS NOT NULL AND "memberId" = $(memberId)`,
+      { memberId },
     )
   }
 }

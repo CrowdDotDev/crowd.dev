@@ -14,17 +14,17 @@ export async function getBotMembersWithOrgAffiliation(batchSize: number): Promis
   }
 }
 
-export async function removeBotMemberOrganization(memberIds: string[]): Promise<void> {
+export async function removeBotMemberOrganization(memberId: string): Promise<void> {
   try {
     const memberRepo = new OrganizationRepository(svc.postgres.writer.connection(), svc.log)
-    await memberRepo.deleteMemberOrganizations(memberIds)
+    await memberRepo.deleteMemberOrganizations(memberId)
   } catch (error) {
     svc.log.error(error, 'Error removing bot member organization!')
     throw error
   }
 }
 
-export async function unlinkOrganizationFromBotActivities(memberIds: string[]): Promise<void> {
+export async function unlinkOrganizationFromBotActivities(memberId: string): Promise<void> {
   try {
     const activityRepo = new ActivityRepository(
       svc.postgres.writer.connection(),
@@ -34,7 +34,7 @@ export async function unlinkOrganizationFromBotActivities(memberIds: string[]): 
 
     // unlink organization for bot activities
     // this is to prevent bots from showing up in insights leaderboard
-    await activityRepo.removeOrganizationAffiliationForMembers(memberIds)
+    await activityRepo.removeOrganizationAffiliationForMembers(memberId)
   } catch (error) {
     svc.log.error(error, 'Error unlinking organization from bot activities!')
     throw error

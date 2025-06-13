@@ -155,10 +155,10 @@ class OrganizationRepository {
     )
   }
 
-  async deleteMemberOrganizations(memberIds: string[]): Promise<void> {
+  async deleteMemberOrganizations(memberId: string): Promise<void> {
     await this.connection.none(
-      `UPDATE "memberOrganizations" SET "deletedAt" = now() WHERE "memberId" IN ($(memberIds:csv))`,
-      { memberIds },
+      `UPDATE "memberOrganizations" SET "deletedAt" = now() WHERE "memberId" = $(memberId)`,
+      { memberId },
     )
   }
 }
