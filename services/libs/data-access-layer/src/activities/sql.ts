@@ -25,7 +25,7 @@ import { IMemberSegmentDisplayAggregates } from '../members/types'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
-  IActivityRelationUpdateById,
+  IActivityRelationUpdate,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
@@ -1589,21 +1589,22 @@ export async function createOrUpdateRelations(
 
 export async function updateActivityRelationsById(
   qe: QueryExecutor,
-  data: IActivityRelationUpdateById,
+  id: string,
+  data: Partial<IActivityRelationUpdate>,
 ): Promise<void> {
   const fields: string[] = []
 
   for (const [key, value] of Object.entries(data)) {
-    if (value !== undefined && key !== 'activityId') {
+    if (value !== undefined) {
       fields.push(`"${key}" = $(${key})`)
     }
   }
 
   if (fields.length === 0) return
 
-  const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE "activityId" = $(activityId)`
+  const query = `UPDATE "activityRelations" SET ${fields.join(', ')}, "updatedAt" = now() WHERE "activityId" = $(id)`
 
-  await qe.result(query, data)
+  await qe.result(query, { ...data, id })
 }
 
 export async function moveActivityRelationsToAnotherMember(
