@@ -3,7 +3,6 @@ import CronTime from 'cron-time-generator'
 import { IS_PROD_ENV, distinct } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
-import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
