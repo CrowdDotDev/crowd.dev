@@ -1,0 +1,53 @@
+DESCRIPTION >
+    Returns activity count per member and organization
+
+NODE member_org_activity_count_copy_members_deduplicated
+SQL >
+    SELECT id, displayName, avatar FROM members FINAL
+
+NODE member_org_activity_count_copy_organizations_deduplicated
+SQL >
+    SELECT id, displayName, logo FROM organizations FINAL
+
+NODE member_org_activity_count_copy_activity_count
+DESCRIPTION >
+    Returns activity count per member and organization
+
+SQL >
+    SELECT memberId, organizationId, count(id) AS activityCount
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now())
+    GROUP BY memberId, organizationId
+    ORDER BY activityCount DESC
+
+NODE member_org_activity_count_mv_roles
+SQL >
+    SELECT memberId, roles FROM member_roles
+
+NODE member_org_activity_count_mv_result
+SQL >
+    SELECT
+        member_org_activity_count_copy_activity_count.memberId as memberId,
+        member_org_activity_count_copy_members_deduplicated.displayName as memberDisplayName,
+        member_org_activity_count_copy_members_deduplicated.avatar as memberAvatar,
+        member_org_activity_count_mv_roles.roles as memberRoles,
+        member_org_activity_count_copy_activity_count.organizationId as organizationId,
+        member_org_activity_count_copy_organizations_deduplicated.displayName
+        as organizationDisplayName,
+        member_org_activity_count_copy_organizations_deduplicated.logo as organizationLogo,
+        member_org_activity_count_copy_activity_count.activityCount
+    FROM member_org_activity_count_copy_activity_count
+    LEFT JOIN
+        member_org_activity_count_copy_members_deduplicated
+        ON member_org_activity_count_copy_members_deduplicated.id
+        = member_org_activity_count_copy_activity_count.memberId
+    LEFT JOIN member_org_activity_count_mv_roles USING (memberId)
+    LEFT JOIN
+        member_org_activity_count_copy_organizations_deduplicated
+        ON member_org_activity_count_copy_organizations_deduplicated.id
+        = member_org_activity_count_copy_activity_count.organizationId
+
+TYPE COPY
+TARGET_DATASOURCE member_org_activity_count_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 10 * * * *

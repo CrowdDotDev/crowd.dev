@@ -12,8 +12,8 @@ SQL >
 NODE member_roles_result
 SQL >
     %
-    SELECT memberId, groupArray(role) as roles
-    FROM maintainers_roles_mv_ds
+    SELECT memberId, groupUniqArray(role) as roles
+    FROM maintainers_roles_copy_ds
     WHERE
         1 = 1
         {% if defined(project) %} AND projectId IN (SELECT id from member_roles_project_ids) {% end %}

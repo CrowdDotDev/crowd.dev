@@ -9,7 +9,7 @@ SQL >
         organizationDisplayName as displayName,
         organizationLogo as logo,
         count(activityCount) as activityCount
-    FROM member_org_activity_count_mv_ds
+    FROM member_org_activity_count_copy_ds
     WHERE organizationId != ''
     GROUP BY organizationId, organizationDisplayName, organizationLogo
     ORDER BY activityCount DESC
