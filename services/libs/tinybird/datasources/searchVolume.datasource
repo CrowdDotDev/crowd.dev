@@ -7,6 +7,6 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updated_at`
 
 ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYear(updatedAt)
-ENGINE_SORTING_KEY projectId, keyword
+ENGINE_PARTITION_KEY toYear(dataTimestamp)
+ENGINE_SORTING_KEY projectId
 ENGINE_VER updatedAt
