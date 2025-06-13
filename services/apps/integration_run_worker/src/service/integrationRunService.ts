@@ -10,7 +10,7 @@ import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState, PlatformType } from '@crowd/types'
 
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
 
@@ -295,13 +295,17 @@ export default class IntegrationRunService extends LoggerBase {
     const cache = new RedisCache(`int-${runInfo.integrationType}`, this.redisClient, this.log)
 
     const nangoConfig = NANGO_CONFIG()
-
+    //TODO: use integrationId instead of tenantId in integrations other than linkedin using self-hosted-nango
+    const nangoId =
+      runInfo.integrationType == PlatformType.LINKEDIN
+        ? `${runInfo.integrationId}-${runInfo.integrationType}`
+        : `${DEFAULT_TENANT_ID}-${runInfo.integrationType}`
     const context: IGenerateStreamsContext = {
       onboarding: runInfo.onboarding,
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${runInfo.integrationType}`,
+        nangoId: nangoId,
       },
       platformSettings: PLATFORM_CONFIG(runInfo.integrationType),
       integration: {
