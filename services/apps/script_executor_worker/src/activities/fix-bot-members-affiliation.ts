@@ -32,9 +32,18 @@ export async function unlinkOrganizationFromBotActivities(memberId: string): Pro
       svc.questdbSQL,
     )
 
-    // unlink organization for bot activities
-    // this is to prevent bots from showing up in insights leaderboard
-    await activityRepo.removeOrganizationAffiliationForMembers(memberId)
+    const batchSize = 1000
+    const where = '"organizationId" is not null'
+
+    // get activity ids for member in batch of 1000
+    let activityIds = await activityRepo.getActivityIdsForMember(memberId, where, batchSize)
+
+    while (activityIds.length > 0) {
+      await activityRepo.removeOrgAffiliationForActivities(activityIds)
+      activityIds = await activityRepo.getActivityIdsForMember(memberId, where, batchSize)
+    }
+
+    svc.log.info({ memberId }, 'Unlinked organization from bot activities!')
   } catch (error) {
     svc.log.error(error, 'Error unlinking organization from bot activities!')
     throw error

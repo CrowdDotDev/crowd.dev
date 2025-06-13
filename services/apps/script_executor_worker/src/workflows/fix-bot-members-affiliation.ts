@@ -32,6 +32,7 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
       await syncMembersBatch([memberId], true)
     } catch (error) {
       console.error('Error fixing bot member affiliation!', error)
+      throw error
     }
   }
 
