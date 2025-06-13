@@ -1,0 +1,12 @@
+SCHEMA >
+    `id` UInt64 `json:$.record.id`,
+    `projectId` UUID `json:$.record.project_id`,
+    `keyword` String `json:$.record.keyword`,
+    `dataTimestamp` DateTime64(3) `json:$.record.data_timestamp`,
+    `volume` UInt64 `json:$.record.volume`,
+    `updatedAt` DateTime64(3) `json:$.record.updated_at`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(updatedAt)
+ENGINE_SORTING_KEY projectId, keyword
+ENGINE_VER updatedAt
