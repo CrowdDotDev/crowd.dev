@@ -1,8 +1,6 @@
 import { DbConnOrTx, DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IActivityRelationUpdateById } from '../data_sink_worker/repo/activity.data'
-
 import { EntityType } from './types'
 
 class ActivityRepository {
@@ -57,7 +55,7 @@ class ActivityRepository {
     )
   }
 
-  async removeOrganizationForMembers(memberIds: string[]): Promise<void> {
+  async removeOrganizationAffiliationForMembers(memberIds: string[]): Promise<void> {
     await this.connection.none(
       `UPDATE "activityRelations" SET "organizationId" = null, "updatedAt" = now() WHERE "organizationId" IS NOT NULL AND "memberId" IN ($(memberIds:csv))`,
       { memberIds },

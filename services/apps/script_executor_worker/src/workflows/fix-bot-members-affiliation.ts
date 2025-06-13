@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
@@ -9,6 +8,7 @@ const {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  syncMembersBatch,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -29,6 +29,7 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
     await Promise.all([
       unlinkOrganizationFromBotActivities(chunk),
       removeBotMemberOrganization(chunk),
+      syncMembersBatch(chunk, true),
     ])
   }
 

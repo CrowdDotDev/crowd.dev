@@ -1,7 +1,6 @@
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import OrganizationRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
-import { formatQuery } from '@crowd/data-access-layer/src/queryExecutor'
 
 import { svc } from '../main'
 
@@ -35,7 +34,7 @@ export async function unlinkOrganizationFromBotActivities(memberIds: string[]): 
 
     // unlink organization for bot activities
     // this is to prevent bots from showing up in insights leaderboard
-    await activityRepo.removeOrganizationForMembers(memberIds)
+    await activityRepo.removeOrganizationAffiliationForMembers(memberIds)
   } catch (error) {
     svc.log.error(error, 'Error unlinking organization from bot activities!')
     throw error
