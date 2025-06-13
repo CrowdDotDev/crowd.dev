@@ -26,11 +26,9 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
 
   for (const chunk of chunkArray(memberIds, 50)) {
     if (args.testRun) console.log('Processing chunk', chunk)
-    await Promise.all([
-      unlinkOrganizationFromBotActivities(chunk),
-      removeBotMemberOrganization(chunk),
-      syncMembersBatch(chunk, true),
-    ])
+    await removeBotMemberOrganization(chunk)
+    await unlinkOrganizationFromBotActivities(chunk)
+    await syncMembersBatch(chunk, true)
   }
 
   if (args.testRun) {
