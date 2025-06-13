@@ -1,0 +1,9 @@
+DESCRIPTION >
+    Serves the project search volume data for the `Search queries` widget
+
+NODE searchVolume_pipe
+SQL >
+
+    SELECT * FROM searchVolume
+
+
