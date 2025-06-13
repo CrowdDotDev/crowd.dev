@@ -1,0 +1,34 @@
+NODE maintainers_roles_copy_project_repos
+SQL >
+    SELECT id, repo AS repository FROM insightsProjects ARRAY JOIN repositories AS repo
+
+NODE maintainers_roles_copy_member_identities_deduplicated
+SQL >
+    SELECT id, memberId FROM memberIdentities
+
+NODE maintainers_roles_copy_maintainers_deduplicated
+SQL >
+    SELECT id, identityId, repoUrl, role FROM maintainersInternal
+
+NODE maintainers_roles_copy_result
+SQL >
+    SELECT
+        maintainers_roles_copy_maintainers_deduplicated.id as id,
+        maintainers_roles_copy_maintainers_deduplicated.repoUrl as repoUrl,
+        maintainers_roles_copy_maintainers_deduplicated.role as role,
+        maintainers_roles_copy_member_identities_deduplicated.memberId as memberId,
+        maintainers_roles_copy_project_repos.id as projectId
+    FROM maintainers_roles_copy_maintainers_deduplicated
+    JOIN
+        maintainers_roles_copy_member_identities_deduplicated
+        ON maintainers_roles_copy_member_identities_deduplicated.id
+        = maintainers_roles_copy_maintainers_deduplicated.identityId
+    JOIN
+        maintainers_roles_copy_project_repos
+        ON maintainers_roles_copy_project_repos.repository
+        = maintainers_roles_copy_maintainers_deduplicated.repoUrl
+
+TYPE COPY
+TARGET_DATASOURCE maintainers_roles_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 * * * *

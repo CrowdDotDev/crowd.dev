@@ -12,6 +12,7 @@ SQL >
                 id,
                 displayName,
                 contributionPercentage,
+                roles,
                 sum(contributionPercentage) OVER (
                     ORDER BY contributionPercentage DESC, id
                 ) AS contributionPercentageRunningTotal
@@ -19,3 +20,4 @@ SQL >
         ) t
     cross join active_contributors
     WHERE contributionPercentageRunningTotal <= 51
+    ORDER BY contributionPercentageRunningTotal ASC
