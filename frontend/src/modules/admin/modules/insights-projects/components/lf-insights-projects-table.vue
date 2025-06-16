@@ -91,9 +91,12 @@ import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
-import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
-import { InsightsProjectModel } from '../models/insights-project.model';
+import { INSIGHTS_PROJECTS_SERVICE } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
+import Message from '@/shared/message/message';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
+import { InsightsProjectModel, InsightsProjectRequest } from '../models/insights-project.model';
 
 const emit = defineEmits<{(e: 'onEditProject', id: string): void;
   (e: 'onDeleteProject', id: string): void;
@@ -104,10 +107,33 @@ defineProps<{
 }>();
 
 const changeProjectEnabled = (projectId: string, enabled: boolean) => {
-  InsightsProjectsService.update(projectId, {
-    enabled,
-  });
+  updateMutation.mutate({ id: projectId, form: { enabled } });
 };
+
+const queryClient = useQueryClient();
+const onSuccess = (res: InsightsProjectModel) => {
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
+  });
+  Message.closeAll();
+  Message.success(
+    'Insights project updated successfully',
+  );
+};
+
+const onError = () => {
+  Message.closeAll();
+  Message.error(
+    'Something went wrong while updating the project',
+  );
+};
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, form }: { id: string; form: InsightsProjectRequest }) => INSIGHTS_PROJECTS_SERVICE.update(id, form),
+  onSuccess,
+  onError,
+});
+
 </script>
 
 <script lang="ts">
