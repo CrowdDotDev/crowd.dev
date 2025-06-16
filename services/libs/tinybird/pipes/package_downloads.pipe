@@ -1,0 +1,179 @@
+NODE package_downloads_filtered
+SQL >
+
+    %
+    SELECT *
+    FROM packageDownloads p FINAL
+    where
+        insightsProjectId = (select insightsProjectId from segments_filtered)
+        {% if defined(startDate) %}
+            AND p.date > toDate(
+                {{ DateTime(startDate, description="Filter package downloads after", required=False) }}
+            )
+        {% end %}
+        {% if defined(endDate) %}
+            AND p.date < toDate(
+                {{ DateTime(endDate, description="Filter package downloads before", required=False) }}
+            )
+        {% end %}
+        {% if defined(ecosystem) %}
+            AND p.ecosystem
+            = {{ String(ecosystem, description="Filter package download ecosystem", required=False) }}
+        {% end %}
+        {% if defined(name) %}
+            AND p.name = {{ String(name, description="Filter by package name", required=False) }}
+        {% end %}
+
+
+
+NODE package_downloads_timeseries_bounds
+SQL >
+
+    %
+        {% if defined(startDate) and not defined(endDate) %}
+            select toDate({{ startDate }}) as actual_start_date, toDate(now()) as actual_end_date
+        {% end %}
+        {% if not defined(startDate) and defined(endDate) %}
+            select
+                min(package_downloads_filtered.date) as actual_start_date,
+                toDate({{ endDate }}) as actual_end_date
+            from package_downloads_filtered
+            where package_downloads_filtered.date > '1980-01-01'
+        {% end %}
+        {% if not defined(startDate) and not defined(endDate) %}
+            select
+                min(toDate(package_downloads_filtered.date)) as actual_start_date,
+                toDate(now()) as actual_end_date
+            from package_downloads_filtered
+            where package_downloads_filtered.date > '1980-01-01'
+        {% end %}
+        {% if defined(startDate) and defined(endDate) %}
+            select toDate({{ startDate }}) as actual_start_date, toDate({{ endDate }}) as actual_end_date
+        {% end %}
+
+
+
+NODE package_downloads_generate_timeseries
+SQL >
+
+    %
+        SELECT DISTINCT
+            CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(addDays(package_downloads_timeseries_bounds.actual_start_date, number))
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(addDays(package_downloads_timeseries_bounds.actual_start_date, number * 7))
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(addMonths(package_downloads_timeseries_bounds.actual_start_date, number))
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(addMonths(package_downloads_timeseries_bounds.actual_start_date, number * 3))
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(addYears(package_downloads_timeseries_bounds.actual_start_date, number))
+            END AS "startDate",
+            CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(addDays(actual_start_date, number))
+                WHEN {{ granularity }} = 'weekly'
+                THEN toDate(toStartOfWeek(addDays(actual_start_date, number * 7)) + INTERVAL 6 DAY)
+                WHEN {{ granularity }} = 'monthly'
+                THEN
+                    toDate(
+                        toStartOfMonth(addMonths(actual_start_date, number))
+                        + INTERVAL 1 MONTH
+                        - INTERVAL 1 DAY
+                    )
+                WHEN {{ granularity }} = 'quarterly'
+                THEN
+                    toDate(
+                        toStartOfQuarter(addMonths(actual_start_date, number * 3))
+                        + INTERVAL 3 MONTH
+                        - INTERVAL 1 DAY
+                    )
+                WHEN {{ granularity }} = 'yearly'
+                THEN
+                    toDate(
+                        toStartOfYear(addYears(actual_start_date, number))
+                        + INTERVAL 1 YEAR
+                        - INTERVAL 1 DAY
+                    )
+            END AS "endDate"
+        FROM numbers(1000)
+        CROSS JOIN
+            (
+                SELECT
+                    CASE
+                        WHEN {{ granularity }} = 'weekly'
+                        THEN toStartOfWeek(actual_start_date)
+                        WHEN {{ granularity }} = 'monthly'
+                        THEN toStartOfMonth(actual_start_date)
+                        WHEN {{ granularity }} = 'quarterly'
+                        THEN toStartOfQuarter(actual_start_date)
+                        WHEN {{ granularity }} = 'yearly'
+                        THEN toStartOfYear(actual_start_date)
+                        ELSE actual_start_date
+                    END AS actual_start_date,
+                    actual_end_date
+                FROM package_downloads_timeseries_bounds
+            ) package_downloads_timeseries_bounds
+        WHERE "startDate" >= actual_start_date AND "startDate" < actual_end_date
+
+
+
+NODE package_downloads_initial_aggregation
+SQL >
+
+    %
+    SELECT
+        {% if defined(granularity) %} p.date, {% end %}
+        sum(p.downloadsCount) as downloadsCount,
+        sum(p.dockerDownloadsCount) as "dockerDownloadsCount",
+        sum(p.dockerDependentsCount) as "dockerDependentsCount",
+        sum(p.dependentPackagesCount) as "dependentPackagesCount",
+        sum(p.dependentReposCount) as "dependentReposCount"
+    FROM package_downloads_filtered p
+    group by p.insightsProjectId {% if defined(granularity) %}, p.date {% end %}
+
+
+
+NODE package_downloads_timeseries_merge
+SQL >
+
+    %
+        {% set onlyContributions = False %}
+        {% if defined(granularity) %}
+            SELECT
+                ds."startDate",
+                ds."endDate",
+                max(pdf.downloadsCount) AS "downloadsCount"
+            FROM package_downloads_generate_timeseries ds
+            LEFT JOIN
+                package_downloads_initial_aggregation pdf
+                ON CASE
+                    WHEN {{ granularity }} = 'daily'
+                    THEN toDate(pdf.date)
+                    WHEN {{ granularity }} = 'weekly'
+                    THEN toStartOfWeek(pdf.date)
+                    WHEN {{ granularity }} = 'monthly'
+                    THEN toStartOfMonth(pdf.date)
+                    WHEN {{ granularity }} = 'quarterly'
+                    THEN toStartOfQuarter(pdf.date)
+                    WHEN {{ granularity }} = 'yearly'
+                    THEN toStartOfYear(pdf.date)
+                END
+                = ds."startDate"
+            GROUP BY ds."startDate", ds."endDate"
+            order by ds."startDate"
+        {% else %} SELECT 1
+        {% end %}
+
+
+
+NODE package_downloads_result
+SQL >
+
+    %
+    {% if not defined(granularity) %} SELECT * FROM package_downloads_initial_aggregation
+    {% else %} select * from package_downloads_timeseries_merge
+    {% end %}
+
+
