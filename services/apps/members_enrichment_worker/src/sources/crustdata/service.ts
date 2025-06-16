@@ -61,13 +61,12 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     },
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
+      // Note: Crustdata API docs specify skills as string, but API returns string[]
+      // So we're handling both cases in the transformer.
       transform: (skills: string | string[]) => {
         if (!skills) {
           return []
         }
-
-        console.log('[DEBUG] skills', JSON.stringify(skills))
-        console.log('[DEBUG] typeof skills', typeof skills)
 
         const arr = Array.isArray(skills) ? skills : skills.split(',')
 
