@@ -160,40 +160,43 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   private async getDataUsingLinkedinHandle(
     handle: string,
   ): Promise<IMemberEnrichmentDataCrustdata> {
-    const url = `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        linkedin_profile_url: `https://linkedin.com/in/${handle}`,
-        enrich_realtime: true,
-      },
-      headers: {
-        Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
-      },
-    }
+    let response: IMemberEnrichmentCrustdataAPIResponse[]
 
     try {
-      const response: IMemberEnrichmentCrustdataAPIResponse[] = (await axios(config)).data
-
-      if (response.length === 0 || this.isErrorResponse(response[0])) {
-        return null
+      const url = `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          linkedin_profile_url: `https://linkedin.com/in/${handle}`,
+          enrich_realtime: true,
+        },
+        headers: {
+          Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
+        },
+        validateStatus: function (status) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
       }
 
-      return response[0]
-    } catch (error) {
-      const status = error.response?.status
-      const message = error.message
-
-      // Handle HTTP errors gracefully
-      if (status === 404) {
-        this.log.info(`LinkedIn profile not found: ${handle}`)
+      response = (await axios(config)).data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        this.log.warn(
+          `Axios error occurred while getting Crustdata data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+        throw new Error(`Crustdata enrichment request failed with status: ${err.response?.status}`)
       } else {
-        this.log.warn(`Failed to enrich LinkedIn profile: ${handle}`, { status, message })
+        this.log.error(`Unexpected error while getting Crustdata data: ${err}`)
+        throw new Error('An unexpected error occurred')
       }
+    }
 
+    if (response.length === 0 || this.isErrorResponse(response[0])) {
       return null
     }
+
+    return response[0]
   }
 
   private isErrorResponse(
