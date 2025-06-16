@@ -41,7 +41,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     MemberEnrichmentSource.SERP,
   ]
 
-  public enrichMembersWithActivityMoreThan = 1000
+  public enrichMembersWithActivityMoreThan = 100
 
   public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
