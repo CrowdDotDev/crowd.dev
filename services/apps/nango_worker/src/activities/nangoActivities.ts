@@ -57,7 +57,7 @@ export async function canConnectGithub(): Promise<boolean> {
     return true
   }
 
-  // we can allow max 10 per day so every 150 minutes (2.5 hours) we can connect 1
+  // we can allow max 10 per day so every 120 minutes (2 hours) we can connect 1
   const now = new Date()
 
   // time is milliseconds
