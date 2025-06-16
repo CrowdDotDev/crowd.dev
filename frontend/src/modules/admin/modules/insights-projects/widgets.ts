@@ -156,12 +156,10 @@ export const WIDGETS_GROUPS = [
   },
 ];
 
-export const defaultWidgetsValues: {
-  [key in Widgets]: {
-    enabled: boolean;
-    platform: Platform[];
-  };
-} = {
+export const defaultWidgetsValues: Record<Widgets, {
+  enabled: boolean;
+  platform: Platform[];
+}> = {
   // Contributors
   [Widgets.ACTIVE_CONTRIBUTORS]: {
     enabled: true,
