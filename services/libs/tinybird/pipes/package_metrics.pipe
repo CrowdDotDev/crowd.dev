@@ -144,7 +144,11 @@ SQL >
             SELECT
                 ds."startDate",
                 ds."endDate",
-                max(pdf.downloadsCount) AS "downloadsCount"
+                max(pdf.downloadsCount) AS "downloadsCount",
+                max(pdf.dockerDownloadsCount) AS "dockerDownloadsCount",
+                max(pdf.dockerDependentsCount) AS "dockerDependentsCount",
+                max(pdf.dependentPackagesCount) AS "dependentPackagesCount",
+                max(pdf.dependentReposCount) AS "dependentReposCount"
             FROM package_downloads_generate_timeseries ds
             LEFT JOIN
                 package_downloads_initial_aggregation pdf
