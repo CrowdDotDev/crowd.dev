@@ -16,7 +16,9 @@ SQL >
     FROM maintainers_roles_copy_ds
     WHERE
         1 = 1
-        {% if defined(project) %} AND projectId IN (SELECT id from member_roles_project_ids) {% end %}
+        {% if defined(project) %}
+            AND insightsProjectId IN (SELECT id from member_roles_project_ids)
+        {% end %}
         {% if defined(repo) %}
             AND repoUrl = {{ String(repo, description="Filter activity repo", required=False) }}
         {% end %}

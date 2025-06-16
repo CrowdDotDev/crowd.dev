@@ -3,7 +3,7 @@ SCHEMA >
     `repoUrl` String,
     `role` String,
     `memberId` String,
-    `projectId` String
+    `insightsProjectId` String
 
 ENGINE MergeTree
-ENGINE_SORTING_KEY projectId, repoUrl
+ENGINE_SORTING_KEY insightsProjectId, repoUrl

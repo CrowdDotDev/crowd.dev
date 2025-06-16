@@ -17,7 +17,7 @@ SQL >
         maintainers_roles_copy_maintainers_deduplicated.repoUrl as repoUrl,
         maintainers_roles_copy_maintainers_deduplicated.role as role,
         maintainers_roles_copy_member_identities_deduplicated.memberId as memberId,
-        maintainers_roles_copy_project_repos.id as projectId
+        maintainers_roles_copy_project_repos.id as insightsProjectId
     FROM maintainers_roles_copy_maintainers_deduplicated
     JOIN
         maintainers_roles_copy_member_identities_deduplicated
