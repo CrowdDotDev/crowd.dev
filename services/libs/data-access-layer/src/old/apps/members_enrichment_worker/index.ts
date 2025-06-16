@@ -295,7 +295,7 @@ export async function setMemberEnrichmentUpdateDate(
 
 export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string): Promise<void> {
   await tx.none(
-    `update "memberEnrichments" set "lastTriedAt" = null where "memberId" = $(memberId)`,
+    `update "memberEnrichments" set "lastTriedAt" = now() where "memberId" = $(memberId)`,
     { memberId },
   )
 }

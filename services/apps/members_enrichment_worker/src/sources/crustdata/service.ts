@@ -61,14 +61,17 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     },
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
-      transform: (skills: string) => {
-        // Handle null, undefined, or empty string
-        if (!skills || skills.trim() === '') {
+      transform: (skills: string | string[]) => {
+        if (!skills) {
           return []
         }
 
-        return skills
-          .split(',')
+        console.log('[DEBUG] skills', JSON.stringify(skills))
+        console.log('[DEBUG] typeof skills', typeof skills)
+
+        const arr = Array.isArray(skills) ? skills : skills.split(',')
+
+        return arr
           .map((s) => s.trim())
           .filter(Boolean)
           .sort()
