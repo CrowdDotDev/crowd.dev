@@ -173,13 +173,27 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       },
     }
 
-    const response: IMemberEnrichmentCrustdataAPIResponse[] = (await axios(config)).data
+    try {
+      const response: IMemberEnrichmentCrustdataAPIResponse[] = (await axios(config)).data
 
-    if (response.length === 0 || this.isErrorResponse(response[0])) {
+      if (response.length === 0 || this.isErrorResponse(response[0])) {
+        return null
+      }
+
+      return response[0]
+    } catch (error) {
+      const status = error.response?.status
+      const message = error.message
+
+      // Handle HTTP errors gracefully
+      if (status === 404) {
+        this.log.info(`LinkedIn profile not found: ${handle}`)
+      } else {
+        this.log.warn(`Failed to enrich LinkedIn profile: ${handle}`, { status, message })
+      }
+
       return null
     }
-
-    return response[0]
   }
 
   private isErrorResponse(
