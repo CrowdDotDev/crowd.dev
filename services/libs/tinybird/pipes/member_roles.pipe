@@ -1,13 +1,4 @@
-NODE member_roles_project_ids
-SQL >
-    %
-    SELECT id
-    FROM insightsProjects
-    WHERE
-        1 = 1
-        {% if defined(project) %}
-            AND slug = {{ String(project, description="Filter by project slug") }}
-        {% end %}
+TOKEN "member_roles_endpoint_read_1372" READ
 
 NODE member_roles_result
 SQL >
@@ -17,7 +8,7 @@ SQL >
     WHERE
         1 = 1
         {% if defined(project) %}
-            AND insightsProjectId IN (SELECT id from member_roles_project_ids)
+            AND insightsProjectId = (SELECT insightsProjectId FROM segments_filtered)
         {% end %}
         {% if defined(repo) %}
             AND repoUrl = {{ String(repo, description="Filter activity repo", required=False) }}
