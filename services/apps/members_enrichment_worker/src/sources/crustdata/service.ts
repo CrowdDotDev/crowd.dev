@@ -62,8 +62,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
       transform: (skills: string) => {
-        // check if skills is an empty string
-        if (skills.trim() === '') {
+        // Handle null, undefined, or empty string
+        if (!skills || skills.trim() === '') {
           return []
         }
 
