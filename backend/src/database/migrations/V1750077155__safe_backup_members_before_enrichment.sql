@@ -1,15 +1,3 @@
--- new table for tracking member enrichments
-create table "memberEnrichments" (
-    "memberId"       uuid        not null,
-    "lastTriedAt"    timestamptz not null default now(),
-    "lastUpdatedAt"  timestamptz null,
-
-    primary key ("memberId")
-);
--- we can also drop this column since we have a new table now
-alter table members
-    drop column "lastEnriched";
-
 -- backup members table
 create table members_backup_16_06_2025 as
 select *
