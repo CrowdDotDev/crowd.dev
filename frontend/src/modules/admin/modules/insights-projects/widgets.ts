@@ -156,7 +156,12 @@ export const WIDGETS_GROUPS = [
   },
 ];
 
-export const defaultWidgetsValues = {
+export const defaultWidgetsValues: {
+  [key in Widgets]: {
+    enabled: boolean;
+    platform: Platform[];
+  };
+} = {
   // Contributors
   [Widgets.ACTIVE_CONTRIBUTORS]: {
     enabled: true,
@@ -215,10 +220,14 @@ export const defaultWidgetsValues = {
   //   enabled: false,
   //   platform: [Platform.ALL],
   // },
-  // [Widgets.PACKAGE_DOWNLOADS]: {
-  //   enabled: false,
-  //   platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
-  // },
+  [Widgets.PACKAGE_DOWNLOADS]: {
+    enabled: true,
+    platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
+  },
+  [Widgets.PACKAGE_DEPENDENCY]: {
+    enabled: true,
+    platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
+  },
   [Widgets.MAILING_LIST_MESSAGES]: {
     enabled: true,
     platform: [Platform.GROUPS_IO],

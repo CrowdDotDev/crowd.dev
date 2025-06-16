@@ -320,21 +320,36 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
 const fetchIntegration = async (segmentId: string) => {
   isLoadingIntegrations.value = true;
 
-  const response = await IntegrationService.list(null, null, null, null, [segmentId]);
-  const platforms: Platform[] = response.rows.map((integration: any) => integration.platform);
+  const response = await IntegrationService.list(null, null, null, null, [
+    segmentId,
+  ]);
+  const platforms: Platform[] = response.rows.map(
+    (integration: any) => integration.platform,
+  );
 
   form.widgets = Object.keys(defaultWidgetsValues)
-    .filter((value: any) => !!defaultWidgetsValues[value as Widgets].enabled)
-    .reduce((acc, key: string) => ({
-      ...acc,
-      [key]: {
-        enabled: defaultWidgetsValues[key as Widgets].platform
-          .includes(Platform.ALL) || platforms
-          .some((platform) => defaultWidgetsValues[key as Widgets].platform
-            .includes(platform)),
-        platform: defaultWidgetsValues[key as Widgets].platform,
-      },
-    }), {});
+    .filter(
+      (value: string) => !!defaultWidgetsValues[value as Widgets]
+        .enabled,
+    )
+    .reduce(
+      (acc, key: string) => ({
+        ...acc,
+        [key]: {
+          enabled:
+            defaultWidgetsValues[
+              key as Widgets
+            ].platform.includes(Platform.ALL)
+            || platforms.some((platform) => defaultWidgetsValues[
+                key as Widgets
+            ].platform.includes(platform)),
+          platform:
+            defaultWidgetsValues[key as Widgets]
+              .platform,
+        },
+      }),
+      {},
+    );
 
   isLoadingIntegrations.value = false;
 };
@@ -358,15 +373,14 @@ watch(
   { immediate: true },
 );
 
-watch(() => form.segmentId, (updatedSegmentId, previousSegmentId) => {
-  if (
-    !!updatedSegmentId
-    && updatedSegmentId !== previousSegmentId
-  ) {
-    fetchIntegration(updatedSegmentId);
-  }
-});
-
+watch(
+  () => form.segmentId,
+  (updatedSegmentId, previousSegmentId) => {
+    if (!!updatedSegmentId && updatedSegmentId !== previousSegmentId) {
+      fetchIntegration(updatedSegmentId);
+    }
+  },
+);
 </script>
 
 <script lang="ts">
