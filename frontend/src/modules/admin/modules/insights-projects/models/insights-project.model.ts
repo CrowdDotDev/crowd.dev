@@ -30,18 +30,19 @@ export interface InsightsProjectModel {
 }
 
 export interface InsightsProjectRequest {
-  segmentId: string;
-  name: string;
-  slug: string;
-  description: string;
-  logoUrl: string;
-  collections: string[]; // assuming collectionsIds is a string array
+  segmentId?: string;
+  name?: string;
+  slug?: string;
+  description?: string;
+  logoUrl?: string;
+  collections?: string[]; // assuming collectionsIds is a string array
   organizationId?: string;
-  website: string;
-  github: string;
-  twitter: string;
-  linkedin: string;
-  repositories: string[]; // assuming url is a string
-  keywords: string[];
-  widgets: string[]; // enabled widget keys
+  website?: string;
+  github?: string;
+  twitter?: string;
+  linkedin?: string;
+  repositories?: string[]; // assuming url is a string
+  keywords?: string[];
+  widgets?: string[]; // enabled widget keys
+  enabled?: boolean;
 }

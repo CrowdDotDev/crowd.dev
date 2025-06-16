@@ -32,7 +32,8 @@ SQL >
             required=False,
         ) == 'ASC' %} ASC
         {% else %} DESC
-        {% end %}
+        {% end %},
+        projectCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
 
