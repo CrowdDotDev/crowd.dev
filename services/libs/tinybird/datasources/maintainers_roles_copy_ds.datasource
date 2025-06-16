@@ -1,0 +1,9 @@
+SCHEMA >
+    `id` String,
+    `repoUrl` String,
+    `role` String,
+    `memberId` String,
+    `insightsProjectId` String
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY insightsProjectId, repoUrl
