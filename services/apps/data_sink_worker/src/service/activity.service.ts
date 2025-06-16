@@ -126,7 +126,10 @@ export default class ActivityService extends LoggerBase {
           objectMemberId: activity.objectMemberId,
           objectMemberUsername: activity.objectMemberUsername,
           segmentId: segmentId,
-          organizationId: toUpdate.organizationId || original.organizationId,
+          // if the member is bot, we don't want to affiliate the activity with an organization
+          organizationId: memberInfo.isBot
+            ? null
+            : toUpdate.organizationId || original.organizationId,
           isBotActivity: memberInfo.isBot,
           isTeamMemberActivity: memberInfo.isTeamMember,
           importHash: original.importHash,
@@ -1059,12 +1062,28 @@ export default class ActivityService extends LoggerBase {
         continue
       }
 
-      // associate activity with organization
-      payload.organizationId = await this.memberAffiliationService.findAffiliation(
-        payload.memberId,
-        payload.segmentId,
-        payload.activity.timestamp,
-      )
+      const isBot = this.memberAttValue(
+        MemberAttributeName.IS_BOT,
+        payload.activity.member,
+        payload.platform,
+        payload.dbMember,
+      ) as boolean
+
+      if (!isBot) {
+        // associate activity with organization
+        payload.organizationId = await this.memberAffiliationService.findAffiliation(
+          payload.memberId,
+          payload.segmentId,
+          payload.activity.timestamp,
+        )
+      } else {
+        // for bot members, we don't want to affiliate the activity with an organization
+        payload.organizationId = null
+        this.log.trace(
+          { memberId: payload.memberId },
+          'Skipping organization affiliation for bot member!',
+        )
+      }
 
       if (!payload.memberId) {
         this.log.error(`Member id not set - can't continue!`)
@@ -1111,12 +1130,7 @@ export default class ActivityService extends LoggerBase {
             organizationId: payload.organizationId,
           },
           {
-            isBot: this.memberAttValue(
-              MemberAttributeName.IS_BOT,
-              payload.activity.member,
-              payload.platform,
-              payload.dbMember,
-            ) as boolean,
+            isBot,
             isTeamMember: this.memberAttValue(
               MemberAttributeName.IS_TEAM_MEMBER,
               payload.activity.member,
