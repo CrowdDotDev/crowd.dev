@@ -1,4 +1,4 @@
-import { singleOrDefault } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
 import {
   addGithubNangoConnection,
   fetchIntegrationById,
@@ -21,6 +21,7 @@ import {
   initNangoCloudClient,
   startNangoSync as startNangoSyncCloud,
 } from '@crowd/nango'
+import { RedisCache } from '@crowd/redis'
 import { IntegrationResultType, PlatformType } from '@crowd/types'
 
 import { svc } from '../main'
@@ -29,6 +30,47 @@ import {
   IGithubRepoData,
   IProcessNangoWebhookArguments,
 } from '../types'
+
+async function setLastConnectTs(): Promise<void> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  await redisCache.set('lastConnectTs', new Date().toISOString())
+}
+
+async function getLastConnectTs(): Promise<Date | undefined> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  const lastConnect = await redisCache.get('lastConnectTs')
+  if (!lastConnect) {
+    return undefined
+  }
+
+  return new Date(lastConnect)
+}
+
+export async function canConnectGithub(): Promise<boolean> {
+  if (IS_DEV_ENV || IS_STAGING_ENV) {
+    return true
+  }
+
+  const lastConnectDate = await getLastConnectTs()
+
+  if (!lastConnectDate) {
+    return true
+  }
+
+  // we can allow max 10 per day so every 150 minutes (2.5 hours) we can connect 1
+  const now = new Date()
+
+  // time is milliseconds
+  const diff = now.getTime() - lastConnectDate.getTime()
+
+  // how many hours
+  const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
+  if (hours >= 2.0) {
+    return true
+  }
+
+  return false
+}
 
 export async function processNangoWebhook(
   args: IProcessNangoWebhookArguments,
@@ -251,6 +293,8 @@ export async function createGithubConnection(
     connectionData.connection_config.installation_id,
     integrationId,
   )
+
+  await setLastConnectTs()
 
   return connectionId
 }

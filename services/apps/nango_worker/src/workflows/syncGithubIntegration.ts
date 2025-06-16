@@ -25,14 +25,16 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
     // create connections for repos that are not already connected
     for (const repo of result.reposToSync) {
-      // create nango connection
-      const connectionId = await activity.createGithubConnection(integrationId, repo)
+      if (await activity.canConnectGithub()) {
+        // create nango connection
+        const connectionId = await activity.createGithubConnection(integrationId, repo)
 
-      // add connection to integrations.settings.nangoMapping object
-      await activity.setGithubConnection(integrationId, repo, connectionId)
+        // add connection to integrations.settings.nangoMapping object
+        await activity.setGithubConnection(integrationId, repo, connectionId)
 
-      // start nango sync
-      await activity.startNangoSync(result.providerConfigKey, connectionId)
+        // start nango sync
+        await activity.startNangoSync(result.providerConfigKey, connectionId)
+      }
     }
   }
 }
