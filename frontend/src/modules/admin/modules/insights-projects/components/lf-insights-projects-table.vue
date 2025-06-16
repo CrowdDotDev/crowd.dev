@@ -67,7 +67,9 @@
           <lf-switch
             :model-value="project.enabled"
             size="small"
-            @update:model-value="changeProjectEnabled(project.id, $event as boolean)"
+            @update:model-value="
+              changeProjectEnabled(project.id, $event as boolean)
+            "
           />
         </lf-table-cell>
 
@@ -96,7 +98,10 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import Message from '@/shared/message/message';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
-import { InsightsProjectModel, InsightsProjectRequest } from '../models/insights-project.model';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from '../models/insights-project.model';
 
 const emit = defineEmits<{(e: 'onEditProject', id: string): void;
   (e: 'onDeleteProject', id: string): void;
@@ -106,26 +111,18 @@ defineProps<{
   projects: InsightsProjectModel[];
 }>();
 
-const changeProjectEnabled = (projectId: string, enabled: boolean) => {
-  updateMutation.mutate({ id: projectId, form: { enabled } });
-};
-
 const queryClient = useQueryClient();
 const onSuccess = (res: InsightsProjectModel) => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
   Message.closeAll();
-  Message.success(
-    'Insights project updated successfully',
-  );
+  Message.success('Insights project updated successfully');
 };
 
 const onError = () => {
   Message.closeAll();
-  Message.error(
-    'Something went wrong while updating the project',
-  );
+  Message.error('Something went wrong while updating the project');
 };
 
 const updateMutation = useMutation({
@@ -134,6 +131,9 @@ const updateMutation = useMutation({
   onError,
 });
 
+const changeProjectEnabled = (projectId: string, enabled: boolean) => {
+  updateMutation.mutate({ id: projectId, form: { enabled } });
+};
 </script>
 
 <script lang="ts">
