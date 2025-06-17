@@ -1,4 +1,5 @@
 import { request } from '@octokit/request'
+import { Octokit } from '@octokit/rest'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
@@ -57,14 +58,17 @@ export default class GithubIntegrationService {
   }
 
   public static async getOrgRepos(org: string) {
-    const auth = await getGithubInstallationToken()
-    const response = await request('GET /orgs/{org}/repos', {
-      org,
-      headers: {
-        authorization: `bearer ${auth}`,
-      },
+    const token = await getGithubInstallationToken()
+    const octokit = new Octokit({
+      auth: `Bearer ${token}`,
     })
-    return response.data.map((repo) => ({
+
+    const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
+      org,
+      per_page: 100, // max results per page is 100
+    })
+
+    return repos.map((repo) => ({
       name: repo.name,
       url: repo.html_url,
     }))
