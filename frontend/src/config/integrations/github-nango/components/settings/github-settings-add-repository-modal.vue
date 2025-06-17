@@ -1,6 +1,6 @@
 <template>
   <lf-modal v-model="isModalOpen">
-    <div class="pb-6 px-6">
+    <div class="pb-6 px-6 h-[55vh]">
       <div class="sticky pt-5 bg-white z-10 top-0">
         <div class="flex justify-between items-center pb-5">
           <h5>Add repositories</h5>
@@ -35,9 +35,9 @@
         />
       </div>
 
-      <div class="pt-4">
+      <div class="flex flex-col py-4 max-h-[75%] h-full overflow-y-auto">
         <!-- Loading and empty search state -->
-        <div v-if="!search || loading" class="flex flex-col items-center pb-6">
+        <div v-if="!debouncedSearch || loading" class="flex flex-col items-center justify-around grow pb-6">
           <div class="py-4">
             <img
               :src="githubSearchImage"
@@ -54,7 +54,7 @@
             Explore the entire GitHub database and sync any repository
           </p>
         </div>
-        <div v-else class="min-h-104">
+        <div v-else>
           <!-- Repositories -->
           <div v-if="tab === 'repositories'" class="flex flex-col gap-5 mt-6">
             <!-- Repository list item -->
