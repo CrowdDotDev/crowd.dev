@@ -1,4 +1,4 @@
-import { Platform } from '@/shared/modules/platform/types/Platform';
+import { Platform } from '@/shared/modules/platform/types/Platform'
 
 export enum Widgets {
   ACTIVE_CONTRIBUTORS = 'activeContributors',
@@ -14,7 +14,7 @@ export enum Widgets {
   // SOCIAL_MENTIONS = 'socialMentions',
   // GITHUB_MENTIONS = 'githubMentions',
   // PRESS_MENTIONS = 'pressMentions',
-  // SEARCH_QUERIES = 'searchQueries',
+  SEARCH_QUERIES = 'searchQueries',
   PACKAGE_DOWNLOADS = 'packageDownloads',
   PACKAGE_DEPENDENCY = 'packageDependency',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
@@ -154,12 +154,15 @@ export const WIDGETS_GROUPS = [
       },
     ],
   },
-];
+]
 
-export const defaultWidgetsValues: Record<Widgets, {
-  enabled: boolean;
-  platform: Platform[];
-}> = {
+export const defaultWidgetsValues: Record<
+  Widgets,
+  {
+    enabled: boolean
+    platform: Platform[]
+  }
+> = {
   // Contributors
   [Widgets.ACTIVE_CONTRIBUTORS]: {
     enabled: true,
@@ -271,4 +274,4 @@ export const defaultWidgetsValues: Record<Widgets, {
     enabled: true,
     platform: [Platform.GITHUB, Platform.GITLAB, Platform.GITHUB_NANGO],
   },
-};
+}
