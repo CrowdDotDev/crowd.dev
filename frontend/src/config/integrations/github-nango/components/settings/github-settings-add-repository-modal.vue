@@ -267,8 +267,8 @@ const addRepository = (repo: GitHubSettingsRepository) => {
 };
 
 const addOrganizations = (org: GitHubOrganization) => {
-  organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
   GithubApiService.getOrganizationRepositories(org.name).then((res) => {
+    organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
     const newRepositories = (res as GitHubSettingsRepository[])
       .filter(
         (r: GitHubSettingsRepository) => !repositories.value.some(
