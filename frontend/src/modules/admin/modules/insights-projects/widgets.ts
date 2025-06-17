@@ -14,7 +14,7 @@ export enum Widgets {
   // SOCIAL_MENTIONS = 'socialMentions',
   // GITHUB_MENTIONS = 'githubMentions',
   // PRESS_MENTIONS = 'pressMentions',
-  // SEARCH_QUERIES = 'searchQueries',
+  SEARCH_QUERIES = 'searchQueries',
   PACKAGE_DOWNLOADS = 'packageDownloads',
   PACKAGE_DEPENDENCY = 'packageDependency',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
@@ -156,10 +156,13 @@ export const WIDGETS_GROUPS = [
   },
 ];
 
-export const defaultWidgetsValues: Record<Widgets, {
-  enabled: boolean;
-  platform: Platform[];
-}> = {
+export const defaultWidgetsValues: Record<
+  Widgets,
+  {
+    enabled: boolean
+    platform: Platform[]
+  }
+> = {
   // Contributors
   [Widgets.ACTIVE_CONTRIBUTORS]: {
     enabled: true,
