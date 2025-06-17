@@ -1,5 +1,5 @@
 <template>
-  <lf-modal v-model="isModalOpen">
+  <lf-modal v-model="isModalOpen" :close-function="() => !isOrganizationRepoLoading">
     <div class="pb-6 px-6 h-[55vh]">
       <div class="sticky pt-5 bg-white z-10 top-0">
         <div class="flex justify-between items-center pb-5">
@@ -7,7 +7,7 @@
           <lf-button
             type="secondary-ghost"
             icon-only
-            @click="isModalOpen = false"
+            @click="!isOrganizationRepoLoading ? isModalOpen = false : null"
           >
             <lf-icon name="xmark" />
           </lf-button>
@@ -37,7 +37,10 @@
 
       <div class="flex flex-col py-4 max-h-[75%] h-full overflow-y-auto">
         <!-- Loading and empty search state -->
-        <div v-if="!debouncedSearch || loading" class="flex flex-col items-center justify-around grow pb-6">
+        <div
+          v-if="!debouncedSearch || loading"
+          class="flex flex-col items-center justify-around grow pb-6"
+        >
           <div class="py-4">
             <img
               :src="githubSearchImage"
@@ -225,6 +228,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
 const search = ref('');
 const loading = ref(false);
 const tab = ref('repositories');
+const isOrganizationRepoLoading = ref(false);
 
 const isModalOpen = computed({
   get() {
@@ -267,8 +271,9 @@ const addRepository = (repo: GitHubSettingsRepository) => {
 };
 
 const addOrganizations = (org: GitHubOrganization) => {
+  organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
+  isOrganizationRepoLoading.value = true;
   GithubApiService.getOrganizationRepositories(org.name).then((res) => {
-    organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
     const newRepositories = (res as GitHubSettingsRepository[])
       .filter(
         (r: GitHubSettingsRepository) => !repositories.value.some(
@@ -281,6 +286,7 @@ const addOrganizations = (org: GitHubOrganization) => {
         updatedAt: dateHelper().toISOString(),
       }));
     repositories.value = [...repositories.value, ...newRepositories];
+    isOrganizationRepoLoading.value = false;
   });
 };
 
@@ -341,6 +347,7 @@ const githubSearchImage = new URL(
   '@/assets/images/integrations/github-search.png',
   import.meta.url,
 ).href;
+
 </script>
 
 <script lang="ts">
