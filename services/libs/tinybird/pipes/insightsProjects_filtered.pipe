@@ -35,6 +35,12 @@ SQL >
             AND insights_projects_populated_ds.slug
             = {{ String(slug, description="Filter collection by slug", required=False) }}
         {% end %}
+        {% if defined(onboarded) and onboarded == "true" %}
+            AND NOT (
+                insights_projects_populated_ds."organizationCount" = 0
+                and insights_projects_populated_ds."contributorCount" = 0
+            )
+        {% end %}
         {% if defined(search) %}
             AND insights_projects_populated_ds.name
             ilike '%'
