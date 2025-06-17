@@ -4,8 +4,8 @@ DESCRIPTION >
 NODE searchVolume_pipe
 SQL >
     %
-    SELECT projectId, keyword, dataTimestamp, volume, updatedAt
-    FROM searchVolume
+    SELECT insightsProjectId, slug, dataTimestamp, volume, updatedAt
+    FROM searchVolume FINAL
     WHERE
         1 = 1
         {% if defined(startDate) %}
@@ -28,5 +28,5 @@ SQL >
                 )
             }}
         {% end %}
-        {% if defined(projectId) %} AND searchVolume.projectId = {{ projectId }} {% end %}
-        {% if defined(keyword) %} AND searchVolume.projectId = {{ keyword }} {% end %}
+        {% if defined(insightsProjectId) %} AND searchVolume.insightsProjectId = {{ insightsProjectId }} {% end %}
+        {% if defined(slug) %} AND searchVolume.slug = {{ slug }} {% end %}
