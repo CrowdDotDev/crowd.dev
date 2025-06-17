@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 
-import { DEFAULT_TENANT_ID, EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -642,7 +642,8 @@ export default class IntegrationService {
       await this.options.temporal.workflow.start('syncGithubIntegration', {
         taskQueue: 'nango',
         workflowId: `github-nango-sync/${integration.id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+        workflowIdReusePolicy:
+          WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
         retry: {
           maximumAttempts: 10,
         },
@@ -651,7 +652,6 @@ export default class IntegrationService {
 
       return integration
     } catch (err) {
-      this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
@@ -846,10 +846,10 @@ export default class IntegrationService {
     throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
   }
 
-  async linkedinConnect() {
-    const nangoId = `${DEFAULT_TENANT_ID}-${PlatformType.LINKEDIN}`
-
+  async linkedinConnect(segmentId: string) {
+    const nangoId = `${segmentId}-${PlatformType.LINKEDIN}`
     let token: string
+
     try {
       token = await getToken(nangoId, PlatformType.LINKEDIN, this.options.log)
     } catch (err) {
@@ -888,7 +888,7 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.LINKEDIN,
-          settings: { organizations, updateMemberAttributes: true },
+          settings: { organizations, updateMemberAttributes: true, nangoId },
           status,
         },
         transaction,
@@ -912,7 +912,7 @@ export default class IntegrationService {
    * @param subreddits Subreddits to track
    * @returns integration object
    */
-  async redditOnboard(subreddits) {
+  async redditOnboard(subreddits, segmentId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
@@ -922,7 +922,11 @@ export default class IntegrationService {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.REDDIT,
-          settings: { subreddits, updateMemberAttributes: true },
+          settings: {
+            subreddits,
+            updateMemberAttributes: true,
+            nangoId: `${segmentId}-${PlatformType.REDDIT}`,
+          },
           status: 'in-progress',
         },
         transaction,
@@ -1311,6 +1315,7 @@ export default class IntegrationService {
             tags: integrationData.tags,
             keywords: integrationData.keywords,
             updateMemberAttributes: true,
+            nangoId: `${integrationData.segments[0]}-${PlatformType.STACKOVERFLOW}`,
           },
           status: 'in-progress',
         },
