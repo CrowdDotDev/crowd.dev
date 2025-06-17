@@ -1,4 +1,4 @@
-import { Platform } from '@/shared/modules/platform/types/Platform'
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export enum Widgets {
   ACTIVE_CONTRIBUTORS = 'activeContributors',
@@ -154,7 +154,7 @@ export const WIDGETS_GROUPS = [
       },
     ],
   },
-]
+];
 
 export const defaultWidgetsValues: Record<
   Widgets,
@@ -274,4 +274,4 @@ export const defaultWidgetsValues: Record<
     enabled: true,
     platform: [Platform.GITHUB, Platform.GITLAB, Platform.GITHUB_NANGO],
   },
-}
+};
