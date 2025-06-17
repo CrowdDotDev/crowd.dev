@@ -642,8 +642,7 @@ export default class IntegrationService {
       await this.options.temporal.workflow.start('syncGithubIntegration', {
         taskQueue: 'nango',
         workflowId: `github-nango-sync/${integration.id}`,
-        workflowIdReusePolicy:
-          WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
         retry: {
           maximumAttempts: 10,
         },
@@ -652,6 +651,7 @@ export default class IntegrationService {
 
       return integration
     } catch (err) {
+      this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
