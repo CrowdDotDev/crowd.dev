@@ -26,7 +26,8 @@ SQL >
         insights_projects_populated_ds.organizationCount,
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
-        insights_projects_populated_ds.firstCommit
+        insights_projects_populated_ds.firstCommit,
+        insights_projects_populated_ds.repoData
     FROM insights_projects_populated_ds
     where
         insights_projects_populated_ds.enabled = 1
@@ -73,4 +74,5 @@ SQL >
         insights_projects_populated_ds.organizationCount,
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
-        insights_projects_populated_ds.firstCommit
+        insights_projects_populated_ds.firstCommit,
+        insights_projects_populated_ds.repoData
