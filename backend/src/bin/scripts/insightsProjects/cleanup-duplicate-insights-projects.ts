@@ -31,7 +31,8 @@ const options = [
     name: 'dryRun',
     alias: 'd',
     type: Boolean,
-    description: 'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
+    description:
+      'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
   },
 ]
 
@@ -57,40 +58,40 @@ function parseJSON(filePath: string) {
 }
 
 async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
-    let matchedCount = 0
-    let deletedCount = 0
+  let matchedCount = 0
+  let deletedCount = 0
 
-    // Check for segmentId in related projects
-    for (const project of internalProjects) {
-        const projectToDelete = await qx.result(
-            `SELECT * FROM "insightsProjects" 
+  // Check for segmentId in related projects
+  for (const project of internalProjects) {
+    const projectToDelete = await qx.result(
+      `SELECT * FROM "insightsProjects" 
                 WHERE "github" = $1
                 AND "segmentId" IS NULL
                 AND "isLF" = false`,
-            [project],
-        )
+      [project],
+    )
 
-        if (projectToDelete.rows.length > 0) {
-            matchedCount++
-            console.log(`Project ${projectToDelete.rows[0].name} match`)
-        } else {
-            console.log(`No match for ${project}`)
-            continue
-        }
+    if (projectToDelete.rows.length > 0) {
+      matchedCount++
+      console.log(`Project ${projectToDelete.rows[0].name} match`)
+    } else {
+      console.log(`No match for ${project}`)
+      continue
+    }
 
-        if(!dryRun) {
-            const replacementProject = await qx.result(
-                `SELECT * 
+    if (!dryRun) {
+      const replacementProject = await qx.result(
+        `SELECT * 
                 FROM "insightsProjects" ip 
                 WHERE ip.id != $1 
                 AND $2 = ANY(ip."repositories")
                 LIMIT 1`,
-                [projectToDelete.rows[0].id, project]
-            )
+        [projectToDelete.rows[0].id, project],
+      )
 
-            if (replacementProject.rows.length > 0) {
-                const updatedLinks = await qx.result(
-                    `
+      if (replacementProject.rows.length > 0) {
+        const updatedLinks = await qx.result(
+          `
                     UPDATE "collectionsInsightsProjects" cip
                     SET
                         "insightsProjectId" = $1,
@@ -104,48 +105,51 @@ async function cleanUpDuplicateProjects(qx, internalProjects, dryRun: boolean) {
                     )
                     RETURNING *
                     `,
-                    [replacementProject.rows[0].id, projectToDelete.rows[0].id],
-                )
+          [replacementProject.rows[0].id, projectToDelete.rows[0].id],
+        )
 
-                if(updatedLinks.rows.length > 0) {
-                    console.log(`Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`)
-                } else {
-                    console.log(`Skipping to update links for ${projectToDelete.rows[0].name} project`)
-                } 
-                
-                const deletedLinks = await qx.result(
-                    `DELETE FROM "collectionsInsightsProjects" 
+        if (updatedLinks.rows.length > 0) {
+          console.log(
+            `Updated collection insights project to point to replacement project ${replacementProject.rows[0].id}`,
+          )
+        } else {
+          console.log(`Skipping to update links for ${projectToDelete.rows[0].name} project`)
+        }
+
+        const deletedLinks = await qx.result(
+          `DELETE FROM "collectionsInsightsProjects" 
                     WHERE "insightsProjectId" = $1
                     RETURNING *`,
-                    [projectToDelete.rows[0].id],
-                )
-                if(deletedLinks.rows.length > 0) {
-                    console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
-                } else {
-                    console.log(`Skipping to delete links for ${projectToDelete.rows[0].name} project`)
-                }
-                
-
-                await qx.result(
-                    `DELETE FROM "insightsProjects" 
-                        WHERE id = $1`,
-                    [projectToDelete.rows[0].id],
-                )
-                deletedCount++
-                console.log(`Deleted ${projectToDelete.rows[0].name} project`)
-            } else {
-                console.log(`Skipping ${projectToDelete.rows[0].name} project because no replacement project found`)
-            }
+          [projectToDelete.rows[0].id],
+        )
+        if (deletedLinks.rows.length > 0) {
+          console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
+        } else {
+          console.log(`Skipping to delete links for ${projectToDelete.rows[0].name} project`)
         }
-    }
 
-    console.log(`\nSummary:`)
-    console.log(`- Found ${matchedCount} matching projects`)
-    if (!dryRun) {
-        console.log(`- Deleted ${deletedCount} projects`)
-    } else {
-        console.log(`- Would delete ${matchedCount} projects (dry run)`)
+        await qx.result(
+          `DELETE FROM "insightsProjects" 
+                        WHERE id = $1`,
+          [projectToDelete.rows[0].id],
+        )
+        deletedCount++
+        console.log(`Deleted ${projectToDelete.rows[0].name} project`)
+      } else {
+        console.log(
+          `Skipping ${projectToDelete.rows[0].name} project because no replacement project found`,
+        )
+      }
     }
+  }
+
+  console.log(`\nSummary:`)
+  console.log(`- Found ${matchedCount} matching projects`)
+  if (!dryRun) {
+    console.log(`- Deleted ${deletedCount} projects`)
+  } else {
+    console.log(`- Would delete ${matchedCount} projects (dry run)`)
+  }
 }
 
 const usage = commandLineUsage(sections)
@@ -166,9 +170,11 @@ if (parameters.help || !parameters.file) {
       const parsedProjects = Object.keys(projects)
         .filter((project) => projects[project].internal)
         .map((project) => `https://github.com/${project}`)
-      
-      console.log(`Found ${Object.keys(projects).length} total projects in JSON and ${parsedProjects.length} are internal`)
-      
+
+      console.log(
+        `Found ${Object.keys(projects).length} total projects in JSON and ${parsedProjects.length} are internal`,
+      )
+
       // Consolidate projects
       await cleanUpDuplicateProjects(qx, parsedProjects, parameters.dryRun || false)
 

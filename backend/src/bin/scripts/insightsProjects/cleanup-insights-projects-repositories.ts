@@ -23,7 +23,8 @@ const options = [
     name: 'dryRun',
     alias: 'd',
     type: Boolean,
-    description: 'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
+    description:
+      'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
   },
 ]
 
@@ -39,8 +40,8 @@ const sections = [
 ]
 
 async function getProjectsWithDuplicateRepos(qx) {
-    const result = await qx.result(
-        `
+  const result = await qx.result(
+    `
         with unnested_repos as (
             select 
                 id as id,
@@ -61,22 +62,22 @@ async function getProjectsWithDuplicateRepos(qx) {
             "repoUrl"
         from duplicate_repos;
         `,
-    )
+  )
 
-    return result.rows
+  return result.rows
 }
 
 async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
-    let matchedCount = 0
-    let updatedCount = 0
+  let matchedCount = 0
+  let updatedCount = 0
 
-    for (const project of projects) {
-        console.log(`\nProcessing duplicate repos for ${project.repoUrl}`)
-        console.log(`Found ${project.projectIds.length} projects with this repo`)
+  for (const project of projects) {
+    console.log(`\nProcessing duplicate repos for ${project.repoUrl}`)
+    console.log(`Found ${project.projectIds.length} projects with this repo`)
 
-        // First find the project to keep - the one with matching segmentId from githubRepos
-        const projectToKeep = await qx.result(
-            `
+    // First find the project to keep - the one with matching segmentId from githubRepos
+    const projectToKeep = await qx.result(
+      `
             WITH target_repo AS (
                 SELECT "segmentId"::uuid
                 FROM "githubRepos"
@@ -90,26 +91,26 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
             AND ip."segmentId" = tr."segmentId"::uuid
             LIMIT 1
             `,
-            [project.repoUrl, project.projectIds],
-        )
+      [project.repoUrl, project.projectIds],
+    )
 
-        if (projectToKeep.rows.length === 0) {
-            console.log(`No project found with matching segmentId for ${project.repoUrl}`)
-            continue
-        }
+    if (projectToKeep.rows.length === 0) {
+      console.log(`No project found with matching segmentId for ${project.repoUrl}`)
+      continue
+    }
 
-        matchedCount++
-        const keepId = projectToKeep.rows[0].id
-        console.log(`Project to keep: ${projectToKeep.rows[0].name} (${keepId})`)
+    matchedCount++
+    const keepId = projectToKeep.rows[0].id
+    console.log(`Project to keep: ${projectToKeep.rows[0].name} (${keepId})`)
 
-        // Get projects to update (all except the one to keep)
-        const projectsToUpdate = project.projectIds.filter(id => id !== keepId)
-        console.log(`Projects to update: ${projectsToUpdate.length}`)
+    // Get projects to update (all except the one to keep)
+    const projectsToUpdate = project.projectIds.filter((id) => id !== keepId)
+    console.log(`Projects to update: ${projectsToUpdate.length}`)
 
-        if (!dryRun) {
-            for (const updateId of projectsToUpdate) {
-                const result = await qx.result(
-                    `UPDATE "insightsProjects" ip1
+    if (!dryRun) {
+      for (const updateId of projectsToUpdate) {
+        const result = await qx.result(
+          `UPDATE "insightsProjects" ip1
                     SET repositories = (
                         SELECT array_agg(DISTINCT repo)
                         FROM unnest(ip1.repositories) repo
@@ -119,26 +120,26 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
                     WHERE id = $1
                     RETURNING *
                     `,
-                    [updateId, project.repoUrl],
-                )
-                
-                if (result.rows.length > 0) {
-                    updatedCount++
-                    console.log(`Removed ${project.repoUrl} from project ${updateId}`)
-                } else {
-                    console.log(`Failed to update project ${updateId}`)
-                }
-            }
-        }
-    }
+          [updateId, project.repoUrl],
+        )
 
-    console.log(`\nSummary:`)
-    console.log(`- Found ${matchedCount} groups of projects with duplicate repos`)
-    if (!dryRun) {
-        console.log(`- Updated ${updatedCount} projects`)
-    } else {
-        console.log(`- Would update ${matchedCount} groups of projects (dry run)`)
+        if (result.rows.length > 0) {
+          updatedCount++
+          console.log(`Removed ${project.repoUrl} from project ${updateId}`)
+        } else {
+          console.log(`Failed to update project ${updateId}`)
+        }
+      }
     }
+  }
+
+  console.log(`\nSummary:`)
+  console.log(`- Found ${matchedCount} groups of projects with duplicate repos`)
+  if (!dryRun) {
+    console.log(`- Updated ${updatedCount} projects`)
+  } else {
+    console.log(`- Would update ${matchedCount} groups of projects (dry run)`)
+  }
 }
 
 const usage = commandLineUsage(sections)
@@ -155,7 +156,7 @@ if (parameters.help) {
       } as IRepositoryOptions)
 
       const projects = await getProjectsWithDuplicateRepos(qx)
-      
+
       // Consolidate projects
       await cleanUpDuplicateProjects(qx, projects, parameters.dryRun || false)
 

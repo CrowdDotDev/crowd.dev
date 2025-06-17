@@ -202,7 +202,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
 
     if (projectsToDelete.length > 0) {
       if (!dryRun) {
-        for(const projectToDelete of projectsToDelete) {
+        for (const projectToDelete of projectsToDelete) {
           const conflictLinksDeletion = await qx.result(
             `
             -- Step 1: Delete rows that would cause conflict
@@ -215,13 +215,13 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
             `,
             [mainProject.id, projectToDelete],
           )
-  
+
           if (conflictLinksDeletion.rows.length > 0) {
             console.log(`Deleted conflict links`)
           } else {
             console.log(`Skipping to delete links`)
           }
-  
+
           const updatedLinks = await qx.result(
             `
             -- Step 2: Now safely do the update
@@ -234,7 +234,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
             `,
             [mainProject.id, projectToDelete],
           )
-  
+
           if (updatedLinks.rows.length > 0) {
             console.log(
               `Updated collection insights project to point to replacement project ${mainProject.id}`,
@@ -242,7 +242,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
           } else {
             console.log(`Skipping to update links`)
           }
-  
+
           const deletedLinks = await qx.result(
             `DELETE FROM "collectionsInsightsProjects" 
               WHERE "insightsProjectId" = $1::uuid

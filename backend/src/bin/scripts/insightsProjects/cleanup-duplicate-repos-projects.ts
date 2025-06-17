@@ -23,7 +23,8 @@ const options = [
     name: 'dryRun',
     alias: 'd',
     type: Boolean,
-    description: 'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
+    description:
+      'Dry run mode. Will not delete any projects. Will print the projects to be deleted.',
   },
 ]
 
@@ -39,8 +40,8 @@ const sections = [
 ]
 
 async function getProjectsWithDuplicateRepos(qx) {
-    const result = await qx.result(
-        `
+  const result = await qx.result(
+    `
         with unnested_repos as (
             select 
                 id as id,
@@ -59,19 +60,19 @@ async function getProjectsWithDuplicateRepos(qx) {
             "projectIds"
         from duplicate_repos;
         `,
-    )
+  )
 
-    return result.rows
+  return result.rows
 }
 
 async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
-    let matchedCount = 0
-    let deletedCount = 0
+  let matchedCount = 0
+  let deletedCount = 0
 
-    // Check for segmentId in related projects
-    for (const project of projects) {
-        const result = await qx.result(
-            `
+  // Check for segmentId in related projects
+  for (const project of projects) {
+    const result = await qx.result(
+      `
             WITH proj AS (
                 SELECT
                     id,
@@ -99,21 +100,20 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
                 -- The id of the project to keep (the other one)
                 (SELECT id FROM marked WHERE NOT to_delete ORDER BY id LIMIT 1) AS "projectToKeep";
             `,
-            [project.projectIds[0], project.projectIds[1]],
-        )
+      [project.projectIds[0], project.projectIds[1]],
+    )
 
-        if (result.rows.length > 0) {
-            matchedCount++
-            const projectToKeep = result.rows[0].projectToKeep
-            const projectToDelete = result.rows[0].projectToDelete
+    if (result.rows.length > 0) {
+      matchedCount++
+      const projectToKeep = result.rows[0].projectToKeep
+      const projectToDelete = result.rows[0].projectToDelete
 
-            console.log(`Project to delete: ${projectToDelete}`)
-            console.log(`Project to keep: ${projectToKeep}`)
+      console.log(`Project to delete: ${projectToDelete}`)
+      console.log(`Project to keep: ${projectToKeep}`)
 
-            if(!dryRun && projectToDelete) {
-    
-                const updatedLinks = await qx.result(
-                    `
+      if (!dryRun && projectToDelete) {
+        const updatedLinks = await qx.result(
+          `
                     UPDATE "collectionsInsightsProjects" cip
                     SET
                         "insightsProjectId" = $1,
@@ -127,49 +127,50 @@ async function cleanUpDuplicateProjects(qx, projects, dryRun: boolean) {
                     )
                     RETURNING *
                     `,
-                    [projectToKeep, projectToDelete],
-                )
+          [projectToKeep, projectToDelete],
+        )
 
-                if(updatedLinks.rows.length > 0) {
-                    console.log(`Updated collection insights project to point to replacement project ${projectToKeep}`)
-                } else {
-                    console.log(`Skipping to update links for ${projectToDelete} project`)
-                } 
-                
-                const deletedLinks = await qx.result(
-                    `DELETE FROM "collectionsInsightsProjects" 
+        if (updatedLinks.rows.length > 0) {
+          console.log(
+            `Updated collection insights project to point to replacement project ${projectToKeep}`,
+          )
+        } else {
+          console.log(`Skipping to update links for ${projectToDelete} project`)
+        }
+
+        const deletedLinks = await qx.result(
+          `DELETE FROM "collectionsInsightsProjects" 
                     WHERE "insightsProjectId" = $1
                     RETURNING *`,
-                    [projectToDelete],
-                )
-                if(deletedLinks.rows.length > 0) {
-                    console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
-                } else {
-                    console.log(`Skipping to delete links for ${projectToDelete} project`)
-                }
-                
-
-                await qx.result(
-                    `DELETE FROM "insightsProjects" 
-                        WHERE id = $1`,
-                    [projectToDelete],
-                )
-                deletedCount++
-                console.log(`Deleted ${projectToDelete} project`)
-            }
+          [projectToDelete],
+        )
+        if (deletedLinks.rows.length > 0) {
+          console.log(`Deleted ${deletedLinks.rows.length} collection insights project links`)
         } else {
-            console.log(`No match for ${project.projectIds[0]} and ${project.projectIds[1]}`)
-            continue
+          console.log(`Skipping to delete links for ${projectToDelete} project`)
         }
-    }
 
-    console.log(`\nSummary:`)
-    console.log(`- Found ${matchedCount} matching projects`)
-    if (!dryRun) {
-        console.log(`- Deleted ${deletedCount} projects`)
+        await qx.result(
+          `DELETE FROM "insightsProjects" 
+                        WHERE id = $1`,
+          [projectToDelete],
+        )
+        deletedCount++
+        console.log(`Deleted ${projectToDelete} project`)
+      }
     } else {
-        console.log(`- Would delete ${matchedCount} projects (dry run)`)
+      console.log(`No match for ${project.projectIds[0]} and ${project.projectIds[1]}`)
+      continue
     }
+  }
+
+  console.log(`\nSummary:`)
+  console.log(`- Found ${matchedCount} matching projects`)
+  if (!dryRun) {
+    console.log(`- Deleted ${deletedCount} projects`)
+  } else {
+    console.log(`- Would delete ${matchedCount} projects (dry run)`)
+  }
 }
 
 const usage = commandLineUsage(sections)
@@ -186,7 +187,7 @@ if (parameters.help) {
       } as IRepositoryOptions)
 
       const projects = await getProjectsWithDuplicateRepos(qx)
-      
+
       // Consolidate projects
       await cleanUpDuplicateProjects(qx, projects, parameters.dryRun || false)
 
