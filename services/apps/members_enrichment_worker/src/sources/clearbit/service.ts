@@ -28,7 +28,7 @@ import {
 export default class EnrichmentServiceClearbit extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CLEARBIT
   public platform = `enrichment-${this.source}`
-  public enrichMembersWithActivityMoreThan = 10
+  public enrichMembersWithActivityMoreThan = 100
 
   public enrichableBySql = `"membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
 
