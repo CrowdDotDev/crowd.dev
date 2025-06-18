@@ -20,8 +20,17 @@
             class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center border border-solid border-gray-200 rounded-[4px]"
           >
             <app-platform-svg
-              :platform="integration.platform"
-              :color="integration.platform === 'github' && integration?.type === 'mapped' ? 'gray' : 'black'"
+              :platform="
+                integration.platform.includes('github')
+                  ? 'github'
+                  : integration.platform
+              "
+              :color="
+                integration.platform.includes('github')
+                  && integration?.type === 'mapped'
+                  ? 'gray'
+                  : 'black'
+              "
             />
 
             <lf-icon
@@ -69,8 +78,16 @@
                 integration
               </h6>
             </app-integration-progress>
-            <div v-if="progressError" class="text-xs text-gray-500 flex items-center">
-              <lf-icon name="triangle-exclamation" type="light" :size="13" class="text-yellow-600" />
+            <div
+              v-if="progressError"
+              class="text-xs text-gray-500 flex items-center"
+            >
+              <lf-icon
+                name="triangle-exclamation"
+                type="light"
+                :size="13"
+                class="text-yellow-600"
+              />
               Error loading progress
             </div>
           </template>
@@ -78,7 +95,10 @@
       </el-popover>
     </div>
   </div>
-  <span v-else class="text-gray-400 text-sm italic">No integrations connected</span>
+  <span
+    v-else
+    class="text-gray-400 text-sm italic"
+  >No integrations connected</span>
 </template>
 
 <script lang="ts" setup>
@@ -92,20 +112,22 @@ import { lfIntegrations } from '@/config/integrations';
 
 type Integrations = SubProject & IntegrationProgress;
 
-const props = withDefaults(defineProps<{
-  segmentId: string,
-  integrations: Integrations[],
-  progress: any[],
-  progressError: boolean,
-}>(), {
-  progress: () => [],
-  progressError: false,
-});
+const props = withDefaults(
+  defineProps<{
+    segmentId: string;
+    integrations: Integrations[];
+    progress: any[];
+    progressError: boolean;
+  }>(),
+  {
+    progress: () => [],
+    progressError: false,
+  },
+);
 
 const getProgress = (segmentId: string, platform: string) => (props.progress || []).find(
   (p: any) => p.segmentId === segmentId && p.platform === platform,
 ) || null;
-
 </script>
 
 <script lang="ts">
