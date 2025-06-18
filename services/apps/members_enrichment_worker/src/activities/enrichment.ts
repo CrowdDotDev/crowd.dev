@@ -348,11 +348,23 @@ export async function updateMemberUsingSquashedPayload(
       }
 
       for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
+        // Skip organizations that don't have a name or any verified identities
+        const identities = org.identities ? org.identities : []
+        const verifiedIdentities = identities.filter((i) => i.verified)
+
+        if (!org.name && verifiedIdentities.length === 0) {
+          svc.log.debug(
+            { orgId: org.organizationId },
+            'Skipping organization without name or verified identities',
+          )
+          continue
+        }
+
         orgPromises.push(
           findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
             displayName: org.name,
             description: org.organizationDescription,
-            identities: org.identities ? org.identities : [],
+            identities,
           })
             .then((orgId) => {
               // set the organization id for later use
