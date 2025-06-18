@@ -290,9 +290,11 @@ export async function updateMemberUsingSquashedPayload(
 
       attributes = _.merge({}, attributes, squashedPayload.attributes)
 
+      const manuallyChangedFields = existingMemberData.manuallyChangedFields || []
+
       if (Object.keys(attributes).length > 0) {
         const priorities = await getPriorityArray()
-        attributes = await setAttributesDefaultValues(attributes, priorities)
+        attributes = await setAttributesDefaultValues(attributes, priorities, manuallyChangedFields)
       }
       updated = true
       promises.push(updateMemberAttributes(qx, memberId, attributes))

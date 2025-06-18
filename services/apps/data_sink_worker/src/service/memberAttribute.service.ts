@@ -20,9 +20,10 @@ export default class MemberAttributeService extends LoggerBase {
 
   public async setAttributesDefaultValues(
     attributes: Record<string, unknown>,
+    manuallyChangedFields?: string[],
   ): Promise<Record<string, unknown>> {
     const priorities = await getPlatformPriorityArray(dbStoreQx(this.store))
-    return setAttributesDefaultValues(attributes, priorities)
+    return setAttributesDefaultValues(attributes, priorities, manuallyChangedFields)
   }
 
   public async validateAttributes(

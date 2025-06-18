@@ -1,10 +1,18 @@
 export async function setAttributesDefaultValues(
   attributes: Record<string, unknown>,
   priorities: string[],
+  manuallyChangedFields?: string[],
 ): Promise<Record<string, unknown>> {
   if (!priorities) {
     throw new Error(`No priorities set!`)
   }
+
+  const prefix = 'attributes.'
+  const manuallyChangedAttributes = new Set<string>(
+    (manuallyChangedFields ?? [])
+      .filter((f) => f.startsWith(prefix))
+      .map((f) => f.slice(prefix.length)),
+  )
 
   for (const attributeName of Object.keys(attributes)) {
     if (typeof attributes[attributeName] === 'string') {
@@ -16,6 +24,13 @@ export async function setAttributesDefaultValues(
         throw err
       }
     }
+
+    // Skip setting the default value if this attribute was manually changed.
+    // In some cases, manual changes are marked using the default key.
+    if (manuallyChangedAttributes.has(attributeName)) {
+      continue
+    }
+
     const highestPriorityPlatform = getHighestPriorityPlatformForAttributes(
       Object.keys(attributes[attributeName]),
       priorities,

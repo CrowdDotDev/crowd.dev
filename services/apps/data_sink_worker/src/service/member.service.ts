@@ -274,7 +274,11 @@ export default class MemberService extends LoggerBase {
           if (toUpdate.attributes) {
             this.log.trace({ memberId: id }, 'Setting attribute default values!')
             toUpdate.attributes = await logExecutionTimeV2(
-              () => memberAttributeService.setAttributesDefaultValues(toUpdate.attributes),
+              () =>
+                memberAttributeService.setAttributesDefaultValues(
+                  toUpdate.attributes,
+                  original.manuallyChangedFields,
+                ),
               this.log,
               'memberService -> update -> setAttributesDefaultValues',
             )
