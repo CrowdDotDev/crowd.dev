@@ -2,7 +2,7 @@
   <div class="flex items-center gap-1">
     <el-popover trigger="hover" placement="top" popper-class="!w-auto">
       <template #reference>
-        <div class="text-gray-600 text-2xs flex items-center leading-5">
+        <div v-if="!isInProgress" class="text-gray-600 text-2xs flex items-center leading-5">
           <lf-svg
             name="git-repository"
             class="w-4 h-4 !text-gray-600 mr-1 flex items-center"
@@ -10,11 +10,11 @@
           <span class="font-semibold">
             {{ pluralize('repository', Object.keys(mappings).length, true) }}
           </span>
-
-          <span class="font-semibold">
-            {{ mappedRepositories.length }} out of {{ allRepositoriesNames.length }} repositories connected.
-          </span>
         </div>
+        <span v-else class="text-gray-600 text-2xs flex items-center leading-5 font-semibold">
+          {{ mappedRepositories.length }} out of
+          {{ allRepositoriesNames.length }} repositories connected.
+        </span>
       </template>
 
       <p class="text-gray-400 text-sm font-semibold mb-4">
@@ -22,7 +22,7 @@
       </p>
       <div class="-my-1 px-1 max-h-44 overflow-auto">
         <article
-          v-for="mapping of mappings"
+          v-for="mapping of mappedRepositories"
           :key="mapping.url"
           class="py-2 flex items-center flex-nowrap"
         >
@@ -77,11 +77,17 @@ const repoNameFromUrl = (url: string) => url.split('/').at(-1);
 
 const mappedRepositories = computed(() => {
   const reposObj = props.integration.settings.nangoMapping;
-  return reposObj ? Object.values(reposObj).map((repo: any) => repo.repoName) || [] : [];
+  const mapped = reposObj
+    ? Object.values(reposObj).map((repo: any) => repo.repoName) || []
+    : [];
+  return mappings.value.filter((mapping) => mapped.includes(repoNameFromUrl(mapping.url)));
 });
 
-const allRepositoriesNames = computed(() => props.integration.settings.orgs.map((org: any) => org.repos.map((repo: any) => repo.name)).flat());
+const allRepositoriesNames = computed(() => props.integration.settings.orgs
+  .map((org: any) => org.repos.map((repo: any) => repo.name))
+  .flat());
 
+const isInProgress = computed(() => mappedRepositories.value.length < allRepositoriesNames.value.length);
 onMounted(() => {
   if (props.integration.status !== 'mapping') {
     IntegrationService.fetchGitHubMappings(props.integration).then((res) => {

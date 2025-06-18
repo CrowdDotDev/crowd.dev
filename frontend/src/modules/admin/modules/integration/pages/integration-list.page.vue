@@ -73,7 +73,7 @@
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
             <lf-switch
               v-if="isTeamUser()"
-              v-model="selectedGitHubVersion"
+              v-model="useGitHubNango"
               class="ml-auto"
               :size="'small'"
             >
@@ -87,9 +87,10 @@
             <lf-integration-list-item
               v-for="key in platformsByStatus"
               :key="key"
-              :config="lfIntegrations(selectedGitHubVersion)[key]"
+              :config="lfIntegrations(useGitHubNango)[key]"
               :progress="progress"
               :progress-error="progressError"
+              :use-git-hub-nango="useGitHubNango"
             />
           </div>
           <div v-else class="pt-12 flex flex-col items-center">
@@ -133,7 +134,7 @@ const { array, loadingFetch } = mapGetters('integration');
 
 const { id, grandparentId } = route.params;
 
-const selectedGitHubVersion = ref(false); // true for v2, false for v1
+const useGitHubNango = ref(false); // true for v2, false for v1
 
 const subproject = ref<any>();
 
@@ -141,7 +142,7 @@ const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const all = Object.keys(lfIntegrations(selectedGitHubVersion.value));
+  const all = Object.keys(lfIntegrations(useGitHubNango.value));
   if (!statusConfig) {
     return all;
   }
@@ -163,7 +164,7 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
     statusCount[key] = array.value.filter((integration: any) => statusConfig.show(integration)).length;
   });
-  statusCount.notConnected = Object.keys(lfIntegrations(selectedGitHubVersion.value)).length - array.value.length;
+  statusCount.notConnected = Object.keys(lfIntegrations(useGitHubNango.value)).length - array.value.length;
   return statusCount;
 });
 
@@ -172,7 +173,7 @@ onMounted(() => {
   localStorage.setItem('segmentGrandparentId', grandparentId);
 
   doFetch().then(() => {
-    selectedGitHubVersion.value = updateGithubVersion();
+    useGitHubNango.value = updateGithubVersion();
   });
   findSubProject(id).then((res) => {
     subproject.value = res;

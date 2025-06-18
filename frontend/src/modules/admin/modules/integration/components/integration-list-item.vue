@@ -41,7 +41,7 @@
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress">
+          <div v-if="isInProgress && !useGitHubNango">
             <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
@@ -131,6 +131,7 @@ const props = defineProps<{
   config: IntegrationConfig,
   progress: IntegrationProgress | null,
   progressError: boolean,
+  useGitHubNango?: boolean,
 }>();
 
 const route = useRoute();
