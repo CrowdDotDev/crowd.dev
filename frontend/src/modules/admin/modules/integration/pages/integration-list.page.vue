@@ -90,7 +90,6 @@
               :config="lfIntegrations(useGitHubNango)[key]"
               :progress="progress"
               :progress-error="progressError"
-              :use-git-hub-nango="useGitHubNango"
             />
           </div>
           <div v-else class="pt-12 flex flex-col items-center">
