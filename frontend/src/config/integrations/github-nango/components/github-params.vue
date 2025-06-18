@@ -13,12 +13,12 @@
         </div>
         <span v-else class="text-gray-600 text-2xs flex items-center leading-5 font-semibold">
           {{ mappedRepositories.length }} out of
-          {{ allRepositoriesNames.length }} repositories connected.
+          {{ allRepositoriesNames.length }} repositories connected
         </span>
       </template>
 
       <p class="text-gray-400 text-sm font-semibold mb-4">
-        GitHub repositories
+        {{ isInProgress ? 'Connected GitHub repositories' : 'GitHub repositories' }}
       </p>
       <div class="-my-1 px-1 max-h-44 overflow-auto">
         <article
