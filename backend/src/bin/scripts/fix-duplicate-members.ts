@@ -34,6 +34,12 @@ const options = [
     description: 'Whether to check for duplicate members by activity identity.',
   },
   {
+    name: 'checkByTwitterIdentity',
+    alias: 't',
+    type: Boolean,
+    description: 'Whether to check for duplicate members by twitter identity.',
+  },
+  {
     name: 'testRun',
     alias: 't',
     type: Boolean,
@@ -53,10 +59,11 @@ setImmediate(async () => {
   const cutoffDate = parameters.cutoffDate ?? '2025-05-18'
   const batchSize = parameters.batchSize ? parseInt(parameters.batchSize, 10) : 50
   const checkByActivityIdentity = parameters.checkByActivityIdentity ?? false
+  const checkByTwitterIdentity = parameters.checkByTwitterIdentity ?? false
   const testRun = parameters.testRun ?? false
 
   log.info(
-    { cutoffDate, batchSize, testRun, checkByActivityIdentity },
+    { cutoffDate, batchSize, testRun, checkByActivityIdentity, checkByTwitterIdentity },
     'Running script with the following parameters!',
   )
 
@@ -75,7 +82,7 @@ setImmediate(async () => {
   const activityRepo = new ActivityRepository(db, log, qdb)
 
   let results = await logExecutionTimeV2(
-    () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity),
+    () => memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity, checkByTwitterIdentity),
     log,
     'findDuplicateMembersAfterDate',
   )
@@ -125,7 +132,7 @@ setImmediate(async () => {
 
     results = await logExecutionTimeV2(
       () =>
-        memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity),
+        memberRepo.findDuplicateMembersAfterDate(cutoffDate, batchSize, checkByActivityIdentity, checkByTwitterIdentity),
       log,
       'findDuplicateMembersAfterDate',
     )

@@ -225,43 +225,49 @@ class MemberRepository {
     cutoffDate: string,
     limit: number,
     checkByActivityIdentity = false,
+    checkByTwitterIdentity = false,
   ): Promise<IDuplicateMembersToCleanup[]> {
-    if (!checkByActivityIdentity) {
+    if (checkByTwitterIdentity) {
       return this.connection.query(
         `
-        WITH valid_primary AS (
-          SELECT DISTINCT m.id, m."displayName"
-          FROM members m
-          JOIN "memberIdentities" mi ON mi."memberId" = m.id
-        )
-        SELECT DISTINCT
-          m_primary.id AS "primaryId",
-          m_secondary.id AS "secondaryId"
-        FROM members m_secondary
-        JOIN valid_primary m_primary
-          ON m_primary."displayName" = m_secondary."displayName"
-          AND m_primary.id != m_secondary.id
-        WHERE m_secondary."createdAt" > $(cutoffDate)
-            AND NOT EXISTS (
-              SELECT 1 FROM "memberIdentities" mi
-              WHERE mi."memberId" = m_secondary.id
-            )
-            AND EXISTS (
-              SELECT 1 FROM "activityRelations" ar
-              WHERE ar."memberId" = m_secondary.id
-            )
-        ORDER BY m_primary.id, m_secondary.id
-        LIMIT $(limit);
-      `,
+          SELECT DISTINCT
+              m_primary.id AS "primaryId",
+              m_secondary.id AS "secondaryId"
+          FROM members m_secondary
+          JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
+          JOIN "memberIdentities" mi_primary ON 
+              mi_primary.platform = 'twitter' AND
+              mi_primary."value" = mi_secondary."value" AND
+              mi_primary."memberId" != mi_secondary."memberId"
+          JOIN members m_primary ON m_primary.id = mi_primary."memberId"
+          WHERE mi_secondary.platform = 'twitter'
+              AND (
+                  SELECT COUNT(*) 
+                  FROM "memberIdentities" mi 
+                  WHERE mi."memberId" = m_secondary.id
+              ) = 1
+              AND (
+                  SELECT COUNT(*) 
+                  FROM "memberIdentities" mi 
+                  WHERE mi."memberId" = m_primary.id
+              ) > 1
+              AND EXISTS (
+                  SELECT 1 
+                  FROM "activityRelations" ar 
+                  WHERE ar."memberId" = m_secondary.id
+              )
+          ORDER BY m_primary.id, m_secondary.id
+          LIMIT $(limit);
+        `,
         {
-          cutoffDate,
           limit,
         },
       )
     }
 
-    return this.connection.query(
-      `
+    if (checkByActivityIdentity) {
+      return this.connection.query(
+        `
       WITH secondary_candidates AS (
         SELECT m.id AS secondary_id
         FROM members m
@@ -293,6 +299,39 @@ class MemberRepository {
       ORDER BY primary_id, secondary_id
       LIMIT $(limit);
       `,
+        {
+          cutoffDate,
+          limit,
+        },
+      )
+    }
+
+    return this.connection.query(
+      `
+      WITH valid_primary AS (
+        SELECT DISTINCT m.id, m."displayName"
+        FROM members m
+        JOIN "memberIdentities" mi ON mi."memberId" = m.id
+      )
+      SELECT DISTINCT
+        m_primary.id AS "primaryId",
+        m_secondary.id AS "secondaryId"
+      FROM members m_secondary
+      JOIN valid_primary m_primary
+        ON m_primary."displayName" = m_secondary."displayName"
+        AND m_primary.id != m_secondary.id
+      WHERE m_secondary."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+            SELECT 1 FROM "memberIdentities" mi
+            WHERE mi."memberId" = m_secondary.id
+          )
+          AND EXISTS (
+            SELECT 1 FROM "activityRelations" ar
+            WHERE ar."memberId" = m_secondary.id
+          )
+      ORDER BY m_primary.id, m_secondary.id
+      LIMIT $(limit);
+    `,
       {
         cutoffDate,
         limit,
