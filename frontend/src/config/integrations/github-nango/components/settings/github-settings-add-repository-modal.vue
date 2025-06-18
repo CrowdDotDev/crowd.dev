@@ -286,6 +286,7 @@ const addOrganizations = (org: GitHubOrganization) => {
         updatedAt: dateHelper().toISOString(),
       }));
     repositories.value = [...repositories.value, ...newRepositories];
+  }).finally(() => {
     isOrganizationRepoLoading.value = false;
   });
 };
