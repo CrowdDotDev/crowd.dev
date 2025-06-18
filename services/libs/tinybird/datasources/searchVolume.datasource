@@ -8,5 +8,5 @@ SCHEMA >
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(dataTimestamp)
-ENGINE_SORTING_KEY dataTimestamp
+ENGINE_SORTING_KEY slug, dataTimestamp
 ENGINE_VER updatedAt
