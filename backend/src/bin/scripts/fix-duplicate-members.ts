@@ -35,7 +35,7 @@ const options = [
   },
   {
     name: 'checkByTwitterIdentity',
-    alias: 'ti',
+    alias: 'w',
     type: Boolean,
     description: 'Whether to check for duplicate members by twitter identity.',
   },
