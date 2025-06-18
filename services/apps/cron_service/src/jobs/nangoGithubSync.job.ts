@@ -10,8 +10,10 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-github-sync',
-  cronTime: CronTime.every(2).hours(),
-  timeout: 5 * 60,
+  cronTime: CronTime.every(
+    Number(process.env.CROWD_GH_NANGO_SYNC_INTERVAL_MINUTES || 60),
+  ).minutes(),
+  timeout: 10 * 60,
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
 
