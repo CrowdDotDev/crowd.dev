@@ -46,15 +46,19 @@ async function getLastConnectTs(): Promise<Date | undefined> {
   return new Date(lastConnect)
 }
 
-export async function canConnectGithub(): Promise<boolean> {
+export async function numberOfGithubConnectionsToCreate(): Promise<number> {
+  const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
+
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    return true
+    svc.log.info('Number of github connections to create: 5')
+    return 5
   }
 
   const lastConnectDate = await getLastConnectTs()
 
   if (!lastConnectDate) {
-    return true
+    svc.log.info(`Number of github connections to create: ${max}`)
+    return max
   }
 
   // we can allow max 10 per day so every 120 minutes (2 hours) we can connect 1
@@ -65,11 +69,13 @@ export async function canConnectGithub(): Promise<boolean> {
 
   // how many hours
   const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
-  if (hours >= 2.0) {
-    return true
+  if (hours >= 1.0) {
+    svc.log.info(`Number of github connections to create: ${max}`)
+    return max
   }
 
-  return false
+  svc.log.info('Number of github connections to create: 0')
+  return 0
 }
 
 export async function processNangoWebhook(

@@ -91,10 +91,10 @@ export const WIDGETS_GROUPS = [
       //   name: 'Press mentions',
       //   key: Widgets.PRESS_MENTIONS,
       // },
-      // {
-      //   name: 'Search queries',
-      //   key: Widgets.SEARCH_QUERIES,
-      // },
+      {
+        name: 'Search queries',
+        key: Widgets.SEARCH_QUERIES,
+      },
       {
         name: 'Package downloads',
         key: Widgets.PACKAGE_DOWNLOADS,
