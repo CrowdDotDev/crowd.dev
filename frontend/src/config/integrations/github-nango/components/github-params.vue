@@ -2,12 +2,17 @@
   <div class="flex items-center gap-1">
     <el-popover trigger="hover" placement="top" popper-class="!w-auto">
       <template #reference>
-        <div
-          class="text-gray-600 text-2xs flex items-center leading-5"
-        >
-          <lf-svg name="git-repository" class="w-4 h-4 !text-gray-600 mr-1 flex items-center" />
+        <div class="text-gray-600 text-2xs flex items-center leading-5">
+          <lf-svg
+            name="git-repository"
+            class="w-4 h-4 !text-gray-600 mr-1 flex items-center"
+          />
           <span class="font-semibold">
-            {{ pluralize("repository", Object.keys(mappings).length, true) }}
+            {{ pluralize('repository', Object.keys(mappings).length, true) }}
+          </span>
+
+          <span class="font-semibold">
+            {{ mappedRepositories.length }} out of {{ allRepositoriesNames.length }} repositories connected.
           </span>
         </div>
       </template>
@@ -21,7 +26,10 @@
           :key="mapping.url"
           class="py-2 flex items-center flex-nowrap"
         >
-          <lf-svg name="git-repository" class="w-4 h-4 mr-2 flex items-center" />
+          <lf-svg
+            name="git-repository"
+            class="w-4 h-4 mr-2 flex items-center"
+          />
           <a
             :href="mapping.url"
             target="_blank"
@@ -30,7 +38,11 @@
           >
             /{{ repoNameFromUrl(mapping.url) }}
           </a>
-          <lf-icon name="arrow-right" :size="16" class="text-gray-400 mx-2 flex items-center" />
+          <lf-icon
+            name="arrow-right"
+            :size="16"
+            class="text-gray-400 mx-2 flex items-center"
+          />
           <div class="text-xs leading-5 max-w-3xs truncate">
             {{ mapping.segment.name }}
           </div>
@@ -41,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
 import LfSvg from '@/shared/svg/svg.vue';
@@ -51,9 +63,24 @@ const props = defineProps<{
   integration: any;
 }>();
 
-const mappings = ref([]);
+const mappings = ref<
+  {
+    url: string;
+    segment: {
+      id: string;
+      name: string;
+    };
+  }[]
+>([]);
 
-const repoNameFromUrl = (url) => url.split('/').at(-1);
+const repoNameFromUrl = (url: string) => url.split('/').at(-1);
+
+const mappedRepositories = computed(() => {
+  const reposObj = props.integration.settings.nangoMapping;
+  return reposObj ? Object.values(reposObj).map((repo: any) => repo.repoName) || [] : [];
+});
+
+const allRepositoriesNames = computed(() => props.integration.settings.orgs.map((org: any) => org.repos.map((repo: any) => repo.name)).flat());
 
 onMounted(() => {
   if (props.integration.status !== 'mapping') {
