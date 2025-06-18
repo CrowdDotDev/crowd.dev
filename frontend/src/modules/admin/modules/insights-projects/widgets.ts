@@ -218,7 +218,7 @@ export const defaultWidgetsValues: Record<
   //   platform: [Platform.ALL],
   // },
   [Widgets.SEARCH_QUERIES]: {
-    enabled: false,
+    enabled: true,
     platform: [Platform.ALL],
   },
   [Widgets.PACKAGE_DOWNLOADS]: {
