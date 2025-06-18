@@ -217,10 +217,10 @@ export const defaultWidgetsValues: Record<
   //   enabled: false,
   //   platform: [Platform.ALL],
   // },
-  // [Widgets.SEARCH_QUERIES]: {
-  //   enabled: false,
-  //   platform: [Platform.ALL],
-  // },
+  [Widgets.SEARCH_QUERIES]: {
+    enabled: false,
+    platform: [Platform.ALL],
+  },
   [Widgets.PACKAGE_DOWNLOADS]: {
     enabled: true,
     platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
