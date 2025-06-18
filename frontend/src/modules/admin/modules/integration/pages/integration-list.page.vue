@@ -72,6 +72,7 @@
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
             <lf-tooltip
+              v-if="isTeamUser()"
               class="ml-auto"
               placement="top"
               content-class="!max-w-76 !p-3 !text-start"
@@ -79,7 +80,6 @@
               content="Please disconnect the existing integration to be able to select the GitHub version"
             >
               <lf-switch
-                v-if="isTeamUser()"
                 v-model="useGitHubNango"
                 :size="'small'"
                 :disabled="isGithubConnected"
