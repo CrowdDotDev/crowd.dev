@@ -33,7 +33,7 @@ const job: IJobDefinition = {
         await dbConnection.one(
           `select count(*) as count from integration.results where state = '${IntegrationResultState.PENDING}'`,
         )
-      ).map((r) => r.count)
+      ).count
 
       if (count > counts.unconsumed) {
         ctx.log.info(`We have ${count} pending results, triggering 50k oldest results!`)
