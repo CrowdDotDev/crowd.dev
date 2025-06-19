@@ -19,6 +19,13 @@ export enum GithubActivityType {
   AUTHORED_COMMIT = 'authored-commit',
 }
 
+export interface GithubPaginationResponse<T> {
+  count: number
+  limit: number
+  offset: number
+  items: T[]
+}
+
 export interface GithubPullRequest {
   state: string
   title: string
