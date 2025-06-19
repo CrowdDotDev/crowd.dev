@@ -28,14 +28,14 @@ const job: IJobDefinition = {
     if (counts.unconsumed < 50000) {
       const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
 
-      // we check if we have more than 50k pending results so that we don't trigger just the ones in the queue :)
+      // we check if we have more than unconsumed pending results so that we don't trigger just the ones in the queue :)
       const count = (
         await dbConnection.one(
           `select count(*) as count from integration.results where state = '${IntegrationResultState.PENDING}'`,
         )
       ).map((r) => r.count)
 
-      if (count > 50000) {
+      if (count > counts.unconsumed) {
         ctx.log.info(`We have ${count} pending results, triggering 50k oldest results!`)
 
         const queueService = new KafkaQueueService(kafkaClient, ctx.log)
