@@ -55,6 +55,8 @@ const job: IJobDefinition = {
     if (msg && msg.trim().length > 0) {
       ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
     }
+
+    telemetry.flush()
   },
 }
 
