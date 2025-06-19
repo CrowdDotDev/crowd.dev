@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_PROD_ENV, distinct } from '@crowd/common'
+import { IS_PROD_ENV, distinct, timeout } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
@@ -57,6 +57,9 @@ const job: IJobDefinition = {
     }
 
     telemetry.flush()
+
+    // sleep for 30 seconds to properly flush the metrics
+    await timeout(30000)
   },
 }
 
