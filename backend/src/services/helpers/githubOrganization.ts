@@ -1,20 +1,25 @@
 import axios from 'axios'
 
 type OrganizationInfo = {
-  logoUrl: string;
-  github: string;
-  website: string | null;
-  twitter: string | null;
-};
+  logoUrl: string
+  github: string
+  website: string | null
+  twitter: string | null
+}
 
-export const getGithubOrganization = async ({ organizationName, token }: { organizationName: string, token: string }): Promise<OrganizationInfo> => {
+export const getGithubOrganization = async ({
+  organizationName,
+  token,
+}: {
+  organizationName: string
+  token: string
+}): Promise<OrganizationInfo> => {
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
   }
 
   try {
-
     const { data } = await axios.get(`https://api.github.com/orgs/${organizationName}`, { headers })
 
     return {
@@ -39,11 +44,10 @@ export const getOrganizationTopics = async ({
   repos,
   token,
 }: {
-  organizationName: string;
-  repos: { name: string }[];
-  token: string;
+  organizationName: string
+  repos: { name: string }[]
+  token: string
 }): Promise<string[]> => {
-
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github.mercy-preview+json',
@@ -55,7 +59,7 @@ export const getOrganizationTopics = async ({
     try {
       const res = await axios.get(
         `https://api.github.com/repos/${organizationName}/${repo.name}/topics`,
-        { headers }
+        { headers },
       )
 
       res.data.names.forEach((topic: string) => topicSet.add(topic))

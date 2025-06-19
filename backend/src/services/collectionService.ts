@@ -35,7 +35,6 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubOrganization, getOrganizationTopics } from './helpers/githubOrganization'
 
-
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
 
@@ -108,13 +107,13 @@ export class CollectionService extends LoggerBase {
       })
       const projects = connections.length
         ? await queryInsightsProjects(qx, {
-          filter: {
-            id: {
-              in: connections.map((c) => c.insightsProjectId),
+            filter: {
+              id: {
+                in: connections.map((c) => c.insightsProjectId),
+              },
             },
-          },
-          fields: Object.values(InsightsProjectField),
-        })
+            fields: Object.values(InsightsProjectField),
+          })
         : []
 
       return {
@@ -173,11 +172,11 @@ export class CollectionService extends LoggerBase {
     const projects =
       connections.length > 0
         ? await queryInsightsProjects(qx, {
-          filter: {
-            id: { in: uniq(connections.map((c) => c.insightsProjectId)) },
-          },
-          fields: Object.values(InsightsProjectField),
-        })
+            filter: {
+              id: { in: uniq(connections.map((c) => c.insightsProjectId)) },
+            },
+            fields: Object.values(InsightsProjectField),
+          })
         : []
 
     const total = await countCollections(qx, filter)
@@ -262,20 +261,20 @@ export class CollectionService extends LoggerBase {
       const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
       const organization = project.organizationId
         ? await findOrgById(qx, project.organizationId, [
-          OrganizationField.ID,
-          OrganizationField.DISPLAY_NAME,
-          OrganizationField.LOGO,
-        ])
+            OrganizationField.ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOGO,
+          ])
         : null
 
       const collections =
         connections.length > 0
           ? await queryCollections(qx, {
-            filter: {
-              id: { in: uniq(connections.map((c) => c.collectionId)) },
-            },
-            fields: Object.values(CollectionField),
-          })
+              filter: {
+                id: { in: uniq(connections.map((c) => c.collectionId)) },
+              },
+              fields: Object.values(CollectionField),
+            })
           : []
 
       return {
@@ -337,11 +336,11 @@ export class CollectionService extends LoggerBase {
     const collections =
       connections.length > 0
         ? await queryCollections(qx, {
-          filter: {
-            id: { in: uniq(connections.map((c) => c.collectionId)) },
-          },
-          fields: Object.values(CollectionField),
-        })
+            filter: {
+              id: { in: uniq(connections.map((c) => c.collectionId)) },
+            },
+            fields: Object.values(CollectionField),
+          })
         : []
 
     const total = await countInsightsProjects(qx, filter)
@@ -468,23 +467,22 @@ export class CollectionService extends LoggerBase {
   }
 
   async findGithubInsightsForSegment(segmentId: string) {
-
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
 
     const githubIntegrations = integrations.filter(
-      (integration) => integration.platform === PlatformType.GITHUB || integration.platform === PlatformType.GITHUB_NANGO
+      (integration) =>
+        integration.platform === PlatformType.GITHUB ||
+        integration.platform === PlatformType.GITHUB_NANGO,
     )
 
     const result = []
 
     // FIXME: if we have just one github integration, we can avoid the loop
     for (const { token, settings } of githubIntegrations) {
-
       const organizations = (settings as any)?.orgs || []
 
       for (const { name, repos } of organizations) {
-
         const { logoUrl, github, website, twitter } = await getGithubOrganization({
           organizationName: name,
           token,
@@ -509,7 +507,4 @@ export class CollectionService extends LoggerBase {
     // FIXME: investigate how to chose between multiple orgs result
     return result[0] || {}
   }
-
 }
-
-
