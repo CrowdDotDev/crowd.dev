@@ -4,7 +4,7 @@ DESCRIPTION >
 NODE searchVolume_pipe
 SQL >
     %
-    SELECT insightsProjectId, slug, dataTimestamp, volume, updatedAt
+    SELECT insightsProjectId, slug, , formatDateTime(dataTimestamp, '%Y-%m-%d') AS dataTimestamp, volume, updatedAt
     FROM searchVolume FINAL
     WHERE
         1 = 1
