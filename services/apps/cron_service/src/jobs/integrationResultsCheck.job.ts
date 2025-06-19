@@ -12,7 +12,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'integration-results-check',
-  cronTime: CronTime.every(30).minutes(),
+  cronTime: CronTime.every(10).minutes(),
   timeout: 30 * 60, // 30 minutes
   process: async (ctx) => {
     const topic = 'data-sink-worker-normal-production'
@@ -36,7 +36,7 @@ const job: IJobDefinition = {
       ).count
 
       if (count > counts.unconsumed) {
-        ctx.log.info(`We have ${count} pending results, triggering 50k oldest results!`)
+        ctx.log.info(`We have ${count} pending results, triggering 100k oldest results!`)
 
         const queueService = new KafkaQueueService(kafkaClient, ctx.log)
         const dswEmitter = new DataSinkWorkerEmitter(queueService, ctx.log)
@@ -44,7 +44,7 @@ const job: IJobDefinition = {
 
         const resultIds = (
           await dbConnection.any(
-            `select id from integration.results where state = 'pending' order by "createdAt" desc limit 50000`,
+            `select id from integration.results where state = 'pending' order by "createdAt" desc limit 100000`,
           )
         ).map((r) => r.id)
 
