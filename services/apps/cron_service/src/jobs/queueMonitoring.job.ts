@@ -9,7 +9,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'queue-monitoring',
-  cronTime: CronTime.everyHour(),
+  cronTime: CronTime.every(30).minutes(),
   timeout: 30 * 60,
   enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
