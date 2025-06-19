@@ -476,12 +476,12 @@ export class CollectionService extends LoggerBase {
       (integration) => integration.platform === PlatformType.GITHUB || integration.platform === PlatformType.GITHUB_NANGO
     )
 
-    const result = [];
+    const result = []
 
     // FIXME: if we have just one github integration, we can avoid the loop
     for (const { token, settings } of githubIntegrations) {
 
-      const organizations = (settings as any)?.orgs || [];
+      const organizations = (settings as any)?.orgs || []
 
       for (const { name, repos } of organizations) {
 
@@ -494,7 +494,7 @@ export class CollectionService extends LoggerBase {
           organizationName: name,
           repos,
           token,
-        });
+        })
 
         result.push({
           github,
