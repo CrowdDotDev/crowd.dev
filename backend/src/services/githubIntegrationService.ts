@@ -1,8 +1,6 @@
 import { request } from '@octokit/request'
 import { Octokit } from '@octokit/rest'
-
-import { GithubPaginationResponse } from '@crowd/integrations'
-
+import { PageData } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
@@ -16,7 +14,7 @@ export default class GithubIntegrationService {
     query: string,
     limit: number = 30,
     offset: number = 0,
-  ): Promise<GithubPaginationResponse<any>> {
+  ): Promise<PageData<any>> {
     const auth = await getGithubInstallationToken()
     const page = Math.floor(offset / limit) + 1 // offset to page conversion
     this.options.log.info(`Searching repo ${query}, page ${page} and limit: ${limit}`)
@@ -64,7 +62,7 @@ export default class GithubIntegrationService {
       count,
       limit: Number(limit),
       offset: Number(offset),
-      items,
+      rows: items,
     }
   }
 
@@ -72,7 +70,7 @@ export default class GithubIntegrationService {
     query: string,
     limit: number = 30,
     offset: number = 0,
-  ): Promise<GithubPaginationResponse<any>> {
+  ): Promise<PageData<any>> {
     const auth = await getGithubInstallationToken()
     const page = Math.floor(offset / limit) + 1 // offset to page conversion
 
@@ -96,7 +94,7 @@ export default class GithubIntegrationService {
       count,
       limit: Number(limit),
       offset: Number(offset),
-      items,
+      rows: items,
     }
   }
 
