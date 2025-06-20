@@ -248,6 +248,7 @@ const loading = ref(false);
 const tab = ref('repositories');
 const isOrganizationRepoLoading = ref(false);
 const page = ref(0);
+const pageSize = 20; // Adjust as needed
 const noMoreData = ref(false);
 let scrollContainer: HTMLElement | null = null;
 
@@ -390,7 +391,7 @@ function onScroll(e: Event) {
     && !noMoreData.value
     && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
   ) {
-    page.value += 1;
+    page.value += pageSize;
     searchForResults();
   }
 }
