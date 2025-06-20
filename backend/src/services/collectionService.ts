@@ -33,6 +33,7 @@ import { PlatformType } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
+import { getGithubOrganization, getOrganizationTopics } from './helpers/githubOrganization'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -463,5 +464,47 @@ export class CollectionService extends LoggerBase {
     }
 
     return result
+  }
+
+  async findGithubInsightsForSegment(segmentId: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+
+    const githubIntegrations = integrations.filter(
+      (integration) =>
+        integration.platform === PlatformType.GITHUB ||
+        integration.platform === PlatformType.GITHUB_NANGO,
+    )
+
+    const result = []
+
+    // FIXME: if we have just one github integration, we can avoid the loop
+    for (const { token, settings } of githubIntegrations) {
+      const organizations = (settings as any)?.orgs || []
+
+      for (const { name, repos } of organizations) {
+        const { logoUrl, github, website, twitter } = await getGithubOrganization({
+          organizationName: name,
+          token,
+        })
+
+        const topics = await getOrganizationTopics({
+          organizationName: name,
+          repos,
+          token,
+        })
+
+        result.push({
+          github,
+          logoUrl,
+          twitter,
+          website,
+          topics,
+        })
+      }
+    }
+
+    // FIXME: investigate how to chose between multiple orgs result
+    return result[0] || {}
   }
 }
