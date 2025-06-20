@@ -1,0 +1,45 @@
+DESCRIPTION >
+    Merges activities and its relations together.  Filters out bot and untracked activities that don't have channel definition in `project.repositories`. Destination datasource's sorting keys are optimized for insights queries.
+
+TAGS "Activity preprocessing pipeline"
+
+NODE activities_with_relations_sorted_deduplicated_members
+SQL >
+    SELECT id as memberId, displayName, publicName, avatar
+    FROM members_sorted
+    WHERE NOT isBot AND NOT isTeamMember
+
+NODE activities_with_relations_sorted_deduplicated_projects
+SQL >
+    SELECT segmentId, id as projectId, isLF, name FROM insightsProjects
+
+NODE activities_with_relations_sorted_deduplicated_organizations
+SQL >
+    SELECT id as organizationId, displayName, logo FROM organizations
+
+NODE activities_with_relations_merged
+SQL >
+    SELECT
+        a.*,
+        a.updatedAt AS "updatedAt",
+        a.memberId as memberId,
+        a.organizationId as organizationId,
+        a.segmentId as segmentId,
+        p.projectId as projectId,
+        p.isLF as projectIsLF,
+        p.name as projectName,
+        case when p.isLF then m.displayName else m.publicName end as memberDisplayName,
+        m.avatar as memberAvatar,
+        o.displayName as organizationDisplayName,
+        o.logo as organizationLogo
+    FROM activities_with_relations_sorted_deduplicated_ds a
+    JOIN activities_with_relations_sorted_deduplicated_members m ON m.memberId = a.memberId
+    LEFT JOIN activities_with_relations_sorted_deduplicated_projects p ON p.segmentId = a.segmentId
+    LEFT JOIN
+        activities_with_relations_sorted_deduplicated_organizations o
+        ON o.organizationId = a.organizationId
+
+TYPE COPY
+TARGET_DATASOURCE activities_with_populated_data_deduplicated_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 40 * * * *

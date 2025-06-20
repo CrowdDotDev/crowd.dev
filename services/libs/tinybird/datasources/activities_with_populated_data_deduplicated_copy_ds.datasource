@@ -1,0 +1,34 @@
+SCHEMA >
+    `id` String,
+    `timestamp` DateTime,
+    `platform` LowCardinality(String),
+    `type` LowCardinality(String),
+    `channel` String,
+    `isContribution` UInt8,
+    `sourceId` String,
+    `sourceParentId` String,
+    `sentimentLabel` String,
+    `sentimentScore` Float32,
+    `gitChangedLines` Int64,
+    `gitChangedLinesBucket` String,
+    `score` Int8,
+    `attributes` String,
+    `a.updatedAt` DateTime64(3),
+    `a.memberId` String,
+    `a.organizationId` String,
+    `a.segmentId` String,
+    `updatedAt` DateTime64(3),
+    `memberId` String,
+    `organizationId` String,
+    `segmentId` String,
+    `projectId` String,
+    `projectIsLF` UInt8,
+    `projectName` String,
+    `memberDisplayName` String,
+    `memberAvatar` String,
+    `organizationDisplayName` String,
+    `organizationLogo` String
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY segmentId, timestamp, type, platform, memberId, organizationId
