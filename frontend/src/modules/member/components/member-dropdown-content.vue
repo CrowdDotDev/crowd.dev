@@ -326,6 +326,7 @@ const handleCommand = async (command: {
           ...command.member.attributes,
           isTeamMember: {
             default: command.value,
+            custom: command.value,
           },
         },
       }),
@@ -365,6 +366,7 @@ const handleCommand = async (command: {
           ...command.member.attributes,
           isBot: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
+            custom: command.action === Actions.MARK_CONTACT_AS_BOT,
           },
         },
       }),
