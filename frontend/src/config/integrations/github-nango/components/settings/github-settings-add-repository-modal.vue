@@ -119,7 +119,7 @@
               </div>
             </div>
             <p v-else-if="loading" class="text-medium text-gray-500">
-              Searching for repositories...
+              loading more repositories...
             </p>
           </div>
 
@@ -195,7 +195,7 @@
                 </div>
               </div>
               <p v-else-if="loading" class="text-medium text-gray-500">
-                Searching for organizations...
+                loading more organizations...
               </p>
             </div>
           </div>
@@ -332,8 +332,6 @@ const resultOrganizations = ref<GitHubOrganization[]>([]);
 
 const searchForResults = () => {
   loading.value = true;
-  console.log(`Searching for ${tab.value} with query: ${search.value}, page: ${page.value}`);
-
   (tab.value === 'repositories'
     ? GithubApiService.searchRepositories
     : GithubApiService.searchOrganizations)(search.value, page.value)
