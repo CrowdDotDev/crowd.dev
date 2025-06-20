@@ -332,19 +332,21 @@ const resultOrganizations = ref<GitHubOrganization[]>([]);
 
 const searchForResults = () => {
   loading.value = true;
+  console.log(`Searching for ${tab.value} with query: ${search.value}, page: ${page.value}`);
+
   (tab.value === 'repositories'
     ? GithubApiService.searchRepositories
     : GithubApiService.searchOrganizations)(search.value, page.value)
     .then((res) => {
       if (tab.value === 'repositories') {
         resultRepositories.value = [
-          resultRepositories.value,
+          ...resultRepositories.value,
           ...res.rows,
         ] as GitHubRepository[];
         noMoreData.value = resultRepositories.value.length >= +res.count;
       } else {
         resultOrganizations.value = [
-          resultOrganizations.value,
+          ...resultOrganizations.value,
           ...res.rows,
         ] as GitHubOrganization[];
         noMoreData.value = resultOrganizations.value.length >= +res.count;
