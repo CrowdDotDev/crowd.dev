@@ -10,7 +10,7 @@ import { getGithubInstallationToken } from './helpers/githubToken'
 const githubMaxSearchResult = 1000
 
 export default class GithubIntegrationService {
-  constructor(private readonly options: IServiceOptions) {}
+  constructor(private readonly options: IServiceOptions) { }
 
   public async findGithubRepos(
     query: string,
@@ -115,5 +115,48 @@ export default class GithubIntegrationService {
       name: repo.name,
       url: repo.html_url,
     }))
+  }
+
+  public static async findOrgDetail(org: string) {
+    const auth = await getGithubInstallationToken()
+    const { data } = await request('GET /orgs/{org}', {
+      org,
+      headers: {
+        authorization: `bearer ${auth}`,
+      },
+    })
+
+    return {
+      description: data.description || null,
+      github: data.html_url,
+      logoUrl: data.avatar_url,
+      name: data.login,
+      twitter: data.twitter_username || null,
+      website: data.blog || null,
+    }
+  }
+
+  public static async findOrgTopics(org: string, repos: { name: string }[]) {
+    const auth = await getGithubInstallationToken()
+
+    const topicSet = new Set<string>()
+
+    const topicPromises = repos.map(async (repo) => {
+      try {
+        const res = await request(`GET /repos/${org}/${repo.name}/topics`, {
+          headers: {
+            authorization: `bearer ${auth}`,
+          },
+        })
+
+        res.data.names.forEach((topic: string) => topicSet.add(topic))
+      } catch (err) {
+        console.error(`Failed to fetch topics for ${repo.name}:`, err.response?.data || err.message)
+      }
+    })
+
+    await Promise.all(topicPromises)
+
+    return Array.from(topicSet)
   }
 }

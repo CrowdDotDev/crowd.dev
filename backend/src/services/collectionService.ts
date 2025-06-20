@@ -33,7 +33,7 @@ import { PlatformType } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
-import { getGithubOrganization, getOrganizationTopics } from './helpers/githubOrganization'
+import GithubIntegrationService from './githubIntegrationService'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -470,38 +470,34 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
 
-    const githubIntegrations = integrations.filter(
+    const [githubIntegration] = integrations.filter(
       (integration) =>
         integration.platform === PlatformType.GITHUB ||
         integration.platform === PlatformType.GITHUB_NANGO,
     )
 
+    if (!githubIntegration) {
+      return {}
+    }
+
     const result = []
+    const settings = githubIntegration.settings || {}
+    const organizations = (settings as any)?.orgs || []
 
-    // FIXME: if we have just one github integration, we can avoid the loop
-    for (const { token, settings } of githubIntegrations) {
-      const organizations = (settings as any)?.orgs || []
+    for (const { name, repos } of organizations) {
+      const { description, logoUrl, github, website, twitter } =
+        await GithubIntegrationService.findOrgDetail(name)
+      const topics = await GithubIntegrationService.findOrgTopics(name, repos)
 
-      for (const { name, repos } of organizations) {
-        const { logoUrl, github, website, twitter } = await getGithubOrganization({
-          organizationName: name,
-          token,
-        })
-
-        const topics = await getOrganizationTopics({
-          organizationName: name,
-          repos,
-          token,
-        })
-
-        result.push({
-          github,
-          logoUrl,
-          twitter,
-          website,
-          topics,
-        })
-      }
+      result.push({
+        description,
+        github,
+        logoUrl,
+        name,
+        topics,
+        twitter,
+        website,
+      })
     }
 
     // FIXME: investigate how to chose between multiple orgs result
