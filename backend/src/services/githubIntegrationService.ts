@@ -1,6 +1,8 @@
 import { request } from '@octokit/request'
 import { Octokit } from '@octokit/rest'
+
 import { PageData } from '@crowd/types'
+
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
