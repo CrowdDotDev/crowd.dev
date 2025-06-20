@@ -43,7 +43,7 @@
       >
         <!-- Loading and empty search state -->
         <div
-          v-if="!debouncedSearch || loading"
+          v-if="!debouncedSearch || (loading && page === 0)"
           class="flex flex-col items-center justify-around grow pb-6"
         >
           <div class="py-4">
@@ -118,6 +118,9 @@
                 </h6>
               </div>
             </div>
+            <p v-else-if="loading" class="text-medium text-gray-500">
+              Searching for repositories...
+            </p>
           </div>
 
           <!-- Organizations -->
@@ -191,6 +194,9 @@
                   </h6>
                 </div>
               </div>
+              <p v-else-if="loading" class="text-medium text-gray-500">
+                Searching for organizations...
+              </p>
             </div>
           </div>
         </div>
