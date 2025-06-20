@@ -28,7 +28,9 @@ SQL >
 
 NODE contributors_leaderboard_members
 SQL >
-    SELECT id, avatar, displayName, publicName FROM members_sorted
+    SELECT id, avatar, displayName, publicName
+    FROM members_sorted
+    where id in (select memberId from memberId_aggregates)
 
 NODE contributors_leaderboard_2
 SQL >
@@ -47,6 +49,5 @@ SQL >
         inner join contributors_leaderboard_members m on ma.memberId = m.id
         left join member_roles mr on mr.memberId = m.id
         cross join is_request_from_non_lf_project is_non_lf
-        where m.id in (select memberId from memberId_aggregates)
         order by contributionCount desc
     {% end %}

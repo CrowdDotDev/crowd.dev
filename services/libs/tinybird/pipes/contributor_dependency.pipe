@@ -3,25 +3,21 @@ DESCRIPTION >
 
 TAGS "Widget"
 
-NODE contributor_dependency_leaderboard
-SQL >
-    SELECT id, displayName, contributionPercentage, roles
-    FROM contributors_leaderboard
-    ORDER BY contributionPercentage DESC, id
-
-NODE contributor_dependency_running
-SQL >
-    SELECT
-        *,
-        sum(contributionPercentage) OVER (
-            ORDER BY contributionPercentage DESC, id
-        ) AS contributionPercentageRunningTotal
-    FROM contributor_dependency_leaderboard
-
 NODE contributions_percentage_running_total
 SQL >
-    SELECT r.*, ac.contributorCount AS totalContributorCount
-    FROM contributor_dependency_running r
-    CROSS JOIN active_contributors ac
+    SELECT t.*, active_contributors.contributorCount as "totalContributorCount"
+    FROM
+        (
+            SELECT
+                id,
+                displayName,
+                contributionPercentage,
+                roles,
+                sum(contributionPercentage) OVER (
+                    ORDER BY contributionPercentage DESC, id
+                ) AS contributionPercentageRunningTotal
+            FROM contributors_leaderboard
+        ) t
+    cross join active_contributors
     WHERE contributionPercentageRunningTotal <= 51
     ORDER BY contributionPercentageRunningTotal ASC
