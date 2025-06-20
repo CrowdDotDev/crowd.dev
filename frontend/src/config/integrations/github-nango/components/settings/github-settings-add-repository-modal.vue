@@ -1,5 +1,8 @@
 <template>
-  <lf-modal v-model="isModalOpen" :close-function="() => !isOrganizationRepoLoading">
+  <lf-modal
+    v-model="isModalOpen"
+    :close-function="() => !isOrganizationRepoLoading"
+  >
     <div class="pb-6 px-6 h-[55vh]">
       <div class="sticky pt-5 bg-white z-10 top-0">
         <div class="flex justify-between items-center pb-5">
@@ -7,7 +10,7 @@
           <lf-button
             type="secondary-ghost"
             icon-only
-            @click="!isOrganizationRepoLoading ? isModalOpen = false : null"
+            @click="!isOrganizationRepoLoading ? (isModalOpen = false) : null"
           >
             <lf-icon name="xmark" />
           </lf-button>
@@ -35,7 +38,9 @@
         />
       </div>
 
-      <div class="flex flex-col py-4 max-h-[75%] h-full overflow-y-auto">
+      <div
+        class="flex flex-col py-4 max-h-[75%] h-full overflow-y-auto github-infinite-scroll"
+      >
         <!-- Loading and empty search state -->
         <div
           v-if="!debouncedSearch || loading"
@@ -195,7 +200,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
 import { debouncedRef } from '@vueuse/core';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -229,6 +241,9 @@ const search = ref('');
 const loading = ref(false);
 const tab = ref('repositories');
 const isOrganizationRepoLoading = ref(false);
+const page = ref(0);
+const noMoreData = ref(false);
+let scrollContainer: HTMLElement | null = null;
 
 const isModalOpen = computed({
   get() {
@@ -273,22 +288,24 @@ const addRepository = (repo: GitHubSettingsRepository) => {
 const addOrganizations = (org: GitHubOrganization) => {
   organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
   isOrganizationRepoLoading.value = true;
-  GithubApiService.getOrganizationRepositories(org.name).then((res) => {
-    const newRepositories = (res as GitHubSettingsRepository[])
-      .filter(
-        (r: GitHubSettingsRepository) => !repositories.value.some(
-          (repo: GitHubSettingsRepository) => repo.url === r.url,
-        ),
-      )
-      .map((r: GitHubSettingsRepository) => ({
-        ...r,
-        org,
-        updatedAt: dateHelper().toISOString(),
-      }));
-    repositories.value = [...repositories.value, ...newRepositories];
-  }).finally(() => {
-    isOrganizationRepoLoading.value = false;
-  });
+  GithubApiService.getOrganizationRepositories(org.name)
+    .then((res) => {
+      const newRepositories = (res as GitHubSettingsRepository[])
+        .filter(
+          (r: GitHubSettingsRepository) => !repositories.value.some(
+            (repo: GitHubSettingsRepository) => repo.url === r.url,
+          ),
+        )
+        .map((r: GitHubSettingsRepository) => ({
+          ...r,
+          org,
+          updatedAt: dateHelper().toISOString(),
+        }));
+      repositories.value = [...repositories.value, ...newRepositories];
+    })
+    .finally(() => {
+      isOrganizationRepoLoading.value = false;
+    });
 };
 
 const removeRepository = (repo: any) => {
@@ -310,12 +327,20 @@ const searchForResults = () => {
   loading.value = true;
   (tab.value === 'repositories'
     ? GithubApiService.searchRepositories
-    : GithubApiService.searchOrganizations)(search.value)
+    : GithubApiService.searchOrganizations)(search.value, page.value)
     .then((res) => {
       if (tab.value === 'repositories') {
-        resultRepositories.value = res as GitHubRepository[];
+        resultRepositories.value = [
+          resultRepositories.value,
+          ...res.rows,
+        ] as GitHubRepository[];
+        noMoreData.value = resultRepositories.value.length >= +res.count;
       } else {
-        resultOrganizations.value = res as GitHubOrganization[];
+        resultOrganizations.value = [
+          resultOrganizations.value,
+          ...res.rows,
+        ] as GitHubOrganization[];
+        noMoreData.value = resultOrganizations.value.length >= +res.count;
       }
     })
     .catch(() => {
@@ -332,6 +357,10 @@ watch(
   () => debouncedSearch.value,
   (value: string) => {
     if (value.length > 0) {
+      page.value = 0;
+      noMoreData.value = false;
+      resultRepositories.value = [];
+      resultOrganizations.value = [];
       searchForResults();
     }
   },
@@ -344,11 +373,41 @@ watch(
   },
 );
 
+// Infinite scroll handler
+function onScroll(e: Event) {
+  if (!scrollContainer) return;
+  const threshold = 20;
+
+  const target = e.target as HTMLElement;
+  if (
+    !loading.value
+    && !noMoreData.value
+    && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
+  ) {
+    page.value += 1;
+    searchForResults();
+  }
+}
+
+onMounted(() => {
+  nextTick(() => {
+    scrollContainer = document.querySelector('.github-infinite-scroll');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', onScroll);
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
+});
+
 const githubSearchImage = new URL(
   '@/assets/images/integrations/github-search.png',
   import.meta.url,
 ).href;
-
 </script>
 
 <script lang="ts">
