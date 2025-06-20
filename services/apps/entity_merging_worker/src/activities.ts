@@ -11,7 +11,7 @@ export {
 
 export {
   deleteOrganization,
-  moveActivitiesBetweenOrgs,
+  finishOrganizationMergingUpdateActivities,
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
   syncOrganization,

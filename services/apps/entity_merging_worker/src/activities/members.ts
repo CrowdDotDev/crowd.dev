@@ -1,27 +1,16 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import {
-  getMemberActivityTimestampRanges,
-  updateActivities,
-} from '@crowd/data-access-layer/src/activities/update'
+import { moveActivityRelationsBetweenMembers } from '@crowd/data-access-layer/src/activityRelations'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
-import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
   cleanupMember,
   deleteMemberSegments,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import { figureOutNewOrgId } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
-import { prepareMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisPubSubEmitter } from '@crowd/redis'
-import {
-  ApiWebsocketMessage,
-  IMemberIdentity,
-  MemberIdentityType,
-  TemporalWorkflowId,
-} from '@crowd/types'
+import { ApiWebsocketMessage, IMemberIdentity, TemporalWorkflowId } from '@crowd/types'
 
 import { svc } from '../main'
 
@@ -137,86 +126,16 @@ export async function notifyFrontendMemberUnmergeSuccessful(
   )
 }
 
-export async function finishMemberMergingUpdateActivities(memberId: string, newMemberId: string) {
-  const pgDb = svc.postgres.reader
-  const qDb = svc.questdbSQL
-  const queueClient = svc.queue
-
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-
-  await updateActivities(
-    qDb,
-    pgpQx(svc.postgres.writer.connection()),
-    queueClient,
-    [
-      async () => ({ memberId: newMemberId }),
-      async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-      }),
-    ],
-    `"memberId" = $(memberId) 
-    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
-    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
-    {
-      memberId,
-      ...(minTimestamp && { minTimestamp }),
-      ...(maxTimestamp && { maxTimestamp }),
-    },
-  )
+export async function finishMemberMergingUpdateActivities(primaryId: string, secondaryId: string) {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await moveActivityRelationsBetweenMembers(qx, secondaryId, primaryId)
 }
 
-function moveByIdentities({
-  activity,
-  identities,
-  newMemberId,
-}: {
-  activity: IDbActivityCreateData
-  identities: IMemberIdentity[]
-  newMemberId: string
-}): Partial<IDbActivityCreateData> {
-  const { platform, username } = activity
-  const activityMatches = identities.some(
-    (i) =>
-      i.type === MemberIdentityType.USERNAME && i.platform === platform && i.value === username,
-  )
-
-  return activityMatches ? { memberId: newMemberId } : {}
-}
-
-export async function finishMemberUnmergingUpdateActivities({
-  memberId,
-  newMemberId,
-  identities,
-}: {
-  memberId: string
-  newMemberId: string
-  identities: IMemberIdentity[]
-}) {
-  const pgDb = svc.postgres.reader
-  const qDb = svc.questdbSQL
-  const queueClient = svc.queue
-
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-
-  await updateActivities(
-    qDb,
-    pgpQx(svc.postgres.writer.connection()),
-    queueClient,
-    [
-      async (activity) => moveByIdentities({ activity, identities, newMemberId }),
-      async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-      }),
-    ],
-    `"memberId" = $(memberId) 
-    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
-    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
-    { memberId, ...(minTimestamp && { minTimestamp }), ...(maxTimestamp && { maxTimestamp }) },
-  )
+export async function finishMemberUnmergingUpdateActivities(
+  primaryId: string,
+  secondaryId: string,
+  identities: IMemberIdentity[],
+) {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await moveActivityRelationsBetweenMembers(qx, primaryId, secondaryId, identities)
 }
