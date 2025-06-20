@@ -26,6 +26,10 @@ SQL >
     FROM insightsProjects final
     WHERE slug = {{ String(project, description="Filter by project slug", required=True) }}
 
+NODE contributors_leaderboard_members
+SQL >
+    SELECT id, avatar, displayName, publicName FROM members_sorted
+
 NODE contributors_leaderboard_2
 SQL >
     %
@@ -39,8 +43,8 @@ SQL >
             ma.contributionCount,
             ma.contributionPercentage,
             mr.roles
-        FROM members_sorted AS m any
-        inner join memberId_aggregates ma on ma.memberId = m.id
+        FROM memberId_aggregates AS ma any
+        inner join contributors_leaderboard_members m on ma.memberId = m.id
         left join member_roles mr on mr.memberId = m.id
         cross join is_request_from_non_lf_project is_non_lf
         where m.id in (select memberId from memberId_aggregates)
