@@ -776,7 +776,7 @@ export default class ActivityService extends LoggerBase {
         for (const payload of payloadsNotInDb.filter(
           (p) =>
             !p.dbMember &&
-            p.activity.platform === identity.platform &&
+            p.platform === identity.platform &&
             p.activity.username.toLowerCase() === identity.value.toLowerCase(),
         )) {
           payload.dbMember = dbMember
@@ -785,7 +785,7 @@ export default class ActivityService extends LoggerBase {
         for (const payload of payloadsNotInDb.filter(
           (p) =>
             !p.dbObjectMember &&
-            p.activity.platform === identity.platform &&
+            p.platform === identity.platform &&
             p.activity.objectMemberUsername &&
             p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
         )) {
