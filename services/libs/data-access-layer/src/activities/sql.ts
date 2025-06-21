@@ -671,7 +671,11 @@ export function mapActivityRowToResult(a: any, columns: string[]): any {
     if (column === 'attributes') {
       data[column] = JSON.parse(a[column])
     } else {
-      data[column] = a[column]
+      if (column === 'timestamp') {
+        data[column] = moment.utc(a[column]).toISOString()
+      } else {
+        data[column] = a[column]
+      }
     }
   }
 

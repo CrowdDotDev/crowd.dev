@@ -160,8 +160,15 @@ setImmediate(async () => {
   const availableJobs = await loadJobs()
   for (const job of availableJobs) {
     if ((job.enabled && (await job.enabled())) || !job.enabled) {
+      const envCronTime = `${job.name.replaceAll('-', '_').replaceAll(' ', '_').toUpperCase()}_CRON_TIME`
+
+      let cronTime = job.cronTime
+      if (process.env[envCronTime]) {
+        cronTime = process.env[envCronTime]
+      }
+
       const cronJob = new CronJob(
-        job.cronTime,
+        cronTime,
         async () => {
           await queueJob(job)
         },

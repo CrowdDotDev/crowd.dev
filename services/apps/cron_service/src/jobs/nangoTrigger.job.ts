@@ -32,10 +32,14 @@ const job: IJobDefinition = {
       ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
     ])
 
-    for (const int of integrationsToTrigger) {
+    for (let i = 0; i < integrationsToTrigger.length; i++) {
+      const int = integrationsToTrigger[i]
+
       const { id, settings } = int
 
-      ctx.log.info(`Triggering nango integration check for ${id} (${int.platform})`)
+      ctx.log.info(
+        `${i + 1}/${integrationsToTrigger.length} Triggering nango integration check for ${id} (${int.platform})`,
+      )
 
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
