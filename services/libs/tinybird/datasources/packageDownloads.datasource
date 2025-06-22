@@ -17,5 +17,5 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updated_at`
 
 ENGINE ReplacingMergeTree
-ENGINE_SORTING_KEY insightsProjectId, ecosystem, repo, name
+ENGINE_SORTING_KEY insightsProjectId, date, ecosystem, repo, name
 ENGINE_VER updatedAt
