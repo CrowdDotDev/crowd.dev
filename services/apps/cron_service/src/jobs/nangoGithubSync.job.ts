@@ -5,6 +5,7 @@ import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrat
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { NangoIntegration, nangoIntegrationToPlatform } from '@crowd/nango'
 import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
+import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
@@ -28,10 +29,9 @@ const job: IJobDefinition = {
     const ids: string[] = []
 
     for (const int of integrations) {
-      const { id, settings } = int
+      const { id, platform } = int
 
-      if (!settings.nangoMapping) {
-        // ignore non-nango github integrations
+      if (platform !== PlatformType.GITHUB_NANGO) {
         continue
       }
 
