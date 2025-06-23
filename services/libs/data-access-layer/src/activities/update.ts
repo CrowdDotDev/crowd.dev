@@ -83,7 +83,10 @@ export async function updateActivities(
       await insertActivities(queueClient, [newActivity])
       const changedRelations = getChangedRelationshipFields(activity, newActivity)
       if (Object.keys(changedRelations).length > 0) {
-        await updateActivityRelationsById(pgQx, activity.id, changedRelations)
+        await updateActivityRelationsById(pgQx, {
+          ...changedRelations,
+          activityId: activity.id,
+        })
       }
     },
     where,

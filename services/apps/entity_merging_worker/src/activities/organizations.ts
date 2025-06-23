@@ -26,8 +26,8 @@ export async function deleteOrganization(organizationId: string): Promise<void> 
 }
 
 export async function finishOrganizationMergingUpdateActivities(
-  primaryId: string,
   secondaryId: string,
+  primaryId: string,
 ): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
   await moveActivityRelationsToAnotherOrganization(qx, secondaryId, primaryId)

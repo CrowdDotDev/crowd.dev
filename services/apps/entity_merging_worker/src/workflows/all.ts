@@ -34,7 +34,7 @@ export async function finishMemberMerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-  await finishMemberMergingUpdateActivities(primaryId, secondaryId)
+  await finishMemberMergingUpdateActivities(secondaryId, primaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
@@ -63,7 +63,7 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await finishMemberUnmergingUpdateActivities(primaryId, secondaryId, identities)
+  await finishMemberUnmergingUpdateActivities(secondaryId, primaryId, identities)
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)
@@ -91,7 +91,7 @@ export async function finishOrganizationMerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-  await finishOrganizationMergingUpdateActivities(primaryId, secondaryId)
+  await finishOrganizationMergingUpdateActivities(secondaryId, primaryId)
 
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)
