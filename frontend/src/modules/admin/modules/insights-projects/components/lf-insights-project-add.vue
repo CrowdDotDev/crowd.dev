@@ -328,24 +328,17 @@ const fetchIntegration = async (segmentId: string) => {
   );
 
   form.widgets = Object.keys(defaultWidgetsValues)
-    .filter(
-      (value: string) => !!defaultWidgetsValues[value as Widgets]
-        .enabled,
-    )
     .reduce(
       (acc, key: string) => ({
         ...acc,
         [key]: {
-          enabled:
-            defaultWidgetsValues[
-              key as Widgets
-            ].platform.includes(Platform.ALL)
-            || platforms.some((platform) => defaultWidgetsValues[
-                key as Widgets
-            ].platform.includes(platform)),
-          platform:
-            defaultWidgetsValues[key as Widgets]
-              .platform,
+          enabled: isEditForm.value
+            ? form.widgets[key as Widgets].enabled
+            : defaultWidgetsValues[key as Widgets].platform.includes(
+              Platform.ALL,
+            )
+              || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
+          platform: defaultWidgetsValues[key as Widgets].platform,
         },
       }),
       {},
