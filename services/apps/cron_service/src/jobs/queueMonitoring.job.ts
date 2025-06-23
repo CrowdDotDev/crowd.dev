@@ -1,6 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_PROD_ENV, distinct } from '@crowd/common'
+import { IS_PROD_ENV, distinct, timeout } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
@@ -9,7 +9,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'queue-monitoring',
-  cronTime: CronTime.everyHour(),
+  cronTime: CronTime.every(30).minutes(),
   timeout: 30 * 60,
   enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
@@ -55,6 +55,11 @@ const job: IJobDefinition = {
     if (msg && msg.trim().length > 0) {
       ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
     }
+
+    telemetry.flush()
+
+    // sleep for 30 seconds to properly flush the metrics
+    await timeout(30000)
   },
 }
 
