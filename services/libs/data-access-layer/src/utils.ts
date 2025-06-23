@@ -186,32 +186,3 @@ export async function refreshMaterializedView(
 ) {
   await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
 }
-
-export function prepareUpdate<T>(
-  table: string,
-  data: Partial<T>,
-  whereClause: string,
-  whereParams: Record<string, unknown> = {},
-) {
-  const fields = Object.keys(data).filter((col) => data[col] !== undefined)
-
-  if (fields.length === 0) {
-    return null
-  }
-
-  const query = `
-    UPDATE $(table:name)
-    SET
-      ${fields.map((_, i) => `$(fields.col${i}:name) = $(data.${fields[i]})`).join(',\n')}
-    WHERE ${whereClause}
-  `
-
-  return pgp.as.format(query, {
-    table,
-    data: { ...data, ...whereParams },
-    fields: fields.reduce((acc, c, i) => {
-      acc[`col${i}`] = c
-      return acc
-    }, {}),
-  })
-}

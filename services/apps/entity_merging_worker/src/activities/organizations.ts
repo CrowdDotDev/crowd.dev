@@ -1,5 +1,5 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { moveActivityRelationsBetweenOrganizations } from '@crowd/data-access-layer/src/activityRelations'
+import { moveActivityRelationsToAnotherOrganization } from '@crowd/data-access-layer/src/activityRelations'
 import {
   deleteOrganizationById,
   deleteOrganizationSegments,
@@ -30,7 +30,7 @@ export async function finishOrganizationMergingUpdateActivities(
   secondaryId: string,
 ): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  await moveActivityRelationsBetweenOrganizations(qx, primaryId, secondaryId)
+  await moveActivityRelationsToAnotherOrganization(qx, secondaryId, primaryId)
 }
 
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(

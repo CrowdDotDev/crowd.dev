@@ -1,7 +1,10 @@
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { moveActivityRelationsBetweenMembers } from '@crowd/data-access-layer/src/activityRelations'
+import {
+  moveActivityRelationsToAnotherMember,
+  moveActivityRelationsWithIdentityToAnotherMember,
+} from '@crowd/data-access-layer/src/activityRelations'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import {
   cleanupMember,
@@ -128,7 +131,7 @@ export async function notifyFrontendMemberUnmergeSuccessful(
 
 export async function finishMemberMergingUpdateActivities(primaryId: string, secondaryId: string) {
   const qx = pgpQx(svc.postgres.writer.connection())
-  await moveActivityRelationsBetweenMembers(qx, secondaryId, primaryId)
+  await moveActivityRelationsToAnotherMember(qx, secondaryId, primaryId)
 }
 
 export async function finishMemberUnmergingUpdateActivities(
@@ -137,5 +140,16 @@ export async function finishMemberUnmergingUpdateActivities(
   identities: IMemberIdentity[],
 ) {
   const qx = pgpQx(svc.postgres.writer.connection())
-  await moveActivityRelationsBetweenMembers(qx, primaryId, secondaryId, identities)
+
+  await Promise.all(
+    identities.map((identity) =>
+      moveActivityRelationsWithIdentityToAnotherMember(
+        qx,
+        primaryId,
+        secondaryId,
+        identity.value,
+        identity.platform,
+      ),
+    ),
+  )
 }

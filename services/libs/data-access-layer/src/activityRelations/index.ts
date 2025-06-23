@@ -1,11 +1,6 @@
-import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
-
 import { IMemberSegmentCoreAggregates } from '../members/types'
 import { IOrganizationActivityCoreAggregates } from '../organizations/types'
-import { QueryExecutor, formatQuery } from '../queryExecutor'
-import { prepareUpdate } from '../utils'
-
-import type { IActivityRelationsUpdate, IDbActivityRelations } from './types'
+import { QueryExecutor } from '../queryExecutor'
 
 export async function getMemberActivityCoreAggregates(
   qx: QueryExecutor,
@@ -57,147 +52,102 @@ export async function getOrganizationActivityCoreAggregates(
   }))
 }
 
-export async function getActivityRelations<T extends keyof IDbActivityRelations>(
-  qx: QueryExecutor,
-  select: T[],
-  whereClause: string,
-  limit = 1000,
-): Promise<Pick<IDbActivityRelations, T>[]> {
-  return qx.select(
-    `
-    select ${select.map((col) => `"${col}"`).join(', ')}
-    from "activityRelations"
-    ${whereClause ? `where ${whereClause}` : ''}
-    order by "activityId" asc
-    limit $(limit)
-  `,
-    { limit },
-  )
-}
+export async function moveActivityRelationsToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
 
-export async function updateActivityRelations(
-  qx: QueryExecutor,
-  dataToUpdate: Partial<IActivityRelationsUpdate>,
-  whereClause: string,
-  params: Record<string, unknown> = {},
-): Promise<void> {
-  return qx.result(
-    prepareUpdate(
-      'activityRelations',
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "memberId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
       {
-        ...dataToUpdate,
-        updatedAt: 'CURRENT_TIMESTAMP',
-      },
-      whereClause,
-      params,
-    ),
-  )
-}
-
-/**
- * Moves activity relations from secondary to primary member in batches of 5000 rows.
- * If identities are provided, only moves activities matching those platform/username combinations.
- */
-export async function moveActivityRelationsBetweenMembers(
-  qx: QueryExecutor,
-  primaryId: string,
-  secondaryId: string,
-  identities?: IMemberIdentity[],
-): Promise<void> {
-  const BATCH_SIZE = 5000
-  const SELECT_COLUMNS = ['activityId'] as const satisfies (keyof IDbActivityRelations)[]
-
-  const whereClause = (lastId?: string) => {
-    const conditions = [`"memberId" = $(secondaryId)`]
-    const params: Record<string, unknown> = { secondaryId }
-
-    // If identities are provided, filter by platform/username combinations
-    if (identities?.length) {
-      const tuples = identities
-        .filter((i) => i.type === MemberIdentityType.USERNAME)
-        .map((i) => `('${i.platform}', '${i.value}')`)
-        .join(', ')
-
-      if (tuples) {
-        conditions.push(`("platform", "username") in (${tuples})`)
-      }
-    }
-
-    if (lastId) {
-      conditions.push(`"activityId" > $(lastId)`)
-      params.lastId = lastId
-    }
-
-    return formatQuery(conditions.join(' and '), params)
-  }
-
-  let activityRelations = await getActivityRelations(qx, SELECT_COLUMNS, whereClause(), BATCH_SIZE)
-
-  while (activityRelations.length > 0) {
-    await updateActivityRelations(
-      qx,
-      { memberId: primaryId },
-      '"activityId" in ($(activityIds:csv))',
-      {
-        activityIds: activityRelations.map((row) => row.activityId),
+        toId,
+        fromId,
+        batchSize,
       },
     )
 
-    const lastId = activityRelations[activityRelations.length - 1].activityId
-
-    // next batch
-    activityRelations = await getActivityRelations(
-      qx,
-      SELECT_COLUMNS,
-      whereClause(lastId),
-      BATCH_SIZE,
-    )
-  }
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
 }
 
-/**
- * Moves activity relations from secondary to primary organization in batches of 5000 rows.
- */
-export async function moveActivityRelationsBetweenOrganizations(
-  qx: QueryExecutor,
-  primaryId: string,
-  secondaryId: string,
-): Promise<void> {
-  const BATCH_SIZE = 5000
-  const SELECT_COLUMNS = ['activityId'] as const satisfies (keyof IDbActivityRelations)[]
+export async function moveActivityRelationsWithIdentityToAnotherMember(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  username: string,
+  platform: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
 
-  const whereClause = (lastId?: string) => {
-    const conditions = [`"organizationId" = $(secondaryId)`]
-    const params: Record<string, unknown> = { secondaryId }
-
-    if (lastId) {
-      conditions.push(`"activityId" > $(lastId)`)
-      params.lastId = lastId
-    }
-
-    return formatQuery(conditions.join(' and '), params)
-  }
-
-  let activityRelations = await getActivityRelations(qx, SELECT_COLUMNS, whereClause(), BATCH_SIZE)
-
-  while (activityRelations.length > 0) {
-    await updateActivityRelations(
-      qx,
-      { organizationId: primaryId },
-      '"activityId" in ($(activityIds:csv))',
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "memberId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where 
+              "memberId" = $(fromId) and
+              "username" = $(username) and
+              "platform" = $(platform)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
       {
-        activityIds: activityRelations.map((row) => row.activityId),
+        toId,
+        fromId,
+        username,
+        platform,
+        batchSize,
       },
     )
 
-    const lastId = activityRelations[activityRelations.length - 1].activityId
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
+}
 
-    // next batch
-    activityRelations = await getActivityRelations(
-      qx,
-      SELECT_COLUMNS,
-      whereClause(lastId),
-      BATCH_SIZE,
+export async function moveActivityRelationsToAnotherOrganization(
+  qe: QueryExecutor,
+  fromId: string,
+  toId: string,
+  batchSize = 5000,
+) {
+  let rowsUpdated
+
+  do {
+    const result = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET "organizationId" = $(toId)
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "organizationId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
     )
-  }
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
 }

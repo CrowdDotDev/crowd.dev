@@ -1,11 +1,8 @@
 import _ from 'lodash'
 
 import { getLongestDateRange } from '@crowd/common'
-import { formatQuery } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 
-import { getActivityRelations, updateActivityRelations } from '../activityRelations'
-import type { IDbActivityRelations } from '../activityRelations/types'
 import { findMemberAffiliations } from '../member_segment_affiliations'
 import { QueryExecutor } from '../queryExecutor'
 
@@ -274,83 +271,68 @@ async function prepareMemberOrganizationAffiliationTimeline(
   return { affiliations, earliestStartDate, fallbackOrganizationId }
 }
 
-const SELECT_ACTIVITY_RELATIONS_FOR_AFFILIATION = [
-  'activityId',
-] as const satisfies (keyof IDbActivityRelations)[]
-const BATCH_SIZE = 5000
-
 async function processAffiliationActivities(
   qx: QueryExecutor,
   memberId: string,
   affiliation: TimelineItem,
+  batchSize = 5000,
 ): Promise<number> {
-  const whereClause = (lastId?: string) => {
-    const conditions = [`"memberId" = $(memberId)`]
-    const params: Record<string, unknown> = { memberId }
-
-    // Organization filtering
-    if (affiliation.organizationId) {
-      conditions.push(`"organizationId" != $(organizationId)`)
-      params.organizationId = affiliation.organizationId
-    } else {
-      conditions.push(`"organizationId" is not null`)
-    }
-
-    // Date filtering
-    if (affiliation.dateStart) {
-      conditions.push(`"timestamp" >= $(dateStart)`)
-      params.dateStart = affiliation.dateStart
-    }
-    if (affiliation.dateEnd) {
-      conditions.push(`"timestamp" <= $(dateEnd)`)
-      params.dateEnd = affiliation.dateEnd
-    }
-
-    // Segment filtering (for manual affiliations)
-    if (affiliation.segmentId) {
-      conditions.push(`"segmentId" = $(segmentId)`)
-      params.segmentId = affiliation.segmentId
-    }
-
-    // Pagination
-    if (lastId) {
-      conditions.push(`"activityId" > $(lastId)`)
-      params.lastId = lastId
-    }
-
-    return formatQuery(conditions.join(' and '), params)
-  }
-
-  let activityRelations = await getActivityRelations(
-    qx,
-    SELECT_ACTIVITY_RELATIONS_FOR_AFFILIATION,
-    whereClause(),
-    BATCH_SIZE,
-  )
-
+  let rowsUpdated
   let processed = 0
 
-  while (activityRelations.length > 0) {
-    await updateActivityRelations(
-      qx,
-      { organizationId: affiliation.organizationId },
-      '"activityId" in ($(activityIds:csv))',
-      { activityIds: activityRelations.map((row) => row.activityId) },
-    )
-
-    processed += activityRelations.length
-    const lastId = activityRelations[activityRelations.length - 1].activityId
-
-    // next batch
-    activityRelations = await getActivityRelations(
-      qx,
-      SELECT_ACTIVITY_RELATIONS_FOR_AFFILIATION,
-      whereClause(lastId),
-      BATCH_SIZE,
-    )
+  // Build the where conditions for the subquery
+  const conditions = [`"memberId" = $(memberId)`]
+  const params: Record<string, unknown> = {
+    memberId,
+    batchSize,
+    organizationId: affiliation.organizationId,
   }
 
-  logger.info({ memberId, affiliation }, 'Processed activities for affiliation!')
+  // Organization filtering
+  if (affiliation.organizationId) {
+    conditions.push(`"organizationId" != $(organizationId)`)
+  } else {
+    conditions.push(`"organizationId" is not null`)
+  }
+
+  // Date filtering
+  if (affiliation.dateStart) {
+    conditions.push(`"timestamp" >= $(dateStart)`)
+    params.dateStart = affiliation.dateStart
+  }
+  if (affiliation.dateEnd) {
+    conditions.push(`"timestamp" <= $(dateEnd)`)
+    params.dateEnd = affiliation.dateEnd
+  }
+
+  // Segment filtering (for manual affiliations)
+  if (affiliation.segmentId) {
+    conditions.push(`"segmentId" = $(segmentId)`)
+    params.segmentId = affiliation.segmentId
+  }
+
+  const whereClause = conditions.join(' and ')
+
+  do {
+    const result = await qx.result(
+      `
+        UPDATE "activityRelations"
+        SET "organizationId" = $(organizationId), "updatedAt" = CURRENT_TIMESTAMP
+        WHERE "activityId" in (
+          select "activityId" from "activityRelations"
+          where ${whereClause}
+          limit $(batchSize)
+        )
+        returning "activityId"
+      `,
+      params,
+    )
+
+    rowsUpdated = result.length
+    processed += rowsUpdated
+  } while (rowsUpdated === batchSize)
+
+  logger.info({ memberId, affiliation, processed }, 'Processed activities for affiliation!')
 
   return processed
 }
@@ -360,61 +342,52 @@ async function processFallbackActivities(
   memberId: string,
   earliestStartDate: string,
   fallbackOrganizationId: string | null,
+  batchSize = 5000,
 ): Promise<number> {
-  const whereClause = (lastId?: string) => {
-    const conditions = [`"memberId" = $(memberId)`]
-    const params: Record<string, unknown> = { memberId }
-
-    if (fallbackOrganizationId) {
-      conditions.push(`"organizationId" != $(fallbackOrganizationId)`)
-      params.fallbackOrganizationId = fallbackOrganizationId
-    } else {
-      conditions.push(`"organizationId" is not null`)
-    }
-
-    if (earliestStartDate) {
-      conditions.push(`"timestamp" <= $(earliestStartDate)`)
-      params.earliestStartDate = earliestStartDate
-    }
-
-    if (lastId) {
-      conditions.push(`"activityId" > $(lastId)`)
-      params.lastId = lastId
-    }
-
-    return formatQuery(conditions.join(' and '), params)
-  }
-
-  let activityRelations = await getActivityRelations(
-    qx,
-    SELECT_ACTIVITY_RELATIONS_FOR_AFFILIATION,
-    whereClause(),
-    BATCH_SIZE,
-  )
-
+  let rowsUpdated
   let processed = 0
 
-  while (activityRelations.length > 0) {
-    await updateActivityRelations(
-      qx,
-      { organizationId: fallbackOrganizationId },
-      '"activityId" in ($(activityIds:csv))',
-      { activityIds: activityRelations.map((row) => row.activityId) },
-    )
-
-    processed += activityRelations.length
-    const lastId = activityRelations[activityRelations.length - 1].activityId
-
-    // next batch
-    activityRelations = await getActivityRelations(
-      qx,
-      SELECT_ACTIVITY_RELATIONS_FOR_AFFILIATION,
-      whereClause(lastId),
-      BATCH_SIZE,
-    )
+  // Build the where conditions for the subquery
+  const conditions = [`"memberId" = $(memberId)`]
+  const params: Record<string, unknown> = {
+    memberId,
+    fallbackOrganizationId,
+    batchSize,
   }
 
-  logger.info({ memberId, fallbackOrganizationId }, 'Processed fallback activities!')
+  if (fallbackOrganizationId) {
+    conditions.push(`"organizationId" != $(fallbackOrganizationId)`)
+  } else {
+    conditions.push(`"organizationId" is not null`)
+  }
+
+  if (earliestStartDate) {
+    conditions.push(`"timestamp" <= $(earliestStartDate)`)
+    params.earliestStartDate = earliestStartDate
+  }
+
+  const whereClause = conditions.join(' and ')
+
+  do {
+    const result = await qx.result(
+      `
+        UPDATE "activityRelations"
+        SET "organizationId" = $(fallbackOrganizationId), "updatedAt" = CURRENT_TIMESTAMP
+        WHERE "activityId" in (
+          select "activityId" from "activityRelations"
+          where ${whereClause}
+          limit $(batchSize)
+        )
+        returning "activityId"
+      `,
+      params,
+    )
+
+    rowsUpdated = result.length
+    processed += rowsUpdated
+  } while (rowsUpdated === batchSize)
+
+  logger.info({ memberId, fallbackOrganizationId, processed }, 'Processed fallback activities!')
 
   return processed
 }
