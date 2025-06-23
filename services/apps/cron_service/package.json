@@ -19,6 +19,7 @@
     "@crowd/nango": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@crowd/types": "workspace:*",
+    "@crowd/common_services": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@crowd/redis": "workspace:*",

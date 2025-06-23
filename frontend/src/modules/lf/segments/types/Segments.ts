@@ -2,6 +2,13 @@ export interface SubProject {
   id: string;
   name: string;
   status: string;
+  integrations?: {
+    id: string
+    platform: string;
+    status: string;
+    type?: string;
+    [key: string]: string | undefined;
+  }[];
 }
 
 export interface Project {

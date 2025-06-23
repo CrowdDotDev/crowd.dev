@@ -143,6 +143,12 @@ export default class MemberService extends LoggerBase {
             await releaseMemberLock()
           }
 
+          // we should prevent organization creation for bot members
+          if (MemberService.isBot(attributes)) {
+            this.log.debug('Skipping organization creation for bot member')
+            return id
+          }
+
           const organizations = []
           const orgService = new OrganizationService(this.store, this.log)
           if (data.organizations) {
@@ -295,11 +301,13 @@ export default class MemberService extends LoggerBase {
 
             this.log.trace({ memberId: id }, 'Updating member data in db!')
 
-            await logExecutionTimeV2(
-              () => this.memberRepo.update(id, dataToUpdate),
-              this.log,
-              'memberService -> update -> update',
-            )
+            if (!isObjectEmpty(dataToUpdate)) {
+              await logExecutionTimeV2(
+                () => this.memberRepo.update(id, dataToUpdate),
+                this.log,
+                'memberService -> update -> update',
+              )
+            }
 
             this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
             await logExecutionTimeV2(
@@ -336,6 +344,11 @@ export default class MemberService extends LoggerBase {
 
           if (releaseMemberLock) {
             await releaseMemberLock()
+          }
+
+          if (MemberService.isBot(toUpdate.attributes)) {
+            this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
+            return
           }
 
           const organizations = []
@@ -568,6 +581,10 @@ export default class MemberService extends LoggerBase {
       const oldDate = new Date(dbMember.joinedAt)
 
       joinedAt = getEarliestValidDate(oldDate, newDate).toISOString()
+
+      if (joinedAt === oldDate.toISOString()) {
+        joinedAt = undefined
+      }
     }
 
     let identitiesToCreate: IMemberIdentity[] | undefined
@@ -645,6 +662,10 @@ export default class MemberService extends LoggerBase {
       displayName: dbMember.displayName ? undefined : member.displayName,
       reach,
     }
+  }
+
+  private static isBot(attributes: Record<string, unknown>): boolean {
+    return typeof attributes?.isBot === 'object' && Object.values(attributes.isBot).includes(true)
   }
 
   private static calculateReach(
