@@ -67,7 +67,7 @@
               Advanced settings
             </lf-tab>
           </lf-tabs>
-          <div class="pt-6">
+          <div class="pt-2.5">
             <div class="tab-content">
               <lf-insights-project-add-details-tab
                 v-if="activeTab === 'details'"
