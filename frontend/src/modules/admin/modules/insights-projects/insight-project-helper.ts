@@ -16,7 +16,7 @@ export const buildRequest = (form: InsightsProjectAddFormModel): InsightsProject
   linkedin: form.linkedin,
   repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
   keywords: form.keywords,
-  widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key]),
+  widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key].enabled),
 });
 
 export const buildForm = (
@@ -44,7 +44,7 @@ export const buildForm = (
     (acc, key: string) => ({
       ...acc,
       [key]: {
-        enabled: !!result.widgets.includes(key),
+        enabled: result.widgets.includes(key),
         platform: defaultWidgetsValues[key as Widgets].platform,
       },
     }),
