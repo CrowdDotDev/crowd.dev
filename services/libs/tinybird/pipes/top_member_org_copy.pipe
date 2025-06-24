@@ -1,5 +1,5 @@
 DESCRIPTION >
-    Returns activity count per member and organization
+    Returns top 100 members and organizations based on activity count in the last 10 years.
 
 NODE top_member_org_copy_members_deduplicated
 SQL >
@@ -58,24 +58,24 @@ SQL >
 NODE top_member_org_copy_result
 SQL >
     SELECT
-        top_member_org_copy_top_members.id as id,
+        top_member_org_copy_top_members.id as entityId,
         top_member_org_copy_top_members.displayName as displayName,
         top_member_org_copy_top_members.avatar as avatar,
         top_member_org_copy_top_members.activityCount as activityCount,
         top_member_org_copy_top_members.roles as roles,
-        'member' as type
+        'member' as entityType
     FROM top_member_org_copy_top_members
     UNION ALL
     SELECT
-        top_member_org_copy_top_organizations.id,
-        top_member_org_copy_top_organizations.displayName,
-        top_member_org_copy_top_organizations.avatar,
-        top_member_org_copy_top_organizations.activityCount,
+        top_member_org_copy_top_organizations.id as entityId,
+        top_member_org_copy_top_organizations.displayName as displayName,
+        top_member_org_copy_top_organizations.avatar as avatar,
+        top_member_org_copy_top_organizations.activityCount as activityCount,
         [] as roles,
-        'organization' as type
+        'organization' as entityType
     FROM top_member_org_copy_top_organizations
 
 TYPE COPY
 TARGET_DATASOURCE top_member_org_copy_ds
 COPY_MODE replace
-COPY_SCHEDULE 0 0 * * *
+COPY_SCHEDULE 50 0 * * *

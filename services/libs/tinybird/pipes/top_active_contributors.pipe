@@ -4,9 +4,9 @@ DESCRIPTION >
 
 SQL >
     %
-    SELECT id, displayName, avatar, roles, activityCount
+    SELECT entityId as id, displayName, avatar, roles, activityCount
     FROM top_member_org_copy_ds
-    WHERE type = 'member'
+    WHERE entityType = 'member'
     ORDER BY activityCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
