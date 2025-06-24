@@ -75,6 +75,9 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
         objectMemberUsername: activity.objectMemberUsername,
         organizationId: activity.organizationId,
         parentId: activity.parentId,
+        sourceId: activity.sourceId,
+        type: activity.type,
+        timestamp: activity.timestamp,
       }
     })
     await createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), payload)

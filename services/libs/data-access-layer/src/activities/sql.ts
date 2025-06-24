@@ -1527,6 +1527,9 @@ export async function createOrUpdateRelations(
     const platformParam = `platform_${index++}`
     const usernameParam = `username_${index++}`
     const objectMemberUsernameParam = `objectMemberUsername_${index++}`
+    const sourceIdParam = `sourceId_${index++}`
+    const typeParam = `type_${index++}`
+    const timestampParam = `timestamp_${index++}`
 
     params[activityIdParam] = data.activityId
     params[memberIdParam] = data.memberId
@@ -1538,6 +1541,9 @@ export async function createOrUpdateRelations(
     params[platformParam] = data.platform
     params[usernameParam] = data.username
     params[objectMemberUsernameParam] = data.objectMemberUsername ?? null
+    params[sourceIdParam] = data.sourceId ?? null
+    params[typeParam] = data.type ?? null
+    params[timestampParam] = data.timestamp ?? null
 
     valueList.push(
       `
@@ -1552,6 +1558,9 @@ export async function createOrUpdateRelations(
           $(${platformParam}), 
           $(${usernameParam}), 
           $(${objectMemberUsernameParam}), 
+          $(${sourceIdParam}), 
+          $(${typeParam}), 
+          $(${timestampParam}), 
           now(), 
           now()
         )`,
@@ -1571,6 +1580,9 @@ export async function createOrUpdateRelations(
             "platform",
             "username",
             "objectMemberUsername",
+            "sourceId",
+            "type",
+            "timestamp",
             "createdAt", 
             "updatedAt")
     VALUES ${valueList.join(',')}
@@ -1584,7 +1596,10 @@ export async function createOrUpdateRelations(
         "organizationId" = EXCLUDED."organizationId",
         "platform" = EXCLUDED."platform",
         "username" = EXCLUDED."username",
-        "objectMemberUsername" = EXCLUDED."objectMemberUsername";
+        "objectMemberUsername" = EXCLUDED."objectMemberUsername",
+        "sourceId" = EXCLUDED."sourceId",
+        "type" = EXCLUDED."type",
+        "timestamp" = EXCLUDED."timestamp";
 
     `,
     params,
@@ -1723,6 +1738,8 @@ export interface IActivityRelationsCreateData {
   platform: string
   username: string
   objectMemberUsername?: string
+  sourceId: string
+  type: string
 }
 
 export async function getActivityRelationsSortedByTimestamp(

@@ -72,6 +72,9 @@ export interface IActivityRelationCreateOrUpdateData {
   platform: string
   username: string
   objectMemberUsername?: string
+  sourceId: string
+  type: string
+  timestamp: string
 }
 
 export interface IActivityRelationUpdateById {

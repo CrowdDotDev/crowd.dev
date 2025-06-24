@@ -1178,6 +1178,9 @@ export default class ActivityService extends LoggerBase {
           platform: a.payload.platform,
           username: a.payload.username,
           objectMemberUsername: a.payload.objectMemberUsername,
+          sourceId: a.payload.sourceId,
+          type: a.payload.type,
+          timestamp: a.payload.timestamp,
         }
       }),
     )
