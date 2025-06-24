@@ -527,6 +527,15 @@ export async function findRelatedLinkedinProfilesWithLLM(
   memberProfile: IMemberOriginalData,
   linkedinProfiles: IMemberEnrichmentDataNormalized[],
 ): Promise<{ profileIndex: number }> {
+  // Some organizations have too many identities, which exceeds the llm input token limit,
+  // so we deduplicate the identities, prioritize verified ones, and select the top 50 per organization.
+  memberProfile.organizations = memberProfile.organizations?.map((org) => ({
+    ...org,
+    identities: _.uniqBy(org.identities, (i) => `${i.platform}:${i.value}`)
+      .sort((a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1))
+      .slice(0, 50),
+  }))
+
   const prompt = `
 "You are an expert at analyzing and matching personal profiles. I will provide you with the details of a member profile and an array of LinkedIn profiles in JSON format. Your task is to analyze the data and return only the index of the profile that most likely belongs to the member.
 
