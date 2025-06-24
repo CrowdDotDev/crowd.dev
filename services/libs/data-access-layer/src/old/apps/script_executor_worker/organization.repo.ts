@@ -154,6 +154,13 @@ class OrganizationRepository {
       { entityId, type },
     )
   }
+
+  async deleteMemberOrganizations(memberId: string): Promise<void> {
+    await this.connection.none(
+      `UPDATE "memberOrganizations" SET "deletedAt" = now() WHERE "memberId" = $(memberId)`,
+      { memberId },
+    )
+  }
 }
 
 export default OrganizationRepository

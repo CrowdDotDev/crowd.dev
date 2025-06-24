@@ -36,6 +36,11 @@ import {
   moveActivitiesToCorrectEntity,
 } from './activities/fix-activity-foriegn-keys'
 import {
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
+} from './activities/fix-bot-members-affiliation'
+import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
   getOrgIdentitiesWithInvalidUrls,
@@ -104,4 +109,7 @@ export {
   getWorkflowsCount,
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
 }
