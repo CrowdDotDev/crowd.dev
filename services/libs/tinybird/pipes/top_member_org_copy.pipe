@@ -1,0 +1,91 @@
+DESCRIPTION >
+    Returns activity count per member and organization
+
+NODE top_member_org_copy_members_deduplicated
+SQL >
+    SELECT id, displayName, avatar FROM members_sorted
+
+NODE top_member_org_copy_organizations_deduplicated
+SQL >
+    SELECT id, displayName, logo FROM organizations FINAL
+
+NODE top_member_org_copy_activity_count
+DESCRIPTION >
+    Returns activity count per member and organization
+
+SQL >
+    SELECT memberId, organizationId, count(id) AS activityCount
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now())
+    GROUP BY memberId, organizationId
+    ORDER BY activityCount DESC
+
+NODE top_member_org_copy_roles
+SQL >
+    SELECT memberId, roles FROM member_roles
+
+NODE top_member_org_copy_member_activity_count
+SQL >
+    SELECT memberId, sum(activityCount) as activityCount
+    FROM top_member_org_copy_activity_count
+    GROUP BY memberId
+    ORDER BY activityCount DESC
+    LIMIT 100
+
+NODE top_member_org_copy_top_members
+SQL >
+    SELECT
+        id as id,
+        displayName as displayName,
+        avatar as avatar,
+        roles as roles,
+        activityCount as activityCount
+    FROM top_member_org_copy_member_activity_count
+    LEFT JOIN
+        top_member_org_copy_members_deduplicated
+        ON top_member_org_copy_members_deduplicated.id
+        = top_member_org_copy_member_activity_count.memberId
+    LEFT JOIN top_member_org_copy_roles USING (memberId)
+
+NODE top_member_org_copy_organization_activity_count
+SQL >
+    SELECT organizationId, sum(activityCount) as activityCount
+    FROM top_member_org_copy_activity_count
+    WHERE organizationId != ''
+    GROUP BY organizationId
+    ORDER BY activityCount DESC
+    LIMIT 100
+
+NODE top_member_org_copy_top_organizations
+SQL >
+    SELECT id as id, displayName as displayName, logo as avatar, activityCount as activityCount
+    FROM top_member_org_copy_organization_activity_count
+    LEFT JOIN
+        top_member_org_copy_organizations_deduplicated
+        ON top_member_org_copy_organizations_deduplicated.id
+        = top_member_org_copy_organization_activity_count.organizationId
+
+NODE top_member_org_copy_result
+SQL >
+    SELECT
+        top_member_org_copy_top_members.id as id,
+        top_member_org_copy_top_members.displayName as displayName,
+        top_member_org_copy_top_members.avatar as avatar,
+        top_member_org_copy_top_members.activityCount as activityCount,
+        top_member_org_copy_top_members.roles as roles,
+        'member' as type
+    FROM top_member_org_copy_top_members
+    UNION ALL
+    SELECT
+        top_member_org_copy_top_organizations.id,
+        top_member_org_copy_top_organizations.displayName,
+        top_member_org_copy_top_organizations.avatar,
+        top_member_org_copy_top_organizations.activityCount,
+        [] as roles,
+        'organization' as type
+    FROM top_member_org_copy_top_organizations
+
+TYPE COPY
+TARGET_DATASOURCE top_member_org_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 0 * * *

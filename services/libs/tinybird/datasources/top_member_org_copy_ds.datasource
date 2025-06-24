@@ -1,0 +1,10 @@
+SCHEMA >
+    `id` String,
+    `displayName` String,
+    `avatar` String,
+    `activityCount` UInt64,
+    `roles` Array(String),
+    `type` String
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY id, activityCount

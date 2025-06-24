@@ -4,14 +4,9 @@ DESCRIPTION >
 
 SQL >
     %
-    SELECT
-        organizationId as id,
-        organizationDisplayName as displayName,
-        organizationLogo as logo,
-        sum(activityCount) as activityCount
-    FROM member_org_activity_count_copy_ds
-    WHERE organizationId != ''
-    GROUP BY organizationId, organizationDisplayName, organizationLogo
+    SELECT id, displayName, avatar as logo, activityCount
+    FROM top_member_org_copy_ds
+    WHERE type = 'organization'
     ORDER BY activityCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
