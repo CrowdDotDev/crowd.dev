@@ -435,6 +435,7 @@ class OrganizationRepository {
         const updatedData = {
           ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
           updatedById: currentUser.id,
+          updatedAt: new Date(),
         }
         captureNewState(updatedData)
         await options.database.organization.update(updatedData, {

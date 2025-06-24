@@ -902,7 +902,7 @@ class MemberRepository {
 
         const updatedMember = {
           ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
           updatedById: currentUser.id,
           manuallyChangedFields: data.manuallyChangedFields,
         }
