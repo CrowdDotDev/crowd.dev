@@ -1,12 +1,18 @@
 <template>
   <div class="flex flex-col">
+    <lf-switch
+      v-if="cForm.repositories.length > 0"
+      v-model="enableAll"
+      class="bg-gray-50 border-y border-gray-200 px-6 py-3 -mx-6"
+    >
+      <span class="text-gray-500 text-xs"> Enable all repositories </span>
+    </lf-switch>
     <div
       v-for="(repository, index) of cForm.repositories"
       :key="repository.url"
       class="flex items-center py-4"
       :class="{
         'border-b border-gray-100': index !== cForm.repositories.length - 1,
-        'pt-0': index === 0,
         'opacity-40': !repository.enabled,
       }"
     >
@@ -65,7 +71,7 @@
 import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 
 const props = defineProps<{
@@ -73,6 +79,22 @@ const props = defineProps<{
 }>();
 
 const cForm = reactive(props.form);
+
+const enableAll = computed({
+  get() {
+    return cForm.repositories.every((repo) => repo.enabled);
+  },
+  set(value) {
+    toggleRepositories(value);
+  },
+});
+
+const toggleRepositories = (value: boolean) => {
+  cForm.repositories = cForm.repositories.map((r) => ({
+    ...r,
+    enabled: value,
+  }));
+};
 
 const gerritImage = new URL(
   '@/assets/images/integrations/gerrit.png',
