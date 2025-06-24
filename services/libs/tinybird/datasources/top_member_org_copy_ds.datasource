@@ -7,7 +7,7 @@ SCHEMA >
     `avatar` String,
     `activityCount` UInt64,
     `roles` Array(String),
-    `entityType` String
+    `entityType` LowCardinality(String)
 
 ENGINE MergeTree
 ENGINE_SORTING_KEY entityType, activityCount, entityId
