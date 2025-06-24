@@ -227,6 +227,13 @@ class MemberRepository {
     checkByActivityIdentity = false,
     checkByTwitterIdentity = false,
   ): Promise<IDuplicateMembersToCleanup[]> {
+    /**
+     * This query finds pairs of members that have the same Twitter identity where:
+     * - The secondary member only has a Twitter identity and no other identities
+     * - The primary member has multiple identities (Twitter + others)
+     * - The secondary member has activity relations
+     * Returns primaryId and secondaryId pairs ordered by primary ID
+     */
     if (checkByTwitterIdentity) {
       return this.connection.query(
         `
@@ -265,6 +272,14 @@ class MemberRepository {
       )
     }
 
+    /**
+     * This query finds pairs of members where:
+     * - The secondary member has no identities but has activity relations
+     * - The secondary member was created after the cutoff date
+     * - The primary member has a verified identity matching the username and platform
+     *   of one of the secondary member's activities
+     * Returns primaryId and secondaryId pairs ordered by primary ID and limited by input limit
+     */
     if (checkByActivityIdentity) {
       return this.connection.query(
         `
@@ -306,6 +321,14 @@ class MemberRepository {
       )
     }
 
+    /**
+     * This query finds pairs of members where:
+     * - The secondary member has no identities but has activity relations
+     * - The secondary member was created after the cutoff date
+     * - The primary member has at least one identity
+     * - The primary and secondary members have matching display names
+     * Returns primaryId and secondaryId pairs ordered by primary ID and limited by input limit
+     */
     return this.connection.query(
       `
       WITH valid_primary AS (
