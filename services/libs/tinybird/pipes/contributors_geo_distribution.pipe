@@ -3,11 +3,9 @@ DESCRIPTION >
 
 TAGS "Widget"
 
-NODE contributors_geo_distribution_result
+NODE contributors_geo_distribution_member_data
 SQL >
     SELECT
-        m.countryName AS country,
-        m.countryFlag AS flag,
         m.countryCode AS country_code,
         count() AS contributorCount,
         round(
@@ -15,5 +13,16 @@ SQL >
         ) as "contributorPercentage"
     FROM members_sorted as m
     WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
-    GROUP BY country, flag, country_code
+    GROUP BY country_code
     ORDER BY contributorCount DESC
+
+NODE contributors_geo_distribution_result
+SQL >
+    SELECT
+        c.country AS country,
+        c.flag AS flag,
+        m.country_code,
+        m.contributorCount,
+        m.contributorPercentage
+    FROM contributors_geo_distribution_member_data as m
+    LEFT JOIN country_mapping as c using (country_code)

@@ -1,26 +1,33 @@
 DESCRIPTION >
     Filters out `isBot = true` and `isTeamMember=true` members. Also possible to use more granular sorting keys in the destination datasource `members_sorted` Copy pipe runs every hour
 
+NODE members_sorted_copy_pipe_country_data
+SQL >
+    SELECT groupArray((country, country_code)) AS country_data FROM country_mapping_light
+
+NODE members_sorted_copy_pipe_members_filtered
+SQL >
+    SELECT id, upper(coalesce(nullIf(country, ''), location)) as location
+    FROM members FINAL
+    WHERE location != '' OR country != ''
+
 NODE members_sorted_copy_pipe_countries
 SQL >
     SELECT
-        m.id AS memberId, c.country as countryName, c.flag as countryFlag, c.country_code as countryCode
-    FROM members AS m
-    CROSS JOIN country_mapping AS c
-    WHERE positionUTF8(upper(coalesce(nullIf(m.country, ''), m.location)), upper(c.country)) > 0
+        id as memberId,
+        arrayFilter(
+            x -> position(m.location, upper(x .1)) > 0,
+            (SELECT country_data FROM members_sorted_copy_pipe_country_data)
+        ) AS matched_countries,
+        arrayJoin(matched_countries) AS country_data
+    FROM members_sorted_copy_pipe_members_filtered as m
 
 NODE members_sorted_copy_pipe_result
 SQL >
-    SELECT
-        members.*,
-        pub.publicName,
-        coalesce(nullIf(c.countryName, ''), 'Unknown') AS countryName,
-        coalesce(nullIf(c.countryFlag, ''), '❓') AS countryFlag,
-        coalesce(nullIf(c.countryCode, ''), 'XX') AS countryCode
-    FROM members final
+    SELECT members.*, c.country_data .2 as countryCode
+    FROM members as m FINAL
     left join members_public_names_ds pub on pub.memberId = members.id
-    left join members_sorted_copy_pipe_countries c ON c.memberId = members.id
-    where not isBot and not isTeamMember
+    left join members_sorted_copy_pipe_countries c on c.memberId = members.id
 
 TYPE COPY
 TARGET_DATASOURCE members_sorted
