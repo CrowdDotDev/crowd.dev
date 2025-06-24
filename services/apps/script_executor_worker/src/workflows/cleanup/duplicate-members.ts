@@ -12,6 +12,7 @@ const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxy
 
 export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
+  const testRun = args.testRun ?? false
   const cutoffDate = args.cutoffDate ?? '2025-05-18'
   const checkByActivityIdentity = args.checkByActivityIdentity ?? false
   const checkByTwitterIdentity = args.checkByTwitterIdentity ?? false
@@ -43,14 +44,18 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
   }
 
   // execute merge in parallel
-  await Promise.all(
-    results.map((result) => {
-      console.log(`Merging members ${result.primaryId} and ${result.secondaryId}`)
-      return mergeMembers(result.primaryId, result.secondaryId, true)
-    }),
-  )
+  try {
+    await Promise.all(
+      results.map((result) => {
+        console.log(`Merging members ${result.primaryId} and ${result.secondaryId}`)
+        return mergeMembers(result.primaryId, result.secondaryId, true)
+      }),
+    )
+  } catch (error) {
+    console.error('Error merging members!', error)
+  }
 
-  if (args.testRun) {
+  if (testRun) {
     console.log('Test run completed - stopping after first batch!')
     return
   }
