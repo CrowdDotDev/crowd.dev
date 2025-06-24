@@ -9,25 +9,15 @@ NODE top_member_org_copy_organizations_deduplicated
 SQL >
     SELECT id, displayName, logo FROM organizations FINAL
 
-NODE top_member_org_copy_activity_count
-DESCRIPTION >
-    Returns activity count per member and organization
-
-SQL >
-    SELECT memberId, organizationId, count(id) AS activityCount
-    FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now())
-    GROUP BY memberId, organizationId
-    ORDER BY activityCount DESC
-
 NODE top_member_org_copy_roles
 SQL >
     SELECT memberId, roles FROM member_roles
 
 NODE top_member_org_copy_member_activity_count
 SQL >
-    SELECT memberId, sum(activityCount) as activityCount
-    FROM top_member_org_copy_activity_count
+    SELECT memberId, count(*) AS activityCount
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now())
     GROUP BY memberId
     ORDER BY activityCount DESC
     LIMIT 100
@@ -49,9 +39,9 @@ SQL >
 
 NODE top_member_org_copy_organization_activity_count
 SQL >
-    SELECT organizationId, sum(activityCount) as activityCount
-    FROM top_member_org_copy_activity_count
-    WHERE organizationId != ''
+    SELECT organizationId, count(*) AS activityCount
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now()) AND organizationId != ''
     GROUP BY organizationId
     ORDER BY activityCount DESC
     LIMIT 100
