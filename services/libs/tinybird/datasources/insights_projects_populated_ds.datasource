@@ -22,6 +22,7 @@ SCHEMA >
     `firstCommit` Nullable(DateTime),
     `score` Float64,
     `rank` UInt64,
+    `repoData` Array(Tuple(String, Float64, UInt64)),
     `softwareValue` UInt64,
     `contributorCount` UInt64,
     `organizationCount` UInt64

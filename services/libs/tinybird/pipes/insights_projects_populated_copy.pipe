@@ -60,6 +60,33 @@ DESCRIPTION >
 SQL >
     SELECT score, repoUrl, rank FROM criticalityScores FINAL
 
+NODE insights_projects_populated_copy_flatten_projects
+SQL >
+    SELECT id, repo AS repository FROM insightsProjects FINAL ARRAY JOIN repositories AS repo
+
+NODE insights_projects_populated_copy_repository_criticality
+SQL >
+    SELECT
+        insights_projects_populated_copy_flatten_projects.id as id,
+        insights_projects_populated_copy_flatten_projects.repository as repository,
+        insights_projects_populated_copy_criticality_scores_deduplicated.score as score,
+        insights_projects_populated_copy_criticality_scores_deduplicated.rank as rank
+    FROM insights_projects_populated_copy_flatten_projects
+    LEFT JOIN
+        insights_projects_populated_copy_criticality_scores_deduplicated
+        ON insights_projects_populated_copy_criticality_scores_deduplicated.repoUrl
+        = insights_projects_populated_copy_flatten_projects.repository
+
+NODE insights_projects_populated_copy_project_repo_data
+SQL >
+    SELECT
+        id as id,
+        max(score) as projectScore,
+        argMax(rank, score) AS projectRank,
+        groupArray((repository, score, rank)) as repoData
+    FROM insights_projects_populated_copy_repository_criticality
+    GROUP BY id
+
 NODE insights_projects_populated_copy_aggregates
 DESCRIPTION >
     Returns necessary columns for software value
@@ -99,8 +126,9 @@ SQL >
         insights_projects_populated_copy_collections_slugs.collectionsSlugs as collectionsSlugs,
         insights_projects_populated_copy_connected_platforms.connectedPlatforms as connectedPlatforms,
         insights_projects_populated_copy_first_commit_by_project.firstCommit as firstCommit,
-        insights_projects_populated_copy_criticality_scores_deduplicated.score as score,
-        insights_projects_populated_copy_criticality_scores_deduplicated.rank as rank,
+        insights_projects_populated_copy_project_repo_data.projectScore as score,
+        insights_projects_populated_copy_project_repo_data.projectRank as rank,
+        insights_projects_populated_copy_project_repo_data.repoData as repoData,
         insights_projects_populated_copy_aggregates.softwareValue as softwareValue,
         insights_projects_populated_copy_aggregates.contributorCount as contributorCount,
         insights_projects_populated_copy_aggregates.organizationCount as organizationCount
@@ -115,9 +143,8 @@ SQL >
         insights_projects_populated_copy_first_commit_by_project
         ON insights_projects_populated_copy_first_commit_by_project.id = insightsProjects.id
     LEFT JOIN
-        insights_projects_populated_copy_criticality_scores_deduplicated
-        ON insights_projects_populated_copy_criticality_scores_deduplicated.repoUrl
-        = insightsProjects.github
+        insights_projects_populated_copy_project_repo_data
+        ON insights_projects_populated_copy_project_repo_data.id = insightsProjects.id
     LEFT JOIN
         insights_projects_populated_copy_aggregates
         ON insights_projects_populated_copy_aggregates.projectId = insightsProjects.id

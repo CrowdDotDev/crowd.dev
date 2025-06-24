@@ -348,11 +348,23 @@ export async function updateMemberUsingSquashedPayload(
       }
 
       for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
+        // Skip organizations that don't have a name or any verified identities
+        const identities = org.identities ? org.identities : []
+        const verifiedIdentities = identities.filter((i) => i.verified)
+
+        if (!org.name && verifiedIdentities.length === 0) {
+          svc.log.debug(
+            { orgId: org.organizationId },
+            'Skipping organization without name or verified identities',
+          )
+          continue
+        }
+
         orgPromises.push(
           findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
             displayName: org.name,
             description: org.organizationDescription,
-            identities: org.identities ? org.identities : [],
+            identities,
           })
             .then((orgId) => {
               // set the organization id for later use
@@ -515,6 +527,15 @@ export async function findRelatedLinkedinProfilesWithLLM(
   memberProfile: IMemberOriginalData,
   linkedinProfiles: IMemberEnrichmentDataNormalized[],
 ): Promise<{ profileIndex: number }> {
+  // Some organizations have too many identities, which exceeds the llm input token limit,
+  // so we deduplicate the identities, prioritize verified ones, and select the top 50 per organization.
+  memberProfile.organizations = memberProfile.organizations?.map((org) => ({
+    ...org,
+    identities: _.uniqBy(org.identities, (i) => `${i.platform}:${i.value}`)
+      .sort((a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1))
+      .slice(0, 50),
+  }))
+
   const prompt = `
 "You are an expert at analyzing and matching personal profiles. I will provide you with the details of a member profile and an array of LinkedIn profiles in JSON format. Your task is to analyze the data and return only the index of the profile that most likely belongs to the member.
 

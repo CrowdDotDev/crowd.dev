@@ -8,6 +8,13 @@ import Message from '../../shared/message/message';
 
 export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 
+const getNangoStatus = (integration) => {
+  const reposObj = integration.settings.nangoMapping;
+  const mapped = reposObj ? Object.values(reposObj) : [];
+  const allRepos = integration.settings.orgs.map((org) => org.repos).flat();
+  return mapped.length < allRepos.length ? 'in-progress' : 'done';
+};
+
 export default {
   namespaced: true,
 
@@ -207,6 +214,7 @@ export default {
               ...row,
               platform: 'github',
               isNango: true,
+              status: getNangoStatus(row),
             };
           }
 

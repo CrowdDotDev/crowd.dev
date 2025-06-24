@@ -126,7 +126,10 @@ export default class ActivityService extends LoggerBase {
           objectMemberId: activity.objectMemberId,
           objectMemberUsername: activity.objectMemberUsername,
           segmentId: segmentId,
-          organizationId: toUpdate.organizationId || original.organizationId,
+          // if the member is bot, we don't want to affiliate the activity with an organization
+          organizationId: memberInfo.isBot
+            ? null
+            : toUpdate.organizationId || original.organizationId,
           isBotActivity: memberInfo.isBot,
           isTeamMemberActivity: memberInfo.isTeamMember,
           importHash: original.importHash,
@@ -670,15 +673,29 @@ export default class ActivityService extends LoggerBase {
     const memberIdsToLoad = new Set<string>()
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
-      payload.dbActivity = singleOrDefault(
-        existingActivitiesResult.rows,
-        (a) =>
-          a.segmentId === payload.segmentId &&
-          new Date(a.timestamp).getTime() === new Date(payload.activity.timestamp).getTime() &&
-          a.type === payload.activity.type &&
-          a.sourceId === payload.activity.sourceId &&
-          (payload.activity.channel ? a.channel === payload.activity.channel : true),
-      )
+      payload.dbActivity = singleOrDefault(existingActivitiesResult.rows, (a) => {
+        if (a.segmentId !== payload.segmentId) {
+          return false
+        }
+
+        if (a.type !== payload.activity.type) {
+          return false
+        }
+
+        if (a.sourceId !== payload.activity.sourceId) {
+          return false
+        }
+
+        if (payload.activity.channel) {
+          if (a.channel !== payload.activity.channel) {
+            return false
+          }
+        }
+
+        const aTimestamp = new Date(a.timestamp).toISOString()
+        const pTimestamp = new Date(payload.activity.timestamp).toISOString()
+        return aTimestamp === pTimestamp
+      })
 
       // if we have member ids we can use them to load members from db
       if (payload.dbActivity) {
@@ -773,7 +790,7 @@ export default class ActivityService extends LoggerBase {
         for (const payload of payloadsNotInDb.filter(
           (p) =>
             !p.dbMember &&
-            p.activity.platform === identity.platform &&
+            p.platform === identity.platform &&
             p.activity.username.toLowerCase() === identity.value.toLowerCase(),
         )) {
           payload.dbMember = dbMember
@@ -782,7 +799,7 @@ export default class ActivityService extends LoggerBase {
         for (const payload of payloadsNotInDb.filter(
           (p) =>
             !p.dbObjectMember &&
-            p.activity.platform === identity.platform &&
+            p.platform === identity.platform &&
             p.activity.objectMemberUsername &&
             p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
         )) {
@@ -1059,12 +1076,28 @@ export default class ActivityService extends LoggerBase {
         continue
       }
 
-      // associate activity with organization
-      payload.organizationId = await this.memberAffiliationService.findAffiliation(
-        payload.memberId,
-        payload.segmentId,
-        payload.activity.timestamp,
-      )
+      const isBot = this.memberAttValue(
+        MemberAttributeName.IS_BOT,
+        payload.activity.member,
+        payload.platform,
+        payload.dbMember,
+      ) as boolean
+
+      if (!isBot) {
+        // associate activity with organization
+        payload.organizationId = await this.memberAffiliationService.findAffiliation(
+          payload.memberId,
+          payload.segmentId,
+          payload.activity.timestamp,
+        )
+      } else {
+        // for bot members, we don't want to affiliate the activity with an organization
+        payload.organizationId = null
+        this.log.trace(
+          { memberId: payload.memberId },
+          'Skipping organization affiliation for bot member!',
+        )
+      }
 
       if (!payload.memberId) {
         this.log.error(`Member id not set - can't continue!`)
@@ -1111,12 +1144,7 @@ export default class ActivityService extends LoggerBase {
             organizationId: payload.organizationId,
           },
           {
-            isBot: this.memberAttValue(
-              MemberAttributeName.IS_BOT,
-              payload.activity.member,
-              payload.platform,
-              payload.dbMember,
-            ) as boolean,
+            isBot,
             isTeamMember: this.memberAttValue(
               MemberAttributeName.IS_TEAM_MEMBER,
               payload.activity.member,

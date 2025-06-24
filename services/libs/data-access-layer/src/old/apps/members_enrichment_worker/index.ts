@@ -140,7 +140,7 @@ export async function fetchMembersForEnrichment(
          LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
     WHERE
       ${enrichableBySqlJoined}
-      AND coalesce((m.attributes ->'isBot'->>'default')::boolean, false) = false 
+      AND coalesce((members.attributes ->'isBot'->>'default')::boolean, false) = false 
       AND members."deletedAt" IS NULL
       AND (${cacheAgeInnerQueryItems.join(' OR ')})
     GROUP BY members.id
@@ -295,7 +295,7 @@ export async function setMemberEnrichmentUpdateDate(
 
 export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string): Promise<void> {
   await tx.none(
-    `update "memberEnrichments" set "lastTriedAt" = null where "memberId" = $(memberId)`,
+    `update "memberEnrichments" set "lastTriedAt" = now() where "memberId" = $(memberId)`,
     { memberId },
   )
 }

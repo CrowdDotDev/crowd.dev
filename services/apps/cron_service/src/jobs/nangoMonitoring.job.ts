@@ -15,10 +15,13 @@ import {
   getNangoConnections,
   initNangoCloudClient,
   nangoIntegrationToPlatform,
+  platformToNangoIntegration,
 } from '@crowd/nango'
 import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const nangoEnv = IS_PROD_ENV ? 'prod' : IS_DEV_ENV ? 'local' : 'dev'
 
@@ -42,30 +45,68 @@ const job: IJobDefinition = {
 
     const statusMap = new Map<NangoIntegrationDataExtended, SyncStatus[]>()
 
+    const ghMissingNangoConnections: Map<string, string[]> = new Map()
+    const ghNotConnectedToNangoYet: Map<string, number> = new Map()
+
+    let totalRepos = 0
+
     for (const int of allIntegrations) {
       if (int.platform === PlatformType.GITHUB_NANGO) {
-        for (const connectionId of Object.keys(int.settings.nangoMapping)) {
-          const nangoConnection = singleOrDefault(
-            nangoConnections,
-            (c) => c.connection_id === connectionId,
-          )
-          if (!nangoConnection) {
-            ctx.log.warn(
-              `${int.platform} integration with id "${int.id}" is not connected to Nango!`,
-            )
-          } else {
-            const results = await getNangoConnectionStatus(
-              NangoIntegration.GITHUB,
-              nangoConnection.connection_id,
-            )
+        // first go through all orgs and repos and check if they are connected to nango
+        for (const org of int.settings.orgs) {
+          const orgName = org.name
+          for (const repo of org.repos) {
+            const repoName = repo.name
+            totalRepos++
 
-            statusMap.set(
-              {
-                ...int,
-                connectionId,
-              },
-              results,
+            let found = false
+
+            if (int.settings.nangoMapping) {
+              for (const mapping of Object.values(int.settings.nangoMapping) as any[]) {
+                if (mapping.owner === orgName && mapping.repoName === repoName) {
+                  found = true
+                }
+              }
+            }
+
+            if (!found) {
+              if (ghNotConnectedToNangoYet.has(int.id)) {
+                ghNotConnectedToNangoYet.set(int.id, ghNotConnectedToNangoYet.get(int.id) + 1)
+              } else {
+                ghNotConnectedToNangoYet.set(int.id, 1)
+              }
+            }
+          }
+        }
+
+        // then get nango connection statuses for each connection
+        if (int.settings.nangoMapping) {
+          for (const connectionId of Object.keys(int.settings.nangoMapping)) {
+            const nangoConnection = singleOrDefault(
+              nangoConnections,
+              (c) => c.connection_id === connectionId,
             )
+            if (nangoConnection) {
+              const results = await getNangoConnectionStatus(
+                NangoIntegration.GITHUB,
+                nangoConnection.connection_id,
+              )
+
+              statusMap.set(
+                {
+                  ...int,
+                  connectionId,
+                },
+                results,
+              )
+            } else {
+              // repo not connected to nango anymore!
+              if (ghMissingNangoConnections.has(int.id)) {
+                ghMissingNangoConnections.get(int.id).push(connectionId)
+              } else {
+                ghMissingNangoConnections.set(int.id, [connectionId])
+              }
+            }
           }
         }
       } else {
@@ -120,22 +161,44 @@ const job: IJobDefinition = {
           }
         }
 
-        slackMessage += `\n*${nangoIntegration}* on nango has ${distinctBy(integrations, (i) => i[0].id).length} integrations mapped with ${integrations.length} connections and with ${successfulSyncs + failedSyncs + runningSyncs} total syncs:\n`
+        slackMessage += `\n*${nangoIntegration}* has ${distinctBy(integrations, (i) => i[0].id).length} integrations with ${integrations.length} connections and ${successfulSyncs + failedSyncs + runningSyncs} syncs`
+        const syncMessages: string[] = []
         if (successfulSyncs > 0) {
-          slackMessage += `- ${successfulSyncs} successful syncs\n`
+          syncMessages.push(`${successfulSyncs} successful syncs`)
         }
         if (failedSyncs > 0) {
-          slackMessage += `- ${failedSyncs} failed syncs\n`
+          syncMessages.push(`${failedSyncs} failed syncs`)
         }
         if (runningSyncs > 0) {
-          slackMessage += `- ${runningSyncs} currently running syncs\n`
+          syncMessages.push(`${runningSyncs} running syncs`)
+        }
+
+        if (syncMessages.length > 0) {
+          slackMessage += ` (${syncMessages.join(', ')})\n`
+        } else {
+          slackMessage += `\n`
+        }
+
+        if (nangoIntegration === NangoIntegration.GITHUB) {
+          if (ghMissingNangoConnections.size > 0) {
+            for (const [integrationId, connectionIds] of ghMissingNangoConnections.entries()) {
+              slackMessage += `- *${integrationId}* has ${connectionIds.length} missing nango connections (${connectionIds.join(',')})\n`
+            }
+          }
+
+          if (ghNotConnectedToNangoYet.size > 0) {
+            let totalNotConnected = 0
+            for (const [integrationId, count] of ghNotConnectedToNangoYet.entries()) {
+              slackMessage += `- *${integrationId}* has ${count} repos not connected to nango yet\n`
+              totalNotConnected += count
+            }
+
+            slackMessage += `We have in total ${totalRepos} repos and ${totalNotConnected} of them are not connected to nango yet!\n`
+          }
         }
 
         if (failedConnections.length > 0) {
-          slackMessage += `*Failed connections:*\n`
-          for (const failed of failedConnections) {
-            slackMessage += `  - <https://app.nango.dev/${nangoEnv}/connections/${failed.platform}/${failed.id}|Integration: ${failed.id}, Connection :${failed.connectionId}>`
-          }
+          slackMessage += `*Failed connections:* ${failedConnections.map((failed) => `<https://app.nango.dev/${nangoEnv}/connections/${platformToNangoIntegration(failed.platform as PlatformType, failed.settings)}/${failed.connectionId}|${failed.connectionId}>`).join(',')}`
         }
       }
     }
