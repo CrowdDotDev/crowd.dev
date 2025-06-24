@@ -53,6 +53,9 @@ setImmediate(async () => {
           platform: activity.platform,
           username: activity.username,
           objectMemberUsername: activity.objectMemberUsername,
+          sourceId: activity.sourceId,
+          type: activity.type,
+          timestamp: activity.timestamp,
         })
 
         processed++
