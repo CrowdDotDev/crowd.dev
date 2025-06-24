@@ -1,11 +1,25 @@
 DESCRIPTION >
     Filters out `isBot = true` and `isTeamMember=true` members. Also possible to use more granular sorting keys in the destination datasource `members_sorted` Copy pipe runs every hour
 
-NODE members_pre_filter
+NODE members_sorted_copy_pipe_countries
 SQL >
-    SELECT members.*, pub.publicName
+    SELECT
+        m.id AS memberId, c.country as countryName, c.flag as countryFlag, c.country_code as countryCode
+    FROM members AS m
+    CROSS JOIN country_mapping AS c
+    WHERE positionUTF8(upper(coalesce(nullIf(m.country, ''), m.location)), upper(c.country)) > 0
+
+NODE members_sorted_copy_pipe_result
+SQL >
+    SELECT
+        members.*,
+        pub.publicName,
+        coalesce(nullIf(c.countryName, ''), 'Unknown') AS countryName,
+        coalesce(nullIf(c.countryFlag, ''), '❓') AS countryFlag,
+        coalesce(nullIf(c.countryCode, ''), 'XX') AS countryCode
     FROM members final
     left join members_public_names_ds pub on pub.memberId = members.id
+    left join members_sorted_copy_pipe_countries c ON c.memberId = members.id
     where not isBot and not isTeamMember
 
 TYPE COPY
