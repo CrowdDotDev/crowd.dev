@@ -1740,6 +1740,14 @@ export interface IActivityRelationsCreateData {
   objectMemberUsername?: string
   sourceId: string
   type: string
+  channel: string
+  sentimentScore: number
+  gitInsertions: number
+  gitDeletions: number
+  score: number
+  isContribution: boolean
+  pullRequestReviewState: string
+  attributes: Record<string, unknown>
 }
 
 export async function getActivityRelationsSortedByTimestamp(

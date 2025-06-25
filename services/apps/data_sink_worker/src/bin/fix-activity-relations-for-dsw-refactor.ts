@@ -56,6 +56,13 @@ setImmediate(async () => {
           sourceId: activity.sourceId,
           type: activity.type,
           timestamp: activity.timestamp,
+          channel: activity.channel,
+          sentimentScore: activity.sentimentScore,
+          gitInsertions: activity.gitInsertions,
+          gitDeletions: activity.gitDeletions,
+          score: activity.score,
+          isContribution: activity.isContribution,
+          pullRequestReviewState: activity.attributes?.reviewState as string,
         })
 
         processed++

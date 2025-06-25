@@ -59,6 +59,9 @@ export interface IDbActivityCreateData {
   updatedAt?: string
   deletedAt?: string
   tenantId?: string
+  sentimentScore?: number
+  gitInsertions?: number
+  gitDeletions?: number
 }
 
 export interface IActivityRelationCreateOrUpdateData {
@@ -75,6 +78,13 @@ export interface IActivityRelationCreateOrUpdateData {
   sourceId: string
   type: string
   timestamp: string
+  channel: string
+  sentimentScore: number
+  gitInsertions: number
+  gitDeletions: number
+  score: number
+  isContribution: boolean
+  pullRequestReviewState: string
 }
 
 export interface IActivityRelationUpdateById {
