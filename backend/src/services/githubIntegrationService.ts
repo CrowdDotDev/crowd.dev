@@ -130,6 +130,10 @@ export default class GithubIntegrationService {
       },
     })
 
+    if (!data) {
+      return null
+    }
+
     return {
       description: data.description || null,
       github: data.html_url,
@@ -142,6 +146,7 @@ export default class GithubIntegrationService {
 
   public static async findOrgTopics(org: string, repos: { name: string }[]) {
     const auth = await getGithubInstallationToken()
+    const logger = getServiceLogger()
 
     const topicSet = new Set<string>()
 
@@ -155,7 +160,7 @@ export default class GithubIntegrationService {
 
         res.data.names.forEach((topic: string) => topicSet.add(topic))
       } catch (err) {
-        console.error(`Failed to fetch topics for ${repo.name}:`, err.response?.data || err.message)
+        logger.warn(`Failed to fetch topics for ${repo.name}:`, err.response?.data || err.message)
       }
     })
 
@@ -186,7 +191,7 @@ export default class GithubIntegrationService {
       If no match is found:
       Return: null
 
-      if a matche is found:
+      if a match is found:
       return {description: string; index: number}
 
       Output ONLY valid JSON.

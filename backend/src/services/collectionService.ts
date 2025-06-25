@@ -32,6 +32,7 @@ import { LoggerBase } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
@@ -467,7 +468,7 @@ export class CollectionService extends LoggerBase {
     return result
   }
 
-  async findGithubInsightsForSegment(segmentId: string) {
+  async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
     const segment = await findSegmentById(qx, segmentId)
@@ -496,7 +497,13 @@ export class CollectionService extends LoggerBase {
 
     const { description, name, repos } = mainOrg
 
-    const { logoUrl, github, website, twitter } = await GithubIntegrationService.findOrgDetail(name)
+    const orgDetail = await GithubIntegrationService.findOrgDetail(name)
+
+    if (!orgDetail) {
+      return null
+    }
+
+    const { logoUrl, github, website, twitter } = orgDetail
 
     const topics = await GithubIntegrationService.findOrgTopics(name, repos)
 

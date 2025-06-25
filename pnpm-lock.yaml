@@ -1729,6 +1729,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../data-access-layer
       '@crowd/database':
         specifier: workspace:*
         version: link:../database
@@ -8395,6 +8398,7 @@ packages:
   rdme@7.5.0:
     resolution: {integrity: sha512-1qzbpJ+AWbznymFVbSL9A5gJ704WZ99qwLHHssoP97s0wWHqC9jiUxQ3LMZqZJk4j85sWfXsjFDxKjULVd16ZQ==}
     engines: {node: '>=14'}
+    deprecated: 'This version of rdme is now deprecated. If you are using a legacy ReadMe project that has not yet migrated to ReadMe Refactored, please use rdme@9. If you are on our current ReadMe Refactored system, please use rdme@10. More information can be found in our migration guide: https://github.com/readmeio/rdme/blob/v10/documentation/migration-guide.md'
     hasBin: true
 
   read-pkg-up@2.0.0:

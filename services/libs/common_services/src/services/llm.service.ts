@@ -16,8 +16,8 @@ import {
   LlmMemberEnrichmentResult,
   LlmQueryType,
 } from '@crowd/types'
-import { insertPromptHistoryEntry } from '../../../data-access-layer/src/prompt-history'
-import { QueryExecutor } from '../../../data-access-layer/src/queryExecutor'
+import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
+import { QueryExecutor } from '@crowd/data-access-layer'
 
 export interface IBedrockClientCredentials {
   accessKeyId: string
