@@ -2,6 +2,10 @@ import { request } from '@octokit/request'
 import { Octokit } from '@octokit/rest'
 
 import { PageData } from '@crowd/types'
+import { LlmService } from '@crowd/common_services'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { GithubIntegrationSettings } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
@@ -158,5 +162,63 @@ export default class GithubIntegrationService {
     await Promise.all(topicPromises)
 
     return Array.from(topicSet)
+  }
+
+  public static async findMainGithubOrganizationWithLLM(
+    qx: QueryExecutor,
+    projectName: string,
+    orgs: GithubIntegrationSettings['orgs'],
+  ): Promise<
+    GithubIntegrationSettings['orgs'][number] & {
+      description: string
+    }
+  > {
+    const prompt = `Given the following array of organizations:
+      ${orgs.map((org) => org.name)}
+
+      and the project name: "${projectName}",
+
+      analyze the project’s content (e.g., README, code, metadata) to:
+
+      1. Identify which organization from the array is the main one associated with the project. Return null if none is a clear match.
+      2. Generate a neutral, objective description of what the project does. Return null if no meaningful description can be inferred.
+
+      If no match is found:
+      Return: null
+
+      if a matche is found:
+      return {description: string; index: number}
+
+      Output ONLY valid JSON.
+      Do NOT return any text, explanation, or formatting outside of the JSON.
+    `
+
+    const llmService = new LlmService(
+      qx,
+      {
+        accessKeyId: process.env.CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
+        secretAccessKey: process.env.CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
+      },
+      getServiceLogger(),
+    )
+
+    const { result } = await llmService.findMainGithubOrganization<{
+      description: string
+      index: number
+    }>(prompt)
+
+    if (
+      typeof result === 'object' &&
+      result !== null &&
+      typeof result.description === 'string' &&
+      typeof result.index === 'number'
+    ) {
+      return {
+        ...orgs[result.index],
+        description: result.description,
+      }
+    }
+
+    return null
   }
 }
