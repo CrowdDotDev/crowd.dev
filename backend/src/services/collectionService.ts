@@ -27,6 +27,7 @@ import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integr
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 
@@ -469,6 +470,7 @@ export class CollectionService extends LoggerBase {
   async findGithubInsightsForSegment(segmentId: string) {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+    const segment = await findSegmentById(qx, segmentId)
 
     const [githubIntegration] = integrations.filter(
       (integration) =>
@@ -477,30 +479,35 @@ export class CollectionService extends LoggerBase {
     )
 
     if (!githubIntegration) {
-      return {}
+      return null
     }
 
-    const result = []
-    const settings = githubIntegration.settings || {}
-    const organizations = (settings as any)?.orgs || []
+    const settings = githubIntegration.settings as GithubIntegrationSettings
 
-    for (const { name, repos } of organizations) {
-      const { description, logoUrl, github, website, twitter } =
-        await GithubIntegrationService.findOrgDetail(name)
-      const topics = await GithubIntegrationService.findOrgTopics(name, repos)
+    const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
+      qx,
+      segment.name,
+      settings.orgs,
+    )
 
-      result.push({
-        description,
-        github,
-        logoUrl,
-        name,
-        topics,
-        twitter,
-        website,
-      })
+    if (!mainOrg) {
+      return null
     }
 
-    // FIXME: investigate how to chose between multiple orgs result
-    return result[0] || {}
+    const { description, name, repos } = mainOrg
+
+    const { logoUrl, github, website, twitter } = await GithubIntegrationService.findOrgDetail(name)
+
+    const topics = await GithubIntegrationService.findOrgTopics(name, repos)
+
+    return {
+      description,
+      github,
+      logoUrl,
+      name,
+      topics,
+      twitter,
+      website,
+    }
   }
 }
