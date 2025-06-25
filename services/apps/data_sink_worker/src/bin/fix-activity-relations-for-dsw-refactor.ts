@@ -63,7 +63,7 @@ setImmediate(async () => {
           gitDeletions: activity.gitDeletions,
           score: activity.score,
           isContribution: activity.isContribution,
-          pullRequestReviewState: activity.attributes?.reviewState as string,
+          pullRequestReviewState: (activity.attributes?.reviewState as string) ?? null,
         })
 
         processed++
