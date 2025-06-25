@@ -76,6 +76,7 @@ export interface IActivityRelationCreateOrUpdateData {
   username: string
   objectMemberUsername?: string
   sourceId: string
+  sourceParentId?: string
   type: string
   timestamp: string
   channel: string
@@ -84,7 +85,7 @@ export interface IActivityRelationCreateOrUpdateData {
   gitDeletions: number
   score: number
   isContribution: boolean
-  pullRequestReviewState: string
+  pullRequestReviewState?: string
 }
 
 export interface IActivityRelationUpdateById {

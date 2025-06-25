@@ -54,6 +54,7 @@ setImmediate(async () => {
           username: activity.username,
           objectMemberUsername: activity.objectMemberUsername,
           sourceId: activity.sourceId,
+          sourceParentId: activity.sourceParentId,
           type: activity.type,
           timestamp: activity.timestamp,
           channel: activity.channel,
