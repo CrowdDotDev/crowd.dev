@@ -5,6 +5,8 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import { performance } from 'perf_hooks'
 
+import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   ILlmResponse,
@@ -16,8 +18,6 @@ import {
   LlmMemberEnrichmentResult,
   LlmQueryType,
 } from '@crowd/types'
-import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
-import { QueryExecutor } from '@crowd/data-access-layer'
 
 export interface IBedrockClientCredentials {
   accessKeyId: string
@@ -35,7 +35,7 @@ export class LlmService extends LoggerBase {
   ) {
     super(parentLog)
 
-    this.qx = qx;
+    this.qx = qx
     this.clientRegionMap = new Map()
   }
 
@@ -213,9 +213,7 @@ export class LlmService extends LoggerBase {
     }
   }
 
-  public async findMainGithubOrganization<T>(
-    prompt: string,
-  ): Promise<ILlmResult<T>> {
+  public async findMainGithubOrganization<T>(prompt: string): Promise<ILlmResult<T>> {
     const response = await this.queryLlm(
       LlmQueryType.MATCH_MAIN_GITHUB_ORGANIZATION_AND_DESCRIPTION,
       prompt,

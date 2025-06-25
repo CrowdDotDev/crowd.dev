@@ -1,11 +1,11 @@
 import { request } from '@octokit/request'
 import { Octokit } from '@octokit/rest'
 
-import { PageData } from '@crowd/types'
 import { LlmService } from '@crowd/common_services'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { getServiceLogger } from '@crowd/logging'
+import { PageData } from '@crowd/types'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
@@ -14,7 +14,7 @@ import { getGithubInstallationToken } from './helpers/githubToken'
 const githubMaxSearchResult = 1000
 
 export default class GithubIntegrationService {
-  constructor(private readonly options: IServiceOptions) { }
+  constructor(private readonly options: IServiceOptions) {}
 
   public async findGithubRepos(
     query: string,
