@@ -123,24 +123,31 @@ export default class GithubIntegrationService {
 
   public static async findOrgDetail(org: string) {
     const auth = await getGithubInstallationToken()
-    const { data } = await request('GET /orgs/{org}', {
-      org,
-      headers: {
-        authorization: `bearer ${auth}`,
-      },
-    })
+    const logger = getServiceLogger()
 
-    if (!data) {
+    try {
+      const { data } = await request('GET /orgs/{org}', {
+        org,
+        headers: {
+          authorization: `bearer ${auth}`,
+        },
+      })
+
+      if (!data) {
+        return null
+      }
+
+      return {
+        description: data.description || null,
+        github: data.html_url,
+        logoUrl: data.avatar_url,
+        name: data.login,
+        twitter: data.twitter_username || null,
+        website: data.blog || null,
+      }
+    } catch (error) {
+      logger.warn(`Failed to fetch org ${org}:`, error)
       return null
-    }
-
-    return {
-      description: data.description || null,
-      github: data.html_url,
-      logoUrl: data.avatar_url,
-      name: data.login,
-      twitter: data.twitter_username || null,
-      website: data.blog || null,
     }
   }
 
