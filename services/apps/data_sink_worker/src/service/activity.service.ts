@@ -60,8 +60,6 @@ export default class ActivityService extends LoggerBase {
   private readonly gitlabReposRepo: GitlabReposRepository
   private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
 
-  private readonly memberCache: RedisCache
-
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -80,8 +78,6 @@ export default class ActivityService extends LoggerBase {
     this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
     this.requestedForErasureMemberIdentitiesRepo =
       new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
-
-    this.memberCache = new RedisCache('dswMemberCache', this.redisClient, this.log)
   }
 
   public async prepareForUpsert(
@@ -468,13 +464,19 @@ export default class ActivityService extends LoggerBase {
       `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after member preparation!`,
     )
 
-    const allMemberIdentities = relevantPayloads
+    let allMemberIdentities = relevantPayloads
       .flatMap((a) => a.activity.member.identities)
       .concat(
         relevantPayloads
           .filter((a) => a.activity.objectMember)
           .flatMap((a) => a.activity.objectMember.identities),
       )
+
+    // deduplicate identities
+    allMemberIdentities = distinctBy(
+      allMemberIdentities,
+      (i) => `${i.platform}:${i.type}:${i.value}:${i.verified}`,
+    )
 
     // handle identities that were requested to be erased by the user
     const toErase = await logExecutionTimeV2(
@@ -751,6 +753,20 @@ export default class ActivityService extends LoggerBase {
           }
         }
 
+        // sometimes we have the same object member as member so this is a quick optimization
+        if (
+          payload.activity.objectMemberUsername &&
+          !payload.dbObjectMember &&
+          payload.dbMember &&
+          payload.activity.username === payload.activity.objectMemberUsername
+        ) {
+          payload.dbObjectMember = payload.dbMember
+        }
+
+        if (payload.activity.objectMemberUsername && !payload.dbObjectMember) {
+          addToPayloadsNotInDb = true
+        }
+
         if (addToPayloadsNotInDb) {
           payloadsNotInDb.push(payload)
         }
@@ -759,7 +775,7 @@ export default class ActivityService extends LoggerBase {
 
     if (payloadsNotInDb.length > 0) {
       // if we don't have db activity or db member or db object member we need to load members by username
-      const usernameFilter = payloadsNotInDb
+      let usernameFilter = payloadsNotInDb
         .filter((p) => !p.dbMember)
         .map((p) => {
           return {
@@ -779,6 +795,12 @@ export default class ActivityService extends LoggerBase {
               }
             }),
         )
+
+      // deduplicate
+      usernameFilter = distinctBy(
+        usernameFilter,
+        (f) => `${f.segmentId}:${f.platform}:${f.username}`,
+      )
 
       const dbMembersByUsername = await logExecutionTimeV2(
         async () => this.memberRepo.findMembersByUsernames(usernameFilter),
