@@ -11,10 +11,16 @@ export async function findDuplicateMembersAfterDate(
   cutoffDate: string,
   limit: number,
   checkByActivityIdentity: boolean,
+  checkByTwitterIdentity: boolean,
 ): Promise<IDuplicateMembersToCleanup[]> {
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-    return memberRepo.findDuplicateMembersAfterDate(cutoffDate, limit, checkByActivityIdentity)
+    return memberRepo.findDuplicateMembersAfterDate(
+      cutoffDate,
+      limit,
+      checkByActivityIdentity,
+      checkByTwitterIdentity,
+    )
   } catch (error) {
     svc.log.error(error, 'Error finding duplicate members after cutoff date!')
     throw error
