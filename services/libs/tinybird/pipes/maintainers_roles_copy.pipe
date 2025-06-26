@@ -4,11 +4,11 @@ SQL >
 
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >
-    SELECT id, memberId FROM memberIdentities
+    SELECT id, memberId FROM memberIdentities FINAL
 
 NODE maintainers_roles_copy_maintainers_deduplicated
 SQL >
-    SELECT id, identityId, repoUrl, role FROM maintainersInternal
+    SELECT id, identityId, repoUrl, role FROM maintainersInternal FINAL WHERE toYear(endDate) <= 1970
 
 NODE maintainers_roles_copy_result
 SQL >

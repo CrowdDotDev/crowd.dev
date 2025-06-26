@@ -1,4 +1,4 @@
-NODE evaluation_controlId_category_map
+NODE evaluation_controlId_category_mapz
 SQL >
     SELECT
         controlId_category_map .1 AS controlId,
@@ -60,25 +60,45 @@ SQL >
                 ) AS controlId_category_map
         )
 
-NODE security_and_best_practices_1
+NODE security_deduplicated_merged_copy_pipe_1
 SQL >
     %
     SELECT
-        s.evaluationId,
-        s.category,
-        s.repo,
-        s.controlId,
-        s.message as message,
-        s.result as result,
-        s.assessments
-    FROM security_deduplicated_merged_ds s
-    where
-        s.repo in (select arrayJoin(repositories) from segments_filtered)
-        {% if defined(project) %}
-            AND s.insightsProjectSlug
-            = {{ String(project, description="Filter by project slug", required=True) }}
-        {% else %} AND false
-        {% end %}
-        {% if defined(repo) %}
-            AND s.repo = {{ String(repo, description="Filter activity repo", required=False) }}
-        {% end %}
+        eval.id as evaluationId,
+        eval.insightsProjectSlug as insightsProjectSlug,
+        ecm.category,
+        eval.repo as repo,
+        eval.controlId as controlId,
+        eval.message as message,
+        eval.result as result,
+        groupArray(
+            map(
+                'requirementId',
+                assessment.requirementId,
+                'description',
+                assessment.description,
+                'result',
+                assessment.result
+            )
+        ) AS assessments
+    FROM securityInsightsEvaluations eval final
+    left join evaluation_controlId_category_mapz ecm on ecm.controlId = eval.controlId
+    left join
+        securityInsightsEvaluationAssessments assessment final
+        on eval.id = assessment.securityInsightsEvaluationId
+    where eval.result <> 'Not Run' and assessment.result <> 'Not Run'
+    group by
+        eval.id,
+        eval.insightsProjectSlug,
+        ecm.category,
+        ecm.order,
+        eval.repo,
+        eval.controlId,
+        eval.message,
+        eval.result
+    order BY ecm.order, eval.controlId asc
+
+TYPE COPY
+TARGET_DATASOURCE security_deduplicated_merged_ds
+COPY_MODE replace
+COPY_SCHEDULE 3 * * * *
