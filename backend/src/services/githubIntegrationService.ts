@@ -190,28 +190,27 @@ export default class GithubIntegrationService {
 
       project name: "${projectName}"
 
-      analyze the project’s content (e.g., README, code, metadata), along with the project name and organization info (name and URL), to:
+      Analyze the project’s content (e.g., README, code, metadata), along with the organization info (name and URL), to:
 
       1. Identify which organization from the array is the main one associated with the project. Return null if none is a clear match.
       2. Generate a neutral, objective description of what the project does.
 
       Use all available information to infer the description, with this priority:
 
-      - If the organization URL is available, prioritize using the information it represents.
-      - Also use the project name as supporting context if it contributes useful signals.
-      - You are encouraged to combine both the organization URL and project name when both are available, in order to produce the most accurate and meaningful description.
+      - First, use information from the organization URL, if available, as the most authoritative source.
+      - Only use the project name if it clearly describes the functionality or scope. Ignore it if it's generic or non-descriptive (e.g., "test", "demo", "sample", "example", etc.).
+      - If the project content is missing or uninformative, and the name is generic, **fall back to describing the organization and its typical projects instead**.
 
       Special rules:
       - If the array contains only one organization, assume that it is the one associated with the project (index 0), regardless of project content.
-      - However, still analyze the project’s content to generate the description as usual.
+      - Still generate the description as usual, defaulting to the organization-level information if the project name/content do not add meaningful context.
 
       Return:
       - If no match is found: null
       - If a match is found: {description: string; index: number}
 
       Output ONLY valid JSON.
-      Do NOT return any text, explanation, or formatting outside of the JSON. 
-      `
+      Do NOT return any text, explanation, or formatting outside of the JSON.`
 
     const llmService = new LlmService(
       qx,
