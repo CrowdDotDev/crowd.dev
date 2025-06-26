@@ -1178,6 +1178,16 @@ export default class ActivityService extends LoggerBase {
           platform: a.payload.platform,
           username: a.payload.username,
           objectMemberUsername: a.payload.objectMemberUsername,
+          sourceId: a.payload.sourceId,
+          type: a.payload.type,
+          timestamp: a.payload.timestamp,
+          channel: a.payload.channel,
+          sentimentScore: a.payload.sentimentScore,
+          gitInsertions: a.payload.gitInsertions,
+          gitDeletions: a.payload.gitDeletions,
+          score: a.payload.score,
+          isContribution: a.payload.isContribution,
+          pullRequestReviewState: a.payload.attributes?.reviewState as string,
         }
       }),
     )
