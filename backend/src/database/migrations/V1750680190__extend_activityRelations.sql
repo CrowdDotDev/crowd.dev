@@ -1,8 +1,8 @@
 -- extend activityRelations table with additional columns
 alter table "activityRelations" 
-add column "sourceId" varchar(150) not null,
-add column "type" varchar(50) not null,
-add column "timestamp" timestamp with time zone not null,
+add column "sourceId" varchar(150),
+add column "type" varchar(50),
+add column "timestamp" timestamp with time zone,
 add column "sourceParentId" varchar(150),
 add column "channel" varchar(150),
 add column "sentimentScore" smallint,
