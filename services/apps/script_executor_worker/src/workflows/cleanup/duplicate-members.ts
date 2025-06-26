@@ -48,7 +48,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
     await Promise.all(
       results.map((result) => {
         console.log(`Merging members ${result.primaryId} and ${result.secondaryId}`)
-        return mergeMembers(result.primaryId, result.secondaryId, true)
+        return mergeMembers(result.primaryId, result.secondaryId)
       }),
     )
   } catch (error) {
