@@ -1,4 +1,4 @@
-import { queryMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
+import { findEntityMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { LoggerBase } from '@crowd/logging'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -15,18 +15,25 @@ export default class MergeActionsService extends LoggerBase {
 
   async query(args) {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const results = await queryMergeActions(qx, args)
+
+    const filters = {
+      state: args.state,
+      limit: args.limit,
+      offset: args.offset,
+    }
+
+    const results = await findEntityMergeActions(qx, args.entityId, args.type, filters)
 
     return results.map((result) => ({
       primaryId: result.primaryId,
       secondaryId: result.secondaryId,
       state: result.state,
       // derive operation type from step and if step is null, default to merge
-      operationType: result.step ? MergeActionsService.getOperationType(result.step) : 'merge',
+      operationType: result.step ? MergeActionsService.getOperationType(result.step) : 'unknown',
     }))
   }
 
-  static getOperationType(step) {
+  static getOperationType(step: string) {
     if (step.startsWith('merge')) {
       return 'merge'
     }
