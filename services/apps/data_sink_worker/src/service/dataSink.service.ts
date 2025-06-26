@@ -6,7 +6,7 @@ import {
   singleOrDefault,
   timeout,
 } from '@crowd/common'
-import { UnrepeatableError } from '@crowd/common'
+import { ApplicationError, UnrepeatableError } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -56,16 +56,39 @@ export default class DataSinkService extends LoggerBase {
     resultExists: boolean,
     location: string,
     message: string,
-    metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    const errorData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorData: any = {
       location,
       message,
-      metadata,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      errorString: error ? JSON.stringify(error) : undefined,
+
+      errorMessage: error?.message ?? '<no error message>',
+
+      errors: [
+        {
+          errorMessage: error?.message ?? '<no error message>',
+          errorStack: error?.stack,
+          error,
+        },
+      ],
+    }
+
+    // unwrap all errors
+    let currentError = error
+    while (currentError instanceof ApplicationError && currentError.originalError) {
+      currentError = currentError.originalError
+
+      errorData.errors.push({
+        errorMessage: currentError.message,
+        errorStack: currentError.stack,
+        error: currentError,
+      })
+
+      // chain to the  topmost errorMessage property
+      errorData.errorMessage = `${errorData.errorMessage} -> ${
+        currentError.message ?? '<no error message>'
+      }`
     }
 
     if (
@@ -387,7 +410,6 @@ export default class DataSinkService extends LoggerBase {
           batchEntry.created,
           'process-result',
           'Error processing result.',
-          undefined,
           result.err,
         )
 
