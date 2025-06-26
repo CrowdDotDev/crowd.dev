@@ -1361,6 +1361,7 @@ export async function createOrUpdateRelations(
   qe: QueryExecutor,
   relations: IActivityRelationCreateOrUpdateData[],
   skipChecks = false,
+  onConflictUpdateColumns: string[] = [],
 ): Promise<void> {
   if (relations.length === 0) {
     return
@@ -1591,6 +1592,33 @@ export async function createOrUpdateRelations(
     )
   }
 
+  const allUpdateColumns = [
+    'memberId',
+    'objectMemberId',
+    'organizationId',
+    'platform',
+    'username',
+    'objectMemberUsername',
+    'sourceId',
+    'sourceParentId',
+    'type',
+    'timestamp',
+    'channel',
+    'sentimentScore',
+    'gitInsertions',
+    'gitDeletions',
+    'score',
+    'isContribution',
+    'pullRequestReviewState',
+  ]
+
+  const columnsToUpdate =
+    onConflictUpdateColumns.length > 0
+      ? allUpdateColumns.filter((col) => onConflictUpdateColumns.includes(col))
+      : allUpdateColumns
+
+  const updateSetClauses = columnsToUpdate.map((col) => `"${col}" = EXCLUDED."${col}"`).join(',')
+
   await qe.result(
     `
     INSERT INTO "activityRelations" (
@@ -1623,24 +1651,7 @@ export async function createOrUpdateRelations(
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
-        "memberId" = EXCLUDED."memberId",
-        "objectMemberId" = EXCLUDED."objectMemberId",
-        "organizationId" = EXCLUDED."organizationId",
-        "platform" = EXCLUDED."platform",
-        "username" = EXCLUDED."username",
-        "objectMemberUsername" = EXCLUDED."objectMemberUsername",
-        "sourceId" = EXCLUDED."sourceId",
-        "sourceParentId" = EXCLUDED."sourceParentId",
-        "type" = EXCLUDED."type",
-        "timestamp" = EXCLUDED."timestamp",
-        "channel" = EXCLUDED."channel",
-        "sentimentScore" = EXCLUDED."sentimentScore",
-        "gitInsertions" = EXCLUDED."gitInsertions",
-        "gitDeletions" = EXCLUDED."gitDeletions",
-        "score" = EXCLUDED."score",
-        "isContribution" = EXCLUDED."isContribution",
-        "pullRequestReviewState" = EXCLUDED."pullRequestReviewState";
-
+        ${updateSetClauses};
     `,
     params,
   )

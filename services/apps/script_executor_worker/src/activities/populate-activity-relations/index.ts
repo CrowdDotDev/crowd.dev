@@ -62,6 +62,20 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
   const chunkSize = 500
   const activityChunks = partition(activities, chunkSize)
 
+  const onConflictUpdateColumns = [
+    'sourceId',
+    'sourceParentId',
+    'type',
+    'timestamp',
+    'channel',
+    'sentimentScore',
+    'gitInsertions',
+    'gitDeletions',
+    'score',
+    'isContribution',
+    'pullRequestReviewState',
+  ]
+
   for (const chunk of activityChunks) {
     const payload = chunk.map((activity) => {
       return {
@@ -88,7 +102,13 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
         pullRequestReviewState: activity.pullRequestReviewState,
       }
     })
-    await createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), payload)
+
+    await createOrUpdateRelations(
+      pgpQx(svc.postgres.writer.connection()),
+      payload,
+      true,
+      onConflictUpdateColumns,
+    )
   }
 }
 
