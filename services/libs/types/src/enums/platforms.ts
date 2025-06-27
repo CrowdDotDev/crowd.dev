@@ -82,3 +82,7 @@ export const integrationProfileUrl: Record<IntegrationType, (username: string) =
   [IntegrationType.DISCOURSE]: () => null,
   [IntegrationType.GIT]: () => null,
 }
+
+export function isValidPlatform(value: unknown): value is PlatformType {
+  return typeof value === 'string' && Object.values(PlatformType).includes(value as PlatformType)
+}
