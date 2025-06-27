@@ -1430,6 +1430,11 @@ export default class MemberService extends LoggerBase {
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
+      if (err.name === 'WorkflowExecutionAlreadyStartedError') {
+        this.options.log.info({ originalId, toMergeId }, 'Temporal workflow already started!')
+        return { status: 409, mergedId: originalId }
+      }
+
       this.options.log.error(err, 'Error while merging members!', { originalId, toMergeId })
 
       await MergeActionsRepository.setMergeAction(

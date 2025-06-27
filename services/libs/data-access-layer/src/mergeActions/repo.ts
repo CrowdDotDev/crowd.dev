@@ -1,28 +1,54 @@
 import validator from 'validator'
 
-import { IMergeAction, MergeActionState } from '@crowd/types'
+import { IMergeAction, MergeActionState, MergeActionType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
-export async function queryMergeActions(
+export async function findMergeAction(
   qx: QueryExecutor,
-  { entityId, type, state = [], limit = 20, offset = 0 },
-): Promise<IMergeAction[]> {
-  let where = ''
+  primaryId: string,
+  secondaryId: string,
+  { state }: { state?: MergeActionState } = {},
+): Promise<IMergeAction> {
+  const conditions = [`"primaryId" = $(primaryId)`, `"secondaryId" = $(secondaryId)`]
 
-  if (entityId) {
-    if (!validator.isUUID(entityId)) {
-      return []
-    }
-    where += ` AND (ma."primaryId" = $(entityId) OR ma."secondaryId" = $(entityId))`
+  const params: Record<string, unknown> = {
+    primaryId,
+    secondaryId,
   }
+
+  if (state) {
+    conditions.push(`"state" = $(state)`)
+    params.state = state
+  }
+
+  return qx.selectOneOrNone(
+    `
+      select * from "mergeActions" 
+      where ${conditions.join(' AND ')}
+    `,
+    params,
+  )
+}
+
+export async function findEntityMergeActions(
+  qx: QueryExecutor,
+  entityId: string,
+  type: MergeActionType,
+  { state = [], limit = 20, offset = 0 },
+): Promise<IMergeAction[]> {
+  if (!validator.isUUID(entityId)) {
+    throw new Error('Invalid entityId')
+  }
+
+  const conditions = [`(ma."primaryId" = $(entityId) OR ma."secondaryId" = $(entityId))`]
 
   if (type) {
-    where += ` AND ma.type = $(type)`
+    conditions.push(`ma.type = $(type)`)
   }
 
-  if (state.length) {
-    where += ` AND ma.state IN ($(state:csv))`
+  if (state.length > 0) {
+    conditions.push(`ma.state IN ($(state:csv))`)
   }
 
   const result = await qx.select(
@@ -33,8 +59,7 @@ export async function queryMergeActions(
         ma."state",
         ma."step"
       FROM "mergeActions" ma
-      WHERE 1 = 1
-        ${where}
+      WHERE ${conditions.join(' AND ')}
       ORDER BY ma."createdAt" DESC
       LIMIT $(limit)
       OFFSET $(offset)
@@ -49,33 +74,4 @@ export async function queryMergeActions(
   )
 
   return result
-}
-
-export async function findMergeAction(
-  qx: QueryExecutor,
-  primaryId: string,
-  secondaryId: string,
-  { state }: { state?: MergeActionState } = {},
-): Promise<IMergeAction> {
-  let where = ''
-
-  const params = {
-    primaryId,
-    secondaryId,
-  }
-
-  if (state) {
-    where += ` and "state" = $(state)`
-    params['state'] = state
-  }
-
-  return qx.selectOneOrNone(
-    `
-      select * from "mergeActions" 
-      where "primaryId" = $(primaryId) 
-        and "secondaryId" = $(secondaryId)
-        ${where}
-    `,
-    params,
-  )
 }
