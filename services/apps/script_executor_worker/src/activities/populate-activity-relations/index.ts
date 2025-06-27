@@ -106,7 +106,7 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
     await createOrUpdateRelations(
       pgpQx(svc.postgres.writer.connection()),
       payload,
-      true,
+      false,
       onConflictUpdateColumns,
     )
   }
