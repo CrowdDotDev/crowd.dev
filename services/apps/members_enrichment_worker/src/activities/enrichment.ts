@@ -577,7 +577,7 @@ Considerations for Matching:
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
@@ -645,7 +645,7 @@ export async function squashMultipleValueAttributesWithLLM(
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
@@ -845,7 +845,7 @@ export async function squashWorkExperiencesWithLLM(
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
