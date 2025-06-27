@@ -1,4 +1,4 @@
-import { ALL_PLATFORM_TYPES, PlatformType } from "./platforms"
+import { ALL_PLATFORM_TYPES, PlatformType } from './platforms'
 
 export enum Widgets {
   ACTIVE_CONTRIBUTORS = 'activeContributors',
@@ -29,7 +29,6 @@ export enum Widgets {
   WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
 }
-
 
 export const DEFAULT_WIDGET_VALUES: Record<
   Widgets,
@@ -111,11 +110,21 @@ export const DEFAULT_WIDGET_VALUES: Record<
   // Development
   [Widgets.ISSUES_RESOLUTION]: {
     enabled: true,
-    platform: [PlatformType.GITLAB, PlatformType.GITHUB, PlatformType.JIRA, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITLAB,
+      PlatformType.GITHUB,
+      PlatformType.JIRA,
+      PlatformType.GITHUB_NANGO,
+    ],
   },
   [Widgets.COMMIT_ACTIVITIES]: {
     enabled: true,
-    platform: [PlatformType.GIT, PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GIT,
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+    ],
   },
   [Widgets.PULL_REQUESTS]: {
     enabled: true,

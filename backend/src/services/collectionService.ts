@@ -29,12 +29,7 @@ import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
-import {
-  DEFAULT_WIDGET_VALUES,
-  PlatformType,
-  Widgets,
-  isValidPlatform
-} from '@crowd/types'
+import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets, isValidPlatform } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
