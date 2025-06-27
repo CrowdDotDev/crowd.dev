@@ -1065,60 +1065,66 @@ export default class ActivityService extends LoggerBase {
       // update members and orgs with them
       if (payload.dbMember) {
         payload.memberId = payload.dbMember.id
-        promises.push(
-          memberService
-            .update(
-              payload.dbMember.id,
-              payload.segmentId,
-              payload.integrationId,
-              {
-                attributes: payload.activity.member.attributes,
-                joinedAt: payload.activity.member.joinedAt
-                  ? new Date(payload.activity.member.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.member.identities,
-                organizations: payload.activity.member.organizations,
-                reach: payload.activity.member.reach,
-              },
-              payload.dbMember,
-              payload.platform,
-            )
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err: new ApplicationError('Error while updating member!', err),
-              })
-            }),
-        )
+
+        if (!this.isGithubGhost(payload.platform, payload.activity.member)) {
+          promises.push(
+            memberService
+              .update(
+                payload.dbMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.member.attributes,
+                  joinedAt: payload.activity.member.joinedAt
+                    ? new Date(payload.activity.member.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.member.identities,
+                  organizations: payload.activity.member.organizations,
+                  reach: payload.activity.member.reach,
+                },
+                payload.dbMember,
+                payload.platform,
+              )
+              .catch((err) => {
+                resultMap.set(payload.resultId, {
+                  success: false,
+                  err: new ApplicationError('Error while updating member!', err),
+                })
+              }),
+          )
+        }
       }
 
       if (payload.dbObjectMember) {
         payload.objectMemberId = payload.dbObjectMember.id
-        promises.push(
-          memberService
-            .update(
-              payload.dbObjectMember.id,
-              payload.segmentId,
-              payload.integrationId,
-              {
-                attributes: payload.activity.objectMember.attributes,
-                joinedAt: payload.activity.objectMember.joinedAt
-                  ? new Date(payload.activity.objectMember.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.objectMember.identities,
-                organizations: payload.activity.objectMember.organizations,
-                reach: payload.activity.objectMember.reach,
-              },
-              payload.dbObjectMember,
-              payload.platform,
-            )
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err: new ApplicationError('Error while updating object member!', err),
-              })
-            }),
-        )
+
+        if (!this.isGithubGhost(payload.platform, payload.activity.objectMember)) {
+          promises.push(
+            memberService
+              .update(
+                payload.dbObjectMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.objectMember.attributes,
+                  joinedAt: payload.activity.objectMember.joinedAt
+                    ? new Date(payload.activity.objectMember.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.objectMember.identities,
+                  organizations: payload.activity.objectMember.organizations,
+                  reach: payload.activity.objectMember.reach,
+                },
+                payload.dbObjectMember,
+                payload.platform,
+              )
+              .catch((err) => {
+                resultMap.set(payload.resultId, {
+                  success: false,
+                  err: new ApplicationError('Error while updating object member!', err),
+                })
+              }),
+          )
+        }
       }
 
       await Promise.all(promises)
@@ -1361,6 +1367,31 @@ export default class ActivityService extends LoggerBase {
     }
 
     return result
+  }
+
+  /**
+   * Special case for github ghost (deleted) users
+   * if we encounter an existing activity that we are trying to update
+   * and the member or object member of the existing activity is now a ghost user
+   * we don't want to update that member
+   * @param platform
+   * @param member
+   * @returns
+   */
+  public isGithubGhost(platform: PlatformType, member: IMemberData): boolean {
+    if (platform !== PlatformType.GITHUB) {
+      return false
+    }
+
+    const username = singleOrDefault(
+      member.identities,
+      (i) =>
+        i.verified === true &&
+        i.type === MemberIdentityType.USERNAME &&
+        i.platform === PlatformType.GITHUB,
+    )
+
+    return username?.value === 'ghost'
   }
 
   public async getActivitySentiment(
