@@ -1,3 +1,4 @@
+import { ApplicationError } from './errors/ApplicationError'
 import Error400 from './errors/Error400'
 import Error401 from './errors/Error401'
 import Error403 from './errors/Error403'
@@ -39,4 +40,5 @@ export {
   Error500,
   Error542,
   UnrepeatableError,
+  ApplicationError,
 }

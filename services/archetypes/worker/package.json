@@ -11,14 +11,14 @@
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/database": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/queue": "workspace:*",
-    "@crowd/temporal": "workspace:*",
     "@crowd/telemetry": "workspace:*",
-    "@crowd/logging": "workspace:*",
-    "@temporalio/worker": "~1.11.1",
-    "@temporalio/activity": "~1.11.1",
-    "@temporalio/workflow": "~1.11.1"
+    "@crowd/temporal": "workspace:*",
+    "@temporalio/activity": "~1.11.8",
+    "@temporalio/worker": "~1.11.8",
+    "@temporalio/workflow": "~1.11.8"
   },
   "devDependencies": {
     "@types/config": "^3.3.1",
