@@ -1362,6 +1362,7 @@ export async function createOrUpdateRelations(
   relations: IActivityRelationCreateOrUpdateData[],
   skipChecks = false,
   onConflictUpdateColumns: string[] = [],
+  preserveFkeys = false,
 ): Promise<void> {
   if (relations.length === 0) {
     return
@@ -1612,12 +1613,21 @@ export async function createOrUpdateRelations(
     'pullRequestReviewState',
   ]
 
-  const columnsToUpdate =
-    onConflictUpdateColumns.length > 0
-      ? allUpdateColumns.filter((col) => onConflictUpdateColumns.includes(col))
-      : allUpdateColumns
+  const columnsToUpdate = onConflictUpdateColumns.length
+    ? allUpdateColumns.filter((col) => onConflictUpdateColumns.includes(col))
+    : allUpdateColumns
 
-  const updateSetClauses = columnsToUpdate.map((col) => `"${col}" = EXCLUDED."${col}"`).join(',')
+  const updateSetClauses = [
+    ...columnsToUpdate.map((col) => `"${col}" = EXCLUDED."${col}"`),
+    // explicity preservation of fkey fields for new cols backfill
+    ...(preserveFkeys
+      ? ['memberId', 'objectMemberId', 'organizationId', 'conversationId', 'segmentId'].map(
+          (col) => `"${col}" = "activityRelations"."${col}"`,
+        )
+      : []),
+  ]
+    .filter(Boolean)
+    .join(', ')
 
   await qe.result(
     `
