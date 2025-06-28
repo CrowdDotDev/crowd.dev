@@ -1092,6 +1092,9 @@ export default class ActivityService extends LoggerBase {
                 })
               }),
           )
+        } else {
+          // just ignore these - we already have the activity
+          resultMap.set(payload.resultId, { success: true })
         }
       }
 
@@ -1124,6 +1127,9 @@ export default class ActivityService extends LoggerBase {
                 })
               }),
           )
+        } else {
+          // just ignore these - we already have the activity
+          resultMap.set(payload.resultId, { success: true })
         }
       }
 
