@@ -105,14 +105,19 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async findIdentities(
     identities: IMemberIdentity[],
     memberId?: string,
+    onlyVerified = false,
   ): Promise<Map<string, string>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: any = {}
 
-    let condition = ''
+    const conditions: string[] = []
     if (memberId) {
-      condition = 'and "memberId" <> $(memberId)'
+      conditions.push('mi."memberId" <> $(memberId)')
       params.memberId = memberId
+    }
+
+    if (onlyVerified) {
+      conditions.push('mi.verified = true')
     }
 
     const identityParams = identities
@@ -127,7 +132,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       select "memberId", i.platform, i.value, i.type
       from "memberIdentities" mi
         inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
-      where ${condition}
+      where ${conditions.join(' and ')}
     `,
       params,
     )
@@ -201,16 +206,29 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     await this.db().result(`${query} ${condition}`)
   }
 
-  public async getIdentities(memberId: string): Promise<IMemberIdentity[]> {
-    return await this.db().any(
+  public async getIdentities(memberIds: string[]): Promise<Map<string, IMemberIdentity[]>> {
+    const resultMap = new Map<string, IMemberIdentity[]>()
+
+    const results = await this.db().any(
       `
-      select "sourceId", platform, value, type, verified from "memberIdentities"
-      where "memberId" = $(memberId)
+      select "memberId", "sourceId", platform, value, type, verified from "memberIdentities"
+      where "memberId" in ($(memberIds:csv))
     `,
       {
-        memberId,
+        memberIds,
       },
     )
+
+    for (const memberId of memberIds) {
+      const identities = results.filter((r) => r.memberId === memberId)
+      identities.forEach((i) => {
+        delete i.memberId
+      })
+
+      resultMap.set(memberId, identities)
+    }
+
+    return resultMap
   }
 
   public async removeIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {

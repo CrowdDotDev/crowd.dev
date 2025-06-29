@@ -37,11 +37,11 @@ import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
-import { RedisCache, RedisClient } from '@crowd/redis'
-import { Client as TemporalClient } from '@crowd/temporal'
+import { RedisClient } from '@crowd/redis'
 import {
   IActivityData,
   IMemberData,
+  IMemberIdentity,
   ISentimentAnalysisResult,
   MemberAttributeName,
   MemberIdentityType,
@@ -51,6 +51,8 @@ import {
 import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default class ActivityService extends LoggerBase {
   private readonly settingsRepo: SettingsRepository
@@ -65,7 +67,6 @@ export default class ActivityService extends LoggerBase {
     private readonly qdbStore: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly temporal: TemporalClient,
     private readonly client: IQueue,
     parentLog: Logger,
   ) {
@@ -440,7 +441,10 @@ export default class ActivityService extends LoggerBase {
     payloads: IActivityProcessData[],
     onboarding: boolean,
   ): Promise<Map<string, { success: boolean; err?: Error }>> {
-    const resultMap = new Map<string, { success: boolean; err?: Error }>()
+    const resultMap = new Map<
+      string,
+      { success: boolean; err?: Error; metadata?: Record<string, unknown> }
+    >()
 
     let relevantPayloads = payloads
     this.log.trace(`[ACTIVITY] Processing ${relevantPayloads.length} activities!`)
@@ -733,6 +737,8 @@ export default class ActivityService extends LoggerBase {
           )
 
           addToPayloadsNotInDb = true
+        } else {
+          payload.dbMemberSource = 'activity'
         }
 
         if (payload.dbActivity.objectMemberId) {
@@ -750,6 +756,8 @@ export default class ActivityService extends LoggerBase {
             )
 
             addToPayloadsNotInDb = true
+          } else {
+            payload.dbObjectMemberSource = 'activity'
           }
         }
 
@@ -761,6 +769,7 @@ export default class ActivityService extends LoggerBase {
           payload.activity.username === payload.activity.objectMemberUsername
         ) {
           payload.dbObjectMember = payload.dbMember
+          payload.dbObjectMemberSource = 'activity'
         }
 
         if (payload.activity.objectMemberUsername && !payload.dbObjectMember) {
@@ -817,6 +826,7 @@ export default class ActivityService extends LoggerBase {
             p.activity.username.toLowerCase() === identity.value.toLowerCase(),
         )) {
           payload.dbMember = dbMember
+          payload.dbMemberSource = 'username'
         }
 
         for (const payload of payloadsNotInDb.filter(
@@ -827,6 +837,7 @@ export default class ActivityService extends LoggerBase {
             p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
         )) {
           payload.dbObjectMember = dbMember
+          payload.dbObjectMemberSource = 'username'
         }
       }
 
@@ -869,6 +880,7 @@ export default class ActivityService extends LoggerBase {
               ),
           )) {
             payload.dbMember = dbMember
+            payload.dbMemberSource = 'email'
           }
 
           for (const payload of payloadsNotInDb.filter(
@@ -883,6 +895,7 @@ export default class ActivityService extends LoggerBase {
               ),
           )) {
             payload.dbObjectMember = dbMember
+            payload.dbObjectMemberSource = 'email'
           }
         }
       }
@@ -895,13 +908,7 @@ export default class ActivityService extends LoggerBase {
     )
     const preparedActivities: IActivityPrepareForUpsertResult[] = []
 
-    const memberService = new MemberService(
-      this.pgStore,
-      this.searchSyncWorkerEmitter,
-      this.temporal,
-      this.redisClient,
-      this.log,
-    )
+    const memberService = new MemberService(this.pgStore, this.redisClient, this.log)
 
     // find distinct members to create
     const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(
@@ -1020,27 +1027,28 @@ export default class ActivityService extends LoggerBase {
               payload.objectMemberId = memberId
             }
           })
-          .catch((err) => {
+          .catch(async (err) => {
             for (const resultId of value.resultIds) {
-              const isMember = relevantPayloads.some(
-                (p) =>
-                  p.resultId === resultId &&
-                  p.platform === value.platform &&
-                  p.activity.username === value.username,
-              )
+              const payload = single(relevantPayloads, (r) => r.resultId === resultId)
+
+              const isMember = payload.activity.username === value.username
 
               if (!isMember) {
-                const isObjectMember = relevantPayloads.some(
-                  (p) =>
-                    p.resultId === resultId &&
-                    p.platform === value.platform &&
-                    p.activity.objectMemberUsername === value.username,
-                )
+                const isObjectMember =
+                  payload.activity.objectMemberUsername &&
+                  payload.activity.objectMemberUsername === value.username
 
                 if (isObjectMember) {
+                  const metadata = await this.handleMemberIdentityError(
+                    err,
+                    payload,
+                    'objectMember',
+                  )
+
                   resultMap.set(resultId, {
                     success: false,
                     err: new ApplicationError('Error while creating object member!', err),
+                    metadata,
                   })
                 } else {
                   resultMap.set(resultId, {
@@ -1049,9 +1057,11 @@ export default class ActivityService extends LoggerBase {
                   })
                 }
               } else {
+                const metadata = await this.handleMemberIdentityError(err, payload, 'member')
                 resultMap.set(resultId, {
                   success: false,
                   err: new ApplicationError('Error while creating member!', err),
+                  metadata,
                 })
               }
             }
@@ -1059,6 +1069,22 @@ export default class ActivityService extends LoggerBase {
       )
     }
     await Promise.all(promises)
+
+    const memberIds = new Set<string>()
+    for (const payload of relevantPayloads) {
+      if (payload.dbMember) {
+        memberIds.add(payload.dbMember.id)
+      }
+
+      if (payload.dbObjectMember) {
+        memberIds.add(payload.dbObjectMember.id)
+      }
+    }
+
+    let dbMemberIdentities: Map<string, IMemberIdentity[]> = new Map()
+    if (memberIds.size > 0) {
+      dbMemberIdentities = await this.memberRepo.getIdentities(Array.from(memberIds))
+    }
 
     for (const payload of relevantPayloads) {
       const promises = []
@@ -1083,16 +1109,25 @@ export default class ActivityService extends LoggerBase {
                   reach: payload.activity.member.reach,
                 },
                 payload.dbMember,
+                dbMemberIdentities.get(payload.dbMember.id),
                 payload.platform,
               )
-              .catch((err) => {
+              .catch(async (err) => {
+                const metadata = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'member',
+                  payload.dbMember,
+                )
+
                 resultMap.set(payload.resultId, {
                   success: false,
                   err: new ApplicationError('Error while updating member!', err),
+                  metadata,
                 })
               }),
           )
-        } else {
+        } else if (payload.dbActivity) {
           // just ignore these - we already have the activity
           resultMap.set(payload.resultId, { success: true })
         }
@@ -1118,16 +1153,24 @@ export default class ActivityService extends LoggerBase {
                   reach: payload.activity.objectMember.reach,
                 },
                 payload.dbObjectMember,
+                dbMemberIdentities.get(payload.dbObjectMember.id),
                 payload.platform,
               )
-              .catch((err) => {
+              .catch(async (err) => {
+                const metadata = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'objectMember',
+                  payload.dbObjectMember,
+                )
                 resultMap.set(payload.resultId, {
                   success: false,
                   err: new ApplicationError('Error while updating object member!', err),
+                  metadata,
                 })
               }),
           )
-        } else {
+        } else if (payload.dbActivity) {
           // just ignore these - we already have the activity
           resultMap.set(payload.resultId, { success: true })
         }
@@ -1400,6 +1443,113 @@ export default class ActivityService extends LoggerBase {
     return username?.value === 'ghost'
   }
 
+  private async handleMemberIdentityError(
+    error: any,
+    payload: IActivityProcessData,
+    memberType: 'member' | 'objectMember',
+    dbMember?: IDbMember,
+  ): Promise<Record<string, unknown> | undefined> {
+    const checkForIdentityConstraint = (error: any): boolean => {
+      if (
+        error.constructor &&
+        error.constructor.name === 'DatabaseError' &&
+        error.constraint &&
+        error.constraint === 'uix_memberIdentities_platform_value_type_tenantId_verified' &&
+        error.detail
+      ) {
+        return true
+      }
+
+      return false
+    }
+
+    const extractMetadata = async (error: any): Promise<Record<string, unknown> | undefined> => {
+      const metadata: Record<string, unknown> = {}
+
+      // extract the platform, value, type from the detail
+      // "Key (platform, value, type, \"tenantId\", verified)=(github, tedyu, username, 875c38bd-2b1b-4e91-ad07-0cfbabb4c49f, t) already exists."
+      const detail = error.detail
+      const regex = /\(platform, value, type, "tenantId", verified\)=\((.*?)\)/
+      const match = detail.match(regex)
+
+      if (!match || match.length < 2) {
+        return
+      }
+
+      // Split the matched string by commas
+      const values = match[1].split(',').map((val) => val.trim())
+
+      // Extract platform, value, and type
+      const [platform, value, type] = values
+
+      metadata.erroredVerifiedIdentity = {
+        platform,
+        value,
+        type,
+      }
+
+      const membersWithIdentity = await this.memberRepo.findIdentities(
+        [
+          {
+            platform,
+            value,
+            type,
+            verified: true,
+          },
+        ],
+        undefined,
+        true,
+      )
+
+      if (memberType === 'member') {
+        metadata.verifiedIdentities = payload.activity.member.identities.filter((i) => i.verified)
+      } else {
+        metadata.verifiedIdentities = payload.activity.objectMember.identities.filter(
+          (i) => i.verified,
+        )
+      }
+
+      if (membersWithIdentity.size > 0) {
+        metadata.memberWithIdentity = membersWithIdentity.values().next().value
+      }
+
+      if (payload.dbActivity) {
+        metadata.activityIdToUpdate = payload.dbActivity.id
+      }
+
+      if (dbMember) {
+        metadata.memberIdToUpdate = dbMember.id
+        metadata.memberType = memberType
+
+        if (memberType === 'member') {
+          metadata.memberSource = payload.dbMemberSource
+        } else {
+          metadata.memberSource = payload.dbObjectMemberSource
+        }
+      }
+
+      return metadata
+    }
+
+    if (error instanceof ApplicationError) {
+      let nextError: any = error.originalError
+
+      while (nextError) {
+        if (checkForIdentityConstraint(nextError)) {
+          return extractMetadata(nextError)
+        } else if (nextError instanceof ApplicationError) {
+          nextError = nextError.originalError
+        } else {
+          nextError = undefined
+        }
+      }
+    } else if (checkForIdentityConstraint(error)) {
+      return extractMetadata(error)
+    }
+
+    return undefined
+  }
+
   public async getActivitySentiment(
     activity: ISentimentActivityInput,
   ): Promise<ISentimentAnalysisResult | undefined> {
@@ -1469,10 +1619,12 @@ interface IActivityProcessData {
   dbMember?: IDbMember
   dbActivity?: IDbActivity
   dbObjectMember?: IDbMember
+  dbMemberSource?: 'activity' | 'username' | 'email'
 
   organizationId?: string
   memberId?: string
   objectMemberId?: string
+  dbObjectMemberSource?: 'activity' | 'username' | 'email'
 }
 
 interface IActivityPrepareForUpsertResult {

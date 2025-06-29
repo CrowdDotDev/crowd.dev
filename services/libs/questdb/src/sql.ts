@@ -80,7 +80,7 @@ export const getClientSQL = async (
     password: process.env['CROWD_QUESTDB_SQL_PASSWORD'],
     database: process.env['CROWD_QUESTDB_SQL_DATABASE'],
     application_name: process.env.SERVICE || 'unknown-app',
-    ssl: IS_PROD_ENV ? true : false,
+    ssl: IS_PROD_ENV || process.env.DEBUG_QDB_SSL === 'true' ? true : false,
     idleTimeoutMillis: 120000,
     max: 4,
     query_timeout: Number(process.env['CROWD_QUESTDB_SQL_QUERY_TIMEOUT'] || 60000),
