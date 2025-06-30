@@ -518,7 +518,7 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  private isValidPlatform(value: unknown): value is PlatformType {
+  private static isValidPlatform(value: unknown): value is PlatformType {
     return typeof value === 'string' && Object.values(PlatformType).includes(value as PlatformType)
   }
 
@@ -530,7 +530,7 @@ export class CollectionService extends LoggerBase {
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
     const platforms = [
       ...new Set(
-        integrations.map((integration) => integration.platform).filter(this.isValidPlatform),
+        integrations.map((integration) => integration.platform).filter(CollectionService.isValidPlatform),
       ),
     ]
 
