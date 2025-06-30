@@ -19,13 +19,6 @@ setImmediate(async () => {
   const cache = new RedisCache(redisKey, redis, log)
 
   try {
-    // check if redis key exists
-    const exists = await cache.exists(redisKey)
-    if (!exists) {
-      log.error({ redisKey }, 'Redis key not found!')
-      process.exit(1)
-    }
-
     // delete redis key
     await cache.deleteAll()
 
