@@ -1,0 +1,62 @@
+FROM python:3.13.5-slim-bullseye AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+ENV POETRY_VERSION=2.1.3
+ENV POETRY_HOME=/opt/poetry
+ENV POETRY_NO_INTERACTION=1
+ENV POETRY_VENV_IN_PROJECT=1
+ENV POETRY_CACHE_DIR=/tmp/poetry_cache
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=${POETRY_HOME} python3 - --version ${POETRY_VERSION} && \
+    cd /usr/local/bin && \
+    ln -s ${POETRY_HOME}/bin/poetry && \
+    poetry config virtualenvs.create false
+
+WORKDIR /usr/crowd/app
+
+COPY ./services/apps/git_integration/poetry.lock ./services/apps/git_integration/pyproject.toml ./
+RUN poetry install --no-root
+COPY ./services/apps/git_integration ./
+
+
+FROM python:3.13.5-slim-bullseye AS runner
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    git \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set Python environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PIP_NO_CACHE_DIR=off
+
+WORKDIR /usr/crowd/app
+
+# Copy Python packages from builder - copy the entire Python installation
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy the git_integration service from builder
+COPY --from=builder /usr/crowd/app/ ./
+
+# Make runner script executable
+RUN chmod +x ./src/runner.sh
+
+# Expose the default port
+EXPOSE 8085
+
+# Set the default command to run the server
+CMD ["./src/runner.sh"]
