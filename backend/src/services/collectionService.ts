@@ -29,7 +29,7 @@ import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
-import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets, isValidPlatform } from '@crowd/types'
+import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
@@ -518,6 +518,10 @@ export class CollectionService extends LoggerBase {
     }
   }
 
+  private isValidPlatform(value: unknown): value is PlatformType {
+    return typeof value === 'string' && Object.values(PlatformType).includes(value as PlatformType)
+  }
+
   async findSegmentsWidgetsById(
     segmentId: string,
   ): Promise<{ platforms: PlatformType[]; widgets: Widgets[] }> {
@@ -525,14 +529,16 @@ export class CollectionService extends LoggerBase {
     const widgets = new Set<Widgets>()
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
     const platforms = [
-      ...new Set(integrations.map((integration) => integration.platform).filter(isValidPlatform)),
+      ...new Set(
+        integrations.map((integration) => integration.platform).filter(this.isValidPlatform),
+      ),
     ]
 
     for (const platform of platforms) {
       Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
         if (
           config.enabled &&
-          config.platform.map((p) => p.toLowerCase()).includes(platform.toLowerCase())
+          config.platform.some((p) => p.toLowerCase() === platform.toLowerCase())
         ) {
           widgets.add(key as Widgets)
         }

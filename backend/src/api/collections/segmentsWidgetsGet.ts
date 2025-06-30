@@ -4,7 +4,7 @@ import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /collections/insights-projects/:id/widgets
+ * GET /segments/:id/widgets
  * @summary Get needed widgets for a segmentId
  * @tag Collections
  * @security Bearer
