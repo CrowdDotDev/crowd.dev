@@ -284,6 +284,10 @@ export default class DataSinkService extends LoggerBase {
         const results = groupedByType.get(type)
 
         for (const result of results) {
+          if (!result.platform) {
+            result.platform = (result.data.data as IActivityData).platform as PlatformType
+          }
+
           if (result.platform === PlatformType.GITHUB_NANGO) {
             result.platform = PlatformType.GITHUB
           }
