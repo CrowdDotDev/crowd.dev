@@ -1,0 +1,1 @@
+export $(grep -v '^#' /home/ubuntu/git-integration/.env | xargs) && /home/ubuntu/venv/cgit/bin/crowd-git-ingest >> /data/logs/cron.log 2>&1
