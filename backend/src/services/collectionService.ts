@@ -530,7 +530,9 @@ export class CollectionService extends LoggerBase {
     const integrations = await fetchIntegrationsForSegment(qx, segmentId)
     const platforms = [
       ...new Set(
-        integrations.map((integration) => integration.platform).filter(CollectionService.isValidPlatform),
+        integrations
+          .map((integration) => integration.platform)
+          .filter(CollectionService.isValidPlatform),
       ),
     ]
 
