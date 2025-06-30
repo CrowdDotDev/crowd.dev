@@ -11,7 +11,6 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
@@ -21,7 +20,6 @@ import {
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IMemberData,
   IMemberIdentity,
@@ -42,8 +40,6 @@ export default class MemberService extends LoggerBase {
 
   constructor(
     private readonly store: DbStore,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly temporal: TemporalClient,
     private readonly redisClient: RedisClient,
     parentLog: Logger,
   ) {
@@ -229,6 +225,7 @@ export default class MemberService extends LoggerBase {
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
+    originalIdentities: IMemberIdentity[],
     source: string,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
@@ -241,13 +238,6 @@ export default class MemberService extends LoggerBase {
             this.redisClient,
             this.store,
             this.log,
-          )
-
-          this.log.trace({ memberId: id }, 'Fetching member identities!')
-          const dbIdentities = await logExecutionTimeV2(
-            () => this.memberRepo.getIdentities(id),
-            this.log,
-            'memberService -> update -> getIdentities',
           )
 
           if (data.attributes) {
@@ -270,7 +260,7 @@ export default class MemberService extends LoggerBase {
             data.displayName = getProperDisplayName(data.displayName)
           }
 
-          const toUpdate = MemberService.mergeData(original, dbIdentities, data)
+          const toUpdate = MemberService.mergeData(original, originalIdentities, data)
 
           if (toUpdate.attributes) {
             this.log.trace({ memberId: id }, 'Setting attribute default values!')
@@ -536,6 +526,16 @@ export default class MemberService extends LoggerBase {
       if (dbMember) {
         this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
 
+        this.log.trace({ memberId: dbMember.id }, 'Fetching member identities!')
+        const dbIdentities = await logExecutionTimeV2(
+          async () => {
+            const identities = await this.memberRepo.getIdentities([dbMember.id])
+            return identities.get(dbMember.id)
+          },
+          this.log,
+          'memberService -> update -> getIdentities',
+        )
+
         await this.update(
           dbMember.id,
           segmentId,
@@ -549,6 +549,7 @@ export default class MemberService extends LoggerBase {
             reach: member.reach || undefined,
           },
           dbMember,
+          dbIdentities,
           platform,
         )
       } else {
