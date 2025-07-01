@@ -22,7 +22,7 @@ ENV UV_LINK_MODE=copy \
 COPY ./services/apps/git_integration/pyproject.toml ./services/apps/git_integration/uv.lock ./services/apps/git_integration/README.md ./
 COPY ./LICENSE ./
 
-# Install dependencies system-wide using uv sync and then copy to system Python
+# Install dependencies
 RUN uv sync --frozen --no-dev
 
 # Copy source code
