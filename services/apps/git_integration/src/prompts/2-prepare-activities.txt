@@ -1,0 +1,69 @@
++= 0-system.txt
+
++- crowdgit/repo.py [get-new-commits] The code that extracts the commits
++- crowdgit/activity.py [extract-activities] The code that extracts the activities
+
+## Activities and members in crowd.dev
+
+We have a method to add activities with their activity member in crowd.dev. This is how it would look for the authored commit activity:
+
+```jsx
+[
+	{
+		type: 'authored-commit',
+		timestamp: '2022-02-02',
+		sourceId: '7b50567bdcad8925ca1e075feb7171c12015afd1'
+		platform: 'git',
+		channel: 'torvalds/linux',
+		attributes: {
+			insertions: 7,
+			deletions: 1,
+			lines: 6,
+			isMerge: false,
+			isMainBranch: true,
+			branches: ['master']
+		},
+		url: 'git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git',
+		member: {
+			userName: 'Arnd Bergmann',
+			displayName: 'Arnd Bermann',
+			emails: ['[*arnd@arndb.de](mailto:arnd@arndb.de)'*]
+		}
+	},
+	... other activities
+]
+```
+
+- `type`: the activity type: *authored-commit*, *signed-off-commit*, *reviewed-commit*, *committed-commit*, *reported-commit*…,
+- `channel`: this is the repo
+- `url`: the git remote
+- `member`: information about the community member.
+- `sourceId`: see below
+
+### Activity types
+
+We can always make the activity type from the commit message by removing the `-by` from the message and adding `-commit`
+
+- `Co-authored-by` → `co-authored-commit`
+- `Signed-off-by` → `signed-off-commit`
+
+authored-commit and commited-commit are implicit and should always be generated from the commit.
+
+### Activities and IDs
+
+Activities have two important ID fields
+
+- `sourceId`
+    - The id of the activity on the source. Source IDs have to be unique, and they are very important to handle deduplication in crowd.dev.
+    - Authoring a commit will always be the main commit activity, and it is guaranteed to exist. We should always set the `sourceId` of an authored-commit activity to be the commit hash.
+    - For all other activities we need to create a unique hash using the commit hash, the activity type, and the member.
+- `sourceParentId`
+    - The id of the parent activity for activities other than authored-commit. Adding activities like this groups them as *conversations* in crowd.dev.
+    - All commit activities that are not authored-commit should have the commit hash as `sourceParentId`
+    - The authored commit should have an empty sourceParentId
+
+A function prepare-crowd-activities receives a list of commits as returned by get_new_commits. For each commit it extracts the non-implicit activities. It then returns a list of all the activities in the crowd.dev format above.
+
+++ Prompt
+
+Can you make prepare-crowd-activities?
