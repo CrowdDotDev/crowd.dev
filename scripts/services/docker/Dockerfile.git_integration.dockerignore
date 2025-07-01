@@ -35,6 +35,12 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Ruff
+.ruff_cache/
+.ruff_cache
+.ruff.toml
+.ruff_cache.json
+
 # PyInstaller
 *.manifest
 *.spec
