@@ -242,28 +242,15 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
-  fetchProjectDetails(project.id, (results) => {
-    if (results) {
-      form.name = results.name || '';
-      form.description = results.description || '';
-      form.github = results.github || '';
-      form.twitter = results.twitter || '';
-      form.website = results.website || '';
-      form.logoUrl = results.logoUrl || '';
-      form.keywords = results.topics || [];
-    } else {
-      form.name = project.name;
-      form.description = project.description;
-      form.logoUrl = project.url;
+  Object.assign(form, initialFormState);
+  fetchProjectDetails(project);
+  fetchRepositories(project.id, () => {
+    if (!isEditForm.value) {
+      form.repositories = cloneDeep(initialFormState.repositories);
     }
-    fetchRepositories(project.id, () => {
-      if (!isEditForm.value) {
-        Object.assign(form, initialFormState);
-      }
 
-      form.repositories = initialFormState.repositories;
-      form.segmentId = project.id;
-    });
+    form.repositories = initialFormState.repositories;
+    form.segmentId = project.id;
   });
 };
 
@@ -329,13 +316,20 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
-const fetchProjectDetails = async (
-  segmentId: string,
-  callback?: (results: any) => void,
-) => {
-  InsightsProjectsService.getInsightsProjectDetails(segmentId).then((res) => {
-    if (callback) {
-      callback(res);
+const fetchProjectDetails = async (project: any) => {
+  InsightsProjectsService.getInsightsProjectDetails(project.id).then((res) => {
+    if (res) {
+      form.name = res.name || '';
+      form.description = res.description || '';
+      form.github = res.github || '';
+      form.twitter = res.twitter || '';
+      form.website = res.website || '';
+      form.logoUrl = res.logoUrl || '';
+      form.keywords = res.topics || [];
+    } else {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
     }
   });
 };
