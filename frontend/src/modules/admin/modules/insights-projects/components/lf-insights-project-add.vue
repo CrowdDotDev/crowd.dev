@@ -243,22 +243,22 @@ const { isLoading, isSuccess, data } = useQuery({
 
 const onProjectSelection = ({ project }: any) => {
   fetchProjectDetails(project.id, (results) => {
+    if (results) {
+      form.name = results.name || '';
+      form.description = results.description || '';
+      form.github = results.github || '';
+      form.twitter = results.twitter || '';
+      form.website = results.website || '';
+      form.logoUrl = results.logoUrl || '';
+      form.keywords = results.topics || [];
+    } else {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+    }
     fetchRepositories(project.id, () => {
       if (!isEditForm.value) {
         Object.assign(form, initialFormState);
-      }
-      if (results) {
-        form.name = results.name || '';
-        form.description = results.description || '';
-        form.github = results.github || '';
-        form.twitter = results.twitter || '';
-        form.website = results.website || '';
-        form.logoUrl = results.logoUrl || '';
-        form.keywords = results.topics || [];
-      } else {
-        form.name = project.name;
-        form.description = project.description;
-        form.logoUrl = project.url;
       }
 
       form.repositories = initialFormState.repositories;
