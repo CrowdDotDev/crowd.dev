@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crowdgit"
+version = "0.0.1"
+description = "Crowd.dev git integration for the Linux Foundation"
+readme = "README.md"
+authors = [
+    { name = "Juan Reyero", email = "juan@juanreyero.com" }
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.3",
+    "tqdm",
+    "fuzzywuzzy",
+    "python-Levenshtein",
+    "boto3>=1.35.18",
+    "python-json-logger",
+    "python-dotenv>=1.0.1",
+    "gitpython",
+    "fastapi[standard]",
+    "uvicorn",
+    "asyncio",
+    "confluent-kafka",
+    "openai>=1.45.0",
+    "prettytable>=3.11.0",
+    "python-slugify>=8.0.4",
+    "asyncpg",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jedi>=0.18.1",
+    "pylint>=2.13.9",
+    "pytest>=7.0.0",
+    "yapf>=0.32.0",
+    "ruff>=0.3.0",
+]
+
+[project.scripts]
+crowd-git-ingest = "crowdgit.ingest:main"
+crowd-git-bad-commits = "crowdgit.get_bad_commits:main"
+crowd-git-maintainers = "crowdgit.maintainers:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crowdgit"]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --ignore=setup.py --ignore=build --ignore=doc --ignore=flymake"
+pythonpath = [
+  "."
+]
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

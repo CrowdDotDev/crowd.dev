@@ -1,45 +1,21 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Git
+.git
+.gitignore
+.gitattributes
 
-# dependencies
-/node_modules
+# Node.js (exclude from Python service)
 node_modules/
-
-# testing
-/frontend/tests/screenshots
-/frontend/tests/videos
-
-# production
-/build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-api-test/__pycache__/api_test.cpython-39-pytest-6.2.4.pyc
+pnpm-debug.log*
+.pnpm-store/
 
-# python
-.venv/
-**/*-venv
-**/venv
-**/venv*
-
-**/__pycache__
-**/*.egg-info
-
-# Python bytecode
+# Python
+__pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -58,6 +34,12 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Ruff
+.ruff_cache/
+.ruff_cache
+.ruff.toml
+.ruff_cache.json
 
 # PyInstaller
 *.manifest
@@ -86,17 +68,17 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
+# Flask stuff
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy stuff
 .scrapy
 
 # Sphinx documentation
@@ -118,9 +100,6 @@ ipython_config.py
 
 # pipenv
 Pipfile.lock
-
-# poetry
-poetry.lock
 
 # pdm
 .pdm.toml
@@ -168,30 +147,53 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-**/**/.idea
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-**/.vscode*
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-.vscode/settings.json
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
 
-.serverless
-.webpack
-.build
-.cache
+# Documentation
+README.md
+*.md
+docs/
 
-#docker
-/docker/docker-compose.yaml
-/docker/docker-compose.dev.yaml
+# Tests
+test/
+tests/
+testing/
 
-/backend/superface/**
-docker/volume
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
 
-services/libs/*/dist
+# Logs
+*.log
+logs/
 
-**/.tinyb
-**/.tinyenv
-**/*copied_ranges.log*
-services/libs/tinybird/.diff_tmp
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# custom cursor rules
-.cursor/rules/*.local.mdc
+# Config files that might contain secrets
+.env*
+config/local.*
+secrets/

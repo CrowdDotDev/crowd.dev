@@ -32,4 +32,5 @@ export default (app) => {
 
   app.get('/segments/:id/repositories', safeWrap(require('./segmentsRepositoriesGet').default))
   app.get('/segments/:id/github-insights', safeWrap(require('./segmentsGithubInsightsGet').default))
+  app.get('/segments/:id/widgets', safeWrap(require('./segmentsWidgetsGet').default))
 }

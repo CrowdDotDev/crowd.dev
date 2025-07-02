@@ -58,7 +58,6 @@
             :disabled="
               $v.$invalid
                 || !repositories.length
-                || props.integration?.status === 'in-progress'
             "
             @click="connect()"
           >
