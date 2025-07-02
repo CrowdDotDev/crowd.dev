@@ -41,7 +41,8 @@
         v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
-      <div v-else v-loading="isLoadingProject">
+
+      <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
           v-if="!isEditForm || !form.segmentId"
@@ -92,6 +93,11 @@
           </div>
         </div>
       </div>
+      <div
+        v-if="isLoadingProject"
+        v-loading="isLoadingProject"
+        class="app-page-spinner h-16 !absolute min-w-full !min-h-[calc(100%-320px)] my-40 top-0 left-0 bg-gray-50/10"
+      />
     </template>
     <template #footer>
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
@@ -334,7 +340,7 @@ const fetchProjectDetails = async (project: any) => {
       form.logoUrl = project.url;
     }
   }).finally(() => {
-    isLoadingIntegrations.value = false;
+    isLoadingProject.value = false;
   });
 };
 
