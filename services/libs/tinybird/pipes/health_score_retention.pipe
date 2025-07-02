@@ -1,0 +1,66 @@
+NODE health_score_retention_current_quarter
+SQL >
+    SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE
+        isContribution
+        AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+        AND timestamp < toStartOfQuarter(now())
+    GROUP BY segmentId
+
+NODE health_score_retention_previous_quarter
+SQL >
+    SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE
+        isContribution
+        AND timestamp >= toStartOfQuarter(now() - INTERVAL 2 QUARTER)
+        AND timestamp < toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+    GROUP BY segmentId
+
+NODE health_score_retention_counts
+SQL >
+    SELECT
+        health_score_retention_current_quarter.segmentId as segmentId,
+        length(
+            arrayIntersect(
+                coalesce(health_score_retention_current_quarter.currentQuarterMembers, []),
+                coalesce(health_score_retention_previous_quarter.previousQuarterMembers, [])
+            )
+        ) AS retained_members,
+        length(
+            coalesce(health_score_retention_previous_quarter.previousQuarterMembers, [])
+        ) AS previous_period_total
+    FROM health_score_retention_current_quarter
+    LEFT JOIN health_score_retention_previous_quarter USING (segmentId)
+
+NODE health_score_retention_score
+SQL >
+    SELECT
+        segmentId,
+        if(
+            previous_period_total > 0, round(100 * retained_members / previous_period_total, 2), 0
+        ) AS "retentionRate"
+    FROM health_score_retention_counts
+
+NODE health_score_retention_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        retentionRate,
+        CASE
+            WHEN retentionRate BETWEEN 0 AND 2
+            THEN 0
+            WHEN retentionRate BETWEEN 3 AND 5
+            THEN 1
+            WHEN retentionRate BETWEEN 6 AND 9
+            THEN 2
+            WHEN retentionRate BETWEEN 10 AND 14
+            THEN 3
+            WHEN retentionRate BETWEEN 15 AND 19
+            THEN 4
+            WHEN retentionRate >= 20
+            THEN 5
+            ELSE 0
+        END AS retentionBenchmark
+    FROM health_score_retention_score
