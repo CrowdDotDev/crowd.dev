@@ -1,46 +1,52 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "crowdgit"
 version = "0.0.1"
 description = "Crowd.dev git integration for the Linux Foundation"
 readme = "README.md"
-authors = ["Juan Reyero <juan@juanreyero.com>"]
-license = "Proprietary"
-packages = [{include = "crowdgit", from = "src"}]
+authors = [
+    { name = "Juan Reyero", email = "juan@juanreyero.com" }
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.3",
+    "tqdm",
+    "fuzzywuzzy",
+    "python-Levenshtein",
+    "boto3>=1.35.18",
+    "python-json-logger",
+    "python-dotenv>=1.0.1",
+    "gitpython",
+    "fastapi[standard]",
+    "uvicorn",
+    "asyncio",
+    "confluent-kafka",
+    "openai>=1.45.0",
+    "prettytable>=3.11.0",
+    "python-slugify>=8.0.4",
+    "asyncpg",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-requests = "^2.32.3"
-tqdm = "*"
-fuzzywuzzy = "*"
-python-Levenshtein = "*"
-boto3 = "^1.35.18"
-python-json-logger = "*"
-python-dotenv = "^1.0.1"
-gitpython = "*"
-fastapi = {extras = ["standard"], version = "*"}
-uvicorn = "*"
-asyncio = "*"
-confluent_kafka = "*"
-openai = "^1.45.0"
-prettytable = "^3.11.0"
-python-slugify = "^8.0.4"
-asyncpg = "*"
+[project.optional-dependencies]
+dev = [
+    "jedi>=0.18.1",
+    "pylint>=2.13.9",
+    "pytest>=7.0.0",
+    "yapf>=0.32.0",
+    "ruff>=0.3.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-jedi = "^0.18.1"
-pylint = "^2.13.9"
-pytest = "^7.0.0"
-yapf = "^0.32.0"
-ruff = "^0.3.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 crowd-git-ingest = "crowdgit.ingest:main"
 crowd-git-bad-commits = "crowdgit.get_bad_commits:main"
 crowd-git-maintainers = "crowdgit.maintainers:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crowdgit"]
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --ignore=setup.py --ignore=build --ignore=doc --ignore=flymake"
