@@ -1,6 +1,8 @@
 import { uniq } from 'lodash'
+import { Transaction } from 'sequelize'
 
 import { getCleanString } from '@crowd/common'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -211,37 +213,45 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async createInsightsProject(project: ICreateInsightsProject) {
+  async createInsightsProject(project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
-
-      const slug = getCleanString(project.name).replace(/\s+/g, '-')
-
-      const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
-
-      const createdProject = await createInsightsProject(qx, {
-        ...project,
-        isLF: segment?.isLF ?? false,
-        slug,
-      })
-
-      if (project.collections) {
-        await connectProjectsAndCollections(
-          qx,
-          project.collections.map((c) => ({
-            insightsProjectId: createdProject.id,
-            collectionId: c,
-            starred: true,
-          })),
-        )
-      }
-
-      const txSvc = new CollectionService({
-        ...this.options,
-        transaction: tx,
-      })
-      return txSvc.findInsightsProjectById(createdProject.id)
+      return this.createInsightsProjectInternal(project, qx, tx)
     })
+  }
+
+  async createInsightsProjectInternal(
+    project: Partial<ICreateInsightsProject>,
+    qx: QueryExecutor,
+    transaction?: Transaction,
+  ) {
+    const slug = getCleanString(project.name).replace(/\s+/g, '-')
+
+    const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
+
+    const createdProject = await createInsightsProject(qx, {
+      ...project,
+      isLF: segment?.isLF ?? false,
+      slug,
+    })
+
+    if (project.collections) {
+      await connectProjectsAndCollections(
+        qx,
+        project.collections.map((c) => ({
+          insightsProjectId: createdProject.id,
+          collectionId: c,
+          starred: true,
+        })),
+      )
+    }
+
+    const txSvc = new CollectionService({
+      ...this.options,
+      transaction,
+    })
+
+    return txSvc.findInsightsProjectById(createdProject.id)
   }
 
   async destroyInsightsProject(id: string) {

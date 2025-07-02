@@ -156,7 +156,7 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
   return queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), opts)
 }
 
-export async function createInsightsProject(qx: QueryExecutor, insightProject: IInsightsProject) {
+export async function createInsightsProject(qx: QueryExecutor, insightProject: Partial<IInsightsProject>) {
   return qx.selectOne(
     prepareInsert(
       'insightsProjects',
