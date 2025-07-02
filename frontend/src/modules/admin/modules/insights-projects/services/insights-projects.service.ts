@@ -67,5 +67,10 @@ export class InsightsProjectsService {
     const response = await authAxios.get(`/segments/${segmentId}/repositories`);
     return response.data;
   }
+
+  static async getInsightsProjectDetails(segmentId: string) {
+    const response = await authAxios.get(`/segments/${segmentId}/github-insights`);
+    return response.data;
+  }
 }
 export const INSIGHTS_PROJECTS_SERVICE = new InsightsProjectsService();

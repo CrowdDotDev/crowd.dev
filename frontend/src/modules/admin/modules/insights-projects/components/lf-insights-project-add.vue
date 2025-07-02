@@ -242,16 +242,28 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
-  fetchRepositories(project.id, () => {
-    if (!isEditForm.value) {
-      Object.assign(form, initialFormState);
-      form.name = project.name;
-      form.description = project.description;
-      form.logoUrl = project.url;
-    }
+  fetchProjectDetails(project.id, (results) => {
+    fetchRepositories(project.id, () => {
+      if (!isEditForm.value) {
+        Object.assign(form, initialFormState);
+      }
+      if (results) {
+        form.name = results.name || '';
+        form.description = results.description || '';
+        form.github = results.github || '';
+        form.twitter = results.twitter || '';
+        form.website = results.website || '';
+        form.logoUrl = results.logoUrl || '';
+        form.keywords = results.topics || [];
+      } else {
+        form.name = project.name;
+        form.description = project.description;
+        form.logoUrl = project.url;
+      }
 
-    form.repositories = initialFormState.repositories;
-    form.segmentId = project.id;
+      form.repositories = initialFormState.repositories;
+      form.segmentId = project.id;
+    });
   });
 };
 
@@ -317,6 +329,17 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
+const fetchProjectDetails = async (
+  segmentId: string,
+  callback?: (results: any) => void,
+) => {
+  InsightsProjectsService.getInsightsProjectDetails(segmentId).then((res) => {
+    if (callback) {
+      callback(res);
+    }
+  });
+};
+
 const fetchIntegration = async (segmentId: string) => {
   isLoadingIntegrations.value = true;
 
@@ -327,22 +350,21 @@ const fetchIntegration = async (segmentId: string) => {
     (integration: any) => integration.platform,
   );
 
-  form.widgets = Object.keys(defaultWidgetsValues)
-    .reduce(
-      (acc, key: string) => ({
-        ...acc,
-        [key]: {
-          enabled: isEditForm.value
-            ? form.widgets[key as Widgets].enabled
-            : defaultWidgetsValues[key as Widgets].platform.includes(
-              Platform.ALL,
-            )
-              || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
-          platform: defaultWidgetsValues[key as Widgets].platform,
-        },
-      }),
-      {},
-    );
+  form.widgets = Object.keys(defaultWidgetsValues).reduce(
+    (acc, key: string) => ({
+      ...acc,
+      [key]: {
+        enabled: isEditForm.value
+          ? form.widgets[key as Widgets].enabled
+          : defaultWidgetsValues[key as Widgets].platform.includes(
+            Platform.ALL,
+          )
+            || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
+        platform: defaultWidgetsValues[key as Widgets].platform,
+      },
+    }),
+    {},
+  );
 
   isLoadingIntegrations.value = false;
 };
