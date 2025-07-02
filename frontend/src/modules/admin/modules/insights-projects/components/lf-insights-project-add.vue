@@ -41,7 +41,7 @@
         v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
-      <div v-else>
+      <div v-else v-loading="isLoadingProject">
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
           v-if="!isEditForm || !form.segmentId"
@@ -204,6 +204,7 @@ const $v = useVuelidate(rules, form);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const isLoadingIntegrations = ref(false);
+const isLoadingProject = ref(false);
 
 const model = computed({
   get() {
@@ -317,6 +318,7 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
 };
 
 const fetchProjectDetails = async (project: any) => {
+  isLoadingProject.value = true;
   InsightsProjectsService.getInsightsProjectDetails(project.id).then((res) => {
     if (res) {
       form.name = res.name || '';
@@ -331,6 +333,8 @@ const fetchProjectDetails = async (project: any) => {
       form.description = project.description;
       form.logoUrl = project.url;
     }
+  }).finally(() => {
+    isLoadingIntegrations.value = false;
   });
 };
 
