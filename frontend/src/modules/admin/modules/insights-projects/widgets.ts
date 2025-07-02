@@ -14,7 +14,7 @@ export enum Widgets {
   // SOCIAL_MENTIONS = 'socialMentions',
   // GITHUB_MENTIONS = 'githubMentions',
   // PRESS_MENTIONS = 'pressMentions',
-  // SEARCH_QUERIES = 'searchQueries',
+  SEARCH_QUERIES = 'searchQueries',
   PACKAGE_DOWNLOADS = 'packageDownloads',
   PACKAGE_DEPENDENCY = 'packageDependency',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
@@ -91,10 +91,10 @@ export const WIDGETS_GROUPS = [
       //   name: 'Press mentions',
       //   key: Widgets.PRESS_MENTIONS,
       // },
-      // {
-      //   name: 'Search queries',
-      //   key: Widgets.SEARCH_QUERIES,
-      // },
+      {
+        name: 'Search queries',
+        key: Widgets.SEARCH_QUERIES,
+      },
       {
         name: 'Package downloads',
         key: Widgets.PACKAGE_DOWNLOADS,
@@ -156,7 +156,13 @@ export const WIDGETS_GROUPS = [
   },
 ];
 
-export const defaultWidgetsValues = {
+export const defaultWidgetsValues: Record<
+  Widgets,
+  {
+    enabled: boolean
+    platform: Platform[]
+  }
+> = {
   // Contributors
   [Widgets.ACTIVE_CONTRIBUTORS]: {
     enabled: true,
@@ -211,14 +217,18 @@ export const defaultWidgetsValues = {
   //   enabled: false,
   //   platform: [Platform.ALL],
   // },
-  // [Widgets.SEARCH_QUERIES]: {
-  //   enabled: false,
-  //   platform: [Platform.ALL],
-  // },
-  // [Widgets.PACKAGE_DOWNLOADS]: {
-  //   enabled: false,
-  //   platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
-  // },
+  [Widgets.SEARCH_QUERIES]: {
+    enabled: true,
+    platform: [Platform.ALL],
+  },
+  [Widgets.PACKAGE_DOWNLOADS]: {
+    enabled: true,
+    platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
+  },
+  [Widgets.PACKAGE_DEPENDENCY]: {
+    enabled: true,
+    platform: [Platform.GITHUB, Platform.GITHUB_NANGO],
+  },
   [Widgets.MAILING_LIST_MESSAGES]: {
     enabled: true,
     platform: [Platform.GROUPS_IO],

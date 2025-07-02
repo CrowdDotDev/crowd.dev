@@ -671,7 +671,11 @@ export function mapActivityRowToResult(a: any, columns: string[]): any {
     if (column === 'attributes') {
       data[column] = JSON.parse(a[column])
     } else {
-      data[column] = a[column]
+      if (column === 'timestamp') {
+        data[column] = moment.utc(a[column]).toISOString()
+      } else {
+        data[column] = a[column]
+      }
     }
   }
 
@@ -1362,7 +1366,7 @@ export async function createOrUpdateRelations(
     return
   }
 
-  const params: Record<string, string> = {}
+  const params: Record<string, unknown> = {}
   let index = 0
 
   const activityIds = new Set<string>()
@@ -1523,6 +1527,17 @@ export async function createOrUpdateRelations(
     const platformParam = `platform_${index++}`
     const usernameParam = `username_${index++}`
     const objectMemberUsernameParam = `objectMemberUsername_${index++}`
+    const sourceIdParam = `sourceId_${index++}`
+    const sourceParentIdParam = `sourceParentId_${index++}`
+    const typeParam = `type_${index++}`
+    const timestampParam = `timestamp_${index++}`
+    const channelParam = `channel_${index++}`
+    const sentimentScoreParam = `sentimentScore_${index++}`
+    const gitInsertionsParam = `gitInsertions_${index++}`
+    const gitDeletionsParam = `gitDeletions_${index++}`
+    const scoreParam = `score_${index++}`
+    const isContributionParam = `isContribution_${index++}`
+    const pullRequestReviewStateParam = `pullRequestReviewState_${index++}`
 
     params[activityIdParam] = data.activityId
     params[memberIdParam] = data.memberId
@@ -1534,6 +1549,17 @@ export async function createOrUpdateRelations(
     params[platformParam] = data.platform
     params[usernameParam] = data.username
     params[objectMemberUsernameParam] = data.objectMemberUsername ?? null
+    params[sourceIdParam] = data.sourceId ?? null
+    params[sourceParentIdParam] = data.sourceParentId ?? null
+    params[typeParam] = data.type ?? null
+    params[timestampParam] = data.timestamp ?? null
+    params[channelParam] = data.channel ?? null
+    params[sentimentScoreParam] = data.sentimentScore ?? null
+    params[gitInsertionsParam] = data.gitInsertions ?? null
+    params[gitDeletionsParam] = data.gitDeletions ?? null
+    params[scoreParam] = data.score ?? null
+    params[isContributionParam] = data.isContribution ?? null
+    params[pullRequestReviewStateParam] = data.pullRequestReviewState ?? null
 
     valueList.push(
       `
@@ -1548,6 +1574,17 @@ export async function createOrUpdateRelations(
           $(${platformParam}), 
           $(${usernameParam}), 
           $(${objectMemberUsernameParam}), 
+          $(${sourceIdParam}), 
+          $(${sourceParentIdParam}),
+          $(${typeParam}), 
+          $(${timestampParam}), 
+          $(${channelParam}), 
+          $(${sentimentScoreParam}), 
+          $(${gitInsertionsParam}), 
+          $(${gitDeletionsParam}), 
+          $(${scoreParam}), 
+          $(${isContributionParam}), 
+          $(${pullRequestReviewStateParam}), 
           now(), 
           now()
         )`,
@@ -1567,6 +1604,17 @@ export async function createOrUpdateRelations(
             "platform",
             "username",
             "objectMemberUsername",
+            "sourceId",
+            "sourceParentId",
+            "type",
+            "timestamp",
+            "channel",
+            "sentimentScore",
+            "gitInsertions",
+            "gitDeletions",
+            "score",
+            "isContribution",
+            "pullRequestReviewState",
             "createdAt", 
             "updatedAt")
     VALUES ${valueList.join(',')}
@@ -1580,7 +1628,18 @@ export async function createOrUpdateRelations(
         "organizationId" = EXCLUDED."organizationId",
         "platform" = EXCLUDED."platform",
         "username" = EXCLUDED."username",
-        "objectMemberUsername" = EXCLUDED."objectMemberUsername";
+        "objectMemberUsername" = EXCLUDED."objectMemberUsername",
+        "sourceId" = EXCLUDED."sourceId",
+        "sourceParentId" = EXCLUDED."sourceParentId",
+        "type" = EXCLUDED."type",
+        "timestamp" = EXCLUDED."timestamp",
+        "channel" = EXCLUDED."channel",
+        "sentimentScore" = EXCLUDED."sentimentScore",
+        "gitInsertions" = EXCLUDED."gitInsertions",
+        "gitDeletions" = EXCLUDED."gitDeletions",
+        "score" = EXCLUDED."score",
+        "isContribution" = EXCLUDED."isContribution",
+        "pullRequestReviewState" = EXCLUDED."pullRequestReviewState";
 
     `,
     params,
@@ -1619,6 +1678,16 @@ export interface IActivityRelationsCreateData {
   platform: string
   username: string
   objectMemberUsername?: string
+  sourceId: string
+  sourceParentId?: string
+  type: string
+  channel: string
+  sentimentScore: number
+  gitInsertions: number
+  gitDeletions: number
+  score: number
+  isContribution: boolean
+  pullRequestReviewState?: string
 }
 
 export async function getActivityRelationsSortedByTimestamp(
@@ -1650,7 +1719,17 @@ export async function getActivityRelationsSortedByTimestamp(
       "segmentId",
       platform,
       username,
-      "objectMemberUsername"
+      "objectMemberUsername",
+      "sourceId",
+      "sourceParentId",
+      "type",
+      "channel",
+      "sentimentScore",
+      "gitInsertions",
+      "gitDeletions",
+      "score",
+      "isContribution",
+      "attributes"
     FROM activities
     WHERE ${conditions.join(' AND ')}
     ORDER BY "timestamp" asc
@@ -1661,6 +1740,11 @@ export async function getActivityRelationsSortedByTimestamp(
     cursorActivityTimestamp,
     segmentIds,
     limit,
+  })
+
+  rows.forEach((row) => {
+    row.pullRequestReviewState = row.attributes?.reviewState ?? null
+    delete row.attributes
   })
 
   return rows

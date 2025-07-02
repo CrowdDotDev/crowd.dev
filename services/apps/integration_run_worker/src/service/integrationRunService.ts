@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, singleOrDefault } from '@crowd/common'
+import { singleOrDefault } from '@crowd/common'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
@@ -295,13 +295,14 @@ export default class IntegrationRunService extends LoggerBase {
     const cache = new RedisCache(`int-${runInfo.integrationType}`, this.redisClient, this.log)
 
     const nangoConfig = NANGO_CONFIG()
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nangoId = (runInfo.integrationSettings as any)?.nangoId
     const context: IGenerateStreamsContext = {
       onboarding: runInfo.onboarding,
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${runInfo.integrationType}`,
+        nangoId: nangoId,
       },
       platformSettings: PLATFORM_CONFIG(runInfo.integrationType),
       integration: {

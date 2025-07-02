@@ -1,54 +1,61 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities, sleep } from '@temporalio/workflow'
 
 import * as activities from '../../activities'
 import { ICleanupDuplicateMembersArgs } from '../../types'
-import { chunkArray } from '../../utils/common'
 
-const { findDuplicateMembersAfterDate, moveMemberActivityRelations } = proxyActivities<
+const { getWorkflowsCount, findDuplicateMembersAfterDate, mergeMembers } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '15 minutes',
+  startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
 export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs): Promise<void> {
-  const BATCH_SIZE = args.batchSize ?? 500
+  const BATCH_SIZE = args.batchSize ?? 100
+  const testRun = args.testRun ?? false
   const cutoffDate = args.cutoffDate ?? '2025-05-18'
+  const checkByActivityIdentity = args.checkByActivityIdentity ?? false
+  const checkByTwitterIdentity = args.checkByTwitterIdentity ?? false
+  const WORKFLOWS_THRESHOLD = 20
 
-  const results = await findDuplicateMembersAfterDate(cutoffDate, BATCH_SIZE)
+  const workflowTypeToCheck = 'finishMemberMerging'
+  let workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
+
+  // Prevent blowing up postgres and questDb with too many merge workflows
+  while (workflowsCount > WORKFLOWS_THRESHOLD) {
+    console.log(`Too many running finishMemberMerging workflows (count: ${workflowsCount})`)
+
+    // Wait for 5 minutes
+    await sleep('5 minutes')
+
+    workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
+  }
+
+  const results = await findDuplicateMembersAfterDate(
+    cutoffDate,
+    BATCH_SIZE,
+    checkByActivityIdentity,
+    checkByTwitterIdentity,
+  )
 
   if (results.length === 0) {
-    console.log('No more duplicate members to cleanup!')
+    console.log('No duplicate members found!')
     return
   }
 
-  let processedCount = 0
-  const startTime = Date.now()
-
-  // chunk and execute in parallel
-  for (const chunk of chunkArray(results, 50)) {
-    const batchStartTime = Date.now()
-
+  // execute merge in parallel
+  try {
     await Promise.all(
-      chunk.map((result) => {
-        console.log(`Moving activity relations: ${result.secondaryId} --> ${result.primaryId}`)
-        return moveMemberActivityRelations(result.primaryId, result.secondaryId)
+      results.map((result) => {
+        console.log(`Merging members ${result.primaryId} and ${result.secondaryId}`)
+        return mergeMembers(result.primaryId, result.secondaryId)
       }),
     )
-
-    processedCount += chunk.length
-    const batchTime = (Date.now() - batchStartTime) / 1000
-    const totalTime = (Date.now() - startTime) / 1000
-    const itemsPerSecond = processedCount / totalTime
-
-    console.log(`Processed batch in ${batchTime.toFixed(1)}s`)
-    console.log(`Processing ${itemsPerSecond.toFixed(1)} items/sec`)
+  } catch (error) {
+    console.error('Error merging members!', error)
   }
 
-  // Note: Secondary members are not deleted here. The cleanupMembers workflow will automatically
-  // pick them up later since they'll have no activities, identities, or memberOrganizations.
-
-  if (args.testRun) {
+  if (testRun) {
     console.log('Test run completed - stopping after first batch!')
     return
   }

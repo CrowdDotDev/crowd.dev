@@ -1,0 +1,36 @@
++= 0-system.txt
+
++- crowdgit/repo.py [get-new-commits] The code that extracts the commits
+
+The message of a commit includes lines from which activites have to be extracted. The lines are like this:
+
+Signed-off-by: Arnd Bergmann [arnd@arndb.de](mailto:arnd@arndb.de)
+Reported-by: Guenter Roeck [linux@roeck-us.net](mailto:linux@roeck-us.net)
+Reported-by: Sudip Mukherjee [sudipm.mukherjee@gmail.com](mailto:sudipm.mukherjee@gmail.com)
+Reviewed-by: Manivannan Sadhasivam [mani@kernel.org](mailto:mani@kernel.org)
+Reviewed-by: Laurent Pinchart [laurent.pinchart@ideasonboard.com](mailto:laurent.pinchart@ideasonboard.com)
+Signed-off-by: Linus Torvalds [torvalds@linux-foundation.org](mailto:torvalds@linux-foundation.org)*
+
+In order to extract the activities we need to find the activity name (the text before :). An ActivityMap dictionary maps a lower-case version of the activity name to the activities that need to be registered. It looks like this:
+
+ActivityMap = {
+	"about-fscking-timed-by":                 {"Reviewed-by"},
+		"accked-by":                              {"Reviewed-by"},
+		"aced-by":                                {"Reviewed-by"},
+		"ack":                                    {"Reviewed-by"},
+		"ack-by":                                 {"Reviewed-by"},
+		"ackde-by":                               {"Reviewed-by"},
+		"acked":                                  {"Reviewed-by"},
+		"acked-and-reviewed":                     {"Reviewed-by"},
+		"acked-and-reviewed-by":                  {"Reviewed-by"},
+		"acked-and-tested-by":                    {"Reviewed-by", "Tested-by"}
+        ...
+        }
+
+We parse the lines of the message in order to extract the activities from the activity names that may be found. The activity names are hand-written and can have typos. An activity may happen several times in a commit, and we want to capture all of them. For each activity occurrence we want the name and email of the person who made it, extracted form the string after the :
+
+A function extract_activities extracts the activities from the message of a commit, and returns a list of activities. Each activity in the list includes the activity and the person who made it, which in turn includes the name and the email.
+
++# Prompt
+
+Can you make this function.

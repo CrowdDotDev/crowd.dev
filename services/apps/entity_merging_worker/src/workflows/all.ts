@@ -38,7 +38,9 @@ export async function finishMemberMerging(
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
+
   await deleteMember(secondaryId)
+
   await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,

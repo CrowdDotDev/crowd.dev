@@ -1,0 +1,66 @@
+FROM python:3.13.5-slim-bullseye AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv from official image
+COPY --from=ghcr.io/astral-sh/uv:0.7.17 /uv /usr/local/bin/uv
+
+WORKDIR /usr/crowd/app
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON=python3.13 \
+    UV_PROJECT_ENVIRONMENT=/usr/crowd/app/.venv \
+    UV_VENV_PATH=/usr/crowd/app/.venv
+
+# Copy only necessary files for dependency resolution (for better caching)
+COPY ./services/apps/git_integration/pyproject.toml ./services/apps/git_integration/uv.lock ./services/apps/git_integration/README.md ./
+COPY ./LICENSE ./
+
+# Install dependencies
+RUN uv sync --frozen --no-dev
+
+# Copy source code
+COPY ./services/apps/git_integration ./
+
+
+FROM python:3.13.5-slim-bullseye AS runner
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    git \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && apt-get autoremove -y
+
+# Set Python environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PIP_NO_CACHE_DIR=off
+
+WORKDIR /usr/crowd/app
+
+# Copy the virtual environment from builder stage
+COPY --from=builder /usr/crowd/app/.venv /usr/crowd/app/.venv
+
+# Copy the git_integration service from builder stage
+COPY --from=builder /usr/crowd/app/ ./
+
+# Activate virtual environment by adding it to PATH
+ENV PATH="/usr/crowd/app/.venv/bin:$PATH"
+
+# Make runner script executable
+RUN chmod +x ./src/runner.sh
+
+# Expose the default port
+EXPOSE 8085
+
+# Set the default command to run the server
+CMD ["./src/runner.sh"]

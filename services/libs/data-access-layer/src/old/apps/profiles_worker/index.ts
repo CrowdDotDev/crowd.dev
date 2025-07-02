@@ -158,7 +158,7 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
           // means there's a new range starting
           currentPrimaryOrg = primaryOrg
           currentStartDate = new Date(date)
-        } else if (currentPrimaryOrg !== primaryOrg) {
+        } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
           // we have a new primary org, we need to close the current range and open a new one
           timeline.push({
             organizationId: currentPrimaryOrg.organizationId,

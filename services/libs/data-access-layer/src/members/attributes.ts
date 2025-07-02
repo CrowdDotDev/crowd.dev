@@ -30,7 +30,8 @@ export async function updateMemberAttributes(
     `
           UPDATE "members"
           SET
-              attributes = $(attributes)
+              attributes = $(attributes),
+              "updatedAt" = NOW()
           WHERE "id" = $(memberId)
       `,
     {

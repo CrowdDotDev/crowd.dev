@@ -171,6 +171,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async update(id: string, data: IDbMemberUpdateData): Promise<void> {
     const keys = Object.keys(data)
+    if (keys.length === 0) {
+      return
+    }
+
     keys.push('updatedAt')
     // construct custom column set
     const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {

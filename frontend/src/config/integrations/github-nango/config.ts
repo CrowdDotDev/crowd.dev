@@ -17,6 +17,7 @@ const github: IntegrationConfig = {
     'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
+  statusComponent: GithubParams,
   connectedParamsComponent: GithubParams,
   settingComponent: LfGithubSettingsDrawer,
   showProgress: false,

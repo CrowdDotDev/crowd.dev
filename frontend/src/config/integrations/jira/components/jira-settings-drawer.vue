@@ -44,7 +44,7 @@
           </div>
         </div>
         <app-form-item class="mb-6" label="Personal Access Token">
-          <el-input v-model="form.personalAccessToken" @blur="onBlurToken()">
+          <el-input v-model="form.personalAccessToken" type="password" @blur="onBlurToken()">
             <template #suffix>
               <div
                 v-if="isValidating"
@@ -72,7 +72,7 @@
         </app-form-item>
 
         <app-form-item class="mb-1" label="API Token">
-          <el-input v-model="form.apiToken" @blur="onBlurToken()">
+          <el-input v-model="form.apiToken" type="password" @blur="onBlurToken()">
             <template #suffix>
               <div
                 v-if="isValidating"

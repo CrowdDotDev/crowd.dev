@@ -3,6 +3,7 @@ import mergeWith from 'lodash.mergewith'
 import uniqby from 'lodash.uniqby'
 
 import {
+  ApplicationError,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -120,7 +121,7 @@ export default class MemberService extends LoggerBase {
               this.log,
               'memberService -> create -> destroyMemberAfterError',
             )
-            throw err
+            throw new ApplicationError('Error while inserting identities for a new member!', err)
           }
 
           try {
@@ -141,6 +142,12 @@ export default class MemberService extends LoggerBase {
 
           if (releaseMemberLock) {
             await releaseMemberLock()
+          }
+
+          // we should prevent organization creation for bot members
+          if (MemberService.isBot(attributes)) {
+            this.log.debug('Skipping organization creation for bot member')
+            return id
           }
 
           const organizations = []
@@ -295,11 +302,13 @@ export default class MemberService extends LoggerBase {
 
             this.log.trace({ memberId: id }, 'Updating member data in db!')
 
-            await logExecutionTimeV2(
-              () => this.memberRepo.update(id, dataToUpdate),
-              this.log,
-              'memberService -> update -> update',
-            )
+            if (!isObjectEmpty(dataToUpdate)) {
+              await logExecutionTimeV2(
+                () => this.memberRepo.update(id, dataToUpdate),
+                this.log,
+                'memberService -> update -> update',
+              )
+            }
 
             this.log.trace({ memberId: id }, 'Updating member segment association data in db!')
             await logExecutionTimeV2(
@@ -318,24 +327,43 @@ export default class MemberService extends LoggerBase {
 
           if (identitiesToCreate) {
             this.log.trace({ memberId: id }, 'Inserting new identities!')
-            await logExecutionTimeV2(
-              () => this.memberRepo.insertIdentities(id, integrationId, identitiesToCreate),
-              this.log,
-              'memberService -> update -> insertIdentities',
-            )
+            try {
+              await logExecutionTimeV2(
+                () => this.memberRepo.insertIdentities(id, integrationId, identitiesToCreate),
+                this.log,
+                'memberService -> update -> insertIdentities',
+              )
+            } catch (err) {
+              throw new ApplicationError(
+                'Error while inserting member identities for an existing member!',
+                err,
+              )
+            }
           }
 
           if (identitiesToUpdate) {
             this.log.trace({ memberId: id }, 'Updating identities!')
-            await logExecutionTimeV2(
-              () => this.memberRepo.updateIdentities(id, identitiesToUpdate),
-              this.log,
-              'memberService -> update -> updateIdentities',
-            )
+            try {
+              await logExecutionTimeV2(
+                () => this.memberRepo.updateIdentities(id, identitiesToUpdate),
+                this.log,
+                'memberService -> update -> updateIdentities',
+              )
+            } catch (err) {
+              throw new ApplicationError(
+                'Error while updating member identities for an existing member!',
+                err,
+              )
+            }
           }
 
           if (releaseMemberLock) {
             await releaseMemberLock()
+          }
+
+          if (MemberService.isBot(toUpdate.attributes)) {
+            this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
+            return
           }
 
           const organizations = []
@@ -568,6 +596,10 @@ export default class MemberService extends LoggerBase {
       const oldDate = new Date(dbMember.joinedAt)
 
       joinedAt = getEarliestValidDate(oldDate, newDate).toISOString()
+
+      if (joinedAt === oldDate.toISOString()) {
+        joinedAt = undefined
+      }
     }
 
     let identitiesToCreate: IMemberIdentity[] | undefined
@@ -645,6 +677,10 @@ export default class MemberService extends LoggerBase {
       displayName: dbMember.displayName ? undefined : member.displayName,
       reach,
     }
+  }
+
+  private static isBot(attributes: Record<string, unknown>): boolean {
+    return typeof attributes?.isBot === 'object' && Object.values(attributes.isBot).includes(true)
   }
 
   private static calculateReach(

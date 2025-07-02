@@ -5,13 +5,16 @@ import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrat
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { NangoIntegration, nangoIntegrationToPlatform } from '@crowd/nango'
 import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
+import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-github-sync',
-  cronTime: CronTime.every(1).days(),
-  timeout: 5 * 60,
+  cronTime: CronTime.every(
+    Number(process.env.CROWD_GH_NANGO_SYNC_INTERVAL_MINUTES || 60),
+  ).minutes(),
+  timeout: 10 * 60,
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
 
@@ -26,10 +29,9 @@ const job: IJobDefinition = {
     const ids: string[] = []
 
     for (const int of integrations) {
-      const { id, settings } = int
+      const { id, platform } = int
 
-      if (!settings.nangoMapping) {
-        // ignore non-nango github integrations
+      if (platform !== PlatformType.GITHUB_NANGO) {
         continue
       }
 
