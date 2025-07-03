@@ -69,13 +69,14 @@ export interface ICollectionInsightProject {
 }
 
 export enum CollectionField {
-  ID = 'id',
-  NAME = 'name',
-  DESCRIPTION = 'description',
   CATEGORY_ID = 'categoryId',
   CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
+  DESCRIPTION = 'description',
+  ID = 'id',
+  NAME = 'name',
+  SLUG = 'slug',
   STARRED = 'starred',
+  UPDATED_AT = 'updatedAt',
 }
 
 export async function queryCollections<T extends CollectionField>(
@@ -277,3 +278,13 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
   }
   return toUpdate
 }
+
+export async function findBySlug(qx: QueryExecutor, slug: string) {
+      const collections = await queryCollections(qx, {
+        filter: {
+          slug: { eq: slug },
+        },
+        fields: Object.values(CollectionField),
+      })
+      return collections
+  }
