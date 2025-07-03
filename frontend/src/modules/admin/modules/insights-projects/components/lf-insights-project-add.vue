@@ -41,6 +41,7 @@
         v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
+
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
@@ -81,7 +82,7 @@
               />
               <lf-insights-project-add-widgets-tab
                 v-else-if="activeTab === 'widgets'"
-                :is-loading="isLoadingIntegrations"
+                :is-loading="isLoadingWidgets"
                 :form="form"
               />
               <lf-insights-project-add-advanced-tab
@@ -92,6 +93,11 @@
           </div>
         </div>
       </div>
+      <div
+        v-if="isLoadingProject"
+        v-loading="isLoadingProject"
+        class="app-page-spinner !absolute min-w-full !min-h-[calc(100%-320px)] my-40 top-0 left-0 bg-gray-50/10"
+      />
     </template>
     <template #footer>
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
@@ -128,8 +134,6 @@ import Message from '@/shared/message/message';
 import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
-import { IntegrationService } from '@/modules/integration/integration-service';
-import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
@@ -138,7 +142,7 @@ import {
 } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
-import { defaultWidgetsValues, Widgets } from '../widgets';
+import { getDefaultWidgets } from '../widgets';
 import {
   INSIGHTS_PROJECTS_SERVICE,
   InsightsProjectsService,
@@ -185,7 +189,14 @@ const initialFormState: InsightsProjectAddFormModel = {
   linkedin: '',
   repositories: [],
   keywords: [],
-  widgets: cloneDeep(defaultWidgetsValues),
+  widgets: Object.fromEntries(
+    getDefaultWidgets().map((key) => [
+      key,
+      {
+        enabled: true,
+      },
+    ]),
+  ),
 };
 const form = reactive<InsightsProjectAddFormModel>(cloneDeep(initialFormState));
 
@@ -203,7 +214,8 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
-const isLoadingIntegrations = ref(false);
+const isLoadingWidgets = ref(false);
+const isLoadingProject = ref(false);
 
 const model = computed({
   get() {
@@ -242,12 +254,13 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
+  Object.assign(form, initialFormState);
+  fetchProjectDetails(project);
+  fetchWidgets(project.id);
+
   fetchRepositories(project.id, () => {
     if (!isEditForm.value) {
-      Object.assign(form, initialFormState);
-      form.name = project.name;
-      form.description = project.description;
-      form.logoUrl = project.url;
+      form.repositories = cloneDeep(initialFormState.repositories);
     }
 
     form.repositories = initialFormState.repositories;
@@ -317,34 +330,51 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
-const fetchIntegration = async (segmentId: string) => {
-  isLoadingIntegrations.value = true;
+const fetchProjectDetails = async (project: any) => {
+  isLoadingProject.value = true;
+  InsightsProjectsService.getInsightsProjectDetails(project.id)
+    .then((res) => {
+      if (res) {
+        form.name = res.name || '';
+        form.description = res.description || '';
+        form.github = res.github || '';
+        form.twitter = res.twitter || '';
+        form.website = res.website || '';
+        form.logoUrl = res.logoUrl || '';
+        form.keywords = res.topics || [];
+      } else {
+        form.name = project.name;
+        form.description = project.description;
+        form.logoUrl = project.url;
+      }
+    })
+    .catch((err) => {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+      Message.error(`Failed to fetch project details: ${err.message}`);
+    })
+    .finally(() => {
+      isLoadingProject.value = false;
+    });
+};
 
-  const response = await IntegrationService.list(null, null, null, null, [
-    segmentId,
-  ]);
-  const platforms: Platform[] = response.rows.map(
-    (integration: any) => integration.platform,
-  );
-
-  form.widgets = Object.keys(defaultWidgetsValues)
-    .reduce(
-      (acc, key: string) => ({
-        ...acc,
-        [key]: {
-          enabled: isEditForm.value
-            ? form.widgets[key as Widgets].enabled
-            : defaultWidgetsValues[key as Widgets].platform.includes(
-              Platform.ALL,
-            )
-              || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
-          platform: defaultWidgetsValues[key as Widgets].platform,
-        },
-      }),
-      {},
-    );
-
-  isLoadingIntegrations.value = false;
+const fetchWidgets = async (segmentId: string) => {
+  isLoadingWidgets.value = true;
+  InsightsProjectsService.getInsightsProjectWidgets(segmentId)
+    .then((res) => {
+      form.widgets = Object.fromEntries(
+        getDefaultWidgets().map((key) => [
+          key,
+          {
+            enabled: res.widgets?.includes(key) || false,
+          },
+        ]),
+      );
+    })
+    .finally(() => {
+      isLoadingWidgets.value = false;
+    });
 };
 
 watch(
@@ -364,15 +394,6 @@ watch(
     }
   },
   { immediate: true },
-);
-
-watch(
-  () => form.segmentId,
-  (updatedSegmentId, previousSegmentId) => {
-    if (!!updatedSegmentId && updatedSegmentId !== previousSegmentId) {
-      fetchIntegration(updatedSegmentId);
-    }
-  },
 );
 </script>
 
