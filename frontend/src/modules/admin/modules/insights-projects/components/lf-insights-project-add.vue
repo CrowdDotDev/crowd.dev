@@ -142,7 +142,7 @@ import {
 } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
-import { getDefaultWidgets, Widgets } from '../widgets';
+import { getDefaultWidgets } from '../widgets';
 import {
   INSIGHTS_PROJECTS_SERVICE,
   InsightsProjectsService,
@@ -347,7 +347,8 @@ const fetchProjectDetails = async (project: any) => {
         form.description = project.description;
         form.logoUrl = project.url;
       }
-    }).catch((err) => {
+    })
+    .catch((err) => {
       form.name = project.name;
       form.description = project.description;
       form.logoUrl = project.url;

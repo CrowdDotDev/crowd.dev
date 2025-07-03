@@ -1,5 +1,3 @@
-import { Platform } from '@/shared/modules/platform/types/Platform';
-
 export enum Widgets {
   ACTIVE_CONTRIBUTORS = 'activeContributors',
   ACTIVE_ORGANIZATION = 'activeOrganization',
