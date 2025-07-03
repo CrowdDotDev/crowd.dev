@@ -74,7 +74,7 @@ export async function getIdentitiesWithActivity(
   }
   const replacements = [memberId]
 
-  let query = `select distinct username, platform from activities a
+  let query = `select distinct username, platform from "activityRelations" a
                where a."deletedAt" is null and a."memberId" = $1 `
 
   let index = 3
@@ -96,7 +96,7 @@ export async function findMemberSegments(db: DbStore, memberId: string): Promise
   const result = await db.connection().one(
     `
       SELECT array_agg(distinct "segmentId") as "segmentIds"
-      FROM activities
+      FROM "activityRelations"
       WHERE "memberId" = $1
     `,
     [memberId],
@@ -111,7 +111,7 @@ export async function findOrganizationSegments(
   const result = await db.connection().one(
     `
       SELECT array_agg(distinct "segmentId") as "segmentIds"
-      FROM activities
+      FROM "activityRelations"
       WHERE "organizationId" = $1
     `,
     [organizationId],

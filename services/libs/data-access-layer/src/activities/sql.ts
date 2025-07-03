@@ -13,7 +13,6 @@ import {
   IActivityByTypeAndPlatformResult,
   IActivityData,
   IActivityDbBase,
-  IEnrichableMemberIdentityActivityAggregate,
   IMemberIdentity,
   ITimeseriesDatapoint,
   MemberIdentityType,
@@ -38,15 +37,11 @@ import {
   IActiveMemberData,
   IActiveOrganizationData,
   IActivitySentiment,
-  IMemberSegment,
   INewActivityPlatforms,
-  INumberOfActivitiesPerMember,
-  INumberOfActivitiesPerOrganization,
   IQueryActiveMembersParameters,
   IQueryActiveOrganizationsParameters,
   IQueryActivitiesParameters,
   IQueryActivityResult,
-  IQueryDistinctParameters,
   IQueryGroupedActivitiesParameters,
   IQueryNumberOfActiveMembersParameters,
   IQueryTopActivitiesParameters,
@@ -731,60 +726,6 @@ export async function findTopActivityTypes(
   return result
 }
 
-export async function getMostActiveOrganizations(
-  qdbConn: DbConnOrTx,
-  arg: IQueryDistinctParameters,
-): Promise<INumberOfActivitiesPerOrganization[]> {
-  let query = `
-    SELECT DISTINCT organizationId, COUNT() AS count
-    FROM activities
-    WHERE organizationId IS NOT NULL
-    AND "timestamp" BETWEEN $(after) AND $(before)
-    ORDER BY "count" DESC;
-  `
-
-  if (arg.limit) {
-    query += ` LIMIT $(limit)`
-  }
-
-  query += ';'
-
-  const result: INumberOfActivitiesPerOrganization[] = await qdbConn.query(query, {
-    after: arg.after,
-    before: arg.before,
-    limit: arg.limit || 20,
-  })
-
-  return result
-}
-
-export async function getMostActiveMembers(
-  qdbConn: DbConnOrTx,
-  arg: IQueryDistinctParameters,
-): Promise<INumberOfActivitiesPerMember[]> {
-  let query = `
-    SELECT DISTINCT memberId, COUNT() AS count
-    FROM activities
-    WHERE memberId IS NOT NULL
-    AND "timestamp" BETWEEN $(after) AND $(before)
-    ORDER BY "count" DESC;
-  `
-
-  if (arg.limit) {
-    query += ' LIMIT $(limit)'
-  }
-
-  query += ';'
-
-  const result: INumberOfActivitiesPerMember[] = await qdbConn.query(query, {
-    after: arg.after,
-    before: arg.before,
-    limit: arg.limit,
-  })
-
-  return result
-}
-
 export async function fetchOrganizationDisplayAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
@@ -1090,38 +1031,6 @@ export async function activitiesByTypeAndPlatform(
   return rows
 }
 
-export async function filterMembersWithActivities(
-  qdbConn: DbConnOrTx,
-  memberIds: string[],
-): Promise<string[]> {
-  const results = await qdbConn.any(
-    `
-    select distinct "memberId" from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
-    `,
-    {
-      memberIds,
-    },
-  )
-
-  return results.map((r) => r.memberId)
-}
-
-export async function getMemberSegmentCouples(
-  qdbConn: DbConnOrTx,
-  memberIds: string[],
-): Promise<IMemberSegment[]> {
-  return qdbConn.any(
-    `
-    select distinct "memberId", "segmentId"
-    from activities
-    where "deletedAt" is null and "memberId" in ($(memberIds:csv));
-    `,
-    {
-      memberIds,
-    },
-  )
-}
-
 export async function getActiveOrganizations(
   qdbConn: DbConnOrTx,
   arg: IQueryActiveOrganizationsParameters,
@@ -1276,27 +1185,6 @@ export async function getLastActivitiesForMembers(
     results.map((r) => r.id),
     segmentIds,
   )
-}
-
-export async function findMemberIdentityWithTheMostActivityInPlatform(
-  qdbConn: DbConnOrTx,
-  platform: string,
-  memberId: string,
-): Promise<IEnrichableMemberIdentityActivityAggregate> {
-  const query = `
-  SELECT count(a.id) AS "activityCount", a.platform, a.username
-      FROM activities a
-      WHERE a."memberId" = $(memberId)
-        AND a.platform = $(platform)
-      GROUP BY a.platform, a.username
-      ORDER BY "activityCount" DESC
-    LIMIT 1;
-  `
-
-  return qdbConn.oneOrNone(query, {
-    memberId,
-    platform,
-  })
 }
 
 export async function findMatchingPullRequestNodeId(

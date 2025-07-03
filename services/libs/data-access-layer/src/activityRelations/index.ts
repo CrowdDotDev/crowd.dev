@@ -1,6 +1,6 @@
 import { RawQueryParser } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { PageData } from '@crowd/types'
+import { IEnrichableMemberIdentityActivityAggregate, PageData } from '@crowd/types'
 
 import { IMemberSegmentCoreAggregates } from '../members/types'
 import { IOrganizationActivityCoreAggregates } from '../organizations/types'
@@ -18,6 +18,7 @@ export interface IQueryActivityRelationsParameters {
   countOnly?: boolean
   noCount?: boolean
   groupBy?: string
+  noLimit?: boolean
 }
 
 const ALL_ACTIVITY_RELATION_COLUMNS: IActivityRelationColumn[] = [
@@ -87,10 +88,8 @@ export async function queryActivityRelations(
 
   const orderByString = parsedOrderBys.map((o) => `ar."${o.column}" ${o.direction}`).join(', ')
 
-  const params = {
+  const params: Record<string, unknown> = {
     segmentIds: arg.segmentIds,
-    limit: arg.limit,
-    offset: arg.offset,
   }
 
   const ACTIVITY_RELATIONS_QUERY_FILTER_COLUMN_MAP = new Map(
@@ -141,12 +140,18 @@ export async function queryActivityRelations(
 
   const columnString = columns.map((c) => `ar."${c}"`).join(', ')
 
-  const query = `
+  let query = `
     select ${columnString}
     ${baseQuery}
     order by ${orderByString}
-    limit $(limit) offset $(offset)
   `
+
+  if (!arg.noLimit || arg.limit > 0) {
+    query += ` limit $(limit) offset $(offset)`
+
+    params.limit = arg.limit
+    params.offset = arg.offset
+  }
 
   // Execute both queries in parallel
   const [results, countResults] = await Promise.all([
@@ -310,4 +315,35 @@ export async function moveActivityRelationsToAnotherOrganization(
 
     rowsUpdated = result.length
   } while (rowsUpdated === batchSize)
+}
+
+export async function findMemberIdentityWithTheMostActivityInPlatform(
+  qx: QueryExecutor,
+  memberId: string,
+  platform: string,
+): Promise<IEnrichableMemberIdentityActivityAggregate> {
+  return await qx.selectOneOrNone(
+    `
+    SELECT count(a.id) AS "activityCount", a.platform, a.username
+      FROM "activityRelations" a
+      WHERE a."memberId" = $(memberId)
+        AND a.platform = $(platform)
+      GROUP BY a.platform, a.username
+      ORDER BY "activityCount" DESC
+    LIMIT 1;
+    `,
+    { memberId, platform },
+  )
+}
+
+export async function filterMembersWithActivityRelations(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<string[]> {
+  const results = await qx.select(
+    `select distinct "memberId" from "activityRelations" where "memberId" in ($(memberIds:csv))`,
+    { memberIds },
+  )
+
+  return results.map((r) => r.memberId)
 }
