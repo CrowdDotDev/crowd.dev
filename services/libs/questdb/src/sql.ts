@@ -76,10 +76,7 @@ export const getClientSQL = async (
   })
 
   // timestamp
-  instance.pg.types.setTypeParser(1114, (s) => `${s}Z`)
-
-  // timestamp with timezone
-  instance.pg.types.setTypeParser(1184, (s) => s)
+  instance.pg.types.setTypeParser(1114, (s) => new Date(`${s}Z`))
 
   client = instance({
     host: process.env['CROWD_QUESTDB_SQL_HOST'],
