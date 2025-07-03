@@ -29,6 +29,7 @@ dependencies = [
     "prettytable>=3.11.0",
     "python-slugify>=8.0.4",
     "asyncpg",
+    "loguru>=0.7.3",
 ]
 
 [project.optional-dependencies]
