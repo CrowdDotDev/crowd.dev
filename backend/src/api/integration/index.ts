@@ -68,6 +68,8 @@ export default (app) => {
 
   app.get(`/integration/progress/:id`, safeWrap(require('./integrationProgress').default))
 
+  app.get(`/integration/mapped-repos/:id`, safeWrap(require('./integrationMappedRepos').default))
+
   // Git
   app.put(`/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
   app.get('/git', safeWrap(require('./helpers/gitGetRemotes').default))
