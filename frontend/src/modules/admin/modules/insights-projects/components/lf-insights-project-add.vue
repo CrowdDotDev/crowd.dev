@@ -347,6 +347,11 @@ const fetchProjectDetails = async (project: any) => {
         form.description = project.description;
         form.logoUrl = project.url;
       }
+    }).catch((err) => {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+      Message.error(`Failed to fetch project details: ${err.message}`);
     })
     .finally(() => {
       isLoadingProject.value = false;
