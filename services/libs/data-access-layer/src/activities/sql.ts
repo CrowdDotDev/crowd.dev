@@ -614,7 +614,7 @@ export async function queryActivities(
 
     query += ';'
 
-    logger.debug('QuestDB activity query', query)
+    logger.info('QuestDB activity query', query)
 
     if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
       const formatted = formatQuery(query, params)
