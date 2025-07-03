@@ -41,6 +41,7 @@
         v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
+
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
@@ -92,6 +93,11 @@
           </div>
         </div>
       </div>
+      <div
+        v-if="isLoadingProject"
+        v-loading="isLoadingProject"
+        class="app-page-spinner h-16 !absolute min-w-full !min-h-[calc(100%-320px)] my-40 top-0 left-0 bg-gray-50/10"
+      />
     </template>
     <template #footer>
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
@@ -204,6 +210,7 @@ const $v = useVuelidate(rules, form);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const isLoadingIntegrations = ref(false);
+const isLoadingProject = ref(false);
 
 const model = computed({
   get() {
@@ -242,12 +249,11 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
+  Object.assign(form, initialFormState);
+  fetchProjectDetails(project);
   fetchRepositories(project.id, () => {
     if (!isEditForm.value) {
-      Object.assign(form, initialFormState);
-      form.name = project.name;
-      form.description = project.description;
-      form.logoUrl = project.url;
+      form.repositories = cloneDeep(initialFormState.repositories);
     }
 
     form.repositories = initialFormState.repositories;
@@ -317,6 +323,27 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
+const fetchProjectDetails = async (project: any) => {
+  isLoadingProject.value = true;
+  InsightsProjectsService.getInsightsProjectDetails(project.id).then((res) => {
+    if (res) {
+      form.name = res.name || '';
+      form.description = res.description || '';
+      form.github = res.github || '';
+      form.twitter = res.twitter || '';
+      form.website = res.website || '';
+      form.logoUrl = res.logoUrl || '';
+      form.keywords = res.topics || [];
+    } else {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+    }
+  }).finally(() => {
+    isLoadingProject.value = false;
+  });
+};
+
 const fetchIntegration = async (segmentId: string) => {
   isLoadingIntegrations.value = true;
 
@@ -327,22 +354,21 @@ const fetchIntegration = async (segmentId: string) => {
     (integration: any) => integration.platform,
   );
 
-  form.widgets = Object.keys(defaultWidgetsValues)
-    .reduce(
-      (acc, key: string) => ({
-        ...acc,
-        [key]: {
-          enabled: isEditForm.value
-            ? form.widgets[key as Widgets].enabled
-            : defaultWidgetsValues[key as Widgets].platform.includes(
-              Platform.ALL,
-            )
-              || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
-          platform: defaultWidgetsValues[key as Widgets].platform,
-        },
-      }),
-      {},
-    );
+  form.widgets = Object.keys(defaultWidgetsValues).reduce(
+    (acc, key: string) => ({
+      ...acc,
+      [key]: {
+        enabled: isEditForm.value
+          ? form.widgets[key as Widgets].enabled
+          : defaultWidgetsValues[key as Widgets].platform.includes(
+            Platform.ALL,
+          )
+            || platforms.some((platform) => defaultWidgetsValues[key as Widgets].platform.includes(platform)),
+        platform: defaultWidgetsValues[key as Widgets].platform,
+      },
+    }),
+    {},
+  );
 
   isLoadingIntegrations.value = false;
 };
