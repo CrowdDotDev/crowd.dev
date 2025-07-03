@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev
 
 # Copy full source code
-COPY ./services/apps/git_integration ./
+COPY ./services/apps/git_integration ./LICENSE ./
 
 # Sync full project including the project itself
 RUN --mount=type=cache,target=/root/.cache/uv \
