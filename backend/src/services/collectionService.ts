@@ -472,9 +472,15 @@ export class CollectionService extends LoggerBase {
 
     for (const repo of mappedRepos) {
       const url = repo.url
-      if (url.includes('https://github.com/')) {
-        const label = url.replace('https://github.com/', '')
-        addToResult(PlatformType.GITHUB, url, label)
+      try {
+        const parsedUrl = new URL(url)
+        if (parsedUrl.hostname === 'github.com') {
+          const label = parsedUrl.pathname.slice(1) // removes leading '/'
+          addToResult(PlatformType.GITHUB, url, label)
+        }
+      } catch (err) {
+        // Optionally log or skip invalid URLs
+        console.warn(`Invalid URL: ${url}`, err)
       }
     }
 
