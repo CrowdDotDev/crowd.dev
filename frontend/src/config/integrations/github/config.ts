@@ -3,6 +3,7 @@ import GithubConnect from './components/connect/github-connect.vue';
 import GithubStatus from './components/github-status.vue';
 import GithubAction from './components/github-action.vue';
 import GithubParams from './components/github-params.vue';
+import GithubMappedRepos from './components/github-mapped-repos.vue';
 
 const image = new URL(
   '@/assets/images/integrations/github.png',
@@ -19,6 +20,7 @@ const github: IntegrationConfig = {
   statusComponent: GithubStatus,
   actionComponent: GithubAction,
   connectedParamsComponent: GithubParams,
+  mappedReposComponent: GithubMappedRepos,
   showProgress: true,
 };
 

@@ -1855,6 +1855,23 @@ export default class IntegrationService {
     return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
   }
 
+  async getIntegrationMappedRepos(segmentId: string) {
+    const segmentRepository = new SegmentRepository(this.options)
+    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+
+    if(!hasMappedRepos) {
+      return null
+    }
+
+    const repositories = await segmentRepository.getMappedRepos(segmentId)
+    const project = await segmentRepository.mappedWith(segmentId)
+    
+    return {
+      project,
+      repositories
+    }
+  }
+
   async gitlabConnect(code: string) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
