@@ -59,7 +59,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       created: boolean
     }>(
       Number(process.env.BATCH_PROCESSOR_SIZE || 20),
-      30,
+      5,
       async (batch) => {
         const batchId = generateUUIDv1()
         const logger = getChildLogger('processBatchIntegrationResults', this.log, {
