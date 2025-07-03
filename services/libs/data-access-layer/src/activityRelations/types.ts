@@ -1,4 +1,4 @@
-export interface IDbActivityRelations {
+export interface IDbActivityRelation {
   activityId: string
   memberId: string
   objectMemberId: string | null
@@ -11,6 +11,19 @@ export interface IDbActivityRelations {
   objectMemberUsername: string | null
   createdAt: string
   updatedAt: string
+  sourceId: string
+  sourceParentId: string
+  type: string
+  timestamp: string
+  channel: string
+  sentimentScore: number
+  gitInsertions: number
+  gitDeletions: number
+  score: number
+  isContribution: boolean
+  pullRequestReviewState: string
 }
 
-export type IActivityRelationsUpdate = Omit<IDbActivityRelations, 'activityId' | 'createdAt'>
+export type IActivityRelationColumn = keyof IDbActivityRelation
+
+export type IActivityRelationsUpdate = Omit<IDbActivityRelation, 'activityId' | 'createdAt'>
