@@ -47,9 +47,9 @@ export class BatchProcessor<T> {
       this.startTimer()
     }
 
-    if (this.batch.length >= this.batchSize) {
-      await this.processBatch()
-    }
+    // if (this.batch.length >= this.batchSize) {
+    //   await this.processBatch()
+    // }
   }
 
   private startTimer() {
