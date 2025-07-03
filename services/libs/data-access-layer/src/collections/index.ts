@@ -11,10 +11,10 @@ import {
 import { QueryOptions } from '../utils'
 
 export interface ICreateCollection {
-  name: string
-  description?: string
   categoryId: string
-  slug: string
+  description?: string
+  name: string
+  slug?: string
   starred: boolean
 }
 
