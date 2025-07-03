@@ -3,9 +3,11 @@ import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
 import { Project } from '@/modules/lf/segments/types/Segments';
 import {
+  InsightsProjectDetailsResponse,
   InsightsProjectModel,
   InsightsProjectRequest,
 } from '../models/insights-project.model';
+import { Widgets } from '../widgets';
 
 export class InsightsProjectsService {
   query(
@@ -53,13 +55,10 @@ export class InsightsProjectsService {
     query: () => Record<string, string | number | object>,
   ): QueryFunction<Pagination<Project>> {
     return ({ pageParam = 0 }) => authAxios
-      .post<Pagination<Project>>(
-        '/segment/subproject/query-lite',
-        {
-          ...query(),
-          offset: pageParam,
-        },
-      )
+      .post<Pagination<Project>>('/segment/subproject/query-lite', {
+        ...query(),
+        offset: pageParam,
+      })
       .then((res) => res.data);
   }
 
@@ -68,8 +67,17 @@ export class InsightsProjectsService {
     return response.data;
   }
 
-  static async getInsightsProjectDetails(segmentId: string) {
-    const response = await authAxios.get(`/segments/${segmentId}/github-insights`);
+  static async getInsightsProjectDetails(segmentId: string): Promise<InsightsProjectDetailsResponse> {
+    const response = await authAxios.get(
+      `/segments/${segmentId}/github-insights`,
+    );
+    return response.data;
+  }
+
+  static async getInsightsProjectWidgets(segmentId: string): Promise<{
+    widgets: Widgets[];
+  }> {
+    const response = await authAxios.get(`/segments/${segmentId}/widgets`);
     return response.data;
   }
 }
