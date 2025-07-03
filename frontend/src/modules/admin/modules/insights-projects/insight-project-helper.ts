@@ -34,32 +34,28 @@ export const buildForm = (
     enabled: boolean;
     platforms: string[];
   }[],
-): InsightsProjectAddFormModel => {
-  const res = {
-    ...result,
-    organizationId: result.organization.id,
-    collectionsIds: result.collections.map((collection: any) => collection.id),
-    collections: result.collections,
-    keywords: result.keywords || [],
-    repositories:
-      repositories?.map((repository) => ({
-        ...repository,
-        enabled:
-          result.repositories?.some(
-            (repo: string) => repo === repository.url,
-          ) || false,
-      })) || [],
-    widgets: Object.fromEntries(
-      getDefaultWidgets().map((key) => [
-        key,
-        {
-          enabled: result.widgets?.includes(key) || false,
-        },
-      ]),
-    ),
-  };
-  return res as InsightsProjectAddFormModel;
-};
+): InsightsProjectAddFormModel => ({
+  ...result,
+  organizationId: result.organization.id,
+  collectionsIds: result.collections.map((collection: any) => collection.id),
+  collections: result.collections,
+  keywords: result.keywords || [],
+  repositories:
+    repositories?.map((repository) => ({
+      ...repository,
+      enabled:
+        result.repositories?.some((repo: string) => repo === repository.url)
+        || false,
+    })) || [],
+  widgets: Object.fromEntries(
+    getDefaultWidgets().map((key) => [
+      key,
+      {
+        enabled: result.widgets?.includes(key) || false,
+      },
+    ]),
+  ),
+});
 
 export const buildRepositories = (
   res: Record<string, Array<{ url: string; label: string }>>,

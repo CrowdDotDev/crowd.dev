@@ -46,3 +46,13 @@ export interface InsightsProjectRequest {
   widgets?: string[]; // enabled widget keys
   enabled?: boolean;
 }
+
+export interface InsightsProjectDetailsResponse {
+  description?: string;
+  github?: string;
+  logoUrl?: string;
+  name?: string;
+  topics?: string[];
+  twitter?: string;
+  website?: string;
+}

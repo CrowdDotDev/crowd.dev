@@ -3,6 +3,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
 import { Project } from '@/modules/lf/segments/types/Segments';
 import {
+  InsightsProjectDetailsResponse,
   InsightsProjectModel,
   InsightsProjectRequest,
 } from '../models/insights-project.model';
@@ -66,7 +67,7 @@ export class InsightsProjectsService {
     return response.data;
   }
 
-  static async getInsightsProjectDetails(segmentId: string) {
+  static async getInsightsProjectDetails(segmentId: string): Promise<InsightsProjectDetailsResponse> {
     const response = await authAxios.get(
       `/segments/${segmentId}/github-insights`,
     );
