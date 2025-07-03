@@ -676,46 +676,55 @@ export default class ActivityService extends LoggerBase {
     for (const payload of relevantPayloads) {
       payload.dbActivity = singleOrDefault(existingActivitiesResult.rows, (a) => {
         if (a.segmentId !== payload.segmentId) {
-          this.log.info(
-            {
-              segmentId: a.segmentId,
-              payloadSegmentId: payload.segmentId,
-              activityId: a.id,
-              payloadActivityId: payload.activity.id,
-            },
-            '[DBG DEDUPLICATION] Segment IDs do not match!, skipping setting dbActivity',
-          )
+          // this.log.info(
+          //   {
+          //     segmentId: a.segmentId,
+          //     payloadSegmentId: payload.segmentId,
+          //     activityId: a.id,
+          //     payloadActivityId: payload.activity.id,
+          //   },
+          //   '[DBG DEDUPLICATION] Segment IDs do not match!, skipping setting dbActivity',
+          // )
           return false
         }
 
         if (a.type !== payload.activity.type) {
-          this.log.info(
-            {
-              activityType: a.type,
-              payloadActivityType: payload.activity.type,
-              activityId: a.id,
-              payloadActivityId: payload.activity.id,
-            },
-            '[DBG DEDUPLICATION] Activity types do not match!, skipping setting dbActivity',
-          )
+          // this.log.info(
+          //   {
+          //     activityType: a.type,
+          //     payloadActivityType: payload.activity.type,
+          //     activityId: a.id,
+          //     payloadActivityId: payload.activity.id,
+          //   },
+          //   '[DBG DEDUPLICATION] Activity types do not match!, skipping setting dbActivity',
+          // )
           return false
         }
 
         if (a.sourceId !== payload.activity.sourceId) {
-          this.log.info(
-            {
-              activitySourceId: a.sourceId,
-              payloadActivitySourceId: payload.activity.sourceId,
-              activityId: a.id,
-              payloadActivityId: payload.activity.id,
-            },
-            '[DBG DEDUPLICATION] Activity source IDs do not match!, skipping setting dbActivity',
-          )
+          // this.log.info(
+          //   {
+          //     activitySourceId: a.sourceId,
+          //     payloadActivitySourceId: payload.activity.sourceId,
+          //     activityId: a.id,
+          //     payloadActivityId: payload.activity.id,
+          //   },
+          //   '[DBG DEDUPLICATION] Activity source IDs do not match!, skipping setting dbActivity',
+          // )
           return false
         }
 
         if (payload.activity.channel) {
           if (a.channel !== payload.activity.channel) {
+            this.log.info(
+              {
+                activityChannel: a.channel,
+                payloadActivityChannel: payload.activity.channel,
+                activityId: a.id,
+                payloadActivityId: payload.activity.id,
+              },
+              '[DBG DEDUPLICATION] Activity channels do not match!, skipping setting dbActivity',
+            )
             return false
           }
         }
