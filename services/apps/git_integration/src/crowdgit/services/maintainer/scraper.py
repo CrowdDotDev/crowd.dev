@@ -175,7 +175,7 @@ def find_maintainer_file_with_ai(file_names, owner, repo):
         "If the list of files is empty, return {error: 'not_found'}.",
         "The file is never CONTRIBUTING.md"
         "As an example, this is the kind of files you are looking for:",
-        "{EXAMPLE_FILES}Here is the list of file names and their contents:",
+        "{EXAMPLE_FILES}" "Here is the list of file names and their contents:",
         "{FILE_NAMES}",
     )
     replacements = {"EXAMPLE_FILES": maintainer_files, "FILE_NAMES": file_names}
