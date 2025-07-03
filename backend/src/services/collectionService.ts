@@ -479,8 +479,7 @@ export class CollectionService extends LoggerBase {
           addToResult(PlatformType.GITHUB, url, label)
         }
       } catch (err) {
-        // Optionally log or skip invalid URLs
-        console.warn(`Invalid URL: ${url}`, err)
+        // Do nothing
       }
     }
 
