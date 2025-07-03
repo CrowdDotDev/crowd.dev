@@ -3,6 +3,10 @@ import { Transaction } from 'sequelize'
 import { Error400, validateNonLfSlug } from '@crowd/common'
 import { QueryExecutor } from '@crowd/data-access-layer'
 import {
+  ICreateInsightsProject,
+  findBySlug
+} from '@crowd/data-access-layer/src/collections'
+import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
 } from '@crowd/data-access-layer/src/segments'
@@ -79,20 +83,17 @@ export default class SegmentService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
 
-    try {
-      const collectionService = new CollectionService({
-        ...this.options,
-      })
+    const collectionService = new CollectionService({ ...this.options, transaction })
+    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
-      const collection = await collectionService.createCollection({
+    try {
+      await collectionService.createCollection({
         name: data.name,
         categoryId: null,
         description: '',
         slug: data.slug,
         starred: data.isLF ?? false,
       })
-
-      const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
       // create project group
       const projectGroup = await segmentRepository.create(data)
@@ -118,7 +119,6 @@ export default class SegmentService extends LoggerBase {
         },
         qx,
         transaction,
-        collection.id,
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -194,9 +194,7 @@ export default class SegmentService extends LoggerBase {
     data: SegmentData,
     qx: QueryExecutor,
     transaction: Transaction,
-    collectionId?: string,
   ): Promise<SegmentData> {
-    console.log(data)
     if (!data.parentSlug) {
       throw new Error('Missing parentSlug. Subprojects must belong to a project.')
     }
@@ -205,10 +203,8 @@ export default class SegmentService extends LoggerBase {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
 
-    const segmentRepository = new SegmentRepository({
-      ...this.options,
-      transaction,
-    })
+    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
+    const collectionService = new CollectionService({ ...this.options, transaction })
 
     const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
     if (!parent) {
@@ -227,8 +223,6 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.grandparentSlug} does not exist.`)
     }
 
-    const siblings = (await this.getSegmentSubprojects([grandparent.id])) as { id: string }[]
-
     const subproject = await segmentRepository.create({
       ...data,
       parentId: parent.id,
@@ -236,40 +230,24 @@ export default class SegmentService extends LoggerBase {
       isLF: parent.isLF,
     })
 
-    const collectionService = new CollectionService({
-      ...this.options,
-    })
+    const collections = await findBySlug(qx, data.grandparentSlug)
 
-    const collections = []
+    const [existingProject] = await collectionService.findInsightsProjectsByName(subproject.name)
 
-    if (collectionId) {
-      collections.push(collectionId)
+    const projectData: Partial<ICreateInsightsProject> = {
+      segmentId: subproject.id,
+      name: subproject.name,
+      slug: subproject.slug,
+      ...(parent.isLF && { collections: collections.map((c) => c.id) }),
     }
 
-    if (siblings.length > 0) {
-      const siblingInsightProject = await await collectionService.queryInsightsProjects({
-        filter: {
-          segmentId: {
-            eq: siblings[0].id,
-          },
-        },
-      })
-      // TODO bisogna metterlo su tutte le collections ? 
-      collections.push(siblingInsightProject.rows[0].collections[0].id)
-    } 
+    const mustUpdateProject = existingProject && !existingProject.segmentId
 
-    // TODO check if the project already exists
-
-    await collectionService.createInsightsProjectInternal(
-      {
-        segmentId: subproject.id,
-        name: subproject.name,
-        slug: subproject.slug,
-        collections,
-      },
-      qx,
-      transaction,
-    )
+    if (mustUpdateProject) {
+      await collectionService.updateInsightsProject(existingProject.id, projectData)
+    } else {
+      await collectionService.createInsightsProject(projectData)
+    }
 
     return subproject
   }

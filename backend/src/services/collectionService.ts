@@ -216,42 +216,31 @@ export class CollectionService extends LoggerBase {
   async createInsightsProject(project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
-      return this.createInsightsProjectInternal(project, qx, tx)
+      const slug = getCleanString(project.name).replace(/\s+/g, '-')
+
+      const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
+
+      const createdProject = await createInsightsProject(qx, {
+        ...project,
+        isLF: segment?.isLF ?? false,
+        slug,
+      })
+
+      if (project.collections) {
+        await connectProjectsAndCollections(
+          qx,
+          project.collections.map((c) => ({
+            insightsProjectId: createdProject.id,
+            collectionId: c,
+            starred: true,
+          })),
+        )
+      }
+
+      const txSvc = new CollectionService({ ...this.options })
+
+      return txSvc.findInsightsProjectById(createdProject.id)
     })
-  }
-
-  async createInsightsProjectInternal(
-    project: Partial<ICreateInsightsProject>,
-    qx: QueryExecutor,
-    transaction?: Transaction,
-  ) {
-    const slug = getCleanString(project.name).replace(/\s+/g, '-')
-
-    const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
-
-    const createdProject = await createInsightsProject(qx, {
-      ...project,
-      isLF: segment?.isLF ?? false,
-      slug,
-    })
-
-    if (project.collections) {
-      await connectProjectsAndCollections(
-        qx,
-        project.collections.map((c) => ({
-          insightsProjectId: createdProject.id,
-          collectionId: c,
-          starred: true,
-        })),
-      )
-    }
-
-    const txSvc = new CollectionService({
-      ...this.options,
-      transaction,
-    })
-
-    return txSvc.findInsightsProjectById(createdProject.id)
   }
 
   async destroyInsightsProject(id: string) {
@@ -561,5 +550,17 @@ export class CollectionService extends LoggerBase {
       platforms,
       widgets: [...widgets],
     }
+  }
+
+  async findInsightsProjectsByName(name: string): Promise<any> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const result = await queryInsightsProjects(qx, {
+      filter: {
+        name: { eq: name },
+      },
+      fields: Object.values(InsightsProjectField),
+    })
+
+    return result
   }
 }
