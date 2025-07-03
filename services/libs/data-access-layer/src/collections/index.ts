@@ -157,7 +157,10 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
   return queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), opts)
 }
 
-export async function createInsightsProject(qx: QueryExecutor, insightProject: Partial<IInsightsProject>) {
+export async function createInsightsProject(
+  qx: QueryExecutor,
+  insightProject: Partial<IInsightsProject>,
+) {
   return qx.selectOne(
     prepareInsert(
       'insightsProjects',
@@ -280,11 +283,11 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
 }
 
 export async function findBySlug(qx: QueryExecutor, slug: string) {
-      const collections = await queryCollections(qx, {
-        filter: {
-          slug: { eq: slug },
-        },
-        fields: Object.values(CollectionField),
-      })
-      return collections
-  }
+  const collections = await queryCollections(qx, {
+    filter: {
+      slug: { eq: slug },
+    },
+    fields: Object.values(CollectionField),
+  })
+  return collections
+}

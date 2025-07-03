@@ -1,8 +1,6 @@
 import { uniq } from 'lodash'
-import { Transaction } from 'sequelize'
 
 import { getCleanString } from '@crowd/common'
-import { QueryExecutor } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -237,7 +235,7 @@ export class CollectionService extends LoggerBase {
         )
       }
 
-      const txSvc = new CollectionService({ ...this.options })
+      const txSvc = new CollectionService({ ...this.options, transaction: tx })
 
       return txSvc.findInsightsProjectById(createdProject.id)
     })

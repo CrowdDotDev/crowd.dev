@@ -2,10 +2,7 @@ import { Transaction } from 'sequelize'
 
 import { Error400, validateNonLfSlug } from '@crowd/common'
 import { QueryExecutor } from '@crowd/data-access-layer'
-import {
-  ICreateInsightsProject,
-  findBySlug
-} from '@crowd/data-access-layer/src/collections'
+import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
