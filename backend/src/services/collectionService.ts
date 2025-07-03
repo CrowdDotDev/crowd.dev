@@ -31,6 +31,7 @@ import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
+import SegmentRepository from '@/database/repositories/segmentRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
@@ -465,6 +466,23 @@ export class CollectionService extends LoggerBase {
       }
     }
 
+    // Add mapped repositories to GitHub platform
+    const segmentRepository = new SegmentRepository(this.options)
+    const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+
+    for (const repo of mappedRepos) {
+      const url = repo.url
+      try {
+        const parsedUrl = new URL(url)
+        if (parsedUrl.hostname === 'github.com') {
+          const label = parsedUrl.pathname.slice(1) // removes leading '/'
+          addToResult(PlatformType.GITHUB, url, label)
+        }
+      } catch (err) {
+        // Do nothing
+      }
+    }
+
     return result
   }
 
@@ -535,6 +553,13 @@ export class CollectionService extends LoggerBase {
           .filter(CollectionService.isValidPlatform),
       ),
     ]
+
+    // Check for mapped repositories and add GitHub if there are any
+    const segmentRepository = new SegmentRepository(this.options)
+    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+    if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
+      platforms.push(PlatformType.GITHUB)
+    }
 
     for (const platform of platforms) {
       Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
