@@ -1859,16 +1859,16 @@ export default class IntegrationService {
     const segmentRepository = new SegmentRepository(this.options)
     const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
 
-    if(!hasMappedRepos) {
+    if (!hasMappedRepos) {
       return null
     }
 
     const repositories = await segmentRepository.getMappedRepos(segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
-    
+
     return {
       project,
-      repositories
+      repositories,
     }
   }
 

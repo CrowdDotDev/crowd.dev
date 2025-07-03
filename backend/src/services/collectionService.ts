@@ -31,8 +31,8 @@ import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import SegmentRepository from '@/database/repositories/segmentRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -469,7 +469,7 @@ export class CollectionService extends LoggerBase {
     // Add mapped repositories to GitHub platform
     const segmentRepository = new SegmentRepository(this.options)
     const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
-    
+
     for (const repo of mappedRepos) {
       const url = repo.url
       if (url.includes('https://github.com/')) {
