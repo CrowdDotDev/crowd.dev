@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { parse } from 'csv-parse/sync'
 import pgpromise from 'pg-promise'
 
 import { IS_PROD_ENV } from '@crowd/common'
@@ -50,7 +51,7 @@ export const getClientSQL = async (
 
   log.info('Creating QuestDB client (SQL) instance!')
 
-  client = pgpromise({
+  const instance = pgpromise({
     // tslint:disable-next-line:max-line-length
     // see https://stackoverflow.com/questions/36120435/verify-database-connection-with-pg-promise-when-starting-an-app
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,7 +74,15 @@ export const getClientSQL = async (
       telemetry.increment('questdb.executed_query', 1)
       log.debug({ query: e.query, params: e.params }, 'Executing QuestDB query')
     },
-  })({
+  })
+
+  // timestamp
+  instance.pg.types.setTypeParser(1114, (s) => `${s}Z`)
+
+  // timestamp with timezone
+  instance.pg.types.setTypeParser(1184, (s) => s)
+
+  client = instance({
     host: process.env['CROWD_QUESTDB_SQL_HOST'],
     port: Number(process.env['CROWD_QUESTDB_SQL_PORT']),
     user: process.env['CROWD_QUESTDB_SQL_USERNAME'],

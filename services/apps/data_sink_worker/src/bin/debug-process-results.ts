@@ -4,7 +4,7 @@ import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_
 import { getServiceLogger } from '@crowd/logging'
 import { getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
-import { getRedisClient } from '@crowd/redis'
+import { RedisCache, getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
@@ -30,6 +30,10 @@ setImmediate(async () => {
 
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
+
+  const cache = new RedisCache('githubRepos', redis, log)
+  await cache.deleteAll()
+
   const dbConnection = await getDbConnection(DB_CONFIG())
   const qdbConnection = await getClientSQL()
   const store = new DbStore(log, dbConnection)

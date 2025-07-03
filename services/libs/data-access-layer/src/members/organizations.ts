@@ -1,4 +1,4 @@
-import { IMemberOrganization } from '@crowd/types'
+import { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -46,6 +46,32 @@ export async function fetchManyMemberOrgs(
       memberIds,
     },
   )
+}
+
+export async function fetchManyMemberOrgsForMerge(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<Map<string, IMemberRoleWithOrganization[]>> {
+  const memberRoles = (await qx.select(
+    `
+      SELECT mo.*, o."displayName" as "organizationName", o.logo as "organizationLogo"
+      FROM "memberOrganizations" mo
+      join "organizations" o on mo."organizationId" = o.id
+      WHERE mo."memberId" in ($(memberId:csv))
+      AND mo."deletedAt" IS NULL;
+    `,
+    {
+      memberIds,
+    },
+  )) as IMemberRoleWithOrganization[]
+
+  const resultMap = new Map<string, IMemberRoleWithOrganization[]>()
+  for (const memberId of memberIds) {
+    const roles = memberRoles.filter((r) => r.memberId === memberId)
+    resultMap.set(memberId, roles)
+  }
+
+  return resultMap
 }
 
 export async function createMemberOrganization(

@@ -55,6 +55,21 @@ export enum MemberField {
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
 }
 
+export const MEMBER_MERGE_FIELDS = [
+  'id',
+  'tags',
+  'reach',
+  'tasks',
+  'joinedAt',
+  'tenantId',
+  'attributes',
+  'displayName',
+  'affiliations',
+  'contributions',
+  'manuallyCreated',
+  'manuallyChangedFields',
+]
+
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
   // id fields
   ['id', { name: 'm.id' }],

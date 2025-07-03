@@ -13,11 +13,14 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.572.0",
+    "@crowd/audit-logs": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/database": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/queue": "workspace:*",
-    "@crowd/types": "workspace:*"
+    "@crowd/temporal": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "lodash.pick": "~4.4.0"
   }
 }
