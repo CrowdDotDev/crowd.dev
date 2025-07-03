@@ -3,6 +3,7 @@ from .connection import get_db_connection
 from loguru import logger
 from crowdgit.errors import InternalError
 
+
 async def query(sql: str, params: tuple = None) -> List[Dict[str, Any]]:
     """Execute query with connection pooling"""
     try:
@@ -21,9 +22,10 @@ async def execute(sql: str, params: tuple = None) -> str:
             result = await conn.execute(sql, *params) if params else await conn.execute(sql)
             return result
     except Exception as error:
-        logger.error("Database write operation failed - SQL: {}, Params: {}, Error: {}", sql, params, error)
+        logger.error(
+            "Database write operation failed - SQL: {}, Params: {}, Error: {}", sql, params, error
+        )
         raise InternalError("Database execute operation failed")
-
 
 
 async def fetchval(sql: str, params: tuple = None) -> Any:
@@ -33,7 +35,9 @@ async def fetchval(sql: str, params: tuple = None) -> Any:
             result = await conn.fetchval(sql, *params) if params else await conn.fetchval(sql)
             return result
     except Exception as error:
-        logger.error("Database fetchval failed - SQL: {}, Params: {}, Error: {}", sql, params, error)
+        logger.error(
+            "Database fetchval failed - SQL: {}, Params: {}, Error: {}", sql, params, error
+        )
         raise InternalError("Database fetchval failed")
 
 
@@ -44,6 +48,7 @@ async def fetchrow(sql: str, params: tuple = None) -> Optional[Dict[str, Any]]:
             result = await conn.fetchrow(sql, *params) if params else await conn.fetchrow(sql)
             return dict(result) if result else None
     except Exception as error:
-        logger.error("Database fetchrow failed - SQL: {}, Params: {}, Error: {}", sql, params, error)
+        logger.error(
+            "Database fetchrow failed - SQL: {}, Params: {}, Error: {}", sql, params, error
+        )
         raise InternalError("Database fetchrow failed")
-

@@ -52,7 +52,7 @@ async def get_db_connection() -> Connection:
             yield connection
         except Exception as exc:
             logger.exception("Database error occurred: {}", exc)
-            raise 
+            raise
 
 
 async def close_pool():
