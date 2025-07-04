@@ -17,7 +17,7 @@ import PermissionChecker from '../../../services/user/permissionChecker'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
+  new PermissionChecker(req).validateHas(Permissions.values.memberIdentityCreate)
 
   const memberIdentityService = new MemberIdentityService(req)
 

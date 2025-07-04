@@ -4,25 +4,23 @@ import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
 
 /**
- * DELETE /member/:memberId/organization/:memberOrganizationId
- * @summary Remove member organization
+ * GET /member/:memberIdOrLfid/organization/status
+ * @summary Check if work history records exist
  * @tag Members
  * @security Bearer
- * @description Remove member organization.
- * @pathParam {string} memberId - member ID | {string} memberOrganizationId - member organization ID
+ * @description Returns { status: true } if work history exists, otherwise { status: false }
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @responseExample {MemberList} 200.application/json.Organization
  * @response 401 - Unauthorized
- * @response 404 - Not found
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberOrganizationDestroy)
+  new PermissionChecker(req).validateHas(Permissions.values.memberOrganizationRead)
 
   const memberOrganizationsService = new MemberOrganizationsService(req)
 
-  const payload = await memberOrganizationsService.delete(req.params.id, req.params.memberId)
+  const status = await memberOrganizationsService.getStatus(req.memberId)
 
-  await req.responseHandler.success(req, res, payload)
+  await req.responseHandler.success(req, res, { status })
 }
