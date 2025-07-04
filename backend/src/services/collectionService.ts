@@ -554,7 +554,8 @@ export class CollectionService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const result = await queryInsightsProjects(qx, {
       filter: {
-        name: { eq: name },
+        name: {like: `${name}%`},
+        segmentId: { eq: null }, 
       },
       fields: Object.values(InsightsProjectField),
     })
