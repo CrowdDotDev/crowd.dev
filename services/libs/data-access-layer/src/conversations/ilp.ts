@@ -17,7 +17,9 @@ export async function insertConversations(
   const now = Date.now()
 
   if (conversations.length > 0) {
-    ilp = getClientILP()
+    if (!ilp) {
+      ilp = getClientILP()
+    }
 
     for (const conversation of conversations) {
       const id = conversation.id || generateUUIDv4()
