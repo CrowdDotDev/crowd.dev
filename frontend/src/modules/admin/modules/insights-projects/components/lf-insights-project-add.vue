@@ -64,9 +64,6 @@
             <lf-tab name="widgets">
               Widgets
             </lf-tab>
-            <lf-tab name="advanced">
-              Advanced settings
-            </lf-tab>
           </lf-tabs>
           <div class="pt-2.5">
             <div class="tab-content">
@@ -83,10 +80,6 @@
               <lf-insights-project-add-widgets-tab
                 v-else-if="activeTab === 'widgets'"
                 :is-loading="isLoadingWidgets"
-                :form="form"
-              />
-              <lf-insights-project-add-advanced-tab
-                v-else-if="activeTab === 'advanced'"
                 :form="form"
               />
             </div>
@@ -131,7 +124,6 @@ import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
-import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
@@ -189,6 +181,7 @@ const initialFormState: InsightsProjectAddFormModel = {
   linkedin: '',
   repositories: [],
   keywords: [],
+  searchKeywords: [],
   widgets: Object.fromEntries(
     getDefaultWidgets().map((key) => [
       key,
