@@ -1,0 +1,37 @@
+NODE health_score_issues_resolution_activities
+SQL >
+    SELECT id, segmentId
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE
+        timestamp >= toStartOfDay(now()) - INTERVAL 365 DAY
+        AND timestamp < toStartOfDay(now()) + INTERVAL 1 DAY
+
+NODE health_score_issues_resolution_score
+SQL >
+    SELECT af.segmentId AS segmentId, round(avg(ia.closedInSeconds) / (60 * 60 * 24)) AS issueResolution
+    FROM health_score_issues_resolution_activities AS af
+    LEFT JOIN issues_analyzed AS ia ON af.id = ia.id
+    WHERE ia.closedAt IS NOT NULL
+    GROUP BY segmentId
+
+NODE health_score_issues_resolution_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        issueResolution,
+        CASE
+            WHEN issueResolution >= 61
+            THEN 0
+            WHEN issueResolution BETWEEN 51 AND 60
+            THEN 1
+            WHEN issueResolution BETWEEN 36 AND 50
+            THEN 2
+            WHEN issueResolution BETWEEN 22 AND 35
+            THEN 3
+            WHEN issueResolution BETWEEN 8 AND 21
+            THEN 4
+            WHEN issueResolution BETWEEN 0 AND 7
+            THEN 5
+            ELSE 0
+        END AS issueResolutionBenchmark
+    FROM health_score_issues_resolution_score

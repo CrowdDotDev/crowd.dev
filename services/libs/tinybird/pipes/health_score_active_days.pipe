@@ -1,0 +1,28 @@
+NODE health_score_active_days_score
+SQL >
+    SELECT segmentId, countDistinct(DATE(timestamp)) AS activeDaysCount
+    FROM activities_with_relations_sorted_deduplicated_ds
+    WHERE (timestamp >= toStartOfDay(now() - toIntervalDay(365))) AND (timestamp < toStartOfDay(now()))
+    GROUP BY segmentId
+
+NODE health_score_active_days_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        activeDaysCount,
+        CASE
+            WHEN activeDaysCount BETWEEN 0 AND 5
+            THEN 0
+            WHEN activeDaysCount BETWEEN 6 AND 10
+            THEN 1
+            WHEN activeDaysCount BETWEEN 11 AND 15
+            THEN 2
+            WHEN activeDaysCount BETWEEN 16 AND 20
+            THEN 3
+            WHEN activeDaysCount BETWEEN 21 AND 26
+            THEN 4
+            WHEN activeDaysCount > 26
+            THEN 5
+            ELSE 0
+        END AS activeDaysBenchmark
+    FROM health_score_active_days_score

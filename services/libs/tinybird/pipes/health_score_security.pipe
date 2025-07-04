@@ -1,0 +1,37 @@
+NODE health_score_security_project_repos
+SQL >
+    SELECT id, repo AS repo FROM insightsProjects FINAL ARRAY JOIN repositories AS repo
+
+NODE health_score_security_check_pass_rate
+SQL >
+    SELECT
+        id,
+        category,
+        controlId,
+        length(arrayFilter(x -> x['result'] = 'Failed', assessments)) AS failedAssessments,
+        length(arrayFilter(x -> x['result'] = 'Passed', assessments)) AS passedAssessments
+    FROM security_deduplicated_merged_ds
+    LEFT JOIN health_score_security_project_repos USING (repo)
+    WHERE category not in ('Documentation', 'Vulnerability Management')
+
+NODE health_score_security_category_pass_rate
+SQL >
+    SELECT
+        id,
+        category,
+        sum(failedAssessments) as failed,
+        sum(passedAssessments) as passed,
+        sum(failedAssessments + passedAssessments) as total,
+        round(100 * (passed / total)) as percentage
+    FROM health_score_security_check_pass_rate
+    WHERE id != ''
+    GROUP BY id, category
+
+NODE health_score_security_score
+SQL >
+    SELECT
+        id,
+        groupArray((category, percentage)) AS securityCategoryPercentage,
+        round(avg(percentage)) as securityPercentage
+    FROM health_score_security_category_pass_rate
+    GROUP BY id
