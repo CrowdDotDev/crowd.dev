@@ -36,6 +36,7 @@ import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
+import { QueryResult } from '@crowd/data-access-layer/src/utils'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -550,15 +551,14 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async findInsightsProjectsByName(name: string): Promise<any> {
+  async findInsightsProjectsByName(name: string): Promise<QueryResult<InsightsProjectField>[]> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const result = await queryInsightsProjects(qx, {
+    return await queryInsightsProjects(qx, {
       filter: {
         name: { like: `${name}%` },
+        segmentId: { eq: null },
       },
       fields: Object.values(InsightsProjectField),
     })
-
-    return result
   }
 }
