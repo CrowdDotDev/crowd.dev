@@ -94,7 +94,7 @@
       </div>
       <app-keywords-input
         v-model="cForm.searchKeywords"
-        placeholder="Enter keword(s)"
+        placeholder="Enter keyword(s)"
         :show-hint="true"
       />
     </lf-field>
