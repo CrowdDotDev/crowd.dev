@@ -6,6 +6,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -16,7 +17,7 @@ import {
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { Edition, PlatformType } from '@crowd/types'
+import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
@@ -57,6 +58,7 @@ import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
+import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
@@ -70,6 +72,7 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
     try {
+      console.log(' CREATING/UPDATING:', data)
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -133,6 +136,16 @@ export default class IntegrationService {
     return IntegrationRepository.findAllByPlatform(platform, this.options)
   }
 
+  isCodePlatform(value: string): value is CodePlatform {
+    return [
+      PlatformType.GITHUB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GITLAB,
+      PlatformType.GIT,
+      PlatformType.GERRIT,
+    ].includes(value as PlatformType)
+  }
+
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.create(data, {
@@ -140,11 +153,61 @@ export default class IntegrationService {
         transaction,
       })
 
+      const collectionService = new CollectionService(this.options)
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+        record.segmentId,
+      )
+
+      if (insightsProject) {
+        this.updateInsightsProject(insightsProject.id, record.segmentId)
+      }
+
       return record
     } catch (error) {
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
       throw error
     }
+  }
+
+  private async updateInsightsProject(insightsProjectId: string, segmentId: string) {
+    const collectionService = new CollectionService(this.options)
+
+    const data: Partial<ICreateInsightsProject> = {}
+    const { platforms, widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+    data.widgets = widgets
+    const urlSet = new Set<string>()
+
+    // if is platform type
+    if (platforms.some(this.isCodePlatform)) {
+      const repositories = await collectionService.findRepositoriesForSegment(segmentId)
+      const tmpRepos: { platform: string; url: string }[] = []
+
+      for (const [platform, entries] of Object.entries(repositories)) {
+        for (const entry of entries) {
+          tmpRepos.push({ platform, url: entry.url })
+        }
+      }
+
+      data.repositories = tmpRepos
+      
+    }
+
+    if (platforms.includes(PlatformType.GITHUB)) {
+      const githubInsights = await collectionService.findGithubInsightsForSegment(segmentId)
+      if (githubInsights) {
+        data.description = githubInsights.description
+        data.github = githubInsights.github
+        data.logoUrl = githubInsights.logoUrl
+        data.name = githubInsights.name
+        data.twitter = githubInsights.twitter
+        data.website = githubInsights.website
+      }
+    }
+
+    console.log(`Updating insights project with data: ${JSON.stringify(data)}`)
+
+    await collectionService.updateInsightsProject(insightsProjectId, data)
   }
 
   async update(id, data, transaction?: any, options?: IRepositoryOptions) {
