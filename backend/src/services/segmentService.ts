@@ -235,7 +235,7 @@ export default class SegmentService extends LoggerBase {
       segmentId: subproject.id,
       name: subproject.name,
       slug: subproject.slug,
-      ...(parent.isLF && { collections: collections.map((c) => c.id) }),
+      ...(parent.isLF && { collections: collections.map((c) => c.id), starred: false }),
     }
 
     const mustUpdateProject = existingProject && !existingProject.segmentId

@@ -230,7 +230,7 @@ export class CollectionService extends LoggerBase {
           project.collections.map((c) => ({
             insightsProjectId: createdProject.id,
             collectionId: c,
-            starred: true,
+            starred: project.starred ?? true,
           })),
         )
       }
@@ -380,7 +380,7 @@ export class CollectionService extends LoggerBase {
           project.collections.map((c) => ({
             insightsProjectId: id,
             collectionId: c,
-            starred: true,
+            starred: project.starred ?? true,
           })),
         )
       }

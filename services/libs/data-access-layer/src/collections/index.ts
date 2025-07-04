@@ -57,6 +57,7 @@ export interface IInsightsProject {
 
 export interface ICreateInsightsProject extends IInsightsProject {
   collections: string[]
+  starred?: boolean 
 }
 
 export interface ICollectionInsightProject {
