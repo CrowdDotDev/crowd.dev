@@ -231,8 +231,6 @@ export default class SegmentService extends LoggerBase {
 
     const [existingProject] = await collectionService.findInsightsProjectsByName(subproject.name)
 
-    console.log(existingProject)
-
     const projectData: Partial<ICreateInsightsProject> = {
       segmentId: subproject.id,
       name: subproject.name,
