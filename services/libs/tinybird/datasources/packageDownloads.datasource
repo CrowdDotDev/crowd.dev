@@ -1,0 +1,21 @@
+TAGS "Package downloads widget"
+
+SCHEMA >
+    `id` UInt64 `json:$.record.id`,
+    `date` Date `json:$.record.date`,
+    `insightsProjectId` String `json:$.record.insights_project_id` DEFAULT '',
+    `repo` String `json:$.record.repository_url` DEFAULT '',
+    `name` String `json:$.record.name` DEFAULT '',
+    `ecosystem` String `json:$.record.ecosystem` DEFAULT '',
+    `purl` String `json:$.record.purl` DEFAULT '',
+    `dependentReposCount` UInt64 `json:$.record.dependent_repos_count` DEFAULT 0,
+    `dependentPackagesCount` UInt64 `json:$.record.dependent_packages_count` DEFAULT 0,
+    `dockerDependentsCount` UInt64 `json:$.record.docker_dependents_count` DEFAULT 0,
+    `dockerDownloadsCount` UInt64 `json:$.record.docker_downloads_count` DEFAULT 0,
+    `downloadsCount` UInt64 `json:$.record.downloads_count` DEFAULT 0,
+    `createdAt` DateTime64(3) `json:$.record.created_at`,
+    `updatedAt` DateTime64(3) `json:$.record.updated_at`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY insightsProjectId, date, ecosystem, repo, name
+ENGINE_VER updatedAt
