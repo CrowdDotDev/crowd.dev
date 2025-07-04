@@ -27,6 +27,7 @@ import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integr
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
@@ -36,7 +37,6 @@ import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
-import { QueryResult } from '@crowd/data-access-layer/src/utils'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
