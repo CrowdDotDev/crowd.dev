@@ -27,7 +27,6 @@ import {
 } from '@crowd/data-access-layer/src/members'
 import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-// import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import {
@@ -1045,20 +1044,6 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
-          const secondaryActivityCount = 0
-          const primaryActivityCount = 0
-          // activity count
-          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   secondaryBackup.identities,
-          // )
-          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   member.identities,
-          // )
-
           return {
             primary: {
               ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
@@ -1068,7 +1053,6 @@ export default class MemberService extends LoggerBase {
                 member.memberOrganizations,
               ),
               username: MemberRepository.getUsernameFromIdentities(member.identities),
-              activityCount: primaryActivityCount,
               numberOfOpenSourceContributions: member.contributions?.length || 0,
             },
             secondary: {
@@ -1076,7 +1060,6 @@ export default class MemberService extends LoggerBase {
               organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
                 secondaryBackup.memberOrganizations,
               ),
-              activityCount: secondaryActivityCount,
               numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
             },
           }
@@ -1108,21 +1091,6 @@ export default class MemberService extends LoggerBase {
         throw new Error400(this.options.language, 'merge.errors.noIdentities')
       }
 
-      const secondaryActivityCount = 0
-      const primaryActivityCount = 0
-
-      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   secondaryIdentities,
-      // )
-      //
-      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   primaryIdentities,
-      // )
-
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
         member.id,
         this.options,
@@ -1136,7 +1104,6 @@ export default class MemberService extends LoggerBase {
           organizations:
             OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
           username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
-          activityCount: primaryActivityCount,
           numberOfOpenSourceContributions: member.contributions?.length || 0,
         },
         secondary: {
@@ -1155,7 +1122,6 @@ export default class MemberService extends LoggerBase {
           contributions: [],
           manuallyCreated: true,
           manuallyChangedFields: [],
-          activityCount: secondaryActivityCount,
           numberOfOpenSourceContributions: 0,
         },
       }

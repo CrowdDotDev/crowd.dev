@@ -2,24 +2,22 @@ import { RawQueryParser } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { IEnrichableMemberIdentityActivityAggregate, PageData } from '@crowd/types'
 
-import { IMemberSegmentCoreAggregates } from '../members/types'
-import { IOrganizationActivityCoreAggregates } from '../organizations/types'
+import { IMemberSegmentCoreAggregates, IMemberSegmentDisplayAggregates } from '../members/types'
+import {
+  IOrganizationActivityCoreAggregates,
+  IOrganizationDisplayAggregates,
+} from '../organizations/types'
 import { QueryExecutor } from '../queryExecutor'
 
-import { IActivityRelationColumn, IDbActivityRelation } from './types'
-
-export interface IQueryActivityRelationsParameters {
-  segmentIds?: string[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filter?: any
-  orderBy?: string[]
-  limit?: number
-  offset?: number
-  countOnly?: boolean
-  noCount?: boolean
-  groupBy?: string
-  noLimit?: boolean
-}
+import {
+  IActiveMemberData,
+  IActiveOrganizationData,
+  IActivityRelationColumn,
+  IDbActivityRelation,
+  IQueryActiveMembersParameters,
+  IQueryActiveOrganizationsParameters,
+  IQueryActivityRelationsParameters,
+} from './types'
 
 const ALL_ACTIVITY_RELATION_COLUMNS: IActivityRelationColumn[] = [
   'activityId',
@@ -346,4 +344,183 @@ export async function filterMembersWithActivityRelations(
   )
 
   return results.map((r) => r.memberId)
+}
+
+export async function getActiveMembers(
+  qx: QueryExecutor,
+  arg: IQueryActiveMembersParameters,
+): Promise<IActiveMemberData[]> {
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds is required to query active member ids!')
+  }
+
+  const params: Record<string, unknown> = {
+    segmentIds: arg.segmentIds,
+    tsFrom: arg.timestampFrom,
+    tsTo: arg.timestampTo,
+    limit: arg.limit,
+    offset: arg.offset,
+  }
+
+  const conditions: string[] = [
+    `ar."segmentId" in ($(segmentIds:csv))`,
+    `ar.timestamp >= $(tsFrom)`,
+    `ar.timestamp <= $(tsTo)`,
+  ]
+
+  if (arg.platforms && arg.platforms.length > 0) {
+    params.platforms = arg.platforms
+    conditions.push(`ar.platform in ($(platforms:csv))`)
+  }
+
+  if (arg.isContribution) {
+    conditions.push(`ar."isContribution" = true`)
+  }
+
+  let orderByString: string
+  if (arg.orderBy === 'activityCount') {
+    orderByString = `"activityCount" ${arg.orderByDirection}`
+  } else if (arg.orderBy === 'activeDaysCount') {
+    orderByString = `"activeDaysCount" ${arg.orderByDirection}`
+  } else {
+    throw new Error(`Invalid order by: ${arg.orderBy}!`)
+  }
+
+  const query = `
+  select  ar."memberId" as "memberId",
+          count(distinct ar."activityId") as "activityCount",
+          count(distinct date_trunc('day', ar.timestamp)) as "activeDaysCount"
+  from "activityRelations" ar
+  where ${conditions.join(' and ')}
+  group by ar."memberId"
+  order by ${orderByString}
+  limit $(limit) offset $(offset);
+  `
+
+  return qx.select(query, params)
+}
+
+export async function getActiveOrganizations(
+  qx: QueryExecutor,
+  arg: IQueryActiveOrganizationsParameters,
+): Promise<IActiveOrganizationData[]> {
+  if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('segmentIds is required to query active organizations!')
+  }
+
+  const params: Record<string, unknown> = {
+    segmentIds: arg.segmentIds,
+    tsFrom: arg.timestampFrom,
+    tsTo: arg.timestampTo,
+    limit: arg.limit,
+    offset: arg.offset,
+  }
+
+  const conditions: string[] = [
+    `ar."segmentId" in ($(segmentIds:csv))`,
+    `ar.timestamp >= $(tsFrom)`,
+    `ar.timestamp <= $(tsTo)`,
+    `ar."organizationId" is not null`,
+  ]
+
+  if (arg.platforms && arg.platforms.length > 0) {
+    params.platforms = arg.platforms
+    conditions.push(`ar.platform in ($(platforms:csv))`)
+  }
+
+  let orderByString: string
+  if (arg.orderBy === 'activityCount') {
+    orderByString = `"activityCount" ${arg.orderByDirection}`
+  } else if (arg.orderBy === 'activeDaysCount') {
+    orderByString = `"activeDaysCount" ${arg.orderByDirection}`
+  } else {
+    throw new Error(`Invalid order by: ${arg.orderBy}!`)
+  }
+
+  const query = `
+  select  ar."organizationId",
+          count(distinct ar."activityId") as "activityCount",
+          count(distinct date_trunc('day', ar.timestamp)) as "activeDaysCount"
+  from "activityRelations" ar
+  where ${conditions.join(' and ')}
+  group by ar."organizationId"
+  order by ${orderByString}
+  limit $(limit) offset $(offset);
+  `
+
+  return qx.select(query, params)
+}
+
+export async function getLatestMemberActivityRelations(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<{ activityId: string; timestamp: string }[]> {
+  return qx.select(
+    `
+    select distinct on ("memberId") "activityId", timestamp
+    from "activityRelations"
+    where "memberId" in ($(memberIds:csv))
+    order by "memberId", "timestamp" desc;
+  `,
+    { memberIds },
+  )
+}
+
+export async function fetchMemberDisplayAggregates(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<IMemberSegmentDisplayAggregates[]> {
+  const results = await qx.select(
+    `
+    SELECT
+      "segmentId",
+      max(timestamp) AS "lastActive",
+      COALESCE(avg("sentimentScore"), 0.0) AS "averageSentiment",
+      COALESCE(string_agg(DISTINCT (platform || ':' || type), '|'), '') AS "activityTypes"
+    FROM "activityRelations"
+    WHERE "memberId" = $(memberId)
+    GROUP BY "segmentId"
+    `,
+    { memberId },
+  )
+
+  return results.map((result) => {
+    return {
+      memberId,
+      segmentId: result.segmentId,
+
+      lastActive: result.lastActive || null,
+      averageSentiment: parseFloat(result.averageSentiment),
+      activityTypes: result.activityTypes ? result.activityTypes.split('|') : [],
+    }
+  })
+}
+
+export async function fetchOrganizationDisplayAggregates(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<IOrganizationDisplayAggregates[]> {
+  const results = await qx.select(
+    `
+    SELECT
+        "segmentId",
+        max(timestamp) AS "lastActive",
+        min(timestamp) AS "joinedAt",
+        coalesce(round(avg(score))::integer, 0) AS "avgContributorEngagement"
+    FROM "activityRelations"
+    WHERE "organizationId" = $(organizationId)
+    GROUP BY "segmentId"
+    `,
+    { organizationId },
+  )
+
+  return results.map((result) => {
+    return {
+      organizationId,
+      segmentId: result.segmentId,
+      joinedAt: result.joinedAt,
+      lastActive: result.lastActive,
+      avgContributorEngagement: result.avgContributorEngagement,
+    }
+  })
 }

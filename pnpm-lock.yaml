@@ -1805,9 +1805,15 @@ importers:
       lodash.map:
         specifier: ^4.6.0
         version: 4.6.0
+      lodash.max:
+        specifier: ^4.0.1
+        version: 4.0.1
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
+      lodash.min:
+        specifier: ^4.0.1
+        version: 4.0.1
       lodash.pickby:
         specifier: ^4.6.0
         version: 4.6.0
