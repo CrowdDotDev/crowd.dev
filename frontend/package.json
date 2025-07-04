@@ -30,7 +30,7 @@
     "@auth0/auth0-spa-js": "^2.1.3",
     "@datadog/browser-rum": "^5.9.0",
     "@formbricks/js": "1.2.0",
-    "@linuxfoundation/lfx-ui-core": "^0.0.12",
+    "@linuxfoundation/lfx-ui-core": "^0.0.19",
     "@nangohq/frontend": "^0.9.0",
     "@nangohq/frontend-v2": "npm:@nangohq/frontend@^0.52.4",
     "@tailwindcss/line-clamp": "^0.4.2",
