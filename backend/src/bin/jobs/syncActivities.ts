@@ -6,7 +6,6 @@ import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/dat
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import { QueryExecutor, formatQuery, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, logExecutionTimeV2, timer } from '@crowd/logging'
-import { getClientSQL } from '@crowd/questdb'
 import { PlatformType } from '@crowd/types'
 
 import { DB_CONFIG } from '@/conf'
@@ -16,16 +15,18 @@ import { retryBackoff } from '../../utils/backoff'
 
 async function decideUpdatedAt(pgQx: QueryExecutor, maxUpdatedAt?: string): Promise<string> {
   if (!maxUpdatedAt) {
-    const result = await pgQx.selectOne('SELECT MAX("updatedAt") AS "maxUpdatedAt" FROM activities')
+    const result = await pgQx.selectOne(
+      'SELECT MAX("updatedAt") AS "maxUpdatedAt" FROM "activityRelations"',
+    )
     return result?.maxUpdatedAt
   }
 
   return maxUpdatedAt
 }
 
-async function getTotalActivities(qdbQx: QueryExecutor, whereClause: string): Promise<number> {
-  const { totalActivities } = await qdbQx.selectOne(
-    `SELECT COUNT(1) AS "totalActivities" FROM activities WHERE ${whereClause}`,
+async function getTotalActivities(pgQx: QueryExecutor, whereClause: string): Promise<number> {
+  const { totalActivities } = await pgQx.selectOne(
+    `SELECT COUNT(1) AS "totalActivities" FROM "activityRelations" WHERE ${whereClause}`,
   )
   return totalActivities
 }
@@ -78,7 +79,6 @@ async function syncActivitiesBatch({
 export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
   logger.info(`Syncing activities from ${maxUpdatedAt}`)
 
-  const qdb = await getClientSQL()
   const db = await getDbConnection({
     host: DB_CONFIG.writeHost,
     port: DB_CONFIG.port,
@@ -88,7 +88,6 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
   })
 
   const pgQx = pgpQx(db)
-  const qdbQx = pgpQx(qdb)
   const activityRepo = new ActivityRepository(new DbStore(logger, db, undefined, true), logger)
 
   let updatedAt = await logExecutionTimeV2(
@@ -100,7 +99,7 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
   const whereClause = createWhereClause(updatedAt)
 
   const totalActivities = await logExecutionTimeV2(
-    () => getTotalActivities(qdbQx, whereClause),
+    () => getTotalActivities(pgQx, whereClause),
     logger,
     'get total activities',
   )
@@ -114,10 +113,10 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
       // eslint-disable-next-line @typescript-eslint/no-loop-func
       () =>
         retryBackoff(() =>
-          qdbQx.select(
+          pgQx.select(
             `
             SELECT *
-            FROM activities
+            FROM "activityRelations"
             WHERE "updatedAt" > $(updatedAt)
             ORDER BY "updatedAt"
             LIMIT 1000;
@@ -126,7 +125,7 @@ export async function syncActivities(logger: Logger, maxUpdatedAt?: string) {
           ),
         ),
       logger,
-      `getting activities with updatedAt > ${updatedAt}`,
+      `getting activityRelations with updatedAt > ${updatedAt}`,
     )
 
     if (result.length === 0) {

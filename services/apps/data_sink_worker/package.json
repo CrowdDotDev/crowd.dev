@@ -41,6 +41,8 @@
     "crowd-sentiment": "^1.1.7",
     "lodash.isequal": "^4.5.0",
     "lodash.mergewith": "^4.6.2",
+    "lodash.max": "^4.0.1",
+    "lodash.min": "^4.0.1",
     "lodash.uniqby": "^4.7.0",
     "moment-timezone": "^0.5.34",
     "tsx": "^4.7.1",

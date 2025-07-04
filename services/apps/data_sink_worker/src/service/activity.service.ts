@@ -1,6 +1,8 @@
 import vader from 'crowd-sentiment'
 import isEqual from 'lodash.isequal'
+import max from 'lodash.max'
 import mergeWith from 'lodash.mergewith'
+import min from 'lodash.min'
 
 import {
   ApplicationError,
@@ -20,6 +22,7 @@ import {
   findMatchingPullRequestNodeId,
   insertActivities,
   queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
@@ -647,28 +650,70 @@ export default class ActivityService extends LoggerBase {
       }
     })
 
-    const existingActivitiesResult = await logExecutionTimeV2(
+    const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
+
+    // First, check activityRelations (Postgres) to quickly find existing activities.
+    // This is faster than doing an existence check in QuestDB.
+    const existingActivityRelations = await logExecutionTimeV2(
       async () =>
-        queryActivities(this.qdbStore.connection(), {
-          segmentIds: distinct(relevantPayloads.map((r) => r.segmentId)),
-          filter: {
-            and: [
-              {
-                timestamp: {
-                  in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+        queryActivityRelations(
+          dbStoreQx(this.pgStore),
+          {
+            segmentIds,
+            filter: {
+              and: [
+                {
+                  timestamp: {
+                    in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+                  },
                 },
-              },
-              {
-                or: orConditions,
-              },
-            ],
+                {
+                  or: orConditions,
+                },
+              ],
+            },
+            limit: relevantPayloads.length,
+            noCount: true,
           },
-          limit: relevantPayloads.length,
-          noCount: true,
-        }),
+          ['activityId', 'timestamp'],
+        ),
       this.log,
-      'processActivities -> queryActivities',
+      'processActivities -> queryActivityRelations',
     )
+
+    let existingActivitiesResult = { rows: [] }
+
+    // If we find any, fetch the full activity data from QuestDB by ID and timestamp,
+    // since the relations table only stores partial activity info.
+    if (existingActivityRelations.rows.length > 0) {
+      const activityIds = distinct(existingActivityRelations.rows.map((r) => r.activityId))
+      const timestamps = existingActivityRelations.rows.map((r) => r.timestamp)
+
+      existingActivitiesResult = await logExecutionTimeV2(
+        async () =>
+          queryActivities(this.qdbStore.connection(), {
+            segmentIds,
+            filter: {
+              and: [
+                { id: { in: activityIds } },
+                {
+                  timestamp:
+                    activityIds.length > 1
+                      ? {
+                          gte: min(timestamps),
+                          lte: max(timestamps),
+                        }
+                      : { eq: timestamps[0] },
+                },
+              ],
+            },
+            limit: relevantPayloads.length,
+            noCount: true,
+          }),
+        this.log,
+        'processActivities -> queryActivities',
+      )
+    }
 
     // map existing activities to payloads for further processing
     const memberIdsToLoad = new Set<string>()

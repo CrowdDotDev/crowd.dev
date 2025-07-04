@@ -4,7 +4,7 @@ import {
   activitiesTimeseries,
   getTimeseriesOfActiveMembers,
   getTimeseriesOfNewMembers,
-  queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
@@ -15,7 +15,7 @@ import {
   getTimeseriesOfActiveOrganizations,
   getTimeseriesOfNewOrganizations,
 } from '@crowd/data-access-layer/src/organizations'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
 import {
   DashboardTimeframe,
@@ -109,7 +109,8 @@ export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promi
       })
     }
 
-    const res = await queryActivities(svc.questdbSQL, {
+    const qx = pgpQx(svc.postgres.reader.connection())
+    const res = await queryActivityRelations(qx, {
       segmentIds: params.segmentIds,
       countOnly: true,
       filter: {

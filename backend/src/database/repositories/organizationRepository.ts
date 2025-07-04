@@ -10,9 +10,9 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
 import {
-  countMembersWithActivities,
   getActiveOrganizations,
   queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
@@ -1404,7 +1404,9 @@ class OrganizationRepository {
       segments = [originalSegment]
     }
 
-    const activeOrgsResults = await getActiveOrganizations(options.qdb, {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
+    const activeOrgsResults = await getActiveOrganizations(qx, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
       platforms: filter.platforms ? filter.platforms : undefined,
@@ -1491,7 +1493,6 @@ class OrganizationRepository {
       options,
     )
 
-    const qx = SequelizeRepository.getQueryExecutor(options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
       organizationIds,
     })
@@ -1876,17 +1877,24 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
-    const rows = await countMembersWithActivities(options.qdb, {
-      organizationId,
-      platform,
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const rows = await queryActivityRelations(qx, {
+      filter: {
+        and: [
+          {
+            organizationId: {
+              eq: organizationId,
+            },
+            platform: {
+              eq: platform,
+            },
+          },
+        ],
+      },
+      countOnly: true,
     })
 
-    let count = 0
-    rows.forEach((row) => {
-      count += Number(row.count)
-    })
-
-    return count
+    return rows.count
   }
 
   static async removeIdentitiesFromOrganization(
