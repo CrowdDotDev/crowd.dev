@@ -238,7 +238,9 @@ export default class SegmentService extends LoggerBase {
       ...(parent.isLF && { collections: collections.map((c) => c.id), starred: false }),
     }
 
-    if (existingProject) {
+    const mustUpdateProject = existingProject && !existingProject.segmentId
+
+    if (mustUpdateProject) {
       await collectionService.updateInsightsProject(existingProject.id, projectData)
     } else {
       await collectionService.createInsightsProject(projectData)
