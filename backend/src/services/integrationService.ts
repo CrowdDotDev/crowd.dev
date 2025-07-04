@@ -73,6 +73,7 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
     try {
+      console.log(' CREATING/UPDATING:', data)
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -281,7 +282,7 @@ export default class IntegrationService {
             let shouldUpdateGit: boolean
             const mapping =
               integration.platform === PlatformType.GITHUB ||
-              integration.platform === PlatformType.GITHUB_NANGO
+                integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
 
@@ -750,8 +751,8 @@ export default class IntegrationService {
             ...settings,
             ...(integration.settings.nangoMapping
               ? {
-                  nangoMapping: integration.settings.nangoMapping,
-                }
+                nangoMapping: integration.settings.nangoMapping,
+              }
               : {}),
           },
           transaction,
