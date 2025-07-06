@@ -9,7 +9,7 @@
           <app-lf-banners />
           <router-view />
           <div v-if="footerStore.visible" class="mt-auto mb-1 flex justify-center">
-            <lfx-footer class="px-2 max-w-3xl" />
+            <lfx-footer cookie-tracking class="px-2 max-w-3xl" />
           </div>
         </el-main>
       </el-container>

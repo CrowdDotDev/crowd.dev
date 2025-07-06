@@ -310,9 +310,12 @@ class MemberSimilarityCalculator {
     member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
   ): string[] {
     if (this.isSimilarMemberFromOpensearch(member)) {
-      return member.obj_attributes[MemberAttributeOpensearch.LANGUAGES]?.string_arr_default || []
+      const languages =
+        member.obj_attributes[MemberAttributeOpensearch.LANGUAGES]?.string_arr_default || []
+      return Array.isArray(languages) ? languages : []
     } else if (this.isFullMemberFromDb(member)) {
-      return member.attributes[MemberAttributeName.LANGUAGES]?.default || []
+      const languages = member.attributes[MemberAttributeName.LANGUAGES]?.default || []
+      return Array.isArray(languages) ? languages : []
     }
     return []
   }
