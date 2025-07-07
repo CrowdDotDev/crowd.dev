@@ -1,0 +1,7 @@
+++ Crowd git integration for the Linux Foundation
+
+The Git integration will run on an EC2 instance. It will have a local clone of all the tracked repositories.
+
+When a repository is cloned, or when it is refreshed, all the new commits are analyzed.
+
+The data required from each commit is: hash, author name, author email, committer name, committer email, message, branches, in main branch, is merge, lines, insertions, and deletions.

@@ -27,6 +27,7 @@ export interface InsightsProjectModel {
   repositories: string[];
   widgets: string[];
   keywords: string[];
+  searchKeywords: string[];
 }
 
 export interface InsightsProjectRequest {
@@ -43,6 +44,17 @@ export interface InsightsProjectRequest {
   linkedin?: string;
   repositories?: string[]; // assuming url is a string
   keywords?: string[];
+  searchKeywords?: string[];
   widgets?: string[]; // enabled widget keys
   enabled?: boolean;
+}
+
+export interface InsightsProjectDetailsResponse {
+  description?: string;
+  github?: string;
+  logoUrl?: string;
+  name?: string;
+  topics?: string[];
+  twitter?: string;
+  website?: string;
 }

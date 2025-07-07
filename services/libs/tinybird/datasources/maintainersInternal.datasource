@@ -11,5 +11,5 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
-ENGINE_SORTING_KEY identityId
+ENGINE_SORTING_KEY identityId, id
 ENGINE_VER updatedAt

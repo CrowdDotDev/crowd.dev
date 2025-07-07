@@ -27,12 +27,16 @@ import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integr
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
+import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
+import SegmentRepository from '@/database/repositories/segmentRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
+import GithubIntegrationService from './githubIntegrationService'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -462,6 +466,115 @@ export class CollectionService extends LoggerBase {
       }
     }
 
+    // Add mapped repositories to GitHub platform
+    const segmentRepository = new SegmentRepository(this.options)
+    const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+
+    for (const repo of mappedRepos) {
+      const url = repo.url
+      try {
+        const parsedUrl = new URL(url)
+        if (parsedUrl.hostname === 'github.com') {
+          const label = parsedUrl.pathname.slice(1) // removes leading '/'
+          addToResult(PlatformType.GITHUB, url, label)
+        }
+      } catch (err) {
+        // Do nothing
+      }
+    }
+
     return result
+  }
+
+  async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+    const segment = await findSegmentById(qx, segmentId)
+
+    const [githubIntegration] = integrations.filter(
+      (integration) =>
+        integration.platform === PlatformType.GITHUB ||
+        integration.platform === PlatformType.GITHUB_NANGO,
+    )
+
+    if (!githubIntegration) {
+      return null
+    }
+
+    const settings = githubIntegration.settings as GithubIntegrationSettings
+
+    const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
+      qx,
+      segment.name,
+      settings.orgs,
+    )
+
+    if (!mainOrg) {
+      return null
+    }
+
+    const { description, name, repos } = mainOrg
+
+    const orgDetail = await GithubIntegrationService.findOrgDetail(name)
+
+    if (!orgDetail) {
+      return null
+    }
+
+    const { logoUrl, github, website, twitter } = orgDetail
+
+    const topics = await GithubIntegrationService.findOrgTopics(name, repos)
+
+    return {
+      description,
+      github,
+      logoUrl,
+      name,
+      topics,
+      twitter,
+      website,
+    }
+  }
+
+  private static isValidPlatform(value: unknown): value is PlatformType {
+    return typeof value === 'string' && Object.values(PlatformType).includes(value as PlatformType)
+  }
+
+  async findSegmentsWidgetsById(
+    segmentId: string,
+  ): Promise<{ platforms: PlatformType[]; widgets: Widgets[] }> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const widgets = new Set<Widgets>()
+    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+    const platforms = [
+      ...new Set(
+        integrations
+          .map((integration) => integration.platform)
+          .filter(CollectionService.isValidPlatform),
+      ),
+    ]
+
+    // Check for mapped repositories and add GitHub if there are any
+    const segmentRepository = new SegmentRepository(this.options)
+    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+    if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
+      platforms.push(PlatformType.GITHUB)
+    }
+
+    for (const platform of platforms) {
+      Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
+        if (
+          config.enabled &&
+          config.platform.some((p) => p.toLowerCase() === platform.toLowerCase())
+        ) {
+          widgets.add(key as Widgets)
+        }
+      })
+    }
+
+    return {
+      platforms,
+      widgets: [...widgets],
+    }
   }
 }

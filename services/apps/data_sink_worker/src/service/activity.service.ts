@@ -3,6 +3,7 @@ import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
 
 import {
+  ApplicationError,
   UnrepeatableError,
   distinct,
   distinctBy,
@@ -999,10 +1000,38 @@ export default class ActivityService extends LoggerBase {
           })
           .catch((err) => {
             for (const resultId of value.resultIds) {
-              resultMap.set(resultId, {
-                success: false,
-                err,
-              })
+              const isMember = relevantPayloads.some(
+                (p) =>
+                  p.resultId === resultId &&
+                  p.platform === value.platform &&
+                  p.activity.username === value.username,
+              )
+
+              if (!isMember) {
+                const isObjectMember = relevantPayloads.some(
+                  (p) =>
+                    p.resultId === resultId &&
+                    p.platform === value.platform &&
+                    p.activity.objectMemberUsername === value.username,
+                )
+
+                if (isObjectMember) {
+                  resultMap.set(resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while creating object member!', err),
+                  })
+                } else {
+                  resultMap.set(resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while creating unknown member!', err),
+                  })
+                }
+              } else {
+                resultMap.set(resultId, {
+                  success: false,
+                  err: new ApplicationError('Error while creating member!', err),
+                })
+              }
             }
           }),
       )
@@ -1035,7 +1064,7 @@ export default class ActivityService extends LoggerBase {
             .catch((err) => {
               resultMap.set(payload.resultId, {
                 success: false,
-                err,
+                err: new ApplicationError('Error while updating member!', err),
               })
             }),
         )
@@ -1064,7 +1093,7 @@ export default class ActivityService extends LoggerBase {
             .catch((err) => {
               resultMap.set(payload.resultId, {
                 success: false,
-                err,
+                err: new ApplicationError('Error while updating object member!', err),
               })
             }),
         )
@@ -1178,6 +1207,16 @@ export default class ActivityService extends LoggerBase {
           platform: a.payload.platform,
           username: a.payload.username,
           objectMemberUsername: a.payload.objectMemberUsername,
+          sourceId: a.payload.sourceId,
+          type: a.payload.type,
+          timestamp: a.payload.timestamp,
+          channel: a.payload.channel,
+          sentimentScore: a.payload.sentimentScore,
+          gitInsertions: a.payload.gitInsertions,
+          gitDeletions: a.payload.gitDeletions,
+          score: a.payload.score,
+          isContribution: a.payload.isContribution,
+          pullRequestReviewState: a.payload.attributes?.reviewState as string,
         }
       }),
     )

@@ -19,6 +19,7 @@ export interface InsightsProjectAddFormModel {
   twitter: string;
   linkedin: string;
   keywords: string[];
+  searchKeywords: string[];
   repositories: {
     url: string;
     label: string;
@@ -28,7 +29,6 @@ export interface InsightsProjectAddFormModel {
   widgets: {
     [key: string]: {
       enabled: boolean;
-      platform: string[];
     };
   };
 }

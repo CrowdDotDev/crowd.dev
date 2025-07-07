@@ -36,7 +36,7 @@ class MergeActionsRepository {
         INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, step, "unmergeBackup", "actionBy")
         VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :step, :backup, :userId)
         ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
-        DO UPDATE SET state = :state, "unmergeBackup" = :backup
+        DO UPDATE SET state = :state, step = :step, "unmergeBackup" = :backup, "updatedAt" = now()
       `,
       {
         replacements: {
