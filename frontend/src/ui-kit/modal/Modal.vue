@@ -10,7 +10,12 @@
           @click.stop
         >
           <div v-if="headerTitle" class="c-modal__header">
-            <h5>{{ headerTitle }}</h5>
+            <div class="flex flex-col">
+              <div v-if="preTitle" class="text-gray-600 text-2xs">
+                {{ preTitle }}
+              </div>
+              <h5>{{ headerTitle }}</h5>
+            </div>
             <lf-button type="secondary-ghost" icon-only @click="close()">
               <lf-icon name="xmark" type="regular" />
             </lf-button>
@@ -34,6 +39,7 @@ const props = withDefaults(
     containerClass?: string;
     contentClass?: string;
     headerTitle?: string;
+    preTitle?: string;
     closeFunction?:() => boolean;
   }>(),
   {
@@ -42,6 +48,7 @@ const props = withDefaults(
     containerClass: '',
     contentClass: '',
     headerTitle: '',
+    preTitle: '',
   },
 );
 
