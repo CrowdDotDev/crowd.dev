@@ -72,7 +72,6 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
     try {
-      console.log(' CREATING/UPDATING:', data)
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -136,7 +135,7 @@ export default class IntegrationService {
     return IntegrationRepository.findAllByPlatform(platform, this.options)
   }
 
-  isCodePlatform(value: string): value is CodePlatform {
+  static isCodePlatform(value: string): value is CodePlatform {
     return [
       PlatformType.GITHUB,
       PlatformType.GITHUB_NANGO,
@@ -176,21 +175,16 @@ export default class IntegrationService {
     const data: Partial<ICreateInsightsProject> = {}
     const { platforms, widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
     data.widgets = widgets
-    const urlSet = new Set<string>()
 
-    // if is platform type
-    if (platforms.some(this.isCodePlatform)) {
+    if (platforms.some(IntegrationService.isCodePlatform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
-      const tmpRepos: { platform: string; url: string }[] = []
 
-      for (const [platform, entries] of Object.entries(repositories)) {
-        for (const entry of entries) {
-          tmpRepos.push({ platform, url: entry.url })
-        }
-      }
-
-      data.repositories = tmpRepos
-      
+      data.repositories = Object.entries(repositories).flatMap(([platform, entries]) =>
+        entries.map((entry) => ({
+          platform,
+          url: entry.url,
+        })),
+      )
     }
 
     if (platforms.includes(PlatformType.GITHUB)) {
@@ -205,7 +199,7 @@ export default class IntegrationService {
       }
     }
 
-    console.log(`Updating insights project with data: ${JSON.stringify(data)}`)
+    this.options.log.info(`Insight Project updated: ${insightsProjectId}`)
 
     await collectionService.updateInsightsProject(insightsProjectId, data)
   }
@@ -216,6 +210,16 @@ export default class IntegrationService {
         ...(options || this.options),
         transaction,
       })
+
+      const collectionService = new CollectionService(this.options)
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+        record.segmentId,
+      )
+
+      if (insightsProject) {
+        this.updateInsightsProject(insightsProject.id, record.segmentId)
+      }
 
       return record
     } catch (err) {
@@ -233,7 +237,18 @@ export default class IntegrationService {
         for (const id of ids) {
           let integration
           try {
+            const collectionService = new CollectionService(this.options)
             integration = await this.findById(id)
+
+            if (integration?.segmentId) {
+              const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+                integration.segmentId,
+              )
+
+              if (insightsProject) {
+                await collectionService.cleanInsightsProjectsById(insightsProject.id)
+              }
+            }
           } catch (err) {
             throw new Error404()
           }

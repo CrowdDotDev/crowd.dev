@@ -27,6 +27,7 @@ import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integr
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
@@ -578,13 +579,25 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async findInsightsProjectsBySegmentId(segmentId: string): Promise<any> {
+  async findInsightsProjectsBySegmentId(
+    segmentId: string,
+  ): Promise<QueryResult<InsightsProjectField>[]> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const result = await queryInsightsProjects(qx, {
       filter: {
         segmentId: { eq: segmentId },
       },
       fields: Object.values(InsightsProjectField),
+    })
+
+    return result
+  }
+
+  async cleanInsightsProjectsById(id: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const result = await updateInsightsProject(qx, id, {
+      widgets: [],
+      repositories: [],
     })
 
     return result
