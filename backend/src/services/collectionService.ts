@@ -633,14 +633,4 @@ export class CollectionService extends LoggerBase {
 
     return result
   }
-
-  async cleanInsightsProjectsById(id: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const result = await updateInsightsProject(qx, id, {
-      widgets: [],
-      repositories: [],
-    })
-
-    return result
-  }
 }
