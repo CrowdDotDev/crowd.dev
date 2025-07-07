@@ -1,20 +1,71 @@
+TOKEN "health_score_active_contributors_endpoint_read_8184" READ
+
 NODE health_score_active_contributors_score
 DESCRIPTION >
     Returns activeContributors for previous quarter per project
 
 SQL >
+    %
     SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
-        (timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1)))
-        AND (timestamp < toStartOfQuarter(now()))
-        AND (memberId != '')
+        1 = 1
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repo) %}
+                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1))
+            AND timestamp < toStartOfQuarter(now())
+            AND memberId != ''
+        {% end %}
     GROUP BY segmentId
+
+NODE health_score_active_contributors_repo_score
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT segmentId, channel as repo, COALESCE(uniq(memberId), 0) AS activeContributors
+        FROM activities_with_relations_sorted_deduplicated_ds
+        WHERE
+            timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+            AND timestamp < toStartOfQuarter(now())
+            AND memberId != ''
+            AND channel != ''
+        GROUP BY segmentId, channel
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_active_contributors_union
+SQL >
+    %
+    SELECT
+        segmentId,
+        {% if not defined(repo) %} ''
+        {% else %} {{ String(repo) }}
+        {% end %} as repo,
+        activeContributors
+    FROM health_score_active_contributors_score
+    {% if not defined(project) %}
+        UNION ALL
+        SELECT segmentId, repo, activeContributors
+        FROM health_score_active_contributors_repo_score
+    {% end %}
 
 NODE health_score_active_contributors_with_benchmark
 SQL >
     SELECT
         segmentId,
+        repo,
         activeContributors,
         CASE
             WHEN activeContributors BETWEEN 0 AND 1
@@ -31,4 +82,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS activeContributorsBenchmark
-    FROM health_score_active_contributors_score
+    FROM health_score_active_contributors_union

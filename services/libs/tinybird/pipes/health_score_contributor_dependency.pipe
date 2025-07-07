@@ -1,12 +1,29 @@
+TOKEN "health_score_contributor_dependency_endpoint_read_3267" READ
+
 NODE health_score_contributor_dependency_contribution_count
 SQL >
+    %
     SELECT segmentId, memberId, count() AS contributionCount
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
-        timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
-        AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
-        AND memberId != ''
-        AND isContribution
+        1 = 1
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repo) %}
+                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
+            AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+        {% end %} AND memberId != '' AND isContribution
     GROUP BY segmentId, memberId
 
 NODE health_score_contributor_dependency_contribution_percentage
@@ -15,8 +32,8 @@ SQL >
         segmentId,
         memberId,
         contributionCount,
-        ROUND(
-            contributionCount * 100.0 / SUM(contributionCount) OVER (PARTITION BY segmentId), 0
+        (
+            contributionCount * 100.0 / SUM(contributionCount) OVER (PARTITION BY segmentId)
         ) AS contributionPercentage
     FROM health_score_contributor_dependency_contribution_count
 
@@ -37,15 +54,97 @@ SQL >
     SELECT
         segmentId,
         count() AS contributorDependencyCount,
-        sum(contributionPercentage) AS contributorDependencyPercentage
+        round(sum(contributionPercentage)) AS contributorDependencyPercentage
     FROM health_score_contributor_dependency_contribution_runnning_total
     WHERE contributionPercentageRunningTotal < 51
     GROUP BY segmentId
+
+NODE health_score_contributor_dependency_repo_contribution_count
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT segmentId, channel as repo, memberId, count() AS contributionCount
+        FROM activities_with_relations_sorted_deduplicated_ds
+        WHERE
+            timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
+            AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+            AND memberId != ''
+            AND channel != ''
+            AND isContribution
+        GROUP BY segmentId, channel, memberId
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_contributor_dependency_repo_contribution_percentage
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT
+            segmentId,
+            repo,
+            memberId,
+            contributionCount,
+            (
+                contributionCount * 100.0 / SUM(contributionCount) OVER (PARTITION BY segmentId, repo)
+            ) AS contributionPercentage
+        FROM health_score_contributor_dependency_repo_contribution_count
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_contributor_dependency_repo_contribution_runnning_total
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT
+            segmentId,
+            repo,
+            memberId,
+            contributionCount,
+            contributionPercentage,
+            SUM(contributionPercentage) OVER (
+                PARTITION BY segmentId, repo ORDER BY contributionPercentage DESC, memberId
+            ) AS contributionPercentageRunningTotal
+        FROM health_score_contributor_dependency_repo_contribution_percentage
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_contributor_dependency_repo_score
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT
+            segmentId,
+            repo,
+            count() AS contributorDependencyCount,
+            round(sum(contributionPercentage)) AS contributorDependencyPercentage
+        FROM health_score_contributor_dependency_repo_contribution_runnning_total
+        WHERE contributionPercentageRunningTotal < 51
+        GROUP BY segmentId, repo
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_contributor_dependency_union
+SQL >
+    %
+    SELECT
+        segmentId,
+        {% if not defined(repo) %} ''
+        {% else %} {{ String(repo) }}
+        {% end %} as repo,
+        contributorDependencyCount,
+        contributorDependencyPercentage
+    FROM health_score_contributor_dependency_score
+    {% if not defined(project) %}
+        UNION ALL
+        SELECT segmentId, repo, contributorDependencyCount, contributorDependencyPercentage
+        FROM health_score_contributor_dependency_repo_score
+    {% end %}
 
 NODE health_score_contributor_dependency_with_benchmark
 SQL >
     SELECT
         segmentId,
+        repo,
         contributorDependencyCount,
         contributorDependencyPercentage,
         CASE
@@ -63,4 +162,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS contributorDependencyBenchmark
-    FROM health_score_contributor_dependency_score
+    FROM health_score_contributor_dependency_union

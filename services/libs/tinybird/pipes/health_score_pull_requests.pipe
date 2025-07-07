@@ -1,20 +1,70 @@
+TOKEN "health_score_pull_requests_endpoint_read_8094" READ
+
 NODE health_score_pull_requests_score
 DESCRIPTION >
     Returns activeContributors for previous quarter per project
 
 SQL >
+    %
     SELECT segmentId, count() AS pullRequests
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
-        (timestamp >= toStartOfDay(now() - toIntervalDay(365)))
-        AND (timestamp < toStartOfDay(now() + toIntervalDay(1)))
-        AND (type IN ('pull_request-opened', 'pull_request-merged', 'pull_request-closed'))
+        type = 'pull_request-opened'
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repo) %}
+                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
+            AND timestamp < toStartOfDay(now() + toIntervalDay(1))
+        {% end %}
     GROUP BY segmentId
+
+NODE health_score_pull_requests_repo_score
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT segmentId, channel as repo, count() AS pullRequests
+        FROM activities_with_relations_sorted_deduplicated_ds
+        WHERE
+            type = 'pull_request-opened'
+            AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
+            AND timestamp < toStartOfDay(now() + toIntervalDay(1))
+            AND channel != ''
+        GROUP BY segmentId, channel
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_pull_requests_union
+SQL >
+    %
+    SELECT
+        segmentId,
+        {% if not defined(repo) %} ''
+        {% else %} {{ String(repo) }}
+        {% end %} as repo,
+        pullRequests
+    FROM health_score_pull_requests_score
+    {% if not defined(project) %}
+        UNION ALL
+        SELECT segmentId, repo, pullRequests
+        FROM health_score_pull_requests_repo_score
+    {% end %}
 
 NODE health_score_pull_requests_with_benchmark
 SQL >
     SELECT
         segmentId,
+        repo,
         pullRequests,
         CASE
             WHEN pullRequests BETWEEN 0 AND 1
@@ -31,4 +81,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS pullRequestsBenchmark
-    FROM health_score_pull_requests_score
+    FROM health_score_pull_requests_union

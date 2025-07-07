@@ -1,23 +1,75 @@
+TOKEN "health_score_issues_resolution_endpoint_read_9916" READ
+
 NODE health_score_issues_resolution_activities
 SQL >
-    SELECT id, segmentId
+    %
+    SELECT id, segmentId, channel as repo
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
-        timestamp >= toStartOfDay(now()) - INTERVAL 365 DAY
-        AND timestamp < toStartOfDay(now()) + INTERVAL 1 DAY
+        1 = 1
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repo) %}
+                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now()) - INTERVAL 365 DAY
+            AND timestamp < toStartOfDay(now()) + INTERVAL 1 DAY
+        {% end %}
 
-NODE health_score_issues_resolution_score
+NODE health_score_issues_resolution_issues_info
 SQL >
-    SELECT af.segmentId AS segmentId, round(avg(ia.closedInSeconds) / (60 * 60 * 24)) AS issueResolution
+    SELECT af.segmentId AS segmentId, af.repo as repo, ia.closedInSeconds as closedInSeconds
     FROM health_score_issues_resolution_activities AS af
     LEFT JOIN issues_analyzed AS ia ON af.id = ia.id
     WHERE ia.closedAt IS NOT NULL
+
+NODE health_score_issues_resolution_score
+SQL >
+    SELECT segmentId, round(avg(closedInSeconds) / (60 * 60 * 24)) AS issueResolution
+    FROM health_score_issues_resolution_issues_info
     GROUP BY segmentId
+
+NODE health_score_issues_resolution_repo_score
+SQL >
+    %
+    {% if not defined(project) %}
+        SELECT segmentId, repo, round(avg(closedInSeconds) / (60 * 60 * 24)) AS issueResolution
+        FROM health_score_issues_resolution_issues_info
+        WHERE repo != ''
+        GROUP BY segmentId, repo
+    {% else %} SELECT 1
+    {% end %}
+
+NODE health_score_issues_resolution_union
+SQL >
+    %
+    SELECT
+        segmentId,
+        {% if not defined(repo) %} ''
+        {% else %} {{ String(repo) }}
+        {% end %} as repo,
+        issueResolution
+    FROM health_score_issues_resolution_score
+    {% if not defined(project) %}
+        UNION ALL
+        SELECT segmentId, repo, issueResolution
+        FROM health_score_issues_resolution_repo_score
+    {% end %}
 
 NODE health_score_issues_resolution_with_benchmark
 SQL >
     SELECT
         segmentId,
+        repo,
         issueResolution,
         CASE
             WHEN issueResolution >= 61
@@ -34,4 +86,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS issueResolutionBenchmark
-    FROM health_score_issues_resolution_score
+    FROM health_score_issues_resolution_union

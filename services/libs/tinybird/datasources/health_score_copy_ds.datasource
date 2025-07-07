@@ -2,6 +2,7 @@ SCHEMA >
     `id` String,
     `segmentId` String,
     `slug` String,
+    `repo` String,
     `widgets` Array(String),
     `activeContributors` UInt64,
     `activeContributorsBenchmark` UInt64,
@@ -37,4 +38,4 @@ SCHEMA >
     `overallScore` Float64
 
 ENGINE MergeTree
-ENGINE_SORTING_KEY slug, id
+ENGINE_SORTING_KEY slug, repo, id
