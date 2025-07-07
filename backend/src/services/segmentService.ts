@@ -86,7 +86,7 @@ export default class SegmentService extends LoggerBase {
     try {
       // create project group
       const projectGroup = await segmentRepository.create(data)
-      
+
       await collectionService.createCollection({
         name: data.name,
         categoryId: null,
@@ -94,7 +94,7 @@ export default class SegmentService extends LoggerBase {
         slug: data.slug,
         starred: data.isLF ?? false,
       })
-      
+
       // create project counterpart
       const project = await segmentRepository.create({
         ...data,
