@@ -159,7 +159,12 @@ export default class IntegrationService {
       )
 
       if (insightsProject) {
-        this.updateInsightsProject(insightsProject.id, record.segmentId)
+        this.updateInsightsProject({
+          insightsProjectId: insightsProject.id,
+          isFirstUpdate: true,
+          platform: data.platform,
+          segmentId: record.segmentId,
+        })
       }
 
       return record
@@ -169,21 +174,34 @@ export default class IntegrationService {
     }
   }
 
-  private async updateInsightsProject(insightsProjectId: string, segmentId: string) {
+  private async updateInsightsProject({
+    insightsProjectId,
+    isFirstUpdate = false,
+    platform,
+    segmentId,
+  }: {
+    insightsProjectId: string
+    isFirstUpdate?: boolean
+    platform: PlatformType
+    segmentId: string
+  }) {
     const collectionService = new CollectionService(this.options)
 
     const data: Partial<ICreateInsightsProject> = {}
-    const { platforms, widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+    const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
     data.widgets = widgets
 
-    if (platforms.some(IntegrationService.isCodePlatform)) {
+    if (IntegrationService.isCodePlatform(platform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
       data.repositories = [
         ...new Set(Object.values(repositories).flatMap((entries) => entries.map((e) => e.url))),
       ]
     }
 
-    if (platforms.includes(PlatformType.GITHUB)) {
+    if (
+      (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO) &&
+      isFirstUpdate
+    ) {
       const githubInsights = await collectionService.findGithubInsightsForSegment(segmentId)
       if (githubInsights) {
         data.description = githubInsights.description
@@ -214,7 +232,11 @@ export default class IntegrationService {
       )
 
       if (insightsProject) {
-        this.updateInsightsProject(insightsProject.id, record.segmentId)
+        this.updateInsightsProject({
+          insightsProjectId: insightsProject.id,
+          platform: data.platform,
+          segmentId: record.segmentId,
+        })
       }
 
       return record
