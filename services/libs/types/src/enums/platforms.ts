@@ -36,7 +36,7 @@ export type CodePlatform =
   | PlatformType.GITHUB_NANGO
   | PlatformType.GITLAB
   | PlatformType.GIT
-  | PlatformType.GERRIT;
+  | PlatformType.GERRIT
 
 export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
 
