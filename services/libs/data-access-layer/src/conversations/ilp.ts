@@ -8,7 +8,7 @@ import { IDbConversationCreateData } from '../old/apps/data_sink_worker/repo/con
 
 const log = getServiceChildLogger('data-access-layer/conversations/ilp.ts')
 
-const ilp: Sender = getClientILP()
+let ilp: Sender
 export async function insertConversations(
   conversations: IDbConversationCreateData[],
   update = false,
@@ -17,6 +17,10 @@ export async function insertConversations(
   const now = Date.now()
 
   if (conversations.length > 0) {
+    if (!ilp) {
+      ilp = getClientILP()
+    }
+
     for (const conversation of conversations) {
       const id = conversation.id || generateUUIDv4()
       ids.push(id)
