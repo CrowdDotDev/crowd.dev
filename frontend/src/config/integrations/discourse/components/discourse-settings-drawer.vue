@@ -61,6 +61,7 @@
           <el-input
             ref="focus"
             v-model="form.apiKey"
+            type="password"
             @blur="onBlurAPIKey()"
           >
             <template #suffix>

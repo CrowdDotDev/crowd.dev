@@ -37,6 +37,7 @@
         />
       </div>
     </div>
+
     <div v-if="integration && integration.status" :class="status.actionBar.background">
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
@@ -107,6 +108,12 @@
         </div>
       </div>
     </div>
+
+    <component
+      :is="props.config.mappedReposComponent"
+      v-if="props.config.mappedReposComponent"
+      :segment-id="route.params.id"
+    />
   </article>
 </template>
 

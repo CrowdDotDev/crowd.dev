@@ -1,0 +1,50 @@
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: git-integration
+  SHELL: /bin/sh
+
+services:
+  git-integration:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.git_integration
+    working_dir: /usr/crowd/app/services/apps/git_integration
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    restart: always
+    networks:
+      - crowd-bridge
+    ports:
+      - '8085:8085'
+
+  git-integration-dev:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.git_integration
+    command: ["./src/runner.sh", "local"]
+    working_dir: /usr/crowd/app/services/apps/git_integration
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: git-integration
+    ports:
+      - '8085:8085'
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../services/apps/git_integration/src:/usr/crowd/app/services/apps/git_integration/src
+
+networks:
+  crowd-bridge:
+    external: true

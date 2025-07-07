@@ -80,6 +80,7 @@
           <el-input
             ref="focus"
             v-model="form.twoFactorCode"
+            type="password"
             @blur="onBlurTwoFactorCode()"
           >
             <template #suffix>

@@ -920,6 +920,35 @@ class SegmentRepository extends RepositoryBase<
 
     return result[0].segment_name as string
   }
+
+  async getMappedRepos(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+       select
+         r.url as url
+       from
+        "githubRepos" r
+       left join "integrations" i on r."integrationId" = i.id
+       where r."segmentId" = :segmentId
+       and r."tenantId" = :tenantId
+       and (i.id is null or i."segmentId" != :segmentId)
+       order by r.url
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result
+  }
 }
 
 export default SegmentRepository

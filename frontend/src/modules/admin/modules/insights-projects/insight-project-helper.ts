@@ -1,8 +1,13 @@
 import { InsightsProjectAddFormModel } from './models/insights-project-add-form.model';
-import { InsightsProjectModel, InsightsProjectRequest } from './models/insights-project.model';
-import { defaultWidgetsValues, Widgets } from './widgets';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from './models/insights-project.model';
+import { getDefaultWidgets } from './widgets';
 
-export const buildRequest = (form: InsightsProjectAddFormModel): InsightsProjectRequest => ({
+export const buildRequest = (
+  form: InsightsProjectAddFormModel,
+): InsightsProjectRequest => ({
   segmentId: form.segmentId,
   name: form.name,
   slug: form.slug,
@@ -16,7 +21,9 @@ export const buildRequest = (form: InsightsProjectAddFormModel): InsightsProject
   linkedin: form.linkedin,
   repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
   keywords: form.keywords,
-  widgets: Object.keys(form.widgets).filter((key: string) => form.widgets[key].enabled),
+  widgets: Object.keys(form.widgets).filter(
+    (key: string) => form.widgets[key].enabled,
+  ),
 });
 
 export const buildForm = (
@@ -36,29 +43,32 @@ export const buildForm = (
   repositories:
     repositories?.map((repository) => ({
       ...repository,
-      enabled: result.repositories?.some(
-        (repo: string) => repo === repository.url,
-      ) || false,
+      enabled:
+        result.repositories?.some((repo: string) => repo === repository.url)
+        || false,
     })) || [],
-  widgets: Object.keys(defaultWidgetsValues).reduce(
-    (acc, key: string) => ({
-      ...acc,
-      [key]: {
-        enabled: result.widgets.includes(key),
-        platform: defaultWidgetsValues[key as Widgets].platform,
+  widgets: Object.fromEntries(
+    getDefaultWidgets().map((key) => [
+      key,
+      {
+        enabled: result.widgets?.includes(key) || false,
       },
-    }),
-    {},
+    ]),
   ),
 });
 
-export const buildRepositories = (res: Record<string, Array<{ url: string; label: string }>>) => {
-  const urlMap = new Map<string, {
-    url: string;
-    label: string;
-    enabled: boolean;
-    platforms: string[];
-  }>();
+export const buildRepositories = (
+  res: Record<string, Array<{ url: string; label: string }>>,
+) => {
+  const urlMap = new Map<
+    string,
+    {
+      url: string;
+      label: string;
+      enabled: boolean;
+      platforms: string[];
+    }
+  >();
 
   // Iterate through each platform (git, github, gitlab, gerrit)
   Object.entries(res).forEach(([platform, repos]) => {
