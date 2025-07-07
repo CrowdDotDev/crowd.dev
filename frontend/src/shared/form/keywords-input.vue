@@ -33,10 +33,9 @@
     <div
       v-if="!isError"
       class="flex items-center mt-2"
-      :class="focused ? 'opacity-100' : 'opacity-0'"
+      :class="focused || showHint ? 'opacity-100' : 'opacity-0'"
     >
-      <span class="helper-copy">Press ENTER or comma (,) to separate
-        keywords.</span>
+      <span class="helper-copy">{{ hintText }}</span>
       <el-popover v-if="eagleEye" placement="top-start">
         <template #reference>
           <div
@@ -109,6 +108,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    showHint: {
+      type: Boolean,
+      default: false,
+    },
+    hintText: {
+      type: String,
+      default: 'Press ENTER or comma (,) to separate keywords.',
+    },
+
   },
   emits: ['update:modelValue'],
   data() {

@@ -49,6 +49,18 @@
     </lf-field>
   </article>
 
+  <!-- topics -->
+  <article class="mb-5">
+    <lf-field label-text="Topics">
+      <app-keywords-input
+        v-model="cForm.keywords"
+        :show-hint="true"
+        placeholder="Enter topic(s)"
+        hint-text="Press ENTER or comma (,) to separate topics."
+      />
+    </lf-field>
+  </article>
+
   <!-- Collections -->
   <article class="mb-5">
     <lf-field label-text="Collections">
@@ -59,7 +71,32 @@
   <!-- Associated company -->
   <article class="mb-5">
     <lf-field label-text="Associated company">
-      <lf-insights-projects-add-organizations-dropdown v-if="cForm.segmentId" :form="cForm" />
+      <lf-insights-projects-add-organizations-dropdown
+        v-if="cForm.segmentId"
+        :form="cForm"
+      />
+    </lf-field>
+  </article>
+
+  <!-- Keywords -->
+  <article class="mb-5">
+    <lf-field label-text="Keyword(s)">
+      <div class="text-tiny text-gray-500 mb-1">
+        <p class="mb-1">
+          Add keywords to your project. These keywords will be used to search
+          for repositories and projects that match the keywords.
+        </p>
+        <ul class="list-disc pl-4">
+          <li>Social mentions</li>
+          <li>Press mentions</li>
+          <li>Search queries (powered by Google Trends)</li>
+        </ul>
+      </div>
+      <app-keywords-input
+        v-model="cForm.searchKeywords"
+        placeholder="Enter keyword(s)"
+        :show-hint="true"
+      />
     </lf-field>
   </article>
 
@@ -122,6 +159,7 @@ import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useVuelidate from '@vuelidate/core';
 import { reactive } from 'vue';
+import AppKeywordsInput from '@/shared/form/keywords-input.vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectsAddCollectionDropdown from './add-details-tab/lf-insights-projects-add-collection-dropdown.vue';
 import LfInsightsProjectsAddOrganizationsDropdown from './add-details-tab/lf-insights-projects-add-organizations-dropdown.vue';
@@ -132,7 +170,6 @@ const props = defineProps<{
 }>();
 const cForm = reactive(props.form);
 const $v = useVuelidate(props.rules, cForm);
-
 </script>
 
 <script lang="ts">
