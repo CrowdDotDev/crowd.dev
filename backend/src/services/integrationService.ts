@@ -73,7 +73,6 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
     try {
-      console.log(' CREATING/UPDATING:', data)
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -266,6 +265,7 @@ export default class IntegrationService {
         for (const id of ids) {
           let integration
           try {
+            const collectionService = new CollectionService(this.options)
             integration = await this.findById(id)
 
             if (integration.segmentId) {
