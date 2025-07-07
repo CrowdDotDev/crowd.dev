@@ -179,12 +179,17 @@ export default class IntegrationService {
     if (platforms.some(IntegrationService.isCodePlatform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
 
-      data.repositories = Object.entries(repositories).flatMap(([platform, entries]) =>
-        entries.map((entry) => ({
-          platform,
-          url: entry.url,
-        })),
-      )
+
+      // data.repositories = Object.entries(repositories).flatMap(([platform, entries]) =>
+      //   entries.map((entry) => ({
+      //     platform,
+      //     url: entry.url,
+      //   })),
+      // )
+
+      // @ts-ignore
+      data.repositories = [...new Set(Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)))]
+
     }
 
     if (platforms.includes(PlatformType.GITHUB)) {
@@ -241,6 +246,8 @@ export default class IntegrationService {
             integration = await this.findById(id)
 
             if (integration?.segmentId) {
+              console.log(`Cleaning insights project for integration ${integration.id}...`)
+              
               const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
                 integration.segmentId,
               )
@@ -248,6 +255,8 @@ export default class IntegrationService {
               if (insightsProject) {
                 await collectionService.cleanInsightsProjectsById(insightsProject.id)
               }
+              console.log(`data cleaned ${integration.id}...`)
+
             }
           } catch (err) {
             throw new Error404()
