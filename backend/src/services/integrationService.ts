@@ -237,16 +237,16 @@ export default class IntegrationService {
             integration = await this.findById(id)
 
             if (integration?.segmentId) {
-              console.log(`Cleaning insights project for integration ${integration.id}...`)
-
               const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
                 integration.segmentId,
               )
 
               if (insightsProject) {
-                await collectionService.cleanInsightsProjectsById(insightsProject.id)
+                await collectionService.updateInsightsProject(insightsProject.id, {
+                  repositories: [],
+                  widgets: [],
+                })
               }
-              console.log(`data cleaned ${integration.id}...`)
             }
           } catch (err) {
             throw new Error404()
