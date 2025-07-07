@@ -583,12 +583,6 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
   @apply text-gray-500 underline;
 }
 
-.eagle-eye-dialog {
-  .el-dialog__header {
-    @apply pb-0;
-  }
-}
-
 .copy-icon {
   @apply h-8 w-8 flex items-center justify-center rounded-full bg-transparent text-gray-400 hover:bg-gray-200 hover:text-gray-900 cursor-pointer;
 }
