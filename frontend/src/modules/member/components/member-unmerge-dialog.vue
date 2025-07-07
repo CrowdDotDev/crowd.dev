@@ -333,7 +333,6 @@ import { computed, onMounted, ref } from 'vue';
 
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
-import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';

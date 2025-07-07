@@ -247,7 +247,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
-import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
