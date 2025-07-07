@@ -91,9 +91,3 @@ export default {
   name: 'DeleteConfirmDialog',
 };
 </script>
-
-<style>
-.remove-confirm-dialog .el-dialog__header {
-  display: none;
-}
-</style>
