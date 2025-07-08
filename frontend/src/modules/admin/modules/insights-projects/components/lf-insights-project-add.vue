@@ -342,7 +342,7 @@ const fetchProjectDetails = async (project: any) => {
         } else {
           fillForm(assignProjectDetails(res, form));
         }
-      } else {
+      } else if (isEditForm.value) {
         form.name = project.name;
         form.description = project.description;
         form.logoUrl = project.url;
