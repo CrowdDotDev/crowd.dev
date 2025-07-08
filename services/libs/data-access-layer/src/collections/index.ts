@@ -11,10 +11,10 @@ import {
 import { QueryOptions } from '../utils'
 
 export interface ICreateCollection {
-  name: string
-  description?: string
   categoryId: string
-  slug: string
+  description?: string
+  name: string
+  slug?: string
   starred: boolean
 }
 
@@ -59,6 +59,7 @@ export interface IInsightsProject {
 
 export interface ICreateInsightsProject extends IInsightsProject {
   collections: string[]
+  starred?: boolean
 }
 
 export interface ICollectionInsightProject {
@@ -71,13 +72,14 @@ export interface ICollectionInsightProject {
 }
 
 export enum CollectionField {
-  ID = 'id',
-  NAME = 'name',
-  DESCRIPTION = 'description',
   CATEGORY_ID = 'categoryId',
   CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
+  DESCRIPTION = 'description',
+  ID = 'id',
+  NAME = 'name',
+  SLUG = 'slug',
   STARRED = 'starred',
+  UPDATED_AT = 'updatedAt',
 }
 
 export async function queryCollections<T extends CollectionField>(
@@ -158,7 +160,10 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
   return queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), opts)
 }
 
-export async function createInsightsProject(qx: QueryExecutor, insightProject: IInsightsProject) {
+export async function createInsightsProject(
+  qx: QueryExecutor,
+  insightProject: Partial<IInsightsProject>,
+) {
   return qx.selectOne(
     prepareInsert(
       'insightsProjects',
@@ -278,4 +283,14 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
     ...project,
   }
   return toUpdate
+}
+
+export async function findBySlug(qx: QueryExecutor, slug: string) {
+  const collections = await queryCollections(qx, {
+    filter: {
+      slug: { eq: slug },
+    },
+    fields: Object.values(CollectionField),
+  })
+  return collections
 }
