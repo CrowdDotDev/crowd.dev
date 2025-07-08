@@ -438,13 +438,20 @@ export class CollectionService extends LoggerBase {
 
         if (i.platform === PlatformType.GIT) {
           for (const r of (i.settings as any).remotes) {
-            let label = r
-            if (r.includes('https://gitlab.com/')) {
-              label = r.replace('https://gitlab.com/', '')
-            } else if (r.includes('https://github.com/')) {
-              label = r.replace('https://github.com/', '')
+            try {
+              const url = new URL(r)
+              let label = r
+
+              if (url.hostname === 'gitlab.com') {
+                label = url.pathname.slice(1) 
+              } else if (url.hostname === 'github.com') {
+                label = url.pathname.slice(1)
+              }
+
+              addToResult(i.platform, r, label)
+            } catch {
+              console.warn(`Invalid URL in remotes: ${r}`)
             }
-            addToResult(i.platform, r, label)
           }
         }
 
