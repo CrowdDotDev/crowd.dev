@@ -14,7 +14,7 @@ class ActivityRepository {
     return type === EntityType.MEMBER ? 'memberId' : 'organizationId'
   }
 
-  async doesActivityExistInQuestDb(id: string, type: EntityType): Promise<boolean> {
+  async doesEntityActivityExistInQuestDb(id: string, type: EntityType): Promise<boolean> {
     const results = await this.questdbSQL.query(
       `select 1 from activities where "${this.getEntityColumn(type)}" = $(id) limit 1`,
       { id },
@@ -68,6 +68,23 @@ class ActivityRepository {
       `UPDATE "activityRelations" SET "organizationId" = null, "updatedAt" = now() WHERE "organizationId" IS NOT NULL AND "activityId" IN ($(activityIds:csv))`,
       { activityIds },
     )
+  }
+
+  async checkIfActivitiesExistInQuestDb(
+    activityIds: string[],
+    start: string,
+    end: string,
+  ): Promise<string[]> {
+    const results = await this.questdbSQL.query(
+      `
+      SELECT "id"
+      FROM activities
+      WHERE "id" IN ($(activityIds:csv))
+      AND "timestamp" BETWEEN $(start) AND $(end) `,
+      { activityIds, start, end },
+    )
+
+    return results.map((result) => result.id)
   }
 }
 

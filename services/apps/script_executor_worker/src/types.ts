@@ -56,3 +56,7 @@ export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
   checkByActivityIdentity?: boolean
   checkByTwitterIdentity?: boolean
 }
+
+export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
+  groupsPerRun?: number
+}
