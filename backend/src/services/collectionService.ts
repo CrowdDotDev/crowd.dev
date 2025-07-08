@@ -620,17 +620,4 @@ export class CollectionService extends LoggerBase {
     return result
   }
 
-  async findInsightsProjectsBySegmentId(
-    segmentId: string,
-  ): Promise<QueryResult<InsightsProjectField>[]> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const result = await queryInsightsProjects(qx, {
-      filter: {
-        segmentId: { eq: segmentId },
-      },
-      fields: Object.values(InsightsProjectField),
-    })
-
-    return result
-  }
 }
