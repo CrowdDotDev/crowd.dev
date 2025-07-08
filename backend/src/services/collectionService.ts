@@ -450,7 +450,7 @@ export class CollectionService extends LoggerBase {
 
               addToResult(i.platform, r, label)
             } catch {
-              console.warn(`Invalid URL in remotes: ${r}`)
+              this.options.log.warn(`Invalid URL in remotes: ${r}`)
             }
           }
         }
