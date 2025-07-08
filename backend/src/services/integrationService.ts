@@ -264,7 +264,6 @@ export default class IntegrationService {
         for (const id of ids) {
           let integration
           try {
-            const collectionService = new CollectionService(this.options)
             integration = await this.findById(id)
 
             if (integration.segmentId) {
