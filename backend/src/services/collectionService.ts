@@ -544,39 +544,41 @@ export class CollectionService extends LoggerBase {
   async findSegmentsWidgetsById(
     segmentId: string,
   ): Promise<{ platforms: PlatformType[]; widgets: Widgets[] }> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const widgets = new Set<Widgets>()
-    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
-    const platforms = [
-      ...new Set(
-        integrations
-          .map((integration) => integration.platform)
-          .filter(CollectionService.isValidPlatform),
-      ),
-    ]
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const widgets = new Set<Widgets>()
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+      const platforms = [
+        ...new Set(
+          integrations
+            .map((integration) => integration.platform)
+            .filter(CollectionService.isValidPlatform),
+        ),
+      ]
 
-    // Check for mapped repositories and add GitHub if there are any
-    const segmentRepository = new SegmentRepository(this.options)
-    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
-    if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
-      platforms.push(PlatformType.GITHUB)
-    }
+      // Check for mapped repositories and add GitHub if there are any
+      const segmentRepository = new SegmentRepository(this.options)
+      const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+      if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
+        platforms.push(PlatformType.GITHUB)
+      }
 
-    for (const platform of platforms) {
-      Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
-        if (
-          config.enabled &&
-          config.platform.some((p) => p.toLowerCase() === platform.toLowerCase())
-        ) {
-          widgets.add(key as Widgets)
-        }
-      })
-    }
+      for (const platform of platforms) {
+        Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
+          if (
+            config.enabled &&
+            config.platform.some((p) => p.toLowerCase() === platform.toLowerCase())
+          ) {
+            widgets.add(key as Widgets)
+          }
+        })
+      }
 
-    return {
-      platforms,
-      widgets: [...widgets],
-    }
+      return {
+        platforms,
+        widgets: [...widgets],
+      }
+    })
   }
 
   async findInsightsProjectsBySegmentId(
