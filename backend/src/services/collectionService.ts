@@ -443,7 +443,7 @@ export class CollectionService extends LoggerBase {
               let label = r
 
               if (url.hostname === 'gitlab.com') {
-                label = url.pathname.slice(1) 
+                label = url.pathname.slice(1)
               } else if (url.hostname === 'github.com') {
                 label = url.pathname.slice(1)
               }
