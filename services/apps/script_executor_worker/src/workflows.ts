@@ -1,3 +1,4 @@
+import { cleanupActivityRelationsWithSourceIdNull } from './workflows/cleanup/activity-relations-with-sourceId-null'
 import { cleanupDuplicateMembers } from './workflows/cleanup/duplicate-members'
 import { cleanupMembers } from './workflows/cleanup/members'
 import { cleanupOrganizations } from './workflows/cleanup/organizations'
@@ -28,4 +29,5 @@ export {
   processLLMVerifiedMerges,
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
+  cleanupActivityRelationsWithSourceIdNull,
 }

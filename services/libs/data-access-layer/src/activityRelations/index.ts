@@ -51,3 +51,26 @@ export async function getOrganizationActivityCoreAggregates(
     memberCount: parseInt(result.memberCount),
   }))
 }
+
+export async function fetchActivityRelationsWithNullSourceId(qx: QueryExecutor, limit: number) {
+  const results = await qx.select(
+    `
+    SELECT "activityId"
+    FROM "activityRelations"
+    WHERE "sourceId" IS NULL
+    LIMIT $(limit);
+    `,
+    { limit },
+  )
+
+  return results.map((result) => result.activityId)
+}
+
+export async function deleteActivityRelationsById(qx: QueryExecutor, activityIds: string[]) {
+  return qx.result(
+    `
+    DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds));
+    `,
+    { activityIds },
+  )
+}
