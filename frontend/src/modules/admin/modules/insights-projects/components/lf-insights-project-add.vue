@@ -252,7 +252,9 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
-  Object.assign(form, initialFormState);
+  if (!isEditForm.value) {
+    Object.assign(form, initialFormState);
+  }
   fetchProjectDetails(project);
   fetchWidgets(project.id);
 
