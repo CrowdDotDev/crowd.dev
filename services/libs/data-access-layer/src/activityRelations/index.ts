@@ -69,7 +69,7 @@ export async function fetchActivityRelationsWithNullSourceId(qx: QueryExecutor, 
 export async function deleteActivityRelationsById(qx: QueryExecutor, activityIds: string[]) {
   return qx.result(
     `
-    DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds));
+    DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds:csv));
     `,
     { activityIds },
   )

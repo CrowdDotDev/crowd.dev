@@ -27,13 +27,11 @@ export async function cleanupActivityRelationsWithSourceIdNull(
   const chunked = chunkArray(activityIds, CHUNK_SIZE)
 
   await Promise.all(
-    chunked.map(async (chunk) => {
-      try {
-        await deleteActivityRelations(chunk)
-      } catch (err) {
-        console.error('Error cleaning up activity relations with sourceId null!', err)
-      }
-    }),
+    chunked.map((chunk) =>
+      deleteActivityRelations(chunk).catch((err) =>
+        console.error('Error cleaning up activity relations with sourceId null!', err),
+      ),
+    ),
   )
 
   if (args.testRun) {
