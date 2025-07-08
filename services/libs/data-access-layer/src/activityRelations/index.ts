@@ -52,7 +52,7 @@ export async function getOrganizationActivityCoreAggregates(
   }))
 }
 
-export async function fetchSingleActivityRelationsDuplicateGroup(
+export async function fetchActivityRelationsDuplicateGroup(
   qx: QueryExecutor,
 ): Promise<{ activityId: string; timestamp: string }[]> {
   return qx.select(

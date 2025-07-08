@@ -61,12 +61,17 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
         await deleteActivityRelations(idsToDelete)
       }
     } else {
-      throw new ApplicationFailure(
+      throw ApplicationFailure.nonRetryable(
         `Expected only one activity in QuestDB but found ${activityIdsInQuestDb.length} activities.`,
       )
     }
 
     groupsProcessed++
+  }
+
+  if (args.testRun) {
+    console.log('Test run completed!')
+    return
   }
 
   await continueAsNew<typeof dedupActivityRelations>(args)
