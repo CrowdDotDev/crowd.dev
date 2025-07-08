@@ -248,6 +248,8 @@ export default class IntegrationService {
   }
 
   async destroyAll(ids) {
+    const toRemoveRepo = new Set<string>()
+    let segmentId
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -255,20 +257,10 @@ export default class IntegrationService {
         for (const id of ids) {
           let integration
           try {
-            const collectionService = new CollectionService(this.options)
             integration = await this.findById(id)
 
-            if (integration?.segmentId) {
-              const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
-                integration.segmentId,
-              )
-
-              if (insightsProject) {
-                await collectionService.updateInsightsProject(insightsProject.id, {
-                  repositories: [],
-                  widgets: [],
-                })
-              }
+            if (integration.segmentId) {
+              segmentId = integration.segmentId
             }
           } catch (err) {
             throw new Error404()
@@ -292,6 +284,8 @@ export default class IntegrationService {
             }, {})
 
             for (const [segmentId, urls] of Object.entries(repos)) {
+              urls.forEach((url) => toRemoveRepo.add(url))
+
               const segmentOptions: IRepositoryOptions = {
                 ...this.options,
                 currentSegments: [
@@ -359,6 +353,23 @@ export default class IntegrationService {
           })
         }
       }
+
+      const collectionService = new CollectionService({ ...this.options, transaction })
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+      const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+
+      const repositories = [
+        ...new Set<string>(
+          insightsProject.repositories.filter((repo: string) => !toRemoveRepo.has(repo)),
+        ),
+      ]
+
+      await collectionService.updateInsightsProject(insightsProject.id, {
+        widgets,
+        repositories,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
