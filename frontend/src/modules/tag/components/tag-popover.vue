@@ -1,43 +1,49 @@
 <template>
-  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit tags" :pre-title="member?.displayName ?? ''">
-    <template #content>
-      <div class="px-6 pb-6">
-        <form v-if="modelValue" class="tags-form">
-          <app-tag-autocomplete-input
-            v-model="editTagsModel"
-            :fetch-fn="fields.tags.fetchFn"
-            :mapper-fn="fields.tags.mapperFn"
-            :create-if-not-found="true"
-            placeholder="Type to search/create tags"
-          />
-        </form>
-      </div>
+  <lf-modal
+    v-if="computedVisible"
+    v-model="computedVisible"
+    header-title="Edit tags"
+    :pre-title="member?.displayName ?? ''"
+    width="42rem"
+    content-class="!overflow-unset"
+  >
+    <div class="px-6 pb-6">
+      <form v-if="modelValue" class="tags-form">
+        <app-tag-autocomplete-input
+          v-model="editTagsModel"
+          :fetch-fn="fields.tags.fetchFn"
+          :mapper-fn="fields.tags.mapperFn"
+          :create-if-not-found="true"
+          placeholder="Type to search/create tags"
+        />
+      </form>
+    </div>
 
-      <div class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6">
-        <lf-button
-          type="bordered"
-          size="medium"
-          class="mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          size="medium"
-          :disabled="isSubmitDisabled"
-          @click="handleSubmit"
-        >
-          Submit
-        </lf-button>
-      </div>
-    </template>
-  </app-dialog>
+    <div
+      class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+    >
+      <lf-button
+        type="bordered"
+        size="medium"
+        class="mr-3"
+        @click="handleCancel"
+      >
+        Cancel
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
+        :disabled="isSubmitDisabled"
+        @click="handleSubmit"
+      >
+        Submit
+      </lf-button>
+    </div>
+  </lf-modal>
 </template>
 
 <script>
 import { MemberModel } from '@/modules/member/member-model';
-import AppDialog from '@/shared/dialog/dialog.vue';
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
 import { FormSchema } from '@/shared/form/form-schema';
 import { mapActions } from 'vuex';
@@ -47,8 +53,12 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 
 const { trackEvent } = useProductTracking();
 
@@ -60,7 +70,7 @@ const formSchema = new FormSchema([fields.tags]);
 
 export default {
   name: 'AppTagPopover',
-  components: { AppTagAutocompleteInput, AppDialog, LfButton },
+  components: { AppTagAutocompleteInput, LfModal, LfButton },
 
   props: {
     modelValue: {
@@ -110,7 +120,9 @@ export default {
     },
     isSubmitDisabled() {
       const segments = this.member
-        ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
+        ? (this.member.segmentIds
+          ?? this.member.segments?.map((s) => s.id)
+          ?? getSegmentsFromProjectGroup(this.selectedProjectGroup))
         : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
       return !segments.some((s) => this.hasAccessToSegmentId(s));
@@ -129,36 +141,31 @@ export default {
 
   methods: {
     ...mapActions({
-      doBulkUpdateMembersTags:
-        'member/doBulkUpdateMembersTags',
+      doBulkUpdateMembersTags: 'member/doBulkUpdateMembersTags',
     }),
 
     prepareUpdateTags() {
-      this.editTagsModel = this.membersToUpdate.reduce(
-        (acc, item, index) => {
-          let { tags } = formSchema.initialValues({
-            tags: item.tags,
-          });
-          if (index > 0) {
-            tags = tags.filter(
-              (tag) => acc.filter((t) => t.id === tag.id).length
-                > 0,
-            );
-          }
-          return tags;
-        },
-        [],
-      );
-      this.editTagsInCommon = [
-        ...this.editTagsModel,
-      ];
+      this.editTagsModel = this.membersToUpdate.reduce((acc, item, index) => {
+        let { tags } = formSchema.initialValues({
+          tags: item.tags,
+        });
+        if (index > 0) {
+          tags = tags.filter(
+            (tag) => acc.filter((t) => t.id === tag.id).length > 0,
+          );
+        }
+        return tags;
+      }, []);
+      this.editTagsInCommon = [...this.editTagsModel];
     },
 
     async handleSubmit() {
       this.loading = true;
 
       const segments = this.member
-        ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
+        ? (this.member.segmentIds
+          ?? this.member.segments?.map((s) => s.id)
+          ?? getSegmentsFromProjectGroup(this.selectedProjectGroup))
         : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
       trackEvent({

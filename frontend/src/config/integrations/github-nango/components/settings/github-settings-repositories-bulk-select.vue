@@ -1,93 +1,99 @@
 <template>
-  <app-dialog v-model="isModalVisible" title="Bulk selection">
-    <template #content>
-      <div class="px-6">
-        <article class="pb-3">
-          <p class="text-sm font-medium text-black mb-1">
-            Repositories
-          </p>
-          <el-select
-            v-model="form.repositories"
-            placeholder="Select option(s)"
-            class="w-full"
-            placement="bottom-end"
-            filterable
-            multiple
-            :teleported="false"
-          >
-            <el-option
-              value="all"
-              label="All repositories"
-              @click="form.repositories = ['all']"
-            />
-            <el-option
-              v-for="repo of props.repositories"
-              :key="repo.url"
-              :value="repo.url"
-              :label="repo.name"
-              @click="isAll ? form.repositories = form.repositories.filter((r) => r !== 'all') : null"
-            />
-          </el-select>
-        </article>
-        <article class="pb-8">
-          <p class="text-sm font-medium text-black mb-1">
-            Map with
-          </p>
-          <el-select
-            v-model="form.subproject"
-            placeholder="Select sub-project"
-            class="w-full"
-            placement="bottom-end"
-            filterable
-            :teleported="false"
-          >
-            <el-option
-              v-for="subproject of props.subprojects"
-              :key="subproject.id"
-              :value="subproject.id"
-              :label="subproject.name"
-            />
-          </el-select>
-        </article>
-      </div>
-      <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-4">
-        <lf-button
-          type="bordered"
-          size="medium"
-          @click="isModalVisible = false; reset()"
+  <lf-modal v-model="isModalVisible" content-class="!overflow-unset" width="42rem" header-title="Bulk selection">
+    <div class="px-6">
+      <article class="pb-3">
+        <p class="text-sm font-medium text-black mb-1">
+          Repositories
+        </p>
+        <el-select
+          v-model="form.repositories"
+          placeholder="Select option(s)"
+          class="w-full"
+          placement="bottom-end"
+          filterable
+          multiple
+          :teleported="false"
         >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          :disabled="$v.$invalid"
-          @click="mapRepos()"
+          <el-option
+            value="all"
+            label="All repositories"
+            @click="form.repositories = ['all']"
+          />
+          <el-option
+            v-for="repo of props.repositories"
+            :key="repo.url"
+            :value="repo.url"
+            :label="repo.name"
+            @click="
+              isAll
+                ? (form.repositories = form.repositories.filter(
+                  (r) => r !== 'all',
+                ))
+                : null
+            "
+          />
+        </el-select>
+      </article>
+      <article class="pb-8">
+        <p class="text-sm font-medium text-black mb-1">
+          Map with
+        </p>
+        <el-select
+          v-model="form.subproject"
+          placeholder="Select sub-project"
+          class="w-full"
+          placement="bottom-end"
+          filterable
+          :teleported="false"
         >
-          <span>
-            Map repositories <span v-if="form.repositories.length > 0">({{ isAll ? props.repositories.length : form.repositories.length }})</span>
-          </span>
-        </lf-button>
-      </div>
-    </template>
-  </app-dialog>
+          <el-option
+            v-for="subproject of props.subprojects"
+            :key="subproject.id"
+            :value="subproject.id"
+            :label="subproject.name"
+          />
+        </el-select>
+      </article>
+    </div>
+    <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-4">
+      <lf-button
+        type="bordered"
+        size="medium"
+        @click="
+          isModalVisible = false;
+          reset();
+        "
+      >
+        Cancel
+      </lf-button>
+      <lf-button type="primary" :disabled="$v.$invalid" @click="mapRepos()">
+        <span>
+          Map repositories
+          <span v-if="form.repositories.length > 0">({{
+            isAll ? props.repositories.length : form.repositories.length
+          }})</span>
+        </span>
+      </lf-button>
+    </div>
+  </lf-modal>
 </template>
 
 <script lang="ts" setup>
-import {
-  computed, reactive,
-} from 'vue';
-import AppDialog from '@/shared/dialog/dialog.vue';
+import { computed, reactive } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: boolean,
-  repositories: any[],
-  subprojects: any[],
+  modelValue: boolean;
+  repositories: any[];
+  subprojects: any[];
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'apply', value: Record<string, string>): void }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void;
+  (e: 'apply', value: Record<string, string>): void;
+}>();
 
 // Modal visibility
 const isModalVisible = computed({
@@ -101,7 +107,7 @@ const isModalVisible = computed({
 
 const form = reactive<{
   subproject: string;
-  repositories: string[]
+  repositories: string[];
 }>({
   subproject: '',
   repositories: [],
@@ -131,10 +137,13 @@ const mapRepos = () => {
   if (isAll.value) {
     repos = props.repositories.map((r) => r.url);
   }
-  const data = repos.reduce((mapping, url) => ({
-    ...mapping,
-    [url]: form.subproject,
-  }), {});
+  const data = repos.reduce(
+    (mapping, url) => ({
+      ...mapping,
+      [url]: form.subproject,
+    }),
+    {},
+  );
   emit('apply', data);
   reset();
   isModalVisible.value = false;
