@@ -152,7 +152,7 @@ export default class IntegrationService {
         transaction,
       })
 
-      const collectionService = new CollectionService(this.options)
+      const collectionService = new CollectionService({ ...this.options, transaction })
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
@@ -225,7 +225,7 @@ export default class IntegrationService {
         transaction,
       })
 
-      const collectionService = new CollectionService(this.options)
+      const collectionService = new CollectionService({ ...this.options, transaction })
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
@@ -360,16 +360,14 @@ export default class IntegrationService {
 
       const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
 
-      const repositories = [
-        ...new Set<string>(
-          insightsProject.repositories.filter((repo: string) => !toRemoveRepo.has(repo)),
-        ),
-      ]
+      const insightsRepo = insightsProject.repositories ?? []
 
-      await collectionService.updateInsightsProject(insightsProject.id, {
-        widgets,
-        repositories,
-      })
+      const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
+
+      // remove duplicates
+      const repositories = [...new Set<string>(filteredRepos)]
+
+      await collectionService.updateInsightsProject(insightsProject.id, { widgets, repositories })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {

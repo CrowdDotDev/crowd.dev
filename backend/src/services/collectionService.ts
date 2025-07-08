@@ -399,92 +399,94 @@ export class CollectionService extends LoggerBase {
   }
 
   async findRepositoriesForSegment(segmentId: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
 
-    // Initialize result with platform arrays
-    const result: Record<string, Array<{ url: string; label: string }>> = {
-      git: [],
-      github: [],
-      gitlab: [],
-      gerrit: [],
-    }
-
-    const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
-      const platformKey = platform.toLowerCase()
-      if (!result[platformKey].some((item) => item.url === fullUrl)) {
-        result[platformKey].push({ url: fullUrl, label })
+      // Initialize result with platform arrays
+      const result: Record<string, Array<{ url: string; label: string }>> = {
+        git: [],
+        github: [],
+        gitlab: [],
+        gerrit: [],
       }
-    }
 
-    for (const i of integrations) {
-      if (i.platform === PlatformType.GITHUB) {
-        for (const org of (i.settings as any).orgs) {
-          for (const repo of org.repos) {
-            const label = `${org.name}/${repo.name}`
-            const fullUrl = `https://github.com/${label}`
-            addToResult(i.platform, fullUrl, label)
+      const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
+        const platformKey = platform.toLowerCase()
+        if (!result[platformKey].some((item) => item.url === fullUrl)) {
+          result[platformKey].push({ url: fullUrl, label })
+        }
+      }
+
+      for (const i of integrations) {
+        if (i.platform === PlatformType.GITHUB) {
+          for (const org of (i.settings as any).orgs) {
+            for (const repo of org.repos) {
+              const label = `${org.name}/${repo.name}`
+              const fullUrl = `https://github.com/${label}`
+              addToResult(i.platform, fullUrl, label)
+            }
+          }
+        }
+
+        if (i.platform === PlatformType.GITHUB_NANGO) {
+          for (const org of (i.settings as any).orgs) {
+            for (const repo of org.repos) {
+              const label = `${org.name}/${repo.name}`
+              const fullUrl = `https://github.com/${label}`
+              addToResult(PlatformType.GITHUB, fullUrl, label)
+            }
+          }
+        }
+
+        if (i.platform === PlatformType.GIT) {
+          for (const r of (i.settings as any).remotes) {
+            let label = r
+            if (r.includes('https://gitlab.com/')) {
+              label = r.replace('https://gitlab.com/', '')
+            } else if (r.includes('https://github.com/')) {
+              label = r.replace('https://github.com/', '')
+            }
+            addToResult(i.platform, r, label)
+          }
+        }
+
+        if (i.platform === PlatformType.GITLAB) {
+          for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
+            for (const r of group) {
+              const label = r.path_with_namespace
+              const fullUrl = `https://gitlab.com/${label}`
+              addToResult(i.platform, fullUrl, label)
+            }
+          }
+        }
+
+        if (i.platform === PlatformType.GERRIT) {
+          for (const r of (i.settings as any).remote.repos) {
+            addToResult(i.platform, r, r)
           }
         }
       }
 
-      if (i.platform === PlatformType.GITHUB_NANGO) {
-        for (const org of (i.settings as any).orgs) {
-          for (const repo of org.repos) {
-            const label = `${org.name}/${repo.name}`
-            const fullUrl = `https://github.com/${label}`
-            addToResult(PlatformType.GITHUB, fullUrl, label)
+      // Add mapped repositories to GitHub platform
+      const segmentRepository = new SegmentRepository(this.options)
+      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+
+      for (const repo of mappedRepos) {
+        const url = repo.url
+        try {
+          const parsedUrl = new URL(url)
+          if (parsedUrl.hostname === 'github.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITHUB, url, label)
           }
+        } catch (err) {
+          // Do nothing
         }
       }
 
-      if (i.platform === PlatformType.GIT) {
-        for (const r of (i.settings as any).remotes) {
-          let label = r
-          if (r.includes('https://gitlab.com/')) {
-            label = r.replace('https://gitlab.com/', '')
-          } else if (r.includes('https://github.com/')) {
-            label = r.replace('https://github.com/', '')
-          }
-          addToResult(i.platform, r, label)
-        }
-      }
-
-      if (i.platform === PlatformType.GITLAB) {
-        for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
-          for (const r of group) {
-            const label = r.path_with_namespace
-            const fullUrl = `https://gitlab.com/${label}`
-            addToResult(i.platform, fullUrl, label)
-          }
-        }
-      }
-
-      if (i.platform === PlatformType.GERRIT) {
-        for (const r of (i.settings as any).remote.repos) {
-          addToResult(i.platform, r, r)
-        }
-      }
-    }
-
-    // Add mapped repositories to GitHub platform
-    const segmentRepository = new SegmentRepository(this.options)
-    const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
-
-    for (const repo of mappedRepos) {
-      const url = repo.url
-      try {
-        const parsedUrl = new URL(url)
-        if (parsedUrl.hostname === 'github.com') {
-          const label = parsedUrl.pathname.slice(1) // removes leading '/'
-          addToResult(PlatformType.GITHUB, url, label)
-        }
-      } catch (err) {
-        // Do nothing
-      }
-    }
-
-    return result
+      return result
+    })
   }
 
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
