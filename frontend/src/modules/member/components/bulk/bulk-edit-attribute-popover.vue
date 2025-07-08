@@ -1,113 +1,143 @@
 <template>
-  <app-dialog v-if="computedVisible" v-model="computedVisible" title="Edit attribute">
-    <template #content>
-      <div class="px-6 pb-6">
-        <el-form
-          ref="formRef"
-          :model="formModel"
-          class="attributes-form mt-1 mb-5"
-          label-position="top"
-        >
-          <el-form-item
-            label="Choose attribute"
-            class="mb-6"
-            required="true"
-          >
-            <app-bulk-edit-attribute-dropdown v-model="attributesData" @change="handleDropdownChange" @clear="handleDropdownClear" />
+  <lf-modal
+    v-if="computedVisible"
+    v-model="computedVisible"
+    header-title="Edit attribute"
+    width="42rem"
+    content-class="!overflow-unset"
+  >
+    <div class="px-6 pb-6">
+      <el-form
+        ref="formRef"
+        :model="formModel"
+        class="attributes-form mt-1 mb-5"
+        label-position="top"
+      >
+        <el-form-item label="Choose attribute" class="mb-6" required="true">
+          <app-bulk-edit-attribute-dropdown
+            v-model="attributesData"
+            @change="handleDropdownChange"
+            @clear="handleDropdownClear"
+          />
+        </el-form-item>
+
+        <!-- Show value field only if attribute is selected -->
+        <div v-if="Object.keys(selectedAttribute).length > 0">
+          <el-form-item label="New value" required="true">
+            <app-autocomplete-many-input
+              v-if="selectedAttribute.type === 'multiSelect'"
+              v-model="formModel[selectedAttribute.name]"
+              :fetch-fn="multiSelectFetchFn"
+              :create-fn="multiSelectCreateFn"
+              :placeholder="multiSelectPlaceholder"
+              :input-class="multiSelectClassName"
+              :create-if-not-found="true"
+              :in-memory-filter="false"
+            >
+              <template
+                v-if="selectedAttribute.name === 'organizations'"
+                #option="{ item }"
+              >
+                <div class="flex items-center">
+                  <app-avatar
+                    :entity="{
+                      ...item,
+                      displayName: item.label,
+                      avatar: item.logo,
+                    }"
+                    entity-name="organization"
+                    size="xxs"
+                    class="mr-2"
+                  />
+                  {{ item.label }}
+                </div>
+              </template>
+            </app-autocomplete-many-input>
+            <el-date-picker
+              v-else-if="selectedAttribute.type === 'date'"
+              v-model="formModel[selectedAttribute.name]"
+              :prefix-icon="CalendarIcon"
+              class="custom-date-picker attribute-date-picker"
+              size="large"
+              popper-class="date-picker-popper"
+              type="date"
+              value-format="YYYY-MM-DD"
+              format="YYYY-MM-DD"
+              placeholder="YYYY-MM-DD"
+            />
+            <el-select
+              v-else-if="selectedAttribute.type === 'boolean'"
+              v-model="formModel[selectedAttribute.name]"
+              class="w-full"
+              clearable
+              placeholder="Select option"
+            >
+              <el-option
+                key="true"
+                label="True"
+                :value="true"
+                @mouseleave="onSelectMouseLeave"
+              />
+              <el-option
+                key="false"
+                label="False"
+                :value="false"
+                @mouseleave="onSelectMouseLeave"
+              />
+            </el-select>
+            <el-input
+              v-else
+              v-model="formModel[selectedAttribute.name]"
+              placeholder="Enter value"
+              :type="selectedAttribute.type"
+              clearable
+            />
           </el-form-item>
 
-          <!-- Show value field only if attribute is selected -->
-          <div v-if="Object.keys(selectedAttribute).length > 0">
-            <el-form-item
-              label="New value"
-              required="true"
-            >
-              <app-autocomplete-many-input
-                v-if="selectedAttribute.type === 'multiSelect'"
-                v-model="formModel[selectedAttribute.name]"
-                :fetch-fn="multiSelectFetchFn"
-                :create-fn="multiSelectCreateFn"
-                :placeholder="multiSelectPlaceholder"
-                :input-class="multiSelectClassName"
-                :create-if-not-found="true"
-                :in-memory-filter="false"
-              >
-                <template v-if="selectedAttribute.name === 'organizations'" #option="{ item }">
-                  <div class="flex items-center">
-                    <app-avatar
-                      :entity="{
-                        ...item,
-                        displayName: item.label,
-                        avatar: item.logo,
-                      }"
-                      entity-name="organization"
-                      size="xxs"
-                      class="mr-2"
-                    />
-                    {{ item.label }}
-                  </div>
-                </template>
-              </app-autocomplete-many-input>
-              <el-date-picker
-                v-else-if="selectedAttribute.type === 'date'"
-                v-model="formModel[selectedAttribute.name]"
-                :prefix-icon="CalendarIcon"
-                class="custom-date-picker attribute-date-picker"
-                size="large"
-                popper-class="date-picker-popper"
-                type="date"
-                value-format="YYYY-MM-DD"
-                format="YYYY-MM-DD"
-                placeholder="YYYY-MM-DD"
-              />
-              <el-select
-                v-else-if="selectedAttribute.type === 'boolean'"
-                v-model="formModel[selectedAttribute.name]"
-                class="w-full"
-                clearable
-                placeholder="Select option"
-              >
-                <el-option key="true" label="True" :value="true" @mouseleave="onSelectMouseLeave" />
-                <el-option key="false" label="False" :value="false" @mouseleave="onSelectMouseLeave" />
-              </el-select>
-              <el-input v-else v-model="formModel[selectedAttribute.name]" placeholder="Enter value" :type="selectedAttribute.type" clearable />
-            </el-form-item>
-
-            <div v-if="selectedAttribute.type === 'multiSelect'" class="flex items-center gap-2 -mt-2">
-              <lf-icon name="circle-info" :size="20" class="text-gray-400" />
-              <span class="text-xs leading-5 text-gray-500">
-                Values will be added to each selected profile and the existing ones won’t be overwritten.
-              </span>
-            </div>
-
-            <div v-else class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6">
-              <lf-icon name="triangle-exclamation" class="text-yellow-500" />
-              <span class="text-xs leading-5 text-gray-900">Changes will overwrite the current attribute value of the selected profile.</span>
-            </div>
+          <div
+            v-if="selectedAttribute.type === 'multiSelect'"
+            class="flex items-center gap-2 -mt-2"
+          >
+            <lf-icon name="circle-info" :size="20" class="text-gray-400" />
+            <span class="text-xs leading-5 text-gray-500">
+              Values will be added to each selected profile and the existing
+              ones won’t be overwritten.
+            </span>
           </div>
-        </el-form>
-      </div>
 
-      <div class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6">
-        <lf-button
-          type="bordered"
-          size="medium"
-          class="mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          size="medium"
-          :disabled="!hasFormChanged"
-          @click="handleSubmit"
-        >
-          Submit
-        </lf-button>
-      </div>
-    </template>
-  </app-dialog>
+          <div
+            v-else
+            class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center gap-2 py-2 px-4 mt-6"
+          >
+            <lf-icon name="triangle-exclamation" class="text-yellow-500" />
+            <span class="text-xs leading-5 text-gray-900">Changes will overwrite the current attribute value of the
+              selected profile.</span>
+          </div>
+        </div>
+      </el-form>
+    </div>
+
+    <div
+      class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+    >
+      <lf-button
+        type="bordered"
+        size="medium"
+        class="mr-3"
+        @click="handleCancel"
+      >
+        Cancel
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
+        :disabled="!hasFormChanged"
+        @click="handleSubmit"
+      >
+        Submit
+      </lf-button>
+    </div>
+  </lf-modal>
 </template>
 
 <script setup>
@@ -118,7 +148,6 @@ import {
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import { MemberModel } from '@/modules/member/member-model';
-import AppDialog from '@/shared/dialog/dialog.vue';
 import { FormSchema } from '@/shared/form/form-schema';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { onSelectMouseLeave } from '@/utils/select';
@@ -128,16 +157,19 @@ import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import AppBulkEditAttributeDropdown from '@/modules/member/components/bulk/bulk-edit-attribute-dropdown.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useRoute } from 'vue-router';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 
 const CalendarIcon = h(
   'i', // type
   {
-    class:
-      'fa-calendar fa-light text-base leading-none text-gray-400',
+    class: 'fa-calendar fa-light text-base leading-none text-gray-400',
   }, // props
   [],
 );
@@ -181,8 +213,19 @@ const computedVisible = computed({
 
 function filteredAttributes(attributes) {
   return attributes.filter(
-    ({ name }) => !['bio', 'karma', 'url', 'name', 'education', 'websiteUrl',
-      'avatarUrl', 'sourceId', 'awards', 'workExperiences', 'certifications'].includes(name),
+    ({ name }) => ![
+      'bio',
+      'karma',
+      'url',
+      'name',
+      'education',
+      'websiteUrl',
+      'avatarUrl',
+      'sourceId',
+      'awards',
+      'workExperiences',
+      'certifications',
+    ].includes(name),
   );
 }
 
@@ -200,7 +243,9 @@ function getInitialModel() {
 
 const selectedAttribute = ref({});
 const formModel = ref(getInitialModel());
-const hasFormChanged = computed(() => !isEqual(getInitialModel(), formModel.value));
+const hasFormChanged = computed(
+  () => !isEqual(getInitialModel(), formModel.value),
+);
 
 watch(
   () => props.modelValue,
@@ -270,10 +315,14 @@ const handleDropdownChange = (value) => {
   formModel.value = getInitialModel();
 
   if (value.default) {
-    const selected = defaultAttributes.find((attribute) => attribute.name === value.default.name);
+    const selected = defaultAttributes.find(
+      (attribute) => attribute.name === value.default.name,
+    );
     selectedAttribute.value = selected;
   } else if (value.custom) {
-    const selected = computedCustomAttributes.value.find((attribute) => attribute.name === value.custom.name);
+    const selected = computedCustomAttributes.value.find(
+      (attribute) => attribute.name === value.custom.name,
+    );
     selectedAttribute.value = selected;
   }
 };
@@ -336,35 +385,32 @@ const handleSubmit = async () => {
 
   // Remove any existent empty data
   const data = {
-    ...formModel.value.joinedAt && {
+    ...(formModel.value.joinedAt && {
       joinedAt: formModel.value.joinedAt,
-    },
-    ...formModel.value.organizations.length && {
-      organizations: formModel.value.organizations.map(
-        (o) => ({
+    }),
+    ...(formModel.value.organizations.length && {
+      organizations: formModel.value.organizations
+        .map((o) => ({
           id: o.id,
           name: o.name,
-          ...o.memberOrganizations?.title && {
+          ...(o.memberOrganizations?.title && {
             title: o.memberOrganizations?.title,
-          },
-          ...o.memberOrganizations?.dateStart && {
+          }),
+          ...(o.memberOrganizations?.dateStart && {
             startDate: o.memberOrganizations?.dateStart,
-          },
-          ...o.memberOrganizations?.dateEnd && {
+          }),
+          ...(o.memberOrganizations?.dateEnd && {
             endDate: o.memberOrganizations?.dateEnd,
-          },
-        }),
-      ).filter(
-        (o) => !!o.id,
-      ),
-    },
-    ...(Object.keys(formattedAttributes).length
+          }),
+        }))
+        .filter((o) => !!o.id),
+    }),
+    ...((Object.keys(formattedAttributes).length
       || formModel.value.attributes) && {
       attributes: {
-        ...(Object.keys(formattedAttributes).length
-          && formattedAttributes),
+        ...(Object.keys(formattedAttributes).length && formattedAttributes),
       },
-    },
+    }),
   };
 
   await store.dispatch('member/doBulkUpdateMembersAttribute', {
@@ -387,7 +433,6 @@ const handleCancel = () => {
   formModel.value = {};
   computedVisible.value = false;
 };
-
 </script>
 
 <script>

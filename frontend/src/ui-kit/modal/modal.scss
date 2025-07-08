@@ -1,11 +1,11 @@
-.c-modal{
+.c-modal {
   position: fixed;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 30, 51, 0.1);
-  z-index: 1000;
+  z-index: 2020;
   visibility: visible;
   opacity: 1;
   display: flex;
@@ -14,7 +14,7 @@
   align-items: center;
   padding: rem(64) rem(16);
 
-  &__content{
+  &__content {
     width: 100%;
     max-width: rem(600);
     background-color: var(--lf-color-white);
@@ -23,5 +23,9 @@
     border-radius: rem(8);
     max-height: 100%;
     overflow: auto;
+  }
+
+  &__header {
+    @apply flex justify-between p-6;
   }
 }
