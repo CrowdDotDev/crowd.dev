@@ -338,7 +338,7 @@ const fetchProjectDetails = async (project: any) => {
           newForm = cloneDeep(form);
           newForm = assignProjectDetails(res, newForm);
         } else {
-          Object.assign(form, assignProjectDetails(res, form));
+          fillForm(assignProjectDetails(res, form));
         }
       } else {
         form.name = project.name;
