@@ -70,6 +70,8 @@
               <lf-insights-project-add-details-tab
                 v-if="activeTab === 'details'"
                 :form="form"
+                :old-form="oldForm"
+                :new-form="newForm"
                 :rules="rules"
               />
               <lf-insights-project-add-repository-tab
@@ -129,6 +131,7 @@ import { TanstackKey } from '@/shared/types/tanstack';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
+  InsightsProjectDetailsResponse,
   InsightsProjectModel,
   InsightsProjectRequest,
 } from '../models/insights-project.model';
@@ -192,6 +195,8 @@ const initialFormState: InsightsProjectAddFormModel = {
   ),
 };
 const form = reactive<InsightsProjectAddFormModel>(cloneDeep(initialFormState));
+let oldForm: InsightsProjectAddFormModel | undefined;
+let newForm: InsightsProjectAddFormModel | undefined;
 
 const rules = {
   name: {
@@ -247,7 +252,9 @@ const { isLoading, isSuccess, data } = useQuery({
 });
 
 const onProjectSelection = ({ project }: any) => {
-  Object.assign(form, initialFormState);
+  if (!isEditForm.value) {
+    Object.assign(form, initialFormState);
+  }
   fetchProjectDetails(project);
   fetchWidgets(project.id);
 
@@ -328,14 +335,14 @@ const fetchProjectDetails = async (project: any) => {
   InsightsProjectsService.getInsightsProjectDetails(project.id)
     .then((res) => {
       if (res) {
-        form.name = res.name || '';
-        form.description = res.description || '';
-        form.github = res.github || '';
-        form.twitter = res.twitter || '';
-        form.website = res.website || '';
-        form.logoUrl = res.logoUrl || '';
-        form.keywords = res.topics || [];
-      } else {
+        if (isEditForm.value) {
+          oldForm = cloneDeep(form);
+          newForm = cloneDeep(form);
+          newForm = assignProjectDetails(res, newForm);
+        } else {
+          fillForm(assignProjectDetails(res, form));
+        }
+      } else if (isEditForm.value) {
         form.name = project.name;
         form.description = project.description;
         form.logoUrl = project.url;
@@ -350,6 +357,21 @@ const fetchProjectDetails = async (project: any) => {
     .finally(() => {
       isLoadingProject.value = false;
     });
+};
+
+const assignProjectDetails = (
+  res: InsightsProjectDetailsResponse,
+  form: InsightsProjectAddFormModel,
+) => {
+  const updatedForm = cloneDeep(form);
+  updatedForm.name = res.name || '';
+  updatedForm.description = res.description || '';
+  updatedForm.github = res.github || '';
+  updatedForm.twitter = res.twitter || '';
+  updatedForm.website = res.website || '';
+  updatedForm.logoUrl = res.logoUrl || '';
+  updatedForm.keywords = res.topics || [];
+  return updatedForm;
 };
 
 const fetchWidgets = async (segmentId: string) => {
