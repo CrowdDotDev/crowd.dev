@@ -3,35 +3,26 @@ DESCRIPTION >
 
 TAGS "Widget"
 
-NODE country_mapping_array
-SQL >
-    SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-
-NODE parsed_country
+NODE contributors_geo_distribution_member_data
 SQL >
     SELECT
-        m.id,
-        m.location,
-        arrayFilter(
-            x -> position(coalesce(nullIf(m.country, ''), m.location), upper(x .1)) > 0,
-            (SELECT country_data FROM country_mapping_array)
-        ) AS matched_countries,
-        arrayJoin(
-            if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)
-        ) AS country_data
-    FROM members_sorted AS m
+        m.countryCode AS country_code,
+        count() AS contributorCount,
+        round(
+            (count() / (select "contributorCount" from active_contributors)) * 100
+        ) as "contributorPercentage"
+    FROM members_sorted as m
     WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
+    GROUP BY country_code
+    ORDER BY contributorCount DESC
 
 NODE contributors_geo_distribution_result
 SQL >
     SELECT
-        country_data .1 AS country,
-        country_data .2 AS flag,
-        country_data .3 AS country_code,
-        COUNT(id) AS contributorCount,
-        round(
-            (count(id) / (select "contributorCount" from active_contributors)) * 100
-        ) as "contributorPercentage"
-    FROM parsed_country
-    GROUP BY country, flag, country_code
-    ORDER BY contributorCount DESC
+        c.country AS country,
+        c.flag AS flag,
+        m.country_code,
+        m.contributorCount,
+        m.contributorPercentage
+    FROM contributors_geo_distribution_member_data as m
+    LEFT JOIN country_mapping as c using (country_code)

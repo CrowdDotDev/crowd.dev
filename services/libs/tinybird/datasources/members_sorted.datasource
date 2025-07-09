@@ -12,7 +12,10 @@ SCHEMA >
     `updatedAt` DateTime64(3),
     `displayName` String,
     `score` Int32,
-    `publicName` String
+    `publicName` String,
+    `countryName` String,
+    `countryFlag` String,
+    `countryCode` String
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(joinedAt)
