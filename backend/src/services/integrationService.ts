@@ -323,7 +323,10 @@ export default class IntegrationService {
               }
             }
 
-            if (integration.platform === PlatformType.GITHUB) {
+            if (
+              integration.platform === PlatformType.GITHUB ||
+              integration.platform === PlatformType.GITHUB_NANGO
+            ) {
               // soft delete github repos
               await GithubReposRepository.delete(integration.id, {
                 ...this.options,
