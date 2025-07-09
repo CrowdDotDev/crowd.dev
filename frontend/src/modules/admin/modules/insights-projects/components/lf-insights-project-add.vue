@@ -336,9 +336,11 @@ const fetchProjectDetails = async (project: any) => {
     .then((res) => {
       if (res) {
         if (isEditForm.value) {
-          oldForm = cloneDeep(form);
           newForm = cloneDeep(form);
           newForm = assignProjectDetails(res, newForm);
+          fillForm(fillIfNotExisting(form, newForm));
+          newForm = fillIfNotExisting(newForm, form);
+          oldForm = cloneDeep(form);
         } else {
           fillForm(assignProjectDetails(res, form));
         }
@@ -357,6 +359,36 @@ const fetchProjectDetails = async (project: any) => {
     .finally(() => {
       isLoadingProject.value = false;
     });
+};
+
+const fillIfNotExisting = (
+  form: InsightsProjectAddFormModel,
+  newForm: InsightsProjectAddFormModel,
+) => {
+  const tempForm = cloneDeep(form);
+  if (!tempForm.name || tempForm.name.trim() === '') {
+    tempForm.name = newForm.name || '';
+  }
+  if (!tempForm.description || tempForm.description.trim() === '') {
+    tempForm.description = newForm.description || '';
+  }
+  if (!tempForm.logoUrl || tempForm.logoUrl.trim() === '') {
+    tempForm.logoUrl = newForm.logoUrl || '';
+  }
+  if (!tempForm.github || tempForm.github.trim() === '') {
+    tempForm.github = newForm.github || '';
+  }
+  if (!tempForm.twitter || tempForm.twitter.trim() === '') {
+    tempForm.twitter = newForm.twitter || '';
+  }
+  if (!tempForm.website || tempForm.website.trim() === '') {
+    tempForm.website = newForm.website || '';
+  }
+  if (!tempForm.keywords || tempForm.keywords.length === 0) {
+    tempForm.keywords = newForm.keywords || [];
+  }
+
+  return tempForm;
 };
 
 const assignProjectDetails = (
