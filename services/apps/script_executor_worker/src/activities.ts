@@ -26,7 +26,7 @@ import {
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
 import {
-  checkIfActivitiesExistInQuestDb,
+  checkActivitiesWithTimestampExistInQuestDb,
   deleteActivityRelations,
   getActivityRelationsDuplicateGroup,
 } from './activities/dedup-activity-relations'
@@ -119,5 +119,5 @@ export {
   unlinkOrganizationFromBotActivities,
   getActivityRelationsDuplicateGroup,
   deleteActivityRelations,
-  checkIfActivitiesExistInQuestDb,
+  checkActivitiesWithTimestampExistInQuestDb,
 }

@@ -22,10 +22,9 @@ export async function deleteActivityRelations(activityIds: string[]): Promise<vo
   return deleteActivityRelationsById(qx, activityIds)
 }
 
-export async function checkIfActivitiesExistInQuestDb(
+export async function checkActivitiesWithTimestampExistInQuestDb(
   activityIds: string[],
-  start: string,
-  end: string,
+  timestamp: string,
 ): Promise<string[]> {
   const activityRepo = new ActivityRepository(
     svc.postgres.reader.connection(),
@@ -33,5 +32,5 @@ export async function checkIfActivitiesExistInQuestDb(
     svc.questdbSQL,
   )
 
-  return activityRepo.checkIfActivitiesExistInQuestDb(activityIds, start, end)
+  return activityRepo.checkActivitiesWithTimestampExistInQuestDb(activityIds, timestamp)
 }

@@ -7,7 +7,7 @@ import { chunkArray } from '../utils/common'
 const {
   getActivityRelationsDuplicateGroup,
   deleteActivityRelations,
-  checkIfActivitiesExistInQuestDb,
+  checkActivitiesWithTimestampExistInQuestDb,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -27,22 +27,19 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     }
 
     // 2. The first item is the "original"
-    const originalActivityRelation = duplicateGroup[0]
-    console.log(`Expected original activityId (${originalActivityRelation.activityId})`)
+    const ogActivityId = duplicateGroup[0].activityId
+    const ogActivityTimestamp = duplicateGroup[0].timestamp
+
+    console.log(`Expected original activityId (${ogActivityId})`)
 
     const activityIds = duplicateGroup.map(({ activityId }) => activityId)
-    const timestamps = duplicateGroup.map((r) => new Date(r.timestamp).getTime())
-
-    // 3. Get the start and end times for the duplicate group to check in QuestDB
-    const startTime = new Date(Math.min(...timestamps)).toISOString()
-    const endTime = new Date(Math.max(...timestamps)).toISOString()
 
     const activityIdChunks = chunkArray(activityIds, 500)
     const activityIdsInQuestDb: string[] = []
 
-    // 4. Check activities in QuestDB in chunks
+    // 3. Check activities in QuestDB in chunks
     for (const chunk of activityIdChunks) {
-      const foundIds = await checkIfActivitiesExistInQuestDb(chunk, startTime, endTime)
+      const foundIds = await checkActivitiesWithTimestampExistInQuestDb(chunk, ogActivityTimestamp)
 
       if (foundIds.length > 0) {
         activityIdsInQuestDb.push(...foundIds)
@@ -52,11 +49,11 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     if (activityIdsInQuestDb.length === 1) {
       const idToKeep = activityIdsInQuestDb[0]
 
-      if (idToKeep === originalActivityRelation.activityId) {
+      if (idToKeep === ogActivityId) {
         console.log(`QuestDB returned the expected activityId`)
       } else {
         console.log(
-          `QuestDB returned a different activityId (${idToKeep}) than the expected activityId (${originalActivityRelation.activityId})`,
+          `QuestDB returned a different activityId (${idToKeep}) than the expected activityId (${ogActivityId})`,
         )
       }
 

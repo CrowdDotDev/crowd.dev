@@ -70,18 +70,18 @@ class ActivityRepository {
     )
   }
 
-  async checkIfActivitiesExistInQuestDb(
+  async checkActivitiesWithTimestampExistInQuestDb(
     activityIds: string[],
-    start: string,
-    end: string,
+    timestamp: string,
   ): Promise<string[]> {
     const results = await this.questdbSQL.query(
       `
       SELECT "id"
       FROM activities
       WHERE "id" IN ($(activityIds:csv))
-      AND "timestamp" BETWEEN $(start) AND $(end) `,
-      { activityIds, start, end },
+      AND "timestamp" = $(timestamp)
+      `,
+      { activityIds, timestamp },
     )
 
     return results.map((result) => result.id)
