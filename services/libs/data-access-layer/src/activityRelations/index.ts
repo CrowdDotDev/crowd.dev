@@ -52,38 +52,40 @@ export async function getOrganizationActivityCoreAggregates(
   }))
 }
 
-export async function fetchActivityRelationsDuplicateGroup(
+export async function fetchActivityRelationsDuplicateGroups(
   qx: QueryExecutor,
-): Promise<{ activityId: string; timestamp: string }[]> {
+  limit: number,
+): Promise<{ activityIds: string[]; timestamp: string }[]> {
   return qx.select(
     `
-      WITH next_group AS (
-          SELECT "timestamp", "platform", "type", "sourceId", "channel", "segmentId"
-          FROM "activityRelations"
-          WHERE "timestamp" IS NOT NULL
+      WITH grouped_activity_relations AS (
+        SELECT
+          "timestamp",
+          "platform",
+          "type",
+          "sourceId",
+          "channel",
+          "segmentId",
+          array_agg("activityId" ORDER BY "updatedAt" DESC) AS "activityIds"
+        FROM "activityRelations"
+        WHERE
+          "timestamp" IS NOT NULL
           AND "platform" IS NOT NULL
           AND "type" IS NOT NULL
           AND "sourceId" IS NOT NULL
           AND "channel" IS NOT NULL
           AND "segmentId" IS NOT NULL
-          GROUP BY "timestamp", "platform", "type", "sourceId", "channel", "segmentId"
-          HAVING COUNT(*) > 1
-          LIMIT 1
+        GROUP BY
+          "timestamp", "platform", "type", "sourceId", "channel", "segmentId"
+        HAVING COUNT(*) > 1
       )
       SELECT
-          ar."activityId",
-          ar."timestamp",
-          ar."updatedAt"
-      FROM "activityRelations" ar
-      JOIN next_group ng
-        ON ar."timestamp" = ng."timestamp"
-      AND ar."platform" = ng."platform"
-      AND ar."type" = ng."type"
-      AND ar."sourceId" = ng."sourceId"
-      AND ar."channel" = ng."channel"
-      AND ar."segmentId" = ng."segmentId"
-      ORDER BY ar."updatedAt" DESC;
+        "activityIds",
+        "timestamp"
+      FROM grouped_activity_relations
+      LIMIT $(limit);
     `,
+    { limit },
   )
 }
 

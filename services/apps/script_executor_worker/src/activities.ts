@@ -28,7 +28,7 @@ import {
 import {
   checkActivitiesWithTimestampExistInQuestDb,
   deleteActivityRelations,
-  getActivityRelationsDuplicateGroup,
+  getActivityRelationsDuplicateGroups,
 } from './activities/dedup-activity-relations'
 import {
   findMemberById,
@@ -117,7 +117,7 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
-  getActivityRelationsDuplicateGroup,
+  getActivityRelationsDuplicateGroups,
   deleteActivityRelations,
   checkActivitiesWithTimestampExistInQuestDb,
 }
