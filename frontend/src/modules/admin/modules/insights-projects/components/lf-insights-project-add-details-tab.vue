@@ -12,13 +12,13 @@
         >
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.name ? 'bg-white text-gray-900' : ''"
-            @click="!switcher.name ? useOldData(['name']) : null"
+            :class="useOldData.name ? 'bg-white text-gray-900' : ''"
+            @click="!useOldData.name ? onUseOldData(['name']) : null"
           >Old data</span>
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.name ? '' : 'bg-white text-gray-900'"
-            @click="switcher.name ? useNewData(['name']) : null"
+            :class="useOldData.name ? '' : 'bg-white text-gray-900'"
+            @click="useOldData.name ? useNewData(['name']) : null"
           >updated data</span>
         </div>
       </template>
@@ -49,13 +49,13 @@
         >
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.description ? 'bg-white text-gray-900' : ''"
-            @click="!switcher.description ? useOldData(['description']) : null"
+            :class="useOldData.description ? 'bg-white text-gray-900' : ''"
+            @click="!useOldData.description ? onUseOldData(['description']) : null"
           >Old data</span>
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.description ? '' : 'bg-white text-gray-900'"
-            @click="switcher.description ? useNewData(['description']) : null"
+            :class="useOldData.description ? '' : 'bg-white text-gray-900'"
+            @click="useOldData.description ? useNewData(['description']) : null"
           >updated data</span>
         </div>
       </template>
@@ -85,13 +85,13 @@
         >
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.logoUrl ? 'bg-white text-gray-900' : ''"
-            @click="!switcher.logoUrl ? useOldData(['logoUrl']) : null"
+            :class="useOldData.logoUrl ? 'bg-white text-gray-900' : ''"
+            @click="!useOldData.logoUrl ? onUseOldData(['logoUrl']) : null"
           >Old data</span>
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.logoUrl ? '' : 'bg-white text-gray-900'"
-            @click="switcher.logoUrl ? useNewData(['logoUrl']) : null"
+            :class="useOldData.logoUrl ? '' : 'bg-white text-gray-900'"
+            @click="useOldData.logoUrl ? useNewData(['logoUrl']) : null"
           >updated data</span>
         </div>
       </template>
@@ -115,18 +115,18 @@
       <template #label>
         <label class="c-field__label leading-5"> Topics </label>
         <div
-          v-if="newForm"
+          v-if="newForm && isKeywordsDifferent()"
           class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
         >
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.keywords ? 'bg-white text-gray-900' : ''"
-            @click="!switcher.keywords ? useOldData(['keywords']) : null"
+            :class="useOldData.keywords ? 'bg-white text-gray-900' : ''"
+            @click="!useOldData.keywords ? onUseOldData(['keywords']) : null"
           >Old data</span>
           <span
             class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-            :class="switcher.keywords ? '' : 'bg-white text-gray-900'"
-            @click="switcher.keywords ? useNewData(['keywords']) : null"
+            :class="useOldData.keywords ? '' : 'bg-white text-gray-900'"
+            @click="useOldData.keywords ? useNewData(['keywords']) : null"
           >updated data</span>
         </div>
       </template>
@@ -185,23 +185,23 @@
       Website & Social accounts
     </h6>
     <div
-      v-if="newForm"
+      v-if="newForm && isWebsiteSectionDifferent()"
       class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
     >
       <span
         class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-        :class="switcher.website ? 'bg-white text-gray-900' : ''"
+        :class="useOldData.website ? 'bg-white text-gray-900' : ''"
         @click="
-          !switcher.website
-            ? useOldData(['website', 'github', 'twitter'])
+          !useOldData.website
+            ? onUseOldData(['website', 'github', 'twitter'])
             : null
         "
       >Old data</span>
       <span
         class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
-        :class="switcher.website ? '' : 'bg-white text-gray-900'"
+        :class="useOldData.website ? '' : 'bg-white text-gray-900'"
         @click="
-          switcher.website ? useNewData(['website', 'github', 'twitter']) : null
+          useOldData.website ? useNewData(['website', 'github', 'twitter']) : null
         "
       >updated data</span>
     </div>
@@ -273,7 +273,7 @@ const props = defineProps<{
 }>();
 const cForm = reactive(props.form);
 const $v = useVuelidate(props.rules, cForm);
-const switcher = ref<Record<string, boolean>>({
+const useOldData = ref<Record<string, boolean>>({
   name: true,
   description: true,
   logoUrl: true,
@@ -285,7 +285,7 @@ const switcher = ref<Record<string, boolean>>({
 
 const useNewData = (fields: string[]) => {
   fields.forEach((field) => {
-    switcher.value[field] = false;
+    useOldData.value[field] = false;
     if (props.newForm) {
       cForm[field as keyof InsightsProjectAddFormModel] = props.newForm[
         field as keyof InsightsProjectAddFormModel
@@ -294,15 +294,35 @@ const useNewData = (fields: string[]) => {
   });
 };
 
-const useOldData = (fields: string[]) => {
+const onUseOldData = (fields: string[]) => {
   fields.forEach((field) => {
-    switcher.value[field] = true;
+    useOldData.value[field] = true;
     if (props.oldForm) {
       cForm[field as keyof InsightsProjectAddFormModel] = props.oldForm[
         field as keyof InsightsProjectAddFormModel
       ] as any;
     }
   });
+};
+
+const isKeywordsDifferent = () => {
+  if (!props.oldForm || !props.newForm) return false;
+  const oldKeywords = props.oldForm.keywords || [];
+  const newKeywords = props.newForm.keywords || [];
+  return (
+    oldKeywords.length !== newKeywords.length
+    || oldKeywords.some((keyword) => !newKeywords.includes(keyword))
+    || newKeywords.some((keyword) => !oldKeywords.includes(keyword))
+  );
+};
+
+const isWebsiteSectionDifferent = () => {
+  if (!props.oldForm || !props.newForm) return false;
+  return (
+    props.oldForm.website !== props.newForm.website
+    || props.oldForm.github !== props.newForm.github
+    || props.oldForm.twitter !== props.newForm.twitter
+  );
 };
 </script>
 
