@@ -4,6 +4,7 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
@@ -159,11 +160,12 @@ export default class IntegrationService {
       )
 
       if (insightsProject) {
-        this.updateInsightsProject({
+        await this.updateInsightsProject({
           insightsProjectId: insightsProject.id,
           isFirstUpdate: true,
           platform: data.platform,
           segmentId: record.segmentId,
+          transaction,
         })
       }
 
@@ -179,13 +181,15 @@ export default class IntegrationService {
     isFirstUpdate = false,
     platform,
     segmentId,
+    transaction,
   }: {
     insightsProjectId: string
     isFirstUpdate?: boolean
     platform: PlatformType
     segmentId: string
+    transaction: Transaction
   }) {
-    const collectionService = new CollectionService(this.options)
+    const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
     const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
@@ -232,10 +236,11 @@ export default class IntegrationService {
       )
 
       if (insightsProject) {
-        this.updateInsightsProject({
+        await this.updateInsightsProject({
           insightsProjectId: insightsProject.id,
           platform: data.platform,
           segmentId: record.segmentId,
+          transaction,
         })
       }
 
@@ -268,13 +273,16 @@ export default class IntegrationService {
           // remove github remotes from git integration
           if (
             integration.platform === PlatformType.GITHUB ||
-            integration.platform === PlatformType.GITLAB
+            integration.platform === PlatformType.GITLAB ||
+            integration.platform === PlatformType.GITHUB_NANGO
           ) {
             let shouldUpdateGit: boolean
             const mapping =
-              integration.platform === PlatformType.GITHUB
+              integration.platform === PlatformType.GITHUB ||
+              integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
+
             const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
               if (!acc[segment.id]) {
                 acc[segment.id] = []
