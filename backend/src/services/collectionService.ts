@@ -1,6 +1,8 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
+import { LlmService } from '@crowd/common_services'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -29,7 +31,7 @@ import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
-import { LoggerBase } from '@crowd/logging'
+import { LoggerBase, getServiceLogger } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
 import SegmentRepository from '@/database/repositories/segmentRepository'
@@ -38,6 +40,163 @@ import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
+
+const CATEGORY_STRUCTURE_TEXT = `
+Creative & Design Tools                          | horizontal
+ Programming Languages & Frameworks               | horizontal
+ Operating Systems & Virtualization               | horizontal
+ Artificial Intelligence & Machine Learning       | horizontal
+ Developer Tools                                  | horizontal
+ Privacy Tools                                    | horizontal
+ Computer Science Fundamentals                    | horizontal
+ Application Definition and Development           | horizontal
+ Data Infrastructure & Analytics                  | horizontal
+ Security & Privacy                               | horizontal
+ Observability & Analysis                         | horizontal
+ Runtime                                          | horizontal
+ Provisioning                                     | horizontal
+ End‑User Applications                            | horizontal
+ Blockchain & Distributed Ledger                  | horizontal
+ Networking                                       | horizontal
+ User Interface & Applications                    | horizontal
+ Business Intelligence & Analytics                | horizontal
+ Orchestration & Management                       | horizontal
+ Business Automation & Decision Management        | horizontal
+ Scientific Computing & Engineering               | horizontal
+ Web & CMS Development                            | horizontal
+ Embedded Systems & Hardware                      | horizontal
+ Community & Collaboration                        | horizontal
+ Peripherals & Hardware Integration               | horizontal
+ Developer Resources                              | horizontal
+ Web Platforms                                    | horizontal
+ Compatibility & Emulation                        | horizontal
+ User Environment                                 | horizontal
+ Communication Infrastructure                     | horizontal
+ Collaboration & Social Platforms                 | horizontal
+ Hardware Design & Automation                     | horizontal
+ Decentralized Technologies                       | horizontal
+ Interactive Entertainment                        | horizontal
+ Game Development                                 | horizontal
+ Geospatial Software                              | horizontal
+ Hardware & Embedded                              | horizontal
+ Home Automation & IoT                            | horizontal
+ Smart Home & IoT                                 | horizontal
+ IT Operations & Management                       | horizontal
+ Enterprise IT Operations & Management            | horizontal
+ Internet of Things                               | horizontal
+ Data Repositories                                | horizontal
+ Automation & Workflow Tools                      | horizontal
+ Scientific & Medical Applications                | horizontal
+ Self-Hosted Solutions                            | horizontal
+ Software Discovery                               | horizontal
+ Digital Presence & Marketing                     | horizontal
+ Digital Identifier Infrastructure                | horizontal
+ Product Intelligence & Experimentation           | horizontal
+ Business & Productivity                          | horizontal
+ Quantum Computing                                | horizontal
+ Personal Productivity & Research                 | horizontal
+ Microsoft Ecosystem Development                  | horizontal
+ Signal Processing & Communications               | horizontal
+ Enterprise Middleware                            | horizontal
+ Systems & Infrastructure                         | horizontal
+ Download Management                              | horizontal
+ Arts & Culture                                   | vertical
+ Communication & Collaboration                    | horizontal
+ Surveillance & Video Analytics                   | horizontal
+ Multimedia & Creative Tools                      | horizontal
+ End-User Applications                            | horizontal
+ Web Foundations                                  | horizontal
+ Business Automation & Integration                | horizontal
+ Sales Tools                                      | vertical
+ Marketing Software                               | vertical
+ B2B Marketplaces                                 | vertical
+ Commerce Software                                | vertical
+ Customer Service Software                        | vertical
+ CAD & PLM Software                               | vertical
+ ERP Software                                     | vertical
+ HR Software                                      | vertical
+ Office Management Software                       | vertical
+ Supply Chain & Logistics Software                | vertical
+ Digital Advertising Tech                         | vertical
+ Finance & Fintech                                | vertical
+ Healthcare & Life Sciences                       | vertical
+ Government & Public Sector                       | vertical
+ Climate Tech & Sustainability                    | vertical
+ Education & Academia                             | vertical
+ Gaming & eSports Solutions                       | vertical
+ Robotics & Autonomous Systems                    | vertical
+ Science & Research                               | vertical
+ Digital Media & Entertainment                    | vertical
+ Geospatial & Mapping                             | vertical
+ Collaboration & Productivity                     | vertical
+ Digital Fabrication & Manufacturing              | vertical
+ Self-Hosted Solutions                            | vertical
+ Smart Home                                       | vertical
+ Self‑Hosted Solutions                            | vertical
+ Digital Media & Entertainment Software           | vertical
+ Community & Engagement                           | vertical
+ Publishing & Scholarly Communication             | vertical
+ Metaverse & Virtual Worlds                       | vertical
+ Field & Mobile Solutions                         | vertical
+ Cultural Heritage & Libraries                    | vertical
+ End‑User Applications                            | vertical
+ Customer Experience & Engagement                 | vertical
+ Architecture, Engineering & Construction         | vertical
+ Accessibility Solutions                          | vertical
+ Internet of Things                               | vertical
+ Hobby & Leisure                                  | vertical
+ Creative Industries                              | vertical
+ Transportation & Mobility                        | vertical
+ Telecommunications                               | vertical
+ Automotive & Transportation                      | vertical
+ Privacy Tools                                    | vertical
+ Social & Community                               | vertical
+ Electronic and Semiconductor Design              | vertical
+ Gaming & E-Sports Solutions                      | vertical
+ Language Industry Solutions                      | vertical
+ Blockchain Governance                            | vertical
+ Electronics & Semiconductor                      | vertical
+ Religious & Nonprofit Solutions                  | vertical
+ Energy & Natural Resources                       | vertical
+ Event Management & Scheduling                    | vertical
+ Security Training & Awareness                    | vertical
+ Lifestyle & Productivity                         | vertical
+ Digital Media & Broadcast                        | vertical
+ Academic Research & Scholarly Communication      | vertical
+ Digital Media & Publishing                       | vertical
+ Inclusive & Accessible Software                  | vertical
+ Recreation & Lifestyle                           | vertical
+ Geospatial & Remote Sensing                      | vertical
+ Food, Nutrition & Agriculture                    | vertical
+ Digital Twins & Simulation                       | vertical
+ Smart Home & IoT                                 | vertical
+ Events & Conferences                             | vertical
+ Nonprofit & Social Impact                        | vertical
+ Business Process Management                      | vertical
+ Cybersecurity                                    | vertical
+ Scholarly Communication and Digital Preservation | vertical
+ Collaborative Decision Making                    | vertical
+ Press & Journalism                               | vertical
+ Web & CMS Development                            | vertical
+ Gaming Industry                                  | vertical
+ Field Solutions                                  | vertical
+ Scientific & Research Solutions                  | vertical
+ Academic Research Tools                          | vertical
+ Social & Collaborative Solutions                 | vertical
+ Community & Social Platforms                     | vertical
+ Industry Specific Solutions                      | vertical
+ Business Applications                            | vertical
+ 3D Printing & Digital Fabrication                | vertical
+ Decentralized Finance                            | vertical
+ Operating Systems & Virtualization               | vertical
+ Application Definition and Development           | vertical
+ Scientific Computing & Engineering               | vertical
+ Industrial Automation & Control                  | vertical
+ Blockchain & Distributed Ledger                  | vertical
+ Open Data & Research                             | vertical
+ Artificial Intelligence & Machine Learning       | vertical
+ Global                                           | vertical
+`
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -253,6 +412,8 @@ export class CollectionService extends LoggerBase {
 
   async findInsightsProjectById(id: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
+      console.log('VAAAAMOLA')
+
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
       const project = await queryInsightsProjectById(qx, id, Object.values(InsightsProjectField))
       const connections = await findCollectionProjectConnections(qx, {
@@ -620,4 +781,74 @@ export class CollectionService extends LoggerBase {
     return result
   }
 
+
+  public static async findRepoCategoriesWithLLM(
+    qx: QueryExecutor,
+    repo_url: string,
+    repo_description: string,
+    repo_topics: string[],
+    repo_homepage: string,
+  ): Promise<string[]> {
+
+    const prompt = `You are an expert open-source analyst. Your job is to classify ${repo_url} into appropriate categories.
+
+      ## Context and Purpose
+      This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
+      Developers and organizations use this index to:
+      - Discover relevant open-source tools for their technology stack
+      - Understand the open-source ecosystem in their domain
+      - Make informed decisions about which projects to adopt or contribute to
+      - Assess the health and importance of projects in specific technology areas
+
+      Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
+
+      ## Project Information
+      - URL: ${repo_url}
+      - Description: ${repo_description}
+      - Topics: ${repo_topics}
+      - Homepage: ${repo_homepage}
+
+      ## Available Categories
+      These categories are organized by category groups:
+
+      ${category_structure_text}
+
+      ## Your Task
+      Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
+
+      Consider:
+      - The project's primary functionality and purpose
+      - The technology domain it operates in
+      - The industry or vertical it serves (if applicable)
+      - How developers would expect to find this project when browsing by category
+
+      If the project doesn't clearly fit into any of the available categories, return an empty list for categories.
+
+      Return a JSON with the following format:
+      {{
+          "categories": ["Category1", "Category2", ...],
+          "explanation": "Brief explanation of why you chose these categories"
+      }}
+
+      Only include categories from the provided list. Do not create new categories.
+`
+
+    const llmService = new LlmService(
+      qx,
+      {
+        accessKeyId: process.env.CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
+        secretAccessKey: process.env.CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
+      },
+      getServiceLogger(),
+    )
+
+    const { result } = await llmService.findRepoCategories<{
+      description: string
+      index: number
+    }>(prompt)
+
+    console.log('LLM result:', result)
+
+    return ['']
+  }
 }
