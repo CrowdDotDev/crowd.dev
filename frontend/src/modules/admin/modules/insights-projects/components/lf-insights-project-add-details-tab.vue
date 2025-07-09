@@ -2,6 +2,26 @@
   <!-- Project name -->
   <article class="mb-5">
     <lf-field label-text="Project name" :required="true">
+      <template #label>
+        <label class="c-field__label leading-5">
+          Project name <span class="c-field__required">*</span>
+        </label>
+        <div
+          v-if="newForm && oldForm?.name !== newForm.name"
+          class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
+        >
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.name ? 'bg-white text-gray-900' : ''"
+            @click="!switcher.name ? useOldData(['name']) : null"
+          >Old data</span>
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.name ? '' : 'bg-white text-gray-900'"
+            @click="switcher.name ? useNewData(['name']) : null"
+          >updated data</span>
+        </div>
+      </template>
       <lf-input
         v-model="cForm.name"
         class="h-10"
@@ -19,6 +39,26 @@
   <!-- Description -->
   <article class="mb-5">
     <lf-field label-text="Description" :required="true">
+      <template #label>
+        <label class="c-field__label leading-5">
+          Description <span class="c-field__required">*</span>
+        </label>
+        <div
+          v-if="newForm && oldForm?.description !== newForm.description"
+          class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
+        >
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.description ? 'bg-white text-gray-900' : ''"
+            @click="!switcher.description ? useOldData(['description']) : null"
+          >Old data</span>
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.description ? '' : 'bg-white text-gray-900'"
+            @click="switcher.description ? useNewData(['description']) : null"
+          >updated data</span>
+        </div>
+      </template>
       <lf-textarea
         v-model="cForm.description"
         :invalid="$v.description.$invalid && $v.description.$dirty"
@@ -35,6 +75,26 @@
   <!-- Logo -->
   <article class="mb-5">
     <lf-field label-text="Logo URL" :required="true">
+      <template #label>
+        <label class="c-field__label leading-5">
+          Logo URL <span class="c-field__required">*</span>
+        </label>
+        <div
+          v-if="newForm && oldForm?.logoUrl !== newForm.logoUrl"
+          class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
+        >
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.logoUrl ? 'bg-white text-gray-900' : ''"
+            @click="!switcher.logoUrl ? useOldData(['logoUrl']) : null"
+          >Old data</span>
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.logoUrl ? '' : 'bg-white text-gray-900'"
+            @click="switcher.logoUrl ? useNewData(['logoUrl']) : null"
+          >updated data</span>
+        </div>
+      </template>
       <lf-input
         v-model="cForm.logoUrl"
         class="h-10"
@@ -52,6 +112,24 @@
   <!-- topics -->
   <article class="mb-5">
     <lf-field label-text="Topics">
+      <template #label>
+        <label class="c-field__label leading-5"> Topics </label>
+        <div
+          v-if="newForm"
+          class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
+        >
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.keywords ? 'bg-white text-gray-900' : ''"
+            @click="!switcher.keywords ? useOldData(['keywords']) : null"
+          >Old data</span>
+          <span
+            class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+            :class="switcher.keywords ? '' : 'bg-white text-gray-900'"
+            @click="switcher.keywords ? useNewData(['keywords']) : null"
+          >updated data</span>
+        </div>
+      </template>
       <app-keywords-input
         v-model="cForm.keywords"
         :show-hint="true"
@@ -102,9 +180,32 @@
 
   <hr class="my-5" />
 
-  <h6 class="font-semibold mb-6">
-    Website & Social accounts
-  </h6>
+  <div class="flex items-center justify-between mb-6">
+    <h6 class="font-semibold">
+      Website & Social accounts
+    </h6>
+    <div
+      v-if="newForm"
+      class="flex items-center p-1 rounded-md bg-gray-100 gap-2 cursor-pointer text-gray-500 text-tiny font-semibold"
+    >
+      <span
+        class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+        :class="switcher.website ? 'bg-white text-gray-900' : ''"
+        @click="
+          !switcher.website
+            ? useOldData(['website', 'github', 'twitter'])
+            : null
+        "
+      >Old data</span>
+      <span
+        class="hover:bg-gray-200 px-1.5 py-0.5 rounded-xmd"
+        :class="switcher.website ? '' : 'bg-white text-gray-900'"
+        @click="
+          switcher.website ? useNewData(['website', 'github', 'twitter']) : null
+        "
+      >updated data</span>
+    </div>
+  </div>
 
   <!-- Website -->
   <article class="mb-5">
@@ -158,7 +259,7 @@ import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useVuelidate from '@vuelidate/core';
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import AppKeywordsInput from '@/shared/form/keywords-input.vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectsAddCollectionDropdown from './add-details-tab/lf-insights-projects-add-collection-dropdown.vue';
@@ -166,10 +267,43 @@ import LfInsightsProjectsAddOrganizationsDropdown from './add-details-tab/lf-ins
 
 const props = defineProps<{
   form: InsightsProjectAddFormModel;
+  oldForm?: InsightsProjectAddFormModel;
+  newForm?: InsightsProjectAddFormModel;
   rules: any;
 }>();
 const cForm = reactive(props.form);
 const $v = useVuelidate(props.rules, cForm);
+const switcher = ref<Record<string, boolean>>({
+  name: true,
+  description: true,
+  logoUrl: true,
+  keywords: true,
+  github: true,
+  twitter: true,
+  website: true,
+});
+
+const useNewData = (fields: string[]) => {
+  fields.forEach((field) => {
+    switcher.value[field] = false;
+    if (props.newForm) {
+      cForm[field as keyof InsightsProjectAddFormModel] = props.newForm[
+        field as keyof InsightsProjectAddFormModel
+      ] as any;
+    }
+  });
+};
+
+const useOldData = (fields: string[]) => {
+  fields.forEach((field) => {
+    switcher.value[field] = true;
+    if (props.oldForm) {
+      cForm[field as keyof InsightsProjectAddFormModel] = props.oldForm[
+        field as keyof InsightsProjectAddFormModel
+      ] as any;
+    }
+  });
+};
 </script>
 
 <script lang="ts">
