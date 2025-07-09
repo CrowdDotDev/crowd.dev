@@ -28,7 +28,7 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
 
     // 2. The first item is the "original"
     const originalActivityRelation = duplicateGroup[0]
-    console.log('Original activity relation:', originalActivityRelation)
+    console.log(`Expected original activityId (${originalActivityRelation.activityId})`)
 
     const activityIds = duplicateGroup.map(({ activityId }) => activityId)
     const timestamps = duplicateGroup.map((r) => new Date(r.timestamp).getTime())
@@ -49,15 +49,22 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
       }
     }
 
-    if (
-      activityIdsInQuestDb.length === 1 &&
-      activityIdsInQuestDb[0] === originalActivityRelation.activityId
-    ) {
-      console.log(`Original activity ${originalActivityRelation.activityId} confirmed in QuestDB.`)
-      const idsToDelete = duplicateGroup.slice(1).map(({ activityId }) => activityId)
+    if (activityIdsInQuestDb.length === 1) {
+      const idToKeep = activityIdsInQuestDb[0]
+
+      if (idToKeep === originalActivityRelation.activityId) {
+        console.log(`QuestDB returned the expected activityId`)
+      } else {
+        console.log(
+          `QuestDB returned a different activityId (${idToKeep}) than the expected activityId (${originalActivityRelation.activityId})`,
+        )
+      }
+
+      const idsToDelete = duplicateGroup
+        .map(({ activityId }) => activityId)
+        .filter((id) => id !== idToKeep)
 
       if (idsToDelete.length > 0) {
-        console.log(`Deleting ${idsToDelete.length} duplicate relations.`)
         await deleteActivityRelations(idsToDelete)
       }
     } else {
