@@ -31,8 +31,6 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     const idToKeepIfConfirmed = activityIdsInGroup[0]
     const groupTimestamp = group.timestamp
 
-    console.log(`Expected original activityId: ${idToKeepIfConfirmed}`)
-
     const activityIdChunks = chunkArray(activityIdsInGroup, 500)
     const activityIdsInQuestDb: string[] = []
 
