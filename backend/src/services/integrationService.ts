@@ -190,6 +190,7 @@ export default class IntegrationService {
     transaction: Transaction
   }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
+    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
     const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
@@ -197,8 +198,12 @@ export default class IntegrationService {
 
     if (IntegrationService.isCodePlatform(platform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
+      const mappedRepositories = await segmentRepository.getMappedRepos(segmentId)
       data.repositories = [
-        ...new Set(Object.values(repositories).flatMap((entries) => entries.map((e) => e.url))),
+        ...new Set([
+          ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+          ...mappedRepositories.map((repo) => repo.url),
+        ]),
       ]
     }
 

@@ -494,53 +494,55 @@ export class CollectionService extends LoggerBase {
   }
 
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
-    const segment = await findSegmentById(qx, segmentId)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+      const segment = await findSegmentById(qx, segmentId)
 
-    const [githubIntegration] = integrations.filter(
-      (integration) =>
-        integration.platform === PlatformType.GITHUB ||
-        integration.platform === PlatformType.GITHUB_NANGO,
-    )
+      const [githubIntegration] = integrations.filter(
+        (integration) =>
+          integration.platform === PlatformType.GITHUB ||
+          integration.platform === PlatformType.GITHUB_NANGO,
+      )
 
-    if (!githubIntegration) {
-      return null
-    }
+      if (!githubIntegration) {
+        return null
+      }
 
-    const settings = githubIntegration.settings as GithubIntegrationSettings
+      const settings = githubIntegration.settings as GithubIntegrationSettings
 
-    const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
-      qx,
-      segment.name,
-      settings.orgs,
-    )
+      const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
+        qx,
+        segment.name,
+        settings.orgs,
+      )
 
-    if (!mainOrg) {
-      return null
-    }
+      if (!mainOrg) {
+        return null
+      }
 
-    const { description, name, repos } = mainOrg
+      const { description, name, repos } = mainOrg
 
-    const orgDetail = await GithubIntegrationService.findOrgDetail(name)
+      const orgDetail = await GithubIntegrationService.findOrgDetail(name)
 
-    if (!orgDetail) {
-      return null
-    }
+      if (!orgDetail) {
+        return null
+      }
 
-    const { logoUrl, github, website, twitter } = orgDetail
+      const { logoUrl, github, website, twitter } = orgDetail
 
-    const topics = await GithubIntegrationService.findOrgTopics(name, repos)
+      const topics = await GithubIntegrationService.findOrgTopics(name, repos)
 
-    return {
-      description,
-      github,
-      logoUrl,
-      name,
-      topics,
-      twitter,
-      website,
-    }
+      return {
+        description,
+        github,
+        logoUrl,
+        name,
+        topics,
+        twitter,
+        website,
+      }
+    })
   }
 
   private static isValidPlatform(value: unknown): value is PlatformType {
