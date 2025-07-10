@@ -415,27 +415,24 @@ export class CollectionService extends LoggerBase {
         }
       }
 
+      // Add mapped repositories to GitHub platform
+      const segmentRepository = new SegmentRepository(this.options)
+      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+
+      for (const repo of mappedRepos) {
+        const url = repo.url
+        try {
+          const parsedUrl = new URL(url)
+          if (parsedUrl.hostname === 'github.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITHUB, url, label)
+          }
+        } catch (err) {
+          // Do nothing
+        }
+      }
+
       for (const i of integrations) {
-        if (i.platform === PlatformType.GITHUB) {
-          for (const org of (i.settings as any).orgs) {
-            for (const repo of org.repos) {
-              const label = `${org.name}/${repo.name}`
-              const fullUrl = `https://github.com/${label}`
-              addToResult(i.platform, fullUrl, label)
-            }
-          }
-        }
-
-        if (i.platform === PlatformType.GITHUB_NANGO) {
-          for (const org of (i.settings as any).orgs) {
-            for (const repo of org.repos) {
-              const label = `${org.name}/${repo.name}`
-              const fullUrl = `https://github.com/${label}`
-              addToResult(PlatformType.GITHUB, fullUrl, label)
-            }
-          }
-        }
-
         if (i.platform === PlatformType.GIT) {
           for (const r of (i.settings as any).remotes) {
             try {
@@ -469,23 +466,6 @@ export class CollectionService extends LoggerBase {
           for (const r of (i.settings as any).remote.repos) {
             addToResult(i.platform, r, r)
           }
-        }
-      }
-
-      // Add mapped repositories to GitHub platform
-      const segmentRepository = new SegmentRepository(this.options)
-      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
-
-      for (const repo of mappedRepos) {
-        const url = repo.url
-        try {
-          const parsedUrl = new URL(url)
-          if (parsedUrl.hostname === 'github.com') {
-            const label = parsedUrl.pathname.slice(1) // removes leading '/'
-            addToResult(PlatformType.GITHUB, url, label)
-          }
-        } catch (err) {
-          // Do nothing
         }
       }
 

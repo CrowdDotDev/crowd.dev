@@ -198,11 +198,9 @@ export default class IntegrationService {
 
     if (IntegrationService.isCodePlatform(platform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
-      const mappedRepositories = await segmentRepository.getMappedRepos(segmentId)
       data.repositories = [
         ...new Set([
           ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-          ...mappedRepositories.map((repo) => repo.url),
         ]),
       ]
     }
