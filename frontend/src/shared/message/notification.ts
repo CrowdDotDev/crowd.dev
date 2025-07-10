@@ -1,12 +1,12 @@
-// src/stores/toast.js
-import { reactive } from 'vue';
+import { reactive, VNode } from 'vue';
 
 export const notificationTypes = ['info', 'success', 'error'] as const;
 
 export type NotificationTypes = (typeof notificationTypes)[number];
 export interface ToastI {
   id: number;
-  message: string;
+  title: string | VNode; // vNode is used for rendering Vue components
+  message?: string | VNode; // vNode is used for rendering Vue components
   type: NotificationTypes;
   duration: number; // in milliseconds
 }
@@ -15,28 +15,57 @@ let toastIdCounter = 0;
 
 export const ToastStore = reactive({
   toasts: [] as ToastI[],
-  maxVisible: 3,
+  maxVisible: 5,
 
-  success(message: string, duration: number = 6000) {
-    this.add(message, 'success', duration);
+  success(
+    message: string | VNode,
+    options: { title?: string; duration?: number; message?: string | VNode } = {},
+  ) {
+    const mess = options.title ? message : options.message;
+    this.add(
+      options.title ? options.title : message,
+      options.message ? options.message : mess,
+      'success',
+      options.duration,
+    );
   },
 
-  error(message: string, duration: number = 6000) {
-    this.add(message, 'error', duration);
+  error(
+    message: string | VNode,
+    options: { title?: string; duration?: number; message?: string | VNode } = {},
+  ) {
+    const mess = options.title ? message : options.message;
+    this.add(
+      options.title ? options.title : message,
+      options.message ? options.message : mess,
+      'error',
+      options.duration,
+    );
   },
 
-  info(message: string, duration: number = 6000) {
-    this.add(message, 'info', duration);
+  info(
+    message: string | VNode,
+    options: { title?: string; duration?: number; message?: string | VNode } = {},
+  ) {
+    const mess = options.title ? message : options.message;
+    this.add(
+      options.title ? options.title : message,
+      options.message ? options.message : mess,
+      'info',
+      options.duration ? options.duration : 0,
+    );
   },
 
   add(
-    message: string,
+    title: string | VNode,
+    message: string | VNode | undefined,
     type: NotificationTypes = 'success',
     duration: number = 6000,
   ) {
     toastIdCounter += 1; // Increment the counter for unique IDs
     const toast = {
       id: toastIdCounter,
+      title,
       message,
       type,
       duration,
@@ -51,6 +80,10 @@ export const ToastStore = reactive({
       console.log('Removing toast with id:', toast);
       this.remove(toast.id);
     }, toast.duration);
+  },
+
+  closeAll() {
+    this.toasts = [];
   },
 
   remove(id: number) {

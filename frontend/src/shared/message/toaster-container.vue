@@ -10,7 +10,12 @@
       >
         <component :is="iconComponent(toast.type)" class="text-xl" />
         <div class="c-notification__group">
-          <span class="c-notification__title flex-1">{{ toast.message }}</span>
+          <span class="c-notification__title flex-1">
+            <component :is="messageComponent(toast.title)" />
+          </span>
+          <div v-if="toast.message" class="c-notification__content">
+            <component :is="messageComponent(toast.message)" />
+          </div>
         </div>
         <button
           type="button"
@@ -25,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, isVNode, VNode } from 'vue';
 import { NotificationTypes, ToastStore as store } from './notification';
 
 const props = withDefaults(
@@ -68,6 +73,15 @@ function iconComponent(type: NotificationTypes) {
           '<i class="fa-circle-notch fa-light text-primary-600 animate-spin"></i>',
       };
   }
+}
+
+function messageComponent(message: string | VNode) {
+  if (isVNode(message)) {
+    return message;
+  }
+  return {
+    template: `<span>${message}</span>`,
+  };
 }
 </script>
 

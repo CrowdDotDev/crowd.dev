@@ -64,11 +64,11 @@
 
 .c-notification__title {
   font-family: 'Open Sans';
-  @apply font-semibold text-xs text-black m-0 normal-case;
+  @apply font-semibold text-xs text-black m-0 leading-6;
 }
 
 .c-notification__content {
-  @apply text-2xs text-gray-600;
+  @apply text-2xs text-gray-600 mt-1.5 text-justify leading-6;
 }
 
 .c-notification__group {

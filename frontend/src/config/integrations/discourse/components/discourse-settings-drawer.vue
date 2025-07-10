@@ -228,13 +228,13 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
-import Message from '@/shared/message/message';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCard from '@/ui-kit/card/Card.vue';
+import { ToastStore } from '@/shared/message/notification';
 
 const { trackEvent } = useProductTracking();
 
@@ -257,7 +257,7 @@ const copyToClipboard = async (type) => {
   const toCopy = type === 'url' ? payloadURL : webhookSecret;
   await navigator.clipboard.writeText(toCopy.value);
 
-  Message.success(
+  ToastStore.success(
     `${
       type === 'url' ? 'Payload URL' : 'Webhook Secret'
     } successfully copied to your clipboard`,

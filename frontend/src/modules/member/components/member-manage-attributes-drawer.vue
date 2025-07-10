@@ -117,7 +117,8 @@ import {
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import cloneDeep from 'lodash/cloneDeep';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -212,7 +213,7 @@ const handleSubmit = async () => {
     ...props.member.attributes,
     ...formattedAttributes,
   });
-  Message.success('Member attributes updated successfully');
+  ToastStore.success('Member attributes updated successfully');
   emit('update:modelValue', false);
 };
 
