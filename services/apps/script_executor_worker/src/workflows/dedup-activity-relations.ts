@@ -57,6 +57,15 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     } else {
       throw ApplicationFailure.nonRetryable(
         `Expected 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
+        'validation_failed',
+        {
+          timestamp: group.timestamp,
+          platform: group.platform,
+          type: group.type,
+          sourceId: group.sourceId,
+          channel: group.channel,
+          segmentId: group.segmentId,
+        },
       )
     }
   })
