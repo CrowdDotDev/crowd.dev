@@ -1,8 +1,6 @@
 import vader from 'crowd-sentiment'
 import isEqual from 'lodash.isequal'
-import max from 'lodash.max'
 import mergeWith from 'lodash.mergewith'
-import min from 'lodash.min'
 
 import {
   ApplicationError,
@@ -11,7 +9,6 @@ import {
   distinctBy,
   escapeNullByte,
   generateUUIDv1,
-  isObjectEmpty,
   single,
   singleOrDefault,
   trimUtf8ToMaxByteLength,
@@ -21,9 +18,9 @@ import {
   createOrUpdateRelations,
   findMatchingPullRequestNodeId,
   insertActivities,
-  queryActivities,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
+import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -93,94 +90,48 @@ export default class ActivityService extends LoggerBase {
     timestamp: Date,
     activity: IActivityUpdateData,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
-    original?: IDbActivity,
+    existingActivityId?: string,
   ): Promise<IActivityPrepareForUpsertResult> {
-    const id = original?.id || generateUUIDv1()
+    const id = existingActivityId || generateUUIDv1()
 
-    let typeToCreate = activity.type
-    let channelToCreate = activity.channel
+    const sentimentPromise = this.getActivitySentiment({
+      body: activity.body,
+      title: activity.title,
+      type: activity.type,
+      platform: activity.platform,
+    })
 
-    let payload: IDbActivityCreateData | undefined
-
-    if (original) {
-      const toUpdate = await this.mergeActivityData(activity, original)
-
-      if (!isObjectEmpty(toUpdate)) {
-        typeToCreate = toUpdate.type
-        channelToCreate = toUpdate.channel
-
-        this.log.trace('Updating an existing activity!')
-        payload = {
-          id,
-          memberId: toUpdate.memberId || original.memberId,
-          timestamp: original.timestamp,
-          platform: toUpdate.platform || (original.platform as PlatformType),
-          type: toUpdate.type || original.type,
-          isContribution: toUpdate.isContribution || original.isContribution,
-          score: toUpdate.score || original.score,
-          sourceId: toUpdate.sourceId || original.sourceId,
-          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          attributes: toUpdate.attributes || original.attributes,
-          sentiment: toUpdate.sentiment || original.sentiment,
-          body: escapeNullByte(toUpdate.body || original.body),
-          title: escapeNullByte(toUpdate.title || original.title),
-          channel: toUpdate.channel || original.channel,
-          url: toUpdate.url || original.url,
-          username: toUpdate.username || original.username,
-          objectMemberId: activity.objectMemberId,
-          objectMemberUsername: activity.objectMemberUsername,
-          segmentId: segmentId,
-          // if the member is bot, we don't want to affiliate the activity with an organization
-          organizationId: memberInfo.isBot
-            ? null
-            : toUpdate.organizationId || original.organizationId,
-          isBotActivity: memberInfo.isBot,
-          isTeamMemberActivity: memberInfo.isTeamMember,
-          importHash: original.importHash,
-          createdAt: original.createdAt,
-        }
-      }
-    } else {
-      this.log.trace('Creating a new activity!')
-      const sentimentPromise = this.getActivitySentiment({
-        body: activity.body,
-        title: activity.title,
-        type: activity.type,
-        platform: activity.platform,
-      })
-
-      payload = {
-        id,
-        timestamp: timestamp.toISOString(),
-        platform: activity.platform,
-        type: activity.type,
-        isContribution: activity.isContribution,
-        score: activity.score,
-        sourceId: activity.sourceId,
-        sourceParentId: activity.sourceParentId,
-        memberId: activity.memberId,
-        attributes: activity.attributes,
-        sentiment: await sentimentPromise,
-        title: activity.title,
-        body: escapeNullByte(activity.body),
-        channel: activity.channel,
-        url: activity.url,
-        username: activity.username,
-        objectMemberId: activity.objectMemberId,
-        objectMemberUsername: activity.objectMemberUsername,
-        segmentId: segmentId,
-        organizationId: activity.organizationId,
-        isBotActivity: memberInfo.isBot,
-        isTeamMemberActivity: memberInfo.isTeamMember,
-      }
+    const payload: IDbActivityCreateData = {
+      id,
+      timestamp: timestamp.toISOString(),
+      platform: activity.platform,
+      type: activity.type,
+      isContribution: activity.isContribution,
+      score: activity.score,
+      sourceId: activity.sourceId,
+      sourceParentId: activity.sourceParentId,
+      memberId: activity.memberId,
+      attributes: activity.attributes,
+      sentiment: await sentimentPromise,
+      title: activity.title,
+      body: escapeNullByte(activity.body),
+      channel: activity.channel,
+      url: activity.url,
+      username: activity.username,
+      objectMemberId: activity.objectMemberId,
+      objectMemberUsername: activity.objectMemberUsername,
+      segmentId: segmentId,
+      // if the member is bot, we don't want to affiliate the activity with an organization
+      organizationId: memberInfo.isBot ? null : activity.organizationId,
+      isBotActivity: memberInfo.isBot,
+      isTeamMemberActivity: memberInfo.isTeamMember,
     }
 
     return {
       resultId,
       activityId: id,
-      typeToCreate,
-      channelToCreate,
-
+      typeToCreate: activity.type,
+      channelToCreate: activity.channel,
       payload,
     }
   }
@@ -675,52 +626,32 @@ export default class ActivityService extends LoggerBase {
             limit: relevantPayloads.length,
             noCount: true,
           },
-          ['activityId', 'timestamp'],
+          [
+            'activityId',
+            'timestamp',
+            'memberId',
+            'objectMemberId',
+            'type',
+            'sourceId',
+            'channel',
+            'segmentId',
+            'platform',
+          ],
         ),
       this.log,
       'processActivities -> queryActivityRelations',
     )
 
-    let existingActivitiesResult = { rows: [] }
-
-    // If we find any, fetch the full activity data from QuestDB by ID and timestamp,
-    // since the relations table only stores partial activity info.
-    if (existingActivityRelations.rows.length > 0) {
-      const activityIds = distinct(existingActivityRelations.rows.map((r) => r.activityId))
-      const timestamps = existingActivityRelations.rows.map((r) => r.timestamp)
-
-      existingActivitiesResult = await logExecutionTimeV2(
-        async () =>
-          queryActivities(this.qdbStore.connection(), {
-            segmentIds,
-            filter: {
-              and: [
-                { id: { in: activityIds } },
-                {
-                  timestamp:
-                    activityIds.length > 1
-                      ? {
-                          gte: min(timestamps),
-                          lte: max(timestamps),
-                        }
-                      : { eq: timestamps[0] },
-                },
-              ],
-            },
-            limit: relevantPayloads.length,
-            noCount: true,
-          }),
-        this.log,
-        'processActivities -> queryActivities',
-      )
-    }
-
     // map existing activities to payloads for further processing
     const memberIdsToLoad = new Set<string>()
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
-      payload.dbActivity = singleOrDefault(existingActivitiesResult.rows, (a) => {
+      const existingRelation = singleOrDefault(existingActivityRelations.rows, (a) => {
         if (a.segmentId !== payload.segmentId) {
+          return false
+        }
+
+        if (a.platform !== payload.platform) {
           return false
         }
 
@@ -744,11 +675,14 @@ export default class ActivityService extends LoggerBase {
       })
 
       // if we have member ids we can use them to load members from db
-      if (payload.dbActivity) {
-        memberIdsToLoad.add(payload.dbActivity.memberId)
+      if (existingRelation) {
+        payload.activityId = existingRelation.activityId
+        payload.dbActivityRelation = existingRelation
 
-        if (payload.dbActivity.objectMemberId) {
-          memberIdsToLoad.add(payload.dbActivity.objectMemberId)
+        memberIdsToLoad.add(existingRelation.memberId)
+
+        if (existingRelation.objectMemberId) {
+          memberIdsToLoad.add(existingRelation.objectMemberId)
         }
       } else {
         payloadsNotInDb.push(payload)
@@ -764,13 +698,16 @@ export default class ActivityService extends LoggerBase {
       )
 
       // and map them to payloads
-      for (const payload of relevantPayloads.filter((p) => p.dbActivity)) {
+      for (const payload of relevantPayloads.filter((p) => p.dbActivityRelation)) {
         let addToPayloadsNotInDb = false
-        payload.dbMember = singleOrDefault(dbMembers, (m) => m.id === payload.dbActivity.memberId)
+        payload.dbMember = singleOrDefault(
+          dbMembers,
+          (m) => m.id === payload.dbActivityRelation.memberId,
+        )
         if (!payload.dbMember) {
           this.log.warn(
             {
-              memberId: payload.dbActivity.memberId,
+              memberId: payload.dbActivityRelation.memberId,
             },
             'Member not found! We will try to find an existing one or create a new one!',
           )
@@ -778,16 +715,16 @@ export default class ActivityService extends LoggerBase {
           addToPayloadsNotInDb = true
         }
 
-        if (payload.dbActivity.objectMemberId) {
+        if (payload.dbActivityRelation.objectMemberId) {
           payload.dbObjectMember = singleOrDefault(
             dbMembers,
-            (m) => m.id === payload.dbActivity.objectMemberId,
+            (m) => m.id === payload.dbActivityRelation.objectMemberId,
           )
 
           if (!payload.dbObjectMember) {
             this.log.warn(
               {
-                objectMemberId: payload.dbActivity.objectMemberId,
+                objectMemberId: payload.dbActivityRelation.objectMemberId,
               },
               'Object member not found! We will try to find an existing one or create a new one!',
             )
@@ -1226,7 +1163,7 @@ export default class ActivityService extends LoggerBase {
               payload.dbMember,
             ) as boolean,
           },
-          payload.dbActivity,
+          payload.activityId,
         ),
       )
     }
@@ -1453,12 +1390,13 @@ interface IActivityProcessData {
   segmentId: string
 
   dbMember?: IDbMember
-  dbActivity?: IDbActivity
   dbObjectMember?: IDbMember
+  dbActivityRelation?: IDbActivityRelation
 
   organizationId?: string
   memberId?: string
   objectMemberId?: string
+  activityId?: string
 }
 
 interface IActivityPrepareForUpsertResult {

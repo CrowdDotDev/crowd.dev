@@ -49,7 +49,7 @@ export async function queryActivityRelations(
   qx: QueryExecutor,
   arg: IQueryActivityRelationsParameters,
   columns: IActivityRelationColumn[] = ALL_ACTIVITY_RELATION_COLUMNS,
-): Promise<PageData<Partial<IDbActivityRelation>>> {
+): Promise<PageData<IDbActivityRelation>> {
   // Set defaults
   arg.filter = arg.filter || {}
   arg.orderBy =
