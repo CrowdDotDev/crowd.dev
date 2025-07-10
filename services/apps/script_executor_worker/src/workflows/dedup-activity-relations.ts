@@ -57,12 +57,9 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     } else {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { activityIds, ...rest } = group
+      console.log('validation failed', { ...rest })
       throw ApplicationFailure.nonRetryable(
         `Expected 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
-        'validation_failed',
-        {
-          ...rest,
-        },
       )
     }
   })
@@ -74,21 +71,12 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
   const failedGroups = results.filter((result) => result.status === 'rejected')
 
   if (failedGroups.length > 0) {
-    const failureDetails = failedGroups.map((failure) => {
-      const reason = failure.reason as ApplicationFailure
-      return {
-        message: reason.message,
-        type: reason.type,
-        details: reason.details,
-      }
-    })
-
-    const summaryMessage = `${failedGroups.length} out of ${duplicateGroups.length} groups failed.`
+    const errorMessages = failedGroups
+      .map((failure) => (failure.reason as Error).message)
+      .join('; ')
 
     throw ApplicationFailure.nonRetryable(
-      summaryMessage,
-      'batch_processing_failure',
-      failureDetails,
+      `${failedGroups.length} out of ${duplicateGroups.length} groups failed: [${errorMessages}]`,
     )
   }
 
