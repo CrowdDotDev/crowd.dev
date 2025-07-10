@@ -55,16 +55,13 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
         await deleteActivityRelations(idsToDelete)
       }
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { activityIds, ...rest } = group
       throw ApplicationFailure.nonRetryable(
         `Expected 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
         'validation_failed',
         {
-          timestamp: group.timestamp,
-          platform: group.platform,
-          type: group.type,
-          sourceId: group.sourceId,
-          channel: group.channel,
-          segmentId: group.segmentId,
+          ...rest,
         },
       )
     }
@@ -75,13 +72,23 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
 
   // 4. Check the results, collect failures and throw if any
   const failedGroups = results.filter((result) => result.status === 'rejected')
+
   if (failedGroups.length > 0) {
-    const errorMessages = failedGroups
-      .map((failure) => (failure.reason as Error).message)
-      .join('; ')
+    const failureDetails = failedGroups.map((failure) => {
+      const reason = failure.reason as ApplicationFailure
+      return {
+        message: reason.message,
+        type: reason.type,
+        details: reason.details,
+      }
+    })
+
+    const summaryMessage = `${failedGroups.length} out of ${duplicateGroups.length} groups failed.`
 
     throw ApplicationFailure.nonRetryable(
-      `${failedGroups.length} out of ${duplicateGroups.length} groups failed: [${errorMessages}]`,
+      summaryMessage,
+      'batch_processing_failure',
+      failureDetails,
     )
   }
 
