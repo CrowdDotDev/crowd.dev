@@ -190,7 +190,6 @@ export default class IntegrationService {
     transaction: Transaction
   }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
-    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
     const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
