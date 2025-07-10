@@ -4,7 +4,7 @@ SQL >
     SELECT distinct p.repo, p.name, p.ecosystem
     FROM packageDownloads p
     where
-        p.insightsProjectId = (select insightsProjectId from segments_filtered)
+        insightsProjectId = (select insightsProjectId from segments_filtered)
         {% if defined(search) %}
             AND (
                 p.name
