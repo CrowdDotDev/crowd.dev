@@ -1,4 +1,4 @@
-import { memberUpdate, memberUpdateBulk } from './workflows/member/memberUpdate'
+import { memberUpdate } from './workflows/member/memberUpdate'
 import { recalculateAffiliationsForNewRoles } from './workflows/member/recalculateAffiliationsForNewRoles'
 import { refreshMemberDisplayAggregates } from './workflows/member/refreshMemberDisplayAggregates'
 import { triggerRecalculateAffiliations } from './workflows/member/triggerRecalculateAffiliations'
@@ -7,7 +7,6 @@ import { refreshOrganizationDisplayAggregates } from './workflows/organization/r
 
 export {
   memberUpdate,
-  memberUpdateBulk,
   organizationUpdate,
   recalculateAffiliationsForNewRoles,
   triggerRecalculateAffiliations,
