@@ -17,7 +17,7 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
   const GROUPS_PER_RUN = args.groupsPerRun || 10
 
   // 1. Get a batch of duplicate groups
-  const duplicateGroups = await getActivityRelationsDuplicateGroups(GROUPS_PER_RUN)
+  const duplicateGroups = await getActivityRelationsDuplicateGroups(GROUPS_PER_RUN, args.cursor)
 
   if (duplicateGroups.length === 0) {
     console.log('No more duplicate groups found!')
@@ -81,5 +81,10 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     return
   }
 
-  await continueAsNew<typeof dedupActivityRelations>(args)
+  const nextCursor = duplicateGroups[duplicateGroups.length - 1]
+
+  await continueAsNew<typeof dedupActivityRelations>({
+    ...args,
+    cursor: nextCursor,
+  })
 }

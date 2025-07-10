@@ -1,4 +1,5 @@
 import {
+  IActivityRelationDuplicateGroup,
   deleteActivityRelationsById,
   fetchActivityRelationsDuplicateGroups,
 } from '@crowd/data-access-layer/src/activityRelations'
@@ -7,14 +8,12 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 import { svc } from '../../main'
 
-export async function getActivityRelationsDuplicateGroups(limit: number): Promise<
-  {
-    activityIds: string[]
-    timestamp: string
-  }[]
-> {
+export async function getActivityRelationsDuplicateGroups(
+  limit: number,
+  cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>,
+): Promise<IActivityRelationDuplicateGroup[]> {
   const qx = pgpQx(svc.postgres.reader.connection())
-  return fetchActivityRelationsDuplicateGroups(qx, limit)
+  return fetchActivityRelationsDuplicateGroups(qx, limit, cursor)
 }
 
 export async function deleteActivityRelations(activityIds: string[]): Promise<void> {

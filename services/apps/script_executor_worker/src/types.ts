@@ -1,3 +1,5 @@
+import { IActivityRelationDuplicateGroup } from '@crowd/data-access-layer'
+
 export interface IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs {
   afterHash?: number
 }
@@ -59,4 +61,5 @@ export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
 
 export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   groupsPerRun?: number
+  cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }
