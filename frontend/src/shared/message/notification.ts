@@ -77,7 +77,6 @@ export const ToastStore = reactive({
     }
 
     setTimeout(() => {
-      console.log('Removing toast with id:', toast);
       this.remove(toast.id);
     }, toast.duration);
   },
