@@ -33,3 +33,11 @@ export async function checkActivitiesWithTimestampExistInQuestDb(
 
   return activityRepo.checkActivitiesWithTimestampExistInQuestDb(activityIds, timestamp)
 }
+
+export async function saveMissingActivityInQuestDb(activityId: string): Promise<void> {
+  await svc.redis.sAdd('missingActivityInQuestDb', activityId)
+}
+
+export async function getMissingActivityInQuestDb(): Promise<string[]> {
+  return svc.redis.sMembers('missingActivityInQuestDb')
+}

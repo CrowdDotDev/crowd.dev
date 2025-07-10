@@ -8,6 +8,8 @@ const {
   getActivityRelationsDuplicateGroups,
   deleteActivityRelations,
   checkActivitiesWithTimestampExistInQuestDb,
+  getMissingActivityInQuestDb,
+  saveMissingActivityInQuestDb,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -21,6 +23,14 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
 
   if (duplicateGroups.length === 0) {
     console.log('No more duplicate groups found!')
+
+    const missingActivityInQuestDb = await getMissingActivityInQuestDb()
+    const count = missingActivityInQuestDb.length
+
+    if (count > 0) {
+      console.log(`${count} activities are in relations but missing in QuestDB.`)
+    }
+
     return
   }
 
@@ -28,7 +38,7 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
   const processDuplicateGroups = duplicateGroups.map(async (group) => {
     // The first ID in the array is the original
     const activityIdsInGroup = group.activityIds
-    const idToKeepIfConfirmed = activityIdsInGroup[0]
+    const latestActivityIdInRelation = activityIdsInGroup[0]
     const groupTimestamp = group.timestamp
 
     const activityIdChunks = chunkArray(activityIdsInGroup, 500)
@@ -40,27 +50,31 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
       activityIdsInQuestDb.push(...foundIds)
     }
 
+    let idToKeep: string
+
     // Validate and prepare for deletion
-    if (activityIdsInQuestDb.length === 1) {
-      const idFromQuestDb = activityIdsInQuestDb[0]
-
-      if (idFromQuestDb !== idToKeepIfConfirmed) {
-        console.log(
-          `QuestDB returned a different activityId (${idFromQuestDb}) than the expected (${idToKeepIfConfirmed})`,
-        )
-      }
-
-      const idsToDelete = activityIdsInGroup.filter((id) => id !== idFromQuestDb)
-      if (idsToDelete.length > 0) {
-        await deleteActivityRelations(idsToDelete)
-      }
-    } else {
+    if (activityIdsInQuestDb.length > 1) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { activityIds, ...rest } = group
-      console.log('validation failed', { ...rest })
+      console.log('QuestDB returned more than 1 activity for group', rest)
       throw ApplicationFailure.nonRetryable(
-        `Expected 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
+        `Expected 0 or 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
       )
+    } else if (activityIdsInQuestDb.length === 1) {
+      // always prefer the activity record from QuestDB
+      idToKeep = activityIdsInQuestDb[0]
+    } else {
+      // activity not found in QuestDB, trust latest in relation as fallback
+      idToKeep = latestActivityIdInRelation
+      console.log(`No activity found in QuestDB for group, keeping the latest activity in relation`)
+
+      // Record the missing activity in Redis for future investigation
+      await saveMissingActivityInQuestDb(latestActivityIdInRelation)
+    }
+
+    const idsToDelete = activityIdsInGroup.filter((id) => id !== idToKeep)
+    if (idsToDelete.length > 0) {
+      await deleteActivityRelations(idsToDelete)
     }
   })
 

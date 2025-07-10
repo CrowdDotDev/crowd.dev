@@ -29,6 +29,8 @@ import {
   checkActivitiesWithTimestampExistInQuestDb,
   deleteActivityRelations,
   getActivityRelationsDuplicateGroups,
+  getMissingActivityInQuestDb,
+  saveMissingActivityInQuestDb,
 } from './activities/dedup-activity-relations'
 import {
   findMemberById,
@@ -120,4 +122,6 @@ export {
   getActivityRelationsDuplicateGroups,
   deleteActivityRelations,
   checkActivitiesWithTimestampExistInQuestDb,
+  saveMissingActivityInQuestDb,
+  getMissingActivityInQuestDb,
 }
