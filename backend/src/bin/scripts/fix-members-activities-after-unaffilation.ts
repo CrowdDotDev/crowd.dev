@@ -51,13 +51,30 @@ setImmediate(async () => {
   try {
     const memberIds = await db.any(
       `
-      SELECT DISTINCT ar."memberId" as id
+      SELECT DISTINCT ar."memberId" AS id
       FROM "activityRelations" ar
       JOIN "memberOrganizations" mo
         ON ar."memberId" = mo."memberId"
         AND ar."organizationId" = mo."organizationId"
+      LEFT JOIN "memberOrganizationAffiliationOverrides" moao
+        ON mo."id" = moao."memberOrganizationId"
       WHERE ar."organizationId" = $1
-        AND mo."deletedAt" IS NOT NULL;
+        AND (
+          (
+            mo."deletedAt" IS NOT NULL
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "memberOrganizations" mo2
+              WHERE mo2."memberId" = mo."memberId"
+                AND mo2."organizationId" = mo."organizationId"
+                AND mo2."deletedAt" IS NULL
+            )
+          )
+          OR (
+            mo."deletedAt" IS NULL
+            AND moao."allowAffiliation" = false
+          )
+        );
       `,
       [organizationId],
     )
