@@ -128,6 +128,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import { ToastStore } from '@/shared/message/notification';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
@@ -235,6 +236,18 @@ const fillForm = (record?: InsightsProjectAddFormModel) => {
 };
 
 onMounted(() => {
+  ToastStore.add('Welcome to the Insights Project Add Form', 'success', 700000);
+  // ToastStore.add('Welcome to the Insights Project Add Form', 'error', 90000);
+  // ToastStore.add('Welcome to the Insights Project Add Form', 'info', 110000);
+  Message.success('Welcome to the Insights Project Add Form', {
+    duration: 700000,
+  });
+  // Message.error('Welcome to the Insights Project Add Form', {
+  //   duration: 70000,
+  // });
+  // Message.info('Welcome to the Insights Project Add Form', {
+  //   duration: 70000,
+  // });
   if (!props.insightsProjectId) {
     fillForm();
   }
