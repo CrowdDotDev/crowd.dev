@@ -6,7 +6,6 @@ import Pagination from '@/shared/pagination/pagination.vue';
 import InfinitePagination from '@/shared/pagination/infinite-pagination.vue';
 import PaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import InlineSelectInput from '@/shared/form/inline-select-input.vue';
-import Dialog from '@/shared/dialog/dialog.vue';
 import EmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import EmptyState from '@/shared/empty-state/empty-state.vue';
 import Drawer from '@/shared/drawer/drawer.vue';
@@ -27,7 +26,6 @@ export default {
     'app-infinite-pagination': InfinitePagination,
     'app-pagination-sorter': PaginationSorter,
     'app-inline-select-input': InlineSelectInput,
-    'app-dialog': Dialog,
     'app-empty-state-cta': EmptyStateCta,
     'app-empty-state': EmptyState,
     'app-drawer': Drawer,

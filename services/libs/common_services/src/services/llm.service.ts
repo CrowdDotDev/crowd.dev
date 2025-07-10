@@ -5,7 +5,8 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import { performance } from 'perf_hooks'
 
-import { DbStore } from '@crowd/database'
+import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   ILlmResponse,
@@ -18,25 +19,23 @@ import {
   LlmQueryType,
 } from '@crowd/types'
 
-import { LlmPromptHistoryRepository } from '../repos/llmPromptHistory.repo'
-
 export interface IBedrockClientCredentials {
   accessKeyId: string
   secretAccessKey: string
 }
 
 export class LlmService extends LoggerBase {
-  private readonly repo: LlmPromptHistoryRepository
   private readonly clientRegionMap: Map<string, BedrockRuntimeClient>
+  private readonly qx: QueryExecutor
 
   public constructor(
-    store: DbStore,
+    qx: QueryExecutor,
     private readonly bedrockCredentials: IBedrockClientCredentials,
     parentLog: Logger,
   ) {
     super(parentLog)
 
-    this.repo = new LlmPromptHistoryRepository(store, this.log)
+    this.qx = qx
     this.clientRegionMap = new Map()
   }
 
@@ -136,7 +135,7 @@ export class LlmService extends LoggerBase {
 
     if (saveHistory) {
       try {
-        await this.repo.insertPromptHistoryEntry(type, settings.modelId, result, entityId, metadata)
+        await insertPromptHistoryEntry(this.qx, type, settings.modelId, result, entityId, metadata)
       } catch (err) {
         this.log.error(err, 'Failed to save LLM prompt history entry!')
         throw err
@@ -204,6 +203,20 @@ export class LlmService extends LoggerBase {
       LlmQueryType.MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES,
       prompt,
       memberId,
+    )
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async findMainGithubOrganization<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(
+      LlmQueryType.MATCH_MAIN_GITHUB_ORGANIZATION_AND_DESCRIPTION,
+      prompt,
     )
 
     const result = JSON.parse(response.answer)

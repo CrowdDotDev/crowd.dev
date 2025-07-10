@@ -1,8 +1,25 @@
 <template>
   <div v-if="isModalOpened">
     <teleport to="#teleport-modal">
-      <div class="c-modal" @click="clickOutsideClose()">
-        <div class="c-modal__content" :style="{ 'max-width': props.width }" v-bind="$attrs" @click.stop>
+      <div class="c-modal" :class="containerClass" @click="clickOutsideClose()">
+        <div
+          class="c-modal__content"
+          :class="contentClass"
+          :style="{ 'max-width': props.width }"
+          v-bind="$attrs"
+          @click.stop
+        >
+          <div v-if="headerTitle" class="c-modal__header">
+            <div class="flex flex-col">
+              <div v-if="preTitle" class="text-gray-600 text-2xs">
+                {{ preTitle }}
+              </div>
+              <h5>{{ headerTitle }}</h5>
+            </div>
+            <lf-button type="secondary-ghost" icon-only @click="close()">
+              <lf-icon name="xmark" type="regular" />
+            </lf-button>
+          </div>
           <slot :close="close" />
         </div>
       </div>
@@ -12,15 +29,28 @@
 
 <script setup lang="ts">
 import { computed, watch } from 'vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
-const props = withDefaults(defineProps<{
-  modelValue: boolean,
-  width?: string,
-  closeFunction?:() => boolean,
-}>(), {
-  width: '37.5rem',
-  closeFunction: () => true,
-});
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean;
+    width?: string;
+    containerClass?: string;
+    contentClass?: string;
+    headerTitle?: string;
+    preTitle?: string;
+    closeFunction?:() => boolean;
+  }>(),
+  {
+    width: '37.5rem',
+    closeFunction: () => true,
+    containerClass: '',
+    contentClass: '',
+    headerTitle: '',
+    preTitle: '',
+  },
+);
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any }>();
 
@@ -50,13 +80,16 @@ const onEscapeKeyUp = (event: any) => {
   }
 };
 
-watch(() => isModalOpened.value, (show: boolean) => {
-  if (!show) {
-    window.removeEventListener('keyup', onEscapeKeyUp);
-  } else {
-    window.addEventListener('keyup', onEscapeKeyUp);
-  }
-});
+watch(
+  () => isModalOpened.value,
+  (show: boolean) => {
+    if (!show) {
+      window.removeEventListener('keyup', onEscapeKeyUp);
+    } else {
+      window.addEventListener('keyup', onEscapeKeyUp);
+    }
+  },
+);
 </script>
 
 <script lang="ts">

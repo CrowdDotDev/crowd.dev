@@ -128,25 +128,25 @@ export async function updateCollection(
 }
 
 export enum InsightsProjectField {
-  ID = 'id',
-  NAME = 'name',
-  DESCRIPTION = 'description',
-  SEGMENT_ID = 'segmentId',
   CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
-  IS_LF = 'isLF',
+  DESCRIPTION = 'description',
   ENABLED = 'enabled',
-  KEYWORDS = 'keywords',
-
-  LOGO_URL = 'logoUrl',
-  ORGANIZATION_ID = 'organizationId',
-  WEBSITE = 'website',
   GITHUB = 'github',
+  ID = 'id',
+  IS_LF = 'isLF',
+  KEYWORDS = 'keywords',
   LINKEDIN = 'linkedin',
-  TWITTER = 'twitter',
-  WIDGETS = 'widgets',
+  LOGO_URL = 'logoUrl',
+  NAME = 'name',
+  ORGANIZATION_ID = 'organizationId',
   REPOSITORIES = 'repositories',
+  SEARCH_KEYWORDS = 'searchKeywords',
+  SEGMENT_ID = 'segmentId',
   SLUG = 'slug',
+  TWITTER = 'twitter',
+  UPDATED_AT = 'updatedAt',
+  WEBSITE = 'website',
+  WIDGETS = 'widgets',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(

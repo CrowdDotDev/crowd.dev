@@ -9,7 +9,7 @@ SQL >
     FROM activities_deduplicated_ds a
     JOIN activityRelations_deduplicated_ds ar ON ar.activityId = a.id
     where
-        memberId IN (SELECT id FROM members WHERE NOT isBot AND NOT isTeamMember)
+        memberId IN (SELECT id FROM members_sorted)
         and (
             (
                 platform IN ('git', 'gerrit', 'github', 'gitlab')

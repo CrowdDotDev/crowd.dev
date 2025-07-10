@@ -6,7 +6,7 @@ import {
   singleOrDefault,
   timeout,
 } from '@crowd/common'
-import { UnrepeatableError } from '@crowd/common'
+import { ApplicationError, UnrepeatableError } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -56,16 +56,39 @@ export default class DataSinkService extends LoggerBase {
     resultExists: boolean,
     location: string,
     message: string,
-    metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    const errorData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorData: any = {
       location,
       message,
-      metadata,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      errorString: error ? JSON.stringify(error) : undefined,
+
+      errorMessage: error?.message ?? '<no error message>',
+
+      errors: [
+        {
+          errorMessage: error?.message ?? '<no error message>',
+          errorStack: error?.stack,
+          error,
+        },
+      ],
+    }
+
+    // unwrap all errors
+    let currentError = error
+    while (currentError instanceof ApplicationError && currentError.originalError) {
+      currentError = currentError.originalError
+
+      errorData.errors.push({
+        errorMessage: currentError.message,
+        errorStack: currentError.stack,
+        error: currentError,
+      })
+
+      // chain to the  topmost errorMessage property
+      errorData.errorMessage = `${errorData.errorMessage} -> ${
+        currentError.message ?? '<no error message>'
+      }`
     }
 
     if (
@@ -271,6 +294,8 @@ export default class DataSinkService extends LoggerBase {
 
         let lastError: Error | undefined
 
+        let lastResults: Map<string, { success: boolean; err?: Error }> | undefined = undefined
+
         while (toProcess.length > 0 && retry < 5) {
           if (retry > 0) {
             this.log.trace(`[RESULTS] Retrying but sleeping first...`)
@@ -279,7 +304,7 @@ export default class DataSinkService extends LoggerBase {
 
           try {
             this.log.trace(`[RESULTS] Processing ${toProcess.length} activity results...`)
-            const processResults = await service.processActivities(
+            lastResults = await service.processActivities(
               toProcess.map((r) => {
                 return {
                   resultId: r.id,
@@ -294,7 +319,7 @@ export default class DataSinkService extends LoggerBase {
             )
 
             toProcess = []
-            for (const [resultId, result] of processResults) {
+            for (const [resultId, result] of lastResults) {
               if (result.success || result.err instanceof UnrepeatableError) {
                 resultMap.set(resultId, result)
               } else {
@@ -303,7 +328,7 @@ export default class DataSinkService extends LoggerBase {
             }
 
             this.log.trace(
-              `[RESULTS] Processed ${processResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
+              `[RESULTS] Processed ${lastResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
             )
 
             // clear last error because we processed without unhandled error
@@ -328,6 +353,19 @@ export default class DataSinkService extends LoggerBase {
               success: false,
               err: lastError,
             })
+          }
+        }
+
+        if (lastResults) {
+          for (const left of toProcess) {
+            if (resultMap.has(left.id)) {
+              continue
+            }
+
+            const lastResult = lastResults.get(left.id)
+            if (lastResult) {
+              resultMap.set(left.id, lastResult)
+            }
           }
         }
       } else if (type === IntegrationResultType.TWITTER_MEMBER_REACH) {
@@ -372,7 +410,6 @@ export default class DataSinkService extends LoggerBase {
           batchEntry.created,
           'process-result',
           'Error processing result.',
-          undefined,
           result.err,
         )
 

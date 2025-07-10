@@ -125,20 +125,38 @@ export async function cleanSoftDeletedMemberOrganization(
   organizationId: string,
   data: Partial<IMemberOrganization>,
 ): Promise<void> {
-  return qx.result(
-    `
-      DELETE FROM "memberOrganizations"
-      WHERE "memberId" = $(memberId)
-        AND "organizationId" = $(organizationId)
-        AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart) IS NULL))
-        AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd) IS NULL))
-        AND "deletedAt" IS NOT NULL;
-    `,
-    {
-      memberId,
-      organizationId,
-      dateStart: data.dateStart ?? null,
-      dateEnd: data.dateEnd ?? null,
-    },
-  )
+  const whereClause = `
+    "memberId" = $(memberId)
+    AND "organizationId" = $(organizationId)
+    AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart) IS NULL))
+    AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd) IS NULL))
+    AND "deletedAt" IS NOT NULL
+  `
+
+  const params = {
+    memberId,
+    organizationId,
+    dateStart: data.dateStart ?? null,
+    dateEnd: data.dateEnd ?? null,
+  }
+
+  return qx.tx(async (tx) => {
+    await tx.result(
+      `
+        DELETE FROM "memberOrganizationAffiliationOverrides"
+        WHERE "memberOrganizationId" IN (
+          SELECT "id" FROM "memberOrganizations" WHERE ${whereClause}
+        )
+      `,
+      params,
+    )
+
+    await tx.result(
+      `
+        DELETE FROM "memberOrganizations"
+        WHERE ${whereClause}
+      `,
+      params,
+    )
+  })
 }

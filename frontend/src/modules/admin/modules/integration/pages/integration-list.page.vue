@@ -71,23 +71,32 @@
       >
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
-            <lf-switch
+            <lf-tooltip
               v-if="isTeamUser()"
-              v-model="selectedGitHubVersion"
               class="ml-auto"
-              :size="'small'"
+              placement="top"
+              content-class="!max-w-76 !p-3 !text-start"
+              :disabled="!isGithubConnected"
+              content="Please disconnect the existing integration to be able to select the GitHub version"
             >
-              <template #inactive>
-                <span class="text-gray-500 text-small mr-2">Use old GitHub integration</span>
-              </template>
-              <template #default>
-                <span class="text-gray-500 text-small">Use new GitHub integration</span>
-              </template>
-            </lf-switch>
+              <lf-switch
+                v-model="useGitHubNango"
+                :size="'small'"
+                :disabled="isGithubConnected"
+              >
+                <template #inactive>
+                  <span class="text-gray-500 text-small mr-2">Use old GitHub integration</span>
+                </template>
+                <template #default>
+                  <span class="text-gray-500 text-small">Use new GitHub integration</span>
+                </template>
+              </lf-switch>
+            </lf-tooltip>
+
             <lf-integration-list-item
               v-for="key in platformsByStatus"
               :key="key"
-              :config="lfIntegrations(selectedGitHubVersion)[key]"
+              :config="lfIntegrations(useGitHubNango)[key]"
               :progress="progress"
               :progress-error="progressError"
             />
@@ -124,6 +133,7 @@ import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import config from '@/config';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const route = useRoute();
 
@@ -133,7 +143,7 @@ const { array, loadingFetch } = mapGetters('integration');
 
 const { id, grandparentId } = route.params;
 
-const selectedGitHubVersion = ref(false); // true for v2, false for v1
+const useGitHubNango = ref(false); // true for v2, false for v1
 
 const subproject = ref<any>();
 
@@ -141,7 +151,7 @@ const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const all = Object.keys(lfIntegrations(selectedGitHubVersion.value));
+  const all = Object.keys(lfIntegrations(useGitHubNango.value));
   if (!statusConfig) {
     return all;
   }
@@ -158,12 +168,17 @@ const platformsByStatus = computed(() => {
   return all.filter((platform) => matching.includes(platform));
 });
 
+const isGithubConnected = computed(() => array.value.some(
+  (integration: any) => integration.platform === 'github',
+));
+
 const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   const statusCount: any = {};
   Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
     statusCount[key] = array.value.filter((integration: any) => statusConfig.show(integration)).length;
   });
-  statusCount.notConnected = Object.keys(lfIntegrations(selectedGitHubVersion.value)).length - array.value.length;
+  statusCount.notConnected = Object.keys(lfIntegrations(useGitHubNango.value)).length
+    - array.value.length;
   return statusCount;
 });
 
@@ -172,7 +187,7 @@ onMounted(() => {
   localStorage.setItem('segmentGrandparentId', grandparentId);
 
   doFetch().then(() => {
-    selectedGitHubVersion.value = updateGithubVersion();
+    useGitHubNango.value = updateGithubVersion();
   });
   findSubProject(id).then((res) => {
     subproject.value = res;
@@ -180,7 +195,9 @@ onMounted(() => {
 });
 
 const updateGithubVersion = () => {
-  const githubIntegration = array.value.find((integration: any) => integration.platform === 'github');
+  const githubIntegration = array.value.find(
+    (integration: any) => integration.platform === 'github',
+  );
   if (githubIntegration) {
     return !!githubIntegration.isNango;
   }
@@ -190,7 +207,9 @@ const updateGithubVersion = () => {
 const isTeamUser = () => {
   const authStore = useAuthStore();
   const userId = authStore.user?.id;
-  return config.permissions.teamUserIds?.includes(userId) || config.env === 'local';
+  return (
+    config.permissions.teamUserIds?.includes(userId) || config.env === 'local'
+  );
 };
 </script>
 

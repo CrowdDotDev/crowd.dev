@@ -1232,7 +1232,7 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(originalId, toMergeId, doNotDeleteSecondaryMember = false) {
+  async merge(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     if (originalId === toMergeId) {
@@ -1421,7 +1421,6 @@ export default class MemberService extends LoggerBase {
           original.displayName,
           toMerge.displayName,
           this.options.currentUser.id,
-          doNotDeleteSecondaryMember,
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
@@ -1431,6 +1430,11 @@ export default class MemberService extends LoggerBase {
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
     } catch (err) {
+      if (err.name === 'WorkflowExecutionAlreadyStartedError') {
+        this.options.log.info({ originalId, toMergeId }, 'Temporal workflow already started!')
+        return { status: 409, mergedId: originalId }
+      }
+
       this.options.log.error(err, 'Error while merging members!', { originalId, toMergeId })
 
       await MergeActionsRepository.setMergeAction(

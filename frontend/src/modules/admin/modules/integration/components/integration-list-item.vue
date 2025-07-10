@@ -37,11 +37,12 @@
         />
       </div>
     </div>
+
     <div v-if="integration && integration.status" :class="status.actionBar.background">
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress">
+          <div v-if="isInProgress && !integration.isNango">
             <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
@@ -107,6 +108,12 @@
         </div>
       </div>
     </div>
+
+    <component
+      :is="props.config.mappedReposComponent"
+      v-if="props.config.mappedReposComponent"
+      :segment-id="route.params.id"
+    />
   </article>
 </template>
 
@@ -130,7 +137,7 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 const props = defineProps<{
   config: IntegrationConfig,
   progress: IntegrationProgress | null,
-  progressError: boolean,
+  progressError: boolean
 }>();
 
 const route = useRoute();

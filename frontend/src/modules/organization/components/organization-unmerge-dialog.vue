@@ -1,17 +1,15 @@
 <template>
-  <app-dialog
+  <lf-modal
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Unmerge identity"
-    size="2extra-large"
-    custom-class="p-0 !mt-5"
+    container-class="overflow-auto"
+    content-class="!max-h-none"
+    width="64rem"
   >
-    <template #header>
+    <div class="flex items-center justify-between p-6">
       <h3 class="text-lg font-semibold">
         Unmerge identity
       </h3>
-    </template>
-    <template #headerActions>
       <div class="flex justify-end -my-1">
         <lf-button
           type="bordered"
@@ -28,217 +26,254 @@
           :loading="unmerging"
           @click="unmerge()"
         >
-          {{ !revertPreviousMerge ? 'Unmerge identity' : 'Unmerge identity and revert previous merge' }}
+          {{
+            !revertPreviousMerge
+              ? 'Unmerge identity'
+              : 'Unmerge identity and revert previous merge'
+          }}
         </lf-button>
       </div>
-    </template>
-    <template #content>
-      <div class="p-6 relative border-t">
-        <div v-if="canRevertPreviousMerge" class="flex bg-yellow-50 rounded-lg w-full p-3 mb-5">
-          <lf-icon name="exclamation-triangle" type="solid" class="text-yellow-500" :size="18" />
-          <div class="flex flex-col ml-2 flex-grow">
-            <div class="flex items-center justify-between">
-              <span class="text-black text-xs font-semibold">Do you want to revert the previous merge operation?</span>
-              <lf-switch
-                v-model="revertPreviousMerge"
-                class="text-gray-900 text-xs"
-                size="tiny"
-                @update:model-value="fetchPreview(selectedIdentity!)"
-              >
-                Revert previous merge
-              </lf-switch>
-            </div>
-            <span class="text-gray-500 text-tiny mt-1 whitespace-pre-line">
-              The identity you are unmerging was part of a previous merge operation.
-              <br />
-              By reverting the previous operation, we will split the profiles previously merged.
-            </span>
-          </div>
-        </div>
-        <div class="flex -mx-3">
-          <div class="w-1/2 px-3">
-            <!-- Loading preview -->
-            <app-organization-merge-suggestions-details
-              v-if="!preview && props.modelValue"
-              :organization="props.modelValue"
-              :is-primary="true"
+    </div>
+    <div class="p-6 relative border-t">
+      <div
+        v-if="canRevertPreviousMerge"
+        class="flex bg-yellow-50 rounded-lg w-full p-3 mb-5"
+      >
+        <lf-icon
+          name="exclamation-triangle"
+          type="solid"
+          class="text-yellow-500"
+          :size="18"
+        />
+        <div class="flex flex-col ml-2 flex-grow">
+          <div class="flex items-center justify-between">
+            <span class="text-black text-xs font-semibold">Do you want to revert the previous merge operation?</span>
+            <lf-switch
+              v-model="revertPreviousMerge"
+              class="text-gray-900 text-xs"
+              size="tiny"
+              @update:model-value="fetchPreview(selectedIdentity!)"
             >
-              <template #header>
-                <div class="h-13 flex justify-between items-start">
-                  <div
-                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-                  >
-                    Current organization
-                  </div>
+              Revert previous merge
+            </lf-switch>
+          </div>
+          <span class="text-gray-500 text-tiny mt-1 whitespace-pre-line">
+            The identity you are unmerging was part of a previous merge
+            operation.
+            <br />
+            By reverting the previous operation, we will split the profiles
+            previously merged.
+          </span>
+        </div>
+      </div>
+      <div class="flex -mx-3">
+        <div class="w-1/2 px-3">
+          <!-- Loading preview -->
+          <app-organization-merge-suggestions-details
+            v-if="!preview && props.modelValue"
+            :organization="props.modelValue"
+            :is-primary="true"
+          >
+            <template #header>
+              <div class="h-13 flex justify-between items-start">
+                <div
+                  class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                >
+                  Current organization
                 </div>
-              </template>
-            </app-organization-merge-suggestions-details>
+              </div>
+            </template>
+          </app-organization-merge-suggestions-details>
+          <app-organization-merge-suggestions-details
+            v-else-if="preview"
+            :organization="preview.primary"
+            :compare-organization="preview.secondary"
+            :is-primary="true"
+            :is-preview="true"
+          >
+            <template #header>
+              <div class="h-13 flex justify-between items-start">
+                <div
+                  class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                >
+                  Updated organization
+                </div>
+              </div>
+            </template>
+          </app-organization-merge-suggestions-details>
+        </div>
+        <div class="w-1/2 px-3">
+          <!-- Loading preview -->
+          <div
+            v-if="fetchingPreview"
+            class="flex items-center justify-center pt-40 w-full"
+          >
+            <lf-spinner />
+          </div>
+          <!-- Unmerge preview -->
+          <div v-else-if="preview">
             <app-organization-merge-suggestions-details
-              v-else-if="preview"
-              :organization="preview.primary"
-              :compare-organization="preview.secondary"
-              :is-primary="true"
+              :organization="preview.secondary"
+              :compare-organization="preview.primary"
               :is-preview="true"
             >
               <template #header>
-                <div class="h-13 flex justify-between items-start">
-                  <div
-                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-                  >
-                    Updated organization
+                <div class="h-13">
+                  <div class="flex justify-between items-start">
+                    <div
+                      class="inline-flex items-center bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 text-xs leading-5 font-medium"
+                    >
+                      <lf-icon name="link-slash" :size="16" class="mr-1" />
+                      Unmerged organization
+                    </div>
+                    <el-dropdown placement="bottom-end" trigger="click">
+                      <button
+                        class="btn btn--link !text-primary-500"
+                        type="button"
+                        @click.stop
+                      >
+                        Change identity
+                      </button>
+                      <template #dropdown>
+                        <template v-for="i of identities" :key="i.id">
+                          <el-dropdown-item
+                            v-if="i.id !== selectedIdentity!.id"
+                            :value="i"
+                            :label="i.displayValue"
+                            @click="changeIdentity(i)"
+                          >
+                            <lf-icon
+                              v-if="i.type === 'email'"
+                              name="envelope"
+                              :size="20"
+                              class="text-gray-900 leading-5 mr-2"
+                            />
+                            <lf-icon
+                              v-else-if="
+                                [
+                                  'primary-domain',
+                                  'alternative-domain',
+                                  'affiliated-profile',
+                                ].includes(i.type)
+                              "
+                              name="window"
+                              :size="20"
+                              class="text-gray-900 text-lg leading-5 mr-2"
+                            />
+                            <img
+                              v-else-if="lfIdentities[i.platform]"
+                              class="h-5 min-w-5 mr-2"
+                              :alt="lfIdentities[i.platform]?.name"
+                              :src="lfIdentities[i.platform]?.image"
+                            />
+                            <lf-icon
+                              v-else
+                              name="fingerprint"
+                              :size="20"
+                              class="text-gray-600 mr-2"
+                            />
+                            <span>{{ i.displayValue }}</span>
+                          </el-dropdown-item>
+                        </template>
+                      </template>
+                    </el-dropdown>
                   </div>
                 </div>
               </template>
             </app-organization-merge-suggestions-details>
           </div>
-          <div class="w-1/2 px-3">
-            <!-- Loading preview -->
-            <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
-              <lf-spinner />
+          <!-- Identity selection -->
+          <div v-else class="pt-14">
+            <div class="flex justify-center pb-5">
+              <lf-icon name="fingerprint" :size="64" class="text-gray-200" />
             </div>
-            <!-- Unmerge preview -->
-            <div v-else-if="preview">
-              <app-organization-merge-suggestions-details
-                :organization="preview.secondary"
-                :compare-organization="preview.primary"
-                :is-preview="true"
+            <p class="text-center text-xs leading-5 text-gray-500">
+              Select the organization identity you want to unmerge
+            </p>
+            <div class="pt-4">
+              <el-select
+                placeholder="Select identity"
+                class="w-full"
+                value-key="id"
+                @update:model-value="changeIdentity($event)"
               >
-                <template #header>
-                  <div class="h-13">
-                    <div class="flex justify-between items-start">
-                      <div
-                        class="inline-flex items-center bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 text-xs leading-5 font-medium"
-                      >
-                        <lf-icon name="link-slash" :size="16" class="mr-1" />
-                        Unmerged organization
-                      </div>
-                      <el-dropdown
-                        placement="bottom-end"
-                        trigger="click"
-                      >
-                        <button
-                          class="btn btn--link !text-primary-500"
-                          type="button"
-                          @click.stop
-                        >
-                          Change identity
-                        </button>
-                        <template #dropdown>
-                          <template
-                            v-for="i of identities"
-                            :key="i.id"
-                          >
-                            <el-dropdown-item
-                              v-if="i.id !== selectedIdentity!.id"
-                              :value="i"
-                              :label="i.displayValue"
-                              @click="changeIdentity(i)"
-                            >
-                              <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
-                              <lf-icon
-                                v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
-                                name="window"
-                                :size="20"
-                                class="text-gray-900 text-lg leading-5 mr-2"
-                              />
-                              <img
-                                v-else-if="lfIdentities[i.platform]"
-                                class="h-5 min-w-5 mr-2"
-                                :alt="lfIdentities[i.platform]?.name"
-                                :src="lfIdentities[i.platform]?.image"
-                              />
-                              <lf-icon
-                                v-else
-                                name="fingerprint"
-                                :size="20"
-                                class="text-gray-600 mr-2"
-                              />
-                              <span>{{ i.displayValue }}</span>
-                            </el-dropdown-item>
-                          </template>
-                        </template>
-                      </el-dropdown>
-                    </div>
-                  </div>
-                </template>
-              </app-organization-merge-suggestions-details>
-            </div>
-            <!-- Identity selection -->
-            <div v-else class="pt-14">
-              <div class="flex justify-center pb-5">
-                <lf-icon name="fingerprint" :size="64" class="text-gray-200" />
-              </div>
-              <p class="text-center text-xs leading-5 text-gray-500">
-                Select the organization identity you want to unmerge
-              </p>
-              <div class="pt-4">
-                <el-select
-                  placeholder="Select identity"
-                  class="w-full"
-                  value-key="id"
-                  @update:model-value="changeIdentity($event)"
+                <el-option
+                  v-for="i of identities"
+                  :key="i.id"
+                  :value="i"
+                  :label="i.displayValue"
                 >
-                  <el-option
-                    v-for="i of identities"
-                    :key="i.id"
-                    :value="i"
-                    :label="i.displayValue"
-                  >
-                    <lf-icon v-if="i.type === 'email'" name="envelope" :size="20" class="text-gray-900 leading-5 mr-2" />
-                    <lf-icon
-                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
-                      name="window"
-                      :size="20"
-                      class="text-gray-900 text-lg leading-5 mr-2"
-                    />
-                    <img
-                      v-else-if="lfIdentities[i.platform]"
-                      class="h-5 min-w-5 mr-2"
-                      :alt="lfIdentities[i.platform]?.name"
-                      :src="lfIdentities[i.platform]?.image"
-                    />
-                    <lf-icon
-                      v-else
-                      name="fingerprint"
-                      :size="20"
-                      class="text-gray-600 mr-2"
-                    />
-                    {{ i.displayValue }}
-                  </el-option>
-                </el-select>
-              </div>
+                  <lf-icon
+                    v-if="i.type === 'email'"
+                    name="envelope"
+                    :size="20"
+                    class="text-gray-900 leading-5 mr-2"
+                  />
+                  <lf-icon
+                    v-else-if="
+                      [
+                        'primary-domain',
+                        'alternative-domain',
+                        'affiliated-profile',
+                      ].includes(i.type)
+                    "
+                    name="window"
+                    :size="20"
+                    class="text-gray-900 text-lg leading-5 mr-2"
+                  />
+                  <img
+                    v-else-if="lfIdentities[i.platform]"
+                    class="h-5 min-w-5 mr-2"
+                    :alt="lfIdentities[i.platform]?.name"
+                    :src="lfIdentities[i.platform]?.image"
+                  />
+                  <lf-icon
+                    v-else
+                    name="fingerprint"
+                    :size="20"
+                    class="text-gray-600 mr-2"
+                  />
+                  {{ i.displayValue }}
+                </el-option>
+              </el-select>
             </div>
           </div>
         </div>
       </div>
-    </template>
-  </app-dialog>
+    </div>
+  </lf-modal>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
-import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import AppOrganizationMergeSuggestionsDetails
-  from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
+import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { lfIdentities } from '@/config/identities';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
-import { Organization, OrganizationIdentity, OrganizationIdentityParsed } from '@/modules/organization/types/Organization';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityParsed,
+} from '@/modules/organization/types/Organization';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 
 const props = defineProps<{
-  modelValue: Organization | null,
-  selectedIdentity?: OrganizationIdentity | null,
+  modelValue: Organization | null;
+  selectedIdentity?: OrganizationIdentity | null;
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: Organization | null): void,
+const emit = defineEmits<{(e: 'update:modelValue', value: Organization | null): void;
 }>();
 
 const { trackEvent } = useProductTracking();
@@ -248,17 +283,22 @@ const revertPreviousMerge = ref(false);
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
 const preview = ref<{
-  primary: Organization,
-  secondary: Organization,
+  primary: Organization;
+  secondary: Organization;
 } | null>(null);
 const selectedIdentity = ref<OrganizationIdentityParsed | null>(null);
 
 const { getOrganizationMergeActions, fetchOrganization } = useOrganizationStore();
 
-const parseIdentityValues = (identity: OrganizationIdentity): OrganizationIdentityParsed => {
+const parseIdentityValues = (
+  identity: OrganizationIdentity,
+): OrganizationIdentityParsed => {
   const splittedIdentity = identity.value?.split(':');
 
-  if (identity.platform === Platform.LINKEDIN && splittedIdentity.length === 2) {
+  if (
+    identity.platform === Platform.LINKEDIN
+    && splittedIdentity.length === 2
+  ) {
     return {
       ...identity,
       id: `${identity.platform}:${identity.value}:${identity.type}:${identity.verified}`,
@@ -322,12 +362,18 @@ const fetchPreview = (identity: OrganizationIdentityParsed) => {
   }
   fetchingPreview.value = true;
 
-  OrganizationService.unmergePreview(props.modelValue?.id, identity, revertPreviousMerge.value)
+  OrganizationService.unmergePreview(
+    props.modelValue?.id,
+    identity,
+    revertPreviousMerge.value,
+  )
     .then((res) => {
       preview.value = res;
     })
     .catch((error) => {
-      Message.error(error?.response?.data || 'There was an error fetching unmerge preview');
+      Message.error(
+        error?.response?.data || 'There was an error fetching unmerge preview',
+      );
     })
     .finally(() => {
       fetchingPreview.value = false;
@@ -343,7 +389,8 @@ const getCanRevertMerge = (identity: OrganizationIdentityParsed) => {
   OrganizationService.canRevertMerge(props.modelValue?.id, identity)
     .then((res) => {
       canRevertPreviousMerge.value = res;
-    }).catch(() => {
+    })
+    .catch(() => {
       canRevertPreviousMerge.value = false;
     });
 };
@@ -390,7 +437,6 @@ onMounted(() => {
     changeIdentity(identity);
   }
 });
-
 </script>
 
 <script lang="ts">

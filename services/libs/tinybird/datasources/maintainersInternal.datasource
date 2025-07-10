@@ -1,0 +1,15 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `role` String `json:$.record.role` DEFAULT '',
+    `repoUrl` String `json:$.record.repoUrl` DEFAULT '',
+    `repoId` String `json:$.record.repoId` DEFAULT '',
+    `identityId` String `json:$.record.identityId` DEFAULT '',
+    `originalRole` String `json:$.record.originalRole` DEFAULT '',
+    `startDate` DateTime64(3) `json:$.record.startDate` DEFAULT '',
+    `endDate` DateTime64(3) `json:$.record.endDate` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY identityId, id
+ENGINE_VER updatedAt

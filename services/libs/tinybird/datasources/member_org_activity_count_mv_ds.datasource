@@ -1,7 +1,0 @@
-SCHEMA >
-    `memberId` String,
-    `organizationId` String,
-    `activityCount` AggregateFunction(count, String)
-
-ENGINE AggregatingMergeTree
-ENGINE_SORTING_KEY memberId, organizationId

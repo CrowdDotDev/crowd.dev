@@ -1,33 +1,12 @@
-NODE top_active_organizations_activity_count
-DESCRIPTION >
-    Returns activity count by organization
-
-SQL >
-    SELECT organizationId, countMerge(activityCount) as activityCount
-    FROM member_org_activity_count_mv_ds
-    WHERE organizationId != ''
-    GROUP BY organizationId
-    ORDER BY activityCount DESC
-
-NODE top_active_organizations_organizations_deduplicated
-DESCRIPTION >
-    Returns necessary columns from organizations
-
-SQL >
-    SELECT id, displayName, logo FROM organizations FINAL
-
 NODE top_active_organizations_results
 DESCRIPTION >
     Map everything together
 
 SQL >
     %
-    SELECT id, displayName, logo, activityCount
-    FROM top_active_organizations_activity_count
-    JOIN
-        top_active_organizations_organizations_deduplicated
-        ON top_active_organizations_organizations_deduplicated.id
-        = top_active_organizations_activity_count.organizationId
+    SELECT entityId as id, displayName, avatar as logo, activityCount
+    FROM top_member_org_copy_ds
+    WHERE entityType = 'organization'
     ORDER BY activityCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
