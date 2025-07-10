@@ -1,58 +1,49 @@
 <template>
-  <app-dialog
+  <lf-modal
     v-model="isVisible"
-    :title="
-      isEdit ? 'Edit activity type' : 'New activity type'
-    "
+    :header-title="isEdit ? 'Edit activity type' : 'New activity type'"
+    width="42rem"
   >
-    <template #content>
-      <section class="px-6 pb-10">
-        <app-form-item
-          class="mb-2"
-          label="Activity type"
-          :validation="$v.name"
-          :required="true"
-          :error-messages="{
-            required: 'This field is required',
-          }"
-        >
-          <el-input v-model="form.name" />
-        </app-form-item>
-        <p class="text-2xs text-gray-500 leading-5">
-          Example: "Registered to conference"
-        </p>
-      </section>
-      <footer
-        class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md"
+    <section class="px-6 pb-10">
+      <app-form-item
+        class="mb-2"
+        label="Activity type"
+        :validation="$v.name"
+        :required="true"
+        :error-messages="{
+          required: 'This field is required',
+        }"
       >
-        <lf-button
-          type="secondary-gray"
-          size="medium"
-          class="mr-4"
-          @click="emit('update:modelValue', false)"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          size="medium"
-          :disabled="$v.$invalid || !hasFormChanged"
-          @click="submit()"
-        >
-          <span v-if="isEdit">Update</span>
-          <span v-else>Add activity type</span>
-        </lf-button>
-      </footer>
-    </template>
-  </app-dialog>
+        <el-input v-model="form.name" />
+      </app-form-item>
+      <p class="text-2xs text-gray-500 leading-5">
+        Example: "Registered to conference"
+      </p>
+    </section>
+    <footer class="bg-gray-50 py-4 px-6 flex justify-end rounded-b-md">
+      <lf-button
+        type="secondary-gray"
+        size="medium"
+        class="mr-4"
+        @click="emit('update:modelValue', false)"
+      >
+        Cancel
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
+        :disabled="$v.$invalid || !hasFormChanged"
+        @click="submit()"
+      >
+        <span v-if="isEdit">Update</span>
+        <span v-else>Add activity type</span>
+      </lf-button>
+    </footer>
+  </lf-modal>
 </template>
 
 <script setup>
-import {
-  computed,
-  reactive,
-  watch,
-} from 'vue';
+import { computed, reactive, watch } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
@@ -61,8 +52,12 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 
 // Props & Emits
 const props = defineProps({
@@ -130,21 +125,20 @@ const submit = () => {
     });
 
     // Create
-    createActivityType({
-      type: form.name,
-    }, segments)
+    createActivityType(
+      {
+        type: form.name,
+      },
+      segments,
+    )
       .then(() => {
         reset();
         emit('update:modelValue');
         emit('onUpdate');
-        Message.success(
-          'Activity type successfully created!',
-        );
+        Message.success('Activity type successfully created!');
       })
       .catch(() => {
-        Message.error(
-          'There was an error creating activity type',
-        );
+        Message.error('There was an error creating activity type');
       });
   } else {
     trackEvent({
@@ -153,22 +147,22 @@ const submit = () => {
     });
 
     // Update
-    updateActivityType(props.type.key, {
-      type: form.name,
-    }, segments)
+    updateActivityType(
+      props.type.key,
+      {
+        type: form.name,
+      },
+      segments,
+    )
       .then(() => {
         reset();
         fetchActivities({ reload: true });
         emit('update:modelValue');
         emit('onUpdate');
-        Message.success(
-          'Activity type successfully updated!',
-        );
+        Message.success('Activity type successfully updated!');
       })
       .catch(() => {
-        Message.error(
-          'There was an error updating activity type',
-        );
+        Message.error('There was an error updating activity type');
       });
   }
 };
