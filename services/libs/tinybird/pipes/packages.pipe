@@ -1,0 +1,26 @@
+NODE packages_0
+SQL >
+    %
+    SELECT distinct p.repo, p.name, p.ecosystem
+    FROM packageDownloads p
+    where
+        p.insightsProjectId = (select insightsProjectId from segments_filtered)
+        {% if defined(search) %}
+            AND (
+                p.name
+                ilike '%'
+                || {{ String(search, description="Filter package download repo", required=False) }}
+                || '%'
+                OR p.ecosystem
+                ilike '%'
+                || {{ String(search, description="Filter package download ecosystem", required=False) }}
+                || '%'
+            )
+        {% end %}
+        {% if defined(repo) %}
+            AND p.repo = {{ String(repo, description="Filter by repo", required=False) }}
+        {% end %}
+        {% if defined(repos) %}
+            AND p.repo
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+        {% end %}
