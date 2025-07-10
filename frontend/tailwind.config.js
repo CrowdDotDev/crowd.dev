@@ -126,6 +126,7 @@ module.exports = {
           800: 'var(--lf-color-gray-800)',
           700: 'var(--lf-color-gray-700)',
           600: 'var(--lf-color-gray-600)',
+          550: 'var(--lf-color-gray-550)', // Custom gray for specific use
           500: 'var(--lf-color-gray-500)',
           400: 'var(--lf-color-gray-400)',
           300: 'var(--lf-color-gray-300)',
