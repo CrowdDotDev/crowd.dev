@@ -259,11 +259,6 @@ class MemberRepository {
                   FROM "memberIdentities" mi 
                   WHERE mi."memberId" = m_primary.id
               ) > 1
-              AND EXISTS (
-                  SELECT 1 
-                  FROM "activityRelations" ar 
-                  WHERE ar."memberId" = m_secondary.id
-              )
           ORDER BY m_primary.id, m_secondary.id
           LIMIT $(limit);
         `,
