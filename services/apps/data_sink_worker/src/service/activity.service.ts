@@ -92,6 +92,8 @@ export default class ActivityService extends LoggerBase {
     memberInfo: { isBot: boolean; isTeamMember: boolean },
     existingActivityId?: string,
   ): Promise<IActivityPrepareForUpsertResult> {
+    // Use the existing activity ID if found, otherwise generate a new one.
+    // when existing activityId is passed, QuestDB will handle the deduplication
     const id = existingActivityId || generateUUIDv1()
 
     const sentimentPromise = this.getActivitySentiment({
@@ -603,8 +605,10 @@ export default class ActivityService extends LoggerBase {
 
     const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
 
-    // First, check activityRelations (Postgres) to quickly find existing activities.
-    // This is faster than doing an existence check in QuestDB.
+    // Check activityRelations to find existence
+    // If found, we reuse the activityId and let QuestDB handle the upsert via DEDUP keys.
+    // This avoids querying QuestDB and merging data, simplifying the logic and making it
+    // more resilient to data replication delays.
     const existingActivityRelations = await logExecutionTimeV2(
       async () =>
         queryActivityRelations(
