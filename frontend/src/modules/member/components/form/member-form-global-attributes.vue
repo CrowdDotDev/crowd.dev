@@ -130,7 +130,8 @@ import isEqual from 'lodash/isEqual';
 import cloneDeep from 'lodash/cloneDeep';
 import attributeTypes from '@/jsons/member-custom-attributes.json';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
 import { onSelectMouseLeave } from '@/utils/select';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -271,9 +272,9 @@ async function onSubmit() {
   }
 
   if (hasErrorOccurred) {
-    Message.error('Ops, an error occurred');
+    ToastStore.error('Ops, an error occurred');
   } else {
-    Message.success(
+    ToastStore.success(
       'Custom Attributes successfully updated',
     );
     isDrawerOpen.value = false;

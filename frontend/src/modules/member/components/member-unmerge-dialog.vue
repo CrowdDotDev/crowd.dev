@@ -332,7 +332,8 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { MemberService } from '@/modules/member/member-service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -421,7 +422,7 @@ const fetchPreview = (identityId: string) => {
       preview.value = res;
     })
     .catch((error) => {
-      Message.error(
+      ToastStore.error(
         error?.response?.data || 'There was an error fetching unmerge preview',
       );
     })
@@ -463,7 +464,7 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       getContributorMergeActions(props.modelValue?.id);
-      Message.info(
+      ToastStore.info(
         "We're finalizing profiles unmerging. We will let you know once the process is completed.",
         {
           title: 'Profiles unmerging in progress',
@@ -479,7 +480,7 @@ const unmerge = () => {
       emit('update:modelValue', null);
     })
     .catch((error) => {
-      Message.error('There was an error unmerging profile');
+      ToastStore.error('There was an error unmerging profile');
     })
     .finally(() => {
       unmerging.value = false;

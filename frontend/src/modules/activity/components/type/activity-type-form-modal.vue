@@ -47,7 +47,7 @@ import { computed, reactive, watch } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
 import { useActivityStore } from '@/modules/activity/store/pinia';
@@ -135,10 +135,10 @@ const submit = () => {
         reset();
         emit('update:modelValue');
         emit('onUpdate');
-        Message.success('Activity type successfully created!');
+        ToastStore.success('Activity type successfully created!');
       })
       .catch(() => {
-        Message.error('There was an error creating activity type');
+        ToastStore.error('There was an error creating activity type');
       });
   } else {
     trackEvent({
@@ -159,10 +159,10 @@ const submit = () => {
         fetchActivities({ reload: true });
         emit('update:modelValue');
         emit('onUpdate');
-        Message.success('Activity type successfully updated!');
+        ToastStore.success('Activity type successfully updated!');
       })
       .catch(() => {
-        Message.error('There was an error updating activity type');
+        ToastStore.error('There was an error updating activity type');
       });
   }
 };

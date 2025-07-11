@@ -210,7 +210,8 @@ import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions, mapState } from '@/shared/vuex/vuex.helpers';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import platformOptions from '@/modules/eagle-eye/constants/eagle-eye-platforms';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
@@ -335,7 +336,7 @@ const doSubmit = async () => {
       },
       fetchNewResults: false,
     }).then(() => {
-      Message.success('Email Digest settings successfully updated');
+      ToastStore.success('Email Digest settings successfully updated');
       emit('update:modelValue', false);
     });
   }

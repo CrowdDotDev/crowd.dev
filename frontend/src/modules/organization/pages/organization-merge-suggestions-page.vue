@@ -183,7 +183,8 @@ import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { onMounted, ref } from 'vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -345,7 +346,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   OrganizationService.addToNoMerge(...suggestion.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfully');
+      ToastStore.success('Merging suggestion ignored successfully');
       reload();
     })
     .finally(() => {

@@ -76,7 +76,8 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -117,11 +118,11 @@ const update = () => {
     },
   })
     .then(() => {
-      Message.success('Organization logo updated successfully!');
+      ToastStore.success('Organization logo updated successfully!');
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error('There was an error updating organization');
+      ToastStore.error('There was an error updating organization');
     })
     .finally(() => {
       sending.value = false;

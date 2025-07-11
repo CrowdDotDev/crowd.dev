@@ -66,7 +66,8 @@ import { computed, ref } from 'vue';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
@@ -87,7 +88,7 @@ const copyToClipboard = async () => {
 
   await navigator.clipboard.writeText(toCopy);
 
-  Message.success(
+  ToastStore.success(
     'Tenant ID successfully copied to your clipboard',
   );
 };

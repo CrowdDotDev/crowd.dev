@@ -62,7 +62,8 @@ import { VueDraggableNext } from 'vue-draggable-next';
 import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -144,10 +145,10 @@ const remove = (view: SavedView) => {
             name: view.name,
           });
           emit('reload');
-          Message.success('View successfully deleted');
+          ToastStore.success('View successfully deleted');
         })
         .catch(() => {
-          Message.error('There was an error deleting view');
+          ToastStore.error('There was an error deleting view');
         });
     });
 };

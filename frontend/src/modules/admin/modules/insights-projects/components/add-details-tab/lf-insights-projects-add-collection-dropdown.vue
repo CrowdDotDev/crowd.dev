@@ -39,7 +39,8 @@ import {
 import {
   COLLECTIONS_SERVICE,
 } from '@/modules/admin/modules/collections/services/collections.service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
 import { Pagination } from '@/shared/types/Pagination';
@@ -108,7 +109,7 @@ const collections = computed((): CollectionModel[] => {
 
 watch(error, (err) => {
   if (err) {
-    Message.error('Something went wrong while fetching collections');
+    ToastStore.error('Something went wrong while fetching collections');
   }
 });
 

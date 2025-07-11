@@ -1,6 +1,6 @@
 import { useLogRocket } from '@/utils/logRocket';
 import { router } from '@/router';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
 const DEFAULT_ERROR_MESSAGE = 'Ops, an error occurred';
@@ -57,7 +57,7 @@ export default class Errors {
       }
 
       if (error.response.data.includes('Missing scopes in ')) {
-        Message.error(error.response.data, { duration: 0 });
+        ToastStore.error(error.response.data, { duration: 0 });
         return;
       }
       router.push('/403');
@@ -65,19 +65,19 @@ export default class Errors {
     }
 
     if ([400, 409, 429].includes(selectErrorCode(error))) {
-      Message.error(selectErrorMessage(error));
+      ToastStore.error(selectErrorMessage(error));
       return;
     }
 
     if (selectErrorCode(error) === 542) {
-      Message.error(
+      ToastStore.error(
         'An error has occurred setting up the integration, please reach out to us via chat.',
         { duration: 0 },
       );
       return;
     }
 
-    Message.error(
+    ToastStore.error(
       'Please try again. If the problem remains, reach out to us.',
       { title: 'Oops, something went wrong' },
     );
@@ -92,6 +92,6 @@ export default class Errors {
   }
 
   static showMessage(error) {
-    Message.error(selectErrorMessage(error));
+    ToastStore.error(selectErrorMessage(error));
   }
 }

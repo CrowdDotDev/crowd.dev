@@ -62,7 +62,8 @@ import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import {
@@ -147,11 +148,11 @@ const updateIdentity = () => {
     identities,
   })
     .then(() => {
-      Message.success('Identity updated successfully');
+      ToastStore.success('Identity updated successfully');
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error('Something went wrong while editing an identity');
+      ToastStore.error('Something went wrong while editing an identity');
     })
     .finally(() => {
       sending.value = false;

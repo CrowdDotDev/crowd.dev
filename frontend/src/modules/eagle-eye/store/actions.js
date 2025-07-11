@@ -7,7 +7,8 @@ import {
   shouldFetchNewResults,
   isStorageUpdating,
 } from '@/modules/eagle-eye/eagle-eye-storage';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { dateHelper } from '@/shared/date-helper/date-helper';
@@ -350,7 +351,7 @@ export default {
           });
         });
 
-        Message.error(
+        ToastStore.error(
           'Something went wrong. Please try again',
         );
         commit('SET_ACTIVE_ACTION', {});

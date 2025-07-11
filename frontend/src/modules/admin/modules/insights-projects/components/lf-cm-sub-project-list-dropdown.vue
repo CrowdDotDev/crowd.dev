@@ -115,7 +115,8 @@ import { TanstackKey } from '@/shared/types/tanstack';
 import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
 import { Pagination } from '@/shared/types/Pagination';
 import { Project } from '@/modules/lf/segments/types/Segments';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 
 const SearchIcon = h(
   'i', // type
@@ -218,7 +219,7 @@ const projectsList = computed((): Project[] => {
 
 watch(error, (err) => {
   if (err) {
-    Message.error('Something went wrong while fetching projects');
+    ToastStore.error('Something went wrong while fetching projects');
   }
 });
 

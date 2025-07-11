@@ -165,7 +165,8 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppConversationDetailsFooter from '@/modules/conversation/components/conversation-details-footer.vue';
 import { ActivityService } from '@/modules/activity/activity-service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
@@ -312,7 +313,7 @@ export default {
           this.filteredActivities = response.rows;
         }).catch((error) => {
           console.error(error);
-          Message.error(
+          ToastStore.error(
             'Something went wrong. Please try again',
           );
         }).finally(() => {

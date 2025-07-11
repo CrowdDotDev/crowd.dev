@@ -68,7 +68,8 @@ import { filterApiService } from '@/shared/modules/filters/services/filter-api.s
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { useUserStore } from '@/modules/user/store/pinia';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -234,7 +235,7 @@ const copyToClipboard = async () => {
     }),
   );
 
-  Message.success('Filters payload successfully copied to your clipboard');
+  ToastStore.success('Filters payload successfully copied to your clipboard');
 };
 </script>
 

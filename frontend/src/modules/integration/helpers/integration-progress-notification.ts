@@ -1,8 +1,8 @@
 import { createVNode, h } from 'vue';
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
-import { ElNotification } from 'element-plus';
 import { lfIntegrations } from '@/config/integrations';
+import { ToastStore } from '@/shared/message/notification';
 
 export const showIntegrationProgressNotification = (platform, segmentId) => {
   const label = lfIntegrations()[platform]?.name;
@@ -34,13 +34,7 @@ export const showIntegrationProgressNotification = (platform, segmentId) => {
     default: defaultSlot,
   });
 
-  ElNotification({
+  ToastStore.info(wrapper, {
     title: `Connecting ${label} integration`,
-    message: wrapper,
-    showClose: true,
-    customClass: 'info',
-    duration: 60000,
-    position: 'bottom-right',
-    offset: 24,
   });
 };

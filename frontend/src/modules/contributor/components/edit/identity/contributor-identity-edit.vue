@@ -67,7 +67,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -134,13 +135,13 @@ const updateIdentity = () => {
     platform: form.type === 'email' ? 'custom' : form.platform,
   })
     .then(() => {
-      Message.success('Identity updated successfully');
+      ToastStore.success('Identity updated successfully');
       isModalOpen.value = false;
     })
     .catch((error) => {
       if (error.response.status === 409) {
         isModalOpen.value = false;
-        Message.success(
+        ToastStore.success(
           h(
             'div',
             {
@@ -155,7 +156,7 @@ const updateIdentity = () => {
                     const { memberId, grandParentId } = error.response.data;
 
                     memberStore.addToMergeMember(memberId, grandParentId);
-                    Message.closeAll();
+                    ToastStore.closeAll();
                   },
                 },
                 'Merge profiles',
@@ -167,7 +168,7 @@ const updateIdentity = () => {
           },
         );
       } else {
-        Message.error('Something went wrong while editing an identity');
+        ToastStore.error('Something went wrong while editing an identity');
       }
     })
     .finally(() => {

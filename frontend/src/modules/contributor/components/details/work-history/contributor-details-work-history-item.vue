@@ -126,7 +126,8 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { computed, ref } from 'vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -202,9 +203,9 @@ const setAffiliation = (data: {
   })
     .then(() => {
       if (data.isPrimaryWorkExperience) {
-        Message.success('Organization/job title successfully affiliated');
+        ToastStore.success('Organization/job title successfully affiliated');
       } else {
-        Message.success('Organization/job title affiliation successfully removed');
+        ToastStore.success('Organization/job title affiliation successfully removed');
       }
       getContributorOrganizations(props.contributor.id);
     });
@@ -228,10 +229,10 @@ const removeWorkHistory = () => {
 
     deleteContributorOrganization(props.contributor.id, props.organization.memberOrganizations.id)
       .then(() => {
-        Message.success('Work experience deleted successfully');
+        ToastStore.success('Work experience deleted successfully');
       })
       .catch(() => {
-        Message.error('Something went wrong while deleting an work experience');
+        ToastStore.error('Something went wrong while deleting an work experience');
       });
   });
 };

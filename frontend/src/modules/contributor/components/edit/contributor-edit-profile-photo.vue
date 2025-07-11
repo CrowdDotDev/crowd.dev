@@ -68,7 +68,8 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
@@ -110,11 +111,11 @@ const update = () => {
     },
   })
     .then(() => {
-      Message.success('Avatar updated successfully!');
+      ToastStore.success('Avatar updated successfully!');
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error('There was an error updating organization');
+      ToastStore.error('There was an error updating organization');
     })
     .finally(() => {
       sending.value = false;

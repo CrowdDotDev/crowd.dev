@@ -1,8 +1,8 @@
-.el-notification {
-  @apply border-0 border-l rounded-lg px-4 w-120 min-h-11;
-  border: 0;
-  border-radius: 6px;
-  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.1),
+.c-notification {
+  @apply flex bg-white border-0 rounded-md border-l px-4 py-3.5 w-120 min-h-11 relative;
+
+  box-shadow:
+    0px 4px 6px -4px rgba(0, 0, 0, 0.1),
     0px 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   &.error {
@@ -18,25 +18,22 @@
   }
 }
 
-.el-notification__title {
+.c-notification__title {
   font-family: 'Open Sans';
-  @apply font-semibold text-xs text-black m-0 normal-case;
+  @apply font-semibold text-xs text-black m-0 leading-6;
 }
 
-.el-notification__content {
-  @apply text-2xs text-gray-600;
+.c-notification__content {
+  @apply text-2xs text-gray-600 mt-1.5 text-justify leading-6;
 }
 
-.el-notification__group {
+.c-notification__group {
   @apply mx-2;
 }
 
-.el-notification__closeBtn {
-  svg {
-    @apply stroke-gray-300 transition;
-    stroke-width: 48px;
-    &:hover {
-      @apply stroke-gray-400;
-    }
+.c-notification__closeBtn {
+  @apply absolute top-4.5 right-3.5 cursor-pointer;
+  i {
+    @apply ml-2 text-gray-300 hover:text-gray-400 text-base;
   }
 }

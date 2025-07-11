@@ -54,7 +54,8 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfInput from '@/ui-kit/input/Input.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
@@ -125,11 +126,11 @@ const updateDomain = () => {
     identities,
   })
     .then(() => {
-      Message.success('Domain updated successfully');
+      ToastStore.success('Domain updated successfully');
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error('Something went wrong while editing a domain');
+      ToastStore.error('Something went wrong while editing a domain');
     })
     .finally(() => {
       sending.value = false;

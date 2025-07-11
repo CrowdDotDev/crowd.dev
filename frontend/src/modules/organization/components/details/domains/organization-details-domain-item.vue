@@ -98,7 +98,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { ref } from 'vue';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -134,10 +134,10 @@ const removeDomain = () => {
     identities,
   })
     .then(() => {
-      Message.success('Domain deleted successfully');
+      ToastStore.success('Domain deleted successfully');
     })
     .catch(() => {
-      Message.error('Something went wrong while deleting a domain');
+      ToastStore.error('Something went wrong while deleting a domain');
     });
 };
 </script>
