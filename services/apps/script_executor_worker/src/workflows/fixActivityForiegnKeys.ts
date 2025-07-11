@@ -7,7 +7,7 @@ import { IFixActivityForiegnKeysArgs } from '../types'
 
 const {
   findMergeActionsWithDeletedSecondaryEntities,
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   moveActivitiesToCorrectEntity,
   syncMembersBatch,
   queueOrgForAggComputation,
@@ -41,7 +41,10 @@ export async function fixActivityForiegnKeys(args: IFixActivityForiegnKeysArgs):
     const chunk = mergeActions.slice(i, i + CHUNK_SIZE)
 
     const tasks = chunk.map(async (mergeAction) => {
-      const isInQuestDb = await doesActivityExistInQuestDb(mergeAction.secondaryId, entityType)
+      const isInQuestDb = await doesEntityActivityExistInQuestDb(
+        mergeAction.secondaryId,
+        entityType,
+      )
 
       if (!isInQuestDb) {
         console.log(`${args.entityType} ${mergeAction.secondaryId} not in QuestDB, skipping!`)
