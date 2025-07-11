@@ -1,7 +1,6 @@
 DESCRIPTION >
     Serves the `Development - Contributions outside work hours` widget
 
-
 NODE activities_with_local_timestamp
 SQL >
     %
