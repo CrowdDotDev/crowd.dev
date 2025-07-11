@@ -42,27 +42,27 @@ export async function dedupActivityRelations(args: IDedupActivityRelationsArgs):
     const groupTimestamp = group.timestamp
 
     const activityIdChunks = chunkArray(activityIdsInGroup, 500)
-    const activityIdsInQuestDb: string[] = []
+    const activityIdsInQuestDb = new Set<string>()
 
     // Check activities in QuestDB
     for (const chunk of activityIdChunks) {
       const foundIds = await checkActivitiesWithTimestampExistInQuestDb(chunk, groupTimestamp)
-      activityIdsInQuestDb.push(...foundIds)
+      foundIds.forEach((id) => activityIdsInQuestDb.add(id))
     }
 
     let idToKeep: string
 
     // Validate and prepare for deletion
-    if (activityIdsInQuestDb.length > 1) {
+    if (activityIdsInQuestDb.size > 1) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { activityIds, ...rest } = group
       console.log('QuestDB returned more than 1 activity for group', rest)
       throw ApplicationFailure.nonRetryable(
-        `Expected 0 or 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.length}.`,
+        `Expected 1 activity in QuestDB for group, but found ${activityIdsInQuestDb.size}.`,
       )
-    } else if (activityIdsInQuestDb.length === 1) {
+    } else if (activityIdsInQuestDb.size === 1) {
       // always prefer the activity record from QuestDB
-      idToKeep = activityIdsInQuestDb[0]
+      idToKeep = activityIdsInQuestDb.values().next().value
     } else {
       // activity not found in QuestDB, trust latest in relation as fallback
       idToKeep = latestActivityIdInRelation
