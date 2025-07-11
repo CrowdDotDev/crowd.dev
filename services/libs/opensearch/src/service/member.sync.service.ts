@@ -3,7 +3,7 @@ import {
   MemberField,
   fetchMemberIdentities,
   fetchMemberOrganizations,
-  filterMembersWithActivities,
+  filterMembersWithActivityRelations,
   findMemberById,
   getMemberActivityCoreAggregates,
 } from '@crowd/data-access-layer'
@@ -126,8 +126,8 @@ export class MemberSyncService {
         results.map((r) => r._source.uuid_memberId),
       )
 
-      const membersWithActivities = await filterMembersWithActivities(
-        this.qdbStore.connection(),
+      const membersWithActivities = await filterMembersWithActivityRelations(
+        repoQx(this.memberRepo),
         memberData.map((m) => m.memberId),
       )
 

@@ -25,6 +25,8 @@
     "lodash.map": "^4.6.0",
     "lodash.merge": "^4.6.2",
     "lodash.pickby": "^4.6.0",
+    "lodash.max": "^4.0.1",
+    "lodash.min": "^4.0.1",
     "moment": "~2.29.4",
     "pg-promise": "^11.4.3",
     "pg-query-stream": "^4.7.0",

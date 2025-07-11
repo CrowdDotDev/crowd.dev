@@ -45,7 +45,7 @@ export async function getMembersForDisplayAggsRefresh(
 export async function getMemberDisplayAggregates(
   memberId: string,
 ): Promise<IMemberSegmentDisplayAggregates[]> {
-  return fetchMemberDisplayAggregates(svc.questdbSQL, memberId)
+  return fetchMemberDisplayAggregates(pgpQx(svc.postgres.reader.connection()), memberId)
 }
 
 export async function setMemberDisplayAggregates(

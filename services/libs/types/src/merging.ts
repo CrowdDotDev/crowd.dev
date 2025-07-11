@@ -71,7 +71,6 @@ export interface IMemberUnmergePreviewResult {
   manuallyChangedFields: string[]
   identities: IMemberIdentity[]
   memberOrganizations: IMemberRoleWithOrganization[]
-  activityCount: number
   numberOfOpenSourceContributions: number
   organizations: IMemberRenderFriendlyRole[]
 }
