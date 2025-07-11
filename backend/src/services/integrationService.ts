@@ -4,8 +4,10 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
+import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -16,7 +18,7 @@ import {
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { Edition, PlatformType } from '@crowd/types'
+import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
@@ -57,6 +59,7 @@ import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
+import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
@@ -133,12 +136,38 @@ export default class IntegrationService {
     return IntegrationRepository.findAllByPlatform(platform, this.options)
   }
 
+  static isCodePlatform(value: string): value is CodePlatform {
+    return [
+      PlatformType.GITHUB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GITLAB,
+      PlatformType.GIT,
+      PlatformType.GERRIT,
+    ].includes(value as PlatformType)
+  }
+
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.create(data, {
         ...(options || this.options),
         transaction,
       })
+
+      const collectionService = new CollectionService({ ...this.options, transaction })
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+        record.segmentId,
+      )
+
+      if (insightsProject) {
+        await this.updateInsightsProject({
+          insightsProjectId: insightsProject.id,
+          isFirstUpdate: true,
+          platform: data.platform,
+          segmentId: record.segmentId,
+          transaction,
+        })
+      }
 
       return record
     } catch (error) {
@@ -147,12 +176,75 @@ export default class IntegrationService {
     }
   }
 
+  private async updateInsightsProject({
+    insightsProjectId,
+    isFirstUpdate = false,
+    platform,
+    segmentId,
+    transaction,
+  }: {
+    insightsProjectId: string
+    isFirstUpdate?: boolean
+    platform: PlatformType
+    segmentId: string
+    transaction: Transaction
+  }) {
+    const collectionService = new CollectionService({ ...this.options, transaction })
+
+    const data: Partial<ICreateInsightsProject> = {}
+    const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+    data.widgets = widgets
+
+    if (IntegrationService.isCodePlatform(platform)) {
+      const repositories = await collectionService.findRepositoriesForSegment(segmentId)
+      data.repositories = [
+        ...new Set([
+          ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+        ]),
+      ]
+    }
+
+    if (
+      (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO) &&
+      isFirstUpdate
+    ) {
+      const githubInsights = await collectionService.findGithubInsightsForSegment(segmentId)
+      if (githubInsights) {
+        data.description = githubInsights.description
+        data.github = githubInsights.github
+        data.logoUrl = githubInsights.logoUrl
+        data.name = githubInsights.name
+        data.twitter = githubInsights.twitter
+        data.website = githubInsights.website
+      }
+    }
+
+    this.options.log.info(`Insight Project updated: ${insightsProjectId}`)
+
+    await collectionService.updateInsightsProject(insightsProjectId, data)
+  }
+
   async update(id, data, transaction?: any, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.update(id, data, {
         ...(options || this.options),
         transaction,
       })
+
+      const collectionService = new CollectionService({ ...this.options, transaction })
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+        record.segmentId,
+      )
+
+      if (insightsProject) {
+        await this.updateInsightsProject({
+          insightsProjectId: insightsProject.id,
+          platform: data.platform,
+          segmentId: record.segmentId,
+          transaction,
+        })
+      }
 
       return record
     } catch (err) {
@@ -163,6 +255,8 @@ export default class IntegrationService {
   }
 
   async destroyAll(ids) {
+    const toRemoveRepo = new Set<string>()
+    let segmentId
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -171,19 +265,26 @@ export default class IntegrationService {
           let integration
           try {
             integration = await this.findById(id)
+
+            if (integration.segmentId) {
+              segmentId = integration.segmentId
+            }
           } catch (err) {
             throw new Error404()
           }
           // remove github remotes from git integration
           if (
             integration.platform === PlatformType.GITHUB ||
-            integration.platform === PlatformType.GITLAB
+            integration.platform === PlatformType.GITLAB ||
+            integration.platform === PlatformType.GITHUB_NANGO
           ) {
             let shouldUpdateGit: boolean
             const mapping =
-              integration.platform === PlatformType.GITHUB
+              integration.platform === PlatformType.GITHUB ||
+              integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
+
             const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
               if (!acc[segment.id]) {
                 acc[segment.id] = []
@@ -193,6 +294,8 @@ export default class IntegrationService {
             }, {})
 
             for (const [segmentId, urls] of Object.entries(repos)) {
+              urls.forEach((url) => toRemoveRepo.add(url))
+
               const segmentOptions: IRepositoryOptions = {
                 ...this.options,
                 currentSegments: [
@@ -222,7 +325,10 @@ export default class IntegrationService {
               }
             }
 
-            if (integration.platform === PlatformType.GITHUB) {
+            if (
+              integration.platform === PlatformType.GITHUB ||
+              integration.platform === PlatformType.GITHUB_NANGO
+            ) {
               // soft delete github repos
               await GithubReposRepository.delete(integration.id, {
                 ...this.options,
@@ -260,6 +366,21 @@ export default class IntegrationService {
           })
         }
       }
+
+      const collectionService = new CollectionService({ ...this.options, transaction })
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+      const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+
+      const insightsRepo = insightsProject.repositories ?? []
+
+      const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
+
+      // remove duplicates
+      const repositories = [...new Set<string>(filteredRepos)]
+
+      await collectionService.updateInsightsProject(insightsProject.id, { widgets, repositories })
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
