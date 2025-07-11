@@ -7,7 +7,7 @@ SQL >
     SELECT *
     FROM pull_requests_analyzed pra
     where
-        pra.segmentId = (SELECT id FROM segments_filtered)
+        pra.segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(repo) %}
             AND pra.channel = {{ String(repo, description="Filter activity repo", required=False) }}
         {% end %}
