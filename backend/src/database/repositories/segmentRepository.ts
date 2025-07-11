@@ -927,14 +927,12 @@ class SegmentRepository extends RepositoryBase<
 
     const result = await this.options.database.sequelize.query(
       `
-       select
+      select
          r.url as url
        from
         "githubRepos" r
-       left join "integrations" i on r."integrationId" = i.id
        where r."segmentId" = :segmentId
        and r."tenantId" = :tenantId
-       and (i.id is null or i."segmentId" != :segmentId)
        order by r.url
       `,
       {

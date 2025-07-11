@@ -517,7 +517,7 @@ export class CollectionService extends LoggerBase {
         description,
         github,
         logoUrl,
-        name,
+        name: segment.name,
         topics,
         twitter,
         website,
