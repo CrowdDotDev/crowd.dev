@@ -15,3 +15,9 @@ SQL >
                 {{ String(repo, description="Filter activity repo", required=False) }}
             )
         {% end %}
+        {% if defined(repos) %}
+            AND arrayAll(
+                r -> has(insightsProjects.repositories, r),
+                {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            )
+        {% end %}
