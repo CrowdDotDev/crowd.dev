@@ -1,4 +1,8 @@
 import {
+  deleteActivityRelations,
+  getActivityRelationsWithNullSourceId,
+} from './activities/cleanup/activity-relations-with-sourceId-null'
+import {
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
 } from './activities/cleanup/duplicate-members'
@@ -112,4 +116,6 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  getActivityRelationsWithNullSourceId,
+  deleteActivityRelations,
 }
