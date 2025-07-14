@@ -46,7 +46,6 @@ async def get_pool() -> Pool:
 async def get_db_connection() -> Connection:
     """Get database connection from pool"""
     pool = await get_pool()
-
     async with pool.acquire() as connection:
         try:
             yield connection
