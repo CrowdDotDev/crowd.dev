@@ -1,6 +1,5 @@
 NODE packages_0
 SQL >
-
     %
     SELECT distinct p.repo, p.name, p.ecosystem
     FROM packageDownloads p
@@ -14,10 +13,7 @@ SQL >
                 || '%'
                 OR p.ecosystem
                 ilike '%'
-                ||
-                {{ String(search, description="Filter package download ecosystem", required=False) }}
+                || {{ String(search, description="Filter package download ecosystem", required=False) }}
                 || '%'
             )
         {% end %}
-
-
