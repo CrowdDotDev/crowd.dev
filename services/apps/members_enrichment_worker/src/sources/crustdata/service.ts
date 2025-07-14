@@ -187,6 +187,17 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           `Axios error occurred while getting Crustdata data: ${err.response?.status} - ${err.response?.statusText}`,
         )
 
+        if (
+          !err.response &&
+          ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND'].includes(err.code)
+        ) {
+          this.log.warn(`Network error occurred: ${err.code}`)
+          throw ApplicationFailure.retryable(
+            `Network error occurred: ${err.code}`,
+            'CRUSTDATA_NETWORK_ERROR',
+          )
+        }
+
         // Check if this is a retryable error
         if (err.response?.status >= 500 && err.response?.status < 600) {
           throw ApplicationFailure.retryable(
