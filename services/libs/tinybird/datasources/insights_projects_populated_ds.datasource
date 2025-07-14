@@ -19,7 +19,7 @@ SCHEMA >
     `keywords` Array(String),
     `collectionsSlugs` Array(String),
     `connectedPlatforms` Array(String),
-    `firstCommit` Nullable(DateTime),
+    `firstCommit` Nullable(DateTime64(3)),
     `score` Float64,
     `rank` UInt64,
     `repoData` Array(Tuple(String, Float64, UInt64)),
