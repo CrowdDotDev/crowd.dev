@@ -20,11 +20,12 @@ import {
   updateCategory,
   updateCategoryGroup,
 } from '@crowd/data-access-layer/src/categories'
-import { LoggerBase } from '@crowd/logging'
+import { getServiceLogger, LoggerBase } from '@crowd/logging'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
+import { LlmService } from '@crowd/common_services'
 
 export class CategoryService extends LoggerBase {
   options: IServiceOptions
@@ -296,5 +297,132 @@ export class CategoryService extends LoggerBase {
       limit: +filters.limit || 20,
       offset: +filters.offset || 0,
     }
+  }
+
+  static formatCategories(items: {
+    id: string
+    name: string
+    categoryGroupId: string
+    categoryGroupName: string
+  }[]): string {
+
+    const groups = new Map<string, string[]>();
+    for (const item of items) {
+      const group = item.categoryGroupName;
+      if (!groups.has(group)) {
+        groups.set(group, []);
+      }
+      groups.get(group)!.push(item.name + '-' + item.id);
+    }
+
+    let result = "";
+    for (const [groupName, names] of groups) {
+      result += `## ${groupName}\n`;
+      for (const name of names) {
+        result += `- ${name}\n`;
+      }
+      result += "\n";
+    }
+    return result.trim();
+  }
+
+
+  public async findRepoCategoriesWithLLM(
+    {
+      repo_url,
+      repo_description,
+      repo_topics,
+      repo_homepage,
+    }: {
+      repo_url: string,
+      repo_description: string,
+      repo_topics: string[],
+      repo_homepage: string,
+    }
+  ): Promise<{ categories: string[], explanation: string }> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    // TODO: handling pagination
+    const categories = await listCategories(qx, {
+      query: '',
+      limit: 1000,
+      offset: 0,
+      groupType: null,
+    })
+
+    const category_structure_text = CategoryService.formatCategories(categories)
+
+    const prompt = `You are an expert open-source analyst. Your job is to classify ${repo_url} into appropriate categories.
+
+      ## Context and Purpose
+      This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
+      Developers and organizations use this index to:
+      - Discover relevant open-source tools for their technology stack
+      - Understand the open-source ecosystem in their domain
+      - Make informed decisions about which projects to adopt or contribute to
+      - Assess the health and importance of projects in specific technology areas
+
+      Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
+
+      ## Project Information
+      - URL: ${repo_url}
+      - Description: ${repo_description}
+      - Topics: ${repo_topics}
+      - Homepage: ${repo_homepage}
+
+      ## Available Categories
+      These categories are organized by category groups:
+
+      ${category_structure_text}
+
+      ## Your Task
+      Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
+
+      Consider:
+      - The project's primary functionality and purpose
+      - The technology domain it operates in
+      - The industry or vertical it serves (if applicable)
+      - How developers would expect to find this project when browsing by category
+
+      If the project doesn't clearly fit into any of the available categories, return an empty list for categories.
+
+      Return a JSON with the following format:
+      {{
+          "categories": ["Category1", "Category2", ...],
+          "explanation": "Brief explanation of why you chose these categories"
+      }}
+
+      Only include categories from the provided list. Do not create new categories.
+`
+
+    const llmService = new LlmService(
+      qx,
+      {
+        accessKeyId: process.env.CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
+        secretAccessKey: process.env.CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
+      },
+      getServiceLogger(),
+    )
+
+    const { result } = await llmService.findRepoCategories<{
+      categories: string[]
+      explanation: string
+    }>(prompt)
+
+
+    if (
+      typeof result === 'object' &&
+      result !== null &&
+      Array.isArray(result.categories) &&
+      result.categories.every(cat => typeof cat === 'string') &&
+      typeof result.explanation === 'string'
+    ) {
+      return {
+        categories: result.categories,
+        explanation: result.explanation,
+      };
+    }
+
+    return null
   }
 }
