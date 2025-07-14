@@ -10,7 +10,7 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
@@ -25,6 +25,13 @@ import {
   resetIndexedIdentitiesForSyncingActivitiesToTinybird,
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
+import {
+  checkActivitiesWithTimestampExistInQuestDb,
+  deleteActivityRelations,
+  getActivityRelationsDuplicateGroups,
+  getMissingActivityInQuestDb,
+  saveMissingActivityInQuestDb,
+} from './activities/dedup-activity-relations'
 import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
@@ -93,7 +100,7 @@ export {
   deleteOrganization,
   syncRemoveOrganization,
   getOrganizationsToCleanup,
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
@@ -112,4 +119,9 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  getActivityRelationsDuplicateGroups,
+  deleteActivityRelations,
+  checkActivitiesWithTimestampExistInQuestDb,
+  saveMissingActivityInQuestDb,
+  getMissingActivityInQuestDb,
 }

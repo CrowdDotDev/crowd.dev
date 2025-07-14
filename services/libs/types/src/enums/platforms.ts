@@ -31,6 +31,13 @@ export enum PlatformType {
   OTHER = 'other',
 }
 
+export type CodePlatform =
+  | PlatformType.GITHUB
+  | PlatformType.GITHUB_NANGO
+  | PlatformType.GITLAB
+  | PlatformType.GIT
+  | PlatformType.GERRIT
+
 export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
 
 export enum IntegrationType {

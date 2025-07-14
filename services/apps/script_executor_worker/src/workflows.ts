@@ -2,6 +2,7 @@ import { cleanupDuplicateMembers } from './workflows/cleanup/duplicate-members'
 import { cleanupMembers } from './workflows/cleanup/members'
 import { cleanupOrganizations } from './workflows/cleanup/organizations'
 import { copyActivitiesFromQuestdbToTinybird } from './workflows/copyActivitiesFromQuestdbToTinybird'
+import { dedupActivityRelations } from './workflows/dedup-activity-relations'
 import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
@@ -28,4 +29,5 @@ export {
   processLLMVerifiedMerges,
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
+  dedupActivityRelations,
 }
