@@ -30,6 +30,7 @@ dependencies = [
     "python-slugify>=8.0.4",
     "asyncpg",
     "loguru>=0.7.3",
+    "tenacity>=9.1.2",
 ]
 
 [project.optional-dependencies]
