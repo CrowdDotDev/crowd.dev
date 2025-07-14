@@ -1,3 +1,4 @@
+import { ApplicationFailure } from '@temporalio/workflow'
 import axios from 'axios'
 
 import { isEmail, replaceDoubleQuotes } from '@crowd/common'
@@ -185,6 +186,16 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
         this.log.warn(
           `Axios error occurred while getting Crustdata data: ${err.response?.status} - ${err.response?.statusText}`,
         )
+
+        // Check if this is a retryable error
+        if (err.response?.status >= 500 && err.response?.status < 600) {
+          throw ApplicationFailure.retryable(
+            `Crustdata enrichment request failed with status: ${err.response?.status}`,
+            'CRUSTDATA_SERVER_ERROR',
+            err.response?.status,
+          )
+        }
+
         throw new Error(`Crustdata enrichment request failed with status: ${err.response?.status}`)
       } else {
         this.log.error(`Unexpected error while getting Crustdata data: ${err}`)
