@@ -349,8 +349,11 @@ export async function runMemberAffiliationsUpdate(
     qx,
     memberId,
   )
+  logger.info(`orgCase for member ${memberId}: ${orgCases}`)
+  logger.info(`fullCase for member ${memberId}: ${fullCase}`)
 
   const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
+  logger.info(`MemberActivityTimestampRanges ${minTimestamp} ${maxTimestamp}`)
 
   const { processed, duration } = await updateActivities(
     qDb,
