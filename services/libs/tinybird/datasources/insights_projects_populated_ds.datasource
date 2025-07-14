@@ -25,7 +25,8 @@ SCHEMA >
     `repoData` Array(Tuple(String, Float64, UInt64)),
     `softwareValue` UInt64,
     `contributorCount` UInt64,
-    `organizationCount` UInt64
+    `organizationCount` UInt64,
+    `healthScore` Float64
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

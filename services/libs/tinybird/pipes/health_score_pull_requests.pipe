@@ -1,0 +1,51 @@
+NODE health_score_pull_requests_score
+DESCRIPTION >
+    Returns activeContributors for previous quarter per project
+
+SQL >
+    %
+    SELECT segmentId, count() AS pullRequests
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        type = 'pull_request-opened'
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
+            AND timestamp < toStartOfDay(now() + toIntervalDay(1))
+        {% end %}
+    GROUP BY segmentId
+
+NODE health_score_pull_requests_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        pullRequests,
+        CASE
+            WHEN pullRequests BETWEEN 0 AND 1
+            THEN 0
+            WHEN pullRequests BETWEEN 2 AND 3
+            THEN 1
+            WHEN pullRequests BETWEEN 4 AND 7
+            THEN 2
+            WHEN pullRequests BETWEEN 8 AND 15
+            THEN 3
+            WHEN pullRequests BETWEEN 16 AND 30
+            THEN 4
+            WHEN pullRequests >= 31
+            THEN 5
+            ELSE 0
+        END AS pullRequestsBenchmark
+    FROM health_score_pull_requests_score
