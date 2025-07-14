@@ -133,7 +133,7 @@ import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import authAxios from '@/shared/axios/auth-axios';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
@@ -209,12 +209,12 @@ const submit = () => {
     .then(() => {
       isModalOpen.value = false;
       reset();
-      ToastStore.success('Thanks for reporting this data issue! Our team will address it as soon as possible and inform you once it is resolved.', {
+      MessageStore.success('Thanks for reporting this data issue! Our team will address it as soon as possible and inform you once it is resolved.', {
         title: 'Data issue reported successfully',
       });
     })
     .catch(() => {
-      ToastStore.error('Something went wrong while reporting data issue');
+      MessageStore.error('Something went wrong while reporting data issue');
     })
     .finally(() => {
       loading.value = false;

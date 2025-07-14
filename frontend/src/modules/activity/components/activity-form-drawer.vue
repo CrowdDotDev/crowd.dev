@@ -181,7 +181,7 @@ import { MemberService } from '@/modules/member/member-service';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { ActivityService } from '@/modules/activity/activity-service';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import formChangeDetector from '@/shared/form/form-change';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
@@ -354,10 +354,10 @@ const submit = () => {
         reset();
         emit('update:modelValue', false);
         fetchActivities({ reload: true });
-        ToastStore.success('Activity successfully created!');
+        MessageStore.success('Activity successfully created!');
       })
       .catch(() => {
-        ToastStore.error(
+        MessageStore.error(
           'There was an error creating activity',
         );
       });
@@ -376,10 +376,10 @@ const submit = () => {
         reset();
         emit('update:modelValue', false);
         fetchActivities({ reload: true });
-        ToastStore.success('Activity successfully updated!');
+        MessageStore.success('Activity successfully updated!');
       })
       .catch(() => {
-        ToastStore.error(
+        MessageStore.error(
           'There was an error updating activity',
         );
       });

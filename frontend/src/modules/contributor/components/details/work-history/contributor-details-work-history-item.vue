@@ -127,7 +127,7 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { computed, ref } from 'vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -203,9 +203,9 @@ const setAffiliation = (data: {
   })
     .then(() => {
       if (data.isPrimaryWorkExperience) {
-        ToastStore.success('Organization/job title successfully affiliated');
+        MessageStore.success('Organization/job title successfully affiliated');
       } else {
-        ToastStore.success('Organization/job title affiliation successfully removed');
+        MessageStore.success('Organization/job title affiliation successfully removed');
       }
       getContributorOrganizations(props.contributor.id);
     });
@@ -229,10 +229,10 @@ const removeWorkHistory = () => {
 
     deleteContributorOrganization(props.contributor.id, props.organization.memberOrganizations.id)
       .then(() => {
-        ToastStore.success('Work experience deleted successfully');
+        MessageStore.success('Work experience deleted successfully');
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while deleting an work experience');
+        MessageStore.error('Something went wrong while deleting an work experience');
       });
   });
 };

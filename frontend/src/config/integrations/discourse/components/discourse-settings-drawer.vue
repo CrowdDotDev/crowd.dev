@@ -234,7 +234,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCard from '@/ui-kit/card/Card.vue';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 
 const { trackEvent } = useProductTracking();
 
@@ -257,7 +257,7 @@ const copyToClipboard = async (type) => {
   const toCopy = type === 'url' ? payloadURL : webhookSecret;
   await navigator.clipboard.writeText(toCopy.value);
 
-  ToastStore.success(
+  MessageStore.success(
     `${
       type === 'url' ? 'Payload URL' : 'Webhook Secret'
     } successfully copied to your clipboard`,

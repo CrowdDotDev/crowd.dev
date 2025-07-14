@@ -178,7 +178,7 @@ import { onSelectMouseLeave } from '@/utils/select';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { MemberService } from '@/modules/member/member-service';
 import LfSvg from '@/shared/svg/svg.vue';
 import { AttributeType } from '@/modules/organization/types/Attributes';
@@ -291,7 +291,7 @@ const updateAttribute = (id, data) => {
     icon: data.show ? 'fa-eye fa-light' : 'fa-eye-slash fa-light',
   }).then(() => {
     doUpdateCustomAttributes({ id, data }).then(() => {
-      ToastStore.success('Attribute successfully updated');
+      MessageStore.success('Attribute successfully updated');
     });
   });
 };

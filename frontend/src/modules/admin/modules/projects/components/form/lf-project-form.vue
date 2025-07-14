@@ -152,7 +152,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfRadio from '@/ui-kit/radio/Radio.vue';
 import LfSvg from '@/shared/svg/svg.vue';
@@ -267,12 +267,12 @@ const onSuccess = () => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
   });
-  ToastStore.success(`Project ${props.id ? 'updated' : 'created'} successfully`);
+  MessageStore.success(`Project ${props.id ? 'updated' : 'created'} successfully`);
   emit('onSuccess');
 };
 
 const onError = (error: AxiosError) => {
-  ToastStore.error(
+  MessageStore.error(
     error?.response?.data ? error.response.data
       : `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
   );

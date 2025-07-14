@@ -105,7 +105,7 @@ import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
@@ -183,7 +183,7 @@ const pagination = computed((): Pagination<ProjectGroup> => {
 
 watch(error, (err) => {
   if (err) {
-    ToastStore.error('Something went wrong while fetching project groups');
+    MessageStore.error('Something went wrong while fetching project groups');
   }
 });
 

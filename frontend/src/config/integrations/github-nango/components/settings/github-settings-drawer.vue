@@ -96,7 +96,7 @@ import {
 } from '@/config/integrations/github-nango/types/GithubSettings';
 import LfGithubSettingsMapping from '@/config/integrations/github-nango/components/settings/github-settings-mapping.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import {
@@ -201,7 +201,7 @@ const connect = () => {
       if (integration.status === 'in-progress') {
         showIntegrationProgressNotification('github', integration.segmentId);
       } else {
-        ToastStore.success(
+        MessageStore.success(
           props.integration?.id
             ? 'Settings have been updated'
             : 'GitHub has been connected successfully',
@@ -211,7 +211,7 @@ const connect = () => {
       isDrawerVisible.value = false;
     })
     .catch(() => {
-      ToastStore.error(
+      MessageStore.error(
         props.integration?.id
           ? 'There was error updating settings'
           : 'There was error connecting GitHub',

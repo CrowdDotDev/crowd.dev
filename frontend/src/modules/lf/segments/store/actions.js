@@ -1,6 +1,6 @@
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { router } from '@/router';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
@@ -56,7 +56,7 @@ export default {
         return Promise.resolve();
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while fetching project groups');
+        MessageStore.error('Something went wrong while fetching project groups');
         return Promise.reject();
       })
       .finally(() => {
@@ -82,33 +82,33 @@ export default {
     return LfService.findSegment(id)
       .then((projectGroup) => Promise.resolve(projectGroup))
       .catch(() => {
-        ToastStore.error('Something went wrong while getting the project group');
+        MessageStore.error('Something went wrong while getting the project group');
         Promise.resolve();
       });
   },
   createProjectGroup(data) {
     return LfService.createProjectGroup(data)
       .then(() => {
-        ToastStore.success('Project Group created successfully');
+        MessageStore.success('Project Group created successfully');
 
         this.listProjectGroups({
           adminOnly: isAdminOnly(),
         });
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while creating the project group');
+        MessageStore.error('Something went wrong while creating the project group');
       })
       .finally(() => Promise.resolve());
   },
   updateProjectGroup(id, data) {
     return LfService.updateSegment(id, data)
       .then(() => {
-        ToastStore.success('Project Group updated successfully');
+        MessageStore.success('Project Group updated successfully');
 
         this.updateProjectGroupList(id, data);
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while updating the project group');
+        MessageStore.error('Something went wrong while updating the project group');
       })
       .finally(() => Promise.resolve());
   },
@@ -178,7 +178,7 @@ export default {
         this.projects.pagination.count = count;
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while fetching projects');
+        MessageStore.error('Something went wrong while fetching projects');
       })
       .finally(() => {
         this.projects.loading = false;
@@ -189,29 +189,29 @@ export default {
     return LfService.findSegment(id)
       .then((project) => Promise.resolve(project))
       .catch(() => {
-        ToastStore.error('Something went wrong while getting the project');
+        MessageStore.error('Something went wrong while getting the project');
         Promise.resolve();
       });
   },
   createProject(data) {
     return LfService.createProject(data)
       .then(() => {
-        ToastStore.success('Project created successfully');
+        MessageStore.success('Project created successfully');
         this.listProjects();
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while creating the project');
+        MessageStore.error('Something went wrong while creating the project');
       })
       .finally(() => Promise.resolve());
   },
   updateProject(id, data) {
     return LfService.updateSegment(id, data)
       .then(() => {
-        ToastStore.success('Project updated successfully');
+        MessageStore.success('Project updated successfully');
         this.updateProjectList(id, data);
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while updating the project');
+        MessageStore.error('Something went wrong while updating the project');
       })
       .finally(() => Promise.resolve());
   },
@@ -231,7 +231,7 @@ export default {
     return LfService.findSegment(id)
       .then((project) => Promise.resolve(project))
       .catch(() => {
-        ToastStore.error('Something went wrong while getting the sub-project');
+        MessageStore.error('Something went wrong while getting the sub-project');
         Promise.resolve();
       });
   },
@@ -239,22 +239,22 @@ export default {
   createSubProject(data) {
     return LfService.createSubProject(data)
       .then(() => {
-        ToastStore.success('Sub-project created successfully');
+        MessageStore.success('Sub-project created successfully');
         this.listProjects();
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while creating the sub-project');
+        MessageStore.error('Something went wrong while creating the sub-project');
       })
       .finally(() => Promise.resolve());
   },
   updateSubProject(id, data) {
     return LfService.updateSegment(id, data)
       .then(() => {
-        ToastStore.success('Sub-project updated successfully');
+        MessageStore.success('Sub-project updated successfully');
         this.listProjects();
       })
       .catch(() => {
-        ToastStore.error('Something went wrong while updating the sub-project');
+        MessageStore.error('Something went wrong while updating the sub-project');
       })
       .finally(() => Promise.resolve());
   },

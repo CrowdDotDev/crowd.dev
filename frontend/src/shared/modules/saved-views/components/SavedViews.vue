@@ -154,7 +154,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import LfSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -325,7 +325,7 @@ const update = () => {
         config: props.modelValue,
       })
         .then(() => {
-          ToastStore.success('View updated successfully!');
+          MessageStore.success('View updated successfully!');
           getViews();
         });
     });

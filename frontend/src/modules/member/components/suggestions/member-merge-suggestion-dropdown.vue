@@ -28,7 +28,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { MemberService } from '@/modules/member/member-service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -66,8 +66,8 @@ const merge = (suggestion: any) => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
-      ToastStore.closeAll();
-      ToastStore.info(
+      MessageStore.closeAll();
+      MessageStore.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
           title: 'Profiles merging in progress',
@@ -98,7 +98,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   MemberService.addToNoMerge(...suggestion.members)
     .then(() => {
-      ToastStore.success('Merging suggestion ignored successfully');
+      MessageStore.success('Merging suggestion ignored successfully');
       emit('reload');
     })
     .finally(() => {

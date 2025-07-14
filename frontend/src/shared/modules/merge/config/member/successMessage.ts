@@ -1,5 +1,5 @@
 import { h } from 'vue';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { router } from '@/router';
 import { SuccessMessage } from '../../types/MemberMessage';
 
@@ -7,8 +7,8 @@ export default ({ primaryMember, secondaryMember, selectedProjectGroupId }: Succ
   const { id, displayName: primaryDisplayName } = primaryMember;
   const { displayName: secondaryDisplayName } = secondaryMember;
 
-  ToastStore.closeAll();
-  ToastStore.success(
+  MessageStore.closeAll();
+  MessageStore.success(
     h(
       'div',
       {
@@ -31,7 +31,7 @@ export default ({ primaryMember, secondaryMember, selectedProjectGroupId }: Succ
                 params: { id },
                 query: { projectGroup: selectedProjectGroupId },
               });
-              ToastStore.closeAll();
+              MessageStore.closeAll();
             },
           },
           'View profile',

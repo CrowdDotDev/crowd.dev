@@ -13,7 +13,7 @@ export interface ToastI {
 
 let toastIdCounter = 0;
 
-export const ToastStore = reactive({
+export const MessageStore = reactive({
   toasts: [] as ToastI[],
   maxVisible: 5,
 

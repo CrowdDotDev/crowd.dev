@@ -97,7 +97,7 @@ import { INSIGHTS_PROJECTS_SERVICE } from '@/modules/admin/modules/insights-proj
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
 import {
   InsightsProjectModel,
@@ -117,13 +117,13 @@ const onSuccess = (res: InsightsProjectModel) => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
-  ToastStore.closeAll();
-  ToastStore.success('Insights project updated successfully');
+  MessageStore.closeAll();
+  MessageStore.success('Insights project updated successfully');
 };
 
 const onError = () => {
-  ToastStore.closeAll();
-  ToastStore.error('Something went wrong while updating the project');
+  MessageStore.closeAll();
+  MessageStore.error('Something went wrong while updating the project');
 };
 
 const updateMutation = useMutation({

@@ -198,7 +198,7 @@ import {
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import {
   mapActions,
   mapState,
@@ -325,7 +325,7 @@ const onSubmit = async () => {
         aiReplies: form.aiReplies,
       },
     }).then(() => {
-      ToastStore.success('Feed settings updated!');
+      MessageStore.success('Feed settings updated!');
       emit('update:modelValue', false);
     });
   }

@@ -73,7 +73,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
@@ -201,11 +201,11 @@ const handleDoExport = async () => {
 
     await doRefreshCurrentUser(null);
 
-    ToastStore.success(
+    MessageStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
-    ToastStore.error(
+    MessageStore.error(
       'An error has occured while trying to export the CSV file. Please try again',
       {
         title: 'CSV Export failed',
@@ -231,15 +231,15 @@ const handleCommand = async (command) => {
       },
     });
 
-    ToastStore.info('Organizations are being updated');
+    MessageStore.info('Organizations are being updated');
 
     Promise.all(
       selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
         isTeamOrganization: command.value,
       })),
     ).then(() => {
-      ToastStore.closeAll();
-      ToastStore.success(
+      MessageStore.closeAll();
+      MessageStore.success(
         `${pluralize(
           'Organization',
           selectedOrganizations.value.length,
@@ -252,8 +252,8 @@ const handleCommand = async (command) => {
       });
     })
       .catch(() => {
-        ToastStore.closeAll();
-        ToastStore.error('Error updating organizations');
+        MessageStore.closeAll();
+        MessageStore.error('Error updating organizations');
       });
   }
 };

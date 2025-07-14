@@ -162,7 +162,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Errors from '@/shared/error/errors';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
@@ -451,10 +451,10 @@ async function onSubmit() {
 
     try {
       await OrganizationService.update(payload.id, payload.values);
-      ToastStore.success('Organization successfully saved');
+      MessageStore.success('Organization successfully saved');
     } catch (error) {
       if (error.response.status === 409) {
-        ToastStore.error(
+        MessageStore.error(
           h(
             'div',
             {
@@ -467,7 +467,7 @@ async function onSubmit() {
                   class: 'c-btn c-btn--tiny c-btn--secondary-gray !h-6 !w-fit',
                   onClick: () => {
                     organizationsStore.addToMergeOrganizations(payload.id, error.response.data);
-                    ToastStore.closeAll();
+                    MessageStore.closeAll();
                   },
                 },
                 'Merge organizations',
@@ -495,9 +495,9 @@ async function onSubmit() {
     try {
       await OrganizationService.create(payload);
 
-      ToastStore.success('Organization successfully saved');
+      MessageStore.success('Organization successfully saved');
     } catch (error) {
-      ToastStore.error('There was an error creating the organization');
+      MessageStore.error('There was an error creating the organization');
       Errors.handle(error);
     }
   }

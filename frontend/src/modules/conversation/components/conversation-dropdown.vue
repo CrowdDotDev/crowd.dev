@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -70,7 +70,7 @@ const onDeleteConversation = async () => {
 
     await ConversationService.destroyAll([props.conversation.id]);
 
-    ToastStore.success('Conversation successfully deleted');
+    MessageStore.success('Conversation successfully deleted');
 
     emit('conversation-destroyed');
   } catch (error) {

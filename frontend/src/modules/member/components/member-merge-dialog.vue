@@ -77,7 +77,7 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -176,8 +176,8 @@ const mergeSuggestion = () => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
-      ToastStore.closeAll();
-      ToastStore.info(
+      MessageStore.closeAll();
+      MessageStore.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
           title: 'Profiles merging in progress',

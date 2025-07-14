@@ -136,7 +136,7 @@ import {
   ref, onMounted, computed, onUnmounted,
 } from 'vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import { merge } from 'lodash';
@@ -225,7 +225,7 @@ const fetch = (page) => {
       primary.value = 0;
     })
     .catch(() => {
-      ToastStore.error(
+      MessageStore.error(
         'There was an error fetching merge suggestion, please try again later',
       );
     })
@@ -250,7 +250,7 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
-      ToastStore.success('Merging suggestion ignored successfully');
+      MessageStore.success('Merging suggestion ignored successfully');
       getContributorMergeActions();
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
@@ -258,12 +258,12 @@ const ignoreSuggestion = () => {
     })
     .catch((error) => {
       if (error.response.status === 404) {
-        ToastStore.error('Suggestion already merged or ignored', {
+        MessageStore.error('Suggestion already merged or ignored', {
           message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
           Please refresh to see the updated information.`,
         });
       } else {
-        ToastStore.error('There was an error ignoring the merging suggestion');
+        MessageStore.error('There was an error ignoring the merging suggestion');
       }
     })
     .finally(() => {
@@ -295,8 +295,8 @@ const mergeSuggestion = () => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
-      ToastStore.closeAll();
-      ToastStore.info(
+      MessageStore.closeAll();
+      MessageStore.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
           title: 'Profiles merging in progress',

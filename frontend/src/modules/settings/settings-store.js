@@ -2,7 +2,7 @@ import { SettingsService } from '@/modules/settings/settings-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
@@ -78,7 +78,7 @@ export default {
 
         const secondsForReload = 3;
 
-        ToastStore.success(`Settings successfully saved. The page will reload in ${secondsForReload} seconds for changes to take effect.`);
+        MessageStore.success(`Settings successfully saved. The page will reload in ${secondsForReload} seconds for changes to take effect.`);
 
         /**
          * Theme change happens at boot time.

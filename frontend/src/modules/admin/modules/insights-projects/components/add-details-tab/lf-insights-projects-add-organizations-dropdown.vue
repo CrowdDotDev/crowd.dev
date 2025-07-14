@@ -50,7 +50,7 @@ import {
   nextTick, onBeforeUnmount, onMounted, reactive, ref,
 } from 'vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { Organization } from '@/modules/organization/types/Organization';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
@@ -108,8 +108,8 @@ function fetchOrganizations(query = '', pageNum = 0) {
       noMoreData.value = organizations.value.length >= +res.count;
     })
     .catch(() => {
-      ToastStore.closeAll();
-      ToastStore.error('Failed to load  organizations');
+      MessageStore.closeAll();
+      MessageStore.error('Failed to load  organizations');
     })
     .finally(() => {
       loading.value = false;

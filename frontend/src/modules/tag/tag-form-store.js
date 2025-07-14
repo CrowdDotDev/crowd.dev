@@ -2,7 +2,7 @@ import { TagService } from '@/modules/tag/tag-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 
 export default {
   namespaced: true,
@@ -102,7 +102,7 @@ export default {
         commit('CREATE_STARTED');
         await TagService.create(values);
         commit('CREATE_SUCCESS');
-        ToastStore.success('Tag successfully saved');
+        MessageStore.success('Tag successfully saved');
         router.push('/tag');
       } catch (error) {
         Errors.handle(error);
@@ -130,7 +130,7 @@ export default {
         await TagService.update(id, values);
 
         commit('UPDATE_SUCCESS');
-        ToastStore.success('Tag successfully saved');
+        MessageStore.success('Tag successfully saved');
         router.push('/tag');
       } catch (error) {
         Errors.handle(error);

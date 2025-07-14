@@ -2,7 +2,7 @@ import { h } from 'vue';
 import { attributesAreDifferent } from '@/shared/helpers/different-util';
 import { router } from '@/router';
 import Errors from '@/shared/error/errors';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { actionsMessages } from './actions-messages';
 
 export default (moduleName, moduleService = null) => {
@@ -61,7 +61,7 @@ export default (moduleName, moduleService = null) => {
 
           commit('DESTROY_SUCCESS');
 
-          ToastStore.success(
+          MessageStore.success(
             actionsMessages[moduleName]?.destroy.success || '',
           );
 
@@ -90,7 +90,7 @@ export default (moduleName, moduleService = null) => {
             root: true,
           });
 
-          ToastStore.success(
+          MessageStore.success(
             actionsMessages[moduleName]?.destroyAll.success || '',
           );
 
@@ -128,22 +128,22 @@ export default (moduleName, moduleService = null) => {
                     name: 'memberView',
                     params: { id: contactId },
                   });
-                  ToastStore.closeAll();
+                  MessageStore.closeAll();
                 },
               },
               successMessageAction,
             );
 
-            ToastStore.success('Profile successfully saved', {
+            MessageStore.success('Profile successfully saved', {
               message,
             });
           } else {
-            ToastStore.success(actionsMessages[moduleName]?.create.success || '');
+            MessageStore.success(actionsMessages[moduleName]?.create.success || '');
           }
 
           return response;
         } catch (error) {
-          ToastStore.error(
+          MessageStore.error(
             actionsMessages[moduleName]?.create.error || '',
           );
 
@@ -167,14 +167,14 @@ export default (moduleName, moduleService = null) => {
           );
 
           commit('UPDATE_SUCCESS', response);
-          ToastStore.success(
+          MessageStore.success(
             successMessage || actionsMessages[moduleName]?.update.success || '',
             messageOptions,
           );
 
           return response;
         } catch (error) {
-          ToastStore.error(
+          MessageStore.error(
             errorMessage || actionsMessages[moduleName]?.update.error || '',
           );
 

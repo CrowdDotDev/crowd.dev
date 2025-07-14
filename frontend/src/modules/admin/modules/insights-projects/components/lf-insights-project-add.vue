@@ -125,7 +125,7 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import cloneDeep from 'lodash/cloneDeep';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
@@ -291,8 +291,8 @@ const onSuccess = (res: InsightsProjectModel) => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
-  ToastStore.closeAll();
-  ToastStore.success(
+  MessageStore.closeAll();
+  MessageStore.success(
     `Insights project ${isEditForm.value ? 'updated' : 'created'} successfully`,
   );
   if (isEditForm.value) {
@@ -303,8 +303,8 @@ const onSuccess = (res: InsightsProjectModel) => {
 };
 
 const onError = () => {
-  ToastStore.closeAll();
-  ToastStore.error(
+  MessageStore.closeAll();
+  MessageStore.error(
     `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the project`,
   );
 };
@@ -354,7 +354,7 @@ const fetchProjectDetails = async (project: any) => {
       form.name = project.name;
       form.description = project.description;
       form.logoUrl = project.url;
-      ToastStore.error(`Failed to fetch project details: ${err.message}`);
+      MessageStore.error(`Failed to fetch project details: ${err.message}`);
     })
     .finally(() => {
       isLoadingProject.value = false;

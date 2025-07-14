@@ -154,7 +154,7 @@ import LfRadio from '@/ui-kit/radio/Radio.vue';
 import LfCategoryForm from '@/modules/admin/modules/categories/components/form/category-form.vue';
 import { CategoryGroupService } from '@/modules/admin/modules/categories/services/category-group.service';
 import { CategoryGroup, CategoryGroupType } from '@/modules/admin/modules/categories/types/CategoryGroup';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 import { Category } from '@/modules/admin/modules/categories/types/Category';
 
@@ -227,13 +227,13 @@ const submit = () => {
 
   call
     .then(() => {
-      ToastStore.success(`${isEdit.value ? 'Updated' : 'Created'} category group`);
+      MessageStore.success(`${isEdit.value ? 'Updated' : 'Created'} category group`);
       reset();
       emit('reload');
       isDrawerOpen.value = false;
     })
     .catch(() => {
-      ToastStore.error(`Error occurred while ${isEdit.value ? 'updating' : 'creating'} category group`);
+      MessageStore.error(`Error occurred while ${isEdit.value ? 'updating' : 'creating'} category group`);
     })
     .finally(() => {
       isSending.value = false;

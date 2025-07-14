@@ -184,7 +184,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { onMounted, ref } from 'vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -346,7 +346,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   OrganizationService.addToNoMerge(...suggestion.members)
     .then(() => {
-      ToastStore.success('Merging suggestion ignored successfully');
+      MessageStore.success('Merging suggestion ignored successfully');
       reload();
     })
     .finally(() => {

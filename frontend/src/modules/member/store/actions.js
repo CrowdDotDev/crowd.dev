@@ -3,7 +3,7 @@ import { MemberService } from '@/modules/member/member-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
 import { MemberModel } from '../member-model';
@@ -51,7 +51,7 @@ export default {
         Errors.handle(error);
       }
 
-      ToastStore.error('Custom Attributes could not be created');
+      MessageStore.error('Custom Attributes could not be created');
     }
     return null;
   },
@@ -60,7 +60,7 @@ export default {
     try {
       await MemberService.merge(memberToKeep, memberToMerge);
 
-      ToastStore.success('Profiles merged successfully');
+      MessageStore.success('Profiles merged successfully');
       router.push(`/people/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
@@ -99,11 +99,11 @@ export default {
         return acc;
       }, []);
       const updatedMembers = await MemberService.updateBulk(payload, segments);
-      ToastStore.success('Tags updated successfully');
+      MessageStore.success('Tags updated successfully');
       commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
-      ToastStore.error('There was an error updating tags');
+      MessageStore.error('There was an error updating tags');
     }
   },
 
@@ -167,12 +167,12 @@ export default {
 
       const updatedMembers = await MemberService.updateBulk(payload);
 
-      ToastStore.success('Attribute updated successfully');
+      MessageStore.success('Attribute updated successfully');
 
       commit('UPDATE_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
-      ToastStore.error('There was an error updating attribute');
+      MessageStore.error('There was an error updating attribute');
     }
   },
 

@@ -225,7 +225,7 @@ import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import formChangeDetector from '@/shared/form/form-change';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -452,11 +452,11 @@ const submit = (): void => {
             });
             isDrawerOpen.value = false;
             reset();
-            ToastStore.success('View updated successfully!');
+            MessageStore.success('View updated successfully!');
             emit('reload');
           })
           .catch(() => {
-            ToastStore.error('There was an error updating a view');
+            MessageStore.error('There was an error updating a view');
           })
           .finally(() => {
             sending.value = false;
@@ -478,9 +478,9 @@ const submit = (): void => {
     SavedViewsService.create(data)
       .then(() => {
         if (isDuplicate.value) {
-          ToastStore.success('View duplicated successfully!');
+          MessageStore.success('View duplicated successfully!');
         } else {
-          ToastStore.success('View successfully created!');
+          MessageStore.success('View successfully created!');
         }
         (window as any).analytics.track('Custom view created', {
           placement: props.placement,
@@ -499,9 +499,9 @@ const submit = (): void => {
       })
       .catch(() => {
         if (isDuplicate.value) {
-          ToastStore.error('There was an error duplicating a view');
+          MessageStore.error('There was an error duplicating a view');
         } else {
-          ToastStore.error('There was an error creating a view');
+          MessageStore.error('There was an error creating a view');
         }
       })
       .finally(() => {

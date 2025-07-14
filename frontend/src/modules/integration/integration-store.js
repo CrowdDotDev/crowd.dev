@@ -4,7 +4,7 @@ import { router } from '@/router';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { lfIntegrations } from '@/config/integrations';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 
 export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 
@@ -236,7 +236,7 @@ export default {
         commit('DESTROY_STARTED');
 
         await IntegrationService.destroyAll([integrationId]);
-        ToastStore.success('Integration was disconnected successfully');
+        MessageStore.success('Integration was disconnected successfully');
 
         commit('DESTROY_SUCCESS', integrationId);
         dispatch('doFetch');
@@ -553,7 +553,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -592,7 +592,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -646,7 +646,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -692,7 +692,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -744,7 +744,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -764,7 +764,7 @@ export default {
         });
       } catch (error) {
         Errors.handle(error);
-        ToastStore.error('Something went wrong. Please try again later.');
+        MessageStore.error('Something went wrong. Please try again later.');
         commit('CREATE_ERROR');
       }
     },
@@ -796,7 +796,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        ToastStore.success(
+        MessageStore.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> '
             + 'This process might take a few minutes to finish, depending on the amount of data.',
           {
@@ -854,10 +854,10 @@ export default {
       try {
         await IntegrationService.mapGitlabRepos(integrationId, mapping);
         await this.find(integrationId);
-        ToastStore.success('GitLab repositories mapped successfully');
+        MessageStore.success('GitLab repositories mapped successfully');
       } catch (error) {
         console.error('Error mapping GitLab repositories:', error);
-        ToastStore.error('Failed to map GitLab repositories');
+        MessageStore.error('Failed to map GitLab repositories');
       }
     },
   },

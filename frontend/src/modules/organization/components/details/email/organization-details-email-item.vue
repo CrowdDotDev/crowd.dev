@@ -94,7 +94,7 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ref } from 'vue';
@@ -132,10 +132,10 @@ const removeEmail = () => {
     identities,
   })
     .then(() => {
-      ToastStore.success('Email deleted successfully');
+      MessageStore.success('Email deleted successfully');
     })
     .catch(() => {
-      ToastStore.error('Something went wrong while deleting an email');
+      MessageStore.error('Something went wrong while deleting an email');
     });
 };
 </script>

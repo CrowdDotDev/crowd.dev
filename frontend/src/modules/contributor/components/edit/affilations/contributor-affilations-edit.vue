@@ -118,7 +118,7 @@ import LfContributorEditAffilationsItem
 , { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
 import useVuelidate from '@vuelidate/core';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
@@ -178,11 +178,11 @@ const submit = () => {
 
   updateContributorAffiliations(props.contributor.id, affiliations)
     .then(() => {
-      ToastStore.success('Activities affiliation updated successfully');
+      MessageStore.success('Activities affiliation updated successfully');
       isModalOpen.value = false;
     })
     .catch(() => {
-      ToastStore.error('Failed to update activities affiliation');
+      MessageStore.error('Failed to update activities affiliation');
     })
     .finally(() => {
       sending.value = false;

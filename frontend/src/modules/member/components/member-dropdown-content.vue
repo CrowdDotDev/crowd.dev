@@ -154,7 +154,7 @@
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useRoute } from 'vue-router';
@@ -218,21 +218,21 @@ const doManualAction = async ({
   emit('closeDropdown');
 
   if (loadingMessage) {
-    ToastStore.info(loadingMessage);
+    MessageStore.info(loadingMessage);
   }
 
   return actionFn
     .then(() => {
       if (successMessage) {
-        ToastStore.closeAll();
-        ToastStore.success(successMessage);
+        MessageStore.closeAll();
+        MessageStore.success(successMessage);
       }
       Promise.resolve();
     })
     .catch(() => {
       if (errorMessage) {
-        ToastStore.closeAll();
-        ToastStore.error(errorMessage);
+        MessageStore.closeAll();
+        MessageStore.error(errorMessage);
       }
       Promise.reject();
     });

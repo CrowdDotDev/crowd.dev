@@ -1,4 +1,4 @@
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 
@@ -10,8 +10,8 @@ export default () => {
 
   const processesRunning = Object.keys(mergedOrganizations.value).length;
 
-  ToastStore.closeAll();
-  ToastStore.info('', {
+  MessageStore.closeAll();
+  MessageStore.info('', {
     title: 'Organizations merging in progress',
     message: processesRunning > 1 ? `${processesRunning} processes running` : undefined,
   });

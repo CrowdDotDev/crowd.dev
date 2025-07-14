@@ -68,7 +68,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -135,13 +135,13 @@ const updateIdentity = () => {
     platform: form.type === 'email' ? 'custom' : form.platform,
   })
     .then(() => {
-      ToastStore.success('Identity updated successfully');
+      MessageStore.success('Identity updated successfully');
       isModalOpen.value = false;
     })
     .catch((error) => {
       if (error.response.status === 409) {
         isModalOpen.value = false;
-        ToastStore.success(
+        MessageStore.success(
           h(
             'div',
             {
@@ -156,7 +156,7 @@ const updateIdentity = () => {
                     const { memberId, grandParentId } = error.response.data;
 
                     memberStore.addToMergeMember(memberId, grandParentId);
-                    ToastStore.closeAll();
+                    MessageStore.closeAll();
                   },
                 },
                 'Merge profiles',
@@ -168,7 +168,7 @@ const updateIdentity = () => {
           },
         );
       } else {
-        ToastStore.error('Something went wrong while editing an identity');
+        MessageStore.error('Something went wrong while editing an identity');
       }
     })
     .finally(() => {

@@ -138,7 +138,7 @@
 import {
   ref, onMounted, computed, onUnmounted,
 } from 'vue';
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -232,7 +232,7 @@ const fetch = (page) => {
       primary.value = 0;
     })
     .catch(() => {
-      ToastStore.error(
+      MessageStore.error(
         'There was an error fetching merge suggestion, please try again later',
       );
     })
@@ -257,7 +257,7 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   OrganizationService.addToNoMerge(...organizationsToMerge.value.organizations)
     .then(() => {
-      ToastStore.success('Merging suggestion ignored successfully');
+      MessageStore.success('Merging suggestion ignored successfully');
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
@@ -265,12 +265,12 @@ const ignoreSuggestion = () => {
     })
     .catch((error) => {
       if (error.response.status === 404) {
-        ToastStore.error('Suggestion already merged or ignored', {
+        MessageStore.error('Suggestion already merged or ignored', {
           message: `Sorry, the suggestion you are trying to merge might have already been merged or ignored.
           Please refresh to see the updated information.`,
         });
       } else {
-        ToastStore.error('There was an error ignoring the merging suggestion');
+        MessageStore.error('There was an error ignoring the merging suggestion');
       }
     })
     .finally(() => {

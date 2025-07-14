@@ -91,7 +91,7 @@ import {
   reactive,
 } from 'vue';
 
-import { ToastStore } from '@/shared/message/notification';
+import { MessageStore } from '@/shared/message/notification';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -163,10 +163,10 @@ const handleSubmit = async () => {
     username: { ...memberModel.username, github: [selected.value] },
   }).then(() => {
     store.dispatch('member/doFind', props.modelValue.id).then(() => {
-      ToastStore.success('GitHub added successfully');
+      MessageStore.success('GitHub added successfully');
     });
   }).catch((err) => {
-    ToastStore.error(err.response.data);
+    MessageStore.error(err.response.data);
   }).finally(() => {
     loading.value = false;
   });
