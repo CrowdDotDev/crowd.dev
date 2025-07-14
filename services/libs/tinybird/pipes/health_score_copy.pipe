@@ -3,13 +3,7 @@ DESCRIPTION >
     Returns necessary columns for projects
 
 SQL >
-    SELECT id, '' as repo, segmentId, slug, widgets
-    from insightsProjects FINAL
-    WHERE segmentId != ''
-    UNION ALL
-    SELECT id, repo AS repo, segmentId, slug, widgets
-    FROM insightsProjects FINAL ARRAY
-    JOIN repositories AS repo
+    SELECT id, segmentId, slug, widgets from insightsProjects FINAL WHERE segmentId != ''
 
 NODE health_score_copy_data
 SQL >
@@ -17,7 +11,6 @@ SQL >
         health_score_copy_project_repo_deduplicated.id as id,
         health_score_copy_project_repo_deduplicated.segmentId as segmentId,
         health_score_copy_project_repo_deduplicated.slug as slug,
-        health_score_copy_project_repo_deduplicated.repo as repo,
         health_score_copy_project_repo_deduplicated.widgets as widgets,
         health_score_active_contributors.activeContributors as activeContributors,
         health_score_active_contributors.activeContributorsBenchmark as activeContributorsBenchmark,
@@ -54,37 +47,64 @@ SQL >
         health_score_security.securityCategoryPercentage as securityCategoryPercentage,
         health_score_security.securityPercentage as securityPercentage
     FROM health_score_copy_project_repo_deduplicated
-    LEFT JOIN health_score_active_contributors USING (segmentId, repo)
-    LEFT JOIN health_score_contributor_dependency USING (segmentId, repo)
-    LEFT JOIN health_score_organization_dependency USING (segmentId, repo)
-    LEFT JOIN health_score_retention USING (segmentId, repo)
-    LEFT JOIN health_score_stars USING (segmentId, repo)
-    LEFT JOIN health_score_forks USING (segmentId, repo)
-    LEFT JOIN health_score_issues_resolution USING (segmentId, repo)
-    LEFT JOIN health_score_pull_requests USING (segmentId, repo)
-    LEFT JOIN health_score_merge_lead_time USING (segmentId, repo)
-    LEFT JOIN health_score_active_days USING (segmentId, repo)
-    LEFT JOIN health_score_contributions_outside_work_hours USING (segmentId, repo)
+    LEFT JOIN health_score_active_contributors USING (segmentId)
+    LEFT JOIN health_score_contributor_dependency USING (segmentId)
+    LEFT JOIN health_score_organization_dependency USING (segmentId)
+    LEFT JOIN health_score_retention USING (segmentId)
+    LEFT JOIN health_score_stars USING (segmentId)
+    LEFT JOIN health_score_forks USING (segmentId)
+    LEFT JOIN health_score_issues_resolution USING (segmentId)
+    LEFT JOIN health_score_pull_requests USING (segmentId)
+    LEFT JOIN health_score_merge_lead_time USING (segmentId)
+    LEFT JOIN health_score_active_days USING (segmentId)
+    LEFT JOIN health_score_contributions_outside_work_hours USING (segmentId)
     LEFT JOIN health_score_search_volume USING (id)
-    LEFT JOIN health_score_security USING (id, repo)
+    LEFT JOIN health_score_security USING (id)
 
 NODE health_score_copy_result
 SQL >
     WITH
-        [
-            activeContributorsBenchmark,
-            contributorDependencyBenchmark,
-            organizationDependencyBenchmark,
-            retentionBenchmark
-        ] AS contributorBenchmarks,
-        [starsBenchmark, forksBenchmark, searchVolumeBenchmark] AS popularityBenchmarks,
-        [
-            issueResolutionBenchmark,
-            pullRequestsBenchmark,
-            mergeLeadTimeBenchmark,
-            activeDaysBenchmark,
-            contributionsOutsideWorkHoursBenchmark
-        ] AS developmentBenchmarks
+        arrayFilter(
+            x -> x >= 0,
+            [
+                CASE
+                    WHEN has(widgets, 'activeContributors') THEN activeContributorsBenchmark ELSE -1
+                END,
+                CASE
+                    WHEN has(widgets, 'contributorDependency')
+                    THEN contributorDependencyBenchmark
+                    ELSE -1
+                END,
+                CASE
+                    WHEN has(widgets, 'organizationDependency')
+                    THEN organizationDependencyBenchmark
+                    ELSE -1
+                END,
+                CASE WHEN has(widgets, 'retention') THEN retentionBenchmark ELSE -1 END
+            ]
+        ) AS contributorBenchmarks,
+        arrayFilter(
+            x -> x >= 0,
+            [
+                CASE WHEN has(widgets, 'stars') THEN starsBenchmark ELSE -1 END,
+                CASE WHEN has(widgets, 'forks') THEN forksBenchmark ELSE -1 END,
+                CASE WHEN has(widgets, 'searchQueries') THEN searchVolumeBenchmark ELSE -1 END
+            ]
+        ) AS popularityBenchmarks,
+        arrayFilter(
+            x -> x >= 0,
+            [
+                CASE WHEN has(widgets, 'issuesResolution') THEN issueResolutionBenchmark ELSE -1 END,
+                CASE WHEN has(widgets, 'pullRequests') THEN pullRequestsBenchmark ELSE -1 END,
+                CASE WHEN has(widgets, 'mergeLeadTime') THEN mergeLeadTimeBenchmark ELSE -1 END,
+                CASE WHEN has(widgets, 'activeDays') THEN activeDaysBenchmark ELSE -1 END,
+                CASE
+                    WHEN has(widgets, 'contributionsOutsideWorkHours')
+                    THEN contributionsOutsideWorkHoursBenchmark
+                    ELSE -1
+                END
+            ]
+        ) AS developmentBenchmarks
     SELECT
         *,
         round(
@@ -101,6 +121,7 @@ SQL >
             / 4
         ) AS overallScore
     FROM health_score_copy_data
+    WHERE slug = 'k8s'
 
 TYPE COPY
 TARGET_DATASOURCE health_score_copy_ds
