@@ -1,0 +1,4 @@
+NODE health_score_overview_result
+SQL >
+    %
+    SELECT * FROM health_score_copy_ds WHERE id = (SELECT insightsProjectId FROM segments_filtered)

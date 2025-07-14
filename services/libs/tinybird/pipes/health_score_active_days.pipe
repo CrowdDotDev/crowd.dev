@@ -1,16 +1,15 @@
-TOKEN "health_score_active_days_endpoint_read_4974" READ
-
 NODE health_score_active_days_score
 SQL >
     %
     SELECT segmentId, countDistinct(DATE(timestamp)) AS activeDaysCount
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         1 = 1
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repo) %}
-                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
             {% if defined(startDate) %}
                 AND timestamp
@@ -26,41 +25,10 @@ SQL >
         {% end %}
     GROUP BY segmentId
 
-NODE health_score_active_days_repo_score
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT segmentId, channel as repo, countDistinct(DATE(timestamp)) AS activeDaysCount
-        FROM activities_with_relations_sorted_deduplicated_ds
-        WHERE
-            timestamp >= toStartOfDay(now() - toIntervalDay(365))
-            AND timestamp < toStartOfDay(now())
-            AND channel != ''
-        GROUP BY segmentId, channel
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_active_days_union
-SQL >
-    %
-    SELECT
-        segmentId,
-        {% if not defined(repo) %} ''
-        {% else %} {{ String(repo) }}
-        {% end %} as repo,
-        activeDaysCount
-    FROM health_score_active_days_score
-    {% if not defined(project) %}
-        UNION ALL
-        SELECT segmentId, repo, activeDaysCount
-        FROM health_score_active_days_repo_score
-    {% end %}
-
 NODE health_score_active_days_with_benchmark
 SQL >
     SELECT
         segmentId,
-        repo,
         activeDaysCount,
         CASE
             WHEN activeDaysCount BETWEEN 0 AND 5
@@ -77,4 +45,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS activeDaysBenchmark
-    FROM health_score_active_days_union
+    FROM health_score_active_days_score

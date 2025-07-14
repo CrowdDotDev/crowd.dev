@@ -1,16 +1,15 @@
-TOKEN "health_score_retention_endpoint_read_5548" READ
-
 NODE health_score_retention_current_quarter
 SQL >
     %
     SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         isContribution
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repo) %}
-                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
         {% end %}
         {% if defined(endDate) %}
@@ -34,12 +33,7 @@ SQL >
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
         isContribution
-        {% if defined(project) %}
-            AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repo) %}
-                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
-            {% end %}
-        {% end %}
+        {% if defined(project) %} AND segmentId = (SELECT segmentId FROM segments_filtered) {% end %}
         {% if defined(endDate) %}
             AND timestamp >= toStartOfQuarter(
                 {{ DateTime(endDate, description="Filter before date", required=False) }}
@@ -80,87 +74,10 @@ SQL >
         ) AS "retentionRate"
     FROM health_score_retention_counts
 
-NODE health_score_retention_repo_current_quarter
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT segmentId, channel as repo, groupUniqArray(memberId) AS currentQuarterMembers
-        FROM activities_with_relations_sorted_deduplicated_ds
-        WHERE
-            isContribution
-            AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
-            AND timestamp < toStartOfQuarter(now())
-            AND channel != ''
-        GROUP BY segmentId, channel
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_retention_repo_previous_quarter
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT segmentId, channel as repo, groupUniqArray(memberId) AS previousQuarterMembers
-        FROM activities_with_relations_sorted_deduplicated_ds
-        WHERE
-            isContribution
-            AND timestamp >= toStartOfQuarter(now() - INTERVAL 2 QUARTER)
-            AND timestamp < toStartOfQuarter(now() - INTERVAL 1 QUARTER)
-            AND channel != ''
-        GROUP BY segmentId, channel
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_retention_repo_counts
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT
-            health_score_retention_repo_current_quarter.segmentId as segmentId,
-            health_score_retention_repo_current_quarter.repo as repo,
-            length(
-                arrayIntersect(
-                    coalesce(health_score_retention_repo_current_quarter.currentQuarterMembers, []),
-                    coalesce(health_score_retention_repo_previous_quarter.previousQuarterMembers, [])
-                )
-            ) AS retained_members,
-            length(
-                coalesce(health_score_retention_repo_previous_quarter.previousQuarterMembers, [])
-            ) AS previous_period_total
-        FROM health_score_retention_repo_current_quarter
-        LEFT JOIN health_score_retention_repo_previous_quarter USING (segmentId, repo)
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_retention_repo_score
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT
-            segmentId,
-            repo,
-            if(
-                previous_period_total > 0, round(100 * retained_members / previous_period_total, 2), 0
-            ) AS "retentionRate"
-        FROM health_score_retention_repo_counts
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_retention_union
-SQL >
-    %
-    SELECT segmentId, '' as repo, retentionRate
-    FROM health_score_retention_score
-    {% if not defined(project) %}
-        UNION ALL
-        SELECT segmentId, repo, retentionRate
-        FROM health_score_retention_repo_score
-    {% end %}
-
 NODE health_score_retention_with_benchmark
 SQL >
     SELECT
         segmentId,
-        repo,
         retentionRate,
         CASE
             WHEN retentionRate BETWEEN 0 AND 2
@@ -177,4 +94,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS retentionBenchmark
-    FROM health_score_retention_union
+    FROM health_score_retention_score

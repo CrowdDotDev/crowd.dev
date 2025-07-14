@@ -1,10 +1,8 @@
-TOKEN "health_score_search_volume_endpoint_read_6127" READ
-
 NODE health_score_search_volume_score
 SQL >
     %
     SELECT toString(insightsProjectId) as id, round(avg(volume)) AS searchVolumeAverage
-    FROM searchVolume
+    FROM searchVolume FINAL
     WHERE
         1 = 1
         {% if defined(project) %}

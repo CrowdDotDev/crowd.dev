@@ -121,7 +121,6 @@ SQL >
             / 4
         ) AS overallScore
     FROM health_score_copy_data
-    WHERE slug = 'k8s'
 
 TYPE COPY
 TARGET_DATASOURCE health_score_copy_ds

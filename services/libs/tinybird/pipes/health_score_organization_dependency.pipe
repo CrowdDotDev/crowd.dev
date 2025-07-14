@@ -1,16 +1,15 @@
-TOKEN "health_score_organization_dependency_endpoint_read_3016" READ
-
 NODE health_score_organization_dependency_contribution_count
 SQL >
     %
     SELECT segmentId, organizationId, count() AS contributionCount
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         1 = 1
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repo) %}
-                AND channel = {{ String(repo, description="Filter by repository", required=False) }}
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
             {% if defined(startDate) %}
                 AND timestamp
@@ -59,92 +58,10 @@ SQL >
     WHERE contributionPercentageRunningTotal < 51
     GROUP BY segmentId
 
-NODE health_score_organization_dependency_repo_contribution_count
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT segmentId, channel as repo, organizationId, count() AS contributionCount
-        FROM activities_with_relations_sorted_deduplicated_ds
-        WHERE
-            timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
-            AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
-            AND organizationId != ''
-            AND channel != ''
-            AND isContribution
-        GROUP BY segmentId, channel, organizationId
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_organization_dependency_repo_contribution_percentage
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT
-            segmentId,
-            repo,
-            organizationId,
-            contributionCount,
-            (
-                contributionCount * 100.0 / SUM(contributionCount) OVER (PARTITION BY segmentId, repo)
-            ) AS contributionPercentage
-        FROM health_score_organization_dependency_repo_contribution_count
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_organization_dependency_repo_contribution_runnning_total
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT
-            segmentId,
-            repo,
-            organizationId,
-            contributionCount,
-            contributionPercentage,
-            SUM(contributionPercentage) OVER (
-                PARTITION BY segmentId, repo ORDER BY contributionPercentage DESC, organizationId
-            ) AS contributionPercentageRunningTotal
-        FROM health_score_organization_dependency_repo_contribution_percentage
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_organization_dependency_repo_score
-SQL >
-    %
-    {% if not defined(project) %}
-        SELECT
-            segmentId,
-            repo,
-            count() AS organizationDependencyCount,
-            round(sum(contributionPercentage)) AS organizationDependencyPercentage
-        FROM health_score_organization_dependency_repo_contribution_runnning_total
-        WHERE contributionPercentageRunningTotal < 51
-        GROUP BY segmentId, repo
-    {% else %} SELECT 1
-    {% end %}
-
-NODE health_score_organization_dependency_union
-SQL >
-    %
-    SELECT
-        segmentId,
-        {% if not defined(repo) %} ''
-        {% else %} {{ String(repo) }}
-        {% end %} as repo,
-        organizationDependencyCount,
-        organizationDependencyPercentage
-    FROM health_score_organization_dependency_score
-    {% if not defined(project) %}
-        UNION ALL
-        SELECT segmentId, repo, organizationDependencyCount, organizationDependencyPercentage
-        FROM health_score_organization_dependency_repo_score
-    {% end %}
-
 NODE health_score_organization_dependency_with_benchmark
 SQL >
     SELECT
         segmentId,
-        repo,
         organizationDependencyCount,
         organizationDependencyPercentage,
         CASE
@@ -162,4 +79,4 @@ SQL >
             THEN 5
             ELSE 0
         END AS organizationDependencyBenchmark
-    FROM health_score_organization_dependency_union
+    FROM health_score_organization_dependency_score
