@@ -18,14 +18,14 @@ SQL >
 NODE result
 SQL >
     select
-        af.id,
+        af.activityId as id,
         af.timestamp,
         af.channel,
         af.segmentId,
         mwli.country_data .3 as timezone_offset,
         toDayOfWeek(addHours(af.timestamp, mwli.country_data .3)) as weekday,
         intDiv(toHour(addHours(af.timestamp, mwli.country_data .3)), 2) * 2 AS two_hours_block
-    from activities_with_relations_sorted_deduplicated_ds af
+    from activityRelations_deduplicated_cleaned_ds af
     join members_with_location_information mwli on mwli.id = af.memberId
     where platform in ('git', 'github', 'gitlab', 'gerrit')
 

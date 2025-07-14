@@ -1,6 +1,6 @@
 SCHEMA >
     `id` String,
-    `timestamp` DateTime,
+    `timestamp` DateTime64(3),
     `channel` String,
     `segmentId` String,
     `timezone_offset` Int16,
