@@ -22,9 +22,6 @@ SQL >
         {% if defined(name) %}
             AND p.name = {{ String(name, description="Filter by package name", required=False) }}
         {% end %}
-        {% if defined(repo) %}
-            AND p.repo = {{ String(repo, description="Filter by repo", required=False) }}
-        {% end %}
         {% if defined(repos) %}
             AND p.repo
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
@@ -127,15 +124,26 @@ SQL >
 NODE package_downloads_initial_aggregation
 SQL >
     %
-    SELECT
-        {% if defined(granularity) %} p.date, {% end %}
-        sum(p.downloadsCount) as downloadsCount,
-        sum(p.dockerDownloadsCount) as "dockerDownloadsCount",
-        sum(p.dockerDependentsCount) as "dockerDependentsCount",
-        sum(p.dependentPackagesCount) as "dependentPackagesCount",
-        sum(p.dependentReposCount) as "dependentReposCount"
-    FROM package_downloads_filtered p
-    group by p.insightsProjectId {% if defined(granularity) %}, p.date {% end %}
+    {% if defined(granularity) %}
+        SELECT
+            p.date,
+            sum(p.downloadsCount) as downloadsCount,
+            sum(p.dockerDownloadsCount) as "dockerDownloadsCount",
+            sum(p.dockerDependentsCount) as "dockerDependentsCount",
+            sum(p.dependentPackagesCount) as "dependentPackagesCount",
+            sum(p.dependentReposCount) as "dependentReposCount"
+        FROM package_downloads_filtered p
+        group by p.insightsProjectId, p.date
+    {% else %}
+        SELECT
+            max(p.downloadsCount) as downloadsCount,
+            max(p.dockerDownloadsCount) as "dockerDownloadsCount",
+            max(p.dockerDependentsCount) as "dockerDependentsCount",
+            max(p.dependentPackagesCount) as "dependentPackagesCount",
+            max(p.dependentReposCount) as "dependentReposCount"
+        FROM package_downloads_filtered p
+        group by p.insightsProjectId
+    {% end %}
 
 NODE package_downloads_timeseries_merge
 SQL >

@@ -79,9 +79,6 @@ SQL >
             = {{ String(project, description="Filter by project slug", required=True) }}
         {% else %} AND false
         {% end %}
-        {% if defined(repo) %}
-            AND s.repo = {{ String(repo, description="Filter activity repo", required=False) }}
-        {% end %}
         {% if defined(repos) %}
             AND s.repo
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}

@@ -9,9 +9,6 @@ SQL >
     from insightsProjects final
     where
         1 = 1
-        {% if defined(repo) %}
-            AND repo = {{ String(repo, description="Filter project repo", required=False) }}
-        {% end %}
         {% if defined(repos) %}
             AND repo
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}

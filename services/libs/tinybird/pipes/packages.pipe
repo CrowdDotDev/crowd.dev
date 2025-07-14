@@ -4,7 +4,7 @@ SQL >
     SELECT distinct p.repo, p.name, p.ecosystem
     FROM packageDownloads p
     where
-        insightsProjectId = (select insightsProjectId from segments_filtered)
+        p.insightsProjectId = (select insightsProjectId from segments_filtered)
         {% if defined(search) %}
             AND (
                 p.name
@@ -16,9 +16,6 @@ SQL >
                 || {{ String(search, description="Filter package download ecosystem", required=False) }}
                 || '%'
             )
-        {% end %}
-        {% if defined(repo) %}
-            AND p.repo = {{ String(repo, description="Filter by repo", required=False) }}
         {% end %}
         {% if defined(repos) %}
             AND p.repo
