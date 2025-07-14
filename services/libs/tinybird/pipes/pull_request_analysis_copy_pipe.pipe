@@ -33,9 +33,7 @@ NODE pull_request_first_review_approved
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS approvedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        type = 'pull_request-reviewed'
-        and pullRequestReviewState = 'APPROVED'
+    WHERE type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED'
     GROUP BY sourceParentId
 
 NODE pull_request_first_closed
