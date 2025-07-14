@@ -90,6 +90,14 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
       temperature: 0,
     },
   },
+  [LlmQueryType.REPO_CATEGORIES]: {
+    modelId: LlmModelType.CLAUDE_3_5_SONNET_V2,
+    arguments: {
+      max_tokens: 200000,
+      anthropic_version: 'bedrock-2023-05-31',
+      temperature: 0,
+    },
+  },
 }
 
 export interface LlmIdentity {
