@@ -1,4 +1,12 @@
 NODE health_score_overview_result
 SQL >
     %
-    SELECT * FROM health_score_copy_ds WHERE id = (SELECT insightsProjectId FROM segments_filtered)
+    SELECT *
+    FROM health_score_copy_ds
+    WHERE
+        1 = 1
+        {% if defined(slugs) %}
+            AND slug
+            IN {{ Array(slugs, 'String', description="Filter by project slug list", required=False) }}
+        {% else %} AND id = (SELECT insightsProjectId FROM segments_filtered)
+        {% end %}

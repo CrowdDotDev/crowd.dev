@@ -59,6 +59,10 @@ SQL >
                 {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
             )
         {% end %}
+        {% if defined(slugs) %}
+            AND insights_projects_populated_ds.slug
+            IN {{ Array(slugs, 'String', description="Filter by project slug list", required=False) }}
+        {% end %}
         {% if defined(isLF) %} AND insights_projects_populated_ds.isLF = {{ Boolean(isLF) }} {% end %}
     GROUP BY
         insights_projects_populated_ds.id,
