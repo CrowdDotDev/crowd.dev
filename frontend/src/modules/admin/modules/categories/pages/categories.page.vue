@@ -120,7 +120,7 @@ import LfCategoryGroupDropdown from '@/modules/admin/modules/categories/componen
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfCategoryGroupTypeFilter
   from '@/modules/admin/modules/categories/components/list/category-group-type-filter.vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import pluralize from 'pluralize';
 import LfPopover from '@/ui-kit/popover/Popover.vue';
 
@@ -153,7 +153,7 @@ const fetchCategoryGroups = () => {
       total.value = res.count;
     })
     .catch(() => {
-      MessageStore.error('Error loading category groups');
+      ToastStore.error('Error loading category groups');
     })
     .finally(() => {
       loading.value = false;

@@ -115,7 +115,7 @@ import {
 import { CollectionModel, CollectionRequest } from '@/modules/admin/modules/collections/models/collection.model';
 import LfCollectionAdd from '@/modules/admin/modules/collections/components/lf-collection-add.vue';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import LfCollectionTable from '@/modules/admin/modules/collections/components/lf-collection-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -194,7 +194,7 @@ const total = computed((): number => {
 
 watch(error, (err) => {
   if (err) {
-    MessageStore.error('Something went wrong while fetching collections');
+    ToastStore.error('Something went wrong while fetching collections');
   }
 });
 
@@ -218,26 +218,26 @@ const onEditCollection = (collectionId: string) => {
 const updateMutation = useMutation({
   mutationFn: ({ id, collection }: { id: string; collection: CollectionRequest }) => COLLECTIONS_SERVICE.update(id, collection),
   onMutate: () => {
-    MessageStore.info('Collection is being featured');
+    ToastStore.info('Collection is being featured');
   },
   onSuccess: (collection: CollectionRequest) => {
-    MessageStore.closeAll();
-    MessageStore.success(`Collection successfully ${collection!.starred ? 'mark as featured' : 'unmark as featured'}`);
+    ToastStore.closeAll();
+    ToastStore.success(`Collection successfully ${collection!.starred ? 'mark as featured' : 'unmark as featured'}`);
     queryClient.invalidateQueries({
       queryKey: [TanstackKey.ADMIN_COLLECTIONS],
     });
   },
   onError: () => {
-    MessageStore.closeAll();
-    MessageStore.error('Something went wrong');
+    ToastStore.closeAll();
+    ToastStore.error('Something went wrong');
   },
 });
 
 const ontoggleStar = (collectionId: string) => {
   const collection = collections.value.find((collection) => collection.id === collectionId);
   if (!collection) {
-    MessageStore.closeAll();
-    MessageStore.error('Collection not found');
+    ToastStore.closeAll();
+    ToastStore.error('Collection not found');
     return;
   }
   updateMutation.mutate({
@@ -274,20 +274,20 @@ const openRemoveCollectionDialog = (collectionId: string) => {
 const deleteCollectionMutation = useMutation({
   mutationFn: (collectionId: string) => COLLECTIONS_SERVICE.delete(collectionId),
   onSuccess: () => {
-    MessageStore.closeAll();
-    MessageStore.success('Collection successfully deleted');
+    ToastStore.closeAll();
+    ToastStore.success('Collection successfully deleted');
     queryClient.invalidateQueries({
       queryKey: [TanstackKey.ADMIN_COLLECTIONS],
     });
     closeRemoveDialog();
   },
   onError: () => {
-    MessageStore.closeAll();
-    MessageStore.error('Something went wrong');
+    ToastStore.closeAll();
+    ToastStore.error('Something went wrong');
     closeRemoveDialog();
   },
   onMutate: () => {
-    MessageStore.info('Collection is being deleted');
+    ToastStore.info('Collection is being deleted');
   },
 });
 

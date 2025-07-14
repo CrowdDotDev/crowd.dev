@@ -55,7 +55,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({
@@ -108,7 +108,7 @@ const doDestroyWithConfirm = async () => {
           },
         });
 
-        MessageStore.success(
+        ToastStore.success(
           'Activity successfully deleted',
         );
 

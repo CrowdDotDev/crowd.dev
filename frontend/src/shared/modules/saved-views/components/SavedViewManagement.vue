@@ -63,7 +63,7 @@ import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -145,10 +145,10 @@ const remove = (view: SavedView) => {
             name: view.name,
           });
           emit('reload');
-          MessageStore.success('View successfully deleted');
+          ToastStore.success('View successfully deleted');
         })
         .catch(() => {
-          MessageStore.error('There was an error deleting view');
+          ToastStore.error('There was an error deleting view');
         });
     });
 };

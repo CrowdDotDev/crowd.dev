@@ -137,7 +137,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import Errors from '@/shared/error/errors';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
@@ -264,7 +264,7 @@ const createContributor = () => {
     })
     .catch((error) => {
       if (error.response.status === 409) {
-        MessageStore.error('Person was not created because the identity already exists in another profile');
+        ToastStore.error('Person was not created because the identity already exists in another profile');
       } else {
         Errors.handle(error);
       }

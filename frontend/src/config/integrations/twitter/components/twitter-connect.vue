@@ -17,7 +17,7 @@ import {
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import config from '@/config';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -62,11 +62,11 @@ const finallizeTwitterConnection = () => {
 
   if (isConnectionSuccessful) {
     router.replace({ query: null });
-    MessageStore.success('Integration updated successfully');
+    ToastStore.success('Integration updated successfully');
   }
 
   if (twitterError) {
-    MessageStore.error('Something went wrong during X/Twitter OAuth. Please try again later.');
+    ToastStore.error('Something went wrong during X/Twitter OAuth. Please try again later.');
   }
 };
 

@@ -19,7 +19,7 @@
 import LfConteneditable from '@/ui-kit/contenteditable/Contenteditable.vue';
 import { reactive, ref } from 'vue';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { Organization } from '@/modules/organization/types/Organization';
@@ -70,10 +70,10 @@ const update = () => {
     },
   })
     .then(() => {
-      MessageStore.success('Organization name updated successfully!');
+      ToastStore.success('Organization name updated successfully!');
     })
     .catch(() => {
-      MessageStore.error('There was an error updating organization');
+      ToastStore.error('There was an error updating organization');
     });
 };
 </script>

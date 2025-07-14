@@ -77,7 +77,7 @@ import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
 import { TanstackKey } from '@/shared/types/tanstack';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { INSIGHTS_PROJECTS_SERVICE } from '../../insights-projects/services/insights-projects.service';
 import { useInsightsProjectsStore } from '../../insights-projects/pinia';
 
@@ -205,7 +205,7 @@ watch(data, () => {
 
 watch(error, (err) => {
   if (err) {
-    MessageStore.error('Something went wrong while fetching Insights projects');
+    ToastStore.error('Something went wrong while fetching Insights projects');
   }
 });
 

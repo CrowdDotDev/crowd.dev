@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { computed, isVNode, VNode } from 'vue';
-import { NotificationTypes, MessageStore as store } from './notification';
+import { NotificationTypes, ToastStore as store } from './notification';
 
 const props = withDefaults(
   defineProps<{

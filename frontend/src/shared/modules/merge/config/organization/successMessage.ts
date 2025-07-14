@@ -1,5 +1,5 @@
 import { h } from 'vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { router } from '@/router';
 import { SuccessMessage } from '../../types/OrganizationMessage';
 
@@ -16,7 +16,7 @@ export default ({ primaryOrganization, secondaryOrganization }: SuccessMessage) 
           name: 'organizationView',
           params: { id },
         });
-        MessageStore.closeAll();
+        ToastStore.closeAll();
       },
     },
     'View organization',
@@ -35,8 +35,8 @@ export default ({ primaryOrganization, secondaryOrganization }: SuccessMessage) 
     messageElements.unshift(descriptionElement);
   }
 
-  MessageStore.closeAll();
-  MessageStore.success(
+  ToastStore.closeAll();
+  ToastStore.success(
     h(
       'div',
       {

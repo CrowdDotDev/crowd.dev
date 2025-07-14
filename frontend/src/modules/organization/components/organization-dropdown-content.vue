@@ -122,7 +122,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -172,21 +172,21 @@ const doManualAction = async ({
   emit('closeDropdown');
 
   if (loadingMessage) {
-    MessageStore.info(loadingMessage);
+    ToastStore.info(loadingMessage);
   }
 
   return actionFn
     .then(() => {
       if (successMessage) {
-        MessageStore.closeAll();
-        MessageStore.success(successMessage);
+        ToastStore.closeAll();
+        ToastStore.success(successMessage);
       }
       Promise.resolve();
     })
     .catch(() => {
       if (errorMessage) {
-        MessageStore.closeAll();
-        MessageStore.error(errorMessage);
+        ToastStore.closeAll();
+        ToastStore.error(errorMessage);
       }
       Promise.reject();
     });

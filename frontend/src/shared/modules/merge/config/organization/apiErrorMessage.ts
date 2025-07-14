@@ -1,11 +1,11 @@
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { ApiErrorMessage } from '../../types/OrganizationMessage';
 
 export default ({ error }: ApiErrorMessage) => {
-  MessageStore.closeAll();
+  ToastStore.closeAll();
 
   if (error.response.status === 404) {
-    MessageStore.success('Organizations already merged or deleted', {
+    ToastStore.success('Organizations already merged or deleted', {
       message: `Sorry, the organizations you are trying to merge might have already been merged or deleted.
         Please refresh to see the updated information.`,
     });
@@ -13,6 +13,6 @@ export default ({ error }: ApiErrorMessage) => {
     return true;
   }
 
-  MessageStore.error('There was an error merging organizations');
+  ToastStore.error('There was an error merging organizations');
   return false;
 };

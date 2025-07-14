@@ -108,7 +108,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import pluralize from 'pluralize';
@@ -167,13 +167,13 @@ const addIdentities = () => {
   sending.value = true;
   createContributorIdentities(props.contributor.id, form)
     .then(() => {
-      MessageStore.success('Identities successfully added');
+      ToastStore.success('Identities successfully added');
       isModalOpen.value = false;
     })
     .catch((error) => {
       if (error.response.status === 409) {
         isModalOpen.value = false;
-        MessageStore.success(
+        ToastStore.success(
           h(
             'div',
             {
@@ -188,7 +188,7 @@ const addIdentities = () => {
                     const { memberId, grandParentId } = error.response.data;
 
                     memberStore.addToMergeMember(memberId, grandParentId);
-                    MessageStore.closeAll();
+                    ToastStore.closeAll();
                   },
                 },
                 'Merge profiles',
@@ -200,7 +200,7 @@ const addIdentities = () => {
           },
         );
       } else {
-        MessageStore.error('Something went wrong while adding a new identity');
+        ToastStore.error('Something went wrong while adding a new identity');
       }
     })
     .finally(() => {

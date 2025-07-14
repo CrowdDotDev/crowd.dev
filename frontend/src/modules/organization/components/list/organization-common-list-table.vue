@@ -124,7 +124,7 @@ import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import { computed } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import pluralize from 'pluralize';
 import { getSegmentName } from '@/utils/segments';
@@ -148,18 +148,18 @@ const sort = computed<string>({
 });
 
 const markAsTeamOrganization = (organization: any) => {
-  MessageStore.info('Organization is being updated');
+  ToastStore.info('Organization is being updated');
   OrganizationService.update(organization.id, {
     isTeamOrganization: !organization.isTeamOrganization,
   }, organization.segments)
     .then(() => {
-      MessageStore.closeAll();
-      MessageStore.success('Organization updated successfully');
+      ToastStore.closeAll();
+      ToastStore.success('Organization updated successfully');
       emit('reload');
     })
     .catch(() => {
-      MessageStore.closeAll();
-      MessageStore.error('Something went wrong');
+      ToastStore.closeAll();
+      ToastStore.error('Something went wrong');
     });
 };
 const deleteOrganization = (organization: any) => {
@@ -171,16 +171,16 @@ const deleteOrganization = (organization: any) => {
     cancelButtonText: 'Cancel',
     icon: 'fa-trash-can fa-light',
   }).then(() => {
-    MessageStore.info('Organization is being deleted');
+    ToastStore.info('Organization is being deleted');
     OrganizationService.destroyAll([organization.id], organization.segments)
       .then(() => {
-        MessageStore.closeAll();
-        MessageStore.success('Organization successfully deleted');
+        ToastStore.closeAll();
+        ToastStore.success('Organization successfully deleted');
         emit('reload');
       })
       .catch(() => {
-        MessageStore.closeAll();
-        MessageStore.error('Something went wrong');
+        ToastStore.closeAll();
+        ToastStore.error('Something went wrong');
       });
   });
 };

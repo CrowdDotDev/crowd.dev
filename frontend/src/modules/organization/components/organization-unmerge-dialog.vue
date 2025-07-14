@@ -246,7 +246,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
@@ -371,7 +371,7 @@ const fetchPreview = (identity: OrganizationIdentityParsed) => {
       preview.value = res;
     })
     .catch((error) => {
-      MessageStore.error(
+      ToastStore.error(
         error?.response?.data || 'There was an error fetching unmerge preview',
       );
     })
@@ -413,7 +413,7 @@ const unmerge = () => {
   OrganizationService.unmerge(props.modelValue.id, preview.value)
     .then(() => {
       getOrganizationMergeActions(props.modelValue!.id);
-      MessageStore.info(
+      ToastStore.info(
         'We’re syncing all activities of the unmerged organization. We will let you know once the process is completed.',
         {
           title: 'Organizations unmerging in progress',
@@ -423,7 +423,7 @@ const unmerge = () => {
       emit('update:modelValue', null);
     })
     .catch(() => {
-      MessageStore.error('There was an error unmerging organization');
+      ToastStore.error('There was an error unmerging organization');
     })
     .finally(() => {
       unmerging.value = false;

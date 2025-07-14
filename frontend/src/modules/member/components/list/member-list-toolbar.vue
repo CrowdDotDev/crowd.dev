@@ -88,7 +88,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
@@ -150,8 +150,8 @@ const handleMergeMembers = async () => {
 
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      MessageStore.closeAll();
-      MessageStore.info(
+      ToastStore.closeAll();
+      ToastStore.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
           title: 'Profiles merging in progress',
@@ -219,14 +219,14 @@ const handleDoExport = async () => {
 
     await getUser();
 
-    MessageStore.success(
+    ToastStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
     console.error(error);
 
     if (error !== 'cancel') {
-      MessageStore.error(
+      ToastStore.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {
           title: 'CSV Export failed',
@@ -245,7 +245,7 @@ const handleAddTags = async () => {
 };
 
 const doMarkAsTeamMember = async (value) => {
-  MessageStore.info('People are being updated');
+  ToastStore.info('People are being updated');
 
   return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
@@ -256,15 +256,15 @@ const doMarkAsTeamMember = async (value) => {
     },
   }, member.segmentIds)))
     .then(() => {
-      MessageStore.closeAll();
-      MessageStore.success(`${
+      ToastStore.closeAll();
+      ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
       fetchMembers({ reload: true });
     })
     .catch(() => {
-      MessageStore.closeAll();
-      MessageStore.error('Error updating people');
+      ToastStore.closeAll();
+      ToastStore.error('Error updating people');
     });
 };
 

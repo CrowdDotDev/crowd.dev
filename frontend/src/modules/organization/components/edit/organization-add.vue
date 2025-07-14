@@ -119,7 +119,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { OrganizationApiService } from '@/modules/organization/services/organization.api.service';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import Errors from '@/shared/error/errors';
 import AppLfSubProjectsListDropdown from '@/modules/admin/modules/projects/components/lf-sub-projects-list-dropdown.vue';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
@@ -241,7 +241,7 @@ const createOrganization = () => {
     })
     .catch((error: any) => {
       if (error.response.status === 409) {
-        MessageStore.error('Organization was not created because the identity already exists in another profile');
+        ToastStore.error('Organization was not created because the identity already exists in another profile');
       } else {
         Errors.handle(error);
       }

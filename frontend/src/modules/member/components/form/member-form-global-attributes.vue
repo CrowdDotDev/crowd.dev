@@ -131,7 +131,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import attributeTypes from '@/jsons/member-custom-attributes.json';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
 import { onSelectMouseLeave } from '@/utils/select';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -272,9 +272,9 @@ async function onSubmit() {
   }
 
   if (hasErrorOccurred) {
-    MessageStore.error('Ops, an error occurred');
+    ToastStore.error('Ops, an error occurred');
   } else {
-    MessageStore.success(
+    ToastStore.success(
       'Custom Attributes successfully updated',
     );
     isDrawerOpen.value = false;

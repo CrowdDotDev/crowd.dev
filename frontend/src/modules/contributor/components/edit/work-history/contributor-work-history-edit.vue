@@ -120,7 +120,7 @@ import { MemberOrganization, Organization, OrganizationSource } from '@/modules/
 import LfField from '@/ui-kit/field/Field.vue';
 import LfOrganizationSelect from '@/modules/organization/components/shared/organization-select.vue';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { required } from '@vuelidate/validators';
@@ -230,11 +230,11 @@ const updateWorkExperience = () => {
     ? updateContributorOrganization(props.contributor.id, props.organization?.memberOrganizations?.id!, data)
     : createContributorOrganization(props.contributor.id, data))
     .then(() => {
-      MessageStore.success(`Work experience ${isEdit.value ? 'updated' : 'added'} successfully`);
+      ToastStore.success(`Work experience ${isEdit.value ? 'updated' : 'added'} successfully`);
       isModalOpen.value = false;
     })
     .catch(() => {
-      MessageStore.error(`Something went wrong while ${isEdit.value ? 'updating' : 'adding'} a work experience`);
+      ToastStore.error(`Something went wrong while ${isEdit.value ? 'updating' : 'adding'} a work experience`);
     })
     .finally(() => {
       sending.value = false;

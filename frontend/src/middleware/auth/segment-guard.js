@@ -1,7 +1,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 
 /**
  * Segment Guard
@@ -38,7 +38,7 @@ export default async function ({ to, store, router }) {
   }
 
   if (!hasPermission) {
-    MessageStore.error('You don\'t have access to this page');
+    ToastStore.error('You don\'t have access to this page');
     router.push('/');
   }
 }

@@ -46,7 +46,7 @@ import pluralize from 'pluralize';
 import { useRoute } from 'vue-router';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -205,12 +205,12 @@ const doExport = async () => {
 
     await getUser();
 
-    MessageStore.success(
+    ToastStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
     if (error !== 'cancel') {
-      MessageStore.error(
+      ToastStore.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {
           title: 'CSV Export failed',

@@ -202,7 +202,7 @@
 import {
   computed, h, onMounted, ref,
 } from 'vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import github from '@/config/integrations/github/config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute, useRouter } from 'vue-router';
@@ -364,15 +364,15 @@ const handleMessage = (error: any) => {
         customErrorMessage(integration.segment, repo);
       })
       .catch(() => {
-        MessageStore.error(errorMessage);
+        ToastStore.error(errorMessage);
       });
   } else {
-    MessageStore.error('There was an error mapping github repos');
+    ToastStore.error('There was an error mapping github repos');
   }
 };
 
 const customErrorMessage = (segment: any, githubRepo: string) => {
-  MessageStore.error(
+  ToastStore.error(
     h(
       'span',
       {
@@ -417,7 +417,7 @@ const fetchSubProjects = () => {
         .filter((s) => s !== undefined);
     })
     .catch(() => {
-      MessageStore.error('There was an error fetching subprojects');
+      ToastStore.error('There was an error fetching subprojects');
     })
     .finally(() => {
       loading.value = false;

@@ -154,7 +154,7 @@ import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
 import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -264,8 +264,8 @@ const onSuccess = () => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_COLLECTIONS],
   });
-  MessageStore.closeAll();
-  MessageStore.success(
+  ToastStore.closeAll();
+  ToastStore.success(
     `Collection ${isEditForm.value ? 'updated' : 'created'} successfully`,
   );
   if (isEditForm.value) {
@@ -276,8 +276,8 @@ const onSuccess = () => {
 };
 
 const onError = () => {
-  MessageStore.closeAll();
-  MessageStore.error(
+  ToastStore.closeAll();
+  ToastStore.error(
     `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the collection`,
   );
 };

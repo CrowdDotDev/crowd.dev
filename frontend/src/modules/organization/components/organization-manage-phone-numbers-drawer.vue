@@ -45,7 +45,7 @@ import {
   ref,
   computed,
 } from 'vue';
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import cloneDeep from 'lodash/cloneDeep';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import useVuelidate from '@vuelidate/core';
@@ -113,7 +113,7 @@ const handleSubmit = async () => {
   }).then(() => {
     emit('reload');
   }).catch((err) => {
-    MessageStore.error(err.response.data);
+    ToastStore.error(err.response.data);
   }).finally(() => {
     loading.value = false;
   });

@@ -123,7 +123,7 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 
-import { MessageStore } from '@/shared/message/notification';
+import { ToastStore } from '@/shared/message/notification';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -163,10 +163,10 @@ const editingDisabled = computed(() => {
 const removeIdentity = () => {
   deleteContributorIdentity(props.contributor.id, props.identity.id)
     .then(() => {
-      MessageStore.success('Identity deleted successfully');
+      ToastStore.success('Identity deleted successfully');
     })
     .catch(() => {
-      MessageStore.error('Something went wrong while deleting an identity');
+      ToastStore.error('Something went wrong while deleting an identity');
     });
 };
 </script>
