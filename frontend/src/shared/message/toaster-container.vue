@@ -30,7 +30,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, isVNode, VNode } from 'vue';
+import {
+  computed, h, isVNode, VNode,
+} from 'vue';
 import { NotificationTypes, ToastStore as store } from './notification';
 
 const props = withDefaults(
@@ -60,28 +62,24 @@ const positionClass = computed(() => {
 function iconComponent(type: NotificationTypes) {
   switch (type) {
     case 'success':
-      return {
-        template: '<i class="fa-circle-check fa-light text-green-500"></i>',
-      };
+      return h('i', {
+        class: 'fa-circle-check fa-light text-green-500',
+      });
     case 'error':
-      return {
-        template: '<i class="fa-circle-exclamation fa-light text-red-500"></i>',
-      };
+      return h('i', {
+        class: 'fa-circle-exclamation fa-light text-red-500',
+      });
     default:
-      return {
-        template:
-          '<i class="fa-circle-notch fa-light text-primary-600 animate-spin"></i>',
-      };
+      return h('i', {
+        class: 'fa-circle-notch fa-light text-primary-600 animate-spin',
+      });
   }
 }
 
 function messageComponent(message: string | VNode) {
-  if (isVNode(message)) {
-    return message;
-  }
-  return {
-    template: `<span>${message}</span>`,
-  };
+  return isVNode(message)
+    ? message
+    : h('span', null, message);
 }
 </script>
 
