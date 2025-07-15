@@ -77,12 +77,9 @@ function iconComponent(type: NotificationTypes) {
 }
 
 function messageComponent(message: string | VNode) {
-  if (isVNode(message)) {
-    return message;
-  }
-  return {
-    template: `<span>${message}</span>`,
-  };
+  return isVNode(message)
+    ? message
+    : h('span', null, message);
 }
 </script>
 
