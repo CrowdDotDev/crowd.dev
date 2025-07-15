@@ -373,14 +373,16 @@ export default class IntegrationService {
 
       const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
 
-      const insightsRepo = insightsProject.repositories ?? []
+      const insightsRepo = insightsProject?.repositories ?? []
 
       const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
 
       // remove duplicates
       const repositories = [...new Set<string>(filteredRepos)]
 
-      await collectionService.updateInsightsProject(insightsProject.id, { widgets, repositories })
+      if (insightsProject) {
+        await collectionService.updateInsightsProject(insightsProject.id, { widgets, repositories })
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
