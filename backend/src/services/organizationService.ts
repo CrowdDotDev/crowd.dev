@@ -8,7 +8,7 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, Error409, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
+import { queryMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -455,11 +455,34 @@ export default class OrganizationService extends LoggerBase {
     let tx
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-    const mergeAction = await findMergeAction(qx, originalId, toMergeId)
+    const mergeActions = await queryMergeActions(
+      qx,
+      {
+        filter: {
+          and: [
+            {
+              state: {
+                eq: MergeActionState.IN_PROGRESS,
+              },
+            },
+            {
+              or: [
+                { primaryId: { eq: originalId } },
+                { secondaryId: { eq: originalId } },
+                { primaryId: { eq: toMergeId } },
+                { secondaryId: { eq: toMergeId } },
+              ],
+            },
+          ],
+        },
+        limit: 1,
+      },
+      ['id', 'state'],
+    )
 
     // prevent multiple merge operations
-    if (mergeAction && mergeAction?.state === MergeActionState.IN_PROGRESS) {
-      throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
+    if (mergeActions.length > 0) {
+      throw new Error409(this.options.language, 'merge.errors.multiple', mergeActions[0].state)
     }
 
     try {

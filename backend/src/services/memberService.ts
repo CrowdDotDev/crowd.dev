@@ -25,7 +25,7 @@ import {
   queryMembersAdvanced,
   removeMemberTags,
 } from '@crowd/data-access-layer/src/members'
-import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
+import { queryMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
@@ -1244,11 +1244,34 @@ export default class MemberService extends LoggerBase {
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-    const mergeAction = await findMergeAction(qx, originalId, toMergeId)
+    const mergeActions = await queryMergeActions(
+      qx,
+      {
+        filter: {
+          and: [
+            {
+              state: {
+                eq: MergeActionState.IN_PROGRESS,
+              },
+            },
+            {
+              or: [
+                { primaryId: { eq: originalId } },
+                { secondaryId: { eq: originalId } },
+                { primaryId: { eq: toMergeId } },
+                { secondaryId: { eq: toMergeId } },
+              ],
+            },
+          ],
+        },
+        limit: 1,
+      },
+      ['id', 'state'],
+    )
 
     // prevent multiple merge operations
-    if (mergeAction && mergeAction?.state === MergeActionState.IN_PROGRESS) {
-      throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
+    if (mergeActions.length > 0) {
+      throw new Error409(this.options.language, 'merge.errors.multiple', mergeActions[0].state)
     }
 
     let tx

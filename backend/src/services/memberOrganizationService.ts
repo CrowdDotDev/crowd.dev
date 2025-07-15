@@ -1,5 +1,12 @@
+import {
+  changeOverride,
+  deleteAffiliationOverrides,
+  findOverrides,
+} from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
+
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import MemberOrganizationRepository, {
   EntityField,
@@ -112,9 +119,18 @@ export default class MemberOrganizationService extends LoggerBase {
       this.options,
     )
 
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
     for (const role of remainingRoles) {
+      // delete any existing affiliation override for the role
+      // and reapply it with the new roleId (memberOrganizationId)
+      const [existingOverride] = await findOverrides(qx, role.memberId, [role.id])
+      if (existingOverride) {
+        await deleteAffiliationOverrides(qx, role.memberId, [existingOverride.id])
+      }
+
       await MemberOrganizationRepository.removeMemberRole(role, this.options)
-      await MemberOrganizationRepository.addMemberRole(
+      const newRole = await MemberOrganizationRepository.addMemberRole(
         {
           title: role.title,
           dateStart: role.dateStart,
@@ -126,6 +142,13 @@ export default class MemberOrganizationService extends LoggerBase {
         },
         this.options,
       )
+
+      if (existingOverride) {
+        await changeOverride(qx, {
+          ...existingOverride,
+          memberOrganizationId: newRole.id,
+        })
+      }
     }
   }
 
@@ -395,12 +418,27 @@ export default class MemberOrganizationService extends LoggerBase {
         }
       }
 
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+      let overrideToReapply = null
+
       for (const removeRole of removeRoles) {
+        const [existingOverride] = await findOverrides(qx, removeRole.memberId, [removeRole.id])
+        if (existingOverride) {
+          overrideToReapply = existingOverride
+          await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
+        }
         await MemberOrganizationRepository.removeMemberRole(removeRole, this.options)
       }
 
       for (const addRole of addRoles) {
-        await MemberOrganizationRepository.addMemberRole(addRole, this.options)
+        const newRole = await MemberOrganizationRepository.addMemberRole(addRole, this.options)
+        if (overrideToReapply) {
+          await changeOverride(qx, {
+            ...overrideToReapply,
+            memberOrganizationId: newRole.id,
+          })
+        }
       }
 
       addRoles = []
