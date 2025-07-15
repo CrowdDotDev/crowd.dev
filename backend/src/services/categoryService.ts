@@ -1,4 +1,5 @@
 import { getCleanString } from '@crowd/common'
+import { LlmService } from '@crowd/common_services'
 import {
   ICategoryFilters,
   ICategoryGroupsFilters,
@@ -20,12 +21,11 @@ import {
   updateCategory,
   updateCategoryGroup,
 } from '@crowd/data-access-layer/src/categories'
-import { getServiceLogger, LoggerBase } from '@crowd/logging'
+import { LoggerBase, getServiceLogger } from '@crowd/logging'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
-import { LlmService } from '@crowd/common_services'
 
 export class CategoryService extends LoggerBase {
   options: IServiceOptions
@@ -299,47 +299,45 @@ export class CategoryService extends LoggerBase {
     }
   }
 
-  static formatCategories(items: {
-    id: string
-    name: string
-    categoryGroupId: string
-    categoryGroupName: string
-  }[]): string {
-
-    const groups = new Map<string, string[]>();
+  private static formatTextCategories(
+    items: {
+      id: string
+      name: string
+      categoryGroupId: string
+      categoryGroupName: string
+    }[],
+  ): string {
+    const groups = new Map<string, string[]>()
     for (const item of items) {
-      const group = item.categoryGroupName;
+      const group = item.categoryGroupName
       if (!groups.has(group)) {
-        groups.set(group, []);
+        groups.set(group, [])
       }
-      groups.get(group)!.push(item.name + '-' + item.id);
+      groups.get(group)!.push(item.name + '-' + item.id)
     }
 
-    let result = "";
+    let result = ''
     for (const [groupName, names] of groups) {
-      result += `## ${groupName}\n`;
+      result += `## ${groupName}\n`
       for (const name of names) {
-        result += `- ${name}\n`;
+        result += `- ${name}\n`
       }
-      result += "\n";
+      result += '\n'
     }
-    return result.trim();
+    return result.trim()
   }
 
-
-  public async findRepoCategoriesWithLLM(
-    {
-      repo_url,
-      repo_description,
-      repo_topics,
-      repo_homepage,
-    }: {
-      repo_url: string,
-      repo_description: string,
-      repo_topics: string[],
-      repo_homepage: string,
-    }
-  ): Promise<{ categories: string[], explanation: string }> {
+  public async findRepoCategoriesWithLLM({
+    repoUrl,
+    repoDescription,
+    repoTopics,
+    repoHomepage,
+  }: {
+    repoUrl: string
+    repoDescription: string
+    repoTopics: string[]
+    repoHomepage: string
+  }): Promise<{ categories: { name: string; id: string }[]; explanation: string }> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
     // TODO: handling pagination
@@ -350,9 +348,9 @@ export class CategoryService extends LoggerBase {
       groupType: null,
     })
 
-    const category_structure_text = CategoryService.formatCategories(categories)
+    const prompt = `
 
-    const prompt = `You are an expert open-source analyst. Your job is to classify ${repo_url} into appropriate categories.
+      You are an expert open-source analyst. Your job is to classify ${repoUrl} into appropriate categories.
 
       ## Context and Purpose
       This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
@@ -365,15 +363,15 @@ export class CategoryService extends LoggerBase {
       Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
 
       ## Project Information
-      - URL: ${repo_url}
-      - Description: ${repo_description}
-      - Topics: ${repo_topics}
-      - Homepage: ${repo_homepage}
+      - URL: ${repoUrl}
+      - Description: ${repoDescription}
+      - Topics: ${repoTopics}
+      - Homepage: ${repoHomepage}
 
       ## Available Categories
-      These categories are organized by category groups:
+      These categories are organized by category groups and each category is shown as "CategoryName-CategoryID":
 
-      ${category_structure_text}
+      ${CategoryService.formatTextCategories(categories)}
 
       ## Your Task
       Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
@@ -384,16 +382,21 @@ export class CategoryService extends LoggerBase {
       - The industry or vertical it serves (if applicable)
       - How developers would expect to find this project when browsing by category
 
-      If the project doesn't clearly fit into any of the available categories, return an empty list for categories.
+      If the project doesn't clearly fit into any of the available categories, return an empty array for categories.
 
-      Return a JSON with the following format:
-      {{
-          "categories": ["Category1", "Category2", ...],
-          "explanation": "Brief explanation of why you chose these categories"
-      }}
+      ## Format
+      Return a JSON object in the following format:
 
-      Only include categories from the provided list. Do not create new categories.
-`
+      json
+      {
+        "categories": [
+          { "name": "CategoryName", "id": "CategoryID" },
+          { "name": "AnotherCategory", "id": "AnotherID" }
+        ],
+        "explanation": "Brief explanation of why you chose these categories"
+      }
+
+    `
 
     const llmService = new LlmService(
       qx,
@@ -405,24 +408,10 @@ export class CategoryService extends LoggerBase {
     )
 
     const { result } = await llmService.findRepoCategories<{
-      categories: string[]
+      categories: { name: string; id: string }[]
       explanation: string
     }>(prompt)
 
-
-    if (
-      typeof result === 'object' &&
-      result !== null &&
-      Array.isArray(result.categories) &&
-      result.categories.every(cat => typeof cat === 'string') &&
-      typeof result.explanation === 'string'
-    ) {
-      return {
-        categories: result.categories,
-        explanation: result.explanation,
-      };
-    }
-
-    return null
+    return result
   }
 }
