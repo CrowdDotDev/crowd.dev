@@ -7,7 +7,7 @@ SQL >
     SELECT insightsProjectId, slug, , formatDateTime(dataTimestamp, '%Y-%m-%d') AS dataTimestamp, volume, updatedAt
     FROM searchVolume FINAL
     WHERE
-        1 = 1
+        insightsProjectId = toUUID((select insightsProjectId from segments_filtered))
         {% if defined(startDate) %}
             AND searchVolume.dataTimestamp
             >= {{
@@ -28,5 +28,3 @@ SQL >
                 )
             }}
         {% end %}
-        {% if defined(insightsProjectId) %} AND searchVolume.insightsProjectId = {{ insightsProjectId }} {% end %}
-        {% if defined(slug) %} AND searchVolume.slug = {{ slug }} {% end %}
