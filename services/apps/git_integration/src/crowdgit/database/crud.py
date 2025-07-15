@@ -5,7 +5,7 @@ from .connection import get_db_connection
 from crowdgit.enums import RepositoryPriority, RepositoryState
 from loguru import logger
 from crowdgit.errors import RepoLockingError
-from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_fixed
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed,
 from crowdgit.settings import REPOSITORY_UPDATE_INTERVAL_HOURS
 
 
@@ -56,9 +56,11 @@ async def acquire_onboarding_repo() -> Repository | None:
 
 
 @retry(
-    retry=retry_if_not_exception_type((RepoLockingError, ValueError)),
+    retry=retry_if_exception_type(RepoLockingError),
     stop=stop_after_attempt(3),
     wait=wait_fixed(1),
+    reraise=True,
+
 )
 async def acquire_repository(query: str, params: tuple = None) -> Repository | None:
     async with get_db_connection() as conn:
@@ -74,7 +76,7 @@ async def acquire_repository(query: str, params: tuple = None) -> Repository | N
                 )
                 return None
         except Exception as e:
-            logger.error(f"Database error acquiring repository with error: {e}. Retrying...")
+            logger.error(f"failed to acquire repository with error: {e}. Retrying...")
             raise RepoLockingError()
 
 
