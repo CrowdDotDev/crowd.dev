@@ -8,6 +8,7 @@
         class="c-notification"
         :class="toast.type"
       >
+        {{ toast }}
         <component :is="iconComponent(toast.type)" class="text-xl" />
         <div class="c-notification__group">
           <span class="c-notification__title flex-1">
