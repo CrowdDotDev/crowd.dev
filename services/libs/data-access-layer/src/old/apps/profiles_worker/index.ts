@@ -58,7 +58,7 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
   const nullableOrg = (orgId: string) => (orgId ? `cast('${orgId}' as uuid)` : 'NULL')
 
   const isDateInInterval = (date: Date, start: Date | null, end: Date | null) => {
-    return (!start || date >= start) && (!end || date <= end)
+    return (!start || date >= start) && (!end || date < end)
   }
 
   const findOrgsWithRolesInDate = (
@@ -105,8 +105,12 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
       // 1. favor the one with dates if there's only one
       const withDates = orgs.filter((row) => !!row.dateStart)
       if (withDates.length === 1) {
-        // there can be one primary work exp with intersecting date ranges
         return withDates[0]
+      }
+      else if (withDates.length > 1) {
+        // only consider work experiences with dates for the next steps, if there are more than one
+        // and ignore ones without dates
+        orgs = withDates
       }
 
       // 2. get the two orgs with the most members, and return the one with the most members if there's no draw
