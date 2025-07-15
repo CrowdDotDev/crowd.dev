@@ -3,8 +3,10 @@ import pickBy from 'lodash.pickby'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
+import { SegmentData } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { buildSegmentActivityTypes, isSegmentSubproject } from '../segments'
 import { prepareBulkInsert } from '../utils'
 
 import {
@@ -35,7 +37,10 @@ export async function cleanupMemberAggregates(qx: QueryExecutor, memberId: strin
   )
 }
 
-export async function insertMemberSegments(qx: QueryExecutor, data: IMemberSegmentAggregates[]) {
+export async function insertMemberSegmentAggregates(
+  qx: QueryExecutor,
+  data: IMemberSegmentAggregates[],
+) {
   try {
     return qx.result(
       prepareBulkInsert(
@@ -139,4 +144,61 @@ export async function updateMemberDisplayAggregates(
       )
     }
   })
+}
+
+export async function includeMemberToSegments(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentIds: string[],
+): Promise<void> {
+  let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
+  const replacements = {
+    memberId,
+    tenantId: DEFAULT_TENANT_ID,
+  }
+
+  for (let idx = 0; idx < segmentIds.length; idx++) {
+    bulkInsertMemberSegments += ` ($(memberId), $(segmentId${idx}), $(tenantId), now()) `
+
+    replacements[`segmentId${idx}`] = segmentIds[idx]
+
+    if (idx !== segmentIds.length - 1) {
+      bulkInsertMemberSegments += `,`
+    }
+  }
+
+  bulkInsertMemberSegments += ` ON CONFLICT ("memberId", "segmentId", "tenantId") DO NOTHING`
+
+  await qx.result(bulkInsertMemberSegments, replacements)
+}
+
+export async function getMemberSegments(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<SegmentData[]> {
+  const query = `
+        select * from segments
+        where id in (SELECT distinct "segmentId"
+                    FROM "memberSegments"
+                    WHERE "memberId" = $(memberId)
+                    ORDER BY "createdAt")
+        group by id
+    `
+
+  let data = await qx.select(query, { memberId })
+
+  data = data.map((s) => {
+    return {
+      ...s,
+      activityTypes: null,
+    }
+  })
+
+  for (const record of data) {
+    if (isSegmentSubproject(record)) {
+      record.activityTypes = buildSegmentActivityTypes(record)
+    }
+  }
+
+  return data
 }

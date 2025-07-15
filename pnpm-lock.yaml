@@ -1701,9 +1701,39 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
       lodash.get:
         specifier: ~4.4.2
         version: 4.4.2
+      lodash.isarray:
+        specifier: ^4.0.0
+        version: 4.0.0
+      lodash.isequal:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.isplainobject:
+        specifier: ^4.0.6
+        version: 4.0.6
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
+      lodash.mergewith:
+        specifier: ^4.6.2
+        version: 4.6.2
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      lodash.set:
+        specifier: ^4.3.2
+        version: 4.3.2
+      lodash.sum:
+        specifier: ^4.0.2
+        version: 4.0.2
+      lodash.unionwith:
+        specifier: ^4.6.0
+        version: 4.6.0
       moment-timezone:
         specifier: ^0.5.34
         version: 0.5.45
@@ -7371,6 +7401,10 @@ packages:
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
+  lodash.isarray@4.0.0:
+    resolution: {integrity: sha512-V8ViWvoNlXpCrB6Ewaj3ScRXUpmCvqp4tJUxa3dlovuJj/8lp3SND5Kw4v5OeuHgoyw4qJN+gl36qZqp6WYQ6g==}
+    deprecated: This package is deprecated. Use Array.isArray.
+
   lodash.isboolean@3.0.3:
     resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
 
@@ -7412,6 +7446,9 @@ packages:
   lodash.pickby@4.6.0:
     resolution: {integrity: sha512-AZV+GsS/6ckvPOVQPXSiFFacKvKB4kOQu6ynt9wz0F3LO4R9Ij4K1ddYsIytDpSgLz88JHd9P+oaLeej5/Sl7Q==}
 
+  lodash.set@4.3.2:
+    resolution: {integrity: sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==}
+
   lodash.snakecase@4.1.1:
     resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==}
 
@@ -7420,6 +7457,12 @@ packages:
 
   lodash.startcase@4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}
+
+  lodash.sum@4.0.2:
+    resolution: {integrity: sha512-1GcLFsMpU0K7uGPjo5FePq0fNlL3sSTZtSWwQUxr9VL8T3xeJiprwbfjDptTUPtkB8cUBpAnMtvQpju5XXaBeA==}
+
+  lodash.unionwith@4.6.0:
+    resolution: {integrity: sha512-Hk8otPCkVM4UxRoft3E5dAREwExyXci6iVPCibHIEiG7neb9KAdWHYS75MYpVTvxDrnpp7WCJNZ84vAk7j7tVA==}
 
   lodash.uniq@4.5.0:
     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
@@ -16971,6 +17014,8 @@ snapshots:
 
   lodash.includes@4.3.0: {}
 
+  lodash.isarray@4.0.0: {}
+
   lodash.isboolean@3.0.3: {}
 
   lodash.isequal@4.5.0: {}
@@ -16997,11 +17042,17 @@ snapshots:
 
   lodash.pickby@4.6.0: {}
 
+  lodash.set@4.3.2: {}
+
   lodash.snakecase@4.1.1: {}
 
   lodash.sortby@4.7.0: {}
 
   lodash.startcase@4.4.0: {}
+
+  lodash.sum@4.0.2: {}
+
+  lodash.unionwith@4.6.0: {}
 
   lodash.uniq@4.5.0: {}
 

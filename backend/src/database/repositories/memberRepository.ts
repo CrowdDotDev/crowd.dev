@@ -29,7 +29,6 @@ import {
   deleteMemberIdentities,
   deleteMemberIdentitiesByCombinations,
   findAlreadyExistingVerifiedIdentities,
-  moveToNewMember,
   updateVerifiedFlag,
 } from '@crowd/data-access-layer/src/member_identities'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
@@ -44,7 +43,10 @@ import {
   findMemberTags,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
-import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import {
+  fetchAbsoluteMemberAggregates,
+  includeMemberToSegments,
+} from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { findTags } from '@crowd/data-access-layer/src/others'
@@ -69,7 +71,6 @@ import {
   OrganizationSource,
   PageData,
   PlatformType,
-  SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
@@ -177,7 +178,11 @@ class MemberRepository {
       }
     }
 
-    await MemberRepository.includeMemberToSegments(record.id, options)
+    await includeMemberToSegments(
+      qx,
+      record.id,
+      options.currentSegments.map((s) => s.id),
+    )
 
     await record.setTags(data.tags || [], {
       transaction,
@@ -199,36 +204,6 @@ class MemberRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
-    const replacements = {
-      memberId,
-      tenantId: DEFAULT_TENANT_ID,
-    }
-
-    for (let idx = 0; idx < options.currentSegments.length; idx++) {
-      bulkInsertMemberSegments += ` (:memberId, :segmentId${idx}, :tenantId, now()) `
-
-      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
-
-      if (idx !== options.currentSegments.length - 1) {
-        bulkInsertMemberSegments += `,`
-      }
-    }
-
-    bulkInsertMemberSegments += ` ON CONFLICT ("memberId", "segmentId", "tenantId") DO NOTHING`
-
-    await seq.query(bulkInsertMemberSegments, {
-      replacements,
-      type: QueryTypes.INSERT,
-      transaction,
-    })
   }
 
   static async excludeMembersFromSegments(memberIds: string[], options: IRepositoryOptions) {
@@ -511,48 +486,6 @@ class MemberRepository {
       count: 0,
       limit: args.limit,
       offset: args.offset,
-    }
-  }
-
-  static async moveIdentitiesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    identitiesToMove: IMemberIdentity[],
-    identitiesToUpdate: IMemberIdentity[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
-
-    for (const i of identitiesToMove) {
-      await moveToNewMember(qx, {
-        oldMemberId: fromMemberId,
-        newMemberId: toMemberId,
-        platform: i.platform,
-        value: i.value,
-        type: i.type,
-      })
-    }
-
-    if (identitiesToUpdate.length > 0) {
-      for (const i of identitiesToUpdate) {
-        // first we remove them from the old member (we can't update and delete at the same time because of a unique index where only one identity can have a verified type:value combination for a tenant, member and platform)
-        await deleteMemberIdentities(qx, {
-          memberId: fromMemberId,
-          platform: i.platform,
-          value: i.value,
-          type: i.type,
-        })
-
-        // then we update verified flag for the identities in the new member
-        await updateVerifiedFlag(qx, {
-          memberId: toMemberId,
-          platform: i.platform,
-          value: i.value,
-          type: i.type,
-          verified: true,
-        })
-      }
     }
   }
 
@@ -964,7 +897,11 @@ class MemberRepository {
     }
 
     if (options.currentSegments && options.currentSegments.length > 0) {
-      await MemberRepository.includeMemberToSegments(record.id, options)
+      await includeMemberToSegments(
+        optionsQx(options),
+        record.id,
+        options.currentSegments.map((s) => s.id),
+      )
     }
 
     // Before upserting identities, check if they already exist
@@ -1194,35 +1131,6 @@ class MemberRepository {
       force,
       transaction,
     })
-  }
-
-  static async getMemberSegments(
-    memberId: string,
-    options: IRepositoryOptions,
-  ): Promise<SegmentData[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-    const segmentRepository = new SegmentRepository(options)
-
-    const query = `
-        SELECT "segmentId"
-        FROM "memberSegments"
-        WHERE "memberId" = :memberId
-        ORDER BY "createdAt";
-    `
-
-    const data = await seq.query(query, {
-      replacements: {
-        memberId,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    const segmentIds = (data as any[]).map((item) => item.segmentId)
-    const segments = await segmentRepository.findInIds(segmentIds)
-
-    return segments
   }
 
   static async setAffiliations(
@@ -2727,39 +2635,6 @@ class MemberRepository {
       }
       return a.name > b.name ? 1 : -1
     })
-  }
-
-  static async moveAffiliationsBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      fromMemberId,
-      toMemberId,
-    }
-
-    await seq.query(
-      `update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
-      {
-        replacements: params,
-        type: QueryTypes.UPDATE,
-        transaction,
-      },
-    )
-
-    await seq.query(
-      `update "memberOrganizationAffiliationOverrides" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
-      {
-        replacements: params,
-        type: QueryTypes.UPDATE,
-        transaction,
-      },
-    )
   }
 
   static async moveSelectedAffiliationsBetweenMembers(

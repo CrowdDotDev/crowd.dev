@@ -1,7 +1,14 @@
 import pick from 'lodash.pick'
 
 import { captureApiChange, memberMergeAction } from '@crowd/audit-logs'
-import { DEFAULT_TENANT_ID, Error409 } from '@crowd/common'
+import {
+  DEFAULT_TENANT_ID,
+  Error409,
+  calculateReach,
+  getEarliestValidDate,
+  mergeObjects,
+  safeObjectMerge,
+} from '@crowd/common'
 import {
   MEMBER_MERGE_FIELDS,
   MemberField,
@@ -9,10 +16,18 @@ import {
   fetchManyMemberOrgsForMerge,
   findMemberById,
   findMemberTags,
+  getMemberSegments,
+  includeMemberToSegments,
+  moveAffiliationsBetweenMembers,
+  moveIdentitiesBetweenMembers,
 } from '@crowd/data-access-layer'
 import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
+import {
+  addMergeAction,
+  findMergeAction,
+  setMergeAction,
+} from '@crowd/data-access-layer/src/mergeActions/repo'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client as TemporalClient } from '@crowd/temporal'
 import { MergeActionState, MergeActionStep, MergeActionType } from '@crowd/types'
@@ -84,93 +99,87 @@ export class MemberMergeService extends LoggerBase {
             },
           }
 
-          await MergeActionsRepository.add(
+          await addMergeAction(
+            this.qx,
             MergeActionType.MEMBER,
             originalId,
             toMergeId,
-            this.options,
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
+            options?.currentUser?.id,
           )
 
-          const repoOptions: IRepositoryOptions =
-            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-          tx = repoOptions.transaction
+          await this.qx.tx(async (txQx) => {
+            const identitiesToUpdate = []
+            const identitiesToMove = []
+            for (const identity of toMergeIdentities) {
+              const existing = originalIdentities.find(
+                (i) =>
+                  i.platform === identity.platform &&
+                  i.type === identity.type &&
+                  i.value === identity.value,
+              )
 
-          const identitiesToUpdate = []
-          const identitiesToMove = []
-          for (const identity of toMergeIdentities) {
-            const existing = originalIdentities.find(
-              (i) =>
-                i.platform === identity.platform &&
-                i.type === identity.type &&
-                i.value === identity.value,
+              if (existing) {
+                // if it's not verified but it should be
+                if (!existing.verified && identity.verified) {
+                  identitiesToUpdate.push(identity)
+                }
+              } else {
+                identitiesToMove.push(identity)
+              }
+            }
+
+            await moveIdentitiesBetweenMembers(
+              txQx,
+              toMergeId,
+              originalId,
+              identitiesToMove,
+              identitiesToUpdate,
             )
 
-            if (existing) {
-              // if it's not verified but it should be
-              if (!existing.verified && identity.verified) {
-                identitiesToUpdate.push(identity)
-              }
-            } else {
-              identitiesToMove.push(identity)
-            }
-          }
+            // Update member segment affiliations and organization affiliation overrides
+            await moveAffiliationsBetweenMembers(txQx, toMergeId, originalId)
 
-          await MemberRepository.moveIdentitiesBetweenMembers(
-            toMergeId,
-            originalId,
-            identitiesToMove,
-            identitiesToUpdate,
-            repoOptions,
-          )
+            // Performs a merge and returns the fields that were changed so we can update
+            const toUpdate: any = await MemberMergeService.membersMerge(original, toMerge)
 
-          // Update member segment affiliations and organization affiliation overrides
-          await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
+            // TODO
+            // Update original member
+            // const txService = new MemberService(repoOptions as IServiceOptions)
 
-          // Performs a merge and returns the fields that were changed so we can update
-          const toUpdate: any = await MemberService.membersMerge(original, toMerge)
+            captureNewState({ primary: toUpdate })
 
-          // Update original member
-          const txService = new MemberService(repoOptions as IServiceOptions)
+            // TODO
+            // await txService.update(originalId, toUpdate, {
+            //   syncToOpensearch: false,
+            // })
 
-          captureNewState({ primary: toUpdate })
+            // TODO
+            // update members that belong to source organization to destination org
+            // const memberOrganizationService = new MemberOrganizationService(repoOptions)
+            // await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
 
-          await txService.update(originalId, toUpdate, {
-            syncToOpensearch: false,
+            // TODO
+            // Remove toMerge from original member
+            // await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
+
+            const secondMemberSegments = await getMemberSegments(txQx, toMergeId)
+
+            await includeMemberToSegments(
+              txQx,
+              toMergeId,
+              secondMemberSegments.map((s) => s.id),
+            )
           })
-
-          // update members that belong to source organization to destination org
-          const memberOrganizationService = new MemberOrganizationService(repoOptions)
-          await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
-
-          // Remove toMerge from original member
-          await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
-
-          const secondMemberSegments = await MemberRepository.getMemberSegments(
-            toMergeId,
-            repoOptions,
-          )
-
-          await MemberRepository.includeMemberToSegments(toMergeId, {
-            ...repoOptions,
-            currentSegments: secondMemberSegments,
-          })
-
-          await SequelizeRepository.commitTransaction(tx)
 
           this.log.info({ originalId, toMergeId }, '[Merge Members] - Transaction commited! ')
 
-          await MergeActionsRepository.setMergeAction(
-            MergeActionType.MEMBER,
-            originalId,
-            toMergeId,
-            this.options,
-            {
-              step: MergeActionStep.MERGE_SYNC_DONE,
-            },
-          )
+          await setMergeAction(this.qx, MergeActionType.MEMBER, originalId, toMergeId, {
+            step: MergeActionStep.MERGE_SYNC_DONE,
+          })
+
           return { original, toMerge }
         }),
       )
@@ -197,19 +206,9 @@ export class MemberMergeService extends LoggerBase {
 
       this.log.error(err, 'Error while merging members!', { originalId, toMergeId })
 
-      await MergeActionsRepository.setMergeAction(
-        MergeActionType.MEMBER,
-        originalId,
-        toMergeId,
-        this.options,
-        {
-          state: MergeActionState.ERROR,
-        },
-      )
-
-      if (tx) {
-        await SequelizeRepository.rollbackTransaction(tx)
-      }
+      await setMergeAction(this.qx, MergeActionType.MEMBER, originalId, toMergeId, {
+        state: MergeActionState.ERROR,
+      })
 
       throw err
     }
@@ -239,5 +238,37 @@ export class MemberMergeService extends LoggerBase {
       tags: tags.map((t) => ({ id: t.tagId })),
       affiliations,
     }
+  }
+
+  /**
+   * Call the merge function with the special fields for members.
+   * We want to always keep the earlies joinedAt date.
+   * We always want the original displayName.
+   * @param originalObject Original object to merge
+   * @param toMergeObject Object to merge into the original object
+   * @returns The updates to be performed on the original object
+   */
+  public static membersMerge(originalObject, toMergeObject) {
+    return mergeObjects(originalObject, toMergeObject, {
+      joinedAt: (oldDate, newDate) => getEarliestValidDate(oldDate, newDate),
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      displayName: (oldValue, _newValue) => oldValue,
+      reach: (oldReach, newReach) => calculateReach(oldReach, newReach),
+      score: (oldScore, newScore) => Math.max(oldScore, newScore),
+      emails: (oldEmails, newEmails) => {
+        if (!oldEmails && !newEmails) {
+          return []
+        }
+
+        oldEmails = oldEmails ?? []
+        newEmails = newEmails ?? []
+
+        const emailSet = new Set<string>(oldEmails)
+        newEmails.forEach((email) => emailSet.add(email))
+
+        return Array.from(emailSet)
+      },
+      attributes: (oldAttributes, newAttributes) => safeObjectMerge(oldAttributes, newAttributes),
+    })
   }
 }

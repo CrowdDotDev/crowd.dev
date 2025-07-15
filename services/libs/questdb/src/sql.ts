@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { parse } from 'csv-parse/sync'
 import pgpromise from 'pg-promise'
 
 import { IS_PROD_ENV } from '@crowd/common'

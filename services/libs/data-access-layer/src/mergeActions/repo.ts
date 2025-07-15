@@ -1,6 +1,15 @@
 import validator from 'validator'
 
-import { IMergeAction, MergeActionState, MergeActionType } from '@crowd/types'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+import {
+  IMemberUnmergeBackup,
+  IMergeAction,
+  IOrganizationUnmergeBackup,
+  IUnmergeBackup,
+  MergeActionState,
+  MergeActionStep,
+  MergeActionType,
+} from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -74,4 +83,77 @@ export async function findEntityMergeActions(
   )
 
   return result
+}
+
+export async function setMergeAction(
+  qx: QueryExecutor,
+  type: MergeActionType,
+  primaryId: string,
+  secondaryId: string,
+  data: {
+    step?: MergeActionStep
+    state?: MergeActionState
+  },
+): Promise<boolean> {
+  const setClauses = []
+  const replacements: Record<string, unknown> = {
+    tenantId: DEFAULT_TENANT_ID,
+    type,
+    primaryId,
+    secondaryId,
+  }
+
+  if (data.step) {
+    setClauses.push(`step = $(step)`)
+    replacements.step = data.step
+  }
+
+  if (data.state) {
+    setClauses.push(`state = $(state)`)
+    replacements.state = data.state
+  }
+
+  const rowCount = await qx.result(
+    `
+        UPDATE "mergeActions"
+        SET ${setClauses.join(', ')}
+        WHERE "tenantId" = :tenantId
+          AND type = :type
+          AND "primaryId" = :primaryId
+          AND "secondaryId" = :secondaryId
+      `,
+    replacements,
+  )
+
+  return rowCount > 0
+}
+
+export async function addMergeAction(
+  qx: QueryExecutor,
+  type: MergeActionType,
+  primaryId: string,
+  secondaryId: string,
+  step: MergeActionStep,
+  state: MergeActionState = MergeActionState.IN_PROGRESS,
+  backup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup> = undefined,
+  userId?: string,
+): Promise<void> {
+  await qx.result(
+    `
+    INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, step, "unmergeBackup", "actionBy")
+    VALUES ($(tenantId), $(type), $(primaryId), $(secondaryId), $(state), $(step), $(backup), $(userId))
+    ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
+    DO UPDATE SET state = $(state), step = $(step), "unmergeBackup" = $(backup), "updatedAt" = now()
+    `,
+    {
+      tenantId: DEFAULT_TENANT_ID,
+      type,
+      primaryId,
+      secondaryId,
+      step,
+      state,
+      backup: backup ? JSON.stringify(backup) : null,
+      userId,
+    },
+  )
 }

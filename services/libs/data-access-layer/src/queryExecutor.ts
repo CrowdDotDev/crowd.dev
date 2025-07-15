@@ -10,7 +10,7 @@ export interface QueryExecutor {
   selectNone(query: string, params?: object): Promise<void>
   selectOneOrNone(query: string, params?: object): Promise<any>
   selectOne(query: string, params?: object): Promise<any>
-  result(query: string, params?: object): Promise<any>
+  result(query: string, params?: object): Promise<number>
 
   tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T>
 }
@@ -71,7 +71,7 @@ export class SequelizeQueryExecutor implements QueryExecutor {
 
     return result[0]
   }
-  async result(query: string, params?: object): Promise<any> {
+  async result(query: string, params?: object): Promise<number> {
     const [, result] = await this.sequelize.query(
       formatQuery(query, params),
       this.prepareOptions({}),
@@ -117,8 +117,9 @@ export class PgPromiseQueryExecutor implements QueryExecutor {
   selectOne(query: string, params?: object): Promise<any> {
     return this.db.one(formatQuery(query, params))
   }
-  result(query: string, params?: object): Promise<any> {
-    return this.db.result(formatQuery(query, params))
+  async result(query: string, params?: object): Promise<number> {
+    const result = await this.db.result(formatQuery(query, params))
+    return result.rowCount
   }
 
   tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T> {

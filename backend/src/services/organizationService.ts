@@ -6,9 +6,14 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error400, Error409, websiteNormalizer } from '@crowd/common'
+import { Error400, Error409, mergeObjects, websiteNormalizer } from '@crowd/common'
+import { optionsQx } from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
+import {
+  addMergeAction,
+  findMergeAction,
+  setMergeAction,
+} from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -39,7 +44,6 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
-import merge from './helpers/merge'
 import {
   keepPrimary,
   keepPrimaryIfExists,
@@ -319,11 +323,11 @@ export default class OrganizationService extends LoggerBase {
             repoOptions,
           )
 
-          await MergeActionsRepository.add(
+          await addMergeAction(
+            optionsQx(this.options),
             MergeActionType.ORG,
             organizationId,
             secondaryOrganization.id,
-            this.options,
             MergeActionStep.UNMERGE_STARTED,
             MergeActionState.IN_PROGRESS,
           )
@@ -405,11 +409,11 @@ export default class OrganizationService extends LoggerBase {
         }),
       )
 
-      await MergeActionsRepository.setMergeAction(
+      await setMergeAction(
+        optionsQx(this.options),
         MergeActionType.ORG,
         organizationId,
         secondaryOrganization.id,
-        this.options,
         {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
@@ -527,13 +531,13 @@ export default class OrganizationService extends LoggerBase {
             }
           }
 
-          await MergeActionsRepository.add(
+          // not using transaction here on purpose,
+          // so this change is visible until we finish
+          await addMergeAction(
+            optionsQx(this.options),
             MergeActionType.ORG,
             originalId,
             toMergeId,
-            // not using transaction here on purpose,
-            // so this change is visible until we finish
-            this.options,
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
@@ -673,11 +677,11 @@ export default class OrganizationService extends LoggerBase {
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
 
-          await MergeActionsRepository.setMergeAction(
+          await setMergeAction(
+            optionsQx(this.options),
             MergeActionType.ORG,
             originalId,
             toMergeId,
-            this.options,
             {
               step: MergeActionStep.MERGE_SYNC_DONE,
             },
@@ -713,15 +717,9 @@ export default class OrganizationService extends LoggerBase {
         toMergeId,
       })
 
-      await MergeActionsRepository.setMergeAction(
-        MergeActionType.ORG,
-        originalId,
-        toMergeId,
-        this.options,
-        {
-          state: MergeActionState.ERROR,
-        },
-      )
+      await setMergeAction(optionsQx(this.options), MergeActionType.ORG, originalId, toMergeId, {
+        state: MergeActionState.ERROR,
+      })
 
       if (tx) {
         await SequelizeRepository.rollbackTransaction(tx)
@@ -732,7 +730,7 @@ export default class OrganizationService extends LoggerBase {
   }
 
   static organizationsMerge(originalObject, toMergeObject) {
-    return merge(originalObject, toMergeObject, {
+    return mergeObjects(originalObject, toMergeObject, {
       importHash: keepPrimary,
       createdAt: keepPrimary,
       updatedAt: keepPrimary,

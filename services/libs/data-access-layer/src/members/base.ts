@@ -456,3 +456,24 @@ export async function findMemberById<T extends MemberField>(
 ): Promise<QueryResult<T>> {
   return queryTableById(qx, 'members', Object.values(MemberField), memberId, fields)
 }
+
+export async function moveAffiliationsBetweenMembers(
+  qx: QueryExecutor,
+  fromMemberId: string,
+  toMemberId: string,
+): Promise<void> {
+  const params: any = {
+    fromMemberId,
+    toMemberId,
+  }
+
+  await qx.result(
+    `update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
+    params,
+  )
+
+  await qx.result(
+    `update "memberOrganizationAffiliationOverrides" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
+    params,
+  )
+}
