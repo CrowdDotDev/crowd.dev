@@ -9,9 +9,14 @@ from crowdgit.services import (
     MaintainerService,
 )
 from crowdgit.errors import InternalError
-
-POLLING_INTERVAL_SEC = 5
-ERROR_BACKOFF_SEC = 10
+from crowdgit.database.crud import (
+    acquire_repo_for_processing,
+    release_repo,
+    mark_repo_as_processed,
+)
+from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
+from crowdgit.models.repository import Repository
+from crowdgit.enums import RepositoryState
 
 
 class RepositoryWorker:
@@ -29,6 +34,7 @@ class RepositoryWorker:
         self.software_value_service = software_value_service
         self.maintainer_service = maintainer_service
         self._shutdown = False
+        self.running_tasks: set[asyncio.Task] = set()
 
     async def run(self):
         """Run the worker processing loop"""
@@ -42,14 +48,20 @@ class RepositoryWorker:
 
     async def _run(self):
         """Internal run method with the processing loop"""
-
-        while not self._shutdown:
-            try:
-                await self._process_repositories()
-                await asyncio.sleep(POLLING_INTERVAL_SEC)
-            except Exception as e:
-                logger.error("Worker error: {}", e)
-                await asyncio.sleep(ERROR_BACKOFF_SEC)
+        try:
+            while not self._shutdown:
+                try:
+                    await self._process_repositories()
+                    await asyncio.sleep(WORKER_POLLING_INTERVAL_SEC)
+                except Exception as e:
+                    logger.error("Worker error: {}", e)
+                    await asyncio.sleep(WORKER_ERROR_BACKOFF_SEC)
+        finally:
+            if self.running_tasks:
+                logger.info(
+                    f"Waiting for {len(self.running_tasks)} tasks to finish before shutdown"
+                )
+                await asyncio.gather(*self.running_tasks, return_exceptions=True)
 
     async def shutdown(self):
         """Shutdown the worker"""
@@ -57,45 +69,58 @@ class RepositoryWorker:
         self._shutdown = True
 
     async def _process_repositories(self):
-        """Process pending repositories"""
-        # TODO: Get repositories from database
-        repositories = await self._get_pending_repositories()
+        """
+        Process repositories by priority - check acquire_repo_for_processing()
+        For this inital version, we'll process repos one by one
+        TODO: introduce concurrent processing of multiple repos if needed
+        """
+        available_repo_to_process = None
+        try:
+            available_repo_to_process = await acquire_repo_for_processing()
 
-        if not repositories:
-            # TODO: remove before deploying to avoid spammy logs
-            logger.debug("No repositories to process")
-            return
-
-        logger.info("Processing {} repositories", len(repositories))
-
-        # TODO: remove sequential processing
-        for repository in repositories:
-            try:
-                await self._process_single_repository(repository)
-            except Exception as e:
-                # TODO: Mark repository as failed
-                logger.error("Failed to process repository")
+            if not available_repo_to_process:
+                # TODO: remove before deploying to avoid spammy logs
+                logger.debug("No repositories to process")
+                return
+            await self._process_single_repository(available_repo_to_process)
+        except Exception as e:
+            # TODO: Mark repository processing as failed
+            logger.error(f"Failed to process repository {e}")
+        finally:
+            if available_repo_to_process:
+                logger.info("releasing repo: ", available_repo_to_process.url)
+                await release_repo(available_repo_to_process.id)
 
     async def _get_pending_repositories(self) -> List[Dict[str, Any]]:
         """Get pending repositories from database"""
         # TODO: Implement database query
         return []
 
-    async def _process_single_repository(self, repository: Dict[str, Any]):
+    async def _process_single_repository(self, repository: Repository):
         """Process a single repository through services with incremental processing"""
-        logger.info("Processing repository: {}", repository.get("url", "unknown"))
-
+        logger.info("Processing repository: {}", repository.url)
+        processing_state = None
         try:
-            pass
+            # TODO: check if we want to consider all services (commits, maintainers, SV) as atomic
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
+            logger.info("Cloning repo...")
+            await asyncio.sleep(1)
             # for each cloned batch (check concurrent processing)
             # . Process commits & send result to destination (ideally non-blocking)
+            logger.info("Commits processing.....")
+            await asyncio.sleep(1)
             # . Analyze maintainers & send result to destination (ideally non-blocking)
             # . Calculate software value & send result to destination (ideally non-blocking)
+            logger.info("Maintainers & COCOMO processing...")
+            await asyncio.sleep(1)
 
             logger.info("Incremental processing completed successfully")
-
+            processing_state = RepositoryState.COMPLETED
         except Exception as e:
+            processing_state = RepositoryState.FAILED
             logger.error("Processing failed: {}", e)
+        finally:
+            logger.info(f"Updating ${repository.url} state to ${processing_state}")
+            await mark_repo_as_processed(repository.id, processing_state)
 
-        logger.info("Completed processing repository: {}", repository.get("url", "unknown"))
+        logger.info("Completed processing repository: {}", repository.url)

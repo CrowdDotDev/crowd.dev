@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field, field_validator
 from crowdgit.enums import RepositoryPriority, RepositoryState
 
 
@@ -12,8 +12,39 @@ class Repository(BaseModel):
     state: RepositoryState = Field(default=RepositoryState.PENDING, description="Repository state")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
     last_processed_at: Optional[datetime] = Field(None, description="Last processing timestamp")
+    locked_at: Optional[datetime] = Field(
+        None, description="Timestamp when repository was locked for processing"
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+
+    @classmethod
+    def from_db(cls, db_data: Dict[str, Any]) -> "Repository":
+        """Create Repository instance from database data"""
+        # Convert database field names to model field names
+        repo_data = db_data.copy()
+        # Handle UUID conversion
+        if "id" in repo_data and not isinstance(repo_data["id"], str):
+            repo_data["id"] = str(repo_data["id"])
+        # Map database field names to model field names
+        field_mapping = {
+            "createdAt": "created_at",
+            "updatedAt": "updated_at",
+            "lastProcessedAt": "last_processed_at",
+            "lockedAt": "locked_at",
+        }
+        for db_field, model_field in field_mapping.items():
+            if db_field in repo_data:
+                repo_data[model_field] = repo_data.pop(db_field)
+        return cls(**repo_data)
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def validate_id(cls, v):
+        """Convert UUID to string if needed"""
+        if v is not None:
+            return str(v)
+        return v
 
     class Config:
         """Pydantic configuration"""
