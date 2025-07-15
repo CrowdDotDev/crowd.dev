@@ -1,4 +1,8 @@
+import { Transaction } from 'sequelize'
+
 import { Error400, validateNonLfSlug } from '@crowd/common'
+import { QueryExecutor } from '@crowd/data-access-layer'
+import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
@@ -20,6 +24,7 @@ import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
+import { CollectionService } from './collectionService'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -73,12 +78,22 @@ export default class SegmentService extends LoggerBase {
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+
+    const collectionService = new CollectionService({ ...this.options, transaction })
+    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
     try {
-      const segmentRepository = new SegmentRepository({ ...this.options, transaction })
-
       // create project group
       const projectGroup = await segmentRepository.create(data)
+
+      await collectionService.createCollection({
+        name: data.name,
+        categoryId: null,
+        description: '',
+        slug: data.slug,
+        starred: data.isLF ?? false,
+      })
 
       // create project counterpart
       const project = await segmentRepository.create({
@@ -89,15 +104,19 @@ export default class SegmentService extends LoggerBase {
       })
 
       // create subproject counterpart
-      await segmentRepository.create({
-        ...data,
-        parentSlug: data.slug,
-        grandparentSlug: data.slug,
-        parentName: data.name,
-        grandparentName: data.name,
-        parentId: project.id,
-        grandparentId: projectGroup.id,
-      })
+      await this.createSubprojectInternal(
+        {
+          ...data,
+          parentSlug: data.slug,
+          grandparentSlug: data.slug,
+          parentName: data.name,
+          grandparentName: data.name,
+          parentId: project.id,
+          grandparentId: projectGroup.id,
+        },
+        qx,
+        transaction,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -118,6 +137,7 @@ export default class SegmentService extends LoggerBase {
       throw new Error('Missing parentSlug. Projects must belong to a project group.')
     }
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
 
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
@@ -136,16 +156,20 @@ export default class SegmentService extends LoggerBase {
       const project = await segmentRepository.create({ ...data, parentId: parent.id })
 
       // create subproject counterpart
-      await segmentRepository.create({
-        ...data,
-        parentSlug: data.slug,
-        grandparentSlug: data.parentSlug,
-        name: data.name,
-        parentName: data.name,
-        grandparentName: parent.name,
-        parentId: project.id,
-        grandparentId: parent.id,
-      })
+      await this.createSubprojectInternal(
+        {
+          ...data,
+          parentSlug: data.slug,
+          grandparentSlug: data.parentSlug,
+          name: data.name,
+          parentName: data.name,
+          grandparentName: parent.name,
+          parentId: project.id,
+          grandparentId: parent.id,
+        },
+        qx,
+        transaction,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -157,6 +181,17 @@ export default class SegmentService extends LoggerBase {
   }
 
   async createSubproject(data: SegmentData): Promise<SegmentData> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      return this.createSubprojectInternal(data, qx, tx)
+    })
+  }
+
+  async createSubprojectInternal(
+    data: SegmentData,
+    qx: QueryExecutor,
+    transaction: Transaction,
+  ): Promise<SegmentData> {
     if (!data.parentSlug) {
       throw new Error('Missing parentSlug. Subprojects must belong to a project.')
     }
@@ -164,44 +199,56 @@ export default class SegmentService extends LoggerBase {
     if (!data.grandparentSlug) {
       throw new Error('Missing grandparentSlug. Subprojects must belong to a project group.')
     }
-    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    try {
-      const segmentRepository = new SegmentRepository({
-        ...this.options,
-        transaction,
-      })
+    const segmentRepository = new SegmentRepository({ ...this.options, transaction })
+    const collectionService = new CollectionService({ ...this.options, transaction })
 
-      const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
-
-      if (parent === null) {
-        throw new Error(`Project ${data.parentSlug} does not exist.`)
-      }
-      if (parent.isLF === false) data.slug = validateNonLfSlug(data.slug)
-
-      const grandparent = await segmentRepository.findBySlug(
-        data.grandparentSlug,
-        SegmentLevel.PROJECT_GROUP,
-      )
-
-      if (grandparent === null) {
-        throw new Error(`Project group ${data.parentSlug} does not exist.`)
-      }
-
-      const subproject = await segmentRepository.create({
-        ...data,
-        parentId: parent.id,
-        grandparentId: grandparent.id,
-        isLF: parent.isLF,
-      })
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      return subproject
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
+    const parent = await segmentRepository.findBySlug(data.parentSlug, SegmentLevel.PROJECT)
+    if (!parent) {
+      throw new Error(`Project ${data.parentSlug} does not exist.`)
     }
+
+    if (parent.isLF === false) {
+      data.slug = validateNonLfSlug(data.slug)
+    }
+
+    const grandparent = await segmentRepository.findBySlug(
+      data.grandparentSlug,
+      SegmentLevel.PROJECT_GROUP,
+    )
+    if (!grandparent) {
+      throw new Error(`Project group ${data.grandparentSlug} does not exist.`)
+    }
+
+    const subproject = await segmentRepository.create({
+      ...data,
+      parentId: parent.id,
+      grandparentId: grandparent.id,
+      isLF: parent.isLF,
+    })
+
+    const collections = await findBySlug(qx, data.grandparentSlug)
+
+    const [existingProject] = await collectionService.findInsightsProjectsBySlug(subproject.slug)
+
+    const normalizedSlug = subproject.slug.replace(/^nonlf_/, '')
+
+    const projectData: Partial<ICreateInsightsProject> = {
+      segmentId: subproject.id,
+      name: subproject.name,
+      slug: normalizedSlug,
+      ...(parent.isLF && { collections: collections.map((c) => c.id), starred: false }),
+    }
+
+    const mustUpdateProject = existingProject && !existingProject.segmentId
+
+    if (mustUpdateProject) {
+      await collectionService.updateInsightsProject(existingProject.id, projectData)
+    } else {
+      await collectionService.createInsightsProject(projectData)
+    }
+
+    return subproject
   }
 
   async findById(id) {
