@@ -1,0 +1,44 @@
+NODE health_score_search_volume_score
+SQL >
+    %
+    SELECT toString(insightsProjectId) as id, round(avg(volume)) AS searchVolumeAverage
+    FROM searchVolume FINAL
+    WHERE
+        1 = 1
+        {% if defined(project) %}
+            AND insightsProjectId = (SELECT insightsProjectId FROM segments_filtered)
+            {% if defined(startDate) %}
+                AND dataTimestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND dataTimestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND dataTimestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
+            AND dataTimestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+        {% end %}
+    GROUP BY insightsProjectId
+
+NODE health_score_search_volume_with_benchmark
+SQL >
+    SELECT
+        id,
+        searchVolumeAverage,
+        CASE
+            WHEN searchVolumeAverage BETWEEN 0 AND 9
+            THEN 0
+            WHEN searchVolumeAverage BETWEEN 10 AND 49
+            THEN 1
+            WHEN searchVolumeAverage BETWEEN 50 AND 199
+            THEN 2
+            WHEN searchVolumeAverage BETWEEN 200 AND 499
+            THEN 3
+            WHEN searchVolumeAverage BETWEEN 500 AND 999
+            THEN 4
+            WHEN searchVolumeAverage >= 1000
+            THEN 5
+            ELSE 0
+        END AS searchVolumeBenchmark
+    FROM health_score_search_volume_score
