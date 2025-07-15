@@ -58,7 +58,7 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
   const nullableOrg = (orgId: string) => (orgId ? `cast('${orgId}' as uuid)` : 'NULL')
 
   const isDateInInterval = (date: Date, start: Date | null, end: Date | null) => {
-    return (!start || date >= start) && (!end || date < end)
+    return (!start || date >= start) && (!end || date <= end)
   }
 
   const findOrgsWithRolesInDate = (
