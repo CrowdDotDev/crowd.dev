@@ -1,8 +1,8 @@
+
 import { CollectionService } from '@/services/collectionService'
 
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { CategoryService } from '@/services/categoryService'
 
 /**
  * GET /segments/{id}/github-insights
@@ -22,18 +22,17 @@ export default async (req, res) => {
   const service = new CollectionService(req)
   const payload = await service.findGithubInsightsForSegment(req.params.id)
 
-  const categoryService = new CategoryService(req)
-
   if (payload) {
-
-    const { categories } = await categoryService.findRepoCategoriesWithLLM({
-      repo_url: payload.github,
-      repo_description: payload.description,
-      repo_topics: payload.topics,
-      repo_homepage: payload.website,
+    const { collections } = await service.findCollectionsWithLLM({
+      repoUrl: payload.github,
+      repoDescription: payload.description,
+      repoTopics: payload.topics,
+      repoHomepage: payload.website,
     })
 
-    console.log(categories)
+    const [insightsProject] = await service.findInsightsProjectsBySegmentId(req.params.id)
+    const collectionIds = collections.map((collection) => collection.id)
+    await service.connectProjectAndCollection(collectionIds, insightsProject.id)
   }
 
   await req.responseHandler.success(req, res, payload)
