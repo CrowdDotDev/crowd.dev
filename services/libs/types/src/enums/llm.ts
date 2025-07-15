@@ -11,4 +11,5 @@ export enum LlmQueryType {
   MEMBER_ENRICHMENT_SQUASH_WORK_EXPERIENCES_FROM_MULTIPLE_SOURCES = 'member_enrichment_squash_work_experiences_from_multiple_sources',
   MATCH_MAIN_GITHUB_ORGANIZATION_AND_DESCRIPTION = 'match_main_github_organization_and_description',
   REPO_CATEGORIES = 'repo_categories',
+  REPO_COLLECTIONS = 'repo_collections',
 }
