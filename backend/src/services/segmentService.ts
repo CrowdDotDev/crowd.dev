@@ -231,10 +231,12 @@ export default class SegmentService extends LoggerBase {
 
     const [existingProject] = await collectionService.findInsightsProjectsBySlug(subproject.slug)
 
+    const normalizedSlug = subproject.slug.replace(/^nonlf_/, '')
+
     const projectData: Partial<ICreateInsightsProject> = {
       segmentId: subproject.id,
       name: subproject.name,
-      slug: subproject.slug,
+      slug: normalizedSlug,
       ...(parent.isLF && { collections: collections.map((c) => c.id), starred: false }),
     }
 
