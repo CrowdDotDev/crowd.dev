@@ -3,14 +3,14 @@ DESCRIPTION >
 
 NODE pull_request_opened
 SQL >
-    SELECT id, sourceId, channel, timestamp AS openedAt, segmentId, gitChangedLinesBucket
-    FROM activities_with_relations_sorted_deduplicated_ds
+    SELECT activityId as id, sourceId, channel, timestamp AS openedAt, segmentId, gitChangedLinesBucket
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-opened'
 
 NODE pull_request_first_assigned
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS assignedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-assigned'
     GROUP BY sourceParentId
     order by min(timestamp) desc
@@ -18,30 +18,28 @@ SQL >
 NODE pull_request_first_review_requested
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS reviewRequestedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-review-requested'
     GROUP BY sourceParentId
 
 NODE pull_request_first_reviewed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS reviewedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-reviewed'
     GROUP BY sourceParentId
 
 NODE pull_request_first_review_approved
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS approvedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
-    WHERE
-        type = 'pull_request-reviewed'
-        and simpleJSONExtractString(attributes, 'reviewState') = 'APPROVED'
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED'
     GROUP BY sourceParentId
 
 NODE pull_request_first_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-closed'
     GROUP BY sourceParentId
 
@@ -51,14 +49,14 @@ DESCRIPTION >
 
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS mergedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-merged'
     GROUP BY sourceParentId
 
 NODE pull_request_first_resolved
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS resolvedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-closed' or type = 'pull_request-merged'
     GROUP BY sourceParentId
 
