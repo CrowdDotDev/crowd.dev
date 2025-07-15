@@ -1,8 +1,8 @@
 SCHEMA >
     `id` String,
     `sourceId` String,
-    `openedAt` DateTime,
-    `closedAt` Nullable(DateTime),
+    `openedAt` DateTime64(3),
+    `closedAt` Nullable(DateTime64(3)),
     `closedInSeconds` Nullable(Int64)
 
 ENGINE MergeTree
