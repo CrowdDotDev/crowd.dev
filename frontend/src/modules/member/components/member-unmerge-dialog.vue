@@ -291,6 +291,7 @@
               <el-select
                 placeholder="Select identity"
                 class="w-full"
+                filterable
                 @update:model-value="changeIdentity($event)"
               >
                 <el-option

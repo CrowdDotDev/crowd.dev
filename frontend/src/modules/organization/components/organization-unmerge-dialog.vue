@@ -194,6 +194,7 @@
               <el-select
                 placeholder="Select identity"
                 class="w-full"
+                filterable
                 value-key="id"
                 @update:model-value="changeIdentity($event)"
               >
