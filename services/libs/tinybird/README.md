@@ -5,13 +5,11 @@
 ## Activity Preprocessing Pipeline
 
 1. **New activities land** on `activities` and `activityRelations` datasources 
-2. **Deduplication** of activities and relations separately via copy pipes:  
+2. **Deduplication** of activities via copy pipe:  
    - `activities_deduplicated_copy_pipe (every hour at minute 0)`  
-   - `activityRelations_deduplicated_copy_pipe (every hour at minute 0)`  
    2.1. `activities` → `activities_deduplicated_ds`  
-   2.2. `activityRelations` → `activityRelations_deduplicated_ds`  
-3. **Merging with relations, filtering and sorting data**:  
-   - `activityRelations_deduplicated_ds (every hour at minute 10)` + `activities_deduplicated_ds` → `activities_with_relations_sorted_deduplicated_ds`
+3. **Preprocessing pipeline for activityRelations - Deduplicates, filters and sorts data for performant queries**:  
+   - `activityRelations (every hour at minute 0)` → `activityRelations_deduplicated_cleaned_ds`
 
 ## Other Copy Pipes
 

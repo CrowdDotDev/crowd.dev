@@ -38,7 +38,7 @@ DESCRIPTION >
 
 SQL >
     SELECT timestamp, segmentId
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
 
 NODE insights_projects_populated_copy_first_commit_by_project
@@ -99,6 +99,10 @@ SQL >
         organizationCount as "organizationCount"
     FROM segments_aggregates_with_ids_datasource
 
+NODE insights_projects_populated_copy_health_score_deduplicated
+SQL >
+    SELECT id, overallScore as healthScore FROM health_score_copy_ds
+
 NODE insights_projects_populated_copy_results
 DESCRIPTION >
     Join everything together
@@ -131,7 +135,8 @@ SQL >
         insights_projects_populated_copy_project_repo_data.repoData as repoData,
         insights_projects_populated_copy_aggregates.softwareValue as softwareValue,
         insights_projects_populated_copy_aggregates.contributorCount as contributorCount,
-        insights_projects_populated_copy_aggregates.organizationCount as organizationCount
+        insights_projects_populated_copy_aggregates.organizationCount as organizationCount,
+        insights_projects_populated_copy_health_score_deduplicated.healthScore as healthScore
     FROM insightsProjects FINAL
     LEFT JOIN
         insights_projects_populated_copy_collections_slugs
@@ -148,6 +153,9 @@ SQL >
     LEFT JOIN
         insights_projects_populated_copy_aggregates
         ON insights_projects_populated_copy_aggregates.projectId = insightsProjects.id
+    LEFT JOIN
+        insights_projects_populated_copy_health_score_deduplicated
+        ON insights_projects_populated_copy_health_score_deduplicated.id = insightsProjects.id
 
 TYPE COPY
 TARGET_DATASOURCE insights_projects_populated_ds

@@ -9,9 +9,9 @@ SQL >
             AND slug = {{ String(project, description="Filter by project slug", required=True) }}
         {% else %} AND false
         {% end %}
-        {% if defined(repo) %}
-            AND has(
-                insightsProjects.repositories,
-                {{ String(repo, description="Filter activity repo", required=False) }}
+        {% if defined(repos) %}
+            AND arrayAll(
+                r -> has(insightsProjects.repositories, r),
+                {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             )
         {% end %}
