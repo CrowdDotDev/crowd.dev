@@ -150,7 +150,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { segmentService } from '@/modules/lf/segments/segments.service';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { ProjectGroup } from '@/modules/lf/segments/types/Segments';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 
 const emit = defineEmits<{(e: 'update:modelValue', v: boolean): void;
   (e: 'onProjectGroupEdited'): void;
@@ -269,11 +270,11 @@ const onSuccess = () => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_PROJECT_GROUPS],
   });
-  Message.success(`Project Group ${props.id ? 'updated' : 'created'} successfully`);
+  ToastStore.success(`Project Group ${props.id ? 'updated' : 'created'} successfully`);
 };
 
 const onError = () => {
-  Message.error(`Something went wrong while ${props.id ? 'updating' : 'creating'} the project group`);
+  ToastStore.error(`Something went wrong while ${props.id ? 'updating' : 'creating'} the project group`);
 };
 
 const updateMutation = useMutation({
