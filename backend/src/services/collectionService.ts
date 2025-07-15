@@ -1,6 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
+import { LlmService } from '@crowd/common_services'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -29,7 +30,7 @@ import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
-import { LoggerBase } from '@crowd/logging'
+import { LoggerBase, getServiceLogger } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
 import SegmentRepository from '@/database/repositories/segmentRepository'
@@ -37,8 +38,8 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
+import { CategoryService } from './categoryService'
 import GithubIntegrationService from './githubIntegrationService'
-
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -623,4 +624,153 @@ export class CollectionService extends LoggerBase {
     return result
   }
 
+  private static formatTextCollections(data: Awaited<ReturnType<CollectionService['query']>>): string {
+    const result: Record<string, { id: string; name: string; description: string }[]> = {}
+
+    for (const collection of data.rows) {
+      const categoryName = collection.category?.name ?? 'Uncategorized'
+      if (!result[categoryName]) {
+        result[categoryName] = []
+      }
+      result[categoryName].push({
+        id: collection.id,
+        name: collection.name,
+        description: collection.description.trim(),
+      })
+    }
+
+    let collectionsText = ''
+
+    for (const category of Object.keys(result)) {
+      collectionsText += `### ${category}\n`
+      for (const collection of result[category]) {
+        collectionsText += `- **${collection.name}**: ${collection.description.trim()}, id: ${collection.id}\n`
+      }
+      collectionsText += '\n'
+    }
+
+    return collectionsText.trim()
+  }
+
+  public async findCollectionsWithLLM({
+    repoUrl,
+    repoDescription,
+    repoTopics,
+    repoHomepage,
+  }: {
+    repoUrl: string
+    repoDescription: string
+    repoTopics: string[]
+    repoHomepage: string
+  }) {
+    const categoryService = new CategoryService(this.options)
+
+    const { categories } = await categoryService.findRepoCategoriesWithLLM({
+      repoUrl,
+      repoDescription,
+      repoTopics,
+      repoHomepage,
+    })
+
+    const collections = await this.query({
+      filter: {
+        categoryId: { in: categories.map((c) => c.id) },
+      },
+    })
+
+    const prompt = `
+    You are an expert open-source analyst. Your job is to classify ${repoUrl} into appropriate collections.
+
+      ## Context and Purpose
+      This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
+      Developers and organizations use this index to:
+      - Discover relevant open-source tools for their technology stack
+      - Understand the open-source ecosystem in their domain
+      - Make informed decisions about which projects to adopt or contribute to
+      - Assess the health and importance of projects in specific technology areas
+
+      Accurate classification is essential for users to find the right projects when browsing by technology domain or industry vertical.
+
+      ## Project Information
+      - URL: ${repoUrl}
+      - Description: ${repoDescription}
+      - Topics: ${repoTopics}
+      - Homepage: ${repoHomepage}
+
+      ## Categories
+      The project has been identified as belonging to these categories:
+      {', '.join(${categories})}
+      
+      ## Available Collections
+      These are the collections within those categories:
+
+      ${CollectionService.formatTextCollections(collections)}
+
+      ## Your Task
+      Analyze the project carefully and assign it to all relevant collections. 
+      A project can (and often does) belong to **multiple collections** if it serves multiple use cases, domains, or technical functions.
+      Do **not** limit the classification to a single collection unless it clearly fits only one.
+      Use your judgment to consider the primary and secondary purposes of the project.
+
+      Consider:
+      - The specific functionality the project provides
+      - How it compares to other projects in potential collections
+      - Whether it's a horizontal tool (used across industries) or vertical solution (industry-specific)
+      - The granularity of the collections (neither too broad nor too specific)
+
+      If the project doesn't clearly fit into any of the available collections, return an empty list for collections.
+
+      ## Format
+      Return **only** a valid JSON object in the following format — without any explanations, markdown, or introductory text:
+
+      {
+        "collections": [
+          { "name": "collectionName", "id": "CollectionID" },
+          { "name": "anotherCollectionName", "id": "AnotherID" }
+        ],
+        "explanation": "Brief explanation of why you chose these collections."
+      }
+
+      Rules:
+      - Do **not** wrap the output in triple backticks.
+      - Do **not** include the word "json" or any explanation before or after the JSON.
+      - The entire output must be a valid JSON object that can be parsed directly.
+      - Only use collections from the provided list. Do not invent new ones.
+    
+    `
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    const llmService = new LlmService(
+      qx,
+      {
+        accessKeyId: process.env.CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
+        secretAccessKey: process.env.CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
+      },
+      getServiceLogger(),
+    )
+
+    const { result } = await llmService.findRepoCollections<any>(prompt)
+
+    return result
+  }
+
+  async connectProjectAndCollection(collectionIds: string[], insightsProjectId: string) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+
+      try {
+        await connectProjectsAndCollections(
+          qx,
+          collectionIds.map((collectionId) => ({
+            insightsProjectId,
+            collectionId,
+            starred: false,
+          })),
+        )
+      } catch {
+        // Do nothing
+      }
+    })
+  }
 }
