@@ -242,7 +242,7 @@ export async function moveActivityRelationsToAnotherMember(
       },
     )
 
-    rowsUpdated = result.length
+    rowsUpdated = result?.rows?.length || 0
   } while (rowsUpdated === batchSize)
 }
 
@@ -280,7 +280,7 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
       },
     )
 
-    rowsUpdated = result.length
+    rowsUpdated = result?.rows?.length || 0
   } while (rowsUpdated === batchSize)
 }
 
@@ -311,7 +311,7 @@ export async function moveActivityRelationsToAnotherOrganization(
       },
     )
 
-    rowsUpdated = result.length
+    rowsUpdated = result?.rows?.length || 0
   } while (rowsUpdated === batchSize)
 }
 

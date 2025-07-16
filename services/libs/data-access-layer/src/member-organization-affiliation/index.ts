@@ -328,8 +328,7 @@ async function processAffiliationActivities(
       params,
     )
 
-    // result can be null if no activities are found/updated
-    rowsUpdated = result?.length || 0
+    rowsUpdated = result?.rows?.length || 0
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
@@ -384,8 +383,7 @@ async function processFallbackActivities(
       params,
     )
 
-    // result can be null if no activities are found/updated
-    rowsUpdated = result?.length || 0
+    rowsUpdated = result?.rows?.length || 0
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
