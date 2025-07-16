@@ -463,8 +463,8 @@ export class CollectionService extends LoggerBase {
         }
 
         if (i.platform === PlatformType.GERRIT) {
-          for (const r of (i.settings as any).remote.repos) {
-            addToResult(i.platform, r, r)
+          for (const r of (i.settings as any).remote.repoNames) {
+            addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
           }
         }
       }
