@@ -14,7 +14,7 @@ import { getGithubInstallationToken } from './helpers/githubToken'
 const githubMaxSearchResult = 1000
 
 export default class GithubIntegrationService {
-  constructor(private readonly options: IServiceOptions) {}
+  constructor(private readonly options: IServiceOptions) { }
 
   public async findGithubRepos(
     query: string,
@@ -151,7 +151,7 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findOrgTopics(org: string, repos: { name: string }[]) {
+  public static async findOrgTopics(org: string, repos: string[]) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -159,7 +159,7 @@ export default class GithubIntegrationService {
 
     const topicPromises = repos.map(async (repo) => {
       try {
-        const res = await request(`GET /repos/${org}/${repo.name}/topics`, {
+        const res = await request(`GET /repos/${org}/${repo}/topics`, {
           headers: {
             authorization: `bearer ${auth}`,
           },
@@ -167,7 +167,7 @@ export default class GithubIntegrationService {
 
         res.data.names.forEach((topic: string) => topicSet.add(topic))
       } catch (err) {
-        logger.warn(`Failed to fetch topics for ${repo.name}:`, err.response?.data || err.message)
+        logger.warn(`Failed to fetch topics for ${repo}:`, err.response?.data || err.message)
       }
     })
 
@@ -185,7 +185,8 @@ export default class GithubIntegrationService {
       description: string
     }
   > {
-    const prompt = `Given the following array of organizations:
+    const prompt = `
+    Given the following array of organizations:
       ${orgs.map((org) => `organization name: ${org.name} organization url: ${org.url}`).join('\n')}
 
       project name: "${projectName}"
@@ -197,20 +198,24 @@ export default class GithubIntegrationService {
 
       Use all available information to infer the description, with this priority:
 
-      - First, use information from the organization URL, if available, as the most authoritative source.
+      - First, use information from the organization URL, if available, as the most authoritative source — **unless the organization has exactly one repository**.
+      - If an organization has exactly one repository, prioritize all available content from that repository (e.g., README, description, code, metadata) over the organization's URL or name.
       - Only use the project name if it clearly describes the functionality or scope. Ignore it if it's generic or non-descriptive (e.g., "test", "demo", "sample", "example", etc.).
       - If the project content is missing or uninformative, and the name is generic, **fall back to describing the organization and its typical projects instead**.
 
       Special rules:
       - If the array contains only one organization, assume that it is the one associated with the project (index 0), regardless of project content.
-      - Still generate the description as usual, defaulting to the organization-level information if the project name/content do not add meaningful context.
+        - Still generate the description as usual, but if the organization has only one repository, prioritize that repository’s content for the description.
+      - If the array has more than one organization, and one of them has exactly one repository, treat that repository as the primary signal for association and description — but only if its content is relevant and non-generic.
 
       Return:
       - If no match is found: null
       - If a match is found: {description: string; index: number}
 
       Output ONLY valid JSON.
-      Do NOT return any text, explanation, or formatting outside of the JSON.`
+      Do NOT return any text, explanation, or formatting outside of the JSON.
+
+    `
 
     const llmService = new LlmService(
       qx,
