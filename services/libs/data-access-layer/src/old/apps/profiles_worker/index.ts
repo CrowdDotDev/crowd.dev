@@ -106,8 +106,7 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
       const withDates = orgs.filter((row) => !!row.dateStart)
       if (withDates.length === 1) {
         return withDates[0]
-      }
-      else if (withDates.length > 1) {
+      } else if (withDates.length > 1) {
         // only consider work experiences with dates for the next steps, if there are more than one
         // and ignore ones without dates
         orgs = withDates
