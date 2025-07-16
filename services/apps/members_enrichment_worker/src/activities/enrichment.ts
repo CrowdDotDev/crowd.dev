@@ -12,7 +12,7 @@ import {
   updateMemberContributions,
   updateMemberReach,
 } from '@crowd/data-access-layer'
-import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
+import { findMemberIdentityWithTheMostActivityInPlatform as getMemberMostActiveIdentity } from '@crowd/data-access-layer/src/activityRelations'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
@@ -29,7 +29,7 @@ import {
   updateMemberOrg,
 } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
@@ -219,7 +219,7 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
   memberId: string,
   platform: string,
 ): Promise<IEnrichableMemberIdentityActivityAggregate> {
-  return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
+  return getMemberMostActiveIdentity(pgpQx(svc.postgres.reader.connection()), memberId, platform)
 }
 
 export async function updateMemberUsingSquashedPayload(
