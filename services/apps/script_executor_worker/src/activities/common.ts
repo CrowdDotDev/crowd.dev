@@ -137,7 +137,7 @@ export function timeout(ms: number, workflowId: string): Promise<void> {
   })
 }
 
-export async function doesActivityExistInQuestDb(
+export async function doesEntityActivityExistInQuestDb(
   entityId: string,
   entityType: EntityType,
 ): Promise<boolean> {
@@ -147,7 +147,7 @@ export async function doesActivityExistInQuestDb(
       svc.log,
       svc.questdbSQL,
     )
-    return activityRepo.doesActivityExistInQuestDb(entityId, entityType)
+    return activityRepo.doesEntityActivityExistInQuestDb(entityId, entityType)
   } catch (error) {
     svc.log.error(error, 'Error checking if entity has activities in questDb!')
     throw error

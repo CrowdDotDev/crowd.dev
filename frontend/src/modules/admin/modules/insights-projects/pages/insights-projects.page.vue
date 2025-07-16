@@ -108,7 +108,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfInsightsProjectsTable from '@/modules/admin/modules/insights-projects/components/lf-insights-projects-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -218,7 +219,7 @@ watch(search, (value) => {
 
 watch(error, (err) => {
   if (err) {
-    Message.error('Something went wrong while fetching projects');
+    ToastStore.error('Something went wrong while fetching projects');
   }
 });
 
@@ -232,22 +233,20 @@ const total = computed((): number => {
 const removeMutation = useMutation({
   mutationFn: (projectId: string) => INSIGHTS_PROJECTS_SERVICE.delete(projectId),
   onSuccess: () => {
-    Message.closeAll();
-    Message.success('Project successfully removed');
+    ToastStore.closeAll();
+    ToastStore.success('Project successfully removed');
     queryClient.invalidateQueries({
       queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
     });
     onCloseRemoveProject();
   },
   onError: () => {
-    Message.closeAll();
-    Message.error('Something went wrong');
+    ToastStore.closeAll();
+    ToastStore.error('Something went wrong');
     onCloseRemoveProject();
   },
   onMutate: () => {
-    Message.info(null, {
-      title: 'Project is being removing',
-    });
+    ToastStore.info('Project is being removing');
   },
 });
 

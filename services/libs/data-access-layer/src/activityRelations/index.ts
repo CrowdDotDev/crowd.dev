@@ -524,3 +524,58 @@ export async function fetchOrganizationDisplayAggregates(
     }
   })
 }
+
+export interface IActivityRelationDuplicateGroup {
+  activityIds: string[]
+  timestamp: string
+  platform: string
+  type: string
+  sourceId: string
+  channel: string
+  segmentId: string
+}
+
+export async function fetchActivityRelationsDuplicateGroups(
+  qx: QueryExecutor,
+  limit: number,
+  cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>,
+): Promise<IActivityRelationDuplicateGroup[]> {
+  return qx.select(
+    `
+    WITH grouped_activity_relations AS (
+      SELECT
+        "timestamp", "platform", "type", "sourceId", "channel", "segmentId",
+        array_agg("activityId" ORDER BY "updatedAt" DESC) AS "activityIds"
+      FROM "activityRelations"
+      WHERE
+        "timestamp" IS NOT NULL AND "platform" IS NOT NULL AND 
+        "type" IS NOT NULL AND "sourceId" IS NOT NULL AND 
+        "channel" IS NOT NULL AND "segmentId" IS NOT NULL
+        ${
+          cursor
+            ? `AND ("timestamp", "platform", "type", "sourceId", "channel", "segmentId") >
+                 ($(timestamp), $(platform), $(type), $(sourceId), $(channel), $(segmentId))`
+            : ''
+        }
+      GROUP BY
+        "timestamp", "platform", "type", "sourceId", "channel", "segmentId"
+      HAVING COUNT(*) > 1
+      ORDER BY "timestamp", "platform", "type", "sourceId", "channel", "segmentId"
+    )
+    SELECT * FROM grouped_activity_relations LIMIT $(limit);
+    `,
+    { limit, ...(cursor || {}) },
+  )
+}
+
+export async function deleteActivityRelationsById(
+  qx: QueryExecutor,
+  activityIds: string[],
+): Promise<void> {
+  return qx.result(
+    `
+    DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds:csv));
+    `,
+    { activityIds },
+  )
+}

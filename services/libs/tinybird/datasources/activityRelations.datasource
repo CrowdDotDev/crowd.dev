@@ -12,9 +12,20 @@ SCHEMA >
     `parentId` String `json:$.record.parentId` DEFAULT '',
     `platform` LowCardinality(String) `json:$.record.platform`,
     `segmentId` String `json:$.record.segmentId`,
-    `username` String `json:$.record.username`
+    `username` String `json:$.record.username`,
+    `sourceId` String `json:$.record.sourceId`,
+    `type` LowCardinality(String) `json:$.record.type`,
+    `timestamp` DateTime64(3) `json:$.record.timestamp`,
+    `sourceParentId` String `json:$.record.sourceParentId` DEFAULT '',
+    `channel` String `json:$.record.channel` DEFAULT '',
+    `sentimentScore` Int8 `json:$.record.sentimentScore` DEFAULT -1,
+    `gitInsertions` UInt32 `json:$.record.gitInsertions` DEFAULT 0,
+    `gitDeletions` UInt32 `json:$.record.gitDeletions` DEFAULT 0,
+    `score` Int8 `json:$.record.score` DEFAULT -1,
+    `isContribution` UInt8 `json:$.record.isContribution`,
+    `pullRequestReviewState` LowCardinality(String) `json:$.record.pullRequestReviewState` DEFAULT ''
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY segmentId, platform, activityId
+ENGINE_SORTING_KEY segmentId, timestamp, type, platform, channel, sourceId
 ENGINE_VER updatedAt

@@ -162,138 +162,125 @@
             </div>
           </span>
         </el-tooltip>
-        <app-dialog
-          v-model="replyDialogVisible"
-          :title="DialogHeading"
-          custom-class="eagle-eye-dialog"
-        >
-          <template #content>
-            <div>
+        <lf-modal v-model="replyDialogVisible" :header-title="DialogHeading">
+          <div>
+            <div class="flex items-center gap-3 w-full rounded-b-lg px-6 pt-0">
               <div
-                class="flex items-center gap-3 w-full rounded-b-lg px-6 pt-0"
+                class="rounded-full bg-yellow-100 flex items-center justify-center min-h-6 min-w-[1.6rem]"
               >
-                <div
-                  class="rounded-full bg-yellow-100 flex items-center justify-center min-h-6 min-w-[1.6rem]"
-                >
-                  <lf-icon
-                    name="circle-exclamation"
-                    :size="16"
-                    class="text-yellow-500"
-                  />
-                </div>
-                <div class="text-gray-600 text-2xs">
-                  This is just a starting point. We recommend you to read the
-                  post and add genuine value to your response.
-                </div>
+                <lf-icon
+                  name="circle-exclamation"
+                  :size="16"
+                  class="text-yellow-500"
+                />
               </div>
-              <div class="p-4 flex items-center justify-center flex-wrap">
-                <div class="bg-gray-50 rounded-lg w-full">
-                  <Transition name="fade-out-in" mode="out-in">
-                    <div
-                      v-if="generatedReply === ''"
-                      class="mx-auto text-center w-full p-4"
-                    >
-                      <div class="flex flex-col gap-3 w-3/4">
-                        <div
-                          v-for="(_, dindex) in [1, 2, 3]"
-                          :key="dindex"
-                          class="bg-gray-200 h-3 w-full rounded animate-pulse"
-                          :class="{
-                            'w-11/12': dindex === 1,
-                          }"
-                        />
-                      </div>
-                    </div>
-                    <div v-else class="mx-auto">
-                      <div
-                        class="h-full w-full cursor-copy p-4"
-                        @click="copyToClipboard(generatedReply)"
-                      >
-                        {{ generatedReply }}
-                      </div>
-                    </div>
-                  </Transition>
-                </div>
-                <div
-                  class="flex justify-between items-center mt-4 px-2 h-8 w-full"
-                >
-                  <Transition name="fade">
-                    <div
-                      v-if="generatedReply !== ''"
-                      class="text-xs text-gray-400 flex items-center"
-                    >
-                      <span>Was this helpful? </span>
-                      <lf-icon
-                        name="thumbs-up"
-                        :type="
-                          generatedReplyThumbsUpFeedback ? 'solid' : 'light'
-                        "
-                        :size="16"
-                        class="cursor-pointer mx-1"
-                        :class="
-                          generatedReplyThumbsUpFeedback ? 'text-green-500' : ''
-                        "
-                        @click="
-                          generatedReplyFeedback(generatedReply, 'thumbs-up')
-                        "
-                      />
-                      <lf-icon
-                        name="thumbs-down"
-                        :type="
-                          generatedReplyThumbsDownFeedback ? 'solid' : 'light'
-                        "
-                        :size="16"
-                        class="cursor-pointer"
-                        :class="
-                          generatedReplyThumbsDownFeedback ? 'text-red-500' : ''
-                        "
-                        @click="
-                          generatedReplyFeedback(generatedReply, 'thumbs-down')
-                        "
-                      />
-                    </div>
-                  </Transition>
-                  <Transition name="fade">
-                    <div v-if="generatedReply !== ''">
-                      <Transition name="slide" mode="out-in">
-                        <div
-                          v-if="replyInClipboard"
-                          class="flex flex-wrap items-center"
-                        >
-                          <lf-icon
-                            name="check"
-                            :size="16"
-                            class="text-primary-500"
-                          />
-                          <span class="text-xs ml-1 text-gray-600">Copied to clipboard.
-                            <span
-                              class="font-semibold cursor-pointer text-primary-500"
-                              @click="onCardClickFromDialog"
-                            >
-                              Go to post.
-                            </span>
-                          </span>
-                        </div>
-                        <div v-else class="copy-icon group">
-                          <el-tooltip
-                            placement="top"
-                            content="Copy to clipboard"
-                          >
-                            <lf-icon
-                              name="clipboard"
-                              :size="20"
-                              @click="copyToClipboard(generatedReply)"
-                            />
-                          </el-tooltip>
-                        </div>
-                      </Transition>
-                    </div>
-                  </Transition>
-                </div>
+              <div class="text-gray-600 text-2xs">
+                This is just a starting point. We recommend you to read the post
+                and add genuine value to your response.
               </div>
             </div>
-          </template>
-        </app-dialog>
+            <div class="p-4 flex items-center justify-center flex-wrap">
+              <div class="bg-gray-50 rounded-lg w-full">
+                <Transition name="fade-out-in" mode="out-in">
+                  <div
+                    v-if="generatedReply === ''"
+                    class="mx-auto text-center w-full p-4"
+                  >
+                    <div class="flex flex-col gap-3 w-3/4">
+                      <div
+                        v-for="(_, dindex) in [1, 2, 3]"
+                        :key="dindex"
+                        class="bg-gray-200 h-3 w-full rounded animate-pulse"
+                        :class="{
+                          'w-11/12': dindex === 1,
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div v-else class="mx-auto">
+                    <div
+                      class="h-full w-full cursor-copy p-4"
+                      @click="copyToClipboard(generatedReply)"
+                    >
+                      {{ generatedReply }}
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+              <div
+                class="flex justify-between items-center mt-4 px-2 h-8 w-full"
+              >
+                <Transition name="fade">
+                  <div
+                    v-if="generatedReply !== ''"
+                    class="text-xs text-gray-400 flex items-center"
+                  >
+                    <span>Was this helpful? </span>
+                    <lf-icon
+                      name="thumbs-up"
+                      :type="generatedReplyThumbsUpFeedback ? 'solid' : 'light'"
+                      :size="16"
+                      class="cursor-pointer mx-1"
+                      :class="
+                        generatedReplyThumbsUpFeedback ? 'text-green-500' : ''
+                      "
+                      @click="
+                        generatedReplyFeedback(generatedReply, 'thumbs-up')
+                      "
+                    />
+                    <lf-icon
+                      name="thumbs-down"
+                      :type="
+                        generatedReplyThumbsDownFeedback ? 'solid' : 'light'
+                      "
+                      :size="16"
+                      class="cursor-pointer"
+                      :class="
+                        generatedReplyThumbsDownFeedback ? 'text-red-500' : ''
+                      "
+                      @click="
+                        generatedReplyFeedback(generatedReply, 'thumbs-down')
+                      "
+                    />
+                  </div>
+                </Transition>
+                <Transition name="fade">
+                  <div v-if="generatedReply !== ''">
+                    <Transition name="slide" mode="out-in">
+                      <div
+                        v-if="replyInClipboard"
+                        class="flex flex-wrap items-center"
+                      >
+                        <lf-icon
+                          name="check"
+                          :size="16"
+                          class="text-primary-500"
+                        />
+                        <span class="text-xs ml-1 text-gray-600">Copied to clipboard.
+                          <span
+                            class="font-semibold cursor-pointer text-primary-500"
+                            @click="onCardClickFromDialog"
+                          >
+                            Go to post.
+                          </span>
+                        </span>
+                      </div>
+                      <div v-else class="copy-icon group">
+                        <el-tooltip placement="top" content="Copy to clipboard">
+                          <lf-icon
+                            name="clipboard"
+                            :size="20"
+                            @click="copyToClipboard(generatedReply)"
+                          />
+                        </el-tooltip>
+                      </div>
+                    </Transition>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+          </div>
+        </lf-modal>
         <el-tooltip placement="top" :content="bookmarkTooltip">
           <span
             :class="{
@@ -347,6 +334,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
@@ -593,12 +581,6 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 <style lang="scss" scoped>
 .eagle-eye-result-content a {
   @apply text-gray-500 underline;
-}
-
-.eagle-eye-dialog {
-  .el-dialog__header {
-    @apply pb-0;
-  }
 }
 
 .copy-icon {

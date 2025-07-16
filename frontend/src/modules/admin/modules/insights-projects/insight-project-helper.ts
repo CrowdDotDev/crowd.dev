@@ -21,6 +21,7 @@ export const buildRequest = (
   linkedin: form.linkedin,
   repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
   keywords: form.keywords,
+  searchKeywords: form.searchKeywords,
   widgets: Object.keys(form.widgets).filter(
     (key: string) => form.widgets[key].enabled,
   ),
@@ -40,6 +41,7 @@ export const buildForm = (
   collectionsIds: result.collections.map((collection: any) => collection.id),
   collections: result.collections,
   keywords: result.keywords || [],
+  searchKeywords: result.searchKeywords || [],
   repositories:
     repositories?.map((repository) => ({
       ...repository,

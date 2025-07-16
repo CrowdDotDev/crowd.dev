@@ -102,7 +102,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ref } from 'vue';
@@ -134,10 +135,10 @@ const removeIdentity = () => {
     identities,
   })
     .then(() => {
-      Message.success('Identity deleted successfully');
+      ToastStore.success('Identity deleted successfully');
     })
     .catch(() => {
-      Message.error('Something went wrong while deleting an identity');
+      ToastStore.error('Something went wrong while deleting an identity');
     });
 };
 </script>
