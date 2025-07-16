@@ -14,7 +14,7 @@ import { getGithubInstallationToken } from './helpers/githubToken'
 const githubMaxSearchResult = 1000
 
 export default class GithubIntegrationService {
-  constructor(private readonly options: IServiceOptions) { }
+  constructor(private readonly options: IServiceOptions) {}
 
   public async findGithubRepos(
     query: string,
