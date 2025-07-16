@@ -8,7 +8,7 @@ const log = getServiceChildLogger('opensearch.connection')
 export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Client> => {
   let client: Client | undefined
 
-  log.info({ config }, 'Connecting to OpenSearch!')
+  log.info({ node: config.node }, 'Connecting to OpenSearch!')
 
   if (config.node) {
     if (config.username) {
@@ -41,7 +41,7 @@ export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Cl
   }
 
   await client.ping()
-  log.info({ config }, 'Connected to OpenSearch!')
+  log.info({ node: config.node }, 'Connected to OpenSearch!')
 
   return client
 }

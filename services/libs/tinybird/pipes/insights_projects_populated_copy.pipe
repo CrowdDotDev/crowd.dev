@@ -101,7 +101,7 @@ SQL >
 
 NODE insights_projects_populated_copy_health_score_deduplicated
 SQL >
-    SELECT id, overallScore as healthScore FROM health_score_copy_ds WHERE repo = ''
+    SELECT id, overallScore as healthScore FROM health_score_copy_ds
 
 NODE insights_projects_populated_copy_results
 DESCRIPTION >
