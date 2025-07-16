@@ -1265,6 +1265,7 @@ export default class MemberService extends LoggerBase {
           ],
         },
         limit: 1,
+        orderBy: '"updatedAt" DESC',
       },
       ['id', 'state'],
     )

@@ -476,6 +476,7 @@ export default class OrganizationService extends LoggerBase {
           ],
         },
         limit: 1,
+        orderBy: '"updatedAt" DESC',
       },
       ['id', 'state'],
     )
