@@ -18,7 +18,8 @@
 <script setup lang="ts">
 import LfConteneditable from '@/ui-kit/contenteditable/Contenteditable.vue';
 import { reactive, ref } from 'vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
@@ -62,10 +63,10 @@ const update = () => {
     displayName: form.name,
   })
     .then(() => {
-      Message.success('Name updated successfully!');
+      ToastStore.success('Name updated successfully!');
     })
     .catch(() => {
-      Message.error('There was an error updating contributor');
+      ToastStore.error('There was an error updating contributor');
     });
 };
 </script>

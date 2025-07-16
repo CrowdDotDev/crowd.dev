@@ -224,7 +224,8 @@ import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/s
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import formChangeDetector from '@/shared/form/form-change';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -451,11 +452,11 @@ const submit = (): void => {
             });
             isDrawerOpen.value = false;
             reset();
-            Message.success('View updated successfully!');
+            ToastStore.success('View updated successfully!');
             emit('reload');
           })
           .catch(() => {
-            Message.error('There was an error updating a view');
+            ToastStore.error('There was an error updating a view');
           })
           .finally(() => {
             sending.value = false;
@@ -477,9 +478,9 @@ const submit = (): void => {
     SavedViewsService.create(data)
       .then(() => {
         if (isDuplicate.value) {
-          Message.success('View duplicated successfully!');
+          ToastStore.success('View duplicated successfully!');
         } else {
-          Message.success('View successfully created!');
+          ToastStore.success('View successfully created!');
         }
         (window as any).analytics.track('Custom view created', {
           placement: props.placement,
@@ -498,9 +499,9 @@ const submit = (): void => {
       })
       .catch(() => {
         if (isDuplicate.value) {
-          Message.error('There was an error duplicating a view');
+          ToastStore.error('There was an error duplicating a view');
         } else {
-          Message.error('There was an error creating a view');
+          ToastStore.error('There was an error creating a view');
         }
       })
       .finally(() => {

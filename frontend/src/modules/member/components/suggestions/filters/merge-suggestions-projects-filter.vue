@@ -35,9 +35,10 @@
           <lf-checkbox
             v-model="segments"
             :value="project.id"
+            class="!mr-0"
             @update:model-value="onProjectSelect(project)"
           />
-          <p class="text-black text-xs">
+          <p class="text-black text-xs !break-normal">
             {{ project.name }}
           </p>
         </label>
@@ -49,9 +50,10 @@
           <lf-checkbox
             v-model="childSegments"
             :value="subproject.id"
+            class="!mr-0"
             @update:model-value="onSubprojectSelect(project, subproject)"
           />
-          <p class="text-black text-xs">
+          <p class="text-black text-xs !break-normal">
             {{ subproject.name }}
           </p>
         </label>

@@ -1,0 +1,35 @@
+DESCRIPTION >
+    Serves the project search volume data for the `Search queries` widget
+
+NODE searchVolume_pipe
+SQL >
+    %
+    SELECT
+        insightsProjectId,
+        project,
+        formatDateTime(dataTimestamp, '%Y-%m-%d') AS dataTimestamp,
+        volume,
+        updatedAt
+    FROM searchVolume FINAL
+    WHERE
+        insightsProjectId = toUUID((select insightsProjectId from segments_filtered))
+        {% if defined(startDate) %}
+            AND searchVolume.dataTimestamp
+            >= {{
+                DateTime(
+                    startDate,
+                    description="Select records with dataTimestamp only after the given date",
+                    required=False,
+                )
+            }}
+        {% end %}
+        {% if defined(endDate) %}
+            AND searchVolume.dataTimestamp
+            <= {{
+                DateTime(
+                    endDate,
+                    description="Select records with dataTimestamp only before the given date",
+                    required=False,
+                )
+            }}
+        {% end %}

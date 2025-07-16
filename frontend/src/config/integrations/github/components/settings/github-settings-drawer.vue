@@ -202,7 +202,7 @@
 import {
   computed, h, onMounted, ref,
 } from 'vue';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import github from '@/config/integrations/github/config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRoute, useRouter } from 'vue-router';
@@ -224,7 +224,6 @@ import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
-import { ElNotification } from 'element-plus';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -360,37 +359,46 @@ const handleMessage = (error: any) => {
 
   if (match?.groups) {
     const { repo, eId } = match.groups;
-    IntegrationService.find(eId).then((integration) => {
-      customErrorMessage(integration.segment, repo);
-    });
+    IntegrationService.find(eId)
+      .then((integration) => {
+        customErrorMessage(integration.segment, repo);
+      })
+      .catch(() => {
+        ToastStore.error(errorMessage);
+      });
   } else {
-    Message.error('There was an error mapping github repos');
+    ToastStore.error('There was an error mapping github repos');
   }
 };
 
 const customErrorMessage = (segment: any, githubRepo: string) => {
-  ElNotification({
-    title: 'Conflict Detected',
-    customClass: 'error',
-    message: h('div', [
-      'The github repo ',
-      h('strong', githubRepo),
-      ' is already connected with project ',
-      h(
-        'a',
-        {
-          href: getSegmentLink(segment),
-          style: 'color: #409EFF; cursor: pointer;',
-        },
-        segment.name || 'Unknown Project',
-      ),
-    ]),
-    type: 'error',
-    position: 'bottom-right',
-    offset: 24,
-    showClose: true,
-    duration: 6000,
-  });
+  ToastStore.error(
+    h(
+      'span',
+      {
+        class: 'whitespace-normal',
+      },
+      [
+        'The github repo',
+        ' ',
+        h('strong', githubRepo),
+        ' ',
+        'is already connected with project',
+        ' ',
+        h(
+          'a',
+          {
+            href: getSegmentLink(segment),
+            class: 'text-blue-500 underline hover:text-blue-600',
+          },
+          segment.name || 'Unknown Project',
+        ),
+      ],
+    ),
+    {
+      title: 'Conflict Detected',
+    },
+  );
 };
 
 const getSegmentLink = (segment: any) => `/integrations/${segment.grandparentId}/${segment.id}`;
@@ -409,7 +417,7 @@ const fetchSubProjects = () => {
         .filter((s) => s !== undefined);
     })
     .catch(() => {
-      Message.error('There was an error fetching subprojects');
+      ToastStore.error('There was an error fetching subprojects');
     })
     .finally(() => {
       loading.value = false;

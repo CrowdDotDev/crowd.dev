@@ -1,4 +1,4 @@
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 
 export const doManualAction = async ({
   loadingMessage,
@@ -12,23 +12,21 @@ export const doManualAction = async ({
   actionFn: Promise<any>;
 }) => {
   if (loadingMessage) {
-    Message.info(null, {
-      title: loadingMessage,
-    });
+    ToastStore.info(loadingMessage);
   }
 
   return actionFn
     .then(() => {
       if (successMessage) {
-        Message.closeAll();
-        Message.success(successMessage);
+        ToastStore.closeAll();
+        ToastStore.success(successMessage);
       }
       Promise.resolve();
     })
     .catch(() => {
       if (errorMessage) {
-        Message.closeAll();
-        Message.error(errorMessage);
+        ToastStore.closeAll();
+        ToastStore.error(errorMessage);
       }
       Promise.reject();
     });
