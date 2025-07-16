@@ -328,7 +328,7 @@ async function processAffiliationActivities(
       params,
     )
 
-    rowsUpdated = result?.rows?.length || 0
+    rowsUpdated = result?.rowCount
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
@@ -383,7 +383,7 @@ async function processFallbackActivities(
       params,
     )
 
-    rowsUpdated = result?.rows?.length || 0
+    rowsUpdated = result?.rowCount
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
