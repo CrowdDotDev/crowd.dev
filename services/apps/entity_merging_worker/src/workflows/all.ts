@@ -65,7 +65,7 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await finishMemberUnmergingUpdateActivities(secondaryId, primaryId, identities)
+  await finishMemberUnmergingUpdateActivities(primaryId, secondaryId, identities)
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)

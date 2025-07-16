@@ -135,8 +135,8 @@ export async function finishMemberMergingUpdateActivities(secondaryId: string, p
 }
 
 export async function finishMemberUnmergingUpdateActivities(
-  secondaryId: string,
   primaryId: string,
+  secondaryId: string,
   identities: IMemberIdentity[],
 ) {
   const qx = pgpQx(svc.postgres.writer.connection())
@@ -145,8 +145,8 @@ export async function finishMemberUnmergingUpdateActivities(
     identities.map((identity) =>
       moveActivityRelationsWithIdentityToAnotherMember(
         qx,
-        secondaryId,
         primaryId,
+        secondaryId,
         identity.value,
         identity.platform,
       ),
