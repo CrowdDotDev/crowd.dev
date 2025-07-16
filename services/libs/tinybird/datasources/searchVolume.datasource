@@ -2,9 +2,9 @@ SCHEMA >
     `id` UInt64 `json:$.record.id`,
     `insightsProjectId` UUID `json:$.record.insights_project_id`,
     `project` String `json:$.record.project`,
-    `dataTimestamp` DateTime64(3) `json:$.record.data_timestamp`,
+    `dataTimestamp` Date `json:$.record.data_timestamp`,
     `volume` UInt64 `json:$.record.volume`,
-    `updatedAt` DateTime64(3) `json:$.record.updated_at`
+    `updatedAt` DateTime64(1) `json:$.record.updated_at`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(dataTimestamp)
