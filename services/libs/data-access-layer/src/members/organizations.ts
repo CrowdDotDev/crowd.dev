@@ -119,6 +119,21 @@ export async function deleteMemberOrganization(
   )
 }
 
+export async function getMemberOrganizationStatus(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<boolean> {
+  const result = await qx.selectOneOrNone(
+    `
+      SELECT 1 FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId) AND "deletedAt" IS NULL LIMIT 1;
+    `,
+    { memberId },
+  )
+
+  return !!result
+}
+
 export async function cleanSoftDeletedMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
