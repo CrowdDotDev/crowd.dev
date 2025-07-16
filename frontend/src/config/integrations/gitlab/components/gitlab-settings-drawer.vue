@@ -193,7 +193,7 @@
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import gitlab from '@/config/integrations/gitlab/config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { useRouter } from 'vue-router';
@@ -390,7 +390,7 @@ const connect = () => {
         });
       })
       .catch((e) => {
-        Message.error('There was an error mapping gitlab repos');
+        ToastStore.error('There was an error mapping gitlab repos');
         console.error(e);
       });
   });

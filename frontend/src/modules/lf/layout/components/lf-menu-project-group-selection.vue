@@ -111,7 +111,8 @@ import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
 import { Pagination } from '@/shared/types/Pagination';
 import { TanstackKey } from '@/shared/types/tanstack';
 import { useDebounce } from '@vueuse/core';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { segmentService } from '../../segments/segments.service';
 import { ProjectGroup } from '../../segments/types/Segments';
 
@@ -214,7 +215,7 @@ function onScroll(e: Event) {
 
 watch(error, (err) => {
   if (err) {
-    Message.error('Something went wrong while fetching project groups');
+    ToastStore.error('Something went wrong while fetching project groups');
   }
 });
 

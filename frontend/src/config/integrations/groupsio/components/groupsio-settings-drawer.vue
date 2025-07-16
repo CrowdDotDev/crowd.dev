@@ -456,17 +456,17 @@ const reverifyAccount = () => {
 };
 
 const onBlurEmail = () => {
-  $v.value.email.$touch();
+  $v.value.email?.$touch();
   canVerify();
 };
 
 const onBlurPassword = () => {
-  $v.value.password.$touch();
+  $v.value.password?.$touch();
   canVerify();
 };
 
 const onBlurTwoFactorCode = () => {
-  $v.value.twoFactorCode.$touch();
+  $v.value.twoFactorCode?.$touch();
   canVerify();
 };
 
