@@ -96,13 +96,6 @@ export default class ActivityService extends LoggerBase {
     // when existing activityId is passed, QuestDB will handle the deduplication
     const id = existingActivityId || generateUUIDv1()
 
-    if (activity.platform === PlatformType.GITHUB) {
-      this.log.trace(
-        { resultId, segmentId, activityId: id, channel: activity.channel, segmentDebug: true },
-        'Preparing for upsert - github activity!',
-      )
-    }
-
     const sentimentPromise = this.getActivitySentiment({
       body: activity.body,
       title: activity.title,
@@ -586,16 +579,6 @@ export default class ActivityService extends LoggerBase {
                   g.integrationId === result.integrationId && g.activity.channel === result.url,
               )) {
                 payload.segmentId = result.segmentId
-                this.log.trace(
-                  {
-                    integrationId: result.integrationId,
-                    channel: result.url,
-                    resultId: payload.resultId,
-                    segmentId: payload.segmentId,
-                    segmentDebug: true,
-                  },
-                  'Setting segmentId from github mapping!',
-                )
               }
             }
           }
