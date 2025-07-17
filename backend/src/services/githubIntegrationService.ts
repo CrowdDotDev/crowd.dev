@@ -151,7 +151,37 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findOrgTopics(org: string, repos: string[]) {
+  public static async findRepoDetail(org: string, repo: string) {
+    const auth = await getGithubInstallationToken()
+    const logger = getServiceLogger()
+
+    try {
+      const { data } = await request(`GET /repos/${org}/${repo}`, {
+        org,
+        headers: {
+          authorization: `bearer ${auth}`,
+        },
+      })
+
+      if (!data) {
+        return null
+      }
+
+      return {
+        description: data.description || null,
+        github: data.html_url,
+        logoUrl: data.owner.avatar_url,
+        name: data.name,
+        twitter: null,
+        website: data.homepage || null,
+      }
+    } catch (error) {
+      logger.warn(`Failed to fetch org ${org}:`, error)
+      return null
+    }
+  }
+
+  public static async findOrgTopics(org: string, repos: { name: string }[]) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -159,7 +189,7 @@ export default class GithubIntegrationService {
 
     const topicPromises = repos.map(async (repo) => {
       try {
-        const res = await request(`GET /repos/${org}/${repo}/topics`, {
+        const res = await request(`GET /repos/${org}/${repo.name}/topics`, {
           headers: {
             authorization: `bearer ${auth}`,
           },
@@ -167,7 +197,7 @@ export default class GithubIntegrationService {
 
         res.data.names.forEach((topic: string) => topicSet.add(topic))
       } catch (err) {
-        logger.warn(`Failed to fetch topics for ${repo}:`, err.response?.data || err.message)
+        logger.warn(`Failed to fetch topics for ${repo.name}:`, err.response?.data || err.message)
       }
     })
 
