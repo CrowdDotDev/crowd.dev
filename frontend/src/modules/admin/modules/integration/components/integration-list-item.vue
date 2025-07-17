@@ -66,7 +66,7 @@
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : dateHelper(integration.lastProcessedAt).fromNow() }}
+            Last data check completed {{ lastDataCheckCompleted }}
           </p>
         </div>
 
@@ -149,6 +149,18 @@ const { trackEvent } = useProductTracking();
 
 const integration = computed(() => findByPlatform.value(props.config.key));
 const status = computed(() => getIntegrationStatus(integration.value));
+
+const lastDataCheckCompleted = computed(() => {
+  if (['github-nango', 'gerrit', 'jira'].includes(integration.value.platform)) {
+    return '1 hour ago';
+  }
+
+  if (integration.value.platform === 'git') {
+    return '5 hours ago';
+  }
+
+  return dateHelper(integration.value.lastProcessedAt).fromNow();
+});
 
 const isInProgress = computed(() => integration.value.status === 'in-progress');
 const hasError = computed(() => integration.value.status === 'error');
