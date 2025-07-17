@@ -122,7 +122,7 @@ export default class ActivityService extends LoggerBase {
       username: activity.username,
       objectMemberId: activity.objectMemberId,
       objectMemberUsername: activity.objectMemberUsername,
-      segmentId: segmentId,
+      segmentId,
       // if the member is bot, we don't want to affiliate the activity with an organization
       organizationId: memberInfo.isBot ? null : activity.organizationId,
       isBotActivity: memberInfo.isBot,
@@ -525,7 +525,7 @@ export default class ActivityService extends LoggerBase {
         resultMap.set(payload.resultId, {
           success: false,
           err: new UnrepeatableError(
-            'No segmentId provided! Something went wrong - it should be integrations.segmentId by default!',
+            'No segmentId provided! Something went wrong - it should be set in the result data or taken from integrations.segmentId column!',
           ),
         })
         relevantPayloads = relevantPayloads.filter((a) => a.resultId !== payload.resultId)
