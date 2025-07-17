@@ -463,8 +463,8 @@ export class CollectionService extends LoggerBase {
         }
 
         if (i.platform === PlatformType.GERRIT) {
-          for (const r of (i.settings as any).remote.repos) {
-            addToResult(i.platform, r, r)
+          for (const r of (i.settings as any).remote.repoNames) {
+            addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
           }
         }
       }
@@ -583,11 +583,13 @@ export class CollectionService extends LoggerBase {
     return result
   }
 
-  async findInsightsProjectsByName(name: string): Promise<QueryResult<InsightsProjectField>[]> {
+  async findInsightsProjectsBySlug(slug: string): Promise<QueryResult<InsightsProjectField>[]> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const normalizedSlug = slug.replace(/^nonlf_/, '')
+
     const result = await queryInsightsProjects(qx, {
       filter: {
-        name: { like: `${name}%` },
+        slug: { eq: normalizedSlug },
         segmentId: { eq: null },
       },
       fields: Object.values(InsightsProjectField),

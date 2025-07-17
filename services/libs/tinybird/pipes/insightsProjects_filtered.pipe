@@ -1,10 +1,14 @@
 DESCRIPTION >
-    Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
+	Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
 
-TAGS "Widget"
+
+TOKEN "insights-app-token" READ
+
+TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
 
 NODE insightsProjects_filtered_1
 SQL >
+
     %
     SELECT
         insights_projects_populated_ds.id,
@@ -27,7 +31,8 @@ SQL >
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
         insights_projects_populated_ds.firstCommit,
-        insights_projects_populated_ds.repoData
+        insights_projects_populated_ds.repoData,
+        insights_projects_populated_ds.healthScore
     FROM insights_projects_populated_ds
     where
         insights_projects_populated_ds.enabled = 1
@@ -59,6 +64,7 @@ SQL >
                 {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
             )
         {% end %}
+
         {% if defined(slugs) %}
             AND insights_projects_populated_ds.slug
             IN {{ Array(slugs, 'String', description="Filter by project slug list", required=False) }}
@@ -85,4 +91,9 @@ SQL >
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
         insights_projects_populated_ds.firstCommit,
-        insights_projects_populated_ds.repoData
+        insights_projects_populated_ds.repoData,
+        insights_projects_populated_ds.healthScore
+
+TYPE endpoint
+
+

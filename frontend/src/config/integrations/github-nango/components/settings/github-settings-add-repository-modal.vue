@@ -229,7 +229,7 @@ import {
   GitHubSettingsRepository,
 } from '@/config/integrations/github-nango/types/GithubSettings';
 import { GithubApiService } from '@/config/integrations/github-nango/services/github.api.service';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const props = defineProps<{
@@ -351,7 +351,7 @@ const searchForResults = () => {
       }
     })
     .catch(() => {
-      Message.error(`There has been error fetching ${tab.value}`);
+      ToastStore.error(`There has been error fetching ${tab.value}`);
     })
     .finally(() => {
       loading.value = false;

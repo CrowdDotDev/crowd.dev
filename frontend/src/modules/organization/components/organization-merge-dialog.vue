@@ -191,10 +191,10 @@ const mergeSuggestion = () => {
 
         organizationStore
           .fetchOrganization(primaryOrganization.id, segments)
-          .then(() => {
+          .then((res) => {
             router.replace({
               params: {
-                id,
+                id: res.id,
               },
             });
           });

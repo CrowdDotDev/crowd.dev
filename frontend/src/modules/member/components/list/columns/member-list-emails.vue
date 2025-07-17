@@ -48,9 +48,8 @@
     <el-popover
       v-if="distinctEmails?.length > 3"
       placement="top"
-      :width="400"
       trigger="hover"
-      popper-class="support-popover"
+      popper-class="support-popover max-h-100 overflow-y-auto !w-auto"
     >
       <template #reference>
         <span

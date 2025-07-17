@@ -1,7 +1,8 @@
-import { runMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { refreshMemberOrganizationAffiliations } from '@crowd/data-access-layer/src/member-organization-affiliation'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MergeActionRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/mergeAction.repo'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { IMergeAction } from '@crowd/types'
 
 import { svc } from '../../main'
@@ -41,7 +42,8 @@ export async function moveActivitiesToCorrectEntity(
 
 export async function calculateMemberAffiliations(memberId: string): Promise<void> {
   try {
-    await runMemberAffiliationsUpdate(svc.postgres.writer, svc.questdbSQL, svc.queue, memberId)
+    const qx = pgpQx(svc.postgres.writer.connection())
+    await refreshMemberOrganizationAffiliations(qx, memberId)
   } catch (err) {
     throw new Error(err)
   }

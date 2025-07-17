@@ -17,9 +17,9 @@ import {
   groupBy,
 } from '@crowd/common'
 import {
-  countMembersWithActivities,
   getActiveMembers,
   getLastActivitiesForMembers,
+  queryActivityRelations,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -1437,7 +1437,9 @@ class MemberRepository {
       segments = [originalSegment]
     }
 
-    const activeMemberResults = await getActiveMembers(options.qdb, {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
+    const activeMemberResults = await getActiveMembers(qx, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toISOString(),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toISOString(),
       isContribution: filter.activityIsContribution === true ? true : undefined,
@@ -1565,13 +1567,21 @@ class MemberRepository {
   }
 
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
-    const countResults = await countMembersWithActivities(options.qdb, {
-      segmentIds,
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const result = await queryActivityRelations(qx, {
+      filter: {
+        and: [
+          {
+            segmentId: {
+              in: segmentIds,
+            },
+          },
+        ],
+      },
+      countOnly: true,
     })
-    return countResults.reduce((acc, curr: any) => {
-      acc[curr.segmentId] = parseInt(curr.totalCount, 10)
-      return acc
-    }, {})
+
+    return result.count
   }
 
   static async countMembers(options: IRepositoryOptions, segmentIds: string[]) {
@@ -1710,9 +1720,10 @@ class MemberRepository {
       row.activityCount = parseInt(row.activityCount, 10)
     }
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const qx = SequelizeRepository.getQueryExecutor(options)
       const organizationIds = uniq(
         translatedRows.reduce((acc, r) => {
           acc.push(...r.organizations.map((o) => o.id))
@@ -1729,7 +1740,7 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, segments)
+      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, segments)
 
       for (const row of translatedRows) {
         const r = row as any
@@ -2114,7 +2125,9 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, [segmentId])
+      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, [
+        segmentId,
+      ])
 
       rows.forEach((r) => {
         r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
