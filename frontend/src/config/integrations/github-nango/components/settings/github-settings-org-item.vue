@@ -77,8 +77,8 @@
       </div>
 
       <div v-if="isSynced" class="flex w-full justify-end mt-2 mb-1">
-        <div class="flex text-right gap-1">
-          <lf-icon name="circle-info" type="regular" :size="12" />
+        <div class="flex items-center text-right gap-1">
+          <lf-icon name="circle-info" type="regular" :size="14" />
           <p class="text-2xs text-gray-500">
             Sync of future organization repositories comming soon.
           </p>
