@@ -1174,13 +1174,13 @@ export default class ActivityService extends LoggerBase {
 
     this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
 
-    const preparedForUpsert = preparedActivities.filter((a) => a.payload)
+    const activitiesWithPayload = preparedActivities.filter((a) => a.payload)
 
     const uniqueConstraintKeys = new Set<string>()
-    const duplicates = []
+    const preparedForUpsert = []
 
-    for (const item of preparedForUpsert) {
-      // Only include non-null, non-empty values in the key
+    for (const item of activitiesWithPayload) {
+      // only include non-null, non-empty values in the key
       const key = [
         item.payload.timestamp,
         item.payload.platform,
@@ -1192,18 +1192,11 @@ export default class ActivityService extends LoggerBase {
         .filter((v) => v !== undefined && v !== null && v !== '')
         .join('|')
 
-      if (uniqueConstraintKeys.has(key)) {
-        duplicates.push({ key, activityId: item.payload.id })
-      } else {
+      // deduplication
+      if (!uniqueConstraintKeys.has(key)) {
         uniqueConstraintKeys.add(key)
+        preparedForUpsert.push(item)
       }
-    }
-
-    if (duplicates.length > 0) {
-      this.log.error('Duplicates detected in same preparedForUpsert batch', {
-        duplicatesCount: duplicates.length,
-        preparedForUpsertBatchCount: preparedForUpsert.length,
-      })
     }
 
     const toUpsert = preparedForUpsert.map((a) => a.payload)
