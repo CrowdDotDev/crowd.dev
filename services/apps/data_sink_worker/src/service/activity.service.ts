@@ -1180,7 +1180,7 @@ export default class ActivityService extends LoggerBase {
     const preparedForUpsert = []
 
     for (const item of activitiesWithPayload) {
-      // only include non-null, non-empty values in the key
+      // deduplication key with placeholders for empty values
       const key = [
         item.payload.timestamp,
         item.payload.platform,
@@ -1189,10 +1189,9 @@ export default class ActivityService extends LoggerBase {
         item.payload.channel,
         item.payload.segmentId,
       ]
-        .filter((v) => v !== undefined && v !== null && v !== '')
+        .map((v) => (v !== undefined && v !== null && v !== '' ? v : '<empty>'))
         .join('|')
 
-      // deduplication
       if (!uniqueConstraintKeys.has(key)) {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
