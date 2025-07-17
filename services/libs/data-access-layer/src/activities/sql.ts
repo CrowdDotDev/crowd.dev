@@ -1670,7 +1670,7 @@ export async function moveActivityRelationsToAnotherMember(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    rowsUpdated = await qe.result(
       `
           UPDATE "activityRelations"
           SET "memberId" = $(toId)
@@ -1687,8 +1687,6 @@ export async function moveActivityRelationsToAnotherMember(
         batchSize,
       },
     )
-
-    rowsUpdated = result.length
   } while (rowsUpdated === batchSize)
 }
 
@@ -1703,7 +1701,7 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    rowsUpdated = await qe.result(
       `
           UPDATE "activityRelations"
           SET "memberId" = $(toId)
@@ -1725,8 +1723,6 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
         batchSize,
       },
     )
-
-    rowsUpdated = result.length
   } while (rowsUpdated === batchSize)
 }
 
@@ -1739,7 +1735,7 @@ export async function moveActivityRelationsToAnotherOrganization(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    rowsUpdated = await qe.result(
       `
           UPDATE "activityRelations"
           SET "organizationId" = $(toId)
@@ -1756,8 +1752,6 @@ export async function moveActivityRelationsToAnotherOrganization(
         batchSize,
       },
     )
-
-    rowsUpdated = result.length
   } while (rowsUpdated === batchSize)
 }
 

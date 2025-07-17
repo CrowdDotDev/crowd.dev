@@ -23,6 +23,12 @@ import {
 } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
+  findIdentitiesForMembers,
+  findMembersByIdentities,
+  findMembersByVerifiedEmails,
+  findMembersByVerifiedUsernames,
+} from '@crowd/data-access-layer/src/member_identities'
+import {
   IDbActivity,
   IDbActivityCreateData,
   IDbActivityUpdateData,
@@ -33,7 +39,7 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
@@ -62,6 +68,8 @@ export default class ActivityService extends LoggerBase {
   private readonly gitlabReposRepo: GitlabReposRepository
   private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
 
+  private readonly pgQx: QueryExecutor
+
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -79,6 +87,8 @@ export default class ActivityService extends LoggerBase {
     this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
     this.requestedForErasureMemberIdentitiesRepo =
       new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
+
+    this.pgQx = dbStoreQx(this.pgStore)
   }
 
   public async prepareForUpsert(
@@ -812,7 +822,7 @@ export default class ActivityService extends LoggerBase {
       )
 
       const dbMembersByUsername = await logExecutionTimeV2(
-        async () => this.memberRepo.findMembersByUsernames(usernameFilter),
+        async () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
         this.log,
         'processActivities -> memberRepo.findMembersByUsernames',
       )
@@ -862,7 +872,7 @@ export default class ActivityService extends LoggerBase {
 
       if (emails.size > 0) {
         const dbMembersByEmail = await logExecutionTimeV2(
-          async () => this.memberRepo.findMembersByEmails(Array.from(emails)),
+          async () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
           this.log,
           'processActivities -> memberRepo.findMembersByEmails',
         )
@@ -1083,7 +1093,7 @@ export default class ActivityService extends LoggerBase {
 
     let dbMemberIdentities: Map<string, IMemberIdentity[]> = new Map()
     if (memberIds.size > 0) {
-      dbMemberIdentities = await this.memberRepo.getIdentities(Array.from(memberIds))
+      dbMemberIdentities = await findIdentitiesForMembers(this.pgQx, Array.from(memberIds))
     }
 
     for (const payload of relevantPayloads) {
@@ -1488,7 +1498,8 @@ export default class ActivityService extends LoggerBase {
         type,
       }
 
-      const membersWithIdentity = await this.memberRepo.findIdentities(
+      const membersWithIdentity = await findMembersByIdentities(
+        this.pgQx,
         [
           {
             platform,

@@ -1,7 +1,7 @@
 import { uniq } from 'lodash'
 
-import { Error400, RawQueryParser, groupBy } from '@crowd/common'
-import { DbConnOrTx } from '@crowd/database'
+import { DEFAULT_TENANT_ID, Error400, RawQueryParser, generateUUIDv1, groupBy } from '@crowd/common'
+import { DbConnOrTx, formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -18,6 +18,10 @@ import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
+import {
+  IDbMemberCreateData,
+  IDbMemberUpdateData,
+} from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
@@ -476,4 +480,62 @@ export async function moveAffiliationsBetweenMembers(
     `update "memberOrganizationAffiliationOverrides" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
     params,
   )
+}
+
+export async function updateMember(
+  qx: QueryExecutor,
+  id: string,
+  data: IDbMemberUpdateData,
+): Promise<void> {
+  const keys = Object.keys(data)
+  if (keys.length === 0) {
+    return
+  }
+
+  const dbInstance = getDbInstance()
+
+  keys.push('updatedAt')
+  // construct custom column set
+  const dynamicColumnSet = new dbInstance.helpers.ColumnSet(keys, {
+    table: {
+      table: 'members',
+    },
+  })
+
+  const updatedAt = new Date()
+
+  const prepared = prepareForModification(
+    {
+      ...data,
+      updatedAt,
+    },
+    dynamicColumnSet,
+  )
+  const query = dbInstance.helpers.update(prepared, dynamicColumnSet)
+
+  const condition = formatSql('where id = $(id) and "updatedAt" < $(updatedAt)', {
+    id,
+    updatedAt,
+  })
+  await qx.result(`${query} ${condition}`)
+}
+
+export async function createMember(qx: QueryExecutor, data: IDbMemberCreateData): Promise<string> {
+  const id = generateUUIDv1()
+  const ts = new Date()
+  const prepared = prepareForModification(
+    {
+      ...data,
+      id,
+      tenantId: DEFAULT_TENANT_ID,
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    this.insertMemberColumnSet,
+  )
+  const dbInstance = getDbInstance()
+
+  const query = dbInstance.helpers.insert(prepared, this.insertMemberColumnSet)
+  await qx.select(query)
+  return id
 }

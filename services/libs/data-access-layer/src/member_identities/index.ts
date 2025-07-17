@@ -226,7 +226,7 @@ export async function findAlreadyExistingVerifiedIdentities(
   )
 }
 
-export async function findMembersByVerifiedEmail(
+export async function findMembersByVerifiedEmails(
   qx: QueryExecutor,
   emails: string[],
 ): Promise<Map<string, IDbMember>> {

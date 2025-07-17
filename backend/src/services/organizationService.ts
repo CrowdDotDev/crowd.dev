@@ -7,7 +7,12 @@ import {
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
 import { Error400, Error409, mergeObjects, websiteNormalizer } from '@crowd/common'
-import { optionsQx } from '@crowd/data-access-layer'
+import {
+  addMemberRole,
+  moveMembersBetweenOrganizations,
+  optionsQx,
+  removeMemberRole,
+} from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   addMergeAction,
@@ -340,10 +345,10 @@ export default class OrganizationService extends LoggerBase {
 
             if (mergeAction.unmergeBackup.secondary.memberOrganizations.length > 0) {
               for (const role of mergeAction.unmergeBackup.secondary.memberOrganizations) {
-                await MemberOrganizationRepository.addMemberRole(
-                  { ...role, organizationId: secondaryOrganization.id },
-                  repoOptions,
-                )
+                await addMemberRole(optionsQx(repoOptions), {
+                  ...role,
+                  organizationId: secondaryOrganization.id,
+                })
               }
 
               const memberOrganizations =
@@ -373,7 +378,7 @@ export default class OrganizationService extends LoggerBase {
               )
 
               for (const role of rolesToDelete) {
-                await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+                await removeMemberRole(optionsQx(repoOptions), role)
               }
             }
           }
@@ -642,9 +647,8 @@ export default class OrganizationService extends LoggerBase {
             '[Merge Organizations] - Moving members to original organisation! ',
           )
 
-          // update members that belong to source organization to destination org
-          const memberOrganizationService = new MemberOrganizationService(repoOptions)
-          await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
+          // update members that belong to source organization to destinati
+          await moveMembersBetweenOrganizations(optionsQx(repoOptions), toMergeId, originalId)
 
           this.log.info(
             { originalId, toMergeId },

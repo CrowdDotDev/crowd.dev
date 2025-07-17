@@ -10,6 +10,7 @@ import { MemberMergeService } from '@crowd/common_services'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  addMemberRole,
   addMemberTags,
   fetchMemberIdentities,
   findMemberById,
@@ -18,6 +19,7 @@ import {
   findMemberTags,
   insertMemberSegmentAggregates,
   queryMembersAdvanced,
+  removeMemberRole,
   removeMemberTags,
 } from '@crowd/data-access-layer/src/members'
 import { addMergeAction, setMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
@@ -729,10 +731,7 @@ export default class MemberService extends LoggerBase {
             for (const role of payload.secondary.memberOrganizations.filter(
               (r) => !nonExistingOrganizationIds.includes(r.organizationId),
             )) {
-              await MemberOrganizationRepository.addMemberRole(
-                { ...role, memberId: secondaryMember.id },
-                repoOptions,
-              )
+              await addMemberRole(optionsQx(repoOptions), { ...role, memberId: secondaryMember.id })
             }
 
             const memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
@@ -753,7 +752,7 @@ export default class MemberService extends LoggerBase {
             )
 
             for (const role of rolesToDelete) {
-              await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+              await removeMemberRole(optionsQx(repoOptions), role)
             }
           }
 

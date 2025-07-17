@@ -11,7 +11,12 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
+import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import {
+  findIdentitiesForMembers,
+  findMembersByVerifiedUsernames,
+} from '@crowd/data-access-layer/src/member_identities'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   IDbMember,
@@ -37,6 +42,7 @@ import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
   private readonly memberRepo: MemberRepository
+  private readonly pgQx: QueryExecutor
 
   constructor(
     private readonly store: DbStore,
@@ -46,6 +52,7 @@ export default class MemberService extends LoggerBase {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
+    this.pgQx = dbStoreQx(this.store)
   }
 
   public async create(
@@ -93,7 +100,7 @@ export default class MemberService extends LoggerBase {
 
           const id = await logExecutionTimeV2(
             () =>
-              this.memberRepo.create({
+              createMember(this.pgQx, {
                 displayName: getProperDisplayName(data.displayName),
                 joinedAt: data.joinedAt.toISOString(),
                 attributes,
@@ -294,7 +301,7 @@ export default class MemberService extends LoggerBase {
 
             if (!isObjectEmpty(dataToUpdate)) {
               await logExecutionTimeV2(
-                () => this.memberRepo.update(id, dataToUpdate),
+                () => updateMember(this.pgQx, id, dataToUpdate),
                 this.log,
                 'memberService -> update -> update',
               )
@@ -513,7 +520,7 @@ export default class MemberService extends LoggerBase {
         member.identities,
         (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
       )
-      const dbMembers = await this.memberRepo.findMembersByUsernames([
+      const dbMembers = await findMembersByVerifiedUsernames(this.pgQx, [
         {
           segmentId,
           platform,
@@ -529,7 +536,7 @@ export default class MemberService extends LoggerBase {
         this.log.trace({ memberId: dbMember.id }, 'Fetching member identities!')
         const dbIdentities = await logExecutionTimeV2(
           async () => {
-            const identities = await this.memberRepo.getIdentities([dbMember.id])
+            const identities = await findIdentitiesForMembers(this.pgQx, [dbMember.id])
             return identities.get(dbMember.id)
           },
           this.log,

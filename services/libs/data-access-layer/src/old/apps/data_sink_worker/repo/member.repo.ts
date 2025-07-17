@@ -1,5 +1,12 @@
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
-import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
+import {
+  DbColumnSet,
+  DbStore,
+  RepositoryBase,
+  formatSql,
+  getDbInstance,
+  prepareForModification,
+} from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
@@ -39,63 +46,13 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async create(data: IDbMemberCreateData): Promise<string> {
-    const id = generateUUIDv1()
-    const ts = new Date()
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        id,
-        tenantId: DEFAULT_TENANT_ID,
-        createdAt: ts,
-        updatedAt: ts,
-      },
-      this.insertMemberColumnSet,
-    )
-    const query = this.dbInstance.helpers.insert(prepared, this.insertMemberColumnSet)
-    await this.db().none(query)
-    return id
-  }
-
-  public async update(id: string, data: IDbMemberUpdateData): Promise<void> {
-    const keys = Object.keys(data)
-    if (keys.length === 0) {
-      return
-    }
-
-    keys.push('updatedAt')
-    // construct custom column set
-    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
-      table: {
-        table: 'members',
-      },
-    })
-
-    const updatedAt = new Date()
-
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        updatedAt,
-      },
-      dynamicColumnSet,
-    )
-    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-
-    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
-      id,
-      updatedAt,
-    })
-    await this.db().result(`${query} ${condition}`)
-  }
-
   public async removeIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {
-    const result = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
+    const rowCount = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
       memberId,
       identities,
     })
 
-    this.checkUpdateRowCount(result.rowCount, identities.length)
+    this.checkUpdateRowCount(rowCount, identities.length)
   }
 
   public async updateIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {

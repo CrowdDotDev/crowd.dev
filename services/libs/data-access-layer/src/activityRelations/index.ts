@@ -99,7 +99,7 @@ export async function deleteActivityRelationsById(
   qx: QueryExecutor,
   activityIds: string[],
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
     DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds:csv));
     `,

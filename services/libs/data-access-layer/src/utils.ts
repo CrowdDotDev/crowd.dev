@@ -1,7 +1,7 @@
 import pgp from 'pg-promise'
 
 import { RawQueryParser } from '@crowd/common'
-import { DbConnOrTx } from '@crowd/database'
+import { DbColumnSet, DbConnOrTx } from '@crowd/database'
 
 import { QueryFilter } from './query'
 import { QueryExecutor } from './queryExecutor'
@@ -158,7 +158,7 @@ export async function updateTableById<T extends string>(
   data: Partial<{ [K in T]: unknown }>,
 ) {
   const fields = columns.filter((col) => col in data)
-  return qx.result(
+  return qx.selectOneOrNone(
     `
       UPDATE $(table:name)
       SET

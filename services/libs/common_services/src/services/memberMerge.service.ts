@@ -20,8 +20,11 @@ import {
   includeMemberToSegments,
   moveAffiliationsBetweenMembers,
   moveIdentitiesBetweenMembers,
+  moveOrgsBetweenMembers,
+  updateMember,
 } from '@crowd/data-access-layer'
 import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
+import { removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   addMergeAction,
@@ -145,25 +148,16 @@ export class MemberMergeService extends LoggerBase {
             // Performs a merge and returns the fields that were changed so we can update
             const toUpdate: any = await MemberMergeService.membersMerge(original, toMerge)
 
-            // TODO
-            // Update original member
-            // const txService = new MemberService(repoOptions as IServiceOptions)
-
             captureNewState({ primary: toUpdate })
 
-            // TODO
-            // await txService.update(originalId, toUpdate, {
-            //   syncToOpensearch: false,
-            // })
+            // Update original member
+            await updateMember(txQx, originalId, toUpdate)
 
-            // TODO
             // update members that belong to source organization to destination org
-            // const memberOrganizationService = new MemberOrganizationService(repoOptions)
-            // await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
+            await moveOrgsBetweenMembers(txQx, originalId, toMergeId)
 
-            // TODO
             // Remove toMerge from original member
-            // await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
+            await removeMemberToMerge(txQx, originalId, toMergeId)
 
             const secondMemberSegments = await getMemberSegments(txQx, toMergeId)
 

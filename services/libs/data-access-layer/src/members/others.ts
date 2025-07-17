@@ -28,7 +28,7 @@ export async function addMemberTags(
   memberId: string,
   tagIds: string[],
 ): Promise<IMemberTag[]> {
-  return qx.result(
+  return qx.selectOne(
     `
       INSERT INTO "memberTags" ("createdAt", "updatedAt", "memberId", "tagId")
       SELECT NOW(), NOW(), $(memberId), id
@@ -65,7 +65,7 @@ export async function updateMemberReach(
   memberId: string,
   reach: IMemberReach,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
           UPDATE "members"
           SET
@@ -80,7 +80,7 @@ export async function updateMemberReach(
 }
 
 export async function touchMemberUpdatedAt(qx: QueryExecutor, memberId: string): Promise<void> {
-  return qx.result(`UPDATE members SET "updatedAt" = NOW() WHERE id = $(memberId)`, { memberId })
+  await qx.result(`UPDATE members SET "updatedAt" = NOW() WHERE id = $(memberId)`, { memberId })
 }
 
 export async function getMemberManuallyChangedFields(
@@ -105,7 +105,7 @@ export async function setMemberManuallyChangedFields(
   memberId: string,
   fields: string[],
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
       UPDATE "members"
       SET "manuallyChangedFields" = $(fields)
