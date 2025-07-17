@@ -14,7 +14,7 @@ SQL >
     WHERE
         insightsProjectId = toUUID((select insightsProjectId from segments_filtered))
         {% if defined(startDate) %}
-            AND searchVolume.dataTimestamp
+            AND toDateTime(searchVolume.dataTimestamp)
             >= {{
                 DateTime(
                     startDate,
@@ -24,7 +24,7 @@ SQL >
             }}
         {% end %}
         {% if defined(endDate) %}
-            AND searchVolume.dataTimestamp
+            AND toDateTime(searchVolume.dataTimestamp)
             <= {{
                 DateTime(
                     endDate,
