@@ -80,7 +80,7 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
         params[integrationKey] = repo.integrationId
       }
 
-      const results = await this.db().any(
+      const dbResults = await this.db().any(
         `
           SELECT "integrationId", "url", "segmentId"
           FROM "githubRepos"
@@ -94,7 +94,7 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
       for (const repo of remainingRepos) {
         const key = `${repo.integrationId}:${repo.url}`
 
-        const found = results.find(
+        const found = dbResults.find(
           (e) => e.integrationId === repo.integrationId && e.url === repo.url,
         )
 
