@@ -1295,14 +1295,14 @@ export interface IActivityRelationsCreateData {
 
 export async function getActivityRelationsSortedByTimestamp(
   qdbConn: DbConnOrTx,
-  cursorActivityTimestamp?: string,
+  cursorActivityCreatedAt?: string,
   limit = 100,
   segmentIds?: string[],
 ): Promise<IActivityRelationsCreateData[]> {
   const conditions: string[] = [`"deletedAt" is null`]
 
-  if (cursorActivityTimestamp) {
-    conditions.push('timestamp >= $(cursorActivityTimestamp)')
+  if (cursorActivityCreatedAt) {
+    conditions.push('"createdAt" >= $(cursorActivityCreatedAt)')
   }
 
   if (segmentIds && segmentIds.length > 0) {
@@ -1335,12 +1335,12 @@ export async function getActivityRelationsSortedByTimestamp(
       "attributes"
     FROM activities
     WHERE ${conditions.join(' AND ')}
-    ORDER BY "timestamp" asc
+    ORDER BY "createdAt" asc
     LIMIT ${limit}
   `
 
   const rows = await qdbConn.any(query, {
-    cursorActivityTimestamp,
+    cursorActivityCreatedAt,
     segmentIds,
     limit,
   })

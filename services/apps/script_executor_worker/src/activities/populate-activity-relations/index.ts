@@ -29,13 +29,13 @@ export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promi
 }
 
 export async function getActivitiesToCopy(
-  latestSyncedActivityTimestamp: string,
+  latestSyncedActivityCreatedAt: string,
   limit: number,
   segmentIds?: string[],
 ) {
   const activities = await getActivityRelationsSortedByTimestamp(
     svc.questdbSQL,
-    latestSyncedActivityTimestamp,
+    latestSyncedActivityCreatedAt,
     limit,
     segmentIds,
   )
@@ -51,7 +51,7 @@ export async function getActivitiesToCopy(
   return {
     activitiesRedisKey: key,
     activitiesLength: activities.length,
-    lastTimestamp: activities[activities.length - 1].timestamp,
+    lastCreatedAt: activities[activities.length - 1].createdAt,
   }
 }
 

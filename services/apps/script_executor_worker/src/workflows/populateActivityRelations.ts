@@ -12,18 +12,18 @@ export async function populateActivityRelations(
   args: IPopulateActivityRelationsArgs,
 ): Promise<void> {
   const BATCH_SIZE_PER_RUN = args.batchSizePerRun || 1000
-  let latestSyncedActivityTimestamp
+  const latestSyncedActivityCreatedAt = args.latestSyncedActivityCreatedAt
 
-  if (args.deleteIndexedEntities) {
-    await activity.resetIndexedIdentities()
-    latestSyncedActivityTimestamp = null
-  } else {
-    latestSyncedActivityTimestamp =
-      args.latestSyncedActivityTimestamp || (await activity.getLatestSyncedActivityTimestamp())
-  }
+  // if (args.deleteIndexedEntities) {
+  //   await activity.resetIndexedIdentities()
+  //   latestSyncedActivityTimestamp = null
+  // } else {
+  //   latestSyncedActivityTimestamp =
+  //     args.latestSyncedActivityTimestamp || (await activity.getLatestSyncedActivityTimestamp())
+  // }
 
-  let { activitiesLength, activitiesRedisKey, lastTimestamp } = await activity.getActivitiesToCopy(
-    latestSyncedActivityTimestamp ?? undefined,
+  let { activitiesLength, activitiesRedisKey, lastCreatedAt } = await activity.getActivitiesToCopy(
+    latestSyncedActivityCreatedAt ?? undefined,
     BATCH_SIZE_PER_RUN,
     args.segmentIds,
   )
@@ -32,7 +32,7 @@ export async function populateActivityRelations(
     return
   }
 
-  if (lastTimestamp === args.latestSyncedActivityTimestamp) {
+  if (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
     if (activitiesLength < BATCH_SIZE_PER_RUN) {
       return
     }
@@ -41,15 +41,15 @@ export async function populateActivityRelations(
     // then the default one to pass this point
     let batchSizeMultiplier = 2
 
-    while (lastTimestamp === args.latestSyncedActivityTimestamp) {
+    while (lastCreatedAt === args.latestSyncedActivityCreatedAt) {
       const result = await activity.getActivitiesToCopy(
-        lastTimestamp,
+        lastCreatedAt,
         BATCH_SIZE_PER_RUN * batchSizeMultiplier,
         args.segmentIds,
       )
       activitiesLength = result.activitiesLength
       activitiesRedisKey = result.activitiesRedisKey
-      lastTimestamp = result.lastTimestamp
+      lastCreatedAt = result.lastCreatedAt
       batchSizeMultiplier += 1
     }
   }
@@ -60,6 +60,6 @@ export async function populateActivityRelations(
 
   await continueAsNew<typeof populateActivityRelations>({
     batchSizePerRun: args.batchSizePerRun,
-    latestSyncedActivityTimestamp: lastTimestamp,
+    latestSyncedActivityCreatedAt: lastCreatedAt,
   })
 }

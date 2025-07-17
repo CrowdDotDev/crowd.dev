@@ -28,7 +28,8 @@ export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
-  latestSyncedActivityTimestamp?: string
+  // latestSyncedActivityTimestamp?: string
+  latestSyncedActivityCreatedAt?: string
   segmentIds?: string[]
 }
 
