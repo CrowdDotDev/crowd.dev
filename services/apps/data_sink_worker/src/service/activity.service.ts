@@ -96,6 +96,13 @@ export default class ActivityService extends LoggerBase {
     // when existing activityId is passed, QuestDB will handle the deduplication
     const id = existingActivityId || generateUUIDv1()
 
+    if (activity.platform === PlatformType.GITHUB) {
+      this.log.trace(
+        { resultId, segmentId, activityId: id, channel: activity.channel, segmentDebug: true },
+        'Preparing for upsert - github activity!',
+      )
+    }
+
     const sentimentPromise = this.getActivitySentiment({
       body: activity.body,
       title: activity.title,
@@ -122,7 +129,7 @@ export default class ActivityService extends LoggerBase {
       username: activity.username,
       objectMemberId: activity.objectMemberId,
       objectMemberUsername: activity.objectMemberUsername,
-      segmentId: segmentId,
+      segmentId,
       // if the member is bot, we don't want to affiliate the activity with an organization
       organizationId: memberInfo.isBot ? null : activity.organizationId,
       isBotActivity: memberInfo.isBot,
