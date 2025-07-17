@@ -27,30 +27,36 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
 
     let promises = []
     for (const repo of toFind) {
-      promises.push(async () => {
-        const key = `${repo.integrationId}:${repo.url}`
-        const cached = await this.cache.get(key)
-        if (cached) {
-          if (cached === 'null') {
-            this.log.trace(
-              { segmentDebug: true, integrationId: repo.integrationId, channel: repo.url },
-              'No segment mapping found for github repo in the cache!',
-            )
-            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: undefined })
-          } else {
-            this.log.trace(
-              {
-                segmentDebug: true,
+      promises.push(
+        (async () => {
+          const key = `${repo.integrationId}:${repo.url}`
+          const cached = await this.cache.get(key)
+          if (cached) {
+            if (cached === 'null') {
+              this.log.trace(
+                { segmentDebug: true, integrationId: repo.integrationId, channel: repo.url },
+                'No segment mapping found for github repo in the cache!',
+              )
+              results.push({
                 integrationId: repo.integrationId,
-                channel: repo.url,
-                segmentId: cached,
-              },
-              'Segment mapping found for github repo in the cache!',
-            )
-            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
+                url: repo.url,
+                segmentId: undefined,
+              })
+            } else {
+              this.log.trace(
+                {
+                  segmentDebug: true,
+                  integrationId: repo.integrationId,
+                  channel: repo.url,
+                  segmentId: cached,
+                },
+                'Segment mapping found for github repo in the cache!',
+              )
+              results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
+            }
           }
-        }
-      })
+        })().catch((err) => this.log.error(err, 'Error finding segment for github repo in redis!')),
+      )
     }
 
     await Promise.all(promises)

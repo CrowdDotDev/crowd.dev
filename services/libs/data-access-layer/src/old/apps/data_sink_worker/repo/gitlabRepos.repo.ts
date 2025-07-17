@@ -28,17 +28,23 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
 
     let promises = []
     for (const repo of toFind) {
-      promises.push(async () => {
-        const key = `${repo.integrationId}:${repo.url}`
-        const cached = await this.cache.get(key)
-        if (cached) {
-          if (cached === 'null') {
-            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: undefined })
-          } else {
-            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
+      promises.push(
+        (async () => {
+          const key = `${repo.integrationId}:${repo.url}`
+          const cached = await this.cache.get(key)
+          if (cached) {
+            if (cached === 'null') {
+              results.push({
+                integrationId: repo.integrationId,
+                url: repo.url,
+                segmentId: undefined,
+              })
+            } else {
+              results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
+            }
           }
-        }
-      })
+        })().catch((err) => this.log.error(err, 'Error finding segment for gitlab repo in redis!')),
+      )
     }
 
     await Promise.all(promises)
