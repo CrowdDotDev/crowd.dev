@@ -1174,7 +1174,30 @@ export default class ActivityService extends LoggerBase {
 
     this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
 
-    const preparedForUpsert = preparedActivities.filter((a) => a.payload)
+    const activitiesWithPayload = preparedActivities.filter((a) => a.payload)
+
+    const uniqueConstraintKeys = new Set<string>()
+    const preparedForUpsert = []
+
+    for (const item of activitiesWithPayload) {
+      // deduplication key with placeholders for empty values
+      const key = [
+        item.payload.timestamp,
+        item.payload.platform,
+        item.payload.type,
+        item.payload.sourceId,
+        item.payload.channel,
+        item.payload.segmentId,
+      ]
+        .map((v) => (v !== undefined && v !== null && v !== '' ? v : '<empty>'))
+        .join('|')
+
+      if (!uniqueConstraintKeys.has(key)) {
+        uniqueConstraintKeys.add(key)
+        preparedForUpsert.push(item)
+      }
+    }
+
     const toUpsert = preparedForUpsert.map((a) => a.payload)
     if (toUpsert.length > 0) {
       this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
