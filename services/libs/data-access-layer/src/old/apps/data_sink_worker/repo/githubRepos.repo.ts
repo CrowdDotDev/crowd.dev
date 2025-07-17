@@ -32,10 +32,23 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
         const cached = await this.cache.get(key)
         if (cached) {
           if (cached === 'null') {
+            this.log.trace(
+              { segmentDebug: true, integrationId: repo.integrationId, channel: repo.url },
+              'No segment mapping found for github repo in the cache!',
+            )
             results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: undefined })
+          } else {
+            this.log.trace(
+              {
+                segmentDebug: true,
+                integrationId: repo.integrationId,
+                channel: repo.url,
+                segmentId: cached,
+              },
+              'Segment mapping found for github repo in the cache!',
+            )
+            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
           }
-
-          results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
         }
       })
     }
@@ -86,6 +99,15 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
             segmentId: found.segmentId,
           })
           promises.push(this.cache.set(key, found.segmentId, 7 * 60 * 60 * 24))
+          this.log.trace(
+            {
+              segmentDebug: true,
+              integrationId: repo.integrationId,
+              channel: repo.url,
+              segmentId: found.segmentId,
+            },
+            'Segment mapping found for github repo in the database!',
+          )
         } else {
           promises.push(this.cache.set(key, 'null', 7 * 60 * 60 * 24))
           results.push({
@@ -93,6 +115,15 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
             url: repo.url,
             segmentId: undefined,
           })
+
+          this.log.trace(
+            {
+              segmentDebug: true,
+              integrationId: repo.integrationId,
+              channel: repo.url,
+            },
+            'No segment mapping found for github repo in the database!',
+          )
         }
       }
     }

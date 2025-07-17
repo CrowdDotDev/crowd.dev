@@ -525,7 +525,7 @@ export default class ActivityService extends LoggerBase {
         resultMap.set(payload.resultId, {
           success: false,
           err: new UnrepeatableError(
-            'No segmentId provided! Something went wrong - it should be integrations.segmentId by default!',
+            'No segmentId provided! Something went wrong - it should be set in the result data or taken from integrations.segmentId column!',
           ),
         })
         relevantPayloads = relevantPayloads.filter((a) => a.resultId !== payload.resultId)
@@ -579,6 +579,16 @@ export default class ActivityService extends LoggerBase {
                   g.integrationId === result.integrationId && g.activity.channel === result.url,
               )) {
                 payload.segmentId = result.segmentId
+                this.log.trace(
+                  {
+                    integrationId: result.integrationId,
+                    channel: result.url,
+                    resultId: payload.resultId,
+                    segmentId: payload.segmentId,
+                    segmentDebug: true,
+                  },
+                  'Setting segmentId from github mapping!',
+                )
               }
             }
           }

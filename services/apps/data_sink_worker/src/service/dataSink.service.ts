@@ -155,6 +155,11 @@ export default class DataSinkService extends LoggerBase {
       const { segmentId, integrationId, data, resultId } = toProcess
       const id = resultId ?? generateUUIDv1()
 
+      this.log.trace(
+        { integrationId, resultId: id, segmentId, segmentDebug: true },
+        `[SEGMENT-DEBUG] Preparing in memory activity result!`,
+      )
+
       const payload: IIntegrationResult = {
         type: IntegrationResultType.ACTIVITY,
         data,
@@ -213,6 +218,10 @@ export default class DataSinkService extends LoggerBase {
 
           if (!segmentId) {
             result.segmentId = integration.segmentId
+            this.log.trace(
+              { integrationId, resultId: id, segmentId: result.segmentId, segmentDebug: true },
+              'Setting segmentId from integration!',
+            )
           }
         }
       }

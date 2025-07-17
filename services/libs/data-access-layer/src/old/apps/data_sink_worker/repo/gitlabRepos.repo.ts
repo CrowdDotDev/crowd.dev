@@ -34,9 +34,9 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
         if (cached) {
           if (cached === 'null') {
             results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: undefined })
+          } else {
+            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
           }
-
-          results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
         }
       })
     }
