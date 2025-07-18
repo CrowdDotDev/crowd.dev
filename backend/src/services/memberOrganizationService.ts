@@ -3,10 +3,9 @@ import {
   deleteAffiliationOverrides,
   findOverrides,
 } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
-
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import MemberOrganizationRepository, {
   EntityField,
@@ -119,8 +118,7 @@ export default class MemberOrganizationService extends LoggerBase {
       this.options,
     )
 
-    const tx = SequelizeRepository.getTransaction(this.options)
-    const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+    const qx = optionsQx(this.options)
 
     for (const role of remainingRoles) {
       // delete any existing affiliation override for the role to avoid foreign key conflicts
@@ -420,8 +418,7 @@ export default class MemberOrganizationService extends LoggerBase {
         }
       }
 
-      const tx = SequelizeRepository.getTransaction(this.options)
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = optionsQx(this.options)
 
       for (const removeRole of removeRoles) {
         // delete affiliation overrides before removing roles to avoid foreign key conflicts

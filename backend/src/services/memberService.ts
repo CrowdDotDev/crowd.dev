@@ -1347,7 +1347,7 @@ export default class MemberService extends LoggerBase {
             repoOptions,
           )
 
-          // Update member segment affiliations and organization affiliation overrides
+          // Update member segment affiliations
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
           // Performs a merge and returns the fields that were changed so we can update
