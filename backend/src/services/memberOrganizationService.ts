@@ -7,8 +7,6 @@ import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
 
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-
 import MemberOrganizationRepository, {
   EntityField,
 } from '../database/repositories/memberOrganizationRepository'
@@ -420,7 +418,7 @@ export default class MemberOrganizationService extends LoggerBase {
         }
       }
 
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const qx = optionsQx(this.options)
 
       for (const removeRole of removeRoles) {
         // delete affiliation overrides before removing roles to avoid foreign key conflicts
