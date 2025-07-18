@@ -216,6 +216,7 @@ export default class IntegrationService {
         data.name = githubInsights.name
         data.twitter = githubInsights.twitter
         data.website = githubInsights.website
+        data.keywords = githubInsights.topics
       }
     }
 
