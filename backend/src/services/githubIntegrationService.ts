@@ -121,7 +121,7 @@ export default class GithubIntegrationService {
     }))
   }
 
-  public static async findOrgDetail(org: string) {
+  public static async findOrgDetails(org: string) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -151,7 +151,7 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findRepoDetail(org: string, repo: string) {
+  public static async findRepoDetails(org: string, repo: string) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -181,7 +181,7 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findOrgTopics(org: string, repos: { name: string }[]) {
+  public static async findTopics(org: string, repos: { name: string }[]) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 

@@ -473,6 +473,15 @@ export class CollectionService extends LoggerBase {
     })
   }
 
+  static isSingleRepoOrg(orgs: GithubIntegrationSettings['orgs']): boolean {
+    return (
+      Array.isArray(orgs) &&
+      orgs.length === 1 &&
+      Array.isArray(orgs[0]?.repos) &&
+      orgs[0].repos.length === 1
+    )
+  }
+
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
@@ -491,7 +500,14 @@ export class CollectionService extends LoggerBase {
 
       const settings = githubIntegration.settings as GithubIntegrationSettings
 
-      if (!settings?.orgs || !Array.isArray(settings.orgs)) {
+      // The orgs must have at least one repo
+      if (
+        !settings?.orgs ||
+        !Array.isArray(settings.orgs) ||
+        settings.orgs.length === 0 ||
+        !Array.isArray(settings.orgs[0].repos) ||
+        settings.orgs[0].repos.length === 0
+      ) {
         return null
       }
 
@@ -505,36 +521,27 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
-      const isSingleRepoOrg =
-        settings.orgs.length === 1 &&
-        Array.isArray(settings.orgs[0].repos) &&
-        settings.orgs[0].repos.length === 1
+      const details = CollectionService.isSingleRepoOrg(settings.orgs)
+        ? await GithubIntegrationService.findRepoDetails(
+            mainOrg.name,
+            settings.orgs[0].repos[0].name,
+          )
+        : await GithubIntegrationService.findOrgDetails(mainOrg.name)
 
-      const { description, name, repos } = mainOrg
-
-      const detail = isSingleRepoOrg
-        ? await GithubIntegrationService.findRepoDetail(name, settings.orgs[0].repos[0].name)
-        : await GithubIntegrationService.findOrgDetail(name)
-
-      if (!detail) {
+      if (!details) {
         return null
       }
 
-      const { logoUrl, github, website, twitter } = detail
-
-      const topics = await GithubIntegrationService.findOrgTopics(
-        name,
-        isSingleRepoOrg ? [settings.orgs[0].repos[0]] : repos,
-      )
+      const topics = await GithubIntegrationService.findTopics(mainOrg.name, mainOrg.repos)
 
       return {
-        description,
-        github,
-        logoUrl,
+        description: mainOrg.description,
+        github: details.github,
+        logoUrl: details.logoUrl,
         name: segment.name,
         topics,
-        twitter,
-        website,
+        twitter: details.twitter,
+        website: details.website,
       }
     })
   }
