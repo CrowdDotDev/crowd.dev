@@ -12,6 +12,8 @@ const DEFAULT_MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
   'secondaryId',
   'createdAt',
   'updatedAt',
+  'state',
+  'step',
 ]
 
 export async function queryMergeActions<T extends IMergeActionColumns>(
