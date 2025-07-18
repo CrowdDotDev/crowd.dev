@@ -1,3 +1,5 @@
+TOKEN "insights-app-token" READ
+
 NODE health_score_copy_project_repo_deduplicated
 DESCRIPTION >
     Returns necessary columns for projects

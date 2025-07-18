@@ -4,7 +4,7 @@ SQL >
     SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        isContribution
+        memberId != ''
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}
@@ -14,11 +14,15 @@ SQL >
         {% end %}
         {% if defined(endDate) %}
             AND timestamp >= toStartOfQuarter(
-                {{ DateTime(endDate, description="Filter before date", required=False) }}
+                parseDateTimeBestEffort(
+                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                )
                 - INTERVAL 1 QUARTER
             )
             AND timestamp < toStartOfQuarter(
-                {{ DateTime(endDate, description="Filter before date", required=False) }}
+                parseDateTimeBestEffort(
+                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                )
             )
         {% else %}
             AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
@@ -32,15 +36,19 @@ SQL >
     SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
     FROM activities_with_relations_sorted_deduplicated_ds
     WHERE
-        isContribution
+        memberId != ''
         {% if defined(project) %} AND segmentId = (SELECT segmentId FROM segments_filtered) {% end %}
         {% if defined(endDate) %}
             AND timestamp >= toStartOfQuarter(
-                {{ DateTime(endDate, description="Filter before date", required=False) }}
+                parseDateTimeBestEffort(
+                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                )
                 - INTERVAL 2 QUARTER
             )
             AND timestamp < toStartOfQuarter(
-                {{ DateTime(endDate, description="Filter before date", required=False) }}
+                parseDateTimeBestEffort(
+                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                )
                 - INTERVAL 1 QUARTER
             )
         {% else %}
