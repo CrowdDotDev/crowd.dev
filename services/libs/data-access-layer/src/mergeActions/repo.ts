@@ -5,7 +5,7 @@ import { IMergeAction, IMergeActionColumns, MergeActionType } from '@crowd/types
 import { QueryExecutor } from '../queryExecutor'
 import { QueryOptions, QueryResult, queryTable } from '../utils'
 
-const DEFAULT_MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
+const MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
   'id',
   'type',
   'primaryId',
@@ -19,9 +19,8 @@ const DEFAULT_MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
 export async function queryMergeActions<T extends IMergeActionColumns>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
-  columns: IMergeActionColumns[] = DEFAULT_MERGE_ACTIONS_COLUMNS,
 ): Promise<QueryResult<T>[]> {
-  return queryTable(qx, 'mergeActions', columns, opts)
+  return queryTable(qx, 'mergeActions', MERGE_ACTIONS_COLUMNS, opts)
 }
 
 export async function findEntityMergeActions(

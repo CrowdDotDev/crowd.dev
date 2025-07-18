@@ -456,6 +456,7 @@ export default class OrganizationService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
     const mergeActions = await queryMergeActions(qx, {
+      fields: ['id', 'state'],
       filter: {
         and: [
           {
