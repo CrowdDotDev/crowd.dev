@@ -6,6 +6,11 @@ class ErrorCode(str, Enum):
 
     UNKNOWN = "unknown"
     INTERNAL = "server-error"
+    SHELL_COMMAND_TIMEOUT = "shell-command-timeout"
+    DISK_SPACE = "disk-space-error"
+    NETWORK_ERROR = "network-error"
+    PERMISSION_ERROR = "permission-error"
+    SHELL_COMMAND_FAILED = "shell-command-failed"
 
 
 class RepositoryState(str, Enum):

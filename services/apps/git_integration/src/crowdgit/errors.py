@@ -29,3 +29,33 @@ class RepoLockingError(CrowdGitError):
 class GitRunError(CrowdGitError):
     def __init__(self, remote, local_repo, e):
         super().__init__(f"Error running git with {remote} and {local_repo}: {e}")
+
+
+@dataclass
+class CommandTimeoutError(CrowdGitError):
+    error_message: str = "Command execution timed out"
+    error_code: ErrorCode = ErrorCode.SHELL_COMMAND_TIMEOUT
+
+
+@dataclass
+class DiskSpaceError(CrowdGitError):
+    error_message: str = "Insufficient disk space"
+    error_code: ErrorCode = ErrorCode.DISK_SPACE
+
+
+@dataclass
+class NetworkError(CrowdGitError):
+    error_message: str = "Network connection error"
+    error_code: ErrorCode = ErrorCode.NETWORK_ERROR
+
+
+@dataclass
+class PermissionError(CrowdGitError):
+    error_message: str = "Permission denied"
+    error_code: ErrorCode = ErrorCode.PERMISSION_ERROR
+
+
+@dataclass
+class CommandExecutionError(CrowdGitError):
+    error_message: str = "Command execution failed"
+    error_code: ErrorCode = ErrorCode.SHELL_COMMAND_FAILED

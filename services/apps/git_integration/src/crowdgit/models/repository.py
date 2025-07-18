@@ -12,6 +12,7 @@ class Repository(BaseModel):
     state: RepositoryState = Field(default=RepositoryState.PENDING, description="Repository state")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
     last_processed_at: Optional[datetime] = Field(None, description="Last processing timestamp")
+    last_processed_commit: Optional[str] = Field(None, description="Last processed commit hash")
     locked_at: Optional[datetime] = Field(
         None, description="Timestamp when repository was locked for processing"
     )
@@ -31,6 +32,7 @@ class Repository(BaseModel):
             "createdAt": "created_at",
             "updatedAt": "updated_at",
             "lastProcessedAt": "last_processed_at",
+            "lastProcessedCommit": "last_processed_commit",
             "lockedAt": "locked_at",
         }
         for db_field, model_field in field_mapping.items():
