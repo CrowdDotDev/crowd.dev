@@ -212,11 +212,11 @@ export default class IntegrationService {
       if (githubInsights) {
         data.description = githubInsights.description
         data.github = githubInsights.github
+        data.keywords = githubInsights.topics
         data.logoUrl = githubInsights.logoUrl
         data.name = githubInsights.name
         data.twitter = githubInsights.twitter
         data.website = githubInsights.website
-        data.keywords = githubInsights.topics
       }
     }
 
