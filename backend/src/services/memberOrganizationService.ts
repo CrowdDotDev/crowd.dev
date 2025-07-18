@@ -119,7 +119,8 @@ export default class MemberOrganizationService extends LoggerBase {
       this.options,
     )
 
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const tx = SequelizeRepository.getTransaction(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
     for (const role of remainingRoles) {
       // delete any existing affiliation override for the role to avoid foreign key conflicts
