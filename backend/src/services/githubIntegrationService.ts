@@ -121,7 +121,7 @@ export default class GithubIntegrationService {
     }))
   }
 
-  public static async findOrgDetail(org: string) {
+  public static async findOrgDetails(org: string) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -151,7 +151,38 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findOrgTopics(org: string, repos: { name: string }[]) {
+  public static async findRepoDetails(org: string, repo: string) {
+    const auth = await getGithubInstallationToken()
+    const logger = getServiceLogger()
+
+    try {
+      const { data } = await request(`GET /repos/${org}/${repo}`, {
+        org,
+        headers: {
+          authorization: `bearer ${auth}`,
+        },
+      })
+
+      if (!data) {
+        return null
+      }
+
+      return {
+        description: data.description || null,
+        github: data.html_url,
+        logoUrl: data.owner.avatar_url,
+        name: data.name,
+        topics: data.topics || null,
+        twitter: null,
+        website: data.homepage || null,
+      }
+    } catch (error) {
+      logger.warn(`Failed to fetch org ${org}:`, error)
+      return null
+    }
+  }
+
+  public static async findTopics(org: string, repos: { name: string }[]) {
     const auth = await getGithubInstallationToken()
     const logger = getServiceLogger()
 
@@ -183,34 +214,47 @@ export default class GithubIntegrationService {
   ): Promise<
     GithubIntegrationSettings['orgs'][number] & {
       description: string
+      topics: string[]
     }
   > {
-    const prompt = `Given the following array of organizations:
-      ${orgs.map((org) => `organization name: ${org.name} organization url: ${org.url}`).join('\n')}
+    const prompt = `
+      Given the following array of organizations:
+        ${orgs.map((org) => `organization name: ${org.name} organization url: ${org.url}`).join('\n')}
 
-      project name: "${projectName}"
+        project name: "${projectName}"
 
-      Analyze the project’s content (e.g., README, code, metadata), along with the organization info (name and URL), to:
+        Analyze the project’s content (e.g., README, code, metadata), along with the organization info (name and URL), to:
 
-      1. Identify which organization from the array is the main one associated with the project. Return null if none is a clear match.
-      2. Generate a neutral, objective description of what the project does.
+        1. Identify which organization from the array is the main one associated with the project. Return null if none is a clear match.
+        2. Generate a neutral, objective description of what the project does.
+        3. List up to 5 relevant topics that characterize the matched organization’s domain, technology, or focus (based on repository metadata, documentation, and the organization's own site). If no relevant topics are found, return an empty array.
 
-      Use all available information to infer the description, with this priority:
+      Use all available information to infer the description and topics, with this priority:
 
-      - First, use information from the organization URL, if available, as the most authoritative source.
+      - First, use information from the organization URL, if available, as the most authoritative source — **unless the organization has exactly one repository**.
+      - If an organization has exactly one repository, prioritize all available content from that repository (e.g., README, description, code, metadata) over the organization's URL or name.
       - Only use the project name if it clearly describes the functionality or scope. Ignore it if it's generic or non-descriptive (e.g., "test", "demo", "sample", "example", etc.).
       - If the project content is missing or uninformative, and the name is generic, **fall back to describing the organization and its typical projects instead**.
 
       Special rules:
       - If the array contains only one organization, assume that it is the one associated with the project (index 0), regardless of project content.
-      - Still generate the description as usual, defaulting to the organization-level information if the project name/content do not add meaningful context.
+        - Still generate the description as usual, but if the organization has only one repository, prioritize that repository’s content for the description.
+      - If the array has more than one organization, and one of them has exactly one repository, treat that repository as the primary signal for association and description — but only if its content is relevant and non-generic.
+
+      IMPORTANT:
+      - Output MUST be a single valid JSON object or the literal value 'null'.
+      - DO NOT return any explanation, reasoning, markdown, formatting, headings, or text before or after the JSON.
+      - DO NOT say "Here is the result", "Answer:", "Based on analysis", or anything else — ONLY return raw JSON.
 
       Return:
       - If no match is found: null
-      - If a match is found: {description: string; index: number}
-
-      Output ONLY valid JSON.
-      Do NOT return any text, explanation, or formatting outside of the JSON.`
+      - If a match is found:
+        {
+          "description": string,
+          "index": number,
+          "topics": string[]
+        }
+    `
 
     const llmService = new LlmService(
       qx,
@@ -224,17 +268,20 @@ export default class GithubIntegrationService {
     const { result } = await llmService.findMainGithubOrganization<{
       description: string
       index: number
+      topics: string[]
     }>(prompt)
 
     if (
       typeof result === 'object' &&
       result !== null &&
       typeof result.description === 'string' &&
-      typeof result.index === 'number'
+      typeof result.index === 'number' &&
+      typeof result.topics === 'object'
     ) {
       return {
         ...orgs[result.index],
         description: result.description,
+        topics: result.topics,
       }
     }
 
