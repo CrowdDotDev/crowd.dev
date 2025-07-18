@@ -146,6 +146,7 @@ export default class MemberOrganizationService extends LoggerBase {
       if (existingOverride) {
         await changeOverride(qx, {
           ...existingOverride,
+          memberId: mergeStrat.targetMemberId(role),
           memberOrganizationId: newRoleId,
         })
       }
