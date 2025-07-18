@@ -1,13 +1,15 @@
 import asyncio
 from typing import Dict, Any, List
-from loguru import logger
 
+# Import configured loguru logger from crowdgit.logger
+from crowdgit.logger import logger
 from crowdgit.services import (
     CloneService,
     CommitService,
     SoftwareValueService,
     MaintainerService,
 )
+from crowdgit.services.utils import get_repo_name
 from crowdgit.errors import InternalError
 from crowdgit.database.crud import (
     acquire_repo_for_processing,
@@ -80,7 +82,7 @@ class RepositoryWorker:
 
             if not available_repo_to_process:
                 # TODO: remove before deploying to avoid spammy logs
-                logger.debug("No repositories to process")
+                # logger.debug("No repositories to process")
                 return
             await self._process_single_repository(available_repo_to_process)
         except Exception as e:
@@ -90,29 +92,74 @@ class RepositoryWorker:
             if available_repo_to_process:
                 logger.info("releasing repo: ", available_repo_to_process.url)
                 await release_repo(available_repo_to_process.id)
+                logger.info(f"Repo {available_repo_to_process.url} released!")
 
     async def _get_pending_repositories(self) -> List[Dict[str, Any]]:
         """Get pending repositories from database"""
         # TODO: Implement database query
         return []
 
+    def _bind_repository_context(self, repository: Repository, repo_name: str) -> None:
+        """Bind repository context to all services for enhanced logging
+
+        Args:
+            repository: Repository object containing metadata
+            repo_name: Parsed repository name for logging
+        """
+        # Define services with their operation names
+        services_operations = [
+            (self.clone_service, "cloning"),
+            (self.commit_service, "commit_processing"),
+            (self.maintainer_service, "maintainer_processing"),
+            (self.software_value_service, "software_value_processing"),
+        ]
+
+        # Bind consistent context for all services: repo_name, id, and operation
+        for service, operation in services_operations:
+            service.bind_context(repo=repo_name, id=repository.id, operation=operation)
+
+    def _reset_all_contexts(self) -> None:
+        """Reset logger context for all services"""
+        services = [
+            self.clone_service,
+            self.commit_service,
+            self.maintainer_service,
+            self.software_value_service,
+        ]
+
+        for service in services:
+            service.reset_logger_context()
+
     async def _process_single_repository(self, repository: Repository):
         """Process a single repository through services with incremental processing"""
         logger.info("Processing repository: {}", repository.url)
         processing_state = None
+
+        # Get repository name and bind context for all services
+        repo_name = get_repo_name(repository.url)
+        self._bind_repository_context(repository, repo_name)
+
         try:
-            # TODO: check if we want to consider all services (commits, maintainers, SV) as atomic
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
-            logger.info("Cloning repo...")
-            await asyncio.sleep(1)
-            # for each cloned batch (check concurrent processing)
-            # . Process commits & send result to destination (ideally non-blocking)
-            logger.info("Commits processing.....")
-            await asyncio.sleep(1)
-            # . Analyze maintainers & send result to destination (ideally non-blocking)
-            # . Calculate software value & send result to destination (ideally non-blocking)
-            logger.info("Maintainers & COCOMO processing...")
-            await asyncio.sleep(1)
+            logger.info("Starting repository cloning...")
+
+            async for batch in self.clone_service.clone_batches(
+                repository.url,
+                repository.last_processed_commit,
+            ):
+                logger.info("Clone batch info: {}", batch)
+
+                # TODO: for each cloned batch (check concurrent processing)
+                # TODO: Process commits & send result to destination (ideally non-blocking)
+                # logger.info("Starting commit processing...")
+                # await asyncio.sleep(1)
+
+                # TODO: Analyze maintainers & send result to destination (ideally non-blocking)
+                # TODO: Calculate software value & send result to destination (ideally non-blocking)
+                # logger.info("Starting maintainer processing...")
+                # await asyncio.sleep(1)
+                # logger.info("Starting software value processing...")
+                # await asyncio.sleep(1)
 
             logger.info("Incremental processing completed successfully")
             processing_state = RepositoryState.COMPLETED
@@ -120,6 +167,9 @@ class RepositoryWorker:
             processing_state = RepositoryState.FAILED
             logger.error("Processing failed: {}", e)
         finally:
+            # Reset logger context for all services
+            self._reset_all_contexts()
+
             logger.info(f"Updating ${repository.url} state to ${processing_state}")
             await mark_repo_as_processed(repository.id, processing_state)
 
