@@ -1,3 +1,9 @@
+import {
+  changeOverride,
+  deleteAffiliationOverrides,
+  findOverrides,
+} from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
 
@@ -112,9 +118,18 @@ export default class MemberOrganizationService extends LoggerBase {
       this.options,
     )
 
+    const qx = optionsQx(this.options)
+
     for (const role of remainingRoles) {
+      // delete any existing affiliation override for the role to avoid foreign key conflicts
+      // and reapply it with the new memberOrganizationId
+      const [existingOverride] = await findOverrides(qx, role.memberId, [role.id])
+      if (existingOverride) {
+        await deleteAffiliationOverrides(qx, role.memberId, [role.id])
+      }
+
       await MemberOrganizationRepository.removeMemberRole(role, this.options)
-      await MemberOrganizationRepository.addMemberRole(
+      const newRoleId = await MemberOrganizationRepository.addMemberRole(
         {
           title: role.title,
           dateStart: role.dateStart,
@@ -126,6 +141,14 @@ export default class MemberOrganizationService extends LoggerBase {
         },
         this.options,
       )
+
+      if (existingOverride) {
+        await changeOverride(qx, {
+          ...existingOverride,
+          memberId: mergeStrat.targetMemberId(role),
+          memberOrganizationId: newRoleId,
+        })
+      }
     }
   }
 
@@ -395,7 +418,14 @@ export default class MemberOrganizationService extends LoggerBase {
         }
       }
 
+      const qx = optionsQx(this.options)
+
       for (const removeRole of removeRoles) {
+        // delete affiliation overrides before removing roles to avoid foreign key conflicts
+        const [existingOverride] = await findOverrides(qx, removeRole.memberId, [removeRole.id])
+        if (existingOverride) {
+          await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
+        }
         await MemberOrganizationRepository.removeMemberRole(removeRole, this.options)
       }
 
