@@ -1,4 +1,5 @@
-import { runMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { refreshMemberOrganizationAffiliations } from '@crowd/data-access-layer/src/member-organization-affiliation'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 
 import { svc } from '../../main'
@@ -9,7 +10,8 @@ updateMemberAffiliations is a Temporal activity that updates all affiliations fo
 a given member.
 */
 export async function updateMemberAffiliations(input: MemberUpdateInput): Promise<void> {
-  await runMemberAffiliationsUpdate(svc.postgres.writer, svc.questdbSQL, svc.queue, input.member.id)
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await refreshMemberOrganizationAffiliations(qx, input.member.id)
 }
 
 export async function syncMember(memberId: string, withAggs: boolean): Promise<void> {

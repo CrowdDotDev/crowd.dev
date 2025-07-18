@@ -141,6 +141,7 @@ export async function fetchMembersForEnrichment(
     WHERE
       ${enrichableBySqlJoined}
       AND coalesce((members.attributes ->'isBot'->>'default')::boolean, false) = false 
+      AND coalesce((members.attributes ->'isOrganization'->>'default')::boolean, false) = false
       AND members."deletedAt" IS NULL
       AND (${cacheAgeInnerQueryItems.join(' OR ')})
     GROUP BY members.id

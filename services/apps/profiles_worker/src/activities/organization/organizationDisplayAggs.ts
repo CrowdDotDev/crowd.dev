@@ -1,5 +1,5 @@
 import { getSystemSettingValue, setSystemSettingValue } from '@crowd/data-access-layer'
-import { fetchOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/activities'
+import { fetchOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/activityRelations'
 import { updateOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { IOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -43,7 +43,7 @@ export async function getOrganizationsForDisplayAggsRefresh(
 export async function getOrganizationDisplayAggregates(
   organizationId: string,
 ): Promise<IOrganizationDisplayAggregates[]> {
-  return fetchOrganizationDisplayAggregates(svc.questdbSQL, organizationId)
+  return fetchOrganizationDisplayAggregates(pgpQx(svc.postgres.reader.connection()), organizationId)
 }
 
 export async function setOrganizationDisplayAggregates(
