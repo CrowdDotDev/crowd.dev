@@ -126,7 +126,7 @@ export default class MemberOrganizationService extends LoggerBase {
       // and reapply it with the new memberOrganizationId
       const [existingOverride] = await findOverrides(qx, role.memberId, [role.id])
       if (existingOverride) {
-        await deleteAffiliationOverrides(qx, role.memberId, [existingOverride.id])
+        await deleteAffiliationOverrides(qx, role.memberId, [role.id])
       }
 
       await MemberOrganizationRepository.removeMemberRole(role, this.options)
