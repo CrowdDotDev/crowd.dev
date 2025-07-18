@@ -526,20 +526,21 @@ export class CollectionService extends LoggerBase {
             mainOrg.name,
             settings.orgs[0].repos[0].name,
           )
-        : await GithubIntegrationService.findOrgDetails(mainOrg.name)
+        : {
+            ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
+            topics: mainOrg.topics,
+          }
 
       if (!details) {
         return null
       }
-
-      const topics = await GithubIntegrationService.findTopics(mainOrg.name, mainOrg.repos)
 
       return {
         description: mainOrg.description,
         github: details.github,
         logoUrl: details.logoUrl,
         name: segment.name,
-        topics,
+        topics: details.topics,
         twitter: details.twitter,
         website: details.website,
       }
