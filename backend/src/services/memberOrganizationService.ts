@@ -5,7 +5,11 @@ import {
 } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IMemberOrganizationAffiliationOverride,
+  MemberRoleUnmergeStrategy,
+} from '@crowd/types'
 
 import MemberOrganizationRepository, {
   EntityField,
@@ -328,6 +332,10 @@ export default class MemberOrganizationService extends LoggerBase {
   ) {
     let removeRoles: IMemberOrganization[] = []
     let addRoles: IMemberOrganization[] = []
+    const affiliationOverridesToRecreate: {
+      role: IMemberOrganization
+      override: IMemberOrganizationAffiliationOverride
+    }[] = []
 
     for (const memberOrganization of secondaryRoles) {
       // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
@@ -425,12 +433,42 @@ export default class MemberOrganizationService extends LoggerBase {
         const [existingOverride] = await findOverrides(qx, removeRole.memberId, [removeRole.id])
         if (existingOverride) {
           await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
+          affiliationOverridesToRecreate.push({
+            role: removeRole,
+            override: existingOverride,
+          })
         }
         await MemberOrganizationRepository.removeMemberRole(removeRole, this.options)
       }
 
       for (const addRole of addRoles) {
-        await MemberOrganizationRepository.addMemberRole(addRole, this.options)
+        const newRoleId = await MemberOrganizationRepository.addMemberRole(addRole, this.options)
+
+        // Find all overrides that could apply to this new role
+        const relevantOverrides = affiliationOverridesToRecreate.filter(
+          (item) =>
+            item.role.organizationId === addRole.organizationId &&
+            item.role.title === addRole.title,
+        )
+
+        let overrideToApply: IMemberOrganizationAffiliationOverride | undefined
+        if (relevantOverrides.length > 0) {
+          // Prefer the override from the primary role if it exists
+          const primaryOverride = relevantOverrides.find((item) =>
+            primaryRoles.some((primaryRole) => primaryRole.id === item.role.id),
+          )
+
+          // If we found a primary override, use it, otherwise, use the first one
+          overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
+        }
+
+        if (overrideToApply) {
+          await changeOverride(qx, {
+            ...overrideToApply,
+            memberId: mergeStrat.targetMemberId(addRole),
+            memberOrganizationId: newRoleId,
+          })
+        }
       }
 
       addRoles = []
