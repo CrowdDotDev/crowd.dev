@@ -130,7 +130,7 @@ export default class MemberOrganizationService extends LoggerBase {
       }
 
       await MemberOrganizationRepository.removeMemberRole(role, this.options)
-      const newRole = await MemberOrganizationRepository.addMemberRole(
+      const newRoleId = await MemberOrganizationRepository.addMemberRole(
         {
           title: role.title,
           dateStart: role.dateStart,
@@ -146,7 +146,7 @@ export default class MemberOrganizationService extends LoggerBase {
       if (existingOverride) {
         await changeOverride(qx, {
           ...existingOverride,
-          memberOrganizationId: newRole.id,
+          memberOrganizationId: newRoleId,
         })
       }
     }
