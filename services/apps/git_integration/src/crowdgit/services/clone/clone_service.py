@@ -39,7 +39,7 @@ class CloneService(BaseService):
 
     async def _init_minimal_clone(self, path: str, remote: str) -> None:
         """
-        Inits a bare clone, determines the default branch, and perform a minimal clone of depth=1
+        Inits minimal clone of depth=1
         """
         self.logger.info(f"Initializing minmal clone")
         await run_shell_command(["git", "clone", "--depth=1", remote, path], cwd=path)
