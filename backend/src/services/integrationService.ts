@@ -205,11 +205,28 @@ export default class IntegrationService {
     }
 
     if (
-      (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO) &&
-      isFirstUpdate
+      (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO)
+      //&& isFirstUpdate
     ) {
       const githubInsights = await collectionService.findGithubInsightsForSegment(segmentId)
       if (githubInsights) {
+
+        await this.options.temporal.workflow.start('automaticCategorization', {
+        taskQueue: 'categorization',
+        workflowId: `categorization/${segmentId}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [{
+          description: githubInsights.description,
+          github: githubInsights.github,
+          topics: githubInsights.topics,
+          website: githubInsights.website,
+          segmentId
+        }],
+      })
+
         data.description = githubInsights.description
         data.github = githubInsights.github
         data.keywords = githubInsights.topics

@@ -78,7 +78,7 @@ export async function findCategoriesWithLLM({
   const qx = dbStoreQx(svc.postgres.writer);
 
   // FIXME: should we handle the pagination here ? 
-  const categories = await listCategories(qx, { limit: 1000, offset: 0 })
+  const categories = await listCategories(qx, { query: '', limit: 1000, offset: 0, groupType: null })
 
   const prompt = `
 
@@ -162,6 +162,8 @@ export async function findCollectionsWithLLM({
     return null
   }
 
+  svc.log.info(`categoriesIds: ${JSON.stringify(categories)}`)
+
   const collections = await queryCollections(qx, {
     fields: Object.values(CollectionField),
     filter: {
@@ -169,6 +171,9 @@ export async function findCollectionsWithLLM({
     },
     orderBy: '"name" ASC',
   })
+
+  svc.log.info(`collections: ${JSON.stringify(collections)}`)
+
 
   const prompt = `
     You are an expert open-source analyst. Your job is to classify ${github} into appropriate collections.
