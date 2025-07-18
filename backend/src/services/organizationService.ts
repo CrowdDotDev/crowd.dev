@@ -455,31 +455,27 @@ export default class OrganizationService extends LoggerBase {
     let tx
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-    const mergeActions = await queryMergeActions(
-      qx,
-      {
-        filter: {
-          and: [
-            {
-              state: {
-                eq: MergeActionState.IN_PROGRESS,
-              },
+    const mergeActions = await queryMergeActions(qx, {
+      filter: {
+        and: [
+          {
+            state: {
+              eq: MergeActionState.IN_PROGRESS,
             },
-            {
-              or: [
-                { primaryId: { eq: originalId } },
-                { secondaryId: { eq: originalId } },
-                { primaryId: { eq: toMergeId } },
-                { secondaryId: { eq: toMergeId } },
-              ],
-            },
-          ],
-        },
-        limit: 1,
-        orderBy: '"updatedAt" DESC',
+          },
+          {
+            or: [
+              { primaryId: { eq: originalId } },
+              { secondaryId: { eq: originalId } },
+              { primaryId: { eq: toMergeId } },
+              { secondaryId: { eq: toMergeId } },
+            ],
+          },
+        ],
       },
-      ['id', 'state'],
-    )
+      limit: 1,
+      orderBy: '"updatedAt" DESC',
+    })
 
     // prevent multiple merge operations
     if (mergeActions.length > 0) {
