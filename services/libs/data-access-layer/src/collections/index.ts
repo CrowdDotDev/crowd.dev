@@ -2,6 +2,7 @@ import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
 import {
   QueryResult,
+  injectSoftDeletionCriteria,
   prepareBulkInsert,
   prepareInsert,
   queryTable,
@@ -86,10 +87,12 @@ export async function queryCollections<T extends CollectionField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
 ): Promise<QueryResult<T>[]> {
+  opts.filter = injectSoftDeletionCriteria(opts.filter)
   return queryTable(qx, 'collections', Object.values(CollectionField), opts)
 }
 
 export async function countCollections(qx: QueryExecutor, filter: QueryFilter): Promise<number> {
+  filter = injectSoftDeletionCriteria(filter)
   const result = await queryTable(qx, 'collections', Object.values(CollectionField), {
     filter,
     fields: 'count',
@@ -106,7 +109,15 @@ export async function queryCollectionById<T extends CollectionField>(
 }
 
 export async function deleteCollection(qx: QueryExecutor, id: string) {
-  return qx.result('DELETE FROM collections WHERE id = $(id)', { id })
+  return qx.result(
+    `
+      UPDATE collections
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = $(id)
+    `,
+    { id },
+  )
 }
 
 export async function createCollection(
@@ -157,6 +168,7 @@ export async function queryInsightsProjects<T extends InsightsProjectField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
 ): Promise<QueryResult<T>[]> {
+  opts.filter = injectSoftDeletionCriteria(opts.filter)
   return queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), opts)
 }
 
@@ -245,6 +257,7 @@ export async function countInsightsProjects(
   qx: QueryExecutor,
   filter: QueryFilter,
 ): Promise<number> {
+  filter = injectSoftDeletionCriteria(filter)
   const result = await queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), {
     filter,
     fields: 'count',
@@ -253,7 +266,15 @@ export async function countInsightsProjects(
 }
 
 export async function deleteInsightsProject(qx: QueryExecutor, id: string) {
-  return qx.result(`DELETE FROM "insightsProjects" WHERE id = $(id)`, { id })
+  return qx.result(
+    `
+      UPDATE "insightsProjects"
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = $(id)
+    `,
+    { id },
+  )
 }
 
 export async function queryInsightsProjectById<T extends InsightsProjectField>(

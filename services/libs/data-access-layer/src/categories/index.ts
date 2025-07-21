@@ -122,6 +122,7 @@ export async function listCategoryGroups(
             FROM "categoryGroups"
             WHERE COALESCE($(type), type) = type
               AND ($(query) = '' OR name ILIKE $(searchPattern))
+              AND "deletedAt" IS NULL
             ORDER BY name
             LIMIT $(limit) OFFSET $(offset)
         `,
@@ -151,6 +152,7 @@ export async function listGroupListCategories(
             SELECT id, name, slug, "categoryGroupId"
             FROM "categories"
             WHERE "categoryGroupId" = ANY($(categoryGroupIds)::uuid[])
+              AND "deletedAt" IS NULL
             ORDER BY "categoryGroupId"
         `,
     {
@@ -176,6 +178,7 @@ export async function listCategoryGroupsCount(
             FROM "categoryGroups"
             WHERE COALESCE($(type), type) = type
               AND ($(query) = '' OR name ILIKE $(searchPattern))
+              AND "deletedAt" IS NULL
         `,
     {
       type: filters.type || null,
@@ -203,8 +206,11 @@ export async function listCategoryGroupsBySlug(
     `
           SELECT slug
           FROM "categoryGroups"
-          WHERE slug = $(slug)
-             OR slug ~ $(slugRegex)
+          WHERE 
+          "deletedAt" IS NULL
+          AND (slug = $(slug)
+             OR slug ~ $(slugRegex))
+
       `,
     {
       slug,
@@ -226,6 +232,7 @@ export async function getCategoryGroupById(qx: QueryExecutor, id: string): Promi
           SELECT id, slug, name
           FROM "categoryGroups"
           WHERE id = $(id)
+          AND "deletedAt" IS NULL
       `,
     {
       id,
@@ -279,11 +286,12 @@ export async function deleteCategoryGroup(
 ): Promise<ICategoryGroup> {
   return qx.selectOne(
     `
-            DELETE
-            FROM "categoryGroups"
-            WHERE id = $(categoryGroupId)
-            RETURNING *
-        `,
+        UPDATE "categoryGroups"
+        SET "deletedAt" = NOW(),
+            "updatedAt" = NOW()
+        WHERE id = $(categoryGroupId)
+        RETURNING *
+    `,
     {
       categoryGroupId,
     },
@@ -303,6 +311,7 @@ export async function getCategoryById(qx: QueryExecutor, id: string): Promise<IC
           SELECT id, slug, name
           FROM "categories"
           WHERE id = $(id)
+          AND "deletedAt" IS NULL
       `,
     {
       id,
@@ -322,8 +331,10 @@ export async function listCategoriesBySlug(qx: QueryExecutor, slug: string): Pro
     `
           SELECT slug
           FROM "categories"
-          WHERE slug = $(slug)
-             OR slug ~ $(slugRegex)
+          WHERE 
+          "deletedAt" IS NULL
+          AND (slug = $(slug)
+             OR slug ~ $(slugRegex))
       `,
     {
       slug,
@@ -403,11 +414,12 @@ export async function updateCategory(
 export async function deleteCategory(qx: QueryExecutor, categoryId: string): Promise<ICategory> {
   return qx.selectOne(
     `
-            DELETE
-            FROM "categories"
-            WHERE id = $(categoryId)
-            RETURNING *
-        `,
+      UPDATE "categories"
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = $(categoryId)
+      RETURNING *
+    `,
     {
       categoryId,
     },
@@ -424,11 +436,12 @@ export async function deleteCategory(qx: QueryExecutor, categoryId: string): Pro
 export async function deleteCategories(qx: QueryExecutor, ids: string[]): Promise<ICategory[]> {
   return qx.select(
     `
-            DELETE
-            FROM "categories"
-            WHERE id = ANY($(ids)::uuid[])
-            RETURNING *
-        `,
+      UPDATE "categories"
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = ANY($(ids)::uuid[])
+      RETURNING *
+    `,
     {
       ids,
     },
@@ -468,7 +481,10 @@ export async function listCategories(
     `          SELECT c.id, c.name, cg.id as "categoryGroupId", cg.name as "categoryGroupName", cg.type as "categoryGroupType"
                    FROM "categories" c
                             JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
-                   WHERE c.name ILIKE $(query)
+                   WHERE 
+                   c."deletedAt" IS NULL 
+                   AND cg."deletedAt" IS NULL
+                   AND c.name ILIKE $(query)
                      AND COALESCE($(groupType), cg.type) = cg.type
                    ORDER BY cg.name
                     LIMIT $(limit)
@@ -496,7 +512,7 @@ export async function listCategoriesByIds(qx: QueryExecutor, ids: string[]): Pro
     SELECT c.id, c.name, c.slug, c."categoryGroupId", cg.name as "categoryGroupName", cg.type as "categoryGroupType"
     FROM categories c
              JOIN "categoryGroups" cg ON c."categoryGroupId" = cg.id
-    WHERE c.id = ANY($(ids)::uuid[])
+    WHERE c."deletedAt" IS NULL AND c.id = ANY($(ids)::uuid[])
         `,
     {
       ids,
