@@ -482,38 +482,36 @@ export default class MemberOrganizationService extends LoggerBase {
       for (const addRole of addRoles) {
         const newRoleId = await MemberOrganizationRepository.addMemberRole(addRole, this.options)
 
-        if (!newRoleId) {
-          throw new Error(`Failed to add member role for ${addRole.memberId}`)
-        }
-
-        // Find all affiliation overrides that could apply to this new role
-        // Match by organization + title only:
-        // - Dates differ between merged (addRole) and original (item.role) roles
-        // - Original roles were deleted; dates won't match
-        // - We apply overrides from contributing roles to the merged one
-        const relevantOverrides = affiliationOverridesToRecreate.filter(
-          (item) =>
-            item.role.organizationId === addRole.organizationId &&
-            item.role.title === addRole.title,
-        )
-
-        let overrideToApply: IMemberOrganizationAffiliationOverride | undefined
-        if (relevantOverrides.length > 0) {
-          // Prefer the override from the primary role if it exists
-          const primaryOverride = relevantOverrides.find((item) =>
-            primaryRoles.some((primaryRole) => primaryRole.id === item.role.id),
+        if (newRoleId) {
+          // Find all affiliation overrides that could apply to this new role
+          // Match by organization + title only:
+          // - Dates differ between merged (addRole) and original (item.role) roles
+          // - Original roles were deleted; dates won't match
+          // - We apply overrides from contributing roles to the merged one
+          const relevantOverrides = affiliationOverridesToRecreate.filter(
+            (item) =>
+              item.role.organizationId === addRole.organizationId &&
+              item.role.title === addRole.title,
           )
 
-          // If we found a primary override, use it, otherwise, use the first one
-          overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
-        }
+          let overrideToApply: IMemberOrganizationAffiliationOverride | undefined
+          if (relevantOverrides.length > 0) {
+            // Prefer the override from the primary role if it exists
+            const primaryOverride = relevantOverrides.find((item) =>
+              primaryRoles.some((primaryRole) => primaryRole.id === item.role.id),
+            )
 
-        if (overrideToApply) {
-          await changeOverride(qx, {
-            ...overrideToApply,
-            memberId: mergeStrat.targetMemberId(addRole),
-            memberOrganizationId: newRoleId,
-          })
+            // If we found a primary override, use it, otherwise, use the first one
+            overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
+          }
+
+          if (overrideToApply) {
+            await changeOverride(qx, {
+              ...overrideToApply,
+              memberId: mergeStrat.targetMemberId(addRole),
+              memberOrganizationId: newRoleId,
+            })
+          }
         }
       }
 
