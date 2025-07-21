@@ -21,7 +21,7 @@ function formatTextCategoriesForPrompt(categories: IListedCategory[]): string {
     if (!groupedCategories.has(groupName)) {
       groupedCategories.set(groupName, [])
     }
-    groupedCategories.get(groupName)!.push(category.name + '-' + category.id)
+    groupedCategories.get(groupName).push(category.name + '-' + category.id)
   }
 
   let categoriesText = ''
