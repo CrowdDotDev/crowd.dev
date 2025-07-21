@@ -482,6 +482,8 @@ export default class MemberOrganizationService extends LoggerBase {
       for (const addRole of addRoles) {
         const newRoleId = await MemberOrganizationRepository.addMemberRole(addRole, this.options)
 
+        // Only apply affiliation overrides if role was successfully created
+        // This handles duplicates conflicts gracefully
         if (newRoleId) {
           // Find all affiliation overrides that could apply to this new role
           // Match by organization + title only:
