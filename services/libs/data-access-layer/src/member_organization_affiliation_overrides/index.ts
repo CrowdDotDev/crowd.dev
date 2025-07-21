@@ -93,6 +93,11 @@ export async function findOverrides(
     },
   )
 
+  if (!memberOrganizationIds?.length) {
+    return overrides
+  }
+
+  // Map over requested memberOrganizationIds and provide defaults for missing ones
   const foundMemberOrgIds = new Set(overrides.map((override) => override.memberOrganizationId))
 
   const results = memberOrganizationIds.map((memberOrganizationId) => {
