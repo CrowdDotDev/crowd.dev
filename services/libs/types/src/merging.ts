@@ -39,6 +39,8 @@ export interface IMergeAction {
   unmergeBackup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup>
 }
 
+export type IMergeActionColumns = keyof IMergeAction
+
 export interface IMemberUnmergeBackup {
   id: string
   tags: ITag[]
