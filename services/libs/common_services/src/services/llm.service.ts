@@ -233,7 +233,6 @@ export class LlmService extends LoggerBase {
       prompt,
     )
 
-    console.log(response.answer)
     const result = JSON.parse(response.answer)
 
     return {

@@ -1,4 +1,4 @@
-import { ICategory } from "@crowd/data-access-layer/src/categories"
+import { ICategory } from '@crowd/data-access-layer/src/categories'
 
 export interface IAutomaticCategorization {
   description: string
@@ -9,10 +9,10 @@ export interface IAutomaticCategorization {
 }
 
 export type IFindCategoryParams = {
-  description: string,
-  github: string,
-  topics: string[],
-  website: string,
+  description: string
+  github: string
+  topics: string[]
+  website: string
 }
 
 export type IFindCollectionsParams = IFindCategoryParams & {

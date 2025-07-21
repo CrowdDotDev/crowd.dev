@@ -1,14 +1,19 @@
-
 import { LlmService } from '@crowd/common_services'
 import { dbStoreQx } from '@crowd/data-access-layer'
 import { listCategories } from '@crowd/data-access-layer/src/categories'
-import { CollectionField, connectProjectsAndCollections, ICollection, InsightsProjectField, queryCollections, queryInsightsProjects } from '@crowd/data-access-layer/src/collections'
+import {
+  CollectionField,
+  ICollection,
+  InsightsProjectField,
+  connectProjectsAndCollections,
+  queryCollections,
+  queryInsightsProjects,
+} from '@crowd/data-access-layer/src/collections'
+
 import { svc } from '../main'
 import { IFindCategoryParams, IFindCollectionsParams, IListedCategory } from '../types'
 
-function formatTextCategoriesForPrompt(
-  categories: IListedCategory[],
-): string {
+function formatTextCategoriesForPrompt(categories: IListedCategory[]): string {
   const groupedCategories = new Map<string, string[]>()
 
   for (const category of categories) {
@@ -32,13 +37,11 @@ function formatTextCategoriesForPrompt(
 
 function formatTextCollectionsForPrompt(
   collections: ICollection[],
-  categories: Partial<IListedCategory>[]
+  categories: Partial<IListedCategory>[],
 ): string {
   if (collections.length === 0 || categories.length === 0) return ''
 
-  const categoryMap = new Map<string, string>(
-    categories.map((cat) => [cat.id, cat.name])
-  )
+  const categoryMap = new Map<string, string>(categories.map((cat) => [cat.id, cat.name]))
 
   const groupedCollections: Record<string, ICollection[]> = {}
 
@@ -74,11 +77,15 @@ export async function findCategoriesWithLLM({
   topics,
   website,
 }: IFindCategoryParams) {
+  const qx = dbStoreQx(svc.postgres.writer)
 
-  const qx = dbStoreQx(svc.postgres.writer);
-
-  // FIXME: should we handle the pagination here ? 
-  const categories = await listCategories(qx, { query: '', limit: 1000, offset: 0, groupType: null })
+  // FIXME: should we handle the pagination here ?
+  const categories = await listCategories(qx, {
+    query: '',
+    limit: 1000,
+    offset: 0,
+    groupType: null,
+  })
 
   const prompt = `
 
@@ -117,9 +124,9 @@ export async function findCategoriesWithLLM({
       If the project doesn't clearly fit into any of the available categories, return an empty array for categories.
 
       ## Format
-      Return a JSON object in the following format:
+      Respond with a valid JSON object **only**. Do not include any explanations, markdown formatting, or extra text.
 
-      json
+      If the project fits one or more categories:
       {
         "categories": [
           { "name": "CategoryName", "id": "CategoryID" },
@@ -127,6 +134,12 @@ export async function findCategoriesWithLLM({
         ],
         "explanation": "Brief explanation of why you chose these categories"
       }
+
+      If the project does not clearly fit any category:
+      {
+        "categories": []
+      }
+
 
     `
 
@@ -145,7 +158,6 @@ export async function findCategoriesWithLLM({
   }>(prompt)
 
   svc.log.info(`categories found: ${JSON.stringify(result)}`)
-
   return result
 }
 
@@ -156,13 +168,11 @@ export async function findCollectionsWithLLM({
   topics,
   website,
 }: IFindCollectionsParams) {
-  const qx = dbStoreQx(svc.postgres.writer);
+  const qx = dbStoreQx(svc.postgres.writer)
 
   if (!categories || categories.length === 0) {
     return null
   }
-
-  svc.log.info(`categoriesIds: ${JSON.stringify(categories)}`)
 
   const collections = await queryCollections(qx, {
     fields: Object.values(CollectionField),
@@ -172,70 +182,71 @@ export async function findCollectionsWithLLM({
     orderBy: '"name" ASC',
   })
 
-  svc.log.info(`collections: ${JSON.stringify(collections)}`)
-
-
   const prompt = `
     You are an expert open-source analyst. Your job is to classify ${github} into appropriate collections.
 
-      ## Context and Purpose
-      This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
-      Developers and organizations use this index to:
-      - Discover relevant open-source tools for their technology stack
-      - Understand the open-source ecosystem in their domain
-      - Make informed decisions about which projects to adopt or contribute to
-      - Assess the health and importance of projects in specific technology areas
+    ## Context and Purpose
+    This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
+    Developers and organizations use this index to:
+    - Discover relevant open-source tools for their technology stack
+    - Understand the open-source ecosystem in their domain
+    - Make informed decisions about which projects to adopt or contribute to
+    - Assess the health and importance of projects in specific technology areas
 
-      Accurate classification is essential for users to find the right projects when browsing by technology domain or industry vertical.
+    Accurate classification is essential for users to find the right projects when browsing by technology domain or industry vertical.
 
-      ## Project Information
-      - URL: ${github}
-      - Description: ${description}
-      - Topics: ${topics}
-      - Homepage: ${website}
+    ## Project Information
+    - URL: ${github}
+    - Description: ${description}
+    - Topics: ${topics}
+    - Homepage: ${website}
 
-      ## Categories
-      The project has been identified as belonging to these categories:
-      {', '.join(${categories})}
-      
-      ## Available Collections
-      These are the collections within those categories:
+    ## Categories
+    The project has been identified as belonging to these categories:
+    ${categories.join(', ')}
 
-      ${formatTextCollectionsForPrompt(collections, categories)}
+    ## Available Collections
+    These are the collections within those categories:
 
-      ## Your Task
-      Analyze the project carefully and assign it to all relevant collections. 
-      A project can (and often does) belong to **multiple collections** if it serves multiple use cases, domains, or technical functions.
-      Do **not** limit the classification to a single collection unless it clearly fits only one.
-      Use your judgment to consider the primary and secondary purposes of the project.
+    ${formatTextCollectionsForPrompt(collections, categories)}
 
-      Consider:
-      - The specific functionality the project provides
-      - How it compares to other projects in potential collections
-      - Whether it's a horizontal tool (used across industries) or vertical solution (industry-specific)
-      - The granularity of the collections (neither too broad nor too specific)
+    ## Your Task
+    Analyze the project carefully and assign it to all relevant collections. 
+    A project can (and often does) belong to **multiple collections** if it serves multiple use cases, domains, or technical functions.
+    Do **not** limit the classification to a single collection unless it clearly fits only one.
+    Use your judgment to consider the primary and secondary purposes of the project.
 
-      If the project doesn't clearly fit into any of the available collections, return an empty list for collections.
+    Consider:
+    - The specific functionality the project provides
+    - How it compares to other projects in potential collections
+    - Whether it's a horizontal tool (used across industries) or vertical solution (industry-specific)
+    - The granularity of the collections (neither too broad nor too specific)
 
-      ## Format
-      Return **only** a valid JSON object in the following format — without any explanations, markdown, or introductory text:
+    If the project doesn't clearly fit into any of the available collections, return an empty list for collections, and **do not include an explanation**.
 
-      {
-        "collections": [
-          { "name": "collectionName", "id": "CollectionID" },
-          { "name": "anotherCollectionName", "id": "AnotherID" }
-        ],
-        "explanation": "Brief explanation of why you chose these collections."
-      }
+    ## Format
+    Return **only** a valid JSON object in the following format — without any explanations, markdown, or introductory text:
 
-      Rules:
-      - Do **not** wrap the output in triple backticks.
-      - Do **not** include the word "json" or any explanation before or after the JSON.
-      - The entire output must be a valid JSON object that can be parsed directly.
-      - Only use collections from the provided list. Do not invent new ones.
-    
+    If one or more collections apply:
+    {
+      "collections": [
+        { "name": "collectionName", "id": "CollectionID" },
+        { "name": "anotherCollectionName", "id": "AnotherID" }
+      ],
+      "explanation": "Brief explanation of why you chose these collections."
+    }
+
+    If no collections apply:
+    {
+      "collections": []
+    }
+
+    ### Rules:
+    - Do **not** include any markdown formatting or code block syntax (like triple backticks).
+    - Do **not** include the word "json" or any introductory/explanatory text.
+    - The output must be **only** a valid JSON object.
+    - Use **only** the collections provided — do not invent new ones.
     `
-
 
   const llmService = new LlmService(
     qx,
@@ -246,14 +257,18 @@ export async function findCollectionsWithLLM({
     svc.log,
   )
 
-  const { result } = await llmService.findRepoCollections<any>(prompt)
+  const { result } = await llmService.findRepoCollections<{
+    collections: { name: string; id: string }[]
+    explanation: string
+  }>(prompt)
+
   svc.log.info(`collections found: ${JSON.stringify(result)}`)
 
   return result
 }
 
 export async function findInsightsProjectBySegmentId(segmentId: string) {
-  const qx = dbStoreQx(svc.postgres.writer);
+  const qx = dbStoreQx(svc.postgres.writer)
 
   const result = await queryInsightsProjects(qx, {
     filter: {
@@ -265,10 +280,15 @@ export async function findInsightsProjectBySegmentId(segmentId: string) {
   return result
 }
 
-export async function connectProjectAndCollection(collectionIds: string[], insightsProjectId: string) {
+export async function connectProjectAndCollection(
+  collectionIds: string[],
+  insightsProjectId: string,
+) {
   try {
-    // FIXME: should we update the single collection one by one in order to be sure to skip just the duplicates ? 
-    svc.log.info(`updating the collections: ${collectionIds} with the project: ${insightsProjectId}`)
+    // FIXME: should we update the single collection one by one in order to be sure to skip just the duplicates ?
+    svc.log.info(
+      `updating the collections: ${collectionIds} with the project: ${insightsProjectId}`,
+    )
     await connectProjectsAndCollections(
       dbStoreQx(svc.postgres.writer),
       collectionIds.map((collectionId) => ({
@@ -278,6 +298,8 @@ export async function connectProjectAndCollection(collectionIds: string[], insig
       })),
     )
   } catch (error) {
-    svc.log.warn(`There was an errore updating the project: ${insightsProjectId} with one of the collections: ${JSON.stringify(collectionIds)}`)
+    svc.log.warn(
+      `There was an errore updating the project: ${insightsProjectId} with one of the collections: ${JSON.stringify(collectionIds)}`,
+    )
   }
 }

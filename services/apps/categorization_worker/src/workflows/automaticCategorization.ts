@@ -7,13 +7,18 @@ const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minutes',
 })
 
-export async function automaticCategorization({ github, description, topics, website, segmentId }: IAutomaticCategorization): Promise<void> {
-
+export async function automaticCategorization({
+  github,
+  description,
+  topics,
+  website,
+  segmentId,
+}: IAutomaticCategorization): Promise<void> {
   const { categories } = await activity.findCategoriesWithLLM({
     description,
     github,
     topics,
-    website
+    website,
   })
 
   if (!categories || categories.length === 0) {
@@ -34,8 +39,11 @@ export async function automaticCategorization({ github, description, topics, web
 
   const [insightsProject] = await activity.findInsightsProjectBySegmentId(segmentId)
 
+  if (!insightsProject) {
+    return null
+  }
+
   const collectionIds = collections.map((collection) => collection.id)
 
   await activity.connectProjectAndCollection(collectionIds, insightsProject.id)
-
 }
