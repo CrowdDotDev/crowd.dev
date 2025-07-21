@@ -228,10 +228,7 @@ export class LlmService extends LoggerBase {
   }
 
   public async findRepoCategories<T>(prompt: string): Promise<ILlmResult<T>> {
-    const response = await this.queryLlm(
-      LlmQueryType.REPO_CATEGORIES,
-      prompt,
-    )
+    const response = await this.queryLlm(LlmQueryType.REPO_CATEGORIES, prompt)
 
     const result = JSON.parse(response.answer)
 
@@ -242,10 +239,7 @@ export class LlmService extends LoggerBase {
   }
 
   public async findRepoCollections<T>(prompt: string): Promise<ILlmResult<T>> {
-    const response = await this.queryLlm(
-      LlmQueryType.REPO_COLLECTIONS,
-      prompt,
-    )
+    const response = await this.queryLlm(LlmQueryType.REPO_COLLECTIONS, prompt)
 
     const result = JSON.parse(response.answer)
 

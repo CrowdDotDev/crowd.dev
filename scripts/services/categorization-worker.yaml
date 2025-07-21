@@ -4,7 +4,7 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   NODE_ENV: docker
   SERVICE: categorization-worker
-  CROWD_TEMPORAL_TASKQUEUE: nango
+  CROWD_TEMPORAL_TASKQUEUE: categorization
   SHELL: /bin/sh
 
 services:
