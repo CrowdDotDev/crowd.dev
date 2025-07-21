@@ -50,11 +50,11 @@ export interface IInsightsProject {
   twitter: string
   widgets: string[]
   repositories:
-  | {
-    platform: string
-    url: string
-  }[]
-  | string[]
+    | {
+        platform: string
+        url: string
+      }[]
+    | string[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
