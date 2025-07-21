@@ -1,4 +1,3 @@
-
 import { CollectionService } from '@/services/collectionService'
 
 import Permissions from '../../security/permissions'

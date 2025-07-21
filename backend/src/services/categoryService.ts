@@ -1,5 +1,4 @@
 import { getCleanString } from '@crowd/common'
-import { LlmService } from '@crowd/common_services'
 import {
   ICategoryFilters,
   ICategoryGroupsFilters,
@@ -21,7 +20,7 @@ import {
   updateCategory,
   updateCategoryGroup,
 } from '@crowd/data-access-layer/src/categories'
-import { LoggerBase, getServiceLogger } from '@crowd/logging'
+import { LoggerBase } from '@crowd/logging'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -298,94 +297,4 @@ export class CategoryService extends LoggerBase {
       offset: +filters.offset || 0,
     }
   }
-
-
-
-  // public async findRepoCategoriesWithLLM({
-  //   repoUrl,
-  //   repoDescription,
-  //   repoTopics,
-  //   repoHomepage,
-  // }: {
-  //   repoUrl: string
-  //   repoDescription: string
-  //   repoTopics: string[]
-  //   repoHomepage: string
-  // }): Promise<{ categories: { name: string; id: string }[]; explanation: string }> {
-  //   const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-  //   // TODO: handling pagination
-  //   const categories = await listCategories(qx, {
-  //     query: '',
-  //     limit: 1000,
-  //     offset: 0,
-  //     groupType: null,
-  //   })
-
-  //   const prompt = `
-
-  //     You are an expert open-source analyst. Your job is to classify ${repoUrl} into appropriate categories.
-
-  //     ## Context and Purpose
-  //     This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
-  //     Developers and organizations use this index to:
-  //     - Discover relevant open-source tools for their technology stack
-  //     - Understand the open-source ecosystem in their domain
-  //     - Make informed decisions about which projects to adopt or contribute to
-  //     - Assess the health and importance of projects in specific technology areas
-
-  //     Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
-
-  //     ## Project Information
-  //     - URL: ${repoUrl}
-  //     - Description: ${repoDescription}
-  //     - Topics: ${repoTopics}
-  //     - Homepage: ${repoHomepage}
-
-  //     ## Available Categories
-  //     These categories are organized by category groups and each category is shown as "CategoryName-CategoryID":
-
-  //     ${CategoryService.formatTextCategories(categories)}
-
-  //     ## Your Task
-  //     Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
-
-  //     Consider:
-  //     - The project's primary functionality and purpose
-  //     - The technology domain it operates in
-  //     - The industry or vertical it serves (if applicable)
-  //     - How developers would expect to find this project when browsing by category
-
-  //     If the project doesn't clearly fit into any of the available categories, return an empty array for categories.
-
-  //     ## Format
-  //     Return a JSON object in the following format:
-
-  //     json
-  //     {
-  //       "categories": [
-  //         { "name": "CategoryName", "id": "CategoryID" },
-  //         { "name": "AnotherCategory", "id": "AnotherID" }
-  //       ],
-  //       "explanation": "Brief explanation of why you chose these categories"
-  //     }
-
-  //   `
-
-  //   const llmService = new LlmService(
-  //     qx,
-  //     {
-  //       accessKeyId: process.env.CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
-  //       secretAccessKey: process.env.CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
-  //     },
-  //     getServiceLogger(),
-  //   )
-
-  //   const { result } = await llmService.findRepoCategories<{
-  //     categories: { name: string; id: string }[]
-  //     explanation: string
-  //   }>(prompt)
-
-  //   return result
-  // }
 }
