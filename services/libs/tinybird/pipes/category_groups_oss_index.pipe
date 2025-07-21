@@ -19,8 +19,9 @@ DESCRIPTION >
     Returns only columns which we need from insights projects table
 
 SQL >
-    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
-    FROM insightsProjects FINAL
+    SELECT id, name, logoUrl, description, healthScore
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, logoUrl, description, healthScore
 
 NODE category_groups_oss_index_collections_deduplicated
 DESCRIPTION >
@@ -60,7 +61,9 @@ SQL >
         topProjects.softwareValue,
         topProjects.avgScore,
         pd.name AS projectName,
-        pd.logoUrl AS projectLogo
+        pd.logoUrl AS projectLogo,
+        pd.description AS description,
+        pd.healthScore AS healthScore
     FROM category_groups_oss_index_projects_ranked_by_category_group topProjects
     JOIN category_groups_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -136,7 +139,16 @@ SQL >
     SELECT
         categoryGroupId,
         groupArray(
-            (projectId, totalContributors, projectName, projectLogo, softwareValue, avgScore)
+            (
+                projectId,
+                totalContributors,
+                projectName,
+                projectLogo,
+                softwareValue,
+                avgScore,
+                healthScore,
+                description
+            )
         ) AS topProjects
     FROM category_groups_oss_index_projects
     GROUP BY categoryGroupId
