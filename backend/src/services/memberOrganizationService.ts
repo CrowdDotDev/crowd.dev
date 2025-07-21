@@ -155,7 +155,7 @@ export default class MemberOrganizationService extends LoggerBase {
         this.options,
       )
 
-      if (existingOverride) {
+      if (existingOverride && newRoleId) {
         let overrideToApply = existingOverride
 
         if (existingOverride.isPrimaryWorkExperience) {
@@ -481,6 +481,10 @@ export default class MemberOrganizationService extends LoggerBase {
 
       for (const addRole of addRoles) {
         const newRoleId = await MemberOrganizationRepository.addMemberRole(addRole, this.options)
+
+        if (!newRoleId) {
+          throw new Error(`Failed to add member role for ${addRole.memberId}`)
+        }
 
         // Find all affiliation overrides that could apply to this new role
         // Match by organization + title only:

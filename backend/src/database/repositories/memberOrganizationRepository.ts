@@ -89,7 +89,7 @@ class MemberOrganizationRepository {
   static async addMemberRole(
     role: IMemberOrganization,
     options: IRepositoryOptions,
-  ): Promise<string> {
+  ): Promise<string | undefined> {
     const transaction = SequelizeRepository.getTransaction(options)
     const sequelize = SequelizeRepository.getSequelize(options)
 
@@ -99,7 +99,7 @@ class MemberOrganizationRepository {
           on conflict do nothing returning "id";
     `
 
-    const result = await sequelize.query(query, {
+    const [rows] = await sequelize.query(query, {
       replacements: {
         memberId: role.memberId,
         organizationId: role.organizationId,
@@ -112,7 +112,7 @@ class MemberOrganizationRepository {
       transaction,
     })
 
-    return result[0][0]?.id
+    return rows[0]?.id
   }
 
   static async findNonIntersectingRoles(
