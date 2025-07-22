@@ -79,7 +79,6 @@ export async function findCategoriesWithLLM({
 }: IFindCategoryParams) {
   const qx = dbStoreQx(svc.postgres.writer)
 
-  // FIXME: should we handle the pagination here ?
   const categories = await listCategories(qx, {
     query: '',
     limit: 1000,
@@ -285,7 +284,6 @@ export async function connectProjectAndCollection(
   insightsProjectId: string,
 ) {
   try {
-    // FIXME: should we update the single collection one by one in order to be sure to skip just the duplicates ?
     svc.log.info(
       `updating the collections: ${collectionIds} with the project: ${insightsProjectId}`,
     )
