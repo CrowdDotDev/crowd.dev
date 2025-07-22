@@ -21,7 +21,11 @@ import {
   updateMemberEnrichmentCache,
   updateMemberUsingSquashedPayload,
 } from './activities/enrichment'
-import { getEnrichableMembers, getMaxConcurrentRequests } from './activities/getMembers'
+import {
+  getEnrichableMembers,
+  getMaxConcurrentRequests,
+  getMemberById,
+} from './activities/getMembers'
 import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
 import {
   getIdentitiesExistInOtherMembers,
@@ -43,6 +47,7 @@ import {
 
 export {
   setMemberEnrichmentTryDate,
+  getMemberById,
   getEnrichableMembers,
   getEnrichmentData,
   normalizeEnrichmentData,

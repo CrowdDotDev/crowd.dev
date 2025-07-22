@@ -1,3 +1,4 @@
+import { MemberField, findMemberById, pgpQx } from '@crowd/data-access-layer'
 import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
 import {
   IEnrichableMember,
@@ -53,4 +54,10 @@ export async function getMaxConcurrentRequests(
   svc.log.info('Setting max concurrent requests', { maxConcurrentRequestsInAllSources })
 
   return maxConcurrentRequestsInAllSources
+}
+
+export async function getMemberById(memberId: string): Promise<boolean> {
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const member = await findMemberById(qx, memberId, [MemberField.ID])
+  return !!member
 }
