@@ -71,7 +71,7 @@ export default class IntegrationService {
     this.options = options
   }
 
-  async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
+  async createOrUpdate(data, transaction: Transaction, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
