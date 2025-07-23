@@ -1,5 +1,20 @@
-NODE activityRelations_deduplicated_cleaned_results
+NODE country_mapping_array
 SQL >
+
+    SELECT groupArray((country, country_code, timezone_offset)) AS country_data
+    FROM country_mapping_ds
+
+
+
+NODE activityRelations_deduplicated_cleaned_denormalized
+SQL >
+
+    WITH
+        upperUTF8(o.location) AS search_u,
+        (SELECT arrayMap(x -> upperUTF8(x .1), country_data) FROM country_mapping_array) AS names_u,
+        (SELECT country_data FROM country_mapping_array) AS mapping,
+        multiSearchFirstIndexUTF8(search_u, names_u) AS idx,
+        if(idx = 0, ('Unknown', 'XX', 0), mapping[idx]) AS country_data
     SELECT
         activityRelations.*,
         (gitInsertions + gitDeletions) as gitChangedLines,
@@ -15,8 +30,11 @@ SQL >
             when gitChangedLines > 499
             then '500+'
             else ''
-        end as "gitChangedLinesBucket"
+        end as "gitChangedLinesBucket",
+        CAST(country_data.2 AS LowCardinality(String)) AS organizationCountryCode,
+        o.displayName as "organizationName"
     from activityRelations final
+    left join organizations o final on o.id = activityRelations.organizationId
     where
         memberId IN (SELECT id FROM members_sorted)
         and (
@@ -27,7 +45,9 @@ SQL >
             OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
         )
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE activityRelations_deduplicated_cleaned_ds
 COPY_MODE replace
 COPY_SCHEDULE 0 * * * *
+
+
