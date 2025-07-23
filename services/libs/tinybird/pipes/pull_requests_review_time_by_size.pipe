@@ -1,7 +1,17 @@
 DESCRIPTION >
-    Serves the `Development - Review time by pull request size` widget
+    - `pull_requests_review_time_by_size.pipe` serves the "Development - Review time by pull request size" widget.
+    - Analyzes the correlation between PR size (measured by git changed lines) and review time.
+    - Groups PRs by size buckets ('1-9', '10-59', '60-99', '100-499', '500+') and calculates average review time for each.
+    - Excludes PRs without size information (`not empty(gitChangedLinesBucket)`) to ensure accurate analysis.
+    - Primary use case: understanding how PR size impacts review efficiency and identifying optimal PR sizing.
+    - Parameters:
+        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+        - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+        - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01T00:00:00Z')
+        - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - Response: `gitChangedLinesBucket`, `reviewedInSecondsAvg`, `pullRequestCount` ordered by size bucket
 
-TAGS "Widget"
+TAGS "Widget", "Pull requests", "Review time", "Size analysis"
 
 NODE review_time_by_pull_request_size_0
 SQL >

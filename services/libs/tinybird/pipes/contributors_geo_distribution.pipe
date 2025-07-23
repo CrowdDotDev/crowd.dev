@@ -1,7 +1,22 @@
 DESCRIPTION >
-    Serves contributor geographic distribution widget.
+    - `contributors_geo_distribution.pipe` serves the contributor geographic distribution widget showing contributor counts by country.
+    - Maps contributor locations to countries using fuzzy matching with the `country_mapping` lookup table.
+    - Handles unknown/unmappable locations by grouping them under "Unknown" with ❓ flag and 'XX' country code.
+    - Calculates both absolute contributor counts and percentage distribution for visualization.
+    - Primary use case: displaying geographic diversity of contributors in project analytics and community insights.
+    - Parameters:
+        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+        - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+        - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01T00:00:00Z')
+        - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
+        - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+        - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+        - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+        - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+        - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Response: `country`, `flag`, `country_code`, `contributorCount`, `contributorPercentage`
 
-TAGS "Widget"
+TAGS "Widget", "Geography", "Contributors"
 
 NODE country_mapping_array
 SQL >

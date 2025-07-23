@@ -1,3 +1,21 @@
+DESCRIPTION >
+    - `category_list.pipe` provides paginated category listings with their associated category group information.
+    - Joins categories with category groups to provide complete category hierarchy and metadata.
+    - Supports filtering by category slug, search by category name, and category group type filtering.
+    - Provides flexible sorting and pagination for category management interfaces.
+    - Primary use case: powering category selections in insights.
+    - Parameters:
+        - `slug`: Optional string to filter by specific category slug
+        - `search`: Optional string for case-insensitive search in category names (with wildcards)
+        - `categoryGroupType`: Optional string to filter by category group type
+        - `orderBy`: Optional string specifying sort field, defaults to 'name'
+        - `orderDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
+        - `pageSize`: Optional integer for result limit, defaults to 10
+        - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - Response: `id`, `name`, `slug`, `categoryGroupId`, `categoryGroupName`, `categoryGroupSlug`, `categoryGroupType`
+
+TAGS "API", "Categories", "Pagination", "Category management"
+
 NODE category_list_categories_deduplicated
 SQL >
     %

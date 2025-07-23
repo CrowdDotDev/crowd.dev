@@ -1,7 +1,22 @@
 DESCRIPTION >
-    Serves organization dependency widget
+    - `organization_dependency.pipe` serves the organization dependency widget showing organizations that make up majority of project contributions.
+    - Identifies organizations whose combined contributions reach or exceed 51% of total project activity (institutional bus factor analysis).
+    - Uses running total calculation to find the minimum set of organizations representing majority contribution share.
+    - Combines data from `organizations_leaderboard` and `active_organizations` to provide institutional dependency risk assessment.
+    - Primary use case: measuring project sustainability from organizational perspective and identifying key institutional dependencies.
+    - Parameters:
+        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `organizations_leaderboard`
+        - `repos`: Optional array of repository URLs for filtering (inherited from `organizations_leaderboard`)
+        - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01T00:00:00Z')
+        - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
+        - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+        - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+        - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+        - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+        - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Response: `id`, `displayName`, `contributionPercentage`, `contributionPercentageRunningTotal`, `totalOrganizationCount`
 
-TAGS "Widget"
+TAGS "Widget", "Dependency analysis", "Institutional risk", "Organizations"
 
 NODE organization_dependency_0
 SQL >

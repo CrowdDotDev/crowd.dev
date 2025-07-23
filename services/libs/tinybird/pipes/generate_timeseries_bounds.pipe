@@ -1,7 +1,18 @@
 DESCRIPTION >
-    Provides timeseries bounds for generate_timeseries pipe. If `startDate` is not sent, then the first existing activity timestamp from sent filters are used as startDate. If endDate is not sent, then `now()` is used as endDate
+    - `generate_timeseries_bounds.pipe` provides intelligent time range bounds calculation for the `generate_timeseries` pipe.
+    - Automatically determines appropriate start and end dates based on available parameters and data availability.
+    - **When `startDate` is not provided:** Uses the minimum activity timestamp from `activities_filtered` as the start date.
+    - **When `endDate` is not provided:** Uses current date (`now()`) as the end date.
+    - **When both are provided:** Uses the specified dates directly.
+    - Filters out unrealistic timestamps before 1980-01-01 to ensure data quality.
+    - Primary use case: supporting time-series generation by providing sensible date bounds when parameters are missing.
+    - Parameters:
+        - `startDate`: Optional DateTime for time range start
+        - `endDate`: Optional DateTime for time range end
+        - Inherits filtering parameters from `activities_filtered` pipe when calculating bounds from data
+    - Response: `actual_start_date`, `actual_end_date`
 
-TAGS "Utility"
+TAGS "Utility", "Time-series", "Date bounds"
 
 NODE generate_timeseries_boundz_0
 SQL >

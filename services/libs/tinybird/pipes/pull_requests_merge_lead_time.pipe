@@ -1,7 +1,17 @@
 DESCRIPTION >
-    Serves the `Development - Merge lead time` widget
+    - `pull_requests_merge_lead_time.pipe` serves the "Development - Merge lead time" widget showing PR lifecycle timing metrics.
+    - Calculates average durations for each stage of the pull request lifecycle from opening to merging.
+    - Provides detailed breakdown of PR workflow timing: opened→review assigned→first review→approved→merged.
+    - Uses `pull_requests_filtered` pipe for consistent PR filtering across projects and repositories.
+    - Primary use case: analyzing pull request efficiency and identifying bottlenecks in the development workflow.
+    - Parameters:
+        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+        - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+        - `startDate`: Optional DateTime filter for PRs opened after timestamp (e.g., '2024-01-01T00:00:00Z')
+        - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - Response: `openedToMergedSeconds`, `openedToReviewAssignedSeconds`, `reviewAssignedToFirstReviewSeconds`, `firstReviewToApprovedSeconds`, `approvedToMergedSeconds`
 
-TAGS "Widget"
+TAGS "Widget", "Pull requests", "Lead time", "Development metrics"
 
 NODE pull_requests_merge_lead_time_0
 SQL >

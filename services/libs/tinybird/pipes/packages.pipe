@@ -1,3 +1,17 @@
+DESCRIPTION >
+    - `packages.pipe` provides distinct package information for a project showing available packages across different ecosystems.
+    - Returns unique packages with their repository, name, and ecosystem information for package discovery and filtering.
+    - Supports search functionality across package names and ecosystems for package exploration.
+    - Uses `segments_filtered` for automatic project scoping and optional repository filtering.
+    - Primary use case: powers package selection dropdown in the package downloads widget.
+    - Parameters:
+        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+        - `search`: Optional string for searching package names or ecosystems (case-insensitive with wildcards)
+        - `repos`: Optional array of repository URLs to filter packages by specific repositories (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - Response: `repo`, `name`, `ecosystem` (distinct packages matching the filters)
+
+TAGS "Utility", "Packages", "Package discovery"
+
 NODE packages_0
 SQL >
     %
