@@ -1,3 +1,16 @@
+DESCRIPTION >
+    - `criticalityScores` contains repository criticality scoring data for assessing project importance and impact.
+    - Replicated from Postgres - stores computed criticality metrics for repositories and projects.
+    - Criticality scores help prioritize projects based on factors like usage, dependencies, and community impact.
+    - `id` is the primary key identifier for the criticality score record.
+    - `name` is the repository or project name (empty string if not set).
+    - `repoUrl` is the repository URL being scored (empty string if not applicable).
+    - `score` is the computed criticality score as a floating-point value (0 default).
+    - `rank` is the relative ranking of this repository among all scored repositories (0 default).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Repository scoring", "Project prioritization"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name` DEFAULT '',

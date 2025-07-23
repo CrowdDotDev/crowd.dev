@@ -1,3 +1,20 @@
+DESCRIPTION >
+    - `activityRelations_sorted` contains deduplicated activity relationship data optimized for segment-based queries.
+    - Created via copy pipe from deduplicated activity relations with query-optimized sorting for performance.
+    - Same schema as `activityRelations_deduplicated_ds` but with different sorting key for segment/member/organization analytics.
+    - `activityId` is the unique identifier linking to the main activity record.
+    - `conversationId` groups related activities into conversation threads.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking and deduplication.
+    - `memberId` identifies the member who performed the activity.
+    - `objectMemberId` and `objectMemberUsername` identify target members for activities (e.g., mentions, assignments).
+    - `organizationId` identifies the organization associated with the member.
+    - `parentId` establishes hierarchical relationships between activities in our system.
+    - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality for efficiency.
+    - `segmentId` links to the subproject-level segment for filtering and organization.
+    - `username` contains the username of the member who performed the activity.
+
+TAGS "Activity preprocessing pipeline", "Query optimization"
+
 SCHEMA >
     `activityId` String,
     `conversationId` String,

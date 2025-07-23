@@ -1,3 +1,13 @@
+DESCRIPTION >
+    - `softwareValueProjectCosts` contains estimated software development costs for repositories and projects.
+    - Replicated from Postgres - stores computed cost estimates for project valuation and analysis.
+    - Used to assess the economic value and development investment in open source projects.
+    - `repoUrl` is the repository URL being cost-estimated.
+    - `estimatedCost` is the computed development cost estimate in monetary units (UInt64).
+    - `updatedAt` is the timestamp when the cost estimate was last computed.
+
+TAGS "Project valuation", "Cost estimation"
+
 SCHEMA >
     `repoUrl` String `json:$.record.repo_url`,
     `estimatedCost` UInt64 `json:$.record.estimated_cost`,
