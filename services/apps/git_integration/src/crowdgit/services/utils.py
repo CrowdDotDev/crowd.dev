@@ -40,7 +40,7 @@ def get_repo_name(remote: str) -> str:
 
 
 async def get_default_branch(repo_path: str) -> str:
-    """Get the default branch of the repository using remote as it's still a bare clone
+    """Get the default branch of the repository using local repo
 
     Args:
         repo_path: The local path to the repository.
@@ -49,30 +49,30 @@ async def get_default_branch(repo_path: str) -> str:
         The default branch name.
     """
 
-    # Query remote directly for default branch (works without fetching)
     try:
         output = await run_shell_command(
-            ["git", "-C", repo_path, "ls-remote", "--symref", "origin", "HEAD"]
+            ["git", "-C", repo_path, "symbolic-ref", "refs/remotes/origin/HEAD"]
         )
-        # Output format: "ref: refs/heads/main\tHEAD\n<commit-hash>\tHEAD"
-        for line in output.split("\n"):
-            if line.startswith("ref: refs/heads/"):
-                return line.split("refs/heads/", 1)[1].split("\t")[0]
+
+        # Remove the 'refs/remotes/origin/' prefix to get the full branch name
+        prefix = "refs/remotes/origin/"
+        if output.startswith(prefix):
+            return output[len(prefix) :]
     except CommandExecutionError:
         pass
 
-    # Fallback: check which common branches exist on remote
+    # Fallback: check which common branches exist locally as remote tracking branches
     for branch in ["master", "main"]:
         try:
             await run_shell_command(
-                ["git", "-C", repo_path, "ls-remote", "origin", f"refs/heads/{branch}"]
+                ["git", "-C", repo_path, "show-ref", "--verify", f"refs/remotes/origin/{branch}"]
             )
             return branch
         except CommandExecutionError:
             continue
 
-    # Detached mode fallback
-    logger.warning(f"No remote branches found for {repo_path}, assuming detached mode")
+    # Final fallback: detached mode
+    logger.warning(f"No remote tracking branches found for {repo_path}, assuming detached mode")
     return "*"
 
 
