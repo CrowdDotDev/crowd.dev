@@ -933,6 +933,7 @@ class SegmentRepository extends RepositoryBase<
         "githubRepos" r
        where r."segmentId" = :segmentId
        and r."tenantId" = :tenantId
+       and r."deletedAt" is null
        order by r.url
       `,
       {
