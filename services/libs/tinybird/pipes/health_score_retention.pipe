@@ -78,7 +78,7 @@ SQL >
     SELECT
         segmentId,
         if(
-            previous_period_total > 0, round(100 * retained_members / previous_period_total, 2), 0
+            previous_period_total > 0, round(100 * retained_members / previous_period_total), 0
         ) AS "retentionRate"
     FROM health_score_retention_counts
 
