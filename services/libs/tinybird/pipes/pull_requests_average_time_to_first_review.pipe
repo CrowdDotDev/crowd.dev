@@ -5,14 +5,14 @@ DESCRIPTION >
     - Only includes PRs that have been reviewed (`isNotNull(pra.reviewedAt)`) to ensure accurate timing calculations.
     - Primary use case: monitoring PR review responsiveness and identifying delays in the review process.
     - Parameters:
-        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
-        - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
-        - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01T00:00:00Z')
-        - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31T23:59:59Z')
-        - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+    - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response:
-        - Without granularity: `averageTimeToFirstReviewSeconds` (total average)
-        - With granularity: `startDate`, `endDate`, and `averageTimeToFirstReviewSeconds` for each time period
+    - Without granularity: `averageTimeToFirstReviewSeconds` (total average)
+    - With granularity: `startDate`, `endDate`, and `averageTimeToFirstReviewSeconds` for each time period
 
 TAGS "Widget", "Pull requests", "Review time", "Development metrics"
 

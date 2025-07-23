@@ -7,8 +7,8 @@ DESCRIPTION >
     - Generates up to 1000 time periods using ClickHouse's `numbers()` function for comprehensive time-series coverage.
     - Primary use case: serving as the foundational time-series infrastructure for all activity, contributor, and metric analytics.
     - Parameters:
-        - `granularity`: Required string for time period intervals ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
-        - Inherits time range parameters from `generate_timeseries_bounds`: `startDate`, `endDate`, and activity filters
+    - `granularity`: Required string for time period intervals ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Inherits time range parameters from `generate_timeseries_bounds`: `startDate`, `endDate`, and activity filters
     - Response: `startDate`, `endDate` for each time period within the specified granularity and date range
 
 TAGS "Utility", "Time-series", "Infrastructure", "Date generation"

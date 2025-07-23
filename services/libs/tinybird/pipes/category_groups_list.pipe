@@ -4,7 +4,7 @@ DESCRIPTION >
     - Supports filtering by specific category group slug for targeted queries.
     - Primary use case: powering category group selection dropdowns and category hierarchy navigation.
     - Parameters:
-        - `slug`: Optional string to filter by specific category group slug
+    - `slug`: Optional string to filter by specific category group slug
     - Response: `name`, `slug`, `type`
 
 TAGS "API", "Category groups", "Navigation"

@@ -5,16 +5,16 @@ DESCRIPTION >
     - This time extension ensures retention rate calculations have the necessary baseline data from the preceding period for comparing distinct member activity for the first given period.
     - Primary use case: providing data foundation for member retention analysis and cohort studies.
     - Parameters:
-        - `project`: Inherited from `segments_filtered`, project slug (e.g., 'k8s', 'tensorflow')
-        - `repos`: Inherited from `segments_filtered`, array of repository URLs for filtering
-        - `startDate`: Optional DateTime filter, automatically extended backwards by one granularity period
-        - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
-        - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
-        - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
-        - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
-        - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
-        - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
-        - `granularity`: Required string for time aggregation and period extension ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - `project`: Inherited from `segments_filtered`, project slug (e.g., 'k8s', 'tensorflow')
+    - `repos`: Inherited from `segments_filtered`, array of repository URLs for filtering
+    - `startDate`: Optional DateTime filter, automatically extended backwards by one granularity period
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `granularity`: Required string for time aggregation and period extension ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
 NODE activities_filtered_by_timestamp_and_channel

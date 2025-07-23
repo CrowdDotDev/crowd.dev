@@ -6,8 +6,8 @@ DESCRIPTION >
     - Orders results by relevance: collections by project count, projects by contributor count, repositories alphabetically.
     - Primary use case: powering global search functionality and autocomplete dropdowns across the platform.
     - Parameters:
-        - `search`: Required string for searching across all entity types (inherited by filtered pipes)
-        - `limit`: Optional integer for result limit per entity type, defaults to 10
+    - `search`: Required string for searching across all entity types (inherited by filtered pipes)
+    - `limit`: Optional integer for result limit per entity type, defaults to 10
     - Response: `type` ('collection'|'project'|'repository'), `slug`, `logo`, `projectSlug`, `name`
 
 TAGS "Widget", "Search", "Unified search"

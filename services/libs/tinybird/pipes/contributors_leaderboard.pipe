@@ -4,21 +4,21 @@ DESCRIPTION >
     - Calculates contribution counts and percentages, showing different display names based on project type (LF vs non-LF).
     - Primary use case: powering contributor ranking widgets in development insights.
     - Parameters:
-        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
-        - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
-        - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01T00:00:00Z')
-        - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
-        - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
-        - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
-        - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
-        - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
-        - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
-        - `count`: Optional boolean, when true returns contributor count instead of leaderboard data
-        - `limit`: Optional integer for result pagination, defaults to 10
-        - `offset`: Optional integer for result pagination, defaults to 0
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `count`: Optional boolean, when true returns contributor count instead of leaderboard data
+    - `limit`: Optional integer for result pagination, defaults to 10
+    - `offset`: Optional integer for result pagination, defaults to 0
     - Response:
-        - Count mode (`count=true`): `count` (total number of contributors)
-        - Data mode (default): `id`, `avatar`, `displayName`, `contributionCount`, `contributionPercentage`, `roles`
+    - Count mode (`count=true`): `count` (total number of contributors)
+    - Data mode (default): `id`, `avatar`, `displayName`, `contributionCount`, `contributionPercentage`, `roles`
 
 TAGS "Widget", "Leaderboard", "Contributors"
 

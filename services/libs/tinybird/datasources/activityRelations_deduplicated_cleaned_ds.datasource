@@ -56,6 +56,6 @@ SCHEMA >
     `organizationCountryCode` LowCardinality(String),
     `organizationName` String
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(timestamp)"
-ENGINE_SORTING_KEY "segmentId, timestamp, type, platform, memberId, organizationId"
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY segmentId, timestamp, type, platform, memberId, organizationId

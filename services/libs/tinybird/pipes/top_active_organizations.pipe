@@ -4,8 +4,8 @@ DESCRIPTION >
     - Filters for organization entities only (excludes members) and orders by activity count descending.
     - Primary use case: displaying top organization rankings in dashboard widgets and leaderboards.
     - Parameters:
-        - `pageSize`: Optional integer for result limit, defaults to 10
-        - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - `pageSize`: Optional integer for result limit, defaults to 10
+    - `page`: Optional integer for pagination offset calculation, defaults to 0
     - Response: `id`, `displayName`, `logo`, `activityCount`
 
 TAGS "Widget", "Organizations", "Top performers"

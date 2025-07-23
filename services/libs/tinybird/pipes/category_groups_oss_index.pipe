@@ -6,8 +6,8 @@ DESCRIPTION >
     - Uses complex joins and aggregations to provide enriched category group data for public OSS index consumption.
     - Primary use case: powering the public OSS index category groups directory with sortable, enriched category data.
     - Parameters:
-        - `type`: Optional string to filter by category group type
-        - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
+    - `type`: Optional string to filter by category group type
+    - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
     - Response: `id`, `name`, `type`, `slug`, `totalContributors`, `softwareValue`, `avgScore`, `topCollections` (array), `topProjects` (array)
 
 TAGS "API", "OSS index", "Category groups", "Public directory"

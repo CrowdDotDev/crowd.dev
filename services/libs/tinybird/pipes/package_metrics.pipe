@@ -6,16 +6,16 @@ DESCRIPTION >
     - Uses custom time-series generation logic specifically designed for package download data patterns.
     - Primary use case: powers package downloads and package dependency widgets.
     - Parameters:
-        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
-        - `startDate`: Optional DateTime filter for package data after timestamp (e.g., '2024-01-01T00:00:00Z')
-        - `endDate`: Optional DateTime filter for package data before timestamp (e.g., '2024-12-31T23:59:59Z')
-        - `ecosystem`: Optional string to filter by package ecosystem (e.g., 'npm', 'pypi', 'maven')
-        - `name`: Optional string to filter by specific package name
-        - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes'])
-        - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `startDate`: Optional DateTime filter for package data after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for package data before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `ecosystem`: Optional string to filter by package ecosystem (e.g., 'npm', 'pypi', 'maven')
+    - `name`: Optional string to filter by specific package name
+    - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response:
-        - Without granularity: `downloadsCount`, `dockerDownloadsCount`, `dockerDependentsCount`, `dependentPackagesCount`, `dependentReposCount`
-        - With granularity: `startDate`, `endDate`, and all metric fields for each time period
+    - Without granularity: `downloadsCount`, `dockerDownloadsCount`, `dockerDependentsCount`, `dependentPackagesCount`, `dependentReposCount`
+    - With granularity: `startDate`, `endDate`, and all metric fields for each time period
 
 TAGS "Widget", "Package metrics", "Downloads", "Dependencies"
 

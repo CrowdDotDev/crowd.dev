@@ -6,8 +6,8 @@ DESCRIPTION >
     - Uses `security_deduplicated_merged_ds` datasource for security assessment data with repository-level filtering.
     - Primary use case: displaying project security posture, compliance status, and security recommendations in security dashboards.
     - Parameters:
-        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow')
-        - `repos`: Optional array of repository URLs to filter security assessments (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow')
+    - `repos`: Optional array of repository URLs to filter security assessments (e.g., ['https://github.com/kubernetes/kubernetes'])
     - Response: `evaluationId`, `category`, `repo`, `controlId`, `message`, `result`, `assessments`
 
 TAGS "Widget", "Security", "Compliance", "Best practices"

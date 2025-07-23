@@ -5,10 +5,10 @@ DESCRIPTION >
     - Excludes PRs without size information (`not empty(gitChangedLinesBucket)`) to ensure accurate analysis.
     - Primary use case: understanding how PR size impacts review efficiency and identifying optimal PR sizing.
     - Parameters:
-        - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
-        - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
-        - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01T00:00:00Z')
-        - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+    - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31T23:59:59Z')
     - Response: `gitChangedLinesBucket`, `reviewedInSecondsAvg`, `pullRequestCount` ordered by size bucket
 
 TAGS "Widget", "Pull requests", "Review time", "Size analysis"
