@@ -160,13 +160,3 @@ class CloneService(BaseService):
             if temp_repo_path and os.path.exists(temp_repo_path):
                 self.logger.info(f"cleaning temp dir {temp_repo_path}")
                 shutil.rmtree(temp_repo_path)
-
-    async def process(self, **kwargs) -> Dict[str, Any]:
-        """
-        Clone a repository to local storage
-        """
-        pass
-
-    async def cleanup(self, **kwargs) -> None:
-        """Clean up cloned repositories"""
-        pass
