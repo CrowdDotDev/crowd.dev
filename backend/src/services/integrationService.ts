@@ -71,7 +71,7 @@ export default class IntegrationService {
     this.options = options
   }
 
-  async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
+  async createOrUpdate(data, transaction: Transaction, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
@@ -746,19 +746,21 @@ export default class IntegrationService {
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integrationId, mapping, false)
 
-        integration = await txService.createOrUpdate({
-          id: integrationId,
-          platform: PlatformType.GITHUB_NANGO,
-          settings: {
-            ...settings,
-            ...(integration.settings.nangoMapping
-              ? {
-                  nangoMapping: integration.settings.nangoMapping,
-                }
-              : {}),
+        integration = await txService.createOrUpdate(
+          {
+            id: integrationId,
+            platform: PlatformType.GITHUB_NANGO,
+            settings: {
+              ...settings,
+              ...(integration.settings.nangoMapping
+                ? {
+                    nangoMapping: integration.settings.nangoMapping,
+                  }
+                : {}),
+            },
           },
           transaction,
-        })
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)
