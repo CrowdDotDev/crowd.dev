@@ -20,8 +20,10 @@ import {
   queryCollections,
   queryInsightsProjectById,
   queryInsightsProjects,
+  softDeleteInsightsProjectRepositories,
   updateCollection,
   updateInsightsProject,
+  upsertInsightsProjectRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
@@ -362,6 +364,19 @@ export class CollectionService extends LoggerBase {
       offset,
     }
   }
+ 
+  static normalizeRepositories(
+  repositories?: string[] | { platform: string; url: string }[]
+): string[] {
+  if (!repositories) return [];
+
+  if (typeof repositories[0] === 'string') {
+    return repositories as string[];
+  }
+
+  return (repositories as { platform: string; url: string }[]).map(r => r.url);
+}
+
 
   async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
@@ -374,6 +389,18 @@ export class CollectionService extends LoggerBase {
       }
 
       await updateInsightsProject(qx, id, project)
+
+      console.log(`repositories: ${project.repositories} and id: ${id}`)
+      
+      if (project.repositories?.length > 0) {
+        // TODO: sistemare tutto in modo che le repository possono essere anche zero
+        const repositories = CollectionService.normalizeRepositories(project.repositories)
+  
+        await upsertInsightsProjectRepositories(qx, `${id}`, repositories)
+  
+        await softDeleteInsightsProjectRepositories(qx, id, repositories)
+      }
+
 
       if (project.collections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId: id })

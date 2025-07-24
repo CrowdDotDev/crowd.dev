@@ -296,3 +296,33 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   })
   return collections
 }
+
+export async function upsertInsightsProjectRepositories(qx: QueryExecutor, insightsProjectId, repositories: string[]) {
+  const data = repositories.map((repo) => ({
+    insightsProjectId,
+    repository: repo,
+  }))
+  
+  return qx.result(
+    prepareBulkInsert(
+      'insightsProjectsRepositories',
+      ['insightsProjectId', 'repository'],
+      data,
+      'do nothing',
+    ),
+  )
+}
+
+export async function softDeleteInsightsProjectRepositories(
+  qx: QueryExecutor,
+  insightsProjectId: string,
+  currentRepositories: string[],
+): Promise<void> {
+  return qx.result(`
+    UPDATE "insightsProjectsRepositories"
+    SET "deletedAt" = NOW()
+    WHERE "insightsProjectId" = '${insightsProjectId}'
+      AND "deletedAt" IS NULL
+      AND "repository" NOT IN (${currentRepositories.map(repo => `'${repo}'`).join(', ')})
+  `, { insightsProjectId, currentRepositories } )
+}
