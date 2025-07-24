@@ -125,4 +125,4 @@ SQL >
 TYPE COPY
 TARGET_DATASOURCE health_score_copy_ds
 COPY_MODE replace
-COPY_SCHEDULE 50 0 * * *
+COPY_SCHEDULE 50 * * * *

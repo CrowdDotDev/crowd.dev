@@ -7,9 +7,13 @@ SQL >
     SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        memberId != ''
+        memberId != '' AND isContribution
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
             {% if defined(startDate) %}
                 AND timestamp
                 > {{ DateTime(startDate, description="Filter after date", required=False) }}

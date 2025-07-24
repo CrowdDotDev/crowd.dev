@@ -68,10 +68,12 @@ export async function changeOverride(
 export async function findOverrides(
   qx: QueryExecutor,
   memberId: string,
-  memberOrganizationIds: string[],
+  memberOrganizationIds?: string[],
 ): Promise<IMemberOrganizationAffiliationOverride[]> {
-  if (memberOrganizationIds.length === 0) {
-    return []
+  const whereClause = ['"memberId" = $(memberId)']
+
+  if (memberOrganizationIds?.length) {
+    whereClause.push(`"memberOrganizationId" IN ($(memberOrganizationIds:csv))`)
   }
 
   const overrides: IMemberOrganizationAffiliationOverride[] = await qx.select(
@@ -83,8 +85,7 @@ export async function findOverrides(
         coalesce("allowAffiliation", true) as "allowAffiliation",
         coalesce("isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
       FROM "memberOrganizationAffiliationOverrides"
-      WHERE "memberId" = $(memberId)
-      AND "memberOrganizationId" IN ($(memberOrganizationIds:csv))
+      WHERE ${whereClause.join(' AND ')}
     `,
     {
       memberId,
@@ -92,6 +93,11 @@ export async function findOverrides(
     },
   )
 
+  if (!memberOrganizationIds?.length) {
+    return overrides
+  }
+
+  // Map over requested memberOrganizationIds and provide defaults for missing ones
   const foundMemberOrgIds = new Set(overrides.map((override) => override.memberOrganizationId))
 
   const results = memberOrganizationIds.map((memberOrganizationId) => {
@@ -130,4 +136,19 @@ export async function findPrimaryWorkExperiencesOfMember(
     },
   )
   return overrides
+}
+
+export async function deleteAffiliationOverrides(
+  qx: QueryExecutor,
+  memberId: string,
+  memberOrganizationIds: string[],
+): Promise<void> {
+  await qx.result(
+    `
+      DELETE FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberId" = $(memberId)
+      AND "memberOrganizationId" IN ($(memberOrganizationIds:csv))
+    `,
+    { memberId, memberOrganizationIds },
+  )
 }

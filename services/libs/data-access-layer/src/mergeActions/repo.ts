@@ -1,34 +1,26 @@
 import validator from 'validator'
 
-import { IMergeAction, MergeActionState, MergeActionType } from '@crowd/types'
+import { IMergeAction, IMergeActionColumns, MergeActionType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions, QueryResult, queryTable } from '../utils'
 
-export async function findMergeAction(
+const MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
+  'id',
+  'type',
+  'primaryId',
+  'secondaryId',
+  'createdAt',
+  'updatedAt',
+  'state',
+  'step',
+]
+
+export async function queryMergeActions<T extends IMergeActionColumns>(
   qx: QueryExecutor,
-  primaryId: string,
-  secondaryId: string,
-  { state }: { state?: MergeActionState } = {},
-): Promise<IMergeAction> {
-  const conditions = [`"primaryId" = $(primaryId)`, `"secondaryId" = $(secondaryId)`]
-
-  const params: Record<string, unknown> = {
-    primaryId,
-    secondaryId,
-  }
-
-  if (state) {
-    conditions.push(`"state" = $(state)`)
-    params.state = state
-  }
-
-  return qx.selectOneOrNone(
-    `
-      select * from "mergeActions" 
-      where ${conditions.join(' AND ')}
-    `,
-    params,
-  )
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  return queryTable(qx, 'mergeActions', MERGE_ACTIONS_COLUMNS, opts)
 }
 
 export async function findEntityMergeActions(

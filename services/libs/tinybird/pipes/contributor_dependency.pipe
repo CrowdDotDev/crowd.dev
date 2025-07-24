@@ -11,6 +11,7 @@ SQL >
             SELECT
                 id,
                 displayName,
+                contributionCount,
                 contributionPercentage,
                 roles,
                 sum(contributionPercentage) OVER (
@@ -19,5 +20,7 @@ SQL >
             FROM contributors_leaderboard
         ) t
     cross join active_contributors
-    WHERE contributionPercentageRunningTotal <= 51
+    WHERE
+        contributionPercentageRunningTotal <= 51
+        OR (contributionPercentageRunningTotal - contributionPercentage < 51)
     ORDER BY contributionPercentageRunningTotal ASC
