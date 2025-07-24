@@ -297,32 +297,53 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function upsertInsightsProjectRepositories(qx: QueryExecutor, insightsProjectId, repositories: string[]) {
+export async function upsertInsightsProjectRepositories(
+  qx: QueryExecutor,
+  {
+    insightsProjectId,
+    repositories,
+  }: {
+    insightsProjectId: string
+    repositories: string[]
+  },
+): Promise<void> {
+  if (repositories.length === 0) {
+    return null
+  }
+
   const data = repositories.map((repo) => ({
     insightsProjectId,
     repository: repo,
   }))
-  
+
   return qx.result(
     prepareBulkInsert(
       'insightsProjectsRepositories',
       ['insightsProjectId', 'repository'],
       data,
-      'do nothing',
+      '("insightsProjectId", "repository") DO UPDATE SET "deletedAt" = NULL',
     ),
   )
 }
 
-export async function softDeleteInsightsProjectRepositories(
+export async function softDeleteMissingInsightsProjectRepositories(
   qx: QueryExecutor,
-  insightsProjectId: string,
-  currentRepositories: string[],
+  {
+    insightsProjectId,
+    repositories,
+  }: {
+    insightsProjectId: string
+    repositories: string[]
+  },
 ): Promise<void> {
-  return qx.result(`
+  return qx.result(
+    `
     UPDATE "insightsProjectsRepositories"
     SET "deletedAt" = NOW()
     WHERE "insightsProjectId" = '${insightsProjectId}'
       AND "deletedAt" IS NULL
-      AND "repository" NOT IN (${currentRepositories.map(repo => `'${repo}'`).join(', ')})
-  `, { insightsProjectId, currentRepositories } )
+      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'}
+  `,
+    { insightsProjectId, repositories },
+  )
 }

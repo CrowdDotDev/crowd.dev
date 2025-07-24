@@ -20,7 +20,7 @@ import {
   queryCollections,
   queryInsightsProjectById,
   queryInsightsProjects,
-  softDeleteInsightsProjectRepositories,
+  softDeleteMissingInsightsProjectRepositories,
   updateCollection,
   updateInsightsProject,
   upsertInsightsProjectRepositories,
@@ -364,21 +364,20 @@ export class CollectionService extends LoggerBase {
       offset,
     }
   }
- 
-  static normalizeRepositories(
-  repositories?: string[] | { platform: string; url: string }[]
-): string[] {
-  if (!repositories) return [];
 
-  if (typeof repositories[0] === 'string') {
-    return repositories as string[];
+  static normalizeRepositories(
+    repositories?: string[] | { platform: string; url: string }[],
+  ): string[] {
+    if (!repositories) return []
+
+    if (typeof repositories[0] === 'string') {
+      return repositories as string[]
+    }
+
+    return (repositories as { platform: string; url: string }[]).map((r) => r.url)
   }
 
-  return (repositories as { platform: string; url: string }[]).map(r => r.url);
-}
-
-
-  async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
+  async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
@@ -388,26 +387,23 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      await updateInsightsProject(qx, id, project)
+      await updateInsightsProject(qx, insightsProjectId, project)
 
-      console.log(`repositories: ${project.repositories} and id: ${id}`)
-      
-      if (project.repositories?.length > 0) {
-        // TODO: sistemare tutto in modo che le repository possono essere anche zero
-        const repositories = CollectionService.normalizeRepositories(project.repositories)
-  
-        await upsertInsightsProjectRepositories(qx, `${id}`, repositories)
-  
-        await softDeleteInsightsProjectRepositories(qx, id, repositories)
-      }
+      const repositories = CollectionService.normalizeRepositories(project.repositories)
 
+      await upsertInsightsProjectRepositories(qx, { insightsProjectId, repositories })
+
+      await softDeleteMissingInsightsProjectRepositories(qx, {
+        insightsProjectId,
+        repositories,
+      })
 
       if (project.collections) {
-        await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
+        await disconnectProjectsAndCollections(qx, { insightsProjectId })
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
-            insightsProjectId: id,
+            insightsProjectId,
             collectionId: c,
             starred: project.starred ?? true,
           })),
@@ -418,7 +414,7 @@ export class CollectionService extends LoggerBase {
         ...this.options,
         transaction: tx,
       })
-      return txSvc.findInsightsProjectById(id)
+      return txSvc.findInsightsProjectById(insightsProjectId)
     })
   }
 
