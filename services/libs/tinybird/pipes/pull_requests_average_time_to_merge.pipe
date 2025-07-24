@@ -1,7 +1,20 @@
 DESCRIPTION >
-    Serves the `Development - Average time to merge` widget
+    - `pull_requests_average_time_to_merge.pipe` serves the "Development - Average time to merge" widget.
+    - **When `granularity` is NOT provided, returns total average time** to merge across all filtered PRs.
+    - **When `granularity` is provided, returns time-series data** showing average merge times by time period.
+    - Only includes PRs that have been merged (`isNotNull(pra.mergedAt)`) to ensure accurate timing calculations.
+    - Primary use case: monitoring overall PR merge efficiency and tracking development velocity trends.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+    - `startDate`: Optional DateTime filter for PRs merged after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for PRs merged before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: `averageTimeToMergeSeconds` (total average)
+    - With granularity: `startDate`, `endDate`, and `averageTimeToMergeSeconds` for each time period
 
-TAGS "Widget"
+TAGS "" Pull requests", Widget", "Development metrics, " Merge time""
 
 NODE timeseries_generation_for_pr_avg_time_to_merge
 SQL >
@@ -28,20 +41,26 @@ SQL >
         where
             isNotNull(pra.mergedAt)
             {% if defined(startDate) %}
-                AND pra.mergedAt
-                > {{
-                    DateTime(
-                        startDate, description="Filter pull request merged at after", required=False
-                    )
-                }}
+                AND pra.mergedAt > parseDateTimeBestEffort(
+                    {{
+                        DateTime(
+                            startDate,
+                            description="Filter pull request merged at after",
+                            required=False,
+                        )
+                    }}
+                )
             {% end %}
             {% if defined(endDate) %}
-                AND pra.mergedAt
-                < {{
-                    DateTime(
-                        endDate, description="Filter pull request merged at before", required=False
-                    )
-                }}
+                AND pra.mergedAt < parseDateTimeBestEffort(
+                    {{
+                        DateTime(
+                            endDate,
+                            description="Filter pull request merged at before",
+                            required=False,
+                        )
+                    }}
+                )
             {% end %}
         GROUP BY ds."startDate", "endDate"
         ORDER BY ds."startDate" ASC
