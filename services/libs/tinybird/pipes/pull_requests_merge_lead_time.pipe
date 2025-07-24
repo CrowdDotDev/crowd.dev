@@ -7,8 +7,8 @@ DESCRIPTION >
     - Parameters:
     - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
     - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
-    - `startDate`: Optional DateTime filter for PRs opened after timestamp (e.g., '2024-01-01T00:00:00Z')
-    - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - `startDate`: Optional DateTime filter for PRs opened after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31 23:59:59')
     - Response: `openedToMergedSeconds`, `openedToReviewAssignedSeconds`, `reviewAssignedToFirstReviewSeconds`, `firstReviewToApprovedSeconds`, `approvedToMergedSeconds`
 
 TAGS "Widget", "Pull requests", "Lead time", "Development metrics"
