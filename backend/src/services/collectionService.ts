@@ -368,13 +368,11 @@ export class CollectionService extends LoggerBase {
   static normalizeRepositories(
     repositories?: string[] | { platform: string; url: string }[],
   ): string[] {
-    if (!repositories) return []
+    if (!repositories || repositories.length === 0) return []
 
-    if (typeof repositories[0] === 'string') {
-      return repositories as string[]
-    }
-
-    return (repositories as { platform: string; url: string }[]).map((r) => r.url)
+    return typeof repositories[0] === 'string'
+      ? (repositories as string[])
+      : (repositories as { platform: string; url: string }[]).map((r) => r.url)
   }
 
   async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
