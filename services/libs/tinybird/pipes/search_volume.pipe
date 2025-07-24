@@ -1,5 +1,16 @@
 DESCRIPTION >
-    Serves the project search volume data for the `Search queries` widget
+    - `search_volume.pipe` serves the project search volume data for the "Search queries" widget.
+    - Provides time-series search volume metrics for tracking project visibility and interest over time.
+    - Uses `searchVolume` datasource with project-specific filtering via `segments_filtered` integration.
+    - Formats timestamps for consistent date representation in visualizations.
+    - Primary use case: displaying search trend analytics and project popularity metrics in dashboard widgets.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `startDate`: Optional DateTime filter for search volume data after timestamp (e.g., '2024-01-01T00:00:00Z')
+    - `endDate`: Optional DateTime filter for search volume data before timestamp (e.g., '2024-12-31T23:59:59Z')
+    - Response: `insightsProjectId`, `project`, `dataTimestamp` (formatted as YYYY-MM-DD), `volume`, `updatedAt`
+
+TAGS "Widget", "Search analytics", "Time-series"
 
 NODE searchVolume_pipe
 SQL >
@@ -14,22 +25,24 @@ SQL >
     WHERE
         insightsProjectId = toUUID((select insightsProjectId from segments_filtered))
         {% if defined(startDate) %}
-            AND searchVolume.dataTimestamp
-            >= {{
-                DateTime(
-                    startDate,
-                    description="Select records with dataTimestamp only after the given date",
-                    required=False,
-                )
-            }}
+            AND searchVolume.dataTimestamp >= parseDateTimeBestEffort(
+                {{
+                    DateTime(
+                        startDate,
+                        description="Select records with dataTimestamp only after the given date",
+                        required=False,
+                    )
+                }}
+            )
         {% end %}
         {% if defined(endDate) %}
-            AND searchVolume.dataTimestamp
-            <= {{
-                DateTime(
-                    endDate,
-                    description="Select records with dataTimestamp only before the given date",
-                    required=False,
-                )
-            }}
+            AND searchVolume.dataTimestamp <= parseDateTimeBestEffort(
+                {{
+                    DateTime(
+                        endDate,
+                        description="Select records with dataTimestamp only before the given date",
+                        required=False,
+                    )
+                }}
+            )
         {% end %}
