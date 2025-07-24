@@ -215,6 +215,8 @@ export default class IntegrationService {
         await this.options.temporal.workflow.start('automaticCategorization', {
           taskQueue: 'categorization',
           workflowId: `categorization/${segmentId}`,
+          workflowIdReusePolicy:
+            WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
           retry: {
             maximumAttempts: 10,
           },
