@@ -306,7 +306,7 @@ export async function upsertInsightsProjectRepositories(
     insightsProjectId: string
     repositories: string[]
   },
-): Promise<void> {
+) {
   if (repositories.length === 0) {
     return null
   }
@@ -335,7 +335,7 @@ export async function softDeleteMissingInsightsProjectRepositories(
     insightsProjectId: string
     repositories: string[]
   },
-): Promise<void> {
+) {
   return qx.result(
     `
     UPDATE "insightsProjectsRepositories"
