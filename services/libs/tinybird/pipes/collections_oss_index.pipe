@@ -82,7 +82,9 @@ DESCRIPTION >
 SQL >
     SELECT collections.id, collections.slug, collections.name
     FROM collections FINAL
-    WHERE collections.deletedAt = null and collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
+    WHERE
+        collections.deletedAt = null
+        and collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
 
 NODE collections_oss_index_top_projects
 DESCRIPTION >
