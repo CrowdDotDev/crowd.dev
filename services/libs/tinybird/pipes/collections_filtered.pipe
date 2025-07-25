@@ -47,4 +47,5 @@ SQL >
         collections.categoryId,
         collections.createdAt,
         collections.updatedAt,
+        collections.deletedAt,
         collections.starred
