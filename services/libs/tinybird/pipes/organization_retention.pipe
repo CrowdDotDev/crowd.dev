@@ -1,7 +1,24 @@
 DESCRIPTION >
-    Serves organization retention widget
+    - `organization_retention.pipe` serves the organization retention widget calculating what percentage of organizations remain active between consecutive periods.
+    - **Requires `granularity` parameter** to define time periods for retention analysis.
+    - Retention calculation: compares organizations active in current period vs previous period to calculate retention percentage.
+    - Uses same logic as `contributor_retention.pipe` but tracks `organizationId` instead of `memberId` for institutional engagement analysis.
+    - Uses `activities_filtered_retention` pipe which extends time range to include preceding period data for baseline comparison.
+    - Primary use case: measuring organizational engagement persistence and institutional commitment over time.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `activities_filtered_retention`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `activities_filtered_retention`)
+    - `startDate`: Optional DateTime filter, automatically extended backwards by one granularity period
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `granularity`: Required string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response: `startDate`, `endDate`, `retentionRate` (percentage of organizations retained from previous period)
 
-TAGS "Widget"
+TAGS "Widget", "Retention", "Organizations", "Cohort analysis"
 
 NODE aggregated_organizations
 SQL >

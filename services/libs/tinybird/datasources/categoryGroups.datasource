@@ -1,3 +1,15 @@
+DESCRIPTION >
+    - `categoryGroups` contains category group definitions for organizing project categories into higher-level groupings.
+    - Replicated from Postgres - stores category group metadata for hierarchical project classification.
+    - Category groups provide the top-level taxonomy structure, with individual categories belonging to these groups.
+    - `id` is the primary key identifier for the category group record.
+    - `name` is the human-readable name of the category group (empty string if not set).
+    - `slug` is the URL-friendly identifier used in routing and API filtering (empty string if not set).
+    - `type` specifies the category group type or classification (empty string if not specified).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Category management", "Taxonomy"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name` DEFAULT '',

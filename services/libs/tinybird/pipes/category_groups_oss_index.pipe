@@ -1,3 +1,17 @@
+DESCRIPTION >
+    - `category_groups_oss_index.pipe` serves the OSS index category groups API endpoint providing category group listings with enriched metrics.
+    - Aggregates category group data with contributor counts, software value, and average scores for OSS directory display.
+    - Includes top 5 projects and collections per category group with comprehensive metadata and health scores.
+    - Supports filtering by category group type for targeted category group listings.
+    - Uses complex joins and aggregations to provide enriched category group data for public OSS index consumption.
+    - Primary use case: powering the public OSS index category groups directory with sortable, enriched category data.
+    - Parameters:
+    - `type`: Optional string to filter by category group type
+    - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
+    - Response: `id`, `name`, `type`, `slug`, `totalContributors`, `softwareValue`, `avgScore`, `topCollections` (array), `topProjects` (array)
+
+TAGS "API", "OSS index", "Category groups", "Public directory"
+
 NODE category_groups_oss_index_agregates
 DESCRIPTION >
     Returns aggregates such as top contributors, software value and average score by category group

@@ -1,3 +1,27 @@
+DESCRIPTION >
+    - `insights_projects_populated_ds` contains enriched insights project data with computed metrics and denormalized fields.
+    - Created via copy pipe with additional calculated statistics for dashboard and analytics consumption.
+    - Extends base project data with contributor counts, health scores, software valuation, and repository metrics.
+    - `id` is the primary key identifier for the project record.
+    - `name`, `slug`, `description` are basic project metadata fields.
+    - `segmentId` links to the subproject-level segment this project belongs to.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `logoUrl`, `organizationId`, `website`, `github`, `linkedin`, `twitter` contain project branding and social links.
+    - `widgets` array defines which insights widgets are enabled for this project.
+    - `repositories` array contains the list of repository URLs associated with the project.
+    - `enabled` and `isLF` are flags for project status and Linux Foundation association (UInt8 boolean).
+    - `keywords` array contains searchable keywords and tags for the project.
+    - `collectionsSlugs` array contains slugs of collections this project belongs to.
+    - `connectedPlatforms` array lists platforms integrated for this project.
+    - `firstCommit` is the timestamp of the earliest commit in the project (nullable).
+    - `score` and `rank` provide project importance scoring and ranking (Float64, UInt64).
+    - `repoData` array contains tuples of (repository, score, rank) for multi-repo projects.
+    - `softwareValue` is the estimated economic value of the software (UInt64).
+    - `contributorCount` and `organizationCount` are computed contributor and organization statistics (UInt64).
+    - `healthScore` is the overall project health score (Float64).
+
+TAGS "Project metadata", "Analytics enrichment"
+
 SCHEMA >
     `id` String,
     `name` String,

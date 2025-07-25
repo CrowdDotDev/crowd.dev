@@ -1,3 +1,20 @@
+DESCRIPTION >
+    - `members_sorted` contains member profile data with additional public name field and optimized sorting.
+    - Created via copy pipe from members datasource with denormalized public name for query efficiency.
+    - Same core schema as members table but with query-optimized structure and additional computed fields.
+    - `id` is the primary key identifier for the member record.
+    - `attributes` contains the raw JSON attributes object from the member record.
+    - `location`, `country`, `avatar` are extracted member profile attributes.
+    - `isBot` and `isTeamMember` are flags for account type and team membership (UInt8 boolean).
+    - `contributions` is an array of contribution types this member has made.
+    - `joinedAt` is the timestamp when the member first joined any platform in the community.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `displayName` is the member's preferred display name across platforms.
+    - `score` is the computed activity/engagement score for the member.
+    - `publicName` is the denormalized public display name for efficient queries.
+
+TAGS "Member profiles", "Query optimization"
+
 SCHEMA >
     `id` String,
     `attributes` String,

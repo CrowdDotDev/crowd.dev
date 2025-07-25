@@ -1,3 +1,15 @@
+DESCRIPTION >
+    - `issues_analyzed` contains analyzed issue lifecycle data with open/close timestamps and resolution durations.
+    - Created via copy pipe with computed duration metrics for issue performance analysis.
+    - Tracks issue resolution velocity and patterns across projects and repositories.
+    - `id` is the unique identifier for the analyzed issue record.
+    - `sourceId` is the external identifier from the source platform (GitHub, GitLab, etc.).
+    - `openedAt` is the timestamp when the issue was opened.
+    - `closedAt` is the timestamp when the issue was closed (nullable for open issues).
+    - `closedInSeconds` is the computed duration from open to close in seconds (nullable for open issues).
+
+TAGS "Issue analytics", "Performance metrics"
+
 SCHEMA >
     `id` String,
     `sourceId` String,
