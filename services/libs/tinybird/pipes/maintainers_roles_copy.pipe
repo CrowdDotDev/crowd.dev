@@ -1,6 +1,9 @@
 NODE maintainers_roles_copy_project_repos
 SQL >
-    SELECT id, repo AS repository FROM insightsProjects ARRAY JOIN repositories AS repo
+    SELECT id, repo AS repository
+    FROM insightsProjects ARRAY
+    JOIN repositories AS repo
+    where deletedAt = null
 
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >

@@ -22,7 +22,7 @@ SQL >
     SELECT id, name, slug, categoryGroupId
     FROM categories FINAL
     WHERE
-        1 = 1
+        deletedAt = null
         {% if defined(slug) %} AND slug = {{ String(slug, description="category slug") }} {% end %}
         {% if defined(search) %}
             AND name ILIKE '%' || {{ String(search, description="search by name") }} || '%'
@@ -34,7 +34,7 @@ SQL >
     SELECT id, name, slug, type
     FROM categoryGroups FINAL
     WHERE
-        1 = 1
+        deletedAt = null
         {% if defined(categoryGroupType) %}
             AND type = {{ String(categoryGroupType, description="category group type") }}
         {% end %}
