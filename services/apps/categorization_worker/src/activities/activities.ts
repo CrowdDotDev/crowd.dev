@@ -283,21 +283,14 @@ export async function connectProjectAndCollection(
   collectionIds: string[],
   insightsProjectId: string,
 ) {
-  try {
-    svc.log.info(
-      `updating the collections: ${collectionIds} with the project: ${insightsProjectId}`,
-    )
-    await connectProjectsAndCollections(
-      dbStoreQx(svc.postgres.writer),
-      collectionIds.map((collectionId) => ({
-        insightsProjectId,
-        collectionId,
-        starred: false,
-      })),
-    )
-  } catch (error) {
-    svc.log.warn(
-      `There was an errore updating the project: ${insightsProjectId} with one of the collections: ${JSON.stringify(collectionIds)}`,
-    )
-  }
+  svc.log.info(`updating the collections: ${collectionIds} with the project: ${insightsProjectId}`)
+  await connectProjectsAndCollections(
+    dbStoreQx(svc.postgres.writer),
+    collectionIds.map((collectionId) => ({
+      insightsProjectId,
+      collectionId,
+      starred: false,
+    })),
+    'DO NOTHING',
+  )
 }
