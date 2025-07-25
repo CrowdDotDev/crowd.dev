@@ -12,6 +12,7 @@ SQL >
 NODE segments_aggregates_with_ids_collections
 SQL >
     SELECT collections.id, collections.categoryId, FROM collections FINAL
+    where deletedAt = null
 
 NODE segments_aggregates_with_ids_categories
 SQL >
