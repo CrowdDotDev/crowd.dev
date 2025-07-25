@@ -473,6 +473,15 @@ export class CollectionService extends LoggerBase {
     })
   }
 
+  static isSingleRepoOrg(orgs: GithubIntegrationSettings['orgs']): boolean {
+    return (
+      Array.isArray(orgs) &&
+      orgs.length === 1 &&
+      Array.isArray(orgs[0]?.repos) &&
+      orgs[0].repos.length === 1
+    )
+  }
+
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
@@ -491,6 +500,17 @@ export class CollectionService extends LoggerBase {
 
       const settings = githubIntegration.settings as GithubIntegrationSettings
 
+      // The orgs must have at least one repo
+      if (
+        !settings?.orgs ||
+        !Array.isArray(settings.orgs) ||
+        settings.orgs.length === 0 ||
+        !Array.isArray(settings.orgs[0].repos) ||
+        settings.orgs[0].repos.length === 0
+      ) {
+        return null
+      }
+
       const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
         qx,
         segment.name,
@@ -501,26 +521,28 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
-      const { description, name, repos } = mainOrg
+      const details = CollectionService.isSingleRepoOrg(settings.orgs)
+        ? await GithubIntegrationService.findRepoDetails(
+            mainOrg.name,
+            settings.orgs[0].repos[0].name,
+          )
+        : {
+            ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
+            topics: mainOrg.topics,
+          }
 
-      const orgDetail = await GithubIntegrationService.findOrgDetail(name)
-
-      if (!orgDetail) {
+      if (!details) {
         return null
       }
 
-      const { logoUrl, github, website, twitter } = orgDetail
-
-      const topics = await GithubIntegrationService.findOrgTopics(name, repos)
-
       return {
-        description,
-        github,
-        logoUrl,
+        description: mainOrg.description,
+        github: details.github,
+        logoUrl: details.logoUrl,
         name: segment.name,
-        topics,
-        twitter,
-        website,
+        topics: details.topics,
+        twitter: details.twitter,
+        website: details.website,
       }
     })
   }

@@ -1,3 +1,17 @@
+DESCRIPTION >
+    - `category_groups_oss_index.pipe` serves the OSS index category groups API endpoint providing category group listings with enriched metrics.
+    - Aggregates category group data with contributor counts, software value, and average scores for OSS directory display.
+    - Includes top 5 projects and collections per category group with comprehensive metadata and health scores.
+    - Supports filtering by category group type for targeted category group listings.
+    - Uses complex joins and aggregations to provide enriched category group data for public OSS index consumption.
+    - Primary use case: powering the public OSS index category groups directory with sortable, enriched category data.
+    - Parameters:
+    - `type`: Optional string to filter by category group type
+    - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
+    - Response: `id`, `name`, `type`, `slug`, `totalContributors`, `softwareValue`, `avgScore`, `topCollections` (array), `topProjects` (array)
+
+TAGS "API", "OSS index", "Category groups", "Public directory"
+
 NODE category_groups_oss_index_agregates
 DESCRIPTION >
     Returns aggregates such as top contributors, software value and average score by category group
@@ -19,8 +33,9 @@ DESCRIPTION >
     Returns only columns which we need from insights projects table
 
 SQL >
-    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
-    FROM insightsProjects FINAL
+    SELECT id, name, logoUrl, description, healthScore
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, logoUrl, description, healthScore
 
 NODE category_groups_oss_index_collections_deduplicated
 DESCRIPTION >
@@ -60,7 +75,9 @@ SQL >
         topProjects.softwareValue,
         topProjects.avgScore,
         pd.name AS projectName,
-        pd.logoUrl AS projectLogo
+        pd.logoUrl AS projectLogo,
+        pd.description AS description,
+        pd.healthScore AS healthScore
     FROM category_groups_oss_index_projects_ranked_by_category_group topProjects
     JOIN category_groups_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -136,7 +153,16 @@ SQL >
     SELECT
         categoryGroupId,
         groupArray(
-            (projectId, totalContributors, projectName, projectLogo, softwareValue, avgScore)
+            (
+                projectId,
+                totalContributors,
+                projectName,
+                projectLogo,
+                softwareValue,
+                avgScore,
+                healthScore,
+                description
+            )
         ) AS topProjects
     FROM category_groups_oss_index_projects
     GROUP BY categoryGroupId

@@ -1,7 +1,13 @@
 DESCRIPTION >
-    Provides country mapping (of country name, flag and country code) for geo distribution widgets
+    - `country_mapping.pipe` provides comprehensive country mapping data including country names, flags, country codes, and timezone offsets.
+    - Contains static mapping data for all world countries with their emoji flags and ISO country codes.
+    - Includes timezone offset information for time-based analytics and local time calculations.
+    - Used as a lookup table by geographic distribution widgets and time-based activity analysis pipes.
+    - Primary use case: supporting geo distribution widgets by providing country metadata for location-based analytics.
+    - Parameters: None (returns static country mapping data)
+    - Response: `country`, `flag` (emoji), `country_code` (ISO), `timezone_offset` (hours from UTC)
 
-TAGS "Utility"
+TAGS "Utility", "Country mapping", "Geo data", "Lookup table"
 
 NODE map_country_name_flag_code
 SQL >

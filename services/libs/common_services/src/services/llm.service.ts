@@ -226,4 +226,26 @@ export class LlmService extends LoggerBase {
       ...response,
     }
   }
+
+  public async findRepoCategories<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(LlmQueryType.REPO_CATEGORIES, prompt)
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async findRepoCollections<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(LlmQueryType.REPO_COLLECTIONS, prompt)
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
 }

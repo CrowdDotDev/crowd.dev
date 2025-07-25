@@ -1,5 +1,24 @@
 DESCRIPTION >
-    Serves the `Development - Active days` widget
+    - `active_days.pipe` serves the "Development - Active days" widget showing activity patterns and development velocity.
+    - Number of days contributors were actively involved in the project and the total contributions made during the selected period. This includes commits, pull requests, and more.
+    - **When `granularity` is NOT provided, returns active days count and average contributions per day** across the filtered time range.
+    - **When `granularity` is provided, returns time-series data** showing activity counts for each time period.
+    - Calculates active days as distinct dates with qualifying development activities for project health analysis.
+    - Primary use case: measuring development consistency and identifying active vs inactive periods in project timeline.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: `activeDaysCount`, `avgContributionsPerDay`
+    - With granularity: `startDate`, `endDate`, and `activityCount` for each time period
+
+TAGS "Widget", "Development metrics", "Active days"
 
 NODE timeseries_generation_for_active_days
 SQL >

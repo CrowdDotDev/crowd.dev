@@ -1,3 +1,24 @@
+DESCRIPTION >
+    - `activities` contains raw activity events without relationship data from various platforms.
+    - Raw datasource only exists in Tinybird (not replicated from Postgres) - pushed directly by data-sink-worker.
+    - Since aggregations are mainly done on relationships, `activityRelations_deduplicated_cleaned_ds` should be used for reporting purposes instead.
+    - Contains the full activity content including text, metadata, and git-specific information.
+    - `id` is the unique identifier for the activity record.
+    - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
+    - `timestamp` is when the activity occurred on the source platform.
+    - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
+    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
+    - `score` is the computed importance/impact score (-1 default indicates no score computed).
+    - `sourceId` is the unique identifier from the source platform.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `sourceParentId` is the parent activity identifier from the source platform (empty string if no parent).
+    - `attributes` contains additional JSON metadata specific to the activity type.
+    - `title` and `body` contain the activity's text content (empty string if not applicable).
+    - `channel` contains the repository, channel, or forum where activity occurred (empty string if not applicable).
+    - `url` is the direct link to the activity on the source platform (empty string if not available).
+    - Sentiment analysis fields (`sentimentLabel`, `sentimentScore*`) provide sentiment metrics (-1 default for no analysis).
+    - Git-specific fields (`git*`) track code changes, branch info, and merge status for code-related activities (0 default for non-git).
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >

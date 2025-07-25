@@ -1,5 +1,3 @@
-TOKEN "insights-app-token" READ
-
 NODE health_score_copy_project_repo_deduplicated
 DESCRIPTION >
     Returns necessary columns for projects
@@ -127,4 +125,4 @@ SQL >
 TYPE COPY
 TARGET_DATASOURCE health_score_copy_ds
 COPY_MODE replace
-COPY_SCHEDULE 50 0 * * *
+COPY_SCHEDULE 50 * * * *

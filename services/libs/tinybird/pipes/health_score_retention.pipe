@@ -34,7 +34,7 @@ NODE health_score_retention_previous_quarter
 SQL >
     %
     SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         memberId != ''
         {% if defined(project) %} AND segmentId = (SELECT segmentId FROM segments_filtered) {% end %}
@@ -78,7 +78,7 @@ SQL >
     SELECT
         segmentId,
         if(
-            previous_period_total > 0, round(100 * retained_members / previous_period_total, 2), 0
+            previous_period_total > 0, round(100 * retained_members / previous_period_total), 0
         ) AS "retentionRate"
     FROM health_score_retention_counts
 
