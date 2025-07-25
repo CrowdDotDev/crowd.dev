@@ -6,9 +6,11 @@ SQL >
     %
     SELECT categories.id
     FROM categories
-    {% if defined(categorySlug) %}
-        WHERE categories.slug = {{ String(categorySlug, description="Category slug", required=True) }}
-    {% end %}
+    WHERE
+        categories.deletedAt = null
+        {% if defined(categorySlug) %}
+            AND categories.slug = {{ String(categorySlug, description="Category slug", required=True) }}
+        {% end %}
 
 NODE collections_oss_index_agregates
 DESCRIPTION >
