@@ -213,6 +213,7 @@ export async function connectProjectsAndCollections(
     collectionId: string
     starred: boolean
   }[],
+  onConflict?: string,
 ) {
   if (connections.length === 0) {
     return
@@ -223,6 +224,7 @@ export async function connectProjectsAndCollections(
       'collectionsInsightsProjects',
       ['collectionId', 'insightsProjectId', 'starred'],
       connections,
+      onConflict ?? null,
     ),
   )
 }
