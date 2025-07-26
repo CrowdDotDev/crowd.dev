@@ -14,13 +14,16 @@ import time
 import datetime
 import os
 import asyncio
+from crowdgit.settings import MAX_WORKER_PROCESSES
+from concurrent.futures import ProcessPoolExecutor
+from tenacity import retry, stop_after_attempt, wait_fixed
+import subprocess
 
 
 class CommitService(BaseService):
     """Service for processing repository commits"""
 
-    # Constants
-    COMMIT_SPLITTER = "--CROWD-END-OF-COMMIT--"
+    COMMIT_END_SPLITTER = "--CROWD-END-OF-COMMIT--"
     MIN_COMMIT_FIELDS = 8
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
     FUTURE_DATE_THRESHOLD_DAYS = 1
@@ -28,9 +31,10 @@ class CommitService(BaseService):
     @property
     def git_log_format(self) -> str:
         """Git log format string with commit splitter"""
-        return f"%H%n%aI%n%an%n%ae%n%cI%n%cn%n%ce%n%P%n%d%n%B%n{self.COMMIT_SPLITTER}"
+        return f"%n%H%n%aI%n%an%n%ae%n%cI%n%cn%n%ce%n%P%n%d%n%B%n{self.COMMIT_END_SPLITTER}"
 
-    def is_valid_commit_hash(self, commit_hash: str) -> bool:
+    @staticmethod
+    def is_valid_commit_hash(commit_hash: str) -> bool:
         """Check if the given commit hash is valid.
 
         :param commit_hash: The commit hash.
@@ -43,7 +47,8 @@ class CommitService(BaseService):
         """
         return re.match(r"^[0-9a-f]{40}$", commit_hash) is not None
 
-    def is_valid_datetime(self, commit_datetime: str) -> bool:
+    @staticmethod
+    def is_valid_datetime(commit_datetime: str) -> bool:
         """Check if the given datetime string is valid.
 
         :param commit_datetime: The datetime string.
@@ -55,22 +60,21 @@ class CommitService(BaseService):
         False
         """
         try:
-            time.strptime(commit_datetime, self.DATETIME_FORMAT)
+            time.strptime(commit_datetime, CommitService.DATETIME_FORMAT)
             return True
         except ValueError:
             return False
 
     async def get_commits_for_batch(
-        self, repo_path: str, batch_commits_count: int, total_cloned_commits: int
+        self, repo_path: str, prev_batch_oldest_commit: str, is_first_batch: bool
     ) -> List[Dict[str, Any]]:
         """
         Extract commits from repository in batches.
 
         Args:
             repo_path: Path to the git repository
-            batch_commits_count: Number of commits to process in this batch
-            total_cloned_commits: Total number of commits already processed
-
+            prev_batch_oldest_commit: prev_batch_oldest_commit in batch - to be used as starting point for new commits
+            is_first_batch: boolean to determine if 1st batch (specific handling since depth = 1)
         Returns:
             List of commit dictionaries
 
@@ -80,13 +84,13 @@ class CommitService(BaseService):
         try:
             start_time = time.time()
             self.logger.info(
-                f"Starting commits processing for new batch having {batch_commits_count} commits"
+                f"Starting commits processing for new batch having commits older than {prev_batch_oldest_commit}"
             )
             commit_reference = await self._get_commit_reference(repo_path)
-            processed_commits_count = total_cloned_commits - batch_commits_count
             raw_output = await self._execute_git_log(
-                repo_path, commit_reference, processed_commits_count
+                repo_path, commit_reference, is_first_batch, prev_batch_oldest_commit
             )
+
             commits = await self._parse_commits(raw_output, repo_path)
 
             end_time = time.time()
@@ -110,106 +114,176 @@ class CommitService(BaseService):
             return "HEAD"
         return f"origin/{default_branch}"
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def _execute_git_log(
-        self, repo_path: str, commit_reference: str, processed_commits_count: int
+        self, repo_path: str, commit_reference: str, is_first_batch: bool, prev_batch_oldest_commit
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
         await run_shell_command(
             ["git", "-C", repo_path, "config", "core.abbrevCommit", "false"], cwd=repo_path
         )
-
-        git_log_command = [
+        self.logger.info("Running git log command...")
+        first_batch_command = [
             "git",
             "-C",
             repo_path,
             "log",
             commit_reference,
             f"--pretty=format:{self.git_log_format}",
-            f"--skip={processed_commits_count}",
         ]
+        next_batch_command = [
+            "git",
+            "-C",
+            repo_path,
+            "log",
+            prev_batch_oldest_commit,  # Start from the previous batch's oldest commit
+            "--reverse",
+            "--skip=1",  # Skip that starting commit (prev_batch_oldest_commit) itself to avoid duplicates
+            f"--pretty=format:{self.git_log_format}",
+        ]
+        git_log_command = first_batch_command if is_first_batch else next_batch_command
 
-        return await run_shell_command(git_log_command, cwd=repo_path)
+        self.logger.info(f"Executing log command: {git_log_command}")
+        return await run_shell_command(git_log_command, cwd=repo_path, timeout=60)
 
-    async def _parse_commits(self, raw_output: str, repo_path: str) -> List[Dict[str, Any]]:
-        """Parse raw git log output into commit dictionaries with periodic yielding."""
+    @staticmethod
+    def parse_commits_chunk(commit_texts_chunk: List[str], repo_path: str) -> List[Dict[str, Any]]:
         commits = []
         bad_commits = 0
-
-        commit_texts = raw_output.split(self.COMMIT_SPLITTER)
-        # Filter out empty commit texts to avoid processing empty strings
-        commit_texts = [text for text in commit_texts if text.strip()]
-
-        for commit_text in commit_texts:
+        for commit_text in commit_texts_chunk:
             commit_lines = commit_text.strip().splitlines()
 
-            if not self._validate_commit_structure(commit_lines):
-                self.logger.warning(
+            if not CommitService._validate_commit_structure(commit_lines):
+                logger.warning(
                     f"Invalid commit structure in {repo_path}: {len(commit_lines)} fields"
                 )
                 bad_commits += 1
                 continue
 
             try:
-                commit_dict = self._construct_commit_dict(commit_lines)
-                if self._validate_commit_data(commit_dict):
+                commit_dict = CommitService._construct_commit_dict(commit_lines, repo_path)
+                if CommitService._validate_commit_data(commit_dict):
                     commits.append(commit_dict)
                 else:
                     bad_commits += 1
             except Exception as e:
-                self.logger.warning(f"Failed to parse commit in {repo_path}: {e}")
+                logger.warning(f"Failed to parse commit in {repo_path}: {e}")
                 bad_commits += 1
                 continue
 
         if bad_commits > 0:
-            self.logger.info(f"Skipped {bad_commits} invalid commits in {repo_path}")
-
+            logger.info(f"Skipped {bad_commits} invalid commits in {repo_path}")
         return commits
 
-    def _validate_commit_structure(self, commit_lines: List[str]) -> bool:
-        """Validate that commit has minimum required fields."""
-        return len(commit_lines) >= self.MIN_COMMIT_FIELDS
+    async def _parse_commits(self, raw_output: str, repo_path: str) -> List[Dict[str, Any]]:
+        """
+        Parse raw git log output into commit dictionaries.
+        """
+        commits = []
+        bad_commits = 0
+        start_time = time.time()
+        commit_texts = [c for c in raw_output.strip().split(self.COMMIT_END_SPLITTER) if c]
+        logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
+        chunk_size = max(1, len(commit_texts) // (MAX_WORKER_PROCESSES * 6))
+        self.logger.info(f"Spliting into chunks of {chunk_size}")
+        # Split commit_texts into chunks
+        chunks = [
+            commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
+        ]
+        loop = asyncio.get_event_loop()
+        with ProcessPoolExecutor(max_workers=MAX_WORKER_PROCESSES) as executor:
+            futures = [
+                loop.run_in_executor(executor, CommitService.parse_commits_chunk, chunk, repo_path)
+                for chunk in chunks
+            ]
+            results = await asyncio.gather(*futures)
+        all_commits = [item for sublist in results for item in sublist]
+        logger.info(f"Parsed {len(all_commits)} in {(time.time() - start_time)} seconds")
+        return all_commits
 
-    def _validate_commit_data(self, commit_dict: Dict[str, Any]) -> bool:
+    @staticmethod
+    def _validate_commit_structure(commit_lines: List[str]) -> bool:
+        """Validate that commit has minimum required fields."""
+        return len(commit_lines) >= CommitService.MIN_COMMIT_FIELDS
+
+    @staticmethod
+    def _validate_commit_data(commit_dict: Dict[str, Any]) -> bool:
         """Validate commit data content."""
         # Check required fields
         if not commit_dict.get("author_email", "").strip():
-            self.logger.info(f"Commit without author_email: {commit_dict.get('hash', 'unknown')}")
+            logger.info(f"Commit without author_email: {commit_dict.get('hash', 'unknown')}")
             return False
 
         # Validate commit hash format
-        if not self.is_valid_commit_hash(commit_dict.get("hash", "")):
-            self.logger.error(f"Invalid commit hash: {commit_dict.get('hash', 'unknown')}")
+        if not CommitService.is_valid_commit_hash(commit_dict.get("hash", "")):
+            logger.error(f"Invalid commit hash: {commit_dict.get('hash', 'unknown')}")
             return False
 
         # Validate datetime format
-        if not self.is_valid_datetime(commit_dict.get("committer_datetime", "")):
-            self.logger.error(
+        if not CommitService.is_valid_datetime(commit_dict.get("committer_datetime", "")):
+            logger.error(
                 f"Invalid commit datetime: {commit_dict.get('committer_datetime', 'unknown')}"
             )
             return False
 
         return True
 
-    def _construct_commit_dict(self, commit_lines: List[str]) -> Dict[str, Any]:
+    @staticmethod
+    def get_insertions_deletions(commit_hash: str, repo_path: str) -> Tuple[int, int]:
+        try:
+            # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
+            result = subprocess.run(
+                ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            insertions, deletions = 0, 0
+            # Process the multi-line output directly in Python.
+            for line in result.stdout.splitlines():
+                if line.strip():  # Skip empty lines
+                    parts = line.split("\t")  # --numstat uses tabs
+                    if len(parts) >= 2:
+                        try:
+                            insertions += int(parts[0])
+                            deletions += int(parts[1])
+                        except ValueError:
+                            # Skip lines that don't have numeric values (e.g., binary files)
+                            continue
+
+            return insertions, deletions
+
+        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
+            logger.error(f"Error getting insertions/deletions for commit {commit_hash}: {e}")
+            return 0, 0
+
+    @staticmethod
+    def _construct_commit_dict(commit_metadata_lines: List[str], repo_path: str) -> Dict[str, Any]:
         """Create commit dictionary from parsed lines."""
-        commit_hash = commit_lines[0]
-        author_datetime = commit_lines[1]
-        author_name = commit_lines[2]
-        author_email = commit_lines[3]
-        commit_datetime = commit_lines[4]
-        committer_name = commit_lines[5]
-        committer_email = commit_lines[6]
-        parent_hashes = commit_lines[7].split()
+        commit_hash = commit_metadata_lines[0]
+        author_datetime = commit_metadata_lines[1]
+        author_name = commit_metadata_lines[2]
+        author_email = commit_metadata_lines[3]
+        commit_datetime = commit_metadata_lines[4]
+        committer_name = commit_metadata_lines[5]
+        committer_email = commit_metadata_lines[6]
+        parent_hashes = commit_metadata_lines[7].split()
 
         # Handle optional fields safely
-        ref_names = commit_lines[8].strip() if len(commit_lines) > 8 else ""
-        commit_message = commit_lines[9:] if len(commit_lines) > 9 else []
+        ref_names = commit_metadata_lines[8].strip() if len(commit_metadata_lines) > 8 else ""
+        commit_message = commit_metadata_lines[9:] if len(commit_metadata_lines) > 9 else []
 
         # Validate and adjust commit datetime if it's in the future
-        adjusted_commit_datetime = self._validate_and_adjust_datetime(
+        adjusted_commit_datetime = CommitService._validate_and_adjust_datetime(
             commit_datetime, author_datetime
         )
+        insertions, deletions = CommitService.get_insertions_deletions(commit_hash, repo_path)
 
         return {
             "hash": commit_hash,
@@ -222,18 +296,23 @@ class CommitService(BaseService):
             "is_main_branch": True,
             "is_merge_commit": len(parent_hashes) > 1,
             "message": commit_message,
+            "insertions": insertions,
+            "deletions": deletions,
         }
 
-    def _validate_and_adjust_datetime(self, commit_datetime: str, author_datetime: str) -> str:
+    @staticmethod
+    def _validate_and_adjust_datetime(commit_datetime: str, author_datetime: str) -> str:
         """Validate commit datetime and adjust if it's in the future."""
         try:
-            commit_datetime_obj = datetime.datetime.strptime(commit_datetime, self.DATETIME_FORMAT)
+            commit_datetime_obj = datetime.datetime.strptime(
+                commit_datetime, CommitService.DATETIME_FORMAT
+            )
             future_threshold = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-                days=self.FUTURE_DATE_THRESHOLD_DAYS
+                days=CommitService.FUTURE_DATE_THRESHOLD_DAYS
             )
 
             if commit_datetime_obj > future_threshold:
-                self.logger.warning(
+                logger.warning(
                     f"Commit datetime in future, using author datetime instead: {commit_datetime}"
                 )
                 return author_datetime
@@ -241,7 +320,7 @@ class CommitService(BaseService):
             return commit_datetime
 
         except ValueError as e:
-            self.logger.warning(
+            logger.warning(
                 f"Invalid commit datetime format: {commit_datetime}, using author datetime"
             )
             return author_datetime

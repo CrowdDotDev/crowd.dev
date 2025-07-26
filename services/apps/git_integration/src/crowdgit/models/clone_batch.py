@@ -16,6 +16,9 @@ class CloneBatchInfo(BaseModel):
     total_commits_count: int = Field(
         default=0, description="Total number of commits cloned so far"
     )
+    prev_batch_oldest_commit: Optional[str] = Field(
+        default=None, description="Whether this is the final batch"
+    )
 
     class Config:
         """Pydantic configuration"""

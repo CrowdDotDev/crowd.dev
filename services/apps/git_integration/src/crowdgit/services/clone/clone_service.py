@@ -8,9 +8,10 @@ from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.utils import run_shell_command, get_repo_name, get_default_branch
 from crowdgit.models import CloneBatchInfo
 from crowdgit.errors import CommandExecutionError
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 # TODO: dynamically calculate depth: smaller for big repos and higher for small repos to acheive consistent (fast) processing duration without overkill
-DEFAULT_CLONE_BATCH_DEPTH = 100
+DEFAULT_CLONE_BATCH_DEPTH = 5
 
 
 class CloneService(BaseService):
@@ -41,18 +42,33 @@ class CloneService(BaseService):
         """
         Inits minimal clone of depth=1
         """
+        # increasing post buffer to avoid RPC failed error
+        await run_shell_command(
+            ["git", "config", "--global", "http.postBuffer", "524288000"], cwd=path
+        )
         self.logger.info(f"Initializing minmal clone")
-        await run_shell_command(["git", "clone", "--depth=1", remote, path], cwd=path)
-        self.logger.info(f"Minimal clone initialized successfully")
+        await run_shell_command(
+            ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, path], cwd=path
+        )
+        self.logger.info("Minimal clone initialized successfully")
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
     async def _clone_next_batch(self, repo_path: str, batch_depth: int):
-        self.logger.info(f"Fetching an additional {batch_depth} commits...")
-        await run_shell_command(["git", "fetch", f"--deepen={batch_depth}"], cwd=repo_path)
+        default_branch = await get_default_branch(repo_path)
+        self.logger.info(
+            f"Fetching an additional {batch_depth} commits from {default_branch} branch"
+        )
+        await run_shell_command(
+            ["git", "fetch", "origin", default_branch, f"--deepen={batch_depth}"], cwd=repo_path
+        )
 
     async def _get_batch_commit_info(
         self,
         repo_path: str,
-        batch_depth: int,
         total_commits_count: int,
         is_first_batch: bool = False,
     ) -> tuple[int, Optional[str]]:
@@ -62,34 +78,43 @@ class CloneService(BaseService):
         Args:
             repo_path: Path to the repository
             batch_depth: Number of commits to fetch in this batch
-            total_commits_count: Number of commits already cloned in previous batches
+            total_commits_count: Number of commits already processed in previous batches
             is_first_batch: Whether this is the first batch (to get latest commit)
 
         Returns:
             tuple: (batch_commit_count, latest_commit_hash) where latest_commit_hash is only set for first batch
         """
         try:
-            # Use the tracked total_commits_count directly for skip calculation
-            skip_count = total_commits_count
-
-            # Get commits from the current batch
-            commits_output = await run_shell_command(
+            # Count all available commits in the repository
+            #
+            # IMPORTANT: git fetch --deepen={batch_depth} can fetch MORE commits than batch_depth
+            # in repositories with merge commits and complex histories. To avoid counting mismatches
+            # and overlapping batches, we count ALL available commits after each fetch operation
+            # and calculate the actual batch size as the difference from previous total.
+            commit_count_output = await run_shell_command(
                 [
                     "git",
-                    "log",
-                    "--pretty=format:%H",
-                    f"--skip={skip_count}",
-                    f"--max-count={batch_depth}",
+                    "rev-list",
+                    "--count",
+                    "HEAD",
                 ],
                 cwd=repo_path,
             )
 
-            if commits_output.strip():
-                commit_lines = commits_output.strip().split("\n")
-                actual_batch_size = len(commit_lines)
+            if commit_count_output.strip():
+                total_available_commits = int(commit_count_output.strip())
 
-                # Get latest commit only from first batch
-                latest_commit_in_repo = commit_lines[0] if is_first_batch else None
+                # Calculate actual commits in this batch
+                actual_batch_size = total_available_commits - total_commits_count
+
+                # Get latest commit only from first batch (need actual hash for this)
+                latest_commit_in_repo = None
+                if is_first_batch:
+                    latest_commit_output = await run_shell_command(
+                        ["git", "rev-parse", "HEAD"],
+                        cwd=repo_path,
+                    )
+                    latest_commit_in_repo = latest_commit_output.strip()
 
                 return actual_batch_size, latest_commit_in_repo
 
@@ -100,17 +125,16 @@ class CloneService(BaseService):
             raise
 
     async def _update_batch_info(
-        self,
-        batch_info: CloneBatchInfo,
-        repo_path: str,
-        target_commit_hash: Optional[str],
-        batch_depth: int,
+        self, batch_info: CloneBatchInfo, repo_path: str, target_commit_hash: Optional[str]
     ) -> None:
-        """Update batch info with repo path, final batch status, and total cloned commits count"""
+        """Update batch info with repo path, final batch status, and total processed commits count"""
         batch_info.repo_path = repo_path
         batch_info.is_final_batch = await self._check_if_final_batch(repo_path, target_commit_hash)
-        actual_batch_size, latest_commit_in_repo = await self._get_batch_commit_info(
-            repo_path, batch_depth, batch_info.total_commits_count, batch_info.is_first_batch
+        (
+            actual_batch_size,
+            latest_commit_in_repo,
+        ) = await self._get_batch_commit_info(
+            repo_path, batch_info.total_commits_count, batch_info.is_first_batch
         )
 
         # Set latest commit only from first batch
@@ -119,6 +143,30 @@ class CloneService(BaseService):
 
         batch_info.commits_count = actual_batch_size
         batch_info.total_commits_count += actual_batch_size
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(1),
+        reraise=True,
+    )
+    async def _get_oldest_commit(self, repo_path: str):
+        """
+        Get oldest commit in repo by reading .git/shallow file which contains oldest commit for batch when shallow cloning.
+        If full history is cloned .git/shallow no longer exists
+        """
+        shallow_file = os.path.join(repo_path, ".git", "shallow")
+        try:
+            with open(shallow_file, "r") as f:
+                oldest_commit = f.readline().strip()
+            self.logger.info(f"Oldest commit: {oldest_commit}")
+            return oldest_commit
+        except FileNotFoundError:
+            # This will happen if the repository is no longer shallow.
+            # our logic doesn't require getting oldest_commit for final batch so no need for fallback
+            self.logger.info(
+                "Cannot get oldest_commit due to no existing .git/shallow - full history is cloned"
+            )
+            return None
 
     async def clone_batches(
         self,
@@ -138,19 +186,18 @@ class CloneService(BaseService):
             total_commits_count=0,
         )
         try:
-            temp_repo_path = tempfile.mkdtemp(prefix=f"{get_repo_name(remote)}")
+            temp_repo_path = tempfile.mkdtemp(prefix=f"{get_repo_name(remote)}_")
             batch_info.repo_path = temp_repo_path
 
             await self._init_minimal_clone(temp_repo_path, remote)
-            await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash, 1)
+            await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
             yield batch_info
 
             batch_info.is_first_batch = False
             while not batch_info.is_final_batch:
+                batch_info.prev_batch_oldest_commit = await self._get_oldest_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
-                await self._update_batch_info(
-                    batch_info, temp_repo_path, target_commit_hash, batch_depth
-                )
+                await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
                 yield batch_info
         except Exception as e:
             # TODO: catch and handle all cloning exceptions
