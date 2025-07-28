@@ -28,6 +28,16 @@ class CommitService(BaseService):
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
     FUTURE_DATE_THRESHOLD_DAYS = 1
 
+    def __init__(self):
+        super().__init__()
+        self.process_pool = None
+
+    def _get_or_create_pool(self) -> ProcessPoolExecutor:
+        """Get or create process pool with proper lifecycle management"""
+        if self.process_pool is None:
+            self.process_pool = ProcessPoolExecutor(max_workers=MAX_WORKER_PROCESSES)
+        return self.process_pool
+
     @property
     def git_log_format(self) -> str:
         """Git log format string with commit splitter"""
@@ -66,15 +76,15 @@ class CommitService(BaseService):
             return False
 
     async def get_commits_for_batch(
-        self, repo_path: str, prev_batch_oldest_commit: str, is_first_batch: bool
+        self, repo_path: str, edge_commit: Optional[str], prev_batch_edge_commit: str,
     ) -> List[Dict[str, Any]]:
         """
         Extract commits from repository in batches.
 
         Args:
-            repo_path: Path to the git repository
-            prev_batch_oldest_commit: prev_batch_oldest_commit in batch - to be used as starting point for new commits
-            is_first_batch: boolean to determine if 1st batch (specific handling since depth = 1)
+            repo_path: Path to the Git repository.
+            edge_commit: The edge commit for the current batch. It should be excluded from processing because its data may be incomplete or inaccurate.
+            prev_batch_edge_commit: The edge commit from the previous batch. Which is used as the starting point (included) for the current batch processing.
         Returns:
             List of commit dictionaries
 
@@ -84,14 +94,13 @@ class CommitService(BaseService):
         try:
             start_time = time.time()
             self.logger.info(
-                f"Starting commits processing for new batch having commits older than {prev_batch_oldest_commit}"
+                f"Starting commits processing for new batch having commits older than {prev_batch_edge_commit}"
             )
-            commit_reference = await self._get_commit_reference(repo_path)
-            raw_output = await self._execute_git_log(
-                repo_path, commit_reference, is_first_batch, prev_batch_oldest_commit
+            raw_commits = await self._execute_git_log(
+                repo_path, prev_batch_edge_commit, edge_commit
             )
 
-            commits = await self._parse_commits(raw_output, repo_path)
+            commits = await self._parse_commits(raw_commits, repo_path, edge_commit)
 
             end_time = time.time()
             processing_time = end_time - start_time
@@ -120,44 +129,57 @@ class CommitService(BaseService):
         reraise=True,
     )
     async def _execute_git_log(
-        self, repo_path: str, commit_reference: str, is_first_batch: bool, prev_batch_oldest_commit
+        self, repo_path: str, prev_batch_edge_commit: Optional[str] = None, edge_commit: Optional[str] = None
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
         await run_shell_command(
             ["git", "-C", repo_path, "config", "core.abbrevCommit", "false"], cwd=repo_path
         )
+        
         self.logger.info("Running git log command...")
-        first_batch_command = [
-            "git",
-            "-C",
-            repo_path,
-            "log",
-            commit_reference,
-            f"--pretty=format:{self.git_log_format}",
-        ]
-        next_batch_command = [
-            "git",
-            "-C",
-            repo_path,
-            "log",
-            prev_batch_oldest_commit,  # Start from the previous batch's oldest commit
-            "--reverse",
-            "--skip=1",  # Skip that starting commit (prev_batch_oldest_commit) itself to avoid duplicates
-            f"--pretty=format:{self.git_log_format}",
-        ]
-        git_log_command = first_batch_command if is_first_batch else next_batch_command
-
+        
+        if not prev_batch_edge_commit:
+            return ""
+        
+        if edge_commit:
+            # Middle batches: Get the slice of history between the last batch's edge and this one's.
+            # Note: In a history with merges, this can include commits from side branches that
+            # might also be reachable from the final batch's starting point, causing potential duplicates.
+            git_log_command = [
+                "git", "-C", repo_path, "log",
+                f"{edge_commit}..{prev_batch_edge_commit}",
+                "--reverse",
+                f"--pretty=format:{self.git_log_format}",
+            ]
+            self.logger.info(f"Processing middle batch: {edge_commit}..{prev_batch_edge_commit}")
+        else:
+            # Final batch: Get all commits from the last known edge to the root.
+            git_log_command = [
+                "git", "-C", repo_path, "log",
+                prev_batch_edge_commit,
+                "--reverse",
+                f"--pretty=format:{self.git_log_format}",
+            ]
+            self.logger.info(f"Processing final batch from: {prev_batch_edge_commit} to root")
+        
         self.logger.info(f"Executing log command: {git_log_command}")
         return await run_shell_command(git_log_command, cwd=repo_path, timeout=60)
+    
+    @staticmethod
+    def should_skip_commit(raw_commit: Optional[str], edge_commit: Optional[str]) -> bool:
+        """Check if commit should be skipped based on edge commit comparison."""
+        # Only skip the boundary commit of the current shallow clone.
+        return not raw_commit or (edge_commit and raw_commit.startswith(edge_commit))
 
     @staticmethod
-    def parse_commits_chunk(commit_texts_chunk: List[str], repo_path: str) -> List[Dict[str, Any]]:
+    def parse_commits_chunk(commit_texts_chunk: List[Optional[str]], repo_path: str, edge_commit_hash: Optional[str]) -> List[Dict[str, Any]]:
         commits = []
         bad_commits = 0
         for commit_text in commit_texts_chunk:
+            if CommitService.should_skip_commit(commit_text, edge_commit_hash):
+                continue
             commit_lines = commit_text.strip().splitlines()
-
             if not CommitService._validate_commit_structure(commit_lines):
                 logger.warning(
                     f"Invalid commit structure in {repo_path}: {len(commit_lines)} fields"
@@ -180,14 +202,14 @@ class CommitService(BaseService):
             logger.info(f"Skipped {bad_commits} invalid commits in {repo_path}")
         return commits
 
-    async def _parse_commits(self, raw_output: str, repo_path: str) -> List[Dict[str, Any]]:
+    async def _parse_commits(self, raw_output: str, repo_path: str, edge_commit_hash: Optional[str]) -> List[Dict[str, Any]]:
         """
         Parse raw git log output into commit dictionaries.
         """
         commits = []
         bad_commits = 0
         start_time = time.time()
-        commit_texts = [c for c in raw_output.strip().split(self.COMMIT_END_SPLITTER) if c]
+        commit_texts = [c.strip() for c in raw_output.split(self.COMMIT_END_SPLITTER) if c.strip()]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
         chunk_size = max(1, len(commit_texts) // (MAX_WORKER_PROCESSES * 6))
         self.logger.info(f"Spliting into chunks of {chunk_size}")
@@ -196,12 +218,15 @@ class CommitService(BaseService):
             commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
         ]
         loop = asyncio.get_event_loop()
-        with ProcessPoolExecutor(max_workers=MAX_WORKER_PROCESSES) as executor:
-            futures = [
-                loop.run_in_executor(executor, CommitService.parse_commits_chunk, chunk, repo_path)
-                for chunk in chunks
-            ]
-            results = await asyncio.gather(*futures)
+        
+        # Use reusable process pool instead of creating new one
+        executor = self._get_or_create_pool()
+        
+        futures = [
+            loop.run_in_executor(executor, CommitService.parse_commits_chunk, chunk, repo_path, edge_commit_hash)
+            for chunk in chunks
+        ]
+        results = await asyncio.gather(*futures)
         all_commits = [item for sublist in results for item in sublist]
         logger.info(f"Parsed {len(all_commits)} in {(time.time() - start_time)} seconds")
         return all_commits
