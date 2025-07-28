@@ -149,7 +149,6 @@ class CommitService(BaseService):
             git_log_command = [
                 "git", "-C", repo_path, "log",
                 f"{edge_commit}..{prev_batch_edge_commit}",
-                "--reverse",
                 f"--pretty=format:{self.git_log_format}",
             ]
             self.logger.info(f"Processing middle batch: {edge_commit}..{prev_batch_edge_commit}")
@@ -158,7 +157,6 @@ class CommitService(BaseService):
             git_log_command = [
                 "git", "-C", repo_path, "log",
                 prev_batch_edge_commit,
-                "--reverse",
                 f"--pretty=format:{self.git_log_format}",
             ]
             self.logger.info(f"Processing final batch from: {prev_batch_edge_commit} to root")
