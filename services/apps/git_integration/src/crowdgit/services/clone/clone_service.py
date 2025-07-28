@@ -143,29 +143,22 @@ class CloneService(BaseService):
 
         batch_info.commits_count = actual_batch_size
         batch_info.total_commits_count += actual_batch_size
+        batch_info.edge_commit = await self._get_edge_commit(repo_path)
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_fixed(1),
-        reraise=True,
-    )
-    async def _get_oldest_commit(self, repo_path: str):
+    async def _get_edge_commit(self, repo_path: str):
         """
-        Get oldest commit in repo by reading .git/shallow file which contains oldest commit for batch when shallow cloning.
-        If full history is cloned .git/shallow no longer exists
+            Returns the edge commit of a shallow clone by reading the .git/shallow file,
+            which contains the boundary commit(s) when history is truncated.
+
+            If the full history has been cloned, the .git/shallow file does not exist.
         """
         shallow_file = os.path.join(repo_path, ".git", "shallow")
         try:
             with open(shallow_file, "r") as f:
                 oldest_commit = f.readline().strip()
-            self.logger.info(f"Oldest commit: {oldest_commit}")
+            self.logger.info(f"Edge commit: {oldest_commit}")
             return oldest_commit
         except FileNotFoundError:
-            # This will happen if the repository is no longer shallow.
-            # our logic doesn't require getting oldest_commit for final batch so no need for fallback
-            self.logger.info(
-                "Cannot get oldest_commit due to no existing .git/shallow - full history is cloned"
-            )
             return None
 
     async def clone_batches(
@@ -195,7 +188,7 @@ class CloneService(BaseService):
 
             batch_info.is_first_batch = False
             while not batch_info.is_final_batch:
-                batch_info.prev_batch_oldest_commit = await self._get_oldest_commit(temp_repo_path)
+                batch_info.prev_batch_edge_commit = await self._get_edge_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
                 await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
                 yield batch_info
