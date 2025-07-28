@@ -16,8 +16,11 @@ class CloneBatchInfo(BaseModel):
     total_commits_count: int = Field(
         default=0, description="Total number of commits cloned so far"
     )
-    prev_batch_oldest_commit: Optional[str] = Field(
-        default=None, description="Whether this is the final batch"
+    edge_commit: Optional[str] = Field(
+        default=None, description="The oldest commit in the current batch, used to track progress during incremental processing."
+    )
+    prev_batch_edge_commit: Optional[str] = Field(
+        default=None, description="The edge commit from the previous batch, used to track progress during incremental processing."
     )
 
     class Config:
