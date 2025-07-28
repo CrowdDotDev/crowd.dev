@@ -20,10 +20,10 @@ import {
   queryCollections,
   queryInsightsProjectById,
   queryInsightsProjects,
-  softDeleteMissingInsightsProjectRepositories,
+  softDeleteMissingSegmentRepositories,
   updateCollection,
   updateInsightsProject,
-  upsertInsightsProjectRepositories,
+  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
@@ -385,15 +385,15 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      await updateInsightsProject(qx, insightsProjectId, project)
+      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
 
       const repositories = CollectionService.normalizeRepositories(project.repositories)
 
-      await upsertInsightsProjectRepositories(qx, { insightsProjectId, repositories })
+      await upsertSegmentRepositories(qx, { insightsProjectId, repositories, segmentId })
 
-      await softDeleteMissingInsightsProjectRepositories(qx, {
-        insightsProjectId,
+      await softDeleteMissingSegmentRepositories(qx, {
         repositories,
+        segmentId,
       })
 
       if (project.collections) {
@@ -401,8 +401,8 @@ export class CollectionService extends LoggerBase {
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
-            insightsProjectId,
             collectionId: c,
+            insightsProjectId,
             starred: project.starred ?? true,
           })),
         )

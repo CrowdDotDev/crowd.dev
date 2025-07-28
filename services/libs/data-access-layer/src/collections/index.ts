@@ -271,13 +271,21 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  return updateTableById(
+  const result = await updateTableById(
     qx,
     'insightsProjects',
     id,
     Object.values(InsightsProjectField),
     prepareProject(project),
   )
+
+  const updated = result?.rows?.[0]
+
+  if (!updated) {
+    throw new Error(`Update failed or project with id ${id} not found`)
+  }
+
+  return updated as IInsightsProject
 }
 
 function prepareProject(project: Partial<ICreateInsightsProject>) {
@@ -297,14 +305,16 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function upsertInsightsProjectRepositories(
+export async function upsertSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
     repositories,
+    segmentId,
   }: {
-    insightsProjectId: string
+    insightsProjectId?: string
     repositories: string[]
+    segmentId: string
   },
 ) {
   if (repositories.length === 0) {
@@ -314,36 +324,37 @@ export async function upsertInsightsProjectRepositories(
   const data = repositories.map((repo) => ({
     insightsProjectId,
     repository: repo,
+    segmentId,
   }))
 
   return qx.result(
     prepareBulkInsert(
-      'insightsProjectsRepositories',
-      ['insightsProjectId', 'repository'],
+      'segmentRepositories',
+      ['insightsProjectId', 'repository', 'segmentId'],
       data,
-      '("insightsProjectId", "repository") DO UPDATE SET "deletedAt" = NULL',
+      '("segmentId", "repository") DO UPDATE SET "deletedAt" = NULL',
     ),
   )
 }
 
-export async function softDeleteMissingInsightsProjectRepositories(
+export async function softDeleteMissingSegmentRepositories(
   qx: QueryExecutor,
   {
-    insightsProjectId,
     repositories,
+    segmentId,
   }: {
-    insightsProjectId: string
     repositories: string[]
+    segmentId: string
   },
 ) {
   return qx.result(
     `
-    UPDATE "insightsProjectsRepositories"
+    UPDATE "segmentRepositories"
     SET "deletedAt" = NOW()
-    WHERE "insightsProjectId" = '${insightsProjectId}'
+    WHERE "segmentId" = '${segmentId}'
       AND "deletedAt" IS NULL
       AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'}
   `,
-    { insightsProjectId, repositories },
+    { segmentId, repositories },
   )
 }
