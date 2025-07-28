@@ -1,4 +1,4 @@
--- 1. Create the table to map repositories to insights projects
+-- 1. Create the table to map repositories to segments
 CREATE TABLE IF NOT EXISTS "segmentRepositories" (
     "repository" TEXT NOT NULL,
     "segmentId" UUID NOT NULL REFERENCES "segments"(id) ON DELETE CASCADE,
