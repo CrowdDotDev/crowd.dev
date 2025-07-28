@@ -1,12 +1,13 @@
 -- 1. Create the table to map repositories to insights projects
 CREATE TABLE IF NOT EXISTS "segmentRepositories" (
-    repository TEXT NOT NULL,
+    "repository" TEXT NOT NULL,
     "segmentId" UUID NOT NULL REFERENCES "segments"(id) ON DELETE CASCADE,
-    "insightsProjectId" UUID NOT NULL REFERENCES "insightsProjects"(id) ON DELETE CASCADE,
+    "insightsProjectId" UUID REFERENCES "insightsProjects"(id) ON DELETE CASCADE,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "excluded" BOOLEAN NOT NULL DEFAULT FALSE,
+    "archived" BOOLEAN NOT NULL DEFAULT FALSE,
     "deletedAt" TIMESTAMPTZ,
-    "archivedAt" TIMESTAMPTZ,
-    "excludedAt" TIMESTAMPTZ,
+
     PRIMARY KEY (repository, "segmentId")
 );
 
