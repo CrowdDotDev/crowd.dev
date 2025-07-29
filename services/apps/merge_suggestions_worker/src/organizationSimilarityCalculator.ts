@@ -105,41 +105,29 @@ class OrganizationSimilarityCalculator {
     organization: IOrganizationFullAggregatesOpensearch,
     similarOrganization: IOrganizationFullAggregatesOpensearch,
   ): boolean {
-    const verifiedIdentities = organization.identities.filter((i) => i.verified)
+    const primaryIdentities = organization.identities.filter((i) => i.verified);
+    const similarIdentities = similarOrganization.identities.filter((i) => i.verified);
+  
+    if (similarIdentities.length === 0) {
+      return false;
+    }
     
-    console.log(`🔍 Checking clashes for ${organization.displayName} vs ${similarOrganization.displayName}`)
-    console.log(`�� Primary org has ${verifiedIdentities.length} verified identities`)
-    console.log(`�� Similar org has ${similarOrganization.identities.filter(i => i.verified).length} verified identities`)
+    // catch tld changes like .com -> .de or .com -> .org
+    const MAX_DISTANCE_FOR_SIMILARITY = 3;
   
-    const MAX_DISTANCE_FOR_TYPO = 2
-  
-    for (const identity of verifiedIdentities) {
-      const potentialClash = similarOrganization.identities.find(
-        (i) =>
-          i.verified &&
-          i.platform === identity.platform &&
-          i.type === identity.type &&
-          i.value !== identity.value,
-      )
-  
-      if (potentialClash) {
-        const distance = getLevenshteinDistance(identity.value, potentialClash.value)
-        
-        console.log(`🔍 Potential clash: ${identity.value} vs ${potentialClash.value}`)
-        console.log(`📏 Distance: ${distance}, Max for typo: ${MAX_DISTANCE_FOR_TYPO}`)
-        console.log(`🏷️ Platform: ${identity.platform}, Type: ${identity.type}`)
-  
-        if (distance > MAX_DISTANCE_FOR_TYPO) {
-          console.log(`❌ REAL CLASH detected! Returning true`)
-          return true
-        } else {
-          console.log(`✅ Typo detected, not a clash. Continuing...`)
+    for (const pIdentity of primaryIdentities) {
+      for (const sIdentity of similarIdentities) {
+        if (pIdentity.platform === sIdentity.platform && pIdentity.type === sIdentity.type) {
+          const distance = getLevenshteinDistance(pIdentity.value, sIdentity.value);
+          
+          if (distance <= MAX_DISTANCE_FOR_SIMILARITY) {
+            return false;
+          }
         }
       }
     }
   
-    console.log(`✅ No clashes found. Returning false`)
-    return false
+    return true;
   }
 
   static hasSameLocation(
