@@ -40,7 +40,7 @@ class OrganizationSimilarityCalculator {
         return 0.95
       }
 
-      // check displayName match first
+      // check displayName match
       if (similarOrganization.displayName === primaryOrganization.displayName) {
         return this.decideSimilarityUsingAdditionalChecks(primaryOrganization, similarOrganization)
       }
