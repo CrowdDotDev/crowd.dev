@@ -389,11 +389,15 @@ export class CollectionService extends LoggerBase {
 
       const repositories = CollectionService.normalizeRepositories(project.repositories)
 
-      await upsertSegmentRepositories(qx, { insightsProjectId, repositories, segmentId })
+      await upsertSegmentRepositories(qx, {
+        insightsProjectId,
+        repositories,
+        segmentId,
+      })
 
       await deleteMissingSegmentRepositories(qx, {
         repositories,
-        segmentId,
+        insightsProjectId,
       })
 
       if (project.collections) {

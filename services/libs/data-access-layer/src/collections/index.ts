@@ -312,9 +312,9 @@ export async function upsertSegmentRepositories(
     repositories,
     segmentId,
   }: {
-    insightsProjectId?: string
+    insightsProjectId: string
     repositories: string[]
-    segmentId: string
+    segmentId?: string
   },
 ) {
   if (repositories.length === 0) {
@@ -332,7 +332,7 @@ export async function upsertSegmentRepositories(
       'segmentRepositories',
       ['insightsProjectId', 'repository', 'segmentId'],
       data,
-      '("repository", "segmentId") DO NOTHING',
+      '("repository", "insightsProjectId") DO NOTHING',
     ),
   )
 }
@@ -340,19 +340,19 @@ export async function upsertSegmentRepositories(
 export async function deleteMissingSegmentRepositories(
   qx: QueryExecutor,
   {
+    insightsProjectId,
     repositories,
-    segmentId,
   }: {
+    insightsProjectId: string
     repositories: string[]
-    segmentId: string
   },
 ) {
   return qx.result(
     `
     DELETE FROM "segmentRepositories"
-    WHERE "segmentId" = '${segmentId}'
+    WHERE "insightsProjectId" = '${insightsProjectId}'
       AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
     `,
-    { segmentId, repositories },
+    { insightsProjectId, repositories },
   )
 }
