@@ -107,26 +107,38 @@ class OrganizationSimilarityCalculator {
   ): boolean {
     const primaryIdentities = organization.identities.filter((i) => i.verified);
     const similarIdentities = similarOrganization.identities.filter((i) => i.verified);
-  
+
     if (similarIdentities.length === 0) {
       return false;
     }
-    
-    // catch tld changes like .com -> .de or .com -> .org
-    const MAX_DISTANCE_FOR_SIMILARITY = 3;
-  
+
+    // Look for just ONE strong match to prove they are NOT clashing.
     for (const pIdentity of primaryIdentities) {
       for (const sIdentity of similarIdentities) {
         if (pIdentity.platform === sIdentity.platform && pIdentity.type === sIdentity.type) {
           const distance = getLevenshteinDistance(pIdentity.value, sIdentity.value);
           
-          if (distance <= MAX_DISTANCE_FOR_SIMILARITY) {
+          // Use different thresholds based on identity type
+          let threshold = 0;
+          
+          if (pIdentity.type.includes('domain')) {
+            // For domains: allow up to 3 changes (handles country domains like .com -> .de)
+            threshold = 3;
+          } else if (pIdentity.type === 'username') {
+            // For usernames: be very strict, only allow 1 typo
+            threshold = 1;
+          } else {
+            // For other types: be conservative
+            threshold = 1;
+          }
+          
+          if (distance <= threshold) {
             return false;
           }
         }
       }
     }
-  
+
     return true;
   }
 
