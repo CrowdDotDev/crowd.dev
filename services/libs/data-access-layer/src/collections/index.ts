@@ -201,6 +201,7 @@ export async function connectProjectsAndCollections(
     collectionId: string
     starred: boolean
   }[],
+  onConflict?: string,
 ) {
   if (connections.length === 0) {
     return
@@ -211,6 +212,7 @@ export async function connectProjectsAndCollections(
       'collectionsInsightsProjects',
       ['collectionId', 'insightsProjectId', 'starred'],
       connections,
+      onConflict ?? null,
     ),
   )
 }
@@ -269,13 +271,21 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  return updateTableById(
+  const result = await updateTableById(
     qx,
     'insightsProjects',
     id,
     Object.values(InsightsProjectField),
     prepareProject(project),
   )
+
+  const updated = result?.rows?.[0]
+
+  if (!updated) {
+    throw new Error(`Update failed or project with id ${id} not found`)
+  }
+
+  return updated as IInsightsProject
 }
 
 function prepareProject(project: Partial<ICreateInsightsProject>) {
@@ -293,4 +303,56 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
     fields: Object.values(CollectionField),
   })
   return collections
+}
+
+export async function upsertSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    insightsProjectId,
+    repositories,
+    segmentId,
+  }: {
+    insightsProjectId: string
+    repositories: string[]
+    segmentId?: string
+  },
+) {
+  if (repositories.length === 0) {
+    return null
+  }
+
+  const data = repositories.map((repo) => ({
+    insightsProjectId,
+    repository: repo,
+    segmentId,
+  }))
+
+  return qx.result(
+    prepareBulkInsert(
+      'segmentRepositories',
+      ['insightsProjectId', 'repository', 'segmentId'],
+      data,
+      '("repository", "insightsProjectId") DO NOTHING',
+    ),
+  )
+}
+
+export async function deleteMissingSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    insightsProjectId,
+    repositories,
+  }: {
+    insightsProjectId: string
+    repositories: string[]
+  },
+) {
+  return qx.result(
+    `
+    DELETE FROM "segmentRepositories"
+    WHERE "insightsProjectId" = '${insightsProjectId}'
+      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
+    `,
+    { insightsProjectId, repositories },
+  )
 }

@@ -71,7 +71,7 @@ export default class IntegrationService {
     this.options = options
   }
 
-  async createOrUpdate(data, transaction?: any, options?: IRepositoryOptions) {
+  async createOrUpdate(data, transaction: Transaction, options?: IRepositoryOptions) {
     try {
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
@@ -209,9 +209,31 @@ export default class IntegrationService {
       isFirstUpdate
     ) {
       const githubInsights = await collectionService.findGithubInsightsForSegment(segmentId)
+
       if (githubInsights) {
+        this.options.log.info(`Static Insights found: ${JSON.stringify(githubInsights)}`)
+        await this.options.temporal.workflow.start('automaticCategorization', {
+          taskQueue: 'categorization',
+          workflowId: `categorization/${segmentId}`,
+          workflowIdReusePolicy:
+            WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+          retry: {
+            maximumAttempts: 10,
+          },
+          args: [
+            {
+              description: githubInsights.description,
+              github: githubInsights.github,
+              topics: githubInsights.topics,
+              website: githubInsights.website,
+              segmentId,
+            },
+          ],
+        })
+
         data.description = githubInsights.description
         data.github = githubInsights.github
+        data.keywords = githubInsights.topics
         data.logoUrl = githubInsights.logoUrl
         data.name = githubInsights.name
         data.twitter = githubInsights.twitter
@@ -745,19 +767,21 @@ export default class IntegrationService {
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integrationId, mapping, false)
 
-        integration = await txService.createOrUpdate({
-          id: integrationId,
-          platform: PlatformType.GITHUB_NANGO,
-          settings: {
-            ...settings,
-            ...(integration.settings.nangoMapping
-              ? {
-                  nangoMapping: integration.settings.nangoMapping,
-                }
-              : {}),
+        integration = await txService.createOrUpdate(
+          {
+            id: integrationId,
+            platform: PlatformType.GITHUB_NANGO,
+            settings: {
+              ...settings,
+              ...(integration.settings.nangoMapping
+                ? {
+                    nangoMapping: integration.settings.nangoMapping,
+                  }
+                : {}),
+            },
           },
           transaction,
-        })
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)

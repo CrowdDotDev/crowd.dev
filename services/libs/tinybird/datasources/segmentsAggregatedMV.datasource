@@ -1,3 +1,13 @@
+DESCRIPTION >
+    - `segmentsAggregatedMV` is a materialized view containing pre-computed contributor and organization counts per segment.
+    - Uses AggregatingMergeTree engine for efficient aggregation storage and querying.
+    - Provides fast access to segment-level statistics without real-time computation.
+    - `segmentId` is the project segment identifier being aggregated.
+    - `contributorCount` is an aggregate function storing distinct contributor counts for the segment.
+    - `organizationCount` is an aggregate function storing distinct organization counts for the segment.
+
+TAGS "Segment aggregates", "Materialized view"
+
 SCHEMA >
     `segmentId` String,
     `contributorCount` AggregateFunction(countDistinct, String),

@@ -1,3 +1,21 @@
+DESCRIPTION >
+    - `securityInsightsEvaluationAssessments` contains detailed security assessment results for individual requirements.
+    - Replicated from Postgres - stores granular security assessment data linked to security evaluations.
+    - Provides detailed breakdown of security requirement assessments within broader security evaluations.
+    - `id` is the primary key identifier for the security assessment record.
+    - `securityInsightsEvaluationId` links to the parent security evaluation this assessment belongs to (empty string if not linked).
+    - `insightsProjectId` links to the insights project being assessed (empty string if not associated).
+    - `insightsProjectSlug` is the URL-friendly identifier for the project (empty string if not set).
+    - `repo` is the repository URL being assessed (empty string if not applicable).
+    - `requirementId` identifies the specific security requirement being assessed (empty string if not specified).
+    - `applicability` is an array of contexts where this requirement applies (empty array if not specified).
+    - `description` provides details about the security requirement (empty string if not provided).
+    - `result` contains the assessment result (pass, fail, warning, etc., empty string if not completed).
+    - `message` provides details about the assessment result (empty string if no message).
+    - `stepsExecuted` indicates the number of assessment steps that were executed (UInt8, 0 default).
+    - `runDuration` contains the time taken to complete the assessment (empty string if not measured).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
 TAGS "Security insights widget"
 
 SCHEMA >

@@ -195,3 +195,6 @@ services/libs/tinybird/.diff_tmp
 
 # custom cursor rules
 .cursor/rules/*.local.mdc
+
+# claude code rules
+CLAUDE.md

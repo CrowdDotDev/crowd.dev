@@ -1,5 +1,16 @@
 DESCRIPTION >
-    Reusable filtering pipe for pull request related widgets. Handles segment and repo filtering
+    - `pull_requests_filtered.pipe` is the core filtering infrastructure for pull request analytics across the platform.
+    - Provides consistent, reusable PR filtering logic for all pull request-related widgets and analytics.
+    - Uses `pull_requests_analyzed` datasource which contains pre-calculated PR metrics and timing data.
+    - Automatically scopes data to the current project using `segments_filtered` pipe for security and data isolation.
+    - Supports repository-level filtering for targeted PR analysis within projects.
+    - Primary use case: serving as the foundation for all PR analytics pipes including lead times, review metrics, and velocity analysis.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering PRs by specific repositories (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - Response: All fields from `pull_requests_analyzed` including PR metadata, timing metrics, and calculated fields
+
+TAGS "Infrastructure", "Pull requests", "Core filtering"
 
 NODE pull_requests_filtered_0
 SQL >

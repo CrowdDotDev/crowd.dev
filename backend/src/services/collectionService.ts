@@ -14,6 +14,7 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
+  deleteMissingSegmentRepositories,
   disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
@@ -22,6 +23,7 @@ import {
   queryInsightsProjects,
   updateCollection,
   updateInsightsProject,
+  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
@@ -363,7 +365,17 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
+  static normalizeRepositories(
+    repositories?: string[] | { platform: string; url: string }[],
+  ): string[] {
+    if (!repositories || repositories.length === 0) return []
+
+    return typeof repositories[0] === 'string'
+      ? (repositories as string[])
+      : (repositories as { platform: string; url: string }[]).map((r) => r.url)
+  }
+
+  async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
@@ -373,15 +385,28 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      await updateInsightsProject(qx, id, project)
+      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
+
+      const repositories = CollectionService.normalizeRepositories(project.repositories)
+
+      await upsertSegmentRepositories(qx, {
+        insightsProjectId,
+        repositories,
+        segmentId,
+      })
+
+      await deleteMissingSegmentRepositories(qx, {
+        repositories,
+        insightsProjectId,
+      })
 
       if (project.collections) {
-        await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
+        await disconnectProjectsAndCollections(qx, { insightsProjectId })
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
-            insightsProjectId: id,
             collectionId: c,
+            insightsProjectId,
             starred: project.starred ?? true,
           })),
         )
@@ -391,7 +416,7 @@ export class CollectionService extends LoggerBase {
         ...this.options,
         transaction: tx,
       })
-      return txSvc.findInsightsProjectById(id)
+      return txSvc.findInsightsProjectById(insightsProjectId)
     })
   }
 
@@ -473,6 +498,15 @@ export class CollectionService extends LoggerBase {
     })
   }
 
+  static isSingleRepoOrg(orgs: GithubIntegrationSettings['orgs']): boolean {
+    return (
+      Array.isArray(orgs) &&
+      orgs.length === 1 &&
+      Array.isArray(orgs[0]?.repos) &&
+      orgs[0].repos.length === 1
+    )
+  }
+
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
@@ -491,6 +525,17 @@ export class CollectionService extends LoggerBase {
 
       const settings = githubIntegration.settings as GithubIntegrationSettings
 
+      // The orgs must have at least one repo
+      if (
+        !settings?.orgs ||
+        !Array.isArray(settings.orgs) ||
+        settings.orgs.length === 0 ||
+        !Array.isArray(settings.orgs[0].repos) ||
+        settings.orgs[0].repos.length === 0
+      ) {
+        return null
+      }
+
       const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
         qx,
         segment.name,
@@ -501,26 +546,28 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
-      const { description, name, repos } = mainOrg
+      const details = CollectionService.isSingleRepoOrg(settings.orgs)
+        ? await GithubIntegrationService.findRepoDetails(
+            mainOrg.name,
+            settings.orgs[0].repos[0].name,
+          )
+        : {
+            ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
+            topics: mainOrg.topics,
+          }
 
-      const orgDetail = await GithubIntegrationService.findOrgDetail(name)
-
-      if (!orgDetail) {
+      if (!details) {
         return null
       }
 
-      const { logoUrl, github, website, twitter } = orgDetail
-
-      const topics = await GithubIntegrationService.findOrgTopics(name, repos)
-
       return {
-        description,
-        github,
-        logoUrl,
+        description: mainOrg.description,
+        github: details.github,
+        logoUrl: details.logoUrl,
         name: segment.name,
-        topics,
-        twitter,
-        website,
+        topics: details.topics,
+        twitter: details.twitter,
+        website: details.website,
       }
     })
   }

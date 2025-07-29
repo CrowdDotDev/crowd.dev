@@ -1,3 +1,16 @@
+DESCRIPTION >
+    - `health_score_overview.pipe` serves the health score overview widget providing comprehensive project health metrics.
+    - **When `slugs` parameter is provided, returns health scores for multiple specified projects** for comparison analysis.
+    - **When `slugs` parameter is NOT provided, returns health score for current project** via `segments_filtered` context.
+    - Uses pre-calculated health score data from `health_score_copy_ds` datasource for optimized performance.
+    - Primary use case: displaying project health dashboards and comparative health analysis across projects.
+    - Parameters:
+    - `project`: Optional string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered` when `slugs` not provided
+    - `slugs`: Optional array of project slugs for multi-project health comparison (e.g., ['k8s', 'tensorflow'])
+    - Response: All health score fields from `health_score_copy_ds` including overall scores and component metrics
+
+TAGS "Widget", "Health score", "Overview", "Project metrics"
+
 NODE health_score_overview_result
 SQL >
     %

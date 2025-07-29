@@ -1,3 +1,19 @@
+DESCRIPTION >
+    - `memberIdentities` contains platform-specific identity mappings for community members across different platforms.
+    - Replicated from Postgres - stores member identity links for cross-platform member resolution and attribution.
+    - Each member can have multiple identities on different platforms (GitHub username, Discord handle, email, etc.).
+    - `id` is the primary key identifier for the member identity record.
+    - `memberId` links to the unified member record in the members datasource.
+    - `platform` specifies the platform this identity belongs to (github, discord, slack, email, etc., always lowercase).
+    - `value` contains the actual identity value (username, email address, user ID, etc.).
+    - `sourceId` is the external identifier from the source platform (empty string if not applicable).
+    - `integrationId` links to the integration that discovered this identity (empty string if not from integration).
+    - `type` specifies the identity type (username, email, user_id, etc.).
+    - `verified` indicates whether this identity has been verified as belonging to the member (UInt8 boolean).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Member identities", "Cross-platform linking"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `memberId` String `json:$.record.memberId`,

@@ -1,3 +1,28 @@
+DESCRIPTION >
+    - `activityRelations` contains raw activity relationship data mapping activities to members and organizations.
+    - Raw datasource replicated from Postgres - use `activityRelations_deduplicated_cleaned_ds` for analytics queries.
+    - Links activities to their associated members, organizations, conversations, and hierarchical relationships.
+    - `activityId` is the primary key linking to the main activity record.
+    - `conversationId` groups related activities into conversation threads (empty string if not part of conversation).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking and deduplication.
+    - `memberId` identifies the member who performed the activity.
+    - `objectMemberId` and `objectMemberUsername` identify target members for activities (e.g., mentions, assignments).
+    - `organizationId` identifies the organization associated with the member (empty string if no organization).
+    - `parentId` establishes hierarchical relationships between activities in our system.
+    - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality for efficiency.
+    - `segmentId` links to project segments for filtering and organization.
+    - `username` contains the username of the member who performed the activity.
+    - `sourceId` is the unique identifier from the source platform for this activity.
+    - `type` specifies the activity type (issues-opened, pull-request-review-request-submitted, etc.) using LowCardinality.
+    - `timestamp` is the actual time when the activity occurred on the source platform.
+    - `sourceParentId` is the parent activity identifier from the source platform (empty string if no parent).
+    - `channel` contains the repository, channel, or forum where the activity occurred (empty string if not applicable).
+    - `sentimentScore` provides computed sentiment analysis score (-1 default indicates no score computed).
+    - `gitInsertions` and `gitDeletions` track code changes for commits and PRs (0 default for non-code activities).
+    - `score` provides computed importance/impact score for the activity (-1 default indicates no score computed).
+    - `isContribution` flag indicates whether the activity counts as a contribution for analytics (UInt8 boolean).
+    - `pullRequestReviewState` tracks the state of PR reviews (approved, changes_requested, etc., empty string if not applicable).
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >

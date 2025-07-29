@@ -1,3 +1,22 @@
+DESCRIPTION >
+    - `packageDownloads` contains package download and usage metrics for software packages across different ecosystems.
+    - Replicated from Postgres - stores time-series download data for packages associated with insights projects.
+    - Data is cumulative for each day, containing the total package downloads until that date (not daily increments).
+    - Used to track package adoption, usage trends, and ecosystem health over time.
+    - `id` is the primary key identifier for the package download record.
+    - `date` is the date for which the cumulative download metrics are recorded.
+    - `insightsProjectId` links to the insights project this package belongs to (empty string if not associated).
+    - `repo` is the repository URL where the package is hosted (empty string if not applicable).
+    - `name` is the package name within its ecosystem (empty string if not set).
+    - `ecosystem` specifies the package ecosystem (npm, pypi, crates, maven, etc., empty string if not specified).
+    - `purl` is the Package URL identifier following the PURL standard (empty string if not available).
+    - `dependentReposCount` is the number of repositories that depend on this package (0 default).
+    - `dependentPackagesCount` is the number of other packages that depend on this package (0 default).
+    - `dockerDependentsCount` is the number of Docker images that use this package (0 default).
+    - `dockerDownloadsCount` is the cumulative number of Docker image downloads until the date (0 default).
+    - `downloadsCount` is the cumulative total number of package downloads until the date (0 default).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
 TAGS "Package downloads widget"
 
 SCHEMA >

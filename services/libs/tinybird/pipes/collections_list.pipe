@@ -1,7 +1,22 @@
 DESCRIPTION >
-    Serves collections page with pagination and sorting
+    - `collections_list.pipe` serves the collections page with pagination, sorting, and enriched collection data.
+    - Supports both count mode (`count=true`) and data mode for paginated collection listings with featured projects.
+    - Enriches collections with software value, contributor counts, and featured projects arrays for comprehensive display.
+    - Provides flexible sorting by collection fields with special handling for starred collections.
+    - Uses `collections_filtered` for consistent collection filtering and search capabilities.
+    - Primary use case: powering the main collections directory page with sortable, searchable collection listings.
+    - Parameters:
+    - `search`: Optional string for searching collections (inherited from `collections_filtered`)
+    - `count`: Optional boolean, when true returns collection count instead of collection data
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'projectCount', 'starred'
+    - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
+    - `pageSize`: Optional integer for result limit, defaults to 10
+    - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - Response:
+    - Count mode (`count=true`): `count` (total number of collections)
+    - Data mode (default): `id`, `name`, `slug`, `description`, `projectCount`, `starred`, `softwareValue`, `contributorCount`, `featuredProjects` array
 
-TAGS "Widget"
+TAGS "API", "Collections", "Pagination", "Sorting"
 
 NODE collections_paginated
 SQL >
@@ -123,7 +138,7 @@ SQL >
             {% else %}
                 DESC
                 {% if String(
-                    orderByName,
+                    orderByField,
                     'starred',
                     description="When starred sorting is selected, also sort by projectCount.",
                     required=False,

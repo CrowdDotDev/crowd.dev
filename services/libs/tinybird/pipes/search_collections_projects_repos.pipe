@@ -1,7 +1,16 @@
 DESCRIPTION >
-    Serves the search widget, it searches among projects repos and collections using the shared `search` param in corresponding pipes
+    - `search_collections_projects_repos.pipe` serves the unified search widget for collections, projects, and repositories.
+    - Performs search across three entity types using shared `search` parameter and returns up to configurable results per type.
+    - Combines results from `collections_filtered`, `insightsProjects_filtered`, and `activityRepositories_filtered` pipes.
+    - Filters out inactive projects (with 0 organizations and 0 contributors) to ensure relevant search results.
+    - Orders results by relevance: collections by project count, projects by contributor count, repositories alphabetically.
+    - Primary use case: powering global search functionality and autocomplete dropdowns across the platform.
+    - Parameters:
+    - `search`: Required string for searching across all entity types (inherited by filtered pipes)
+    - `limit`: Optional integer for result limit per entity type, defaults to 10
+    - Response: `type` ('collection'|'project'|'repository'), `slug`, `logo`, `projectSlug`, `name`
 
-TAGS "Widget"
+TAGS "Widget", "Search", "Unified search"
 
 NODE merge_results_from_collections_projects_repos_filtered
 SQL >

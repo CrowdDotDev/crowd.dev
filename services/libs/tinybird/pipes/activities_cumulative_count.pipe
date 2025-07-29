@@ -1,7 +1,27 @@
 DESCRIPTION >
-    Serves popularity forks and stars widgets
+    - `activities_cumulative_count.pipe` provides cumulative activity count analytics showing the running total of activities over time.
+    - **Key difference from `activities_count.pipe`:** Returns cumulative/running totals instead of period-specific counts, showing growth over time rather than activity per period.
+    - **When `granularity` is NOT provided, returns a simple count from `activities_filtered_historical_cutoff`** (same behavior as `activities_filtered` for totals).
+    - **When `granularity` is provided, returns time-series data** with cumulative activity counts calculated by adding historical baseline + period-specific counts.
+    - Cumulative calculation: historical total (from `activities_filtered_historical_cutoff`) + rolling sum of period activities to create running totals over time.
+    - Each cumulative count includes all matching activities from project inception up to that time period.
+    - Primary use case: showing growth trends and total activity accumulation over time in dashboard widgets.
+    - Parameters:
+    - `project`: Inherited from `segments_filtered`, project slug (e.g., 'k8s', 'tensorflow')
+    - `repos`: Inherited from `segments_filtered`, array of repository URLs for filtering
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: Simple count from `activities_filtered_historical_cutoff`
+    - With granularity: `startDate`, `endDate`, and `cumulativeActivityCount` for each time period
 
-TAGS "Widget"
+TAGS "Widget", "Cumulative metrics", "Growth trends"
 
 NODE historical_activity_count
 SQL >
