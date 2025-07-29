@@ -115,5 +115,5 @@ export interface ISimilarOrganizationOpensearchResult {
 }
 
 export interface ITestOrganizationOpenSearchResultsArgs {
-  organizationId: string
+  organizationIds: string[]
 }
