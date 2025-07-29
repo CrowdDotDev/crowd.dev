@@ -1,23 +1,18 @@
 from typing import Dict, Any, Optional, List, Tuple
 from loguru import logger
-from crowdgit.repo import (
-    get_commits,
-    get_commits_by_hash_range,
-    get_insertions_deletions_by_hash_range,
-)
+import hashlib
 from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.utils import get_default_branch
-import json
 from crowdgit.services.utils import run_shell_command
 import re
 import time
 import datetime
-import os
 import asyncio
 from crowdgit.settings import MAX_WORKER_PROCESSES
 from concurrent.futures import ProcessPoolExecutor
 from tenacity import retry, stop_after_attempt, wait_fixed
 import subprocess
+from crowdgit.services.commit.activitymap import ActivityMap
 
 
 class CommitService(BaseService):
@@ -27,6 +22,16 @@ class CommitService(BaseService):
     MIN_COMMIT_FIELDS = 8
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
     FUTURE_DATE_THRESHOLD_DAYS = 1
+
+    # Pre-compiled regex patterns for better performance
+    _COMMIT_HASH_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+    _ACTIVITY_PATTERN = re.compile(r"([^:]*):\s*(.*?)\s+<{1,2}([^>]+)>+$")
+
+    # Common strings to avoid repeated string operations
+    _GIT_PLATFORM = "git"
+    _USERNAME_TYPE = "username"
+    _EMAIL_TYPE = "email"
+    _COMMITTED_COMMIT_SUFFIX = "commited-commit"
 
     def __init__(self):
         super().__init__()
@@ -55,7 +60,7 @@ class CommitService(BaseService):
         >>> is_valid_commit_hash('not so')
         False
         """
-        return re.match(r"^[0-9a-f]{40}$", commit_hash) is not None
+        return CommitService._COMMIT_HASH_PATTERN.match(commit_hash) is not None
 
     @staticmethod
     def is_valid_datetime(commit_datetime: str) -> bool:
@@ -76,7 +81,7 @@ class CommitService(BaseService):
             return False
 
     async def get_commits_for_batch(
-        self, repo_path: str, edge_commit: Optional[str], prev_batch_edge_commit: str,
+        self, repo_path: str, edge_commit: Optional[str], prev_batch_edge_commit: str, remote: str
     ) -> List[Dict[str, Any]]:
         """
         Extract commits from repository in batches.
@@ -100,7 +105,7 @@ class CommitService(BaseService):
                 repo_path, prev_batch_edge_commit, edge_commit
             )
 
-            commits = await self._parse_commits(raw_commits, repo_path, edge_commit)
+            commits = await self._parse_commits(raw_commits, repo_path, edge_commit, remote)
 
             end_time = time.time()
             processing_time = end_time - start_time
@@ -129,25 +134,31 @@ class CommitService(BaseService):
         reraise=True,
     )
     async def _execute_git_log(
-        self, repo_path: str, prev_batch_edge_commit: Optional[str] = None, edge_commit: Optional[str] = None
+        self,
+        repo_path: str,
+        prev_batch_edge_commit: Optional[str] = None,
+        edge_commit: Optional[str] = None,
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
         await run_shell_command(
             ["git", "-C", repo_path, "config", "core.abbrevCommit", "false"], cwd=repo_path
         )
-        
+
         self.logger.info("Running git log command...")
-        
+
         if not prev_batch_edge_commit:
             return ""
-        
+
         if edge_commit:
             # Middle batches: Get the slice of history between the last batch's edge and this one's.
             # Note: In a history with merges, this can include commits from side branches that
             # might also be reachable from the final batch's starting point, causing potential duplicates.
             git_log_command = [
-                "git", "-C", repo_path, "log",
+                "git",
+                "-C",
+                repo_path,
+                "log",
                 f"{edge_commit}..{prev_batch_edge_commit}",
                 f"--pretty=format:{self.git_log_format}",
             ]
@@ -155,15 +166,18 @@ class CommitService(BaseService):
         else:
             # Final batch: Get all commits from the last known edge to the root.
             git_log_command = [
-                "git", "-C", repo_path, "log",
+                "git",
+                "-C",
+                repo_path,
+                "log",
                 prev_batch_edge_commit,
                 f"--pretty=format:{self.git_log_format}",
             ]
             self.logger.info(f"Processing final batch from: {prev_batch_edge_commit} to root")
-        
+
         self.logger.info(f"Executing log command: {git_log_command}")
         return await run_shell_command(git_log_command, cwd=repo_path, timeout=60)
-    
+
     @staticmethod
     def should_skip_commit(raw_commit: Optional[str], edge_commit: Optional[str]) -> bool:
         """Check if commit should be skipped based on edge commit comparison."""
@@ -171,12 +185,216 @@ class CommitService(BaseService):
         return not raw_commit or (edge_commit and raw_commit.startswith(edge_commit))
 
     @staticmethod
-    def parse_commits_chunk(commit_texts_chunk: List[Optional[str]], repo_path: str, edge_commit_hash: Optional[str]) -> List[Dict[str, Any]]:
-        commits = []
+    def clean_up_username(name: str):
+        name = re.sub(r"(?i)Reviewed[- ]by:", "", name)
+        name = re.sub(r"(?i)from:", "", name)
+        name = re.sub(r"(?i)cc:.*", "", name).strip()
+        return name.strip()
+
+    @staticmethod
+    def create_activity(
+        remote: str,
+        commit: Dict,
+        activity_type: str,
+        member: Dict,
+        source_id: str,
+        source_parent_id: str = "",
+    ) -> Dict:
+        """
+        Create an activity with improved efficiency.
+
+        Args:
+            remote: The remote repository URL
+            commit: The commit dictionary
+            activity_type: Type of activity
+            member: Member information dictionary
+            source_id: Source ID for the activity
+            source_parent_id: Parent source ID (optional)
+
+        Returns:
+            Activity dictionary
+        """
+        # Pre-calculate timestamp to avoid repeated lookups
+        timestamp = (
+            commit["author_datetime"] if source_parent_id == "" else commit["committer_datetime"]
+        )
+        dt = datetime.datetime.fromisoformat(timestamp)
+
+        # Pre-calculate common values
+        emails = member["emails"]
+        primary_email = emails[0]
+
+        # Optimize member processing by creating a new dict instead of modifying the input
+        processed_member = {}
+
+        # Handle username and displayName with fallbacks
+        username = member.get("username") or primary_email
+        display_name = member.get("displayName") or primary_email.split("@")[0]
+
+        # Clean up names once
+        processed_member["displayName"] = CommitService.clean_up_username(display_name)
+
+        # Build identities list more efficiently
+        identities = [
+            {
+                "platform": CommitService._GIT_PLATFORM,
+                "value": primary_email,
+                "type": CommitService._USERNAME_TYPE,
+                "verified": True,
+            }
+        ]
+
+        # Add email identities
+        for email in emails:
+            identities.append(
+                {
+                    "platform": CommitService._GIT_PLATFORM,
+                    "value": email,
+                    "type": CommitService._EMAIL_TYPE,
+                    "verified": False,
+                }
+            )
+
+        processed_member["identities"] = identities
+
+        # Pre-calculate commit attributes to avoid repeated lookups
+        insertions = commit.get("insertions", 0)
+        deletions = commit.get("deletions", 0)
+
+        return {
+            "type": activity_type,
+            "timestamp": timestamp,
+            "sourceId": source_id,
+            "sourceParentId": source_parent_id,
+            "platform": CommitService._GIT_PLATFORM,
+            "channel": remote,
+            "body": "\n".join(commit["message"]),
+            "isContribution": True,
+            "attributes": {
+                "insertions": insertions,
+                "timezone": dt.tzname(),
+                "deletions": deletions,
+                "lines": insertions - deletions,
+                "isMerge": commit["is_merge_commit"],
+                "isMainBranch": True,
+            },
+            "url": remote,
+            "member": processed_member,
+        }
+
+    @staticmethod
+    def extract_activities(commit_message: List[str]) -> List[Dict[str, Dict[str, str]]]:
+        """
+        Extract activities from the commit message and return a list of activities.
+        Each activity in the list includes the activity and the person who made it,
+        which in turn includes the name and the email.
+
+        :param commit_message: A list of strings, where each string is a line of the commit message.
+        :return: A list of dictionaries containing activities and the person who made them.
+
+        >>> extract_activities([
+        ...     "Signed-off-by: Arnd Bergmann <arnd@arndb.de>",
+        ...     "reported-by: Guenter Roeck <linux@roeck-us.net>"
+        ... ]) == [{'Signed-off-by': {'email': 'arnd@arndb.de', 'name': 'Arnd Bergmann'}},
+        ...        {'Reported-by': {'email': 'linux@roeck-us.net', 'name': 'Guenter Roeck'}}]
+        True
+        """
+        activities = []
+
+        for line in commit_message:
+            match = CommitService._ACTIVITY_PATTERN.match(line)
+            if match:
+                activity_name, name, email = match.groups()
+                activity_name = activity_name.strip().lower()
+                if activity_name in ActivityMap:
+                    name = name.strip()
+                    email = email.strip()
+                    for activity in ActivityMap[activity_name]:
+                        activities.append({activity: {"name": name, "email": email}})
+        return activities
+
+    @staticmethod
+    def create_activities_from_commit(remote: str, commit: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Create activities from a commit with improved efficiency.
+
+        Args:
+            remote: The remote repository URL
+            commit: The commit dictionary containing commit data
+
+        Returns:
+            List of activity dictionaries
+        """
+        activities = []
+        commit_hash = commit["hash"]
+
+        # Pre-calculate common values to avoid repeated lookups
+        author_name = commit["author_name"]
+        author_email = commit["author_email"]
+        committer_name = commit["committer_name"]
+        committer_email = commit["committer_email"]
+
+        # Create author activity
+        author = {
+            "username": author_name,
+            "displayName": author_name,
+            "emails": [author_email],
+        }
+        activities.append(
+            CommitService.create_activity(remote, commit, "authored-commit", author, commit_hash)
+        )
+
+        # Only create committer activity if author and committer are different
+        if author_name != committer_name or author_email != committer_email:
+            # Pre-calculate hash components to avoid repeated string operations
+            hash_input = f"{commit_hash}{CommitService._COMMITTED_COMMIT_SUFFIX}{committer_email}"
+            committer_source_id = hashlib.sha1(hash_input.encode("utf-8")).hexdigest()
+
+            committer = {
+                "username": committer_name,
+                "displayName": committer_name,
+                "emails": [committer_email],
+            }
+            activities.append(
+                CommitService.create_activity(
+                    remote,
+                    commit,
+                    "committed-commit",
+                    committer,
+                    committer_source_id,
+                    commit_hash,
+                )
+            )
+
+        return activities
+
+    @staticmethod
+    def parse_commits_chunk(
+        commit_texts_chunk: List[Optional[str]],
+        repo_path: str,
+        edge_commit_hash: Optional[str],
+        remote: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Parse a chunk of commit texts into activities with improved efficiency.
+
+        Args:
+            commit_texts_chunk: List of commit text strings to process
+            repo_path: Path to the repository
+            edge_commit_hash: Edge commit hash for filtering
+            remote: Remote repository URL
+
+        Returns:
+            List of activity dictionaries
+        """
+        activities = []
         bad_commits = 0
+        processed_commits = 0
+
         for commit_text in commit_texts_chunk:
             if CommitService.should_skip_commit(commit_text, edge_commit_hash):
                 continue
+
             commit_lines = commit_text.strip().splitlines()
             if not CommitService._validate_commit_structure(commit_lines):
                 logger.warning(
@@ -186,9 +404,11 @@ class CommitService(BaseService):
                 continue
 
             try:
-                commit_dict = CommitService._construct_commit_dict(commit_lines, repo_path)
-                if CommitService._validate_commit_data(commit_dict):
-                    commits.append(commit_dict)
+                commit = CommitService._construct_commit_dict(commit_lines, repo_path)
+                if CommitService._validate_commit_data(commit):
+                    # Use extend instead of += for better performance
+                    activities.extend(CommitService.create_activities_from_commit(remote, commit))
+                    processed_commits += 1
                 else:
                     bad_commits += 1
             except Exception as e:
@@ -196,11 +416,17 @@ class CommitService(BaseService):
                 bad_commits += 1
                 continue
 
-        if bad_commits > 0:
-            logger.info(f"Skipped {bad_commits} invalid commits in {repo_path}")
-        return commits
+        # Log summary instead of per-commit logging
+        if processed_commits > 0 or bad_commits > 0:
+            logger.info(
+                f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
+            )
 
-    async def _parse_commits(self, raw_output: str, repo_path: str, edge_commit_hash: Optional[str]) -> List[Dict[str, Any]]:
+        return activities
+
+    async def _parse_commits(
+        self, raw_output: str, repo_path: str, edge_commit_hash: Optional[str], remote: str
+    ) -> List[Dict[str, Any]]:
         """
         Parse raw git log output into commit dictionaries.
         """
@@ -216,12 +442,19 @@ class CommitService(BaseService):
             commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
         ]
         loop = asyncio.get_event_loop()
-        
+
         # Use reusable process pool instead of creating new one
         executor = self._get_or_create_pool()
-        
+
         futures = [
-            loop.run_in_executor(executor, CommitService.parse_commits_chunk, chunk, repo_path, edge_commit_hash)
+            loop.run_in_executor(
+                executor,
+                CommitService.parse_commits_chunk,
+                chunk,
+                repo_path,
+                edge_commit_hash,
+                remote,
+            )
             for chunk in chunks
         ]
         results = await asyncio.gather(*futures)
