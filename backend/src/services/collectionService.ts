@@ -14,6 +14,7 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
+  deleteMissingSegmentRepositories,
   disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
@@ -22,6 +23,7 @@ import {
   queryInsightsProjects,
   updateCollection,
   updateInsightsProject,
+  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
@@ -363,7 +365,17 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
+  static normalizeRepositories(
+    repositories?: string[] | { platform: string; url: string }[],
+  ): string[] {
+    if (!repositories || repositories.length === 0) return []
+
+    return typeof repositories[0] === 'string'
+      ? (repositories as string[])
+      : (repositories as { platform: string; url: string }[]).map((r) => r.url)
+  }
+
+  async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
 
@@ -373,15 +385,24 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      await updateInsightsProject(qx, id, project)
+      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
+
+      const repositories = CollectionService.normalizeRepositories(project.repositories)
+
+      await upsertSegmentRepositories(qx, { insightsProjectId, repositories, segmentId })
+
+      await deleteMissingSegmentRepositories(qx, {
+        repositories,
+        segmentId,
+      })
 
       if (project.collections) {
-        await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
+        await disconnectProjectsAndCollections(qx, { insightsProjectId })
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
-            insightsProjectId: id,
             collectionId: c,
+            insightsProjectId,
             starred: project.starred ?? true,
           })),
         )
@@ -391,7 +412,7 @@ export class CollectionService extends LoggerBase {
         ...this.options,
         transaction: tx,
       })
-      return txSvc.findInsightsProjectById(id)
+      return txSvc.findInsightsProjectById(insightsProjectId)
     })
   }
 
