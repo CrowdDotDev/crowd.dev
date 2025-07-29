@@ -59,3 +59,9 @@ class PermissionError(CrowdGitError):
 class CommandExecutionError(CrowdGitError):
     error_message: str = "Command execution failed"
     error_code: ErrorCode = ErrorCode.SHELL_COMMAND_FAILED
+
+
+@dataclass
+class CloneError(CrowdGitError):
+    error_message: str = "Failed to clone repository"
+    error_code: ErrorCode = ErrorCode.INTERNAL
