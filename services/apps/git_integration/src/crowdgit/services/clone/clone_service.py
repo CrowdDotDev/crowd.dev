@@ -11,7 +11,7 @@ from crowdgit.errors import CommandExecutionError
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 # TODO: dynamically calculate depth: smaller for big repos and higher for small repos to acheive consistent (fast) processing duration without overkill
-DEFAULT_CLONE_BATCH_DEPTH = 5
+DEFAULT_CLONE_BATCH_DEPTH = 250
 
 
 class CloneService(BaseService):
@@ -147,10 +147,10 @@ class CloneService(BaseService):
 
     async def _get_edge_commit(self, repo_path: str):
         """
-            Returns the edge commit of a shallow clone by reading the .git/shallow file,
-            which contains the boundary commit(s) when history is truncated.
+        Returns the edge commit of a shallow clone by reading the .git/shallow file,
+        which contains the boundary commit(s) when history is truncated.
 
-            If the full history has been cloned, the .git/shallow file does not exist.
+        If the full history has been cloned, the .git/shallow file does not exist.
         """
         shallow_file = os.path.join(repo_path, ".git", "shallow")
         try:
