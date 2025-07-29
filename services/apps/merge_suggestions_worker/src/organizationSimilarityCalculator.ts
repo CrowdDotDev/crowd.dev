@@ -106,9 +106,11 @@ class OrganizationSimilarityCalculator {
     similarOrganization: IOrganizationFullAggregatesOpensearch,
   ): boolean {
     const verifiedIdentities = organization.identities.filter((i) => i.verified)
+    
+    console.log(`🔍 Checking clashes for ${organization.displayName} vs ${similarOrganization.displayName}`)
+    console.log(`�� Primary org has ${verifiedIdentities.length} verified identities`)
+    console.log(`�� Similar org has ${similarOrganization.identities.filter(i => i.verified).length} verified identities`)
   
-    // A small Levenshtein distance (e.g., 1 or 2) likely indicates a typo.
-    // We should not treat typos as clashes.
     const MAX_DISTANCE_FOR_TYPO = 2
   
     for (const identity of verifiedIdentities) {
@@ -121,17 +123,22 @@ class OrganizationSimilarityCalculator {
       )
   
       if (potentialClash) {
-        // Calculate the Levenshtein distance between the two values
         const distance = getLevenshteinDistance(identity.value, potentialClash.value)
+        
+        console.log(`🔍 Potential clash: ${identity.value} vs ${potentialClash.value}`)
+        console.log(`📏 Distance: ${distance}, Max for typo: ${MAX_DISTANCE_FOR_TYPO}`)
+        console.log(`🏷️ Platform: ${identity.platform}, Type: ${identity.type}`)
   
-        // If the values are very different (distance > 2), it's a real clash
         if (distance > MAX_DISTANCE_FOR_TYPO) {
+          console.log(`❌ REAL CLASH detected! Returning true`)
           return true
-        }      
+        } else {
+          console.log(`✅ Typo detected, not a clash. Continuing...`)
+        }
       }
     }
   
-    // If we checked all identities and found no true clashes, return false.
+    console.log(`✅ No clashes found. Returning false`)
     return false
   }
 
