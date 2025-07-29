@@ -105,26 +105,23 @@ class OrganizationSimilarityCalculator {
     organization: IOrganizationFullAggregatesOpensearch,
     similarOrganization: IOrganizationFullAggregatesOpensearch,
   ): boolean {
-    const primaryIdentities = organization.identities.filter((i) => i.verified)
-    const similarIdentities = similarOrganization.identities.filter((i) => i.verified)
+    const verifiedIdentities = organization.identities.filter((i) => i.verified)
 
-    if (similarIdentities.length === 0) {
-      return false
-    }
-
-    for (const pIdentity of primaryIdentities) {
-      for (const sIdentity of similarIdentities) {
-        if (pIdentity.platform === sIdentity.platform && pIdentity.type === sIdentity.type) {
-          const distance = getLevenshteinDistance(pIdentity.value, sIdentity.value)
-          const threshold = pIdentity.type.includes('domain') ? 3 : 1
-          if (distance <= threshold) {
-            return false
-          }
-        }
+    for (const identity of verifiedIdentities) {
+      if (
+        similarOrganization.identities.some(
+          (i) =>
+            i.verified &&
+            i.platform === identity.platform &&
+            i.type === identity.type &&
+            i.value !== identity.value,
+        )
+      ) {
+        return true
       }
     }
 
-    return true
+    return false
   }
 
   static hasSameLocation(
