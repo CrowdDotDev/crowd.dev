@@ -14,13 +14,13 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
+  deleteMissingSegmentRepositories,
   disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
   queryCollections,
   queryInsightsProjectById,
   queryInsightsProjects,
-  softDeleteMissingSegmentRepositories,
   updateCollection,
   updateInsightsProject,
   upsertSegmentRepositories,
@@ -391,7 +391,7 @@ export class CollectionService extends LoggerBase {
 
       await upsertSegmentRepositories(qx, { insightsProjectId, repositories, segmentId })
 
-      await softDeleteMissingSegmentRepositories(qx, {
+      await deleteMissingSegmentRepositories(qx, {
         repositories,
         segmentId,
       })

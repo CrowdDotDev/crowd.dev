@@ -332,12 +332,12 @@ export async function upsertSegmentRepositories(
       'segmentRepositories',
       ['insightsProjectId', 'repository', 'segmentId'],
       data,
-      '("segmentId", "repository") DO UPDATE SET "deletedAt" = NULL',
+      '("repository", "segmentId") DO NOTHING',
     ),
   )
 }
 
-export async function softDeleteMissingSegmentRepositories(
+export async function deleteMissingSegmentRepositories(
   qx: QueryExecutor,
   {
     repositories,
@@ -349,12 +349,10 @@ export async function softDeleteMissingSegmentRepositories(
 ) {
   return qx.result(
     `
-    UPDATE "segmentRepositories"
-    SET "deletedAt" = NOW()
+    DELETE FROM "segmentRepositories"
     WHERE "segmentId" = '${segmentId}'
-      AND "deletedAt" IS NULL
-      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'}
-  `,
+      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
+    `,
     { segmentId, repositories },
   )
 }
