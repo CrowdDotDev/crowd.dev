@@ -14,6 +14,7 @@ import {
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
+  unmergeOrganizations,
   unmergeMembers,
   unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
@@ -69,6 +70,7 @@ import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-v
 import { deleteIndexedEntities } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
 import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
+import { getCancelledMergeAndUnmergeWorkflows, resetMergeActionState } from './activities/retrigger-terminated-workflows'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -124,4 +126,7 @@ export {
   checkActivitiesWithTimestampExistInQuestDb,
   saveMissingActivityInQuestDb,
   getMissingActivityInQuestDb,
+  getCancelledMergeAndUnmergeWorkflows,
+  resetMergeActionState,
+  unmergeOrganizations,
 }

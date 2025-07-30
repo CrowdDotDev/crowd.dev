@@ -7,6 +7,7 @@ import {
   IMemberIdentity,
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
+  IOrganizationUnmergeBackup,
   IUnmergeBackup,
   IUnmergePreviewResult,
 } from '@crowd/types'
@@ -113,6 +114,29 @@ export async function mergeOrganizations(
     await axios(url, requestOptions)
   } catch (error) {
     console.log(`Failed merging organization with status [${error.response.status}]. Skipping!`)
+  }
+}
+
+export async function unmergeOrganizations(
+  primaryOrgId: string,
+  backup: IUnmergeBackup<IOrganizationUnmergeBackup>,
+): Promise<void> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/organization/${primaryOrgId}/unmerge`
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      ...backup,
+    },
+  }
+
+  try {
+    await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed unmerging organization with status [${error.response.status}]. Skipping!`)
   }
 }
 

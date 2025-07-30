@@ -11,6 +11,7 @@ import { fixActivityForiegnKeys } from './workflows/fixActivityForiegnKeys'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { populateActivityRelations } from './workflows/populateActivityRelations'
 import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
+import { retriggerIncompleteWorkflows } from './workflows/retriggerWorkflows'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -30,4 +31,5 @@ export {
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
   dedupActivityRelations,
+  retriggerIncompleteWorkflows,
 }

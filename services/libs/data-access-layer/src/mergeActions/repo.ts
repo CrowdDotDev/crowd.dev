@@ -1,9 +1,10 @@
 import validator from 'validator'
 
-import { IMergeAction, IMergeActionColumns, MergeActionType } from '@crowd/types'
+import { IMergeAction, IMergeActionColumns, MergeActionState, MergeActionStep, MergeActionType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 import { QueryOptions, QueryResult, queryTable } from '../utils'
+import { EntityType } from '../old/apps/script_executor_worker/types'
 
 const MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
   'id',
@@ -66,4 +67,36 @@ export async function findEntityMergeActions(
   )
 
   return result
+}
+
+export async function getIncompleteMergeActions(
+  qx: QueryExecutor,
+  type: 'member' | 'org',
+  step: MergeActionStep
+) {
+  const table = type === 'member' ? 'members' : 'organizations';
+
+  return qx.select(
+    `
+    SELECT ma.*
+    FROM "mergeActions" ma
+        JOIN "${table}" t1 ON ma."primaryId" = t1."id"
+        JOIN "${table}" t2 ON ma."secondaryId" = t2."id"
+    WHERE ma.type = $(type)
+    AND ma."step" = $(step);
+    `,
+    { type, step },
+  );
+}
+
+export async function updateMergeAction(qx: QueryExecutor, primaryId: string, secondaryId: string, state: string) {
+  return qx.result(
+    `
+    UPDATE "mergeActions"
+    SET "state" = $(state)
+    WHERE "primaryId" = $(primaryId) 
+    AND "secondaryId" = $(secondaryId);
+    `,
+    { primaryId, secondaryId, state },
+  )
 }
