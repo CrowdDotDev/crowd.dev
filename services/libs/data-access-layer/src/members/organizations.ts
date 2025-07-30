@@ -1,4 +1,4 @@
-import { IMemberOrganization } from '@crowd/types'
+import { IMemberOrganization, IOrganization } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -159,4 +159,13 @@ export async function cleanSoftDeletedMemberOrganization(
       params,
     )
   })
+}
+
+export async function getOrganizationById(qx: QueryExecutor, id: string): Promise<IOrganization> {
+  return qx.select(
+    `
+      SELECT * FROM "organizations" WHERE "id" = $(id)
+    `,
+    { id },
+  )
 }
