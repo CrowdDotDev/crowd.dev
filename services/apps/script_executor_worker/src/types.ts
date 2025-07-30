@@ -64,7 +64,7 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }
 
-export interface IRetriggerWorkflowsArgs {
+export interface IRetriggerWorkflowsArgs extends IScriptBatchTestArgs {
   entityType: string
   action: string
 }

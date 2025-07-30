@@ -72,7 +72,8 @@ export async function findEntityMergeActions(
 export async function getIncompleteMergeActions(
   qx: QueryExecutor,
   type: 'member' | 'org',
-  step: MergeActionStep
+  step: MergeActionStep,
+  limit: number = 1000
 ) {
   const table = type === 'member' ? 'members' : 'organizations';
 
@@ -83,9 +84,10 @@ export async function getIncompleteMergeActions(
         JOIN "${table}" t1 ON ma."primaryId" = t1."id"
         JOIN "${table}" t2 ON ma."secondaryId" = t2."id"
     WHERE ma.type = $(type)
-    AND ma."step" = $(step);
+    AND ma."step" = $(step)
+    LIMIT $(limit);
     `,
-    { type, step },
+    { type, step, limit },
   );
 }
 

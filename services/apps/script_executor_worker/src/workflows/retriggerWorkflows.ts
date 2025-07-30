@@ -17,7 +17,7 @@ const {
 })
 
 export async function retriggerIncompleteWorkflows(args: IRetriggerWorkflowsArgs): Promise<void> {
-    const { entityType, action } = args
+    const { entityType, action, batchSize } = args
     
     // Determine the merge action type
     const mergeActionType = entityType === 'member' ? MergeActionType.MEMBER : MergeActionType.ORG
@@ -28,7 +28,7 @@ export async function retriggerIncompleteWorkflows(args: IRetriggerWorkflowsArgs
         : MergeActionStep.UNMERGE_ASYNC_STARTED
 
     // Get cancelled workflows for the specified entity type and action
-    const mergeActions = await getCancelledMergeAndUnmergeWorkflows(mergeActionType, mergeActionStep)
+    const mergeActions = await getCancelledMergeAndUnmergeWorkflows(mergeActionType, mergeActionStep, batchSize)
 
     // Process each merge action
     for (const mergeAction of mergeActions) {

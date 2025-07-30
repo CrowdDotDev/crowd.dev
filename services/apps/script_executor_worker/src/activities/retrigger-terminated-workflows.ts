@@ -4,10 +4,10 @@ import { svc } from '../main'
 import { getIncompleteMergeActions, updateMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { pgpQx } from '@crowd/data-access-layer'
 
-export async function getCancelledMergeAndUnmergeWorkflows(type: MergeActionType, step: MergeActionStep) {
+export async function getCancelledMergeAndUnmergeWorkflows(type: MergeActionType, step: MergeActionStep, limit?: number) {
     const qx = pgpQx(svc.postgres.reader.connection())
 
-    return getIncompleteMergeActions(qx, type, step)
+    return getIncompleteMergeActions(qx, type, step, limit)
 }
 
 export async function resetMergeActionState(primaryId: string, secondaryId: string) {
