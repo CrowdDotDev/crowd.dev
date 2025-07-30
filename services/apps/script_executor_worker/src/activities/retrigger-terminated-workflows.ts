@@ -18,7 +18,7 @@ export async function getCancelledMergeAndUnmergeWorkflows(type: MergeActionType
 }
 
 export async function resetMergeActionState(primaryId: string, secondaryId: string) {
-    const qx = pgpQx(svc.postgres.reader.connection())
+    const qx = pgpQx(svc.postgres.writer.connection())
 
     await updateMergeAction(qx, primaryId, secondaryId, 'pending')
 }
