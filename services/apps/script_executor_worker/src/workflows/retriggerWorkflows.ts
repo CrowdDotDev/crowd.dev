@@ -12,6 +12,10 @@ const {
 })
 
 export async function retriggerIncompleteWorkflows(args: IRetriggerWorkflowsArgs): Promise<void> {
+    const { entityType, action, batchSize } = args
+
+    console.log(`Retriggering ${entityType} ${action} workflows in batches of ${batchSize}!`)
+
     // Get cancelled workflows for the specified entity type and action
     const mergeActions = await getOrganizationMergesWithPendingState()
 
