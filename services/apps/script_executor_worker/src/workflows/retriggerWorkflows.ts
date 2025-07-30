@@ -5,7 +5,7 @@ import { IRetriggerWorkflowsArgs } from '../types'
 
 const {
   getOrganizationMergesWithPendingState,
-  mergeMembers,
+  mergeOrganizations,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -17,7 +17,7 @@ export async function retriggerIncompleteWorkflows(args: IRetriggerWorkflowsArgs
 
     // // Process each merge action
     for (const mergeAction of mergeActions) {        
-        await mergeMembers(mergeAction.primaryId, mergeAction.secondaryId)
+        await mergeOrganizations(mergeAction.primaryId, mergeAction.secondaryId)
         // wait for 5mins before merging again
         await sleep(5 * 60 * 1000)
     }
