@@ -234,7 +234,7 @@ class OrganizationSimilarityCalculator {
 
       const similarDomain = similarIdentity.value.toLowerCase()
 
-      if (this.hasSameBaseDomain(primaryDomain, similarDomain)) {
+      if (this.hasSameDomainRootLabel(primaryDomain, similarDomain)) {
         return true
       }
     }
@@ -242,7 +242,7 @@ class OrganizationSimilarityCalculator {
     return false
   }
 
-  static hasSameBaseDomain(domain1: string, domain2: string): boolean {
+  static hasSameDomainRootLabel(domain1: string, domain2: string): boolean {
     const main1 = getDomainRootLabel(domain1)
     const main2 = getDomainRootLabel(domain2)
 
