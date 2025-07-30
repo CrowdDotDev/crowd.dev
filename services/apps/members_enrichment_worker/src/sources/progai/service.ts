@@ -1,7 +1,7 @@
 import axios from 'axios'
 import lodash from 'lodash'
 
-import { replaceDoubleQuotes, websiteNormalizer } from '@crowd/common'
+import { normalizeHostname, replaceDoubleQuotes } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   MemberAttributeName,
@@ -270,7 +270,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           let hasPrimaryDomainIdentity = false
 
           if (workExperience.companyUrl) {
-            const normalizedDomain = websiteNormalizer(workExperience.companyUrl, false)
+            const normalizedDomain = normalizeHostname(workExperience.companyUrl, false)
 
             // sometimes companyUrl is a github link, we don't want to add it as a primary domain
             if (

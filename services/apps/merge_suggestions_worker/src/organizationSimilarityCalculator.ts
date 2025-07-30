@@ -1,5 +1,6 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
+import { getDomainRootLabel } from '@crowd/common'
 import {
   IOrganizationFullAggregatesOpensearch,
   IOrganizationIdentity,
@@ -233,11 +234,7 @@ class OrganizationSimilarityCalculator {
 
       const similarDomain = similarIdentity.value.toLowerCase()
 
-      // Extract base domain (e.g., "amazon" from "amazon.com")
-      const primaryBase = this.extractBaseDomain(primaryDomain)
-      const similarBase = this.extractBaseDomain(similarDomain)
-
-      if (primaryBase && similarBase && primaryBase === similarBase) {
+      if (this.hasSameBaseDomain(primaryDomain, similarDomain)) {
         return true
       }
     }
@@ -245,17 +242,11 @@ class OrganizationSimilarityCalculator {
     return false
   }
 
-  static extractBaseDomain(domain: string): string | null {
-    // Remove protocol if present
-    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '')
+  static hasSameBaseDomain(domain1: string, domain2: string): boolean {
+    const main1 = getDomainRootLabel(domain1)
+    const main2 = getDomainRootLabel(domain2)
 
-    // Extract the main part before the first dot
-    const parts = cleanDomain.split('.')
-    if (parts.length >= 2 && parts[0].length > 0) {
-      return parts[0]
-    }
-
-    return null
+    return main1 !== null && main2 !== null && main1 === main2
   }
 }
 
