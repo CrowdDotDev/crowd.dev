@@ -113,7 +113,3 @@ export interface ISimilarMemberOpensearchResult {
 export interface ISimilarOrganizationOpensearchResult {
   _source: IOrganizationOpensearch
 }
-
-export interface ITestOrganizationOpenSearchResultsArgs {
-  organizationIds: string[]
-}
