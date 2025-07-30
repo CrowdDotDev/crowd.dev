@@ -37,6 +37,7 @@ export interface IMergeAction {
   step: MergeActionStep
   state: MergeActionState
   unmergeBackup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup>
+  actionBy: string
 }
 
 export type IMergeActionColumns = keyof IMergeAction

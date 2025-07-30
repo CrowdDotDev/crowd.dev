@@ -15,6 +15,7 @@ const MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
   'updatedAt',
   'state',
   'step',
+  'actionBy',
 ]
 
 export async function queryMergeActions<T extends IMergeActionColumns>(

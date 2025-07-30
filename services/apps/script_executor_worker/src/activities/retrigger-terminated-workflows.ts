@@ -1,9 +1,10 @@
 import { fetchMemberIdentities, getMemberById, getOrganizationById, pgpQx } from '@crowd/data-access-layer'
 import {
   getIncompleteMergeActions,
+  queryMergeActions,
   updateMergeAction,
 } from '@crowd/data-access-layer/src/mergeActions/repo'
-import { MergeActionStep, MergeActionType } from '@crowd/types'
+import { MergeActionState, MergeActionStep, MergeActionType } from '@crowd/types'
 
 import { svc } from '../main'
 
@@ -80,4 +81,25 @@ export async function triggerUnmergeWorkflow(
       },
     })
   }
+}
+
+export async function getOrganizationMergesWithPendingState() {
+  const qx = pgpQx(svc.postgres.reader.connection())
+
+  return queryMergeActions(qx, {
+    fields: ['id', 'step', 'primaryId', 'secondaryId', 'actionBy'],
+    filter: {
+      and: [
+        {
+          state: {
+            eq: 'pending',
+          },
+          type: {
+            eq: MergeActionType.ORG,
+          },
+        },
+      ],
+    },
+    orderBy: '"updatedAt" DESC',
+  })
 }

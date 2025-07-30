@@ -70,6 +70,7 @@ import {
   getCancelledMergeAndUnmergeWorkflows,
   resetMergeActionState,
   triggerUnmergeWorkflow,
+  getOrganizationMergesWithPendingState,
 } from './activities/retrigger-terminated-workflows'
 import { deleteIndexedEntities } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
@@ -132,4 +133,5 @@ export {
   getCancelledMergeAndUnmergeWorkflows,
   resetMergeActionState,
   triggerUnmergeWorkflow,
+  getOrganizationMergesWithPendingState,
 }
