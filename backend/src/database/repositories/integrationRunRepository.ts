@@ -160,6 +160,7 @@ export default class IntegrationRunRepository extends RepositoryBase<
     select id
     from integration.runs
     where state in (:delayedState, :processingState, :pendingState) and ${condition}
+    and "createdAt" > NOW() - INTERVAL '24 hours'
     order by "createdAt" desc
     limit 1
     `
