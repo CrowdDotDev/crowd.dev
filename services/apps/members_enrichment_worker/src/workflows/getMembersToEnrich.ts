@@ -14,7 +14,7 @@ import { chunkArray } from '../utils/common'
 import { enrichMember } from './enrichMember'
 
 const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '10 minutes',
 })
 
 export async function getMembersToEnrich(): Promise<void> {
