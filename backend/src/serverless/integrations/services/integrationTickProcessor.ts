@@ -101,6 +101,24 @@ export class IntegrationTickProcessor extends LoggerBase {
     }
   }
 
+  async fixIntegrationRuns(integrationId: string, logger) {
+    await this.integrationRunRepository.cleanupOrphanedIntegrationRuns(integrationId)
+
+    const stuckRuns = await this.integrationRunRepository.findStuckIntegrationRuns(integrationId)
+    logger.info(
+      `${stuckRuns.length} stuck integration runs found for integrations ${integrationId}`,
+    )
+    await this.initEmitters()
+    for (const run of stuckRuns) {
+      logger.info(`Retrying streams for stuck run: ${run.id}`)
+      await this.intStreamWorkerEmitter.continueProcessingRunStreams(
+        run.onboarding,
+        undefined,
+        run.id,
+      )
+    }
+  }
+
   async processCheck(type: IntegrationType) {
     const logger = getChildLogger('processCheck', this.log, { IntegrationType: type })
     logger.trace('Processing integration check!')
@@ -121,6 +139,7 @@ export class IntegrationTickProcessor extends LoggerBase {
           'Found new integrations to check!',
         )
         for (const integration of integrations as any[]) {
+          await this.fixIntegrationRuns(integration.id, logger)
           const existingRun =
             await this.integrationRunRepository.findLastProcessingRunInNewFramework(integration.id)
           if (!existingRun) {
