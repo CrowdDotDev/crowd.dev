@@ -879,7 +879,7 @@ export default class MemberService extends LoggerBase {
 
       const identity = await findMemberIdentityById(qx, memberId, identityId)
       if (!identity) {
-        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+        throw new Error400(this.options.language, 'merge.errors.identityMismatch')
       }
 
       if (revertPreviousMerge) {
@@ -1138,7 +1138,7 @@ export default class MemberService extends LoggerBase {
       // Get the identity to be unmerged
       const identity = await findMemberIdentityById(qx, memberId, identityId)
       if (!identity) {
-        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+        throw new Error400(this.options.language, 'merge.errors.identityMismatch')
       }
 
       // Check if there was a previous merge involving this identity

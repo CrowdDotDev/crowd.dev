@@ -186,6 +186,7 @@ const en = {
       multiple: 'Cannot merge suggestions - found existing merge with {0} state',
       lfxSecondary: 'Cannot merge LFX membership organization as a secondary one!',
       noIdentities: 'Original member only has one identity, cannot extract it!',
+      identityMismatch: 'Member does not have the identity sent to be unmerged',
     },
   },
 
