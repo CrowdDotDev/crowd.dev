@@ -19,6 +19,8 @@ SCHEMA >
     `openedAt` DateTime64(3),
     `segmentId` String,
     `channel` String,
+    `memberId` String,
+    `organizationId` String,
     `gitChangedLinesBucket` String,
     `assignedAt` Nullable(DateTime64(3)),
     `reviewRequestedAt` Nullable(DateTime64(3)),
