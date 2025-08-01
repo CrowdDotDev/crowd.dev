@@ -3,7 +3,15 @@ DESCRIPTION >
 
 NODE pull_request_opened
 SQL >
-    SELECT activityId as id, sourceId, channel, timestamp AS openedAt, segmentId, gitChangedLinesBucket
+    SELECT
+        activityId as id,
+        sourceId,
+        channel,
+        timestamp AS openedAt,
+        segmentId,
+        gitChangedLinesBucket,
+        memberId,
+        organizationId
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'pull_request-opened'
 
@@ -68,6 +76,8 @@ SQL >
         pr_opened.openedAt,
         pr_opened.segmentId,
         pr_opened.channel,
+        pr_opened.memberId,
+        pr_opened.organizationId,
         pr_opened.gitChangedLinesBucket,
         IF(assigned.assignedAt = toDateTime(0), NULL, assigned.assignedAt) AS assignedAt,
         IF(
