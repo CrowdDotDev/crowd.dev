@@ -10,6 +10,10 @@ import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 
+export interface IStreamService {
+  continueProcessingRunStreams(runId: string): Promise<void>
+}
+
 export default class IntegrationRunRepository extends RepositoryBase<
   IntegrationRun,
   string,
@@ -142,6 +146,69 @@ export default class IntegrationRunRepository extends RepositoryBase<
     return results[0] as IntegrationRun
   }
 
+  async findStuckIntegrationRuns(
+    integrationId: string,
+    hoursThreshold: number = 24,
+  ): Promise<IntegrationRun[]> {
+    const transaction = this.transaction
+    const seq = this.seq
+    const replacements: any = {
+      delayedState: IntegrationRunState.DELAYED,
+      processingState: IntegrationRunState.PROCESSING,
+      pendingState: IntegrationRunState.PENDING,
+      integrationId,
+    }
+    const runsWithStuckStreamsQuery = `
+    SELECT DISTINCT run.id, run.onboarding
+    FROM integration.runs run
+    JOIN integration.streams strm ON run."id" = strm."runId"
+    WHERE 
+      run.state IN (:delayedState, :processingState, :pendingState)
+    AND strm.state IN (:delayedState, :pendingState)
+    AND run."integrationId" = :integrationId
+    AND run."createdAt" < NOW() - INTERVAL '${hoursThreshold} hours'
+    `
+    const results = await seq.query(runsWithStuckStreamsQuery, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return results as IntegrationRun[]
+  }
+
+  async cleanupOrphanedIntegrationRuns(
+    integrationId: string,
+    hoursThreshold: number = 24,
+  ): Promise<void> {
+    const transaction = this.transaction
+    const seq = this.seq
+    const replacements: any = {
+      integrationId,
+      delayedState: IntegrationRunState.DELAYED,
+      processingState: IntegrationRunState.PROCESSING,
+      pendingState: IntegrationRunState.PENDING,
+    }
+
+    const query = `
+    DELETE FROM integration.runs run
+    WHERE NOT EXISTS (
+        SELECT 1 
+        FROM integration.streams strm 
+        WHERE strm."runId" = run."id"
+    )
+    AND run."integrationId" = :integrationId
+    AND run."createdAt" < NOW() - INTERVAL '${hoursThreshold} hours'
+    AND run.state IN (:delayedState, :processingState, :pendingState);
+    `
+
+    await seq.query(query, {
+      replacements,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
   async findLastProcessingRunInNewFramework(integrationId: string): Promise<string> {
     const transaction = this.transaction
 
@@ -160,7 +227,6 @@ export default class IntegrationRunRepository extends RepositoryBase<
     select id
     from integration.runs
     where state in (:delayedState, :processingState, :pendingState) and ${condition}
-    and "createdAt" > NOW() - INTERVAL '24 hours'
     order by "createdAt" desc
     limit 1
     `
