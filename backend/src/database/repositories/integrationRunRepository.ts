@@ -10,10 +10,6 @@ import { IntegrationStreamState } from '../../types/integrationStreamTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 
-export interface IStreamService {
-  continueProcessingRunStreams(runId: string): Promise<void>
-}
-
 export default class IntegrationRunRepository extends RepositoryBase<
   IntegrationRun,
   string,
