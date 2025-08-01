@@ -1,7 +1,26 @@
 DESCRIPTION >
-    Serves organizations leaderboard widget
+    - `organizations_leaderboard.pipe` serves the organizations leaderboard widget showing top organizations ranked by activity count.
+    - Supports both count mode (`count=true`) and data mode for pagination-friendly organization ranking display.
+    - Calculates contribution counts and percentages for each organization based on member activities.
+    - Primary use case: powering organization ranking widgets in project dashboards and analytics pages.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `count`: Optional boolean, when true returns organization count instead of leaderboard data
+    - `limit`: Optional integer for result pagination, defaults to 10
+    - `offset`: Optional integer for result pagination, defaults to 0
+    - Response:
+    - Count mode (`count=true`): `count` (total number of organizations)
+    - Data mode (default): `id`, `logo`, `displayName`, `contributionCount`, `contributionPercentage`
 
-TAGS "Widget"
+TAGS "Widget", "Leaderboard", "Organizations"
 
 NODE organizations_leaderboard_paginated
 SQL >
@@ -14,9 +33,9 @@ SQL >
             org.logo AS logo,
             org.displayName AS displayName,
             COUNT(af.id) AS contributionCount,
-            ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER (), 0) AS contributionPercentage
+            ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER (), 2) AS contributionPercentage
         FROM activities_filtered af
-        JOIN organizations org final ON org.id = af.organizationId
+        JOIN organizations org FINAL ON org.id = af.organizationId
         GROUP BY org.id, org.logo, org.displayName
         ORDER BY contributionCount DESC
         LIMIT {{ Int32(limit, 10) }}

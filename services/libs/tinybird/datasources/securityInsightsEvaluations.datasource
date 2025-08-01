@@ -1,3 +1,20 @@
+DESCRIPTION >
+    - `securityInsightsEvaluations` contains security evaluation results for repositories and projects.
+    - Replicated from Postgres - stores security assessment data for insights project security monitoring.
+    - Tracks security control evaluations and compliance status across different repositories.
+    - `id` is the primary key identifier for the security evaluation record.
+    - `securityInsightsEvaluationSuiteId` links to the evaluation suite this result belongs to (empty string if not part of suite).
+    - `name` is the name or identifier of the security evaluation (empty string if not set).
+    - `insightsProjectId` links to the insights project being evaluated (empty string if not associated).
+    - `insightsProjectSlug` is the URL-friendly identifier for the project (empty string if not set).
+    - `repo` is the repository URL being evaluated (empty string if not applicable).
+    - `controlId` identifies the specific security control being evaluated (empty string if not specified).
+    - `result` contains the evaluation result (pass, fail, warning, etc., empty string if not completed).
+    - `message` provides details about the evaluation result (empty string if no message).
+    - `corruptedState` indicates whether the evaluation data is corrupted (UInt8 boolean, 0 default for valid).
+    - `remediationGuide` provides guidance for addressing security issues (empty string if not available).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
 TAGS "Security insights widget"
 
 SCHEMA >

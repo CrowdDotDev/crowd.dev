@@ -1,4 +1,4 @@
-import { MemberMergeService } from '@crowd/common_services'
+import { CommonMemberService } from '@crowd/common_services'
 import { optionsQx } from '@crowd/data-access-layer'
 
 import Permissions from '../../security/permissions'
@@ -8,9 +8,9 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-  const memberMergeService = new MemberMergeService(optionsQx(req), req.temporal, req.log)
+  const memberService = new CommonMemberService(optionsQx(req), req.temporal, req.log)
 
-  const payload = await memberMergeService.merge(req.params.memberId, req.body.memberToMerge)
+  const payload = await memberService.merge(req.params.memberId, req.body.memberToMerge)
 
   track(
     'Merge members',

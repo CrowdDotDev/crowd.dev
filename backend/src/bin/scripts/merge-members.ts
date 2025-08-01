@@ -3,7 +3,7 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 
-import { MemberMergeService } from '@crowd/common_services'
+import { CommonMemberService } from '@crowd/common_services'
 import { optionsQx } from '@crowd/data-access-layer'
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 import { getServiceLogger } from '@crowd/logging'
@@ -87,7 +87,7 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
         )
       } else {
         log.info(`Merging ${targetId} into ${originalId}...`)
-        const service = new MemberMergeService(optionsQx(options), options.temporal, log)
+        const service = new CommonMemberService(optionsQx(options), options.temporal, log)
         try {
           await service.merge(originalId, targetId)
         } catch (err) {

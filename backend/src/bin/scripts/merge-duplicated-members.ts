@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize'
 
 import { generateUUIDv1, timeout } from '@crowd/common'
-import { MemberMergeService } from '@crowd/common_services'
+import { CommonMemberService } from '@crowd/common_services'
 import { optionsQx } from '@crowd/data-access-layer'
 import {
   MemberField,
@@ -57,7 +57,7 @@ async function doMerge(data, logger: Logger) {
     id: data.tenantId,
   })
   tenantOptions.log = logger
-  const service = new MemberMergeService(optionsQx(tenantOptions), tenantOptions.temporal, logger)
+  const service = new CommonMemberService(optionsQx(tenantOptions), tenantOptions.temporal, logger)
 
   for (let i = 1; i < data.all_ids.length; i++) {
     logger.info(`Merging ${data.all_ids[i]} into ${firstId}...`)

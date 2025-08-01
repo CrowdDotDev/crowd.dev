@@ -4,6 +4,7 @@ import { DEFAULT_TENANT_ID } from '@crowd/common'
 import {
   IMemberUnmergeBackup,
   IMergeAction,
+  IMergeActionColumns,
   IOrganizationUnmergeBackup,
   IUnmergeBackup,
   MergeActionState,
@@ -12,32 +13,24 @@ import {
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions, QueryResult, queryTable } from '../utils'
 
-export async function findMergeAction(
+const MERGE_ACTIONS_COLUMNS: IMergeActionColumns[] = [
+  'id',
+  'type',
+  'primaryId',
+  'secondaryId',
+  'createdAt',
+  'updatedAt',
+  'state',
+  'step',
+]
+
+export async function queryMergeActions<T extends IMergeActionColumns>(
   qx: QueryExecutor,
-  primaryId: string,
-  secondaryId: string,
-  { state }: { state?: MergeActionState } = {},
-): Promise<IMergeAction> {
-  const conditions = [`"primaryId" = $(primaryId)`, `"secondaryId" = $(secondaryId)`]
-
-  const params: Record<string, unknown> = {
-    primaryId,
-    secondaryId,
-  }
-
-  if (state) {
-    conditions.push(`"state" = $(state)`)
-    params.state = state
-  }
-
-  return qx.selectOneOrNone(
-    `
-      select * from "mergeActions" 
-      where ${conditions.join(' AND ')}
-    `,
-    params,
-  )
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  return queryTable(qx, 'mergeActions', MERGE_ACTIONS_COLUMNS, opts)
 }
 
 export async function findEntityMergeActions(
@@ -117,10 +110,10 @@ export async function setMergeAction(
     `
         UPDATE "mergeActions"
         SET ${setClauses.join(', ')}
-        WHERE "tenantId" = :tenantId
-          AND type = :type
-          AND "primaryId" = :primaryId
-          AND "secondaryId" = :secondaryId
+        WHERE "tenantId" = $(tenantId)
+          AND type = $(type)
+          AND "primaryId" = $(primaryId)
+          AND "secondaryId" = $(secondaryId)
       `,
     replacements,
   )

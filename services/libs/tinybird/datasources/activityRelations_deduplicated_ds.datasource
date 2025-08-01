@@ -1,3 +1,19 @@
+DESCRIPTION >
+    - `activityRelations_deduplicated_ds` contains deduplicated activity relationship data with core member/organization linking.
+    - Intermediate processing step - created via copy pipe from raw `activityRelations` with deduplication.
+    - Use `activityRelations_deduplicated_cleaned_ds` for analytics queries as it contains additional denormalized fields.
+    - Provides clean relationship mappings between activities, members, and organizations.
+    - `activityId` is the unique identifier linking to the main activity record.
+    - `conversationId` groups related activities into conversation threads.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking and deduplication.
+    - `memberId` identifies the member who performed the activity.
+    - `objectMemberId` and `objectMemberUsername` identify target members for activities (e.g., mentions, assignments).
+    - `organizationId` identifies the organization associated with the member.
+    - `parentId` establishes hierarchical relationships between activities in our system.
+    - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality for efficiency.
+    - `segmentId` links to the subproject-level segment for filtering and organization.
+    - `username` contains the username of the member who performed the activity.
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >

@@ -298,6 +298,7 @@ export default class DataSinkService extends LoggerBase {
           this.qdbStore,
           this.searchSyncWorkerEmitter,
           this.redisClient,
+          this.temporal,
           this.client,
           this.log,
         )

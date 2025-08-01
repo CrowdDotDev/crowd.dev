@@ -1,7 +1,6 @@
 import { partition } from '@crowd/common'
 import { Logger, LoggerBase, logError } from '@crowd/logging'
 
-import { getDbInstance } from './connection'
 import { DbStore } from './dbStore'
 import { DbColumnSet, DbConnection, DbInstance, DbTransaction } from './types'
 import { prepareBatchForModification } from './utility'

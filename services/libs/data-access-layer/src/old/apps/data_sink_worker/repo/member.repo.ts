@@ -1,12 +1,5 @@
-import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
-import {
-  DbColumnSet,
-  DbStore,
-  RepositoryBase,
-  formatSql,
-  getDbInstance,
-  prepareForModification,
-} from '@crowd/database'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
@@ -16,13 +9,7 @@ import {
 } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
 
-import {
-  IDbMember,
-  IDbMemberCreateData,
-  IDbMemberUpdateData,
-  getInsertMemberColumnSet,
-  getSelectMemberColumnSet,
-} from './member.data'
+import { IDbMember, getInsertMemberColumnSet, getSelectMemberColumnSet } from './member.data'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet

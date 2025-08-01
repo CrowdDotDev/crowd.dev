@@ -1,3 +1,15 @@
+DESCRIPTION >
+    - `maintainers_roles_copy_ds` contains processed maintainer role assignments flattened for query efficiency.
+    - Created via copy pipe from maintainer role data with simplified schema for analytics consumption.
+    - Provides fast access to maintainer role information for project governance queries.
+    - `id` is the unique identifier for the maintainer role record.
+    - `repoUrl` is the repository URL this role applies to.
+    - `role` specifies the maintainer role type (maintainer, admin, contributor, etc.).
+    - `memberId` links to the member who has this maintainer role.
+    - `insightsProjectId` links to the insights project this repository belongs to.
+
+TAGS "Maintainer roles", "Project governance"
+
 SCHEMA >
     `id` String,
     `repoUrl` String,

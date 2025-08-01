@@ -1,7 +1,22 @@
 DESCRIPTION >
-    Serves contributor dependency widget
+    - `contributor_dependency.pipe` serves the contributor dependency widget showing contributors who make up majority of project contributions.
+    - Identifies contributors whose combined contributions reach or exceed 51% of total project activity (bus factor analysis).
+    - Uses running total calculation to find the minimum set of contributors representing majority contribution share.
+    - Combines data from `contributors_leaderboard` and `active_contributors` to provide dependency risk assessment.
+    - Primary use case: measuring project sustainability and identifying key contributor dependencies for risk management.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `contributors_leaderboard`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `contributors_leaderboard`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Response: `id`, `displayName`, `contributionCount`, `contributionPercentage`, `roles`, `contributionPercentageRunningTotal`, `totalContributorCount`
 
-TAGS "Widget"
+TAGS "Widget", "Dependency analysis", "Bus factor", "Risk assessment"
 
 NODE contributions_percentage_running_total
 SQL >
@@ -11,6 +26,7 @@ SQL >
             SELECT
                 id,
                 displayName,
+                contributionCount,
                 contributionPercentage,
                 roles,
                 sum(contributionPercentage) OVER (
@@ -19,5 +35,7 @@ SQL >
             FROM contributors_leaderboard
         ) t
     cross join active_contributors
-    WHERE contributionPercentageRunningTotal <= 51
+    WHERE
+        contributionPercentageRunningTotal <= 51
+        OR (contributionPercentageRunningTotal - contributionPercentage < 51)
     ORDER BY contributionPercentageRunningTotal ASC

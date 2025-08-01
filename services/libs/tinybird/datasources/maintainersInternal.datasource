@@ -1,3 +1,19 @@
+DESCRIPTION >
+    - `maintainersInternal` contains internal maintainer role assignments for repositories with time-based validity periods.
+    - Replicated from Postgres - stores maintainer role mappings for project governance and access control.
+    - Tracks who has maintainer roles on which repositories and for what time periods.
+    - `id` is the primary key identifier for the maintainer role record.
+    - `role` specifies the maintainer role type (maintainer, admin, contributor, etc., empty string if not set).
+    - `repoUrl` is the repository URL this role applies to (empty string if not applicable).
+    - `repoId` is the internal repository identifier (empty string if not set).
+    - `identityId` links to the member identity who has this role (empty string if not linked).
+    - `originalRole` is the original role before any transformations (empty string if not different from role).
+    - `startDate` is when the maintainer role became effective (empty string if not time-bounded).
+    - `endDate` is when the maintainer role expires (empty string if permanent or active).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Maintainer roles", "Repository governance"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `role` String `json:$.record.role` DEFAULT '',

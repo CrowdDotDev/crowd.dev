@@ -1,3 +1,18 @@
+DESCRIPTION >
+    - `security_deduplicated_merged_ds` contains consolidated and deduplicated security evaluation data per repository.
+    - Created via copy pipe merging security evaluations and assessments into unified records for analytics.
+    - Provides comprehensive security assessment overview combining multiple evaluation results.
+    - `evaluationId` is the unique identifier for the security evaluation.
+    - `insightsProjectSlug` is the URL-friendly identifier for the project being evaluated.
+    - `category` specifies the security category being assessed.
+    - `repo` is the repository URL being evaluated.
+    - `controlId` identifies the specific security control being evaluated.
+    - `message` provides details about the evaluation result.
+    - `result` contains the evaluation result (pass, fail, warning, etc.).
+    - `assessments` is an array of maps containing detailed assessment information.
+
+TAGS "Security analytics", "Consolidated data"
+
 SCHEMA >
     `evaluationId` String,
     `insightsProjectSlug` String,

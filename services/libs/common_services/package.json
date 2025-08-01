@@ -21,6 +21,8 @@
     "@crowd/queue": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@crowd/types": "workspace:*",
-    "lodash.pick": "~4.4.0"
+    "lodash.isequal": "^4.5.0",
+    "lodash.pick": "~4.4.0",
+    "moment": "^2.30.1"
   }
 }

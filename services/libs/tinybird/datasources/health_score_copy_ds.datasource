@@ -1,3 +1,28 @@
+DESCRIPTION >
+    - `health_score_copy_ds` contains comprehensive health score metrics and benchmarks for projects and segments.
+    - Created via copy pipe with computed health metrics for dashboard and analytics consumption.
+    - Aggregates multiple health dimensions including contributors, popularity, development activity, and security.
+    - `id` is the unique identifier for the health score record.
+    - `segmentId` links to the project segment being scored.
+    - `slug` is the URL-friendly identifier for the project.
+    - `widgets` is an array of widget types enabled for this project.
+    - `activeContributors` and `activeContributorsBenchmark` track contributor engagement metrics and percentile rankings.
+    - `contributorDependencyCount`, `contributorDependencyPercentage`, `contributorDependencyBenchmark` measure contributor concentration risk.
+    - `organizationDependencyCount`, `organizationDependencyPercentage`, `organizationDependencyBenchmark` measure organizational concentration risk.
+    - `retentionRate` and `retentionBenchmark` track contributor retention metrics.
+    - `stars`, `starsBenchmark`, `forks`, `forksBenchmark` measure repository popularity.
+    - `issueResolution` and `issueResolutionBenchmark` track issue resolution velocity (nullable for projects without issues).
+    - `pullRequests` and `pullRequestsBenchmark` measure PR activity levels.
+    - `mergeLeadTime` and `mergeLeadTimeBenchmark` track PR merge velocity (nullable for projects without PRs).
+    - `activeDaysCount` and `activeDaysBenchmark` measure development activity frequency.
+    - `contributionsOutsideWorkHours` and `contributionsOutsideWorkHoursBenchmark` track volunteer vs work-based contributions.
+    - `searchVolumeAverage` and `searchVolumeBenchmark` measure project discoverability.
+    - `securityCategoryPercentage` is an array of security category scores as tuples of (category, percentage).
+    - `securityPercentage`, `contributorPercentage`, `popularityPercentage`, `developmentPercentage` are individual health dimension scores.
+    - `overallScore` is the computed overall health score combining all dimensions.
+
+TAGS "Health metrics", "Project scoring"
+
 SCHEMA >
     `id` String,
     `segmentId` String,

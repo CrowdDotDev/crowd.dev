@@ -88,7 +88,11 @@ SQL >
             [
                 CASE WHEN has(widgets, 'stars') THEN starsBenchmark ELSE -1 END,
                 CASE WHEN has(widgets, 'forks') THEN forksBenchmark ELSE -1 END,
-                CASE WHEN has(widgets, 'searchQueries') THEN searchVolumeBenchmark ELSE -1 END
+                CASE
+                    WHEN (has(widgets, 'searchQueries') AND searchVolumeAverage > 0)
+                    THEN searchVolumeBenchmark
+                    ELSE -1
+                END
             ]
         ) AS popularityBenchmarks,
         arrayFilter(

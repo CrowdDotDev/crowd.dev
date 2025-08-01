@@ -1,4 +1,4 @@
-const blacklistedDomains = [
+export const blacklistedDomains = [
   'gmail.com',
   'yahoo.com',
   'hotmail.com',
@@ -110,14 +110,3 @@ const blacklistedDomains = [
   'foxmail.com',
   'groups.io',
 ]
-
-/**
- * Checks if a domain is part of the excluded domains.
- * These domains are public email providers and not organizations.
- *
- * @param {string} domain - The domain name to check.
- * @return {boolean} true if the domain is excluded, false otherwise.
- */
-export const isDomainExcluded = (domain: string) => {
-  return blacklistedDomains.includes(domain)
-}

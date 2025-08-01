@@ -1,3 +1,18 @@
+DESCRIPTION >
+    - `pull_requests_analyzed` contains analyzed pull request lifecycle data with timestamps and duration metrics for all workflow stages.
+    - Created via copy pipe with computed duration metrics for PR performance analysis and developer workflow insights.
+    - Tracks PR velocity patterns, review times, and merge lead times across projects and repositories.
+    - `id` is the unique identifier for the analyzed pull request record.
+    - `sourceId` is the external identifier from the source platform (GitHub, GitLab, etc.).
+    - `openedAt` is the timestamp when the pull request was opened.
+    - `segmentId` links to the project segment this PR belongs to.
+    - `channel` contains the repository where the PR was created.
+    - `gitChangedLinesBucket` categorizes the PR size by lines changed.
+    - `assignedAt`, `reviewRequestedAt`, `reviewedAt`, `approvedAt`, `closedAt`, `mergedAt`, `resolvedAt` track workflow stage timestamps (nullable).
+    - `assignedInSeconds`, `reviewRequestedInSeconds`, `reviewedInSeconds`, `closedInSeconds`, `mergedInSeconds`, `resolvedInSeconds` are computed durations for each stage (nullable).
+
+TAGS "Pull request analytics", "Developer workflow metrics"
+
 SCHEMA >
     `id` String,
     `sourceId` String,

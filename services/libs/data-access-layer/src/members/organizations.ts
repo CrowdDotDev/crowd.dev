@@ -1,6 +1,18 @@
-import { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IMemberOrganizationAffiliationOverride,
+  IMemberRoleWithOrganization,
+  OrganizationSource,
+} from '@crowd/types'
 
+import {
+  changeOverride,
+  deleteAffiliationOverrides,
+  findOverrides,
+} from '../member_organization_affiliation_overrides'
 import { QueryExecutor } from '../queryExecutor'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function fetchMemberOrganizations(
   qx: QueryExecutor,
@@ -48,7 +60,7 @@ export async function fetchManyMemberOrgs(
   )
 }
 
-export async function fetchManyMemberOrgsForMerge(
+export async function fetchManyMemberOrgsWithOrgData(
   qx: QueryExecutor,
   memberIds: string[],
 ): Promise<Map<string, IMemberRoleWithOrganization[]>> {
@@ -57,7 +69,7 @@ export async function fetchManyMemberOrgsForMerge(
       SELECT mo.*, o."displayName" as "organizationName", o.logo as "organizationLogo"
       FROM "memberOrganizations" mo
       join "organizations" o on mo."organizationId" = o.id
-      WHERE mo."memberId" in ($(memberId:csv))
+      WHERE mo."memberId" in ($(memberIds:csv))
       AND mo."deletedAt" IS NULL;
     `,
     {
@@ -78,20 +90,104 @@ export async function createMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
   data: Partial<IMemberOrganization>,
-): Promise<void> {
-  await qx.result(
+): Promise<string | undefined> {
+  const result = await qx.selectOneOrNone(
     `
         INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
-        VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), $(date), $(date))
+        VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), now(), now())
+        on conflict do nothing returning id;
     `,
     {
       memberId,
       organizationId: data.organizationId,
       dateStart: data.dateStart,
       dateEnd: data.dateEnd,
-      title: data.title,
-      source: data.source,
-      date: new Date().toISOString(),
+      title: data.title || null,
+      source: data.source || null,
+    },
+  )
+
+  if (result) {
+    return result.id
+  }
+}
+
+export async function createOrUpdateMemberOrganizations(
+  qx: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+  source: string,
+  title: string | null | undefined,
+  dateStart: string | null | undefined,
+  dateEnd: string | null | undefined,
+): Promise<void> {
+  if (dateStart) {
+    // clean up organizations without dates if we're getting ones with dates
+    await qx.result(
+      `
+          UPDATE "memberOrganizations"
+          SET "deletedAt" = NOW()
+          WHERE "memberId" = $(memberId)
+          AND "title" = $(title)
+          AND "organizationId" = $(organizationId)
+          AND "dateStart" IS NULL
+          AND "dateEnd" IS NULL
+        `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
+  } else {
+    const rows = await qx.select(
+      `
+          SELECT COUNT(*) AS count FROM "memberOrganizations"
+          WHERE "memberId" = $(memberId)
+          AND "title" = $(title)
+          AND "organizationId" = $(organizationId)
+          AND "dateStart" IS NOT NULL
+          AND "deletedAt" IS NULL
+        `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
+    const row = rows[0] as any
+    if (row.count > 0) {
+      // if we're getting organization without dates, but there's already one with dates, don't insert
+      return
+    }
+  }
+
+  let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
+  if (!dateEnd) {
+    conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
+  }
+  if (!dateStart) {
+    conflictCondition = `("memberId", "organizationId") WHERE "dateStart" IS NULL AND "dateEnd" IS NULL`
+  }
+
+  const onConflict =
+    source === OrganizationSource.UI
+      ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = $(title), "dateStart" = $(dateStart), "dateEnd" = $(dateEnd), "deletedAt" = NULL, "source" = $(source)`
+      : 'ON CONFLICT DO NOTHING'
+
+  await qx.result(
+    `
+        INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
+        VALUES ($(memberId), $(organizationId), NOW(), NOW(), $(title), $(dateStart), $(dateEnd), $(source))
+        ${onConflict}
+      `,
+    {
+      memberId,
+      organizationId,
+      title: title || null,
+      dateStart: dateStart || null,
+      dateEnd: dateEnd || null,
+      source: source || null,
     },
   )
 }
@@ -332,14 +428,17 @@ export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganizat
   await qx.select(deleteMemberRole, replacements)
 }
 
-export async function addMemberRole(qx: QueryExecutor, role: IMemberOrganization): Promise<void> {
+export async function addMemberRole(
+  qx: QueryExecutor,
+  role: IMemberOrganization,
+): Promise<string | undefined> {
   const query = `
         insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
         values ($(memberId), $(organizationId), NOW(), NOW(), $(title), $(dateStart), $(dateEnd), $(source))
-        on conflict do nothing;
+        on conflict do nothing returning id;
   `
 
-  await qx.select(query, {
+  const row = await qx.selectOneOrNone(query, {
     memberId: role.memberId,
     organizationId: role.organizationId,
     title: role.title || null,
@@ -347,6 +446,10 @@ export async function addMemberRole(qx: QueryExecutor, role: IMemberOrganization
     dateEnd: role.dateEnd,
     source: role.source || null,
   })
+
+  if (row) {
+    return row.id
+  }
 }
 
 async function moveRolesBetweenEntities(
@@ -368,7 +471,13 @@ async function moveRolesBetweenEntities(
   const primaryRoles = rolesForBothEntities.filter((m) => mergeStrat.entityId(m) === primaryId)
   const secondaryRoles = rolesForBothEntities.filter((m) => mergeStrat.entityId(m) === secondaryId)
 
-  await this.mergeRoles(primaryRoles, secondaryRoles, mergeStrat)
+  const primaryMemberAffiliationOverrides = await findOverrides(qx, primaryId)
+  const secondaryMemberAffiliationOverrides = await findOverrides(qx, secondaryId)
+
+  await mergeRoles(qx, primaryRoles, secondaryRoles, mergeStrat, {
+    primary: primaryMemberAffiliationOverrides,
+    secondary: secondaryMemberAffiliationOverrides,
+  })
 
   // update rest of the o2 members
   const remainingRoles = await findNonIntersectingRoles(
@@ -380,8 +489,18 @@ async function moveRolesBetweenEntities(
   )
 
   for (const role of remainingRoles) {
+    // delete any existing affiliation override for the role to avoid foreign key conflicts
+    // and reapply it with the new memberOrganizationId
+    const existingOverride = secondaryMemberAffiliationOverrides.find(
+      (o) => o.memberOrganizationId === role.id,
+    )
+
+    if (existingOverride) {
+      await deleteAffiliationOverrides(qx, role.memberId, [role.id])
+    }
+
     await removeMemberRole(qx, role)
-    await addMemberRole(qx, {
+    const newRoleId = await addMemberRole(qx, {
       title: role.title,
       dateStart: role.dateStart,
       dateEnd: role.dateEnd,
@@ -390,6 +509,30 @@ async function moveRolesBetweenEntities(
       source: role.source,
       deletedAt: role.deletedAt,
     })
+
+    if (existingOverride && newRoleId) {
+      let overrideToApply = existingOverride
+
+      if (existingOverride.isPrimaryWorkExperience) {
+        // Check if primary member has any overrides with isPrimaryWorkExperience set
+        const primaryHasPrimaryWorkExp = primaryMemberAffiliationOverrides.some(
+          (o) => o.isPrimaryWorkExperience,
+        )
+
+        if (primaryHasPrimaryWorkExp) {
+          overrideToApply = {
+            ...existingOverride,
+            isPrimaryWorkExperience: false,
+          }
+        }
+      }
+
+      await changeOverride(qx, {
+        ...overrideToApply,
+        memberId: mergeStrat.targetMemberId(role),
+        memberOrganizationId: newRoleId,
+      })
+    }
   }
 }
 
@@ -424,9 +567,17 @@ export async function mergeRoles(
   primaryRoles: IMemberOrganization[],
   secondaryRoles: IMemberOrganization[],
   mergeStrat: IMergeStrat,
+  memberAffiliationOverrides: {
+    primary: IMemberOrganizationAffiliationOverride[]
+    secondary: IMemberOrganizationAffiliationOverride[]
+  },
 ) {
   let removeRoles: IMemberOrganization[] = []
   let addRoles: IMemberOrganization[] = []
+  const affiliationOverridesToRecreate: {
+    role: IMemberOrganization
+    override: IMemberOrganizationAffiliationOverride
+  }[] = []
 
   for (const memberOrganization of secondaryRoles) {
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
@@ -517,12 +668,64 @@ export async function mergeRoles(
       }
     }
 
+    const existingOverrides = [
+      ...memberAffiliationOverrides.primary,
+      ...memberAffiliationOverrides.secondary,
+    ]
+
     for (const removeRole of removeRoles) {
+      // delete affiliation overrides before removing roles to avoid foreign key conflicts
+      const existingOverride = existingOverrides.find(
+        (o) => o.memberOrganizationId === removeRole.id,
+      )
+
+      if (existingOverride) {
+        await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
+        affiliationOverridesToRecreate.push({
+          role: removeRole,
+          override: existingOverride,
+        })
+      }
+
       await removeMemberRole(qx, removeRole)
     }
 
     for (const addRole of addRoles) {
-      await addMemberRole(qx, addRole)
+      const newRoleId = await addMemberRole(qx, addRole)
+
+      // Only apply affiliation overrides if role was successfully created
+      // This handles duplicates conflicts gracefully
+      if (newRoleId) {
+        // Find all affiliation overrides that could apply to this new role
+        // Match by organization + title only:
+        // - Dates differ between merged (addRole) and original (item.role) roles
+        // - Original roles were deleted; dates won't match
+        // - We apply overrides from contributing roles to the merged one
+        const relevantOverrides = affiliationOverridesToRecreate.filter(
+          (item) =>
+            item.role.organizationId === addRole.organizationId &&
+            item.role.title === addRole.title,
+        )
+
+        let overrideToApply: IMemberOrganizationAffiliationOverride | undefined
+        if (relevantOverrides.length > 0) {
+          // Prefer the override from the primary role if it exists
+          const primaryOverride = relevantOverrides.find((item) =>
+            primaryRoles.some((primaryRole) => primaryRole.id === item.role.id),
+          )
+
+          // If we found a primary override, use it, otherwise, use the first one
+          overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
+        }
+
+        if (overrideToApply) {
+          await changeOverride(qx, {
+            ...overrideToApply,
+            memberId: mergeStrat.targetMemberId(addRole),
+            memberOrganizationId: newRoleId,
+          })
+        }
+      }
     }
 
     addRoles = []

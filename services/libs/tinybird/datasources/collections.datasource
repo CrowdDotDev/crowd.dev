@@ -1,3 +1,17 @@
+DESCRIPTION >
+    - `collections` contains project collection definitions for organizing and grouping related projects.
+    - Replicated from Postgres - stores collection metadata for project discovery and categorization.
+    - Collections provide a way to group multiple projects under common themes or organizational structures.
+    - `id` is the primary key identifier for the collection record.
+    - `name` is the human-readable name of the collection.
+    - `slug` is the URL-friendly identifier used in routing and API filtering.
+    - `description` provides additional details about the collection's purpose (empty string if not provided).
+    - `categoryId` links to the category this collection belongs to (empty string if no category association).
+    - `starred` indicates whether this collection is featured or highlighted (Bool, 0 default for not starred).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Project collections", "Organization"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name`,

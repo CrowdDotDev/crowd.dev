@@ -1,36 +1,121 @@
 import { QueryTypes } from 'sequelize'
 
-import { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
+import { EntityField } from '@crowd/data-access-layer'
+import { IMemberOrganization } from '@crowd/types'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
 class MemberOrganizationRepository {
-  static async findMemberRoles(
-    memberId: string,
+  static async findRolesBelongingToBothEntities(
+    primaryId: string,
+    secondaryId: string,
+    entityIdField: EntityField,
+    intersectBasedOnField: EntityField,
     options: IRepositoryOptions,
-  ): Promise<IMemberRoleWithOrganization[]> {
-    const seq = SequelizeRepository.getSequelize(options)
+  ): Promise<IMemberOrganization[]> {
     const transaction = SequelizeRepository.getTransaction(options)
+    const sequelize = SequelizeRepository.getSequelize(options)
 
-    const memberRoles = (await seq.query(
+    const results = await sequelize.query(
       `
-        SELECT mo.*, o."displayName" as "organizationName", o.logo as "organizationLogo"
-        FROM "memberOrganizations" mo
-        join "organizations" o on mo."organizationId" = o.id
-        WHERE mo."memberId" = :memberId
-        AND mo."deletedAt" IS NULL;
-      `,
+      SELECT  mo.*
+      FROM "memberOrganizations" AS mo
+      WHERE mo."deletedAt" is null and
+         mo."${intersectBasedOnField}" IN (
+          SELECT "${intersectBasedOnField}"
+          FROM "memberOrganizations"
+          WHERE "${entityIdField}" = :primaryId
+      )
+      AND mo."${intersectBasedOnField}" IN (
+          SELECT "${intersectBasedOnField}"
+          FROM "memberOrganizations"
+          WHERE "${entityIdField}" = :secondaryId)
+      AND mo."${entityIdField}" IN (:primaryId, :secondaryId);
+
+    `,
       {
         replacements: {
-          memberId,
+          primaryId,
+          secondaryId,
         },
         type: QueryTypes.SELECT,
         transaction,
       },
-    )) as IMemberRoleWithOrganization[]
+    )
 
-    return memberRoles
+    return results as IMemberOrganization[]
+  }
+
+  static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let deleteMemberRole = `DELETE FROM "memberOrganizations"
+                                            WHERE
+                                            "organizationId" = :organizationId and
+                                            "memberId" = :memberId`
+
+    const replacements = {
+      organizationId: role.organizationId,
+      memberId: role.memberId,
+    } as any
+
+    if (role.dateStart === null) {
+      deleteMemberRole += ` and "dateStart" is null `
+    } else {
+      deleteMemberRole += ` and "dateStart" = :dateStart `
+      replacements.dateStart = (role.dateStart as Date).toISOString()
+    }
+
+    if (role.dateEnd === null) {
+      deleteMemberRole += ` and "dateEnd" is null `
+    } else {
+      deleteMemberRole += ` and "dateEnd" = :dateEnd `
+      replacements.dateEnd = (role.dateEnd as Date).toISOString()
+    }
+
+    await seq.query(deleteMemberRole, {
+      replacements,
+      type: QueryTypes.DELETE,
+      transaction,
+    })
+  }
+
+  static async findNonIntersectingRoles(
+    primaryId: string,
+    secondaryId: string,
+    entityIdField: EntityField,
+    intersectBasedOnField: EntityField,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganization[]> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const remainingRoles = (await seq.query(
+      `
+        SELECT *
+        FROM "memberOrganizations"
+        WHERE "${entityIdField}" = :secondaryId
+        AND "deletedAt" IS NULL
+        AND "${intersectBasedOnField}" NOT IN (
+            SELECT "${intersectBasedOnField}"
+            FROM "memberOrganizations"
+            WHERE "${entityIdField}" = :primaryId
+            AND "deletedAt" IS NULL
+        );
+      `,
+      {
+        replacements: {
+          primaryId,
+          secondaryId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )) as IMemberOrganization[]
+
+    return remainingRoles
   }
 
   static async findRolesInOrganization(

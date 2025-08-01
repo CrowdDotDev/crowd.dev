@@ -1,6 +1,13 @@
 import { uniq } from 'lodash'
 
-import { DEFAULT_TENANT_ID, Error400, RawQueryParser, generateUUIDv1, groupBy } from '@crowd/common'
+import {
+  DEFAULT_TENANT_ID,
+  Error400,
+  RawQueryParser,
+  generateUUIDv1,
+  getProperDisplayName,
+  groupBy,
+} from '@crowd/common'
 import { DbConnOrTx, formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -72,6 +79,15 @@ export const MEMBER_MERGE_FIELDS = [
   'contributions',
   'manuallyCreated',
   'manuallyChangedFields',
+]
+
+export const MEMBER_UPDATE_COLUMNS = [
+  MemberField.DISPLAY_NAME,
+  MemberField.ATTRIBUTES,
+  MemberField.CONTRIBUTIONS,
+  MemberField.SCORE,
+  MemberField.REACH,
+  MemberField.IMPORT_HASH,
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
@@ -430,7 +446,7 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, [segmentId])
+    const lastActivities = await getLastActivitiesForMembers(qx, qdbConn, memberIds, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
@@ -475,11 +491,6 @@ export async function moveAffiliationsBetweenMembers(
     `update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
     params,
   )
-
-  await qx.result(
-    `update "memberOrganizationAffiliationOverrides" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
-    params,
-  )
 }
 
 export async function updateMember(
@@ -490,6 +501,10 @@ export async function updateMember(
   const keys = Object.keys(data)
   if (keys.length === 0) {
     return
+  }
+
+  if (data.displayName) {
+    data.displayName = getProperDisplayName(data.displayName)
   }
 
   const dbInstance = getDbInstance()

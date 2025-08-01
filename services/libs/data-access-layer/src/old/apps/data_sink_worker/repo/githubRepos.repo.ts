@@ -27,17 +27,23 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
 
     let promises = []
     for (const repo of toFind) {
-      promises.push(async () => {
-        const key = `${repo.integrationId}:${repo.url}`
-        const cached = await this.cache.get(key)
-        if (cached) {
-          if (cached === 'null') {
-            results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: undefined })
+      promises.push(
+        (async () => {
+          const key = `${repo.integrationId}:${repo.url}`
+          const cached = await this.cache.get(key)
+          if (cached) {
+            if (cached === 'null') {
+              results.push({
+                integrationId: repo.integrationId,
+                url: repo.url,
+                segmentId: undefined,
+              })
+            } else {
+              results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
+            }
           }
-
-          results.push({ integrationId: repo.integrationId, url: repo.url, segmentId: cached })
-        }
-      })
+        })().catch((err) => this.log.error(err, 'Error finding segment for github repo in redis!')),
+      )
     }
 
     await Promise.all(promises)
@@ -61,7 +67,7 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
         params[integrationKey] = repo.integrationId
       }
 
-      const results = await this.db().any(
+      const dbResults = await this.db().any(
         `
           SELECT "integrationId", "url", "segmentId"
           FROM "githubRepos"
@@ -75,7 +81,7 @@ export default class GithubReposRepository extends RepositoryBase<GithubReposRep
       for (const repo of remainingRepos) {
         const key = `${repo.integrationId}:${repo.url}`
 
-        const found = results.find(
+        const found = dbResults.find(
           (e) => e.integrationId === repo.integrationId && e.url === repo.url,
         )
 

@@ -1,13 +1,14 @@
 NODE health_score_security_project_repos
 SQL >
     %
-    SELECT id, repo AS repo
+    SELECT id, repo AS repo, slug
     FROM insightsProjects FINAL ARRAY
     JOIN repositories AS repo
     WHERE
         1 = 1
         {% if defined(project) %}
             AND id = (SELECT insightsProjectId FROM segments_filtered)
+            AND repo in (select arrayJoin(repositories) from segments_filtered)
             {% if defined(repos) %}
                 AND repo
                 IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
@@ -21,6 +22,7 @@ SQL >
         repo,
         category,
         controlId,
+        insightsProjectSlug,
         arrayFilter(
             -- Hiding specific checks from evaluation
             x -> x['requirementId'] not in ('OSPS-AC-01.01'), assessments
@@ -29,7 +31,7 @@ SQL >
         length(arrayFilter(x -> x['result'] = 'Passed', filteredAssessments)) AS passedAssessments
     FROM security_deduplicated_merged_ds
     JOIN health_score_security_project_repos USING (repo)
-    WHERE category not in ('Documentation', 'Vulnerability Management')
+    WHERE category not in ('Documentation', 'Vulnerability Management') AND insightsProjectSlug = slug
 
 NODE health_score_security_category_pass_rate
 SQL >

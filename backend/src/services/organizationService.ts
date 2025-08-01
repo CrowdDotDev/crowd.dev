@@ -6,7 +6,7 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error400, Error409, mergeObjects, websiteNormalizer } from '@crowd/common'
+import { Error400, Error409, mergeObjects, normalizeHostname } from '@crowd/common'
 import {
   addMemberRole,
   moveMembersBetweenOrganizations,
@@ -16,10 +16,14 @@ import {
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   addMergeAction,
-  findMergeAction,
+  queryMergeActions,
   setMergeAction,
 } from '@crowd/data-access-layer/src/mergeActions/repo'
-import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
+import {
+  addOrgsToSegments,
+  findOrgAttributes,
+  upsertOrgIdentities,
+} from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -464,11 +468,32 @@ export default class OrganizationService extends LoggerBase {
     let tx
     const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-    const mergeAction = await findMergeAction(qx, originalId, toMergeId)
+    const mergeActions = await queryMergeActions(qx, {
+      fields: ['id', 'state'],
+      filter: {
+        and: [
+          {
+            state: {
+              eq: MergeActionState.IN_PROGRESS,
+            },
+          },
+          {
+            or: [
+              { primaryId: { eq: originalId } },
+              { secondaryId: { eq: originalId } },
+              { primaryId: { eq: toMergeId } },
+              { secondaryId: { eq: toMergeId } },
+            ],
+          },
+        ],
+      },
+      limit: 1,
+      orderBy: '"updatedAt" DESC',
+    })
 
     // prevent multiple merge operations
-    if (mergeAction && mergeAction?.state === MergeActionState.IN_PROGRESS) {
-      throw new Error409(this.options.language, 'merge.errors.multiple', mergeAction?.state)
+    if (mergeActions.length > 0) {
+      throw new Error409(this.options.language, 'merge.errors.multiple', mergeActions[0].state)
     }
 
     try {
@@ -666,10 +691,11 @@ export default class OrganizationService extends LoggerBase {
           )
 
           if (secondMemberSegments.length > 0) {
-            await OrganizationRepository.includeOrganizationToSegments(originalId, {
-              ...repoOptions,
-              currentSegments: secondMemberSegments,
-            })
+            await addOrgsToSegments(
+              optionsQx(repoOptions),
+              secondMemberSegments.map((s) => s.id),
+              [originalId],
+            )
           }
 
           this.log.info(
@@ -833,7 +859,7 @@ export default class OrganizationService extends LoggerBase {
           OrganizationIdentityType.ALTERNATIVE_DOMAIN,
         ].includes(i.type),
       )) {
-        i.value = websiteNormalizer(i.value)
+        i.value = normalizeHostname(i.value)
       }
 
       let record
@@ -934,7 +960,7 @@ export default class OrganizationService extends LoggerBase {
             OrganizationIdentityType.ALTERNATIVE_DOMAIN,
           ].includes(i.type),
         )) {
-          i.value = websiteNormalizer(i.value)
+          i.value = normalizeHostname(i.value)
         }
 
         const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)

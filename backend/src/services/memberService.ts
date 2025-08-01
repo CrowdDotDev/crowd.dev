@@ -6,12 +6,13 @@ import validator from 'validator'
 
 import { captureApiChange, memberUnmergeAction } from '@crowd/audit-logs'
 import { Error400, calculateReach, getProperDisplayName, isDomainExcluded } from '@crowd/common'
-import { MemberMergeService } from '@crowd/common_services'
+import { CommonMemberService } from '@crowd/common_services'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
   addMemberRole,
   addMemberTags,
+  fetchManyMemberOrgsWithOrgData,
   fetchMemberIdentities,
   findMemberById,
   findMemberIdentitiesByValue,
@@ -24,7 +25,6 @@ import {
 } from '@crowd/data-access-layer/src/members'
 import { addMergeAction, setMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-// import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import {
@@ -44,7 +44,6 @@ import {
   SyncMode,
 } from '@crowd/types'
 
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 
@@ -63,7 +62,6 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
@@ -441,7 +439,7 @@ export default class MemberService extends LoggerBase {
       if (existing) {
         const { id } = existing
         delete existing.id
-        const toUpdate = MemberMergeService.membersMerge(existing, data)
+        const toUpdate = CommonMemberService.membersMerge(existing, data)
 
         if (toUpdate.attributes) {
           toUpdate.attributes = await this.setAttributesDefaultValues(toUpdate.attributes)
@@ -734,10 +732,13 @@ export default class MemberService extends LoggerBase {
               await addMemberRole(optionsQx(repoOptions), { ...role, memberId: secondaryMember.id })
             }
 
-            const memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
-              member.id,
-              repoOptions,
+            const memberOrganizationsMap = await fetchManyMemberOrgsWithOrgData(
+              optionsQx(repoOptions),
+              [member.id],
             )
+
+            const memberOrganizations = memberOrganizationsMap.get(member.id)
+
             // check if anything to delete in primary
             const rolesToDelete = memberOrganizations.filter(
               (r) =>
@@ -854,8 +855,8 @@ export default class MemberService extends LoggerBase {
 
       this.options.log.info('[0] Getting member information (identities, tags, affiliations)... ')
 
-      const [memberOrganizations, identities, tags, affiliations] = await Promise.all([
-        MemberOrganizationRepository.findMemberRoles(memberId, this.options),
+      const [memberOrganizationsMap, identities, tags, affiliations] = await Promise.all([
+        fetchManyMemberOrgsWithOrgData(qx, [memberId]),
         fetchMemberIdentities(qx, memberId),
         findMemberTags(qx, memberId),
         findMemberAffiliations(qx, memberId),
@@ -863,6 +864,7 @@ export default class MemberService extends LoggerBase {
 
       this.options.log.info('[0] Done!')
 
+      const memberOrganizations = memberOrganizationsMap.get(memberId)
       const member = {
         ...memberById,
         memberOrganizations,
@@ -1038,20 +1040,6 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
-          const secondaryActivityCount = 0
-          const primaryActivityCount = 0
-          // activity count
-          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   secondaryBackup.identities,
-          // )
-          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-          //   this.options.qdb,
-          //   member.id,
-          //   member.identities,
-          // )
-
           return {
             primary: {
               ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
@@ -1061,7 +1049,6 @@ export default class MemberService extends LoggerBase {
                 member.memberOrganizations,
               ),
               username: MemberRepository.getUsernameFromIdentities(member.identities),
-              activityCount: primaryActivityCount,
               numberOfOpenSourceContributions: member.contributions?.length || 0,
             },
             secondary: {
@@ -1069,7 +1056,6 @@ export default class MemberService extends LoggerBase {
               organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
                 secondaryBackup.memberOrganizations,
               ),
-              activityCount: secondaryActivityCount,
               numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
             },
           }
@@ -1101,25 +1087,8 @@ export default class MemberService extends LoggerBase {
         throw new Error400(this.options.language, 'merge.errors.noIdentities')
       }
 
-      const secondaryActivityCount = 0
-      const primaryActivityCount = 0
-
-      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   secondaryIdentities,
-      // )
-      //
-      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
-      //   this.options.qdb,
-      //   member.id,
-      //   primaryIdentities,
-      // )
-
-      const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
-        member.id,
-        this.options,
-      )
+      const primaryMemberRolesMap = await fetchManyMemberOrgsWithOrgData(qx, [member.id])
+      const primaryMemberRoles = primaryMemberRolesMap.get(member.id)
 
       return {
         primary: {
@@ -1129,7 +1098,6 @@ export default class MemberService extends LoggerBase {
           organizations:
             OrganizationRepository.calculateRenderFriendlyOrganizations(primaryMemberRoles),
           username: MemberRepository.getUsernameFromIdentities(primaryIdentities),
-          activityCount: primaryActivityCount,
           numberOfOpenSourceContributions: member.contributions?.length || 0,
         },
         secondary: {
@@ -1148,7 +1116,6 @@ export default class MemberService extends LoggerBase {
           contributions: [],
           manuallyCreated: true,
           manuallyChangedFields: [],
-          activityCount: secondaryActivityCount,
           numberOfOpenSourceContributions: 0,
         },
       }
@@ -1327,19 +1294,20 @@ export default class MemberService extends LoggerBase {
         data.displayName = getProperDisplayName(data.displayName)
       }
 
-      if (data.activities) {
-        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
-      }
-
       const record = await MemberRepository.update(id, data, repoOptions, {
         manualChange,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-      await MemberAffiliationService.startAffiliationRecalculation(
+
+      const commonMemberService = new CommonMemberService(
+        optionsQx(this.options),
+        this.options.temporal,
+        this.options.log,
+      )
+      await commonMemberService.startAffiliationRecalculation(
         id,
         (data.organizations || []).map((o) => o.id),
-        this.options,
         syncToOpensearch,
       )
 

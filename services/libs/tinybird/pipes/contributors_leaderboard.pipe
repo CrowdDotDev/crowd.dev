@@ -1,7 +1,26 @@
 DESCRIPTION >
-    Serves contributors leaderboard widget.
+    - `contributors_leaderboard.pipe` serves the contributors leaderboard widget showing top contributors ranked by activity count.
+    - Supports both count mode (`count=true`) and data mode for pagination-friendly leaderboard display.
+    - Calculates contribution counts and percentages, showing different display names based on project type (LF vs non-LF).
+    - Primary use case: powering contributor ranking widgets in development insights.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `count`: Optional boolean, when true returns contributor count instead of leaderboard data
+    - `limit`: Optional integer for result pagination, defaults to 10
+    - `offset`: Optional integer for result pagination, defaults to 0
+    - Response:
+    - Count mode (`count=true`): `count` (total number of contributors)
+    - Data mode (default): `id`, `avatar`, `displayName`, `contributionCount`, `contributionPercentage`, `roles`
 
-TAGS "Widget"
+TAGS "Widget", "Leaderboard", "Contributors"
 
 NODE memberId_aggregates
 SQL >
@@ -11,7 +30,7 @@ SQL >
         SELECT
             af.memberId,
             count(af.id) as "contributionCount",
-            ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER (), 0) as "contributionPercentage"
+            ROUND(COUNT(af.id) * 100.0 / SUM(COUNT(af.id)) OVER (), 2) as "contributionPercentage"
         FROM activities_filtered af
         group by af.memberId
         order by contributionCount desc

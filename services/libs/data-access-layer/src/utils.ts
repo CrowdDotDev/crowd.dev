@@ -1,7 +1,7 @@
 import pgp from 'pg-promise'
 
 import { RawQueryParser } from '@crowd/common'
-import { DbColumnSet, DbConnOrTx } from '@crowd/database'
+import { DbConnOrTx } from '@crowd/database'
 
 import { QueryFilter } from './query'
 import { QueryExecutor } from './queryExecutor'

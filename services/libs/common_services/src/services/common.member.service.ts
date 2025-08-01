@@ -1,11 +1,18 @@
+import isEqual from 'lodash.isequal'
 import pick from 'lodash.pick'
+import moment from 'moment'
 
-import { captureApiChange, memberMergeAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  memberEditOrganizationsAction,
+  memberMergeAction,
+} from '@crowd/audit-logs'
 import {
   DEFAULT_TENANT_ID,
   Error409,
   calculateReach,
   getEarliestValidDate,
+  getLongestDateRange,
   mergeObjects,
   safeObjectMerge,
 } from '@crowd/common'
@@ -13,9 +20,17 @@ import {
   MEMBER_MERGE_FIELDS,
   MemberField,
   QueryExecutor,
-  fetchManyMemberOrgsForMerge,
+  createOrUpdateMemberOrganizations,
+  deleteMemberOrganization,
+  fetchManyMemberOrgsWithOrgData,
+  fetchMemberOrganizations,
+  findAllUnkownDatedOrganizations,
   findMemberById,
+  findMemberCountEstimateOfOrganizations,
+  findMemberManualAffiliation,
   findMemberTags,
+  findMemberWorkExperience,
+  findMostRecentUnknownDatedOrganizations,
   getMemberSegments,
   includeMemberToSegments,
   moveAffiliationsBetweenMembers,
@@ -28,22 +43,210 @@ import { removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   addMergeAction,
-  findMergeAction,
+  queryMergeActions,
   setMergeAction,
 } from '@crowd/data-access-layer/src/mergeActions/repo'
+import { IWorkExperienceData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/memberAffiliation.data'
+import { addOrgsToSegments } from '@crowd/data-access-layer/src/organizations'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { Client as TemporalClient } from '@crowd/temporal'
-import { MergeActionState, MergeActionStep, MergeActionType } from '@crowd/types'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  MergeActionState,
+  MergeActionStep,
+  MergeActionType,
+  TemporalWorkflowId,
+} from '@crowd/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export class MemberMergeService extends LoggerBase {
+export class CommonMemberService extends LoggerBase {
   public constructor(
     private readonly qx: QueryExecutor,
     private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
+  }
+
+  public async updateMemberOrganizations(
+    memberId: string,
+    organizations: any,
+    replace: any,
+    segmentIds: string[],
+    options?: any,
+  ): Promise<void> {
+    if (!organizations) {
+      return
+    }
+
+    function iso(v) {
+      return moment(v).toISOString()
+    }
+
+    await captureApiChange(
+      options,
+      memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
+        const originalOrgs = await fetchMemberOrganizations(this.qx, memberId)
+
+        captureOldState(originalOrgs)
+        const newOrgs = [...originalOrgs]
+
+        if (replace) {
+          const toDelete = originalOrgs.filter(
+            (originalOrg: any) =>
+              !organizations.find(
+                (newOrg) =>
+                  originalOrg.organizationId === newOrg.id &&
+                  (originalOrg.title === (newOrg.title || null) ||
+                    (!originalOrg.title && newOrg.title)) &&
+                  iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+                  iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+              ),
+          )
+
+          for (const item of toDelete) {
+            await deleteMemberOrganization(this.qx, memberId, (item as any).id)
+            ;(item as any).delete = true
+          }
+        }
+
+        for (const item of organizations) {
+          const org = typeof item === 'string' ? { id: item } : item
+
+          // we don't need to touch exactly same existing work experiences
+          if (
+            !originalOrgs.some(
+              (w) =>
+                w.organizationId === item.id &&
+                w.title === (item.title || null) &&
+                w.dateStart === (item.startDate || null) &&
+                w.dateEnd === (item.endDate || null),
+            )
+          ) {
+            const newOrg = {
+              memberId,
+              organizationId: org.id,
+              title: org.title,
+              dateStart: org.startDate,
+              dateEnd: org.endDate,
+              source: org.source,
+            }
+
+            await createOrUpdateMemberOrganizations(
+              this.qx,
+              memberId,
+              org.id,
+              org.source,
+              org.title,
+              org.startDate,
+              org.endDate,
+            )
+            await addOrgsToSegments(org.id, segmentIds, [org.id])
+            newOrgs.push(newOrg)
+          }
+        }
+
+        captureNewState(newOrgs)
+      }),
+    )
+  }
+
+  public async findAffiliation(
+    memberId: string,
+    segmentId: string,
+    timestamp: string,
+  ): Promise<string | null> {
+    const manualAffiliation = await findMemberManualAffiliation(
+      this.qx,
+      memberId,
+      segmentId,
+      timestamp,
+    )
+    if (manualAffiliation) {
+      return manualAffiliation.organizationId
+    }
+
+    const currentEmployments = await findMemberWorkExperience(this.qx, memberId, timestamp)
+    if (currentEmployments.length > 0) {
+      return this.decidePrimaryOrganizationId(currentEmployments)
+    }
+
+    const mostRecentUnknownDatedOrgs = await findMostRecentUnknownDatedOrganizations(
+      this.qx,
+      memberId,
+      timestamp,
+    )
+    if (mostRecentUnknownDatedOrgs.length > 0) {
+      return this.decidePrimaryOrganizationId(mostRecentUnknownDatedOrgs)
+    }
+
+    const allUnkownDAtedOrgs = await findAllUnkownDatedOrganizations(this.qx, memberId)
+    if (allUnkownDAtedOrgs.length > 0) {
+      return this.decidePrimaryOrganizationId(allUnkownDAtedOrgs)
+    }
+
+    return null
+  }
+
+  public async decidePrimaryOrganizationId(
+    experiences: IWorkExperienceData[],
+  ): Promise<string | null> {
+    if (experiences.length > 0) {
+      if (experiences.length === 1) {
+        return experiences[0].organizationId
+      }
+
+      // check if any of the employements are marked as primary
+      const primaryEmployment = experiences.find((employment) => employment.isPrimaryWorkExperience)
+
+      if (primaryEmployment) {
+        return primaryEmployment.organizationId
+      }
+
+      // decide based on the member count in the organizations
+      const memberCounts = await findMemberCountEstimateOfOrganizations(
+        this.qx,
+        experiences.map((e) => e.organizationId),
+      )
+
+      if (memberCounts[0].memberCount > memberCounts[1].memberCount) {
+        return memberCounts[0].organizationId
+      } else if (memberCounts[0].memberCount < memberCounts[1].memberCount) {
+        return memberCounts[1].organizationId
+      }
+
+      // if there's a draw in the member count, use the one with the longer period
+      return getLongestDateRange(experiences).organizationId
+    }
+
+    return null
+  }
+
+  public async startAffiliationRecalculation(
+    memberId: string,
+    organizationIds: string[],
+    syncToOpensearch = false,
+  ): Promise<void> {
+    await this.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${DEFAULT_TENANT_ID}/${memberId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          member: {
+            id: memberId,
+          },
+          memberOrganizationIds: organizationIds,
+          syncToOpensearch,
+        },
+      ],
+      searchAttributes: {
+        TenantId: [DEFAULT_TENANT_ID],
+      },
+    })
   }
 
   public async merge(
@@ -60,11 +263,32 @@ export class MemberMergeService extends LoggerBase {
       }
     }
 
-    const mergeAction = await findMergeAction(this.qx, originalId, toMergeId)
+    const mergeActions = await queryMergeActions(this.qx, {
+      fields: ['id', 'state'],
+      filter: {
+        and: [
+          {
+            state: {
+              eq: MergeActionState.IN_PROGRESS,
+            },
+          },
+          {
+            or: [
+              { primaryId: { eq: originalId } },
+              { secondaryId: { eq: originalId } },
+              { primaryId: { eq: toMergeId } },
+              { secondaryId: { eq: toMergeId } },
+            ],
+          },
+        ],
+      },
+      limit: 1,
+      orderBy: '"updatedAt" DESC',
+    })
 
     // prevent multiple merge operations
-    if (mergeAction && mergeAction?.state === MergeActionState.IN_PROGRESS) {
-      throw new Error409(undefined, 'merge.errors.multiple', mergeAction?.state)
+    if (mergeActions.length > 0) {
+      throw new Error409(options?.language, 'merge.errors.multiple', mergeActions[0].state)
     }
 
     try {
@@ -84,7 +308,7 @@ export class MemberMergeService extends LoggerBase {
           const originalIdentities = allIdentities.get(originalId)
           const toMergeIdentities = allIdentities.get(toMergeId)
 
-          const memberOrganizationMap = await fetchManyMemberOrgsForMerge(this.qx, [
+          const memberOrganizationMap = await fetchManyMemberOrgsWithOrgData(this.qx, [
             originalId,
             toMergeId,
           ])
@@ -146,7 +370,7 @@ export class MemberMergeService extends LoggerBase {
             await moveAffiliationsBetweenMembers(txQx, toMergeId, originalId)
 
             // Performs a merge and returns the fields that were changed so we can update
-            const toUpdate: any = await MemberMergeService.membersMerge(original, toMerge)
+            const toUpdate: any = await CommonMemberService.membersMerge(original, toMerge)
 
             captureNewState({ primary: toUpdate })
 
@@ -264,5 +488,15 @@ export class MemberMergeService extends LoggerBase {
       },
       attributes: (oldAttributes, newAttributes) => safeObjectMerge(oldAttributes, newAttributes),
     })
+  }
+
+  isEqual = {
+    displayName: (a, b) => a === b,
+    attributes: (a, b) => isEqual(a, b),
+    emails: (a, b) => isEqual(a, b),
+    contributions: (a, b) => isEqual(a, b),
+    score: (a, b) => a === b,
+    reach: (a, b) => isEqual(a, b),
+    importHash: (a, b) => a === b,
   }
 }

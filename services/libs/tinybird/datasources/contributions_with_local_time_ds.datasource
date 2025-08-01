@@ -1,3 +1,17 @@
+DESCRIPTION >
+    - `contributions_with_local_time_ds` contains contribution activity data with timezone-aware temporal analysis.
+    - Created via copy pipe with computed local time fields for work pattern and contributor behavior analysis.
+    - Enables analysis of contribution patterns by weekday and time blocks across different timezones.
+    - `id` is the unique identifier for the contribution activity record.
+    - `timestamp` is the original timestamp when the contribution occurred.
+    - `channel` contains the repository or channel where the contribution happened.
+    - `segmentId` links to the project segment this contribution belongs to.
+    - `timezone_offset` is the timezone offset in minutes for local time conversion (Int16).
+    - `weekday` represents the day of the week (0-6, UInt8) in local time.
+    - `two_hours_block` represents 2-hour time blocks (0-11, UInt16) for temporal pattern analysis.
+
+TAGS "Contribution patterns", "Temporal analysis"
+
 SCHEMA >
     `id` String,
     `timestamp` DateTime64(3),

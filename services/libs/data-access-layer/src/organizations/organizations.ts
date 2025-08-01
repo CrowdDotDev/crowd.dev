@@ -2,7 +2,7 @@ import {
   DEFAULT_TENANT_ID,
   UnrepeatableError,
   generateUUIDv1,
-  websiteNormalizer,
+  normalizeHostname,
 } from '@crowd/common'
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
@@ -492,7 +492,7 @@ export async function findOrCreateOrganization(
         OrganizationIdentityType.ALTERNATIVE_DOMAIN,
       ].includes(i.type),
     )) {
-      identity.value = websiteNormalizer(identity.value, false)
+      identity.value = normalizeHostname(identity.value, false)
     }
 
     data.identities = data.identities.filter((i) => i.value !== undefined)

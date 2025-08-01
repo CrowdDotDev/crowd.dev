@@ -227,3 +227,30 @@ export interface IMemberOrganizationAffiliationOverride {
   allowAffiliation: boolean
   isPrimaryWorkExperience: boolean
 }
+
+export interface MemberSegmentAffiliationBase {
+  memberId: string
+  segmentId: string
+  organizationId: string
+  dateStart?: string
+  dateEnd?: string
+}
+
+export type MemberSegmentAffiliationCreate = MemberSegmentAffiliationBase
+
+export interface MemberSegmentAffiliationUpdate {
+  organizationId: string
+}
+
+export interface MemberSegmentAffiliation extends MemberSegmentAffiliationBase {
+  id: string
+}
+
+export interface MemberSegmentAffiliationJoined extends MemberSegmentAffiliationBase {
+  id?: string
+  organizationName: string
+  organizationLogo: string
+  segmentSlug: string
+  segmentName: string
+  segmentParentName: string
+}

@@ -1,3 +1,22 @@
+DESCRIPTION >
+    - `members` contains community member profiles and metadata for analytics and user management.
+    - Replicated from Postgres - stores member information with attributes extracted from various platforms.
+    - Central member registry linking to activities, organizations, and identities across platforms.
+    - `id` is the primary key identifier for the member record.
+    - `attributes` contains the raw JSON attributes object from the member record.
+    - `location` is the member's self-reported location extracted from attributes (empty string if not provided).
+    - `country` is the member's country derived from location data (empty string if not determined).
+    - `avatar` contains the URL to the member's profile picture (empty string if no avatar).
+    - `isBot` flag indicates whether this member is a bot account (UInt8 boolean, 0 default for human).
+    - `isTeamMember` flag indicates whether this member is part of the project team (UInt8 boolean, 0 default).
+    - `contributions` is an array of contribution types this member has made (empty array default).
+    - `joinedAt` is the timestamp when the member first joined any platform in the community.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `displayName` is the member's preferred display name across platforms.
+    - `score` is the computed activity/engagement score for the member (-1 default indicates no score computed).
+
+TAGS "Member profiles", "Community analytics"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `attributes` String `json:$.record.attributes` DEFAULT '',
