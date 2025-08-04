@@ -10,8 +10,7 @@ from crowdgit.models import CloneBatchInfo
 from crowdgit.errors import CommandExecutionError
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-# TODO: dynamically calculate depth: smaller for big repos and higher for small repos to acheive consistent (fast) processing duration without overkill
-DEFAULT_CLONE_BATCH_DEPTH = 250
+DEFAULT_CLONE_BATCH_DEPTH = 10
 
 
 class CloneService(BaseService):
@@ -34,6 +33,7 @@ class CloneService(BaseService):
             await run_shell_command(
                 ["git", "rev-parse", "--verify", f"{target_commit_hash}^{{commit}}"], cwd=path
             )
+            self.logger.info(f"Target commit {target_commit_hash} reached")
             return True
         except CommandExecutionError:
             return False
@@ -46,7 +46,7 @@ class CloneService(BaseService):
         await run_shell_command(
             ["git", "config", "--global", "http.postBuffer", "524288000"], cwd=path
         )
-        self.logger.info(f"Initializing minmal clone")
+        self.logger.info("Initializing minimal clone")
         await run_shell_command(
             ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, path], cwd=path
         )
@@ -161,11 +161,33 @@ class CloneService(BaseService):
         except FileNotFoundError:
             return None
 
+    async def _calculate_batch_depth(self, repo_path: str, remote: str) -> int:
+        calculated_depth = None
+        total_branches_tags = await run_shell_command(
+            ["git", "ls-remote", "--heads", "--tags", remote], cwd=repo_path
+        )
+        total_branches_tags = len(total_branches_tags.splitlines())
+        if total_branches_tags <= 200:
+            # Small repo, get a decent amount of history
+            calculated_depth = 250
+        elif total_branches_tags <= 1000:
+            # Medium repo, get a moderate amount of history
+            calculated_depth = 150
+        elif total_branches_tags <= 5000:
+            # Large repo, get less history
+            calculated_depth = 10
+        else:
+            # Very large repo, get a minimal history
+            calculated_depth = 5
+        self.logger.info(
+            f"total_branches_tags={total_branches_tags}, calculated_depth={calculated_depth}"
+        )
+        return calculated_depth
+
     async def clone_batches(
         self,
         remote: str,
         target_commit_hash: Optional[str] = None,
-        batch_depth: int = DEFAULT_CLONE_BATCH_DEPTH,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
         Async generator that yields CloneBatchInfo for each batch of repository cloning.
@@ -183,6 +205,7 @@ class CloneService(BaseService):
             batch_info.repo_path = temp_repo_path
 
             await self._init_minimal_clone(temp_repo_path, remote)
+            batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
             await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
             yield batch_info
 
