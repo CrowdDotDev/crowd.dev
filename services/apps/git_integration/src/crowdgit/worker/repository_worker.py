@@ -1,5 +1,4 @@
 import asyncio
-from typing import Dict, Any, List
 
 # Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
@@ -15,6 +14,7 @@ from crowdgit.database.crud import (
     acquire_repo_for_processing,
     release_repo,
     mark_repo_as_processed,
+    update_last_processed_commit,
 )
 from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
 from crowdgit.models.repository import Repository
@@ -87,17 +87,14 @@ class RepositoryWorker:
             await self._process_single_repository(available_repo_to_process)
         except Exception as e:
             # TODO: Mark repository processing as failed
-            logger.error(f"Failed to process repository {e}")
+            logger.error(
+                f"Failed to process repository {available_repo_to_process} with error {e}"
+            )
         finally:
             if available_repo_to_process:
                 logger.info("releasing repo: ", available_repo_to_process.url)
                 await release_repo(available_repo_to_process.id)
                 logger.info(f"Repo {available_repo_to_process.url} released!")
-
-    async def _get_pending_repositories(self) -> List[Dict[str, Any]]:
-        """Get pending repositories from database"""
-        # TODO: Implement database query
-        return []
 
     def _bind_repository_context(self, repository: Repository, repo_name: str) -> None:
         """Bind repository context to all services for enhanced logging
@@ -142,24 +139,25 @@ class RepositoryWorker:
         try:
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
             logger.info("Starting repository cloning...")
-
+            total_processed_commits = []
             async for batch in self.clone_service.clone_batches(
                 repository.url,
                 repository.last_processed_commit,
             ):
                 logger.info("Clone batch info: {}", batch)
 
-                # TODO: for each cloned batch (check concurrent processing)
-                # TODO: Process commits & send result to destination (ideally non-blocking)
-                # logger.info("Starting commit processing...")
-                # await asyncio.sleep(1)
-
-                # TODO: Analyze maintainers & send result to destination (ideally non-blocking)
-                # TODO: Calculate software value & send result to destination (ideally non-blocking)
-                # logger.info("Starting maintainer processing...")
-                # await asyncio.sleep(1)
-                # logger.info("Starting software value processing...")
-                # await asyncio.sleep(1)
+                # Process commits for this specific batch using hash range for precision
+                if not batch.is_first_batch:
+                    activities = await self.commit_service.process_batch_commits(
+                        repo_path=batch.repo_path,
+                        edge_commit=batch.edge_commit,
+                        prev_batch_edge_commit=batch.prev_batch_edge_commit,
+                        remote=batch.remote,
+                    )
+                    if batch.is_final_batch:
+                        await update_last_processed_commit(
+                            repo_id=repository.id, commit_hash=batch.latest_commit_in_repo
+                        )
 
             logger.info("Incremental processing completed successfully")
             processing_state = RepositoryState.COMPLETED
