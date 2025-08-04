@@ -48,7 +48,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt"
     """
     return await acquire_repository(
         onboarding_repo_query, (RepositoryState.PROCESSING, RepositoryState.PENDING)
@@ -99,7 +99,7 @@ async def acquire_recurrent_repo() -> Optional[Repository]:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt"
     """
     states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
     return await acquire_repository(
@@ -129,6 +129,20 @@ async def release_repo(repo_id: str):
     WHERE id = $1
     """
     result = await fetchval(query, (repo_id,))
+    return str(result)
+
+
+async def update_last_processed_commit(repo_id: str, commit_hash: str):
+    """
+    Release repository lock (lockedAt) after processing
+    """
+    query = """
+    UPDATE git.repositories
+        SET "lastProcessedCommit" = $1,
+        "updatedAt" = NOW()
+    WHERE id = $2
+    """
+    result = await fetchval(query, (commit_hash, repo_id))
     return str(result)
 
 
