@@ -33,14 +33,17 @@ class CommitService(BaseService):
     _EMAIL_TYPE = "email"
     _COMMITTED_COMMIT_SUFFIX = "commited-commit"
 
+    MAX_CHUNK_SIZE = 250
+
     def __init__(self):
         super().__init__()
         self.process_pool = None
 
     def _get_or_create_pool(self) -> ProcessPoolExecutor:
         """Get or create process pool with proper lifecycle management"""
+        max_workers = max(1, MAX_WORKER_PROCESSES - 1)
         if self.process_pool is None:
-            self.process_pool = ProcessPoolExecutor(max_workers=MAX_WORKER_PROCESSES)
+            self.process_pool = ProcessPoolExecutor(max_workers=max_workers)
         return self.process_pool
 
     @property
@@ -80,7 +83,7 @@ class CommitService(BaseService):
         except ValueError:
             return False
 
-    async def get_commits_for_batch(
+    async def process_batch_commits(
         self, repo_path: str, edge_commit: Optional[str], prev_batch_edge_commit: str, remote: str
     ) -> List[Dict[str, Any]]:
         """
@@ -105,21 +108,23 @@ class CommitService(BaseService):
                 repo_path, prev_batch_edge_commit, edge_commit
             )
 
-            commits = await self._parse_commits(raw_commits, repo_path, edge_commit, remote)
+            activities = await self._parse_activities_from_commits(
+                raw_commits, repo_path, edge_commit, remote
+            )
 
             end_time = time.time()
             processing_time = end_time - start_time
 
             self.logger.info(
-                f"{len(commits)} commits extracted from {repo_path} in "
-                f"{int(processing_time)}sec ({processing_time / 60:.2f} min)"
+                f"{len(activities)} activity extracted from {remote} in {int(processing_time)}sec ({processing_time / 60:.2f} min)"
             )
 
-            return commits
+            return activities
 
         except Exception as e:
+            # TODO: return unified Result object for all services including status and error code/message
             self.logger.error(f"Failed to get commits for batch from {repo_path}: {e}")
-            raise
+            return None
 
     async def _get_commit_reference(self, repo_path: str) -> str:
         """Get the commit reference for git log command."""
@@ -406,7 +411,6 @@ class CommitService(BaseService):
             try:
                 commit = CommitService._construct_commit_dict(commit_lines, repo_path)
                 if CommitService._validate_commit_data(commit):
-                    # Use extend instead of += for better performance
                     activities.extend(CommitService.create_activities_from_commit(remote, commit))
                     processed_commits += 1
                 else:
@@ -416,7 +420,6 @@ class CommitService(BaseService):
                 bad_commits += 1
                 continue
 
-        # Log summary instead of per-commit logging
         if processed_commits > 0 or bad_commits > 0:
             logger.info(
                 f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
@@ -424,26 +427,24 @@ class CommitService(BaseService):
 
         return activities
 
-    async def _parse_commits(
+    async def _parse_activities_from_commits(
         self, raw_output: str, repo_path: str, edge_commit_hash: Optional[str], remote: str
     ) -> List[Dict[str, Any]]:
         """
         Parse raw git log output into commit dictionaries.
         """
-        commits = []
-        bad_commits = 0
-        start_time = time.time()
+        activities = []
+
         commit_texts = [c.strip() for c in raw_output.split(self.COMMIT_END_SPLITTER) if c.strip()]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
-        chunk_size = max(1, len(commit_texts) // (MAX_WORKER_PROCESSES * 6))
-        self.logger.info(f"Spliting into chunks of {chunk_size}")
-        # Split commit_texts into chunks
+        chunk_size = min(max(1, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
+
+        self.logger.info(f"Spliting commits into chunks of {chunk_size}")
         chunks = [
             commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
         ]
         loop = asyncio.get_event_loop()
 
-        # Use reusable process pool instead of creating new one
         executor = self._get_or_create_pool()
 
         futures = [
@@ -458,9 +459,8 @@ class CommitService(BaseService):
             for chunk in chunks
         ]
         results = await asyncio.gather(*futures)
-        all_commits = [item for sublist in results for item in sublist]
-        logger.info(f"Parsed {len(all_commits)} in {(time.time() - start_time)} seconds")
-        return all_commits
+        activities = [item for sublist in results for item in sublist]
+        return activities
 
     @staticmethod
     def _validate_commit_structure(commit_lines: List[str]) -> bool:
