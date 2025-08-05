@@ -60,8 +60,6 @@ const changeValue = debounce((search: string) => {
     key = FeatureEventKey.SEARCH_ORGANIZATIONS;
   } else if (routeName === 'activity' && routeHash === '#activity') {
     key = FeatureEventKey.SEARCH_ACTIVITIES;
-  } else if (routeName === 'activity' && routeHash === '#conversation') {
-    key = FeatureEventKey.SEARCH_CONVERSATIONS;
   } else {
     key = FeatureEventKey.SEARCH;
   }
