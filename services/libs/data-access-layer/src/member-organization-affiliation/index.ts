@@ -329,7 +329,7 @@ async function processAffiliationActivities(
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
-  logger.info({ memberId, affiliation, processed }, 'Processed activities for affiliation!')
+  logger.debug({ memberId, affiliation, processed }, 'Processed activities for affiliation!')
 
   return processed
 }
@@ -384,7 +384,7 @@ async function processFallbackActivities(
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
-  logger.info({ memberId, fallbackOrganizationId, processed }, 'Processed fallback activities!')
+  logger.debug({ memberId, fallbackOrganizationId, processed }, 'Processed fallback activities!')
 
   return processed
 }
