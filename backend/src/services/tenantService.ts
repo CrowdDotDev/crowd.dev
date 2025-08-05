@@ -1,5 +1,4 @@
 import { DEFAULT_TENANT_ID, Error400, Error404 } from '@crowd/common'
-import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
 
