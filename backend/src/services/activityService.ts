@@ -1,11 +1,9 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
-import { Transaction } from 'sequelize/types'
 
 import { distinct, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
-  addActivityToConversation,
   deleteActivities,
   insertActivities,
   queryActivities,
