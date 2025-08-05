@@ -174,7 +174,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     return { timeline, earliestStartDate: earliestStartDate.toISOString() }
   }
 
-  const manualAffiliations = await findMemberAffiliations(qx, memberId)
+  let manualAffiliations = await findMemberAffiliations(qx, memberId)
 
   let memberOrganizations = await qx.select(
     `
@@ -232,27 +232,45 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
-  const { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
+  let { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
 
-  const affiliations: TimelineItem[] = [
-    ..._.chain(manualAffiliations)
-      .sortBy('dateStart')
-      .reverse()
-      .map((row) => ({
-        organizationId: row.organizationId,
-        dateStart: row.dateStart,
-        dateEnd: row.dateEnd,
-        // we need segmentId for manual affiliations
-        segmentId: row.segmentId,
-      }))
-      .value(),
+  // const affiliations: TimelineItem[] = [
+  //   ..._.chain(manualAffiliations)
+  //     .sortBy('dateStart')
+  //     .reverse()
+  //     .map((row) => ({
+  //       organizationId: row.organizationId,
+  //       dateStart: row.dateStart,
+  //       dateEnd: row.dateEnd,
+  //       // we need segmentId for manual affiliations
+  //       segmentId: row.segmentId,
+  //     }))
+  //     .value(),
 
-    ..._.chain(timeline)
-      .filter((row) => !!row.dateStart)
-      .sortBy('dateStart')
-      .reverse()
-      .value(),
-  ]
+  //   ..._.chain(timeline)
+  //     .filter((row) => !!row.dateStart)
+  //     .sortBy('dateStart')
+  //     .reverse()
+  //     .value(),
+  // ]
+
+  manualAffiliations = _.chain(manualAffiliations)
+    .sortBy('dateStart')
+    .reverse()
+    .map((row) => ({
+      organizationId: row.organizationId,
+      dateStart: row.dateStart,
+      dateEnd: row.dateEnd,
+      // we need segmentId for manual affiliations
+      segmentId: row.segmentId,
+    }))
+    .value()
+
+  timeline = _.chain(timeline)
+    .filter((row) => !!row.dateStart)
+    .sortBy('dateStart')
+    .reverse()
+    .value()
 
   const fallbackOrganizationId =
     _.chain(memberOrganizations)
@@ -262,7 +280,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       .head()
       .value() ?? null
 
-  return { affiliations, earliestStartDate, fallbackOrganizationId }
+  return { manualAffiliations, timeline, earliestStartDate, fallbackOrganizationId }
 }
 
 async function processAffiliationActivities(
@@ -389,22 +407,45 @@ async function processFallbackActivities(
 export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, memberId: string) {
   const start = performance.now()
 
-  const { affiliations, earliestStartDate, fallbackOrganizationId } =
+  const { manualAffiliations, timeline, earliestStartDate, fallbackOrganizationId } =
     await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
-  if (affiliations.length === 0) {
+  // skip if no affiliations and no fallback organization
+  if (manualAffiliations.length === 0 && timeline.length === 0 && !fallbackOrganizationId) {
     logger.info({ memberId }, `No affiliations for member, skipping refresh!`)
     return
   }
 
-  // process timeline in parallel
-  const results = await Promise.all([
-    ...affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
-    processFallbackActivities(qx, memberId, earliestStartDate, fallbackOrganizationId),
-  ])
+  const processAffiliations = async (affiliations: TimelineItem[]) => {
+    const results = await Promise.all(
+      affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
+    )
+
+    return results.reduce((acc, result) => acc + result, 0)
+  }
+
+  let processed = 0
+
+  // manual affiliations take precedence always
+  if (manualAffiliations.length > 0) {
+    processed += await processAffiliations(manualAffiliations)
+  }
+
+  // process timeline affiliations
+  if (timeline.length > 0) {
+    processed += await processAffiliations(timeline)
+  }
+
+  // process fallback organization activities, if any
+  if (fallbackOrganizationId) {
+    processed += await processFallbackActivities(
+      qx,
+      memberId,
+      earliestStartDate,
+      fallbackOrganizationId,
+    )
+  }
 
   const duration = performance.now() - start
-  const processed = results.reduce((acc, processed) => acc + processed, 0)
-
   logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
 }

@@ -14,6 +14,7 @@ export type TimelineItem = {
 
 export interface MemberOrganizationAffiliationTimeline {
   earliestStartDate: string
-  affiliations: TimelineItem[]
+  manualAffiliations: TimelineItem[]
+  timeline: TimelineItem[]
   fallbackOrganizationId: string | null
 }
