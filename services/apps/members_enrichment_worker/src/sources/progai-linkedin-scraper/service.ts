@@ -105,19 +105,32 @@ export default class EnrichmentServiceProgAILinkedinScraper
   private async getDataUsingLinkedinHandle(
     handle: string,
   ): Promise<IMemberEnrichmentDataProgAI | null> {
-    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        linkedin_url: `https://linkedin.com/in/${handle}`,
-        with_emails: true,
-        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-      },
-      headers: {},
-    }
+    let response: IMemberEnrichmentDataProgAIResponse
 
-    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
+    try {
+      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          linkedin_url: `https://linkedin.com/in/${handle}`,
+          with_emails: true,
+          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+        },
+        headers: {},
+        validateStatus: function (status) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
+      }
+
+      response = (await axios(config)).data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        this.log.warn(
+          `Axios error occurred while getting ProgAI data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+      }
+    }
 
     return response?.profile || null
   }
