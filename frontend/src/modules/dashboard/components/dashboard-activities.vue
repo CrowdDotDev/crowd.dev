@@ -58,12 +58,6 @@
     <div class="dashboard-tabs">
       <el-tabs v-model="tab">
         <el-tab-pane
-          label="Recent conversations"
-          name="recentConversations"
-        >
-          <app-dashboard-conversation-list />
-        </el-tab-pane>
-        <el-tab-pane
           label="Recent activities"
           name="recentActivities"
         >
@@ -77,12 +71,10 @@
 <script lang="ts" setup>
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { ref } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
@@ -95,8 +87,6 @@ const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,
   value: item.count,
 }));
-
-const tab = ref('recentConversations');
 
 const allActivitiesFilter = ({
   search: '',

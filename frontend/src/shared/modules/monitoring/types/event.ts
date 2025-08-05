@@ -18,7 +18,6 @@ export enum PageEventKey {
   MEMBERS = 'Contributors',
   ORGANIZATIONS = 'Organizations',
   ACTIVITIES = 'Activities',
-  CONVERSATIONS = 'Conversations',
   COMMUNITY_LENS = 'Community gens',
   ADMIN_PANEL = 'Admin panel',
   ADMIN_PANEL_PROJECT_GROUPS = 'Admin panel project groups',

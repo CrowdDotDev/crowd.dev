@@ -109,21 +109,4 @@ export const actionsMessages = {
     },
   },
 
-  conversation: {
-    menu: 'Conversations',
-    create: {
-      success: 'Conversation successfully saved',
-      error: 'There was an error while saving the conversation',
-    },
-    update: {
-      success: 'Conversation successfully saved',
-      error: 'There was an error while saving the conversation',
-    },
-    destroy: {
-      success: 'Conversation successfully deleted',
-    },
-    destroyAll: {
-      success: 'Conversation(s) successfully deleted',
-    },
-  },
 };

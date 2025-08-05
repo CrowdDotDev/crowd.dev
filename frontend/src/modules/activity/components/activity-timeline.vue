@@ -230,12 +230,6 @@
       </div>
     </div>
   </div>
-
-  <app-conversation-drawer
-    :expand="conversationId != null"
-    :conversation-id="conversationId"
-    @close="conversationId = null"
-  />
 </template>
 
 <script setup lang="ts">
@@ -251,7 +245,6 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';

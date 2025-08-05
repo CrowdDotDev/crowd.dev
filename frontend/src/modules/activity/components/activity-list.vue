@@ -67,11 +67,6 @@
         />
       </div>
     </div>
-    <app-conversation-drawer
-      :expand="conversationId != null"
-      :conversation-id="conversationId"
-      @close="conversationId = null"
-    />
   </div>
 </template>
 
@@ -81,7 +76,6 @@ import {
   ref,
 } from 'vue';
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 // import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
