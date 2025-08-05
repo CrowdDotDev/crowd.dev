@@ -91,13 +91,13 @@ async function models(queryTimeoutMilliseconds: number, databaseHostnameOverride
       },
       logging: DB_CONFIG.logging
         ? (dbLog) =>
-          log.info(
-            highlight(dbLog, {
-              language: 'sql',
-              ignoreIllegals: true,
-            }),
-            'DB LOG',
-          )
+            log.info(
+              highlight(dbLog, {
+                language: 'sql',
+                ignoreIllegals: true,
+              }),
+              'DB LOG',
+            )
         : false,
     },
   )
