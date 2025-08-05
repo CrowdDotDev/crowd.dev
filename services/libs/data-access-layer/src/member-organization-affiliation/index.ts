@@ -403,14 +403,22 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
     return
   }
 
-  // process timeline in parallel
-  const results = await Promise.all([
-    ...affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
-    processFallbackActivities(qx, memberId, earliestStartDate, fallbackOrganizationId),
-  ])
+  let processed = 0
+
+  // Process affiliations one by one (sequentially) to avoid race conditions
+  for (const affiliation of affiliations) {
+    processed += await processAffiliationActivities(qx, memberId, affiliation)
+  }
+
+  // Then process fallback activities
+  processed += await processFallbackActivities(
+    qx,
+    memberId,
+    earliestStartDate,
+    fallbackOrganizationId,
+  )
 
   const duration = performance.now() - start
-  const processed = results.reduce((acc, processed) => acc + processed, 0)
 
   logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
 }
