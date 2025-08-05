@@ -232,27 +232,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
-  let { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
-
-  // const affiliations: TimelineItem[] = [
-  //   ..._.chain(manualAffiliations)
-  //     .sortBy('dateStart')
-  //     .reverse()
-  //     .map((row) => ({
-  //       organizationId: row.organizationId,
-  //       dateStart: row.dateStart,
-  //       dateEnd: row.dateEnd,
-  //       // we need segmentId for manual affiliations
-  //       segmentId: row.segmentId,
-  //     }))
-  //     .value(),
-
-  //   ..._.chain(timeline)
-  //     .filter((row) => !!row.dateStart)
-  //     .sortBy('dateStart')
-  //     .reverse()
-  //     .value(),
-  // ]
+  const { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
 
   manualAffiliations = _.chain(manualAffiliations)
     .sortBy('dateStart')
@@ -266,7 +246,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     }))
     .value()
 
-  timeline = _.chain(timeline)
+  const timelineAffiliations = _.chain(timeline)
     .filter((row) => !!row.dateStart)
     .sortBy('dateStart')
     .reverse()
@@ -280,7 +260,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
       .head()
       .value() ?? null
 
-  return { manualAffiliations, timeline, earliestStartDate, fallbackOrganizationId }
+  return {
+    timelineAffiliations,
+    manualAffiliations,
+    earliestStartDate,
+    fallbackOrganizationId,
+  }
 }
 
 async function processAffiliationActivities(
@@ -407,11 +392,15 @@ async function processFallbackActivities(
 export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, memberId: string) {
   const start = performance.now()
 
-  const { manualAffiliations, timeline, earliestStartDate, fallbackOrganizationId } =
+  const { manualAffiliations, timelineAffiliations, earliestStartDate, fallbackOrganizationId } =
     await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
   // skip if no affiliations and no fallback organization
-  if (manualAffiliations.length === 0 && timeline.length === 0 && !fallbackOrganizationId) {
+  if (
+    manualAffiliations.length === 0 &&
+    timelineAffiliations.length === 0 &&
+    !fallbackOrganizationId
+  ) {
     logger.info({ memberId }, `No affiliations for member, skipping refresh!`)
     return
   }
@@ -432,8 +421,8 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
   }
 
   // process timeline affiliations
-  if (timeline.length > 0) {
-    processed += await processAffiliations(timeline)
+  if (timelineAffiliations.length > 0) {
+    processed += await processAffiliations(timelineAffiliations)
   }
 
   // process fallback organization activities, if any
