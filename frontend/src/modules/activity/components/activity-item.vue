@@ -7,9 +7,9 @@
     <article v-else-if="activity.platform === Platform.GIT">
       <lf-activity-display
         :activity="activity"
-        @edit="$emit('edit')"
-        @on-update="$emit('onUpdate')"
-        @activity-destroyed="$emit('activity-destroyed')"
+        @edit="emit('edit')"
+        @on-update="emit('onUpdate')"
+        @activity-destroyed="emit('activity-destroyed')"
       />
     </article>
     <article v-else class="panel">
@@ -68,9 +68,9 @@
               <app-activity-dropdown
                 :show-affiliations="false"
                 :activity="activity"
-                @edit="$emit('edit')"
-                @on-update="$emit('onUpdate')"
-                @activity-destroyed="$emit('activity-destroyed')"
+                @edit="emit('edit')"
+                @on-update="emit('onUpdate')"
+                @activity-destroyed="emit('activity-destroyed')"
               />
             </div>
           </div>
@@ -119,25 +119,22 @@
 </template>
 
 <script setup>
-import AppAvatar from '@/shared/avatar/avatar.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
-import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import AppActivityContent from '@/modules/activity/components/activity-content.vue';
-import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import { lfIdentities } from '@/config/identities';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
-import { computed } from 'vue';
-import { storeToRefs } from 'pinia';
+import AppActivityContent from '@/modules/activity/components/activity-content.vue';
+import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
+import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import { lfIdentities } from '@/config/identities';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 import AppActivityHeader from './activity-header.vue';
 
-const emit = defineEmits(['edit', 'onUpdate', 'activity-destroyed']);
 const props = defineProps({
   activity: {
     type: Object,
@@ -150,8 +147,6 @@ const props = defineProps({
     default: false,
   },
 });
-
-const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

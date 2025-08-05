@@ -467,48 +467,6 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
-  services/apps/activities_worker:
-    dependencies:
-      '@crowd/archetype-standard':
-        specifier: workspace:*
-        version: link:../../archetypes/standard
-      '@crowd/archetype-worker':
-        specifier: workspace:*
-        version: link:../../archetypes/worker
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../../libs/common
-      '@crowd/data-access-layer':
-        specifier: workspace:*
-        version: link:../../libs/data-access-layer
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../../libs/types
-      '@temporalio/activity':
-        specifier: ~1.11.8
-        version: 1.11.8
-      '@temporalio/client':
-        specifier: ~1.11.8
-        version: 1.11.8
-      '@temporalio/workflow':
-        specifier: ~1.11.8
-        version: 1.11.8
-      html-to-text:
-        specifier: ^9.0.5
-        version: 9.0.5
-      tsx:
-        specifier: ^4.7.1
-        version: 4.7.3
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.12.7
-      nodemon:
-        specifier: ^3.0.1
-        version: 3.1.0
 
   services/apps/cache_worker:
     dependencies:
