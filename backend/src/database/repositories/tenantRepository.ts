@@ -187,7 +187,7 @@ class TenantRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = ['settings', 'conversationSettings']
+    const include = ['settings']
 
     const record = await options.database.tenant.findByPk(id, {
       include,
@@ -204,7 +204,7 @@ class TenantRepository {
   static async findByUrl(url, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = ['settings', 'conversationSettings']
+    const include = ['settings']
 
     const record = await options.database.tenant.findOne({
       where: { url },
