@@ -80,7 +80,6 @@ class ActivityRepository {
         url: data.url,
         organizationId: data.organizationId || undefined,
         platform: data.platform,
-        conversationId: data.conversationId || undefined,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },

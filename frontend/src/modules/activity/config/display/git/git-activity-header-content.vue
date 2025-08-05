@@ -60,16 +60,6 @@
 
     <!-- Activity actions -->
     <div class="flex items-center gap-3">
-      <div v-if="activity.conversationId && !inDashboard">
-        <a
-          class="text-xs font-medium flex items-center cursor-pointer hover:underline"
-          target="_blank"
-          @click="openConversation"
-        >
-          <lf-icon name="eye" :size="14" class="mr-1" />
-          <span class="block">View commit</span></a>
-      </div>
-
       <app-activity-dropdown
         :show-affiliations="inProfile"
         :activity="activity"
@@ -99,7 +89,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
   (e: 'activity-destroyed'): void;
-  (e: 'openConversation'): void;
 }>();
 const props = defineProps<{
   activity: Activity;
@@ -115,17 +104,6 @@ const activityMessage = computed(() => props.activity.display?.default ?? '');
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
 const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
 
-const openConversation = () => {
-  trackEvent({
-    key: FeatureEventKey.VIEW_CONVERSATION,
-    type: EventType.FEATURE,
-    properties: {
-      conversationPlatform: props.activity.platform,
-    },
-  });
-
-  emit('openConversation');
-};
 </script>
 
 <style lang="scss">

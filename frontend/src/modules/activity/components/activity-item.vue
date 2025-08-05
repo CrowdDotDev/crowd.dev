@@ -10,7 +10,6 @@
         @edit="$emit('edit')"
         @on-update="$emit('onUpdate')"
         @activity-destroyed="$emit('activity-destroyed')"
-        @open-conversation="$emit('openConversation', activity.conversationId)"
       />
     </article>
     <article v-else class="panel">
@@ -66,20 +65,6 @@
               </div>
             </div>
             <div class="flex items-center">
-              <a
-                v-if="
-                  activity.conversationId
-                    && displayConversationLink
-                "
-                class="text-xs font-medium flex items-center mr-6 cursor-pointer hover:underline"
-                target="_blank"
-                @click="
-                  openConversation(activity.conversationId)
-                "
-              >
-                <lf-icon name="eye" :size="16" class="mr-1" />
-                <span class="block">View conversation</span>
-              </a>
               <app-activity-dropdown
                 :show-affiliations="false"
                 :activity="activity"
@@ -152,7 +137,7 @@ import { lfIdentities } from '@/config/identities';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppActivityHeader from './activity-header.vue';
 
-const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);
+const emit = defineEmits(['edit', 'onUpdate', 'activity-destroyed']);
 const props = defineProps({
   activity: {
     type: Object,
@@ -164,11 +149,6 @@ const props = defineProps({
     required: false,
     default: false,
   },
-  displayConversationLink: {
-    type: Boolean,
-    required: false,
-    default: true,
-  },
 });
 
 const { trackEvent } = useProductTracking();
@@ -178,17 +158,6 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const platform = computed(() => lfIdentities[props.activity.platform]);
 
-const openConversation = (conversationId) => {
-  trackEvent({
-    key: FeatureEventKey.VIEW_CONVERSATION,
-    type: EventType.FEATURE,
-    properties: {
-      conversationPlatform: props.activity.platform,
-    },
-  });
-
-  emit('openConversation', conversationId);
-};
 </script>
 
 <script>

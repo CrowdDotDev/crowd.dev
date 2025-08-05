@@ -53,7 +53,6 @@
           :activity="activity"
           class="mb-6"
           v-bind="cardOptions"
-          @open-conversation="conversationId = $event"
           @edit="emit('edit', activity)"
           @on-update="fetch(savedFilterBody)"
           @activity-destroyed="fetch(savedFilterBody)"
@@ -86,7 +85,6 @@ import AppLoadMore from '@/shared/button/load-more.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 // const sorterFilter = ref('trending');
-const conversationId = ref(null);
 
 defineProps({
   cardOptions: {

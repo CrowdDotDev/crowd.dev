@@ -9,7 +9,6 @@
       @edit="emit('edit')"
       @on-update="emit('onUpdate')"
       @activity-destroyed="emit('activity-destroyed')"
-      @open-conversation="emit('openConversation')"
     />
     <component :is="configuration?.activityContent" :activity="activity" />
   </div>
@@ -23,7 +22,6 @@ import { Activity } from '../types/Activity';
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
   (e: 'activity-destroyed'): void;
-  (e: 'openConversation'): void;
 }>();
 
 defineProps<{
