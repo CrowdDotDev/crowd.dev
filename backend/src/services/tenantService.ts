@@ -254,27 +254,6 @@ export default class TenantService {
         }).validateHas(Permissions.values.tenantEdit)
       }
 
-      // if tenant already has some published conversations, updating url is not allowed
-      if (data.url && data.url !== record.url) {
-        const segmentIds = SequelizeRepository.getSegmentIds(this.options)
-
-        const publishedConversations = await queryConversations(this.options.qdb, {
-          segmentIds,
-          filter: {
-            and: [
-              {
-                published: true,
-              },
-            ],
-          },
-          countOnly: true,
-        })
-
-        if (publishedConversations.count > 0) {
-          throw new Error400(this.options.language, 'tenant.errors.publishedConversationExists')
-        }
-      }
-
       record = await TenantRepository.update(id, data, {
         ...this.options,
         transaction,
