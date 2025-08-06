@@ -62,6 +62,7 @@ import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
+
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
 export default class IntegrationService {
@@ -92,6 +93,7 @@ export default class IntegrationService {
       }
       return updatedRecord
     } catch (error) {
+      this.options.log.error(error)
       if (error.code === 404) {
         const record = await this.create(data, transaction, options)
         if (!IS_TEST_ENV) {
@@ -270,6 +272,7 @@ export default class IntegrationService {
 
       return record
     } catch (err) {
+      this.options.log.error(err)
       SequelizeRepository.handleUniqueFieldError(err, this.options.language, 'integration')
 
       throw err
@@ -1160,6 +1163,7 @@ export default class IntegrationService {
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
+      this.options.log.error(`gitConnectOrUpdate failed with error: ${err}`)
       throw err
     }
     return integration
