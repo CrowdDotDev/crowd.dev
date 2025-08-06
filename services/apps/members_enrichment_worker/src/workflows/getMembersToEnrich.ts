@@ -14,7 +14,7 @@ import { chunkArray } from '../utils/common'
 import { enrichMember } from './enrichMember'
 
 const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '10 minutes',
 })
 
 export async function getMembersToEnrich(): Promise<void> {
@@ -22,9 +22,7 @@ export async function getMembersToEnrich(): Promise<void> {
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
-    MemberEnrichmentSource.SERP,
     MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER,
-    MemberEnrichmentSource.CRUSTDATA,
   ]
 
   const members = await getEnrichableMembers(QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN, sources)
@@ -52,8 +50,8 @@ export async function getMembersToEnrich(): Promise<void> {
           retry: {
             backoffCoefficient: 2,
             maximumAttempts: 10,
-            initialInterval: 2 * 1000,
-            maximumInterval: 30 * 1000,
+            initialInterval: '60s',
+            maximumInterval: '5 minutes',
           },
           args: [member, sources],
         })
