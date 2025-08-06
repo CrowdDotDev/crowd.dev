@@ -271,15 +271,13 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  const result = await updateTableById(
+  const updated = await updateTableById(
     qx,
     'insightsProjects',
     id,
     Object.values(InsightsProjectField),
     prepareProject(project),
   )
-
-  const updated = result?.rows?.[0]
 
   if (!updated) {
     throw new Error(`Update failed or project with id ${id} not found`)
