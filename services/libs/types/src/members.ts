@@ -2,7 +2,6 @@ import { IAttributes } from './attributes'
 import { MemberAttributeOpensearch, MemberAttributeType, MemberIdentityType } from './enums/members'
 import { PlatformType } from './enums/platforms'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
-import { ITagOpensearch } from './tags'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -66,7 +65,6 @@ export interface IMember {
   averageSentiment: number
   identities: IMemberIdentity[]
   organizations: IOrganizationOpensearch[]
-  tags: ITagOpensearch[]
   toMergeIds: string[]
   noMergeIds: string[]
   lastActivity: unknown

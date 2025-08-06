@@ -224,7 +224,6 @@ setImmediate(async () => {
   require('./settings').default(routes)
   require('./member').default(routes)
   require('./activity').default(routes)
-  require('./tag').default(routes)
   require('./integration').default(routes)
   require('./conversation').default(routes)
   require('./eagleEyeContent').default(routes)

@@ -28,7 +28,6 @@ import {
   findMemberById,
   findMemberCountEstimateOfOrganizations,
   findMemberManualAffiliation,
-  findMemberTags,
   findMemberWorkExperience,
   findMostRecentUnknownDatedOrganizations,
   getMemberSegments,
@@ -446,14 +445,10 @@ export class CommonMemberService extends LoggerBase {
       MemberField.MANUALLY_CHANGED_FIELDS,
     ])
 
-    const [tags, affiliations] = await Promise.all([
-      findMemberTags(this.qx, memberId),
-      findMemberAffiliations(this.qx, memberId),
-    ])
+    const affiliations = await findMemberAffiliations(this.qx, memberId)
 
     return {
       ...member,
-      tags: tags.map((t) => ({ id: t.tagId })),
       affiliations,
     }
   }

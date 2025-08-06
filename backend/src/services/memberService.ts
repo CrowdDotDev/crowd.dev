@@ -11,17 +11,14 @@ import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segm
 import {
   MemberField,
   addMemberRole,
-  addMemberTags,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberIdentities,
   findMemberById,
   findMemberIdentitiesByValue,
   findMemberIdentityById,
-  findMemberTags,
   insertMemberSegmentAggregates,
   queryMembersAdvanced,
   removeMemberRole,
-  removeMemberTags,
 } from '@crowd/data-access-layer/src/members'
 import { addMergeAction, setMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -627,9 +624,6 @@ export default class MemberService extends LoggerBase {
             MemberField.ID,
             MemberField.DISPLAY_NAME,
           ])
-          const [memberTags] = await Promise.all([
-            (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
-          ])
 
           captureOldState({
             primary: payload.primary,
@@ -638,8 +632,6 @@ export default class MemberService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
           tx = repoOptions.transaction
-
-          const txqx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
 
           // remove identities in secondary member from primary member
           await MemberRepository.removeIdentitiesFromMember(
@@ -700,26 +692,6 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          // move tags
-          if (payload.secondary.tags.length > 0) {
-            await addMemberTags(
-              txqx,
-              secondaryMember.id,
-              payload.secondary.tags.map((t) => t.id),
-            )
-            // check if anything to delete in primary
-            const tagsToDelete = memberTags.filter(
-              (t) => !payload.primary.tags.some((pt) => pt.id === t.id),
-            )
-            if (tagsToDelete.length > 0) {
-              await removeMemberTags(
-                txqx,
-                memberId,
-                tagsToDelete.map((t) => t.id),
-              )
-            }
-          }
-
           // move memberOrganizations
           if (payload.secondary.memberOrganizations.length > 0) {
             const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
@@ -762,7 +734,6 @@ export default class MemberService extends LoggerBase {
           delete payload.primary.username
           delete payload.primary.memberOrganizations
           delete payload.primary.organizations
-          delete payload.primary.tags
           delete payload.primary.affiliations
 
           captureNewState({
@@ -839,7 +810,7 @@ export default class MemberService extends LoggerBase {
     identityId: string,
     revertPreviousMerge: boolean = false,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
-    const relationships = ['tags', 'identities', 'affiliations']
+    const relationships = ['identities', 'affiliations']
 
     try {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
@@ -853,12 +824,11 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      this.options.log.info('[0] Getting member information (identities, tags, affiliations)... ')
+      this.options.log.info('[0] Getting member information (identities, affiliations)... ')
 
-      const [memberOrganizationsMap, identities, tags, affiliations] = await Promise.all([
+      const [memberOrganizationsMap, identities, affiliations] = await Promise.all([
         fetchManyMemberOrgsWithOrgData(qx, [memberId]),
         fetchMemberIdentities(qx, memberId),
-        findMemberTags(qx, memberId),
         findMemberAffiliations(qx, memberId),
       ])
 
@@ -870,7 +840,6 @@ export default class MemberService extends LoggerBase {
         memberOrganizations,
         identities,
         affiliations,
-        tags: tags.map((t) => ({ id: t.tagId })),
       }
 
       const identity = await findMemberIdentityById(qx, memberId, identityId)
@@ -1009,15 +978,6 @@ export default class MemberService extends LoggerBase {
             }
           }
 
-          // tags: Remove tags that exist in secondary backup, but not in primary backup
-          member.tags = member.tags.filter(
-            (tag) =>
-              !(
-                secondaryBackup.tags.some((t) => t.id === tag.id) &&
-                !primaryBackup.tags.some((t) => t.id === tag.id)
-              ),
-          )
-
           // identities: Remove identities coming from secondary backup
           member.identities = member.identities.filter(
             (i) =>
@@ -1108,7 +1068,6 @@ export default class MemberService extends LoggerBase {
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
-          tags: [],
           attributes: {},
           joinedAt: new Date().toISOString(),
           tenantId: member.tenantId,
@@ -1168,7 +1127,6 @@ export default class MemberService extends LoggerBase {
 
   static MEMBER_MERGE_FIELDS = [
     'id',
-    'tags',
     'reach',
     'tasks',
     'joinedAt',
@@ -1464,10 +1422,7 @@ export default class MemberService extends LoggerBase {
     data.limit = 10000000000000
     const found = await this.query(data, true)
 
-    const relations = [
-      { relation: 'organizations', attributes: ['name'] },
-      { relation: 'tags', attributes: ['name'] },
-    ]
+    const relations = [{ relation: 'organizations', attributes: ['name'] }]
     for (const relation of relations) {
       for (const member of found.rows) {
         member[relation.relation] = member[relation.relation]?.map((i) => ({

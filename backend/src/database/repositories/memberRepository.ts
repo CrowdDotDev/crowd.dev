@@ -35,7 +35,6 @@ import {
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
-  findMemberTags,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
 import {
@@ -44,7 +43,6 @@ import {
 } from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import { findTags } from '@crowd/data-access-layer/src/others'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   fetchManySegments,
@@ -173,10 +171,6 @@ class MemberRepository {
       record.id,
       options.currentSegments.map((s) => s.id),
     )
-
-    await record.setTags(data.tags || [], {
-      transaction,
-    })
 
     const memberService = new CommonMemberService(optionsQx(options), options.temporal, options.log)
 
@@ -375,7 +369,7 @@ class MemberRepository {
         const findMemberInfo = async (memberId: string) => {
           const qx = SequelizeRepository.getQueryExecutor(options)
 
-          const [member, identities, aggregates, memberOrgs, tags] = await Promise.all([
+          const [member, identities, aggregates, memberOrgs] = await Promise.all([
             findMemberById(qx, memberId, [
               MemberField.ID,
               MemberField.DISPLAY_NAME,
@@ -385,15 +379,12 @@ class MemberRepository {
             fetchMemberIdentities(qx, memberId),
             fetchAbsoluteMemberAggregates(qx, memberId),
             fetchMemberOrganizations(qx, memberId),
-            findMemberTags(qx, memberId),
           ])
 
           const orgIds = memberOrgs.map((o) => o.organizationId)
-          const tagIds = tags.map((t) => t.tagId)
 
           let orgExtraInfo = []
           let lfxMemberships = []
-          let tagExtraInfo = []
 
           if (orgIds.length > 0) {
             orgExtraInfo = await queryOrgs(qx, {
@@ -412,17 +403,12 @@ class MemberRepository {
             })
           }
 
-          if (tagIds.length > 0) {
-            tagExtraInfo = await findTags(qx, tagIds)
-          }
-
           return {
             ...member,
             identities,
             ...{
               activityCount: aggregates?.activityCount,
               lastActive: aggregates?.lastActive,
-              tags: tagExtraInfo.map((t) => ({ id: t.id, name: t.name })),
             },
             organizations: memberOrgs.map((o) => ({
               ...orgExtraInfo.find((oei) => oei.id === o.organizationId),
@@ -864,12 +850,6 @@ class MemberRepository {
       }),
       !manualChange, // no need to track for audit if it's not a manual change
     )
-
-    if (data.tags) {
-      await record.setTags(data.tags || [], {
-        transaction,
-      })
-    }
 
     const memberService = new CommonMemberService(optionsQx(options), options.temporal, options.log)
 
@@ -1629,7 +1609,6 @@ class MemberRepository {
       // member fields
       ['displayName', { name: 'm."displayName"' }],
       ['reach', { name: 'm.reach' }],
-      // ['tags', {name: 'm."tags"'}], // ignore, not used
       ['joinedAt', { name: 'm."joinedAt"' }],
       ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
       [
@@ -1982,10 +1961,6 @@ class MemberRepository {
       })
     }
 
-    rows.forEach((row) => {
-      row.tags = []
-    })
-
     if (memberIds.length > 0) {
       const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, [
         segmentId,
@@ -2171,7 +2146,6 @@ class MemberRepository {
         values = {
           ...record.get({ plain: true }),
           activitiesIds: data.activities,
-          tagsIds: data.tags,
           noMergeIds: data.noMerge,
         }
       }
@@ -2193,7 +2167,6 @@ class MemberRepository {
       return rows
     }
 
-    // No need for lazyloading tags for integrations
     if (
       (KUBE_MODE && SERVICE === ServiceType.JOB_GENERATOR && !exportMode) ||
       process.env.SERVICE === 'integrations'
@@ -2243,9 +2216,6 @@ class MemberRepository {
 
         delete plainRecord.company
         plainRecord.organizations = await record.getOrganizations({
-          joinTableAttributes: [],
-        })
-        plainRecord.tags = await record.getTags({
           joinTableAttributes: [],
         })
 
