@@ -30,6 +30,10 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  getSystemSettingValue,
+  setSystemSettingValue,
+} from '@crowd/data-access-layer/src/systemSettings'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
@@ -46,6 +50,7 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
+  RateLimitError,
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -56,13 +61,59 @@ import {
   IMemberEnrichmentDataNormalized,
   IMemberEnrichmentDataNormalizedOrganization,
 } from '../types'
+import { EnrichmentRateLimitError } from '../utils/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+export async function shouldSkipSourceDueToRateLimit(
+  source: MemberEnrichmentSource,
+): Promise<boolean> {
+  const rateLimitSettings = await getSystemSettingValue(
+    dbStoreQx(svc.postgres.reader),
+    'enrichmentRateLimitReset',
+  )
+
+  const sourceSettings = rateLimitSettings?.[source]
+
+  if (!sourceSettings) return false
+
+  const resetTime = new Date(sourceSettings.timestamp)
+  if (new Date() >= resetTime) {
+    // Rate limit expired, remove it
+    await setRateLimitResetTime(source, null)
+    return false
+  }
+
+  return true
+}
+
+async function setRateLimitResetTime(
+  source: MemberEnrichmentSource,
+  backoffSeconds: number | null,
+): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const currentSettings = (await getSystemSettingValue(qx, 'enrichmentRateLimitReset')) || {}
+
+  const updatedSettings =
+    backoffSeconds !== null
+      ? {
+          ...currentSettings,
+          [source]: { timestamp: new Date(Date.now() + backoffSeconds * 1000).toISOString() },
+        }
+      : Object.fromEntries(Object.entries(currentSettings).filter(([key]) => key !== source))
+
+  await setSystemSettingValue(qx, 'enrichmentRateLimitReset', updatedSettings)
+}
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
   input: IEnrichmentSourceInput,
 ): Promise<boolean> {
+  // Check if source is rate limited first
+  if (await shouldSkipSourceDueToRateLimit(source)) {
+    return false
+  }
+
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return service.isEnrichableBySource(input)
 }
@@ -72,8 +123,20 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
   if (await service.isEnrichableBySource(input)) {
-    return service.getData(input)
+    try {
+      return await service.getData(input)
+    } catch (err) {
+      if (err instanceof EnrichmentRateLimitError) {
+        await setRateLimitResetTime(source, err.rateLimitResetSeconds)
+        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
+        return null
+      }
+
+      svc.log.error({ source, err }, 'Error getting enrichment data!')
+      throw err
+    }
   }
   return null
 }
@@ -159,7 +222,6 @@ export async function hasRemainingCredits(source: MemberEnrichmentSource): Promi
   }
 
   const hasCredits = await service.hasRemainingCredits()
-
   await setHasRemainingCredits(source, hasCredits)
   return hasCredits
 }

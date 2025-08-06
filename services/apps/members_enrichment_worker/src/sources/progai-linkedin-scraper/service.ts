@@ -16,6 +16,7 @@ import {
   IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
 } from '../../types'
+import { EnrichmentRateLimitError } from '../../utils/common'
 import { IMemberEnrichmentDataProgAI, IMemberEnrichmentDataProgAIResponse } from '../progai/types'
 
 import { IMemberEnrichmentDataProgAILinkedinScraper } from './types'
@@ -128,8 +129,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          // rethrow error and let temporal handle with exponential backoff
-          throw err
+          throw new EnrichmentRateLimitError('progai/getDataUsingLinkedinHandle', err)
         }
 
         this.log.warn(

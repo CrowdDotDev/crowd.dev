@@ -10,7 +10,6 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
-  RateLimitError,
 } from '@crowd/types'
 
 import {
@@ -19,7 +18,11 @@ import {
   IMemberEnrichmentAttributeSettings,
   IMemberEnrichmentDataNormalized,
 } from '../../types'
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+import {
+  EnrichmentRateLimitError,
+  normalizeAttributes,
+  normalizeSocialIdentity,
+} from '../../utils/common'
 
 import {
   IEnrichmentAPICertificationProgAI,
@@ -360,7 +363,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          throw new RateLimitError(60, 'progai/getDataUsingGitHubHandle', err)
+          throw new EnrichmentRateLimitError('progai/getDataUsingGitHubHandle', err)
         }
 
         this.log.warn(
@@ -396,7 +399,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          throw new RateLimitError(60, 'progai/getDataUsingEmailAddress', err)
+          throw new EnrichmentRateLimitError('progai/getDataUsingEmailAddress', err)
         }
 
         this.log.warn(
