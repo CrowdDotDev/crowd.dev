@@ -62,7 +62,6 @@ import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
 
-
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
 export default class IntegrationService {
