@@ -10,6 +10,7 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
+  RateLimitError,
 } from '@crowd/types'
 
 import {
@@ -359,7 +360,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          throw err
+          throw new RateLimitError(60, 'progai/getDataUsingGitHubHandle', err)
         }
 
         this.log.warn(
@@ -395,7 +396,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          throw err
+          throw new RateLimitError(60, 'progai/getDataUsingEmailAddress', err)
         }
 
         this.log.warn(
