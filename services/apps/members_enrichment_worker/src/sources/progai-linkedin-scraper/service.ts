@@ -126,6 +126,12 @@ export default class EnrichmentServiceProgAILinkedinScraper
       response = (await axios(config)).data
     } catch (err) {
       if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          this.log.warn('ProgAI API rate limit exceeded!')
+          // rethrow error and let temporal handle with exponential backoff
+          throw err
+        }
+
         this.log.warn(
           `Axios error occurred while getting ProgAI data: ${err.response?.status} - ${err.response?.statusText}`,
         )
