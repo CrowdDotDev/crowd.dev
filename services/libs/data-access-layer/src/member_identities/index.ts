@@ -1,6 +1,7 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
+import { MEMBER_SELECT_COLUMNS } from '../members/base'
 import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
@@ -243,7 +244,7 @@ export async function findMembersByVerifiedEmails(
       where mi.type = $(type) and lower(mi.value) in ($(emails:csv))
       limit ${emails.length}
     )
-    select mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+    select mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
     from "members" m inner join matching_identities mi on m.id = mi."memberId"
   `,
     data,
@@ -289,7 +290,7 @@ export async function findMembersByVerifiedUsernames(
         where mi.type = $(type) and (${orConditions.join(' or ')})
         limit ${params.length}
       )
-      select mi.platform as "identityPlatform", mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      select mi.platform as "identityPlatform", mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
       from "members" m inner join matching_identities mi on m.id = mi."memberId"
     `,
     data,

@@ -90,6 +90,27 @@ export const MEMBER_UPDATE_COLUMNS = [
   MemberField.IMPORT_HASH,
 ]
 
+export const MEMBER_SELECT_COLUMNS = [
+  'id',
+  'score',
+  'joinedAt',
+  'reach',
+  'attributes',
+  'displayName',
+  'manuallyChangedFields',
+]
+
+export const MEMBER_INSERT_COLUMNS = [
+  'id',
+  'attributes',
+  'displayName',
+  'joinedAt',
+  'tenantId',
+  'reach',
+  'createdAt',
+  'updatedAt',
+]
+
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
   // id fields
   ['id', { name: 'm.id' }],
@@ -538,6 +559,12 @@ export async function updateMember(
 export async function createMember(qx: QueryExecutor, data: IDbMemberCreateData): Promise<string> {
   const id = generateUUIDv1()
   const ts = new Date()
+  const dbInstance = getDbInstance()
+  const columnSet = new dbInstance.helpers.ColumnSet(MEMBER_INSERT_COLUMNS, {
+    table: {
+      table: 'members',
+    },
+  })
   const prepared = prepareForModification(
     {
       ...data,
@@ -546,11 +573,10 @@ export async function createMember(qx: QueryExecutor, data: IDbMemberCreateData)
       createdAt: ts,
       updatedAt: ts,
     },
-    this.insertMemberColumnSet,
+    columnSet,
   )
-  const dbInstance = getDbInstance()
 
-  const query = dbInstance.helpers.insert(prepared, this.insertMemberColumnSet)
+  const query = dbInstance.helpers.insert(prepared, columnSet)
   await qx.select(query)
   return id
 }
