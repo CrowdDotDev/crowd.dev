@@ -320,7 +320,6 @@ async function processAffiliationActivities(
           where ${whereClause}
           limit $(batchSize)
         )
-        returning "activityId"
       `,
       params,
     )
@@ -375,7 +374,6 @@ async function processFallbackActivities(
           where ${whereClause}
           limit $(batchSize)
         )
-        returning "activityId"
       `,
       params,
     )
@@ -415,17 +413,7 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   let processed = 0
 
-  // manual affiliations take precedence always
-  if (manualAffiliations.length > 0) {
-    processed += await processAffiliations(manualAffiliations)
-  }
-
-  // process timeline affiliations
-  if (timelineAffiliations.length > 0) {
-    processed += await processAffiliations(timelineAffiliations)
-  }
-
-  // process fallback organization activities, if any
+  // process activities outside any affiliation periods
   if (fallbackOrganizationId) {
     processed += await processFallbackActivities(
       qx,
@@ -433,6 +421,16 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
       earliestStartDate,
       fallbackOrganizationId,
     )
+  }
+
+  // process timeline affiliations
+  if (timelineAffiliations.length > 0) {
+    processed += await processAffiliations(timelineAffiliations)
+  }
+
+  // manual affiliations overwrite others if there's a overlap/conflict
+  if (manualAffiliations.length > 0) {
+    processed += await processAffiliations(manualAffiliations)
   }
 
   const duration = performance.now() - start
