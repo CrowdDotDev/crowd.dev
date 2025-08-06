@@ -158,7 +158,7 @@ export async function updateTableById<T extends string>(
   data: Partial<{ [K in T]: unknown }>,
 ) {
   const fields = columns.filter((col) => col in data)
-  return qx.result(
+  return qx.selectOneOrNone(
     `
       UPDATE $(table:name)
       SET
