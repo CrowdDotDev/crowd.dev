@@ -78,6 +78,7 @@ import { filterQueryService } from '@/shared/modules/filters/services/filter-que
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
+import { ref } from 'vue';
 
 const {
   chartData, activities,
@@ -87,6 +88,8 @@ const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,
   value: item.count,
 }));
+
+const tab = ref('recentActivities');
 
 const allActivitiesFilter = ({
   search: '',
