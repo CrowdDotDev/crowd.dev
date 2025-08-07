@@ -30,10 +30,6 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  getSystemSettingValue,
-  setSystemSettingValue,
-} from '@crowd/data-access-layer/src/systemSettings'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisCache } from '@crowd/redis'
@@ -50,7 +46,6 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
-  RateLimitError,
 } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -68,19 +63,15 @@ import { EnrichmentRateLimitError } from '../utils/common'
 export async function shouldSkipSourceDueToRateLimit(
   source: MemberEnrichmentSource,
 ): Promise<boolean> {
-  const rateLimitSettings = await getSystemSettingValue(
-    dbStoreQx(svc.postgres.reader),
-    'enrichmentRateLimitReset',
-  )
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
 
-  const sourceSettings = rateLimitSettings?.[source]
+  const rateLimitReset = await redisCache.get('rateLimitReset')
+  if (!rateLimitReset) return false
 
-  if (!sourceSettings) return false
-
-  const resetTime = new Date(sourceSettings.timestamp)
-  if (new Date() >= resetTime) {
-    // Rate limit expired, remove it
-    await setRateLimitResetTime(source, null)
+  const resetTime = parseInt(rateLimitReset)
+  if (Date.now() >= resetTime) {
+    // rate limit expired, clean up
+    await redisCache.delete('rateLimitReset')
     return false
   }
 
@@ -89,20 +80,13 @@ export async function shouldSkipSourceDueToRateLimit(
 
 async function setRateLimitResetTime(
   source: MemberEnrichmentSource,
-  backoffSeconds: number | null,
+  backoffSeconds: number,
 ): Promise<void> {
-  const qx = pgpQx(svc.postgres.writer.connection())
-  const currentSettings = (await getSystemSettingValue(qx, 'enrichmentRateLimitReset')) || {}
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const resetTime = Date.now() + backoffSeconds * 1000
 
-  const updatedSettings =
-    backoffSeconds !== null
-      ? {
-          ...currentSettings,
-          [source]: { timestamp: new Date(Date.now() + backoffSeconds * 1000).toISOString() },
-        }
-      : Object.fromEntries(Object.entries(currentSettings).filter(([key]) => key !== source))
-
-  await setSystemSettingValue(qx, 'enrichmentRateLimitReset', updatedSettings)
+  // set buffer to ttl to avoid race conditions
+  await redisCache.set('rateLimitReset', resetTime.toString(), backoffSeconds + 60)
 }
 
 export async function isEnrichableBySource(
