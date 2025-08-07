@@ -61,6 +61,7 @@ import { encryptData } from '../utils/crypto'
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
+import { fetchMappedReposTx } from '@crowd/data-access-layer/src/integrations'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -73,6 +74,8 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction: Transaction, options?: IRepositoryOptions) {
     try {
+      console.log(`CREATE OR UPDATE INTEGRATION DATA: ${JSON.stringify(data)}`)
+
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -149,6 +152,7 @@ export default class IntegrationService {
 
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
+      console.log(`CREATE INTEGRATION DATA: ${JSON.stringify(data)}`)
       const record = await IntegrationRepository.create(data, {
         ...(options || this.options),
         transaction,
@@ -190,6 +194,8 @@ export default class IntegrationService {
     segmentId: string
     transaction: Transaction
   }) {
+    console.log(`UPDATE INSIGHTS PROJEEECT  ID: ${insightsProjectId}, segmentId: ${segmentId}, platform: ${platform}`)
+
     const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
@@ -198,6 +204,7 @@ export default class IntegrationService {
 
     if (IntegrationService.isCodePlatform(platform)) {
       const repositories = await collectionService.findRepositoriesForSegment(segmentId)
+      console.log(`Repositories found for segment ${segmentId}: ${JSON.stringify(repositories)}`)
       data.repositories = [
         ...new Set([
           ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
@@ -245,10 +252,14 @@ export default class IntegrationService {
     this.options.log.info(`Insight Project updated: ${insightsProjectId}`)
 
     await collectionService.updateInsightsProject(insightsProjectId, data)
+
   }
 
   async update(id, data, transaction?: any, options?: IRepositoryOptions) {
     try {
+
+      console.log(`UPDATE INTEGRATION ID: ${id}, data: ${JSON.stringify(data)}`)
+
       const record = await IntegrationRepository.update(id, data, {
         ...(options || this.options),
         transaction,
@@ -305,7 +316,7 @@ export default class IntegrationService {
             let shouldUpdateGit: boolean
             const mapping =
               integration.platform === PlatformType.GITHUB ||
-              integration.platform === PlatformType.GITHUB_NANGO
+                integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
 
@@ -409,6 +420,8 @@ export default class IntegrationService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -777,8 +790,8 @@ export default class IntegrationService {
               ...settings,
               ...(integration.settings.nangoMapping
                 ? {
-                    nangoMapping: integration.settings.nangoMapping,
-                  }
+                  nangoMapping: integration.settings.nangoMapping,
+                }
                 : {}),
             },
           },
