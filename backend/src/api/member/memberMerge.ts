@@ -10,7 +10,7 @@ export default async (req, res) => {
 
   const memberService = new CommonMemberService(optionsQx(req), req.temporal, req.log)
 
-  const payload = await memberService.merge(req.params.memberId, req.body.memberToMerge)
+  const payload = await memberService.merge(req.params.memberId, req.body.memberToMerge, req)
 
   track(
     'Merge members',

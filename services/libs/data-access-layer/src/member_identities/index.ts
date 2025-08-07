@@ -68,7 +68,7 @@ export async function moveToNewMember(
     type: MemberIdentityType
   },
 ) {
-  return qx.result(
+  const rowCount = await qx.result(
     `
       update "memberIdentities"
       set
@@ -81,6 +81,14 @@ export async function moveToNewMember(
     `,
     p,
   )
+
+  if (rowCount !== 1) {
+    throw new Error(
+      `Expected 1 row to be updated, but got ${rowCount} when moving identity from ${p.oldMemberId} to ${p.newMemberId}!`,
+    )
+  }
+
+  return rowCount
 }
 
 export async function deleteMemberIdentitiesByCombinations(

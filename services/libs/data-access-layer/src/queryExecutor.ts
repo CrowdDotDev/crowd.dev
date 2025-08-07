@@ -76,13 +76,28 @@ export class SequelizeQueryExecutor implements QueryExecutor {
       formatQuery(query, params),
       this.prepareOptions({}),
     )
+    if (typeof result === 'number') {
+      return result
+    }
+
+    if (typeof result === 'object' && 'rowCount' in result) {
+      return (result as any).rowCount
+    }
+
     return result
   }
 
   async tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T> {
     const transaction = await this.sequelize.transaction()
 
-    return fn(new TransactionalSequelizeQueryExecutor(this.sequelize, transaction))
+    try {
+      const res = await fn(new TransactionalSequelizeQueryExecutor(this.sequelize, transaction))
+      await transaction.commit()
+      return res
+    } catch (err) {
+      await transaction.rollback()
+      throw err
+    }
   }
 }
 

@@ -401,7 +401,7 @@ export class CommonMemberService extends LoggerBase {
         }),
       )
 
-      await this.temporal.workflow.start('`finishMemberMerging`', {
+      await this.temporal.workflow.start('finishMemberMerging', {
         taskQueue: 'entity-merging',
         workflowId: `finishMemberMerging/${originalId}/${toMergeId}`,
         retry: {
@@ -468,19 +468,6 @@ export class CommonMemberService extends LoggerBase {
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => calculateReach(oldReach, newReach),
       score: (oldScore, newScore) => Math.max(oldScore, newScore),
-      emails: (oldEmails, newEmails) => {
-        if (!oldEmails && !newEmails) {
-          return []
-        }
-
-        oldEmails = oldEmails ?? []
-        newEmails = newEmails ?? []
-
-        const emailSet = new Set<string>(oldEmails)
-        newEmails.forEach((email) => emailSet.add(email))
-
-        return Array.from(emailSet)
-      },
       attributes: (oldAttributes, newAttributes) => safeObjectMerge(oldAttributes, newAttributes),
     })
   }
@@ -488,7 +475,6 @@ export class CommonMemberService extends LoggerBase {
   isEqual = {
     displayName: (a, b) => a === b,
     attributes: (a, b) => isEqual(a, b),
-    emails: (a, b) => isEqual(a, b),
     contributions: (a, b) => isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => isEqual(a, b),

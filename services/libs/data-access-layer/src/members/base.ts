@@ -509,7 +509,7 @@ export async function moveAffiliationsBetweenMembers(
   }
 
   await qx.result(
-    `update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;`,
+    `update "memberSegmentAffiliations" set "memberId" = $(toMemberId) where "memberId" = $(fromMemberId);`,
     params,
   )
 }
@@ -519,6 +519,11 @@ export async function updateMember(
   id: string,
   data: IDbMemberUpdateData,
 ): Promise<void> {
+  // we shouldn't update id
+  if ('id' in data) {
+    delete data.id
+  }
+
   const keys = Object.keys(data)
   if (keys.length === 0) {
     return

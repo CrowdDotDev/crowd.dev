@@ -182,12 +182,14 @@ export async function getMemberSegments(
   memberId: string,
 ): Promise<SegmentData[]> {
   const query = `
-        select * from segments
-        where id in (SELECT distinct "segmentId"
-                    FROM "memberSegments"
-                    WHERE "memberId" = $(memberId)
-                    ORDER BY "createdAt")
-        group by id
+        with member_segments as (
+          select distinct on ("segmentId") "segmentId", "createdAt"
+          from "memberSegments"
+          where "memberId" = $(memberId)
+        )
+        select s.* 
+        from segments s inner join member_segments ms on s.id = ms."segmentId"
+        order by ms."createdAt" desc
     `
 
   let data = await qx.select(query, { memberId })
