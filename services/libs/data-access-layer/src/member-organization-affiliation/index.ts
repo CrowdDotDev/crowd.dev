@@ -229,13 +229,17 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
-  const mergeTimelineWithManualAffiliations = (
+  const resolveAffiliationTimeline = (
     timeline: TimelineItem[],
     manualAffiliations: IManualAffiliationData[],
+    fallbackOrganizationId: string | null,
+    earliestStartDate: string | null,
   ): TimelineItem[] => {
-    if (manualAffiliations.length === 0) {
+    if (manualAffiliations.length === 0 && !fallbackOrganizationId) {
       return timeline
     }
+
+        // Merge member org timeline with manual affiliations
 
     const allAffiliations = _.chain([...timeline, ...manualAffiliations])
       .sortBy('dateStart')
@@ -244,13 +248,13 @@ async function prepareMemberOrganizationAffiliationTimeline(
     const result = []
     let currentAffiliation = allAffiliations[0]
 
+    const now = new Date()
+
     for (let i = 1; i < allAffiliations.length; i++) {
       const nextAffiliation = allAffiliations[i]
 
       // Check if affiliations overlap
-      const currentEnd = currentAffiliation.dateEnd
-        ? new Date(currentAffiliation.dateEnd)
-        : new Date()
+      const currentEnd = currentAffiliation.dateEnd ? new Date(currentAffiliation.dateEnd) : now
       const nextStart = new Date(nextAffiliation.dateStart)
 
       if (currentEnd >= nextStart) {
@@ -290,15 +294,26 @@ async function prepareMemberOrganizationAffiliationTimeline(
     // add the last affiliation
     result.push(currentAffiliation)
 
+    // fallback organization covers period before any dated affiliations
+    // with fallback start and end date, we prevent db deadlocks by ensuring bounded ranges
+    if (fallbackOrganizationId) {
+      const fallbackStart = new Date('1970-01-01').toISOString()
+
+      // In case there's no earliest start date, use the first affiliation start date or now
+      const fallbackEnd =
+        earliestStartDate || (result.length > 0 ? result[0].dateStart : now.toISOString())
+
+      result.unshift({
+        organizationId: fallbackOrganizationId,
+        dateStart: fallbackStart,
+        dateEnd: fallbackEnd,
+      })
+    }
+
     return result
   }
 
   const { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
-
-  const timelineWithManualAffiliations = mergeTimelineWithManualAffiliations(
-    timeline,
-    manualAffiliations,
-  )
 
   const fallbackOrganizationId =
     _.chain(memberOrganizations)
@@ -308,15 +323,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
       .head()
       .value() ?? null
 
-  if (fallbackOrganizationId) {
-    timelineWithManualAffiliations.unshift({
-      organizationId: fallbackOrganizationId,
-      dateStart: new Date('1970-01-01').toISOString(),
-      dateEnd: earliestStartDate,
-    })
-  }
-
-  return timelineWithManualAffiliations
+  return resolveAffiliationTimeline(
+    timeline,
+    manualAffiliations,
+    fallbackOrganizationId,
+    earliestStartDate,
+  )
 }
 
 async function processAffiliationActivities(
