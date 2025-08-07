@@ -436,3 +436,25 @@ export async function removeGitHubRepoMapping(
   const cache = new RedisCache('githubRepos', redisClient, log)
   await cache.deleteAll()
 }
+
+export async function fetchMappedReposTx(qx: QueryExecutor, segmentId: string, tenantId: string) {
+
+  console.log(`Fetching mapped repositories for segmentId: ${segmentId}, tenantId: ${tenantId}`)
+
+  return qx.select(
+    `
+      select
+         r.url as url
+       from
+        "githubRepos" r
+       where r."segmentId" = $(segmentId)
+       and r."tenantId" = $(tenantId)
+       and r."deletedAt" is null
+       order by r.url
+      `,
+    {
+      segmentId,
+      tenantId,
+    },
+  )
+}
