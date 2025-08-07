@@ -239,7 +239,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       return timeline
     }
 
-        // Merge member org timeline with manual affiliations
+    // Merge member org timeline with manual affiliations
 
     const allAffiliations = _.chain([...timeline, ...manualAffiliations])
       .sortBy('dateStart')
