@@ -11,10 +11,3 @@ export type TimelineItem = {
   organizationId: string | null
   segmentId?: string
 }
-
-export interface MemberOrganizationAffiliationTimeline {
-  earliestStartDate: string
-  manualAffiliations: TimelineItem[]
-  timelineAffiliations: TimelineItem[]
-  fallbackOrganizationId: string | null
-}

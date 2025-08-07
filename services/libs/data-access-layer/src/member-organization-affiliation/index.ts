@@ -4,20 +4,17 @@ import { getLongestDateRange } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { findMemberAffiliations } from '../member_segment_affiliations'
+import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
 import { QueryExecutor } from '../queryExecutor'
 
-import type {
-  MemberOrganizationAffiliationTimeline,
-  MemberOrganizationWithOverrides,
-  TimelineItem,
-} from './types'
+import type { MemberOrganizationWithOverrides, TimelineItem } from './types'
 
 const logger = getServiceChildLogger('member-affiliations')
 
 async function prepareMemberOrganizationAffiliationTimeline(
   qx: QueryExecutor,
   memberId: string,
-): Promise<MemberOrganizationAffiliationTimeline> {
+): Promise<TimelineItem[]> {
   const isDateInInterval = (date: Date, start: Date | null, end: Date | null) => {
     return (!start || date >= start) && (!end || date <= end)
   }
@@ -174,7 +171,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     return { timeline, earliestStartDate: earliestStartDate.toISOString() }
   }
 
-  let manualAffiliations = await findMemberAffiliations(qx, memberId)
+  const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
   let memberOrganizations = await qx.select(
     `
@@ -232,25 +229,76 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
+  const mergeTimelineWithManualAffiliations = (
+    timeline: TimelineItem[],
+    manualAffiliations: IManualAffiliationData[],
+  ): TimelineItem[] => {
+    if (manualAffiliations.length === 0) {
+      return timeline
+    }
+
+    const allAffiliations = _.chain([...timeline, ...manualAffiliations])
+      .sortBy('dateStart')
+      .value()
+
+    const result = []
+    let currentAffiliation = allAffiliations[0]
+
+    for (let i = 1; i < allAffiliations.length; i++) {
+      const nextAffiliation = allAffiliations[i]
+
+      // Check if affiliations overlap
+      const currentEnd = currentAffiliation.dateEnd
+        ? new Date(currentAffiliation.dateEnd)
+        : new Date()
+      const nextStart = new Date(nextAffiliation.dateStart)
+
+      if (currentEnd >= nextStart) {
+        // There's an overlap - manual affiliations take precedence
+        if (nextAffiliation.segmentId) {
+          // Next affiliation is a manual affiliation - it takes precedence
+          // Close current affiliation before the overlap starts
+          if (currentAffiliation.dateStart !== nextAffiliation.dateStart) {
+            result.push({
+              ...currentAffiliation,
+              dateEnd: oneDayBefore(nextStart).toISOString(),
+            })
+          }
+          currentAffiliation = nextAffiliation
+        } else if (currentAffiliation.segmentId) {
+          // Current affiliation is a manual affiliation - it takes precedence
+          // Skip the next affiliation (member org) as it's overridden
+          continue
+        } else {
+          // Both are member orgs - use the existing logic (shouldn't happen in this context)
+          // but handle it gracefully
+          if (currentAffiliation.organizationId !== nextAffiliation.organizationId) {
+            result.push({
+              ...currentAffiliation,
+              dateEnd: oneDayBefore(nextStart).toISOString(),
+            })
+            currentAffiliation = nextAffiliation
+          }
+        }
+      } else {
+        // No overlap - add current affiliation and move to next
+        result.push(currentAffiliation)
+        currentAffiliation = nextAffiliation
+      }
+    }
+
+    // add the last affiliation
+    result.push(currentAffiliation)
+
+    return result
+  }
+
   const { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
 
-  manualAffiliations = _.chain(manualAffiliations)
-    .sortBy('dateStart')
-    .reverse()
-    .map((row) => ({
-      organizationId: row.organizationId,
-      dateStart: row.dateStart,
-      dateEnd: row.dateEnd,
-      // we need segmentId for manual affiliations
-      segmentId: row.segmentId,
-    }))
-    .value()
-
-  const timelineAffiliations = _.chain(timeline)
-    .filter((row) => !!row.dateStart)
-    .sortBy('dateStart')
-    .reverse()
-    .value()
+  const timelineWithManualAffiliations = mergeTimelineWithManualAffiliations(
+    timeline,
+    manualAffiliations,
+  )
 
   const fallbackOrganizationId =
     _.chain(memberOrganizations)
@@ -260,12 +308,15 @@ async function prepareMemberOrganizationAffiliationTimeline(
       .head()
       .value() ?? null
 
-  return {
-    timelineAffiliations,
-    manualAffiliations,
-    earliestStartDate,
-    fallbackOrganizationId,
+  if (fallbackOrganizationId) {
+    timelineWithManualAffiliations.unshift({
+      organizationId: fallbackOrganizationId,
+      dateStart: new Date('1970-01-01').toISOString(),
+      dateEnd: earliestStartDate,
+    })
   }
+
+  return timelineWithManualAffiliations
 }
 
 async function processAffiliationActivities(
@@ -333,106 +384,23 @@ async function processAffiliationActivities(
   return processed
 }
 
-async function processFallbackActivities(
-  qx: QueryExecutor,
-  memberId: string,
-  earliestStartDate: string,
-  fallbackOrganizationId: string | null,
-  batchSize = 5000,
-): Promise<number> {
-  let rowsUpdated
-  let processed = 0
-
-  // Build the where conditions for the subquery
-  const conditions = [`"memberId" = $(memberId)`]
-  const params: Record<string, unknown> = {
-    memberId,
-    fallbackOrganizationId,
-    batchSize,
-  }
-
-  if (fallbackOrganizationId) {
-    conditions.push(`"organizationId" != $(fallbackOrganizationId)`)
-  } else {
-    conditions.push(`"organizationId" is not null`)
-  }
-
-  if (earliestStartDate) {
-    conditions.push(`"timestamp" <= $(earliestStartDate)`)
-    params.earliestStartDate = earliestStartDate
-  }
-
-  const whereClause = conditions.join(' and ')
-
-  do {
-    const result = await qx.result(
-      `
-        UPDATE "activityRelations"
-        SET "organizationId" = $(fallbackOrganizationId), "updatedAt" = CURRENT_TIMESTAMP
-        WHERE "activityId" in (
-          select "activityId" from "activityRelations"
-          where ${whereClause}
-          limit $(batchSize)
-        )
-      `,
-      params,
-    )
-
-    rowsUpdated = result?.rowCount
-    processed += rowsUpdated
-  } while (rowsUpdated === batchSize)
-
-  logger.debug({ memberId, fallbackOrganizationId, processed }, 'Processed fallback activities!')
-
-  return processed
-}
-
 export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, memberId: string) {
   const start = performance.now()
 
-  const { manualAffiliations, timelineAffiliations, earliestStartDate, fallbackOrganizationId } =
-    await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
+  const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
-  // skip if no affiliations and no fallback organization
-  if (
-    manualAffiliations.length === 0 &&
-    timelineAffiliations.length === 0 &&
-    !fallbackOrganizationId
-  ) {
+  if (affiliations.length === 0) {
     logger.info({ memberId }, `No affiliations for member, skipping refresh!`)
     return
   }
 
-  const processAffiliations = async (affiliations: TimelineItem[]) => {
-    const results = await Promise.all(
-      affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
-    )
-
-    return results.reduce((acc, result) => acc + result, 0)
-  }
-
-  let processed = 0
-
-  // process activities outside any affiliation periods
-  if (fallbackOrganizationId) {
-    processed += await processFallbackActivities(
-      qx,
-      memberId,
-      earliestStartDate,
-      fallbackOrganizationId,
-    )
-  }
-
-  // process timeline affiliations
-  if (timelineAffiliations.length > 0) {
-    processed += await processAffiliations(timelineAffiliations)
-  }
-
-  // manual affiliations overwrite others if there's a overlap/conflict
-  if (manualAffiliations.length > 0) {
-    processed += await processAffiliations(manualAffiliations)
-  }
+  // process timeline in parallel
+  const results = await Promise.all(
+    affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
+  )
 
   const duration = performance.now() - start
+  const processed = results.reduce((acc, processed) => acc + processed, 0)
+
   logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
 }
