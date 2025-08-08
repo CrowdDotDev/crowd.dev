@@ -37,19 +37,11 @@
             label="Activities"
             name="activity"
           />
-          <el-tab-pane
-            label="Conversations"
-            name="conversation"
-          />
         </el-tabs>
       </div>
       <app-activity-list
         v-if="activeView === 'activity'"
         @edit="edit($event)"
-      />
-      <app-conversation-list
-        v-else-if="activeView === 'conversation'"
-        :items-as-cards="true"
       />
     </div>
   </app-page-wrapper>
@@ -87,7 +79,6 @@ import AppActivityTypeListDrawer from '@/modules/activity/components/type/activi
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
-import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
