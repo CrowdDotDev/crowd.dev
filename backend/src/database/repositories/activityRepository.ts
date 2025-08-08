@@ -703,15 +703,6 @@ class ActivityRepository {
             reach: 'reach.total',
           },
           manyToMany: {
-            tags: {
-              table: 'members',
-              model: 'member',
-              relationTable: {
-                name: 'memberTags',
-                from: 'memberId',
-                to: 'tagId',
-              },
-            },
             segments: {
               table: 'members',
               model: 'member',

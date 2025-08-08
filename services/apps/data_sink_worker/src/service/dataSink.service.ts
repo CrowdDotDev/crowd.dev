@@ -33,6 +33,8 @@ import { WORKER_SETTINGS } from '../conf'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
 
@@ -56,12 +58,15 @@ export default class DataSinkService extends LoggerBase {
     resultExists: boolean,
     location: string,
     message: string,
-    error?: Error,
+    error: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const errorData: any = {
       location,
       message,
+
+      metadata,
 
       errorMessage: error?.message ?? '<no error message>',
 
@@ -69,6 +74,7 @@ export default class DataSinkService extends LoggerBase {
         {
           errorMessage: error?.message ?? '<no error message>',
           errorStack: error?.stack,
+          metadata: error?.metadata,
           error,
         },
       ],
@@ -82,6 +88,7 @@ export default class DataSinkService extends LoggerBase {
       errorData.errors.push({
         errorMessage: currentError.message,
         errorStack: currentError.stack,
+        metadata: currentError.metadata,
         error: currentError,
       })
 
@@ -241,6 +248,7 @@ export default class DataSinkService extends LoggerBase {
 
   public async processResults(
     batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    postProcess = true,
   ): Promise<void> {
     this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
     const start = performance.now()
@@ -266,14 +274,20 @@ export default class DataSinkService extends LoggerBase {
 
     const groupedByType = groupBy(results, (r) => r.data.type)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resultMap = new Map<string, { success: boolean; err?: any }>()
+    const resultMap = new Map<
+      string,
+      { success: boolean; err?: any; metadata?: Record<string, unknown> }
+    >()
     const types = Array.from(groupedByType.keys()) as IntegrationResultType[]
     for (const type of types) {
       if (type === IntegrationResultType.ACTIVITY) {
         const results = groupedByType.get(type)
 
         for (const result of results) {
+          if (!result.platform) {
+            result.platform = (result.data.data as IActivityData).platform as PlatformType
+          }
+
           if (result.platform === PlatformType.GITHUB_NANGO) {
             result.platform = PlatformType.GITHUB
           }
@@ -294,7 +308,9 @@ export default class DataSinkService extends LoggerBase {
 
         let lastError: Error | undefined
 
-        let lastResults: Map<string, { success: boolean; err?: Error }> | undefined = undefined
+        let lastResults:
+          | Map<string, { success: boolean; err?: Error; metadata?: Record<string, unknown> }>
+          | undefined = undefined
 
         while (toProcess.length > 0 && retry < 5) {
           if (retry > 0) {
@@ -320,7 +336,7 @@ export default class DataSinkService extends LoggerBase {
 
             toProcess = []
             for (const [resultId, result] of lastResults) {
-              if (result.success || result.err instanceof UnrepeatableError) {
+              if (result.success || result.err instanceof UnrepeatableError || result.metadata) {
                 resultMap.set(resultId, result)
               } else {
                 toProcess.push(single(results, (r) => r.id === resultId))
@@ -372,13 +388,7 @@ export default class DataSinkService extends LoggerBase {
         // just process individually
         for (const entry of groupedByType.get(type)) {
           try {
-            const service = new MemberService(
-              this.pgStore,
-              this.searchSyncWorkerEmitter,
-              this.temporal,
-              this.redisClient,
-              this.log,
-            )
+            const service = new MemberService(this.pgStore, this.redisClient, this.log)
             const memberData = entry.data.data as IMemberData
 
             await service.processMemberUpdate(entry.integrationId, entry.platform, memberData)
@@ -390,6 +400,11 @@ export default class DataSinkService extends LoggerBase {
       } else {
         this.log.error(`[RESULTS] Unknown result type: ${type}!`)
       }
+    }
+
+    if (!postProcess) {
+      this.log.info(`[RESULTS] Skipping post processing!`)
+      return
     }
 
     this.log.trace(`[RESULTS] Processing ${resultMap.size} process results!`)
@@ -411,6 +426,7 @@ export default class DataSinkService extends LoggerBase {
           'process-result',
           'Error processing result.',
           result.err,
+          result.metadata,
         )
 
         errors++
@@ -423,8 +439,9 @@ export default class DataSinkService extends LoggerBase {
       }
     }
 
-    if (resultsToDelete.length > 0) {
+    if (resultsToDelete.length > 0 && postProcess) {
       this.log.trace(`[RESULTS] Deleting ${resultsToDelete.length} results from db!`)
+
       await this.repo.deleteResults(resultsToDelete)
     }
 

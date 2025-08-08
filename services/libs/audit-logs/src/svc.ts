@@ -3,7 +3,6 @@ import {
   AuditLogRequestOptions,
   addAuditAction,
 } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
 
 import { BuildActionFn } from './baseActions'
 
@@ -41,14 +40,7 @@ async function captureChange(
     }
   }
 
-  const db = await getDbConnection({
-    host: process.env.CROWD_DB_WRITE_HOST,
-    port: parseInt(process.env.CROWD_DB_PORT),
-    database: process.env.CROWD_DB_DATABASE,
-    user: process.env.CROWD_DB_USERNAME,
-    password: process.env.CROWD_DB_PASSWORD,
-  })
-  await addAuditAction(db, options, action)
+  await addAuditAction(options, action)
 }
 
 export async function captureApiChange<T>(

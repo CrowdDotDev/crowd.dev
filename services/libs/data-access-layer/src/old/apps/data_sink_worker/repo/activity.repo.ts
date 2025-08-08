@@ -1,4 +1,13 @@
-import { DbColumnSet, DbStore, RepositoryBase, eqOrNull } from '@crowd/database'
+import {
+  DbColumnSet,
+  DbStore,
+  RepositoryBase,
+  eqOrNull,
+  formatSql,
+  prepareForInsert,
+  prepareForModification,
+  prepareForUpdate,
+} from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
 import {
@@ -123,15 +132,15 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   }
 
   public async rawUpdate(id: string, data: IDbActivityUpdateData): Promise<void> {
-    const prepared = RepositoryBase.prepare(data, this.updateActivityColumnSet)
-    const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
-    const condition = this.format('where id = $(id)', { id })
+    const prepared = prepareForModification(data, this.updateActivityColumnSet)
+    const query = prepareForUpdate(prepared, this.updateActivityColumnSet)
+    const condition = formatSql('where id = $(id)', { id })
     await this.db().none(`${query} ${condition}`)
   }
 
   public async rawInsert(data: IDbActivityCreateData): Promise<void> {
-    const prepared = RepositoryBase.prepare(data, this.insertActivityColumnSet)
-    const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
+    const prepared = prepareForModification(data, this.insertActivityColumnSet)
+    const query = prepareForInsert(prepared, this.insertActivityColumnSet)
     await this.db().none(`${query} on conflict do nothing`)
   }
 }

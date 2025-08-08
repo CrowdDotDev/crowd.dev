@@ -298,7 +298,7 @@ async function generateSlug(segmentId: string, title: string): Promise<string> {
   cleanedSlug = cleanedSlug.replace(/-$/gi, '')
 
   // check generated slug already exists in segment
-  let slugExists = await doesConversationWithSlugExists(this.qdbStore, cleanedSlug, segmentId)
+  let slugExists = await doesConversationWithSlugExists(svc.questdbSQL, cleanedSlug, segmentId)
 
   // generated slug already exists in the segment, start adding suffixes and re-check
   if (slugExists) {
@@ -308,7 +308,7 @@ async function generateSlug(segmentId: string, title: string): Promise<string> {
 
     while (slugExists) {
       const suffixedSlug = `${slugCopy}-${suffix}`
-      slugExists = await doesConversationWithSlugExists(this.qdbStore, cleanedSlug, segmentId)
+      slugExists = await doesConversationWithSlugExists(svc.questdbSQL, cleanedSlug, segmentId)
       suffix += 1
       cleanedSlug = suffixedSlug
     }

@@ -28,8 +28,6 @@ export * from './opensearch'
 
 export * from './graphql'
 
-export * from './tags'
-
 export * from './attributes'
 
 export * from './query'

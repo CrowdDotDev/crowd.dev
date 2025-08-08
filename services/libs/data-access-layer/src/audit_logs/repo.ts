@@ -1,8 +1,8 @@
 import validator from 'validator'
 
-import { DbConnection } from '@crowd/database'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/database'
 
-import { QueryExecutor } from '../queryExecutor'
+import { QueryExecutor, connQx } from '../queryExecutor'
 
 export interface AuditLogRequestOptions {
   userId: string
@@ -61,12 +61,14 @@ const ACTION_TYPES_ENTITY_TYPES = {
   [ActionType.INTEGRATIONS_RECONNECT]: EntityType.INTEGRATION,
 }
 
-export async function addAuditAction(
-  db: DbConnection,
-  options: AuditLogRequestOptions,
-  action: AuditLogAction,
-) {
-  await db.query(
+let qx: QueryExecutor | undefined = undefined
+export async function addAuditAction(options: AuditLogRequestOptions, action: AuditLogAction) {
+  if (!qx) {
+    const conn = await getDbConnection(WRITE_DB_CONFIG())
+    qx = connQx(conn)
+  }
+
+  await qx.result(
     `
       INSERT INTO "auditLogAction" (
         "userId",

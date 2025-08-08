@@ -28,7 +28,6 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
     enrichedBy: [],
     identities: [],
     organizations: [],
-    tags: [],
     toMergeIds: [],
     noMergeIds: [],
     lastActivity: null,

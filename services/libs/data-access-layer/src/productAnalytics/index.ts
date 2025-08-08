@@ -10,7 +10,7 @@ export async function createSession(
   qx: QueryExecutor,
   data: IDbSessionInsertData,
 ): Promise<ISessionData> {
-  const record = await qx.result(
+  return qx.selectOne(
     `insert into "sessions" ("id", "userId", "userEmail", "ipAddress", "country")
         values ($(id), $(userId), $(userEmail), $(ipAddress), $(country)) returning *`,
     {
@@ -21,8 +21,6 @@ export async function createSession(
       country: data.country || null,
     },
   )
-
-  return record.rows[0]
 }
 
 export async function updateSession(
