@@ -101,7 +101,7 @@ class CommitService(BaseService):
         remote: str,
         segment_id: str,
         integration_id,
-    ) -> List[tuple]:
+    ):
         """
         Process commits from a cloned batch.
 
@@ -133,7 +133,7 @@ class CommitService(BaseService):
                 repo_path, prev_batch_edge_commit, edge_commit
             )
 
-            activities = await self._process_activities_from_commits(
+            await self._process_activities_from_commits(
                 raw_commits, repo_path, edge_commit, remote, segment_id, integration_id
             )
 
@@ -143,8 +143,6 @@ class CommitService(BaseService):
             self.logger.info(
                 f"Batch activity processed from {remote} in {int(processing_time)}sec ({processing_time / 60:.2f} min)"
             )
-
-            return []
 
         except Exception as e:
             # TODO: return unified Result object for all services including status and error code/message
@@ -526,7 +524,7 @@ class CommitService(BaseService):
         remote: str,
         segment_id: str,
         integration_id: str,
-    ) -> List[tuple]:
+    ):
         """
         Parse raw git log output into commit dictionaries.
         """
@@ -563,7 +561,6 @@ class CommitService(BaseService):
             if chunk_activities_db and chunk_activities_queue:
                 await batch_insert_activities(chunk_activities_db)
                 await self.queue_service.send_batch_activities(chunk_activities_queue)
-                # TODO: queue service
 
     @staticmethod
     def _validate_commit_structure(commit_lines: List[str]) -> bool:
