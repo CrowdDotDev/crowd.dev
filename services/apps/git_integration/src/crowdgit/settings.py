@@ -17,3 +17,11 @@ WORKER_POLLING_INTERVAL_SEC = load_env_var("WORKER_POLLING_INTERVAL_SEC", defaul
 WORKER_ERROR_BACKOFF_SEC = load_env_var("WORKER_ERROR_BACKOFF_SEC", default=10)
 REPOSITORY_UPDATE_INTERVAL_HOURS = load_env_var("REPOSITORY_UPDATE_INTERVAL_HOURS", default=1)
 MAX_WORKER_PROCESSES = load_env_var("MAX_WORKER_PROCESSES", default=min(4, os.cpu_count()))
+DEFAULT_TENANT_ID = load_env_var(
+    "CROWD_SSO_LF_TENANT_ID", default="875c38bd-2b1b-4e91-ad07-0cfbabb4c49f"
+)
+CROWD_KAFKA_BROKERS = load_env_var("CROWD_KAFKA_BROKERS")
+CROWD_KAFKA_TOPIC = load_env_var("CROWD_KAFKA_TOPIC")
+CROWD_KAFKA_EXTRA = load_env_var("CROWD_KAFKA_EXTRA", required=False)
+CROWD_KAFKA_USER = load_env_var("CROWD_KAFKA_USER", required=False)
+CROWD_KAFKA_PASSWORD = load_env_var("CROWD_KAFKA_PASSWORD", required=False)
