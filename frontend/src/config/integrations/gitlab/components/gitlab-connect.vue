@@ -34,7 +34,6 @@ const props = defineProps<{
 }>();
 
 const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { doGitlabConnect } = mapActions('integration');
 
 const isFinishingModalOpen = ref(false);
