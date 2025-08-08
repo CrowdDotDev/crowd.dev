@@ -6,7 +6,7 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error400, Error409, websiteNormalizer } from '@crowd/common'
+import { Error400, Error409, normalizeHostname } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { queryMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
@@ -852,7 +852,7 @@ export default class OrganizationService extends LoggerBase {
           OrganizationIdentityType.ALTERNATIVE_DOMAIN,
         ].includes(i.type),
       )) {
-        i.value = websiteNormalizer(i.value)
+        i.value = normalizeHostname(i.value)
       }
 
       let record
@@ -953,7 +953,7 @@ export default class OrganizationService extends LoggerBase {
             OrganizationIdentityType.ALTERNATIVE_DOMAIN,
           ].includes(i.type),
         )) {
-          i.value = websiteNormalizer(i.value)
+          i.value = normalizeHostname(i.value)
         }
 
         const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)
