@@ -39,9 +39,7 @@ const { doGitlabConnect } = mapActions('integration');
 
 const isFinishingModalOpen = ref(false);
 
-const connectUrl = computed(() => `${config.backendUrl}/gitlab/${
-  tenant.value.id
-}/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`);
+const connectUrl = computed(() => `${config.backendUrl}/gitlab/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`);
 
 const connect = async () => {
   try {
