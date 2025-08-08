@@ -29,7 +29,7 @@ export default (sequelize) => {
       },
       placement: {
         type: DataTypes.TEXT,
-        isIn: [['member', 'organization', 'activity', 'conversation']],
+        isIn: [['member', 'organization', 'activity']],
         allowNull: false,
       },
       tenantId: {
