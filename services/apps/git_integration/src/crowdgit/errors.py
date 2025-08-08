@@ -65,3 +65,15 @@ class CommandExecutionError(CrowdGitError):
 class CloneError(CrowdGitError):
     error_message: str = "Failed to clone repository"
     error_code: ErrorCode = ErrorCode.INTERNAL
+
+
+@dataclass
+class QueueConnectionError(CrowdGitError):
+    error_message: str = "Failed to connect to queue"
+    error_code: ErrorCode = ErrorCode.QUEUE_CONNECTION_ERROR
+
+
+@dataclass
+class QueueMessageProduceError(CrowdGitError):
+    error_message: str = "Failed to emit message to queue"
+    error_code: ErrorCode = ErrorCode.QUEUE_EMIT_ERROR
