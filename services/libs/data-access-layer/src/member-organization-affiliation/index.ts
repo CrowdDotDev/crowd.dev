@@ -111,98 +111,105 @@ async function prepareMemberOrganizationAffiliationTimeline(
     const timeline: TimelineItem[] = []
     const now = new Date()
 
-    // pre-earliest-date fallback if we have a fallback organization
-    if (fallbackOrganizationId) {
-      const fallbackStart = new Date('1970-01-01')
-      const fallbackEnd = earliestStartDate ? oneDayBefore(earliestStartDate) : now
+    // default fallback start and end
+    // fallback end will be updated if earliest start date exists
+    const fallbackStart = new Date('1970-01-01')
+    let fallbackEnd = now
 
-      timeline.push({
-        organizationId: fallbackOrganizationId,
-        dateStart: fallbackStart.toISOString(),
-        dateEnd: fallbackEnd.toISOString(),
-      })
-    }
+    if (earliestStartDate) {
+      logger.debug(
+        { memberId, earliestStartDate },
+        'Constructing timeline with earliest start date!',
+      )
 
-    if (!earliestStartDate) {
-      logger.debug({ memberId }, 'No earliest start date found for member affiliations!')
-      return timeline
-    }
+      // loop from earliest to latest start date, day by day
+      let currentPrimaryOrg = null
+      let currentStartDate = null
+      let gapStartDate = null
 
-    // loop from earliest to latest start date, day by day
-    let currentPrimaryOrg = null
-    let currentStartDate = null
-    let gapStartDate = null
+      for (let date = new Date(earliestStartDate); date <= now; date.setDate(date.getDate() + 1)) {
+        const orgs = findOrgsWithRolesInDate(date, [...memberOrganizations, ...manualAffiliations])
 
-    for (let date = new Date(earliestStartDate); date <= now; date.setDate(date.getDate() + 1)) {
-      const orgs = findOrgsWithRolesInDate(date, [...memberOrganizations, ...manualAffiliations])
+        if (orgs.length === 0) {
+          // means there's a gap in the timeline, close the current range if there's one
+          if (currentPrimaryOrg) {
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+          }
+          currentPrimaryOrg = null
+          currentStartDate = null
 
-      if (orgs.length === 0) {
-        // means there's a gap in the timeline, close the current range if there's one
-        if (currentPrimaryOrg) {
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-            segmentId: currentPrimaryOrg.segmentId || undefined,
-          })
-        }
-        currentPrimaryOrg = null
-        currentStartDate = null
+          // start tracking gap if we haven't already
+          if (gapStartDate === null) {
+            gapStartDate = new Date(date)
+          }
+        } else {
+          // if we were in a gap, close it first
+          if (gapStartDate !== null) {
+            timeline.push({
+              organizationId: fallbackOrganizationId,
+              dateStart: gapStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+            })
+            gapStartDate = null
+          }
 
-        // start tracking gap if we haven't already
-        if (gapStartDate === null) {
-          gapStartDate = new Date(date)
-        }
-      } else {
-        // if we were in a gap, close it first
-        if (gapStartDate !== null) {
-          timeline.push({
-            organizationId: fallbackOrganizationId,
-            dateStart: gapStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-          })
-          gapStartDate = null
-        }
+          const primaryOrg = selectPrimaryWorkExperience(orgs)
 
-        const primaryOrg = selectPrimaryWorkExperience(orgs)
-
-        if (currentPrimaryOrg == null) {
-          // means there's a new range starting
-          currentPrimaryOrg = primaryOrg
-          currentStartDate = new Date(date)
-        } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
-          // we have a new primary org, we need to close the current range and open a new one
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-            segmentId: currentPrimaryOrg.segmentId || undefined,
-          })
-          currentPrimaryOrg = primaryOrg
-          currentStartDate = new Date(date)
-        }
-      }
-
-      // if we're at the end, close the current range
-      if (new Date(date.getTime() + 86400000) > now) {
-        if (currentPrimaryOrg && currentStartDate) {
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: currentPrimaryOrg.dateEnd,
-            segmentId: currentPrimaryOrg.segmentId || undefined,
-          })
+          if (currentPrimaryOrg == null) {
+            // means there's a new range starting
+            currentPrimaryOrg = primaryOrg
+            currentStartDate = new Date(date)
+          } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
+            // we have a new primary org, we need to close the current range and open a new one
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+            currentPrimaryOrg = primaryOrg
+            currentStartDate = new Date(date)
+          }
         }
 
-        if (gapStartDate !== null) {
-          timeline.push({
-            organizationId: fallbackOrganizationId,
-            dateStart: gapStartDate.toISOString(),
-            dateEnd: now.toISOString(),
-          })
+        // if we're at the end, close the current range
+        if (new Date(date.getTime() + 86400000) > now) {
+          if (currentPrimaryOrg && currentStartDate) {
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: currentPrimaryOrg.dateEnd,
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+          }
+
+          if (gapStartDate !== null) {
+            timeline.push({
+              organizationId: fallbackOrganizationId,
+              dateStart: gapStartDate.toISOString(),
+              dateEnd: now.toISOString(),
+            })
+          }
         }
       }
+
+      // set fallback end to the day before the earliest start date to prevent overlap with
+      // the dated timeline ranges above.
+      fallbackEnd = oneDayBefore(earliestStartDate)
     }
+
+    // prepend range to cover all activities before the earliest affiliation date
+    // also handles edge case where fallback org is null and the timeline is empty.
+    timeline.unshift({
+      organizationId: fallbackOrganizationId,
+      dateStart: fallbackStart.toISOString(),
+      dateEnd: fallbackEnd.toISOString(),
+    })
 
     return timeline
   }
@@ -342,11 +349,6 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
   const start = performance.now()
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
-
-  if (affiliations.length === 0) {
-    logger.info({ memberId }, `No affiliations for member, skipping refresh!`)
-    return
-  }
 
   // process timeline in parallel
   const results = await Promise.all(
