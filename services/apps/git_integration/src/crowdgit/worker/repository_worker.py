@@ -7,6 +7,7 @@ from crowdgit.services import (
     CommitService,
     SoftwareValueService,
     MaintainerService,
+    QueueService,
 )
 from crowdgit.services.utils import get_repo_name
 from crowdgit.errors import InternalError
@@ -30,11 +31,13 @@ class RepositoryWorker:
         commit_service: CommitService,
         software_value_service: SoftwareValueService,
         maintainer_service: MaintainerService,
+        queue_service: QueueService,
     ):
         self.clone_service = clone_service
         self.commit_service = commit_service
         self.software_value_service = software_value_service
         self.maintainer_service = maintainer_service
+        self.queue_service = queue_service
         self._shutdown = False
         self.running_tasks: set[asyncio.Task] = set()
 
@@ -109,6 +112,7 @@ class RepositoryWorker:
             (self.commit_service, "commit_processing"),
             (self.maintainer_service, "maintainer_processing"),
             (self.software_value_service, "software_value_processing"),
+            (self.queue_service, "queue_service"),
         ]
 
         # Bind consistent context for all services: repo_name, id, and operation
@@ -122,6 +126,7 @@ class RepositoryWorker:
             self.commit_service,
             self.maintainer_service,
             self.software_value_service,
+            self.queue_service,
         ]
 
         for service in services:
@@ -139,7 +144,6 @@ class RepositoryWorker:
         try:
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
             logger.info("Starting repository cloning...")
-            total_processed_commits = []
             async for batch in self.clone_service.clone_batches(
                 repository.url,
                 repository.last_processed_commit,
@@ -148,11 +152,13 @@ class RepositoryWorker:
 
                 # Process commits for this specific batch using hash range for precision
                 if not batch.is_first_batch:
-                    activities = await self.commit_service.process_batch_commits(
+                    await self.commit_service.process_single_batch_commits(
                         repo_path=batch.repo_path,
                         edge_commit=batch.edge_commit,
                         prev_batch_edge_commit=batch.prev_batch_edge_commit,
                         remote=batch.remote,
+                        segment_id=repository.segment_id,
+                        integration_id=repository.integration_id,
                     )
                     if batch.is_final_batch:
                         await update_last_processed_commit(
