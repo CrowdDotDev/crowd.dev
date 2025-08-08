@@ -2,17 +2,11 @@
 alter table "insightsProjects" add column "deletedAt" timestamp without time zone;
 
 alter table public."insightsProjects"
-  drop constraint if exists "idx_insightsProjects_slug_unique",
   drop constraint if exists "unique_insightsProjects_name",
   drop constraint if exists "unique_project_segmentId";
 
-drop index if exists "idx_insightsProjects_slug_unique";
 drop index if exists "unique_insightsProjects_name";
 drop index if exists "unique_project_segmentId";
-
-create unique index "idx_insightsProjects_slug_unique"
-on public."insightsProjects" (slug)
-    where "deletedAt" is null;
 
 create unique index "unique_insightsProjects_name"
     on public."insightsProjects" (name)
