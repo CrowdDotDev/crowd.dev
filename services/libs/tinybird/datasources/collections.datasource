@@ -21,7 +21,7 @@ SCHEMA >
     `starred` Bool `json:$.record.starred` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
-    `deletedAt` DateTime64(3) `json:$.record.deletedAt`
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

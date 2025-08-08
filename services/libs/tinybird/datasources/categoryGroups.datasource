@@ -17,7 +17,7 @@ SCHEMA >
     `type` String `json:$.record.type` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
-    `deletedAt` DateTime64(3) `json:$.record.deletedAt`
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_SORTING_KEY slug
