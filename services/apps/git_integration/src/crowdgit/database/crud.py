@@ -1,5 +1,5 @@
-from typing import Dict, Any, Optional
-from .registry import fetchval, fetchrow
+from typing import Dict, Any, Optional, List
+from .registry import fetchval, fetchrow, executemany
 from crowdgit.models.repository import Repository
 from .connection import get_db_connection
 from crowdgit.enums import RepositoryPriority, RepositoryState
@@ -48,7 +48,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId"
     """
     return await acquire_repository(
         onboarding_repo_query, (RepositoryState.PROCESSING, RepositoryState.PENDING)
@@ -99,7 +99,7 @@ async def acquire_recurrent_repo() -> Optional[Repository]:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId"
     """
     states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
     return await acquire_repository(
@@ -157,3 +157,15 @@ async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
     """
     result = await fetchval(query, (repo_id, repo_state, RepositoryPriority.NORMAL))
     return str(result)
+
+
+async def batch_insert_activities(records: List[tuple], batch_size=100):
+    query = """
+    INSERT INTO integration.results(id, state, data, "tenantId", "integrationId")
+    values($1, $2, $3, $4, $5)
+    """
+    logger.info(f"Saving {len(records)} activity into integration.results")
+    for i in range(0, len(records), batch_size):
+        batch = records[i : i + batch_size]
+        await executemany(query, batch)
+    logger.info("activities saved into integration.results")

@@ -28,6 +28,22 @@ async def execute(sql: str, params: tuple = None) -> str:
         raise InternalError("Database execute operation failed")
 
 
+async def executemany(sql: str, params_list: List[tuple]) -> str:
+    """Execute write query multiple times with connection pooling"""
+    try:
+        async with get_db_connection() as conn:
+            result = await conn.executemany(sql, params_list)
+            return result
+    except Exception as error:
+        logger.error(
+            "Database executemany operation failed - SQL: {}, Params count: {}, Error: {}",
+            sql,
+            len(params_list) if params_list else 0,
+            error,
+        )
+        raise InternalError("Database executemany operation failed")
+
+
 async def fetchval(sql: str, params: tuple = None) -> Any:
     """Execute query and return single value"""
     try:

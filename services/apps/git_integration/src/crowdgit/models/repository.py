@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from crowdgit.enums import RepositoryPriority, RepositoryState
+import uuid
 
 
 class Repository(BaseModel):
@@ -9,6 +10,8 @@ class Repository(BaseModel):
 
     id: str = Field(..., description="Repository ID")
     url: str = Field(..., description="Repository URL")
+    segment_id: Optional[str] = Field(None, description="Segment ID")
+    integration_id: Optional[str] = Field(None, description="Integration ID")
     state: RepositoryState = Field(default=RepositoryState.PENDING, description="Repository state")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
     last_processed_at: Optional[datetime] = Field(None, description="Last processing timestamp")
@@ -24,9 +27,12 @@ class Repository(BaseModel):
         """Create Repository instance from database data"""
         # Convert database field names to model field names
         repo_data = db_data.copy()
-        # Handle UUID conversion
-        if "id" in repo_data and not isinstance(repo_data["id"], str):
-            repo_data["id"] = str(repo_data["id"])
+
+        # Convert any UUID fields to strings
+        for key, value in repo_data.items():
+            if value is not None and isinstance(value, uuid.UUID):
+                repo_data[key] = str(value)
+
         # Map database field names to model field names
         field_mapping = {
             "createdAt": "created_at",
@@ -34,19 +40,14 @@ class Repository(BaseModel):
             "lastProcessedAt": "last_processed_at",
             "lastProcessedCommit": "last_processed_commit",
             "lockedAt": "locked_at",
+            "segmentId": "segment_id",
+            "integrationId": "integration_id",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:
                 repo_data[model_field] = repo_data.pop(db_field)
-        return cls(**repo_data)
 
-    @field_validator("id", mode="before")
-    @classmethod
-    def validate_id(cls, v):
-        """Convert UUID to string if needed"""
-        if v is not None:
-            return str(v)
-        return v
+        return cls(**repo_data)
 
     class Config:
         """Pydantic configuration"""
@@ -59,6 +60,8 @@ class RepositoryCreate(BaseModel):
     """Model for creating a new repository"""
 
     url: str = Field(..., description="Repository URL")
+    segment_id: Optional[str] = Field(None, description="Segment ID")
+    integration_id: Optional[str] = Field(None, description="Integration ID")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
 
 

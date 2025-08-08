@@ -195,7 +195,7 @@ class CloneService(BaseService):
         temp_repo_path = None
         batch_info = CloneBatchInfo(
             repo_path=temp_repo_path,
-            remote=remote,
+            remote=remote.removesuffix(".git"),
             is_final_batch=False,
             is_first_batch=True,
             total_commits_count=0,

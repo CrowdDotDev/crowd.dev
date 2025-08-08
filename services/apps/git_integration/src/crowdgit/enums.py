@@ -11,6 +11,8 @@ class ErrorCode(str, Enum):
     NETWORK_ERROR = "network-error"
     PERMISSION_ERROR = "permission-error"
     SHELL_COMMAND_FAILED = "shell-command-failed"
+    QUEUE_EMIT_ERROR = "queue-emit-error"
+    QUEUE_CONNECTION_ERROR = "queue-connection-error"
 
 
 class RepositoryState(str, Enum):
@@ -28,3 +30,15 @@ class RepositoryPriority(int):
     URGENT = 0
     HIGH = 1
     NORMAL = 2
+
+
+class IntegrationResultType(str, Enum):
+    ACTIVITY = "activity"
+
+
+class IntegrationResultState(str, Enum):
+    PENDING = "pending"
+
+
+class DataSinkWorkerQueueMessageType(str, Enum):
+    PROCESS_INTEGRATION_RESULT = "process_integration_result"
