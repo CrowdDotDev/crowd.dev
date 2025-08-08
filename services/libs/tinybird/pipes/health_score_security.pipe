@@ -5,7 +5,7 @@ SQL >
     FROM insightsProjects FINAL ARRAY
     JOIN repositories AS repo
     WHERE
-        1 = 1
+        deletedAt = null
         {% if defined(project) %}
             AND id = (SELECT insightsProjectId FROM segments_filtered)
             AND repo in (select arrayJoin(repositories) from segments_filtered)

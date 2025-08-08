@@ -18,7 +18,7 @@ SQL >
     SELECT id as insightsProjectId, segmentId, repositories
     FROM insightsProjects FINAL
     where
-        insightsProjects.enabled
+        insightsProjects.deletedAt = null AND insightsProjects.enabled
         {% if defined(project) %}
             AND slug = {{ String(project, description="Filter by project slug", required=True) }}
         {% else %} AND false
