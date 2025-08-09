@@ -60,24 +60,6 @@ import { EnrichmentRateLimitError } from '../utils/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export async function shouldSkipSourceDueToRateLimit(
-  source: MemberEnrichmentSource,
-): Promise<boolean> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
-
-  const rateLimitReset = await redisCache.get('rateLimitReset')
-  if (!rateLimitReset) return false
-
-  const resetTime = parseInt(rateLimitReset)
-  if (Date.now() >= resetTime) {
-    // rate limit expired, clean up
-    await redisCache.delete('rateLimitReset')
-    return false
-  }
-
-  return true
-}
-
 async function setRateLimitResetTime(
   source: MemberEnrichmentSource,
   backoffSeconds: number,
@@ -93,11 +75,6 @@ export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
   input: IEnrichmentSourceInput,
 ): Promise<boolean> {
-  // Check if source is rate limited first
-  if (await shouldSkipSourceDueToRateLimit(source)) {
-    return false
-  }
-
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return service.isEnrichableBySource(input)
 }
@@ -122,6 +99,7 @@ export async function getEnrichmentData(
       throw err
     }
   }
+
   return null
 }
 
