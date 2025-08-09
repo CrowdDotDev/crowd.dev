@@ -56,8 +56,20 @@ import {
   IMemberEnrichmentDataNormalized,
   IMemberEnrichmentDataNormalizedOrganization,
 } from '../types'
+import { EnrichmentRateLimitError } from '../utils/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+async function setRateLimitResetTime(
+  source: MemberEnrichmentSource,
+  backoffSeconds: number,
+): Promise<void> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const resetTime = Date.now() + backoffSeconds * 1000
+
+  // set buffer to ttl to avoid race conditions
+  await redisCache.set('rateLimitReset', resetTime.toString(), backoffSeconds + 60)
+}
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
@@ -72,9 +84,22 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
   if (await service.isEnrichableBySource(input)) {
-    return service.getData(input)
+    try {
+      return await service.getData(input)
+    } catch (err) {
+      if (err instanceof EnrichmentRateLimitError) {
+        await setRateLimitResetTime(source, err.rateLimitResetSeconds)
+        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
+        return null
+      }
+
+      svc.log.error({ source, err }, 'Error getting enrichment data!')
+      throw err
+    }
   }
+
   return null
 }
 
@@ -159,7 +184,6 @@ export async function hasRemainingCredits(source: MemberEnrichmentSource): Promi
   }
 
   const hasCredits = await service.hasRemainingCredits()
-
   await setHasRemainingCredits(source, hasCredits)
   return hasCredits
 }
