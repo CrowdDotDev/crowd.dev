@@ -937,7 +937,6 @@ const memberStore = useMemberStore();
 const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
-const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
