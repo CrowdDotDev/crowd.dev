@@ -23,7 +23,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
   const findOrgsWithRolesInDate = (
     date: Date,
-    affiliations: Array<AffiliationItem>,
+    affiliations: AffiliationItem[],
   ): AffiliationItem[] => {
     const p = affiliations.filter((row) => {
       const dateStart = row.dateStart ? new Date(row.dateStart) : null
@@ -41,7 +41,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     return newDate
   }
 
-  const selectPrimaryWorkExperience = (orgs: Array<AffiliationItem>): AffiliationItem => {
+  const selectPrimaryWorkExperience = (orgs: AffiliationItem[]): AffiliationItem => {
     if (orgs.length === 1) {
       return orgs[0]
     }
@@ -78,8 +78,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       // 2. get the two orgs with the most members, and return the one with the most members if there's no draw
       // only compare member orgs (manual affiliations don't have memberCount)
       const memberOrgsOnly = orgs.filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (row: any) => !row.segmentId,
+        (row: AffiliationItem) => 'segmentId' in row && !!row.segmentId,
       ) as MemberOrganizationWithOverrides[]
       if (memberOrgsOnly.length >= 2) {
         const sortedByMembers = memberOrgsOnly.sort((a, b) => b.memberCount - a.memberCount)
@@ -103,11 +102,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
       (row) => !!row.dateStart,
     )
 
-    const earliestStartDate = allAffiliationsWithDates.length
-      ? new Date(
-          Math.min(...allAffiliationsWithDates.map((row) => new Date(row.dateStart).getTime())),
-        )
-      : null
+    const earliestStartDate =
+      allAffiliationsWithDates.length > 0
+        ? new Date(
+            Math.min(...allAffiliationsWithDates.map((row) => new Date(row.dateStart).getTime())),
+          )
+        : null
 
     const timeline: TimelineItem[] = []
     const now = new Date()
@@ -273,13 +273,18 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
-  const fallbackOrganizationId =
-    _.chain(memberOrganizations)
-      .filter((row) => !row.dateStart && !row.dateEnd)
-      .sortBy('createdAt')
-      .map((row) => row.organizationId)
-      .head()
-      .value() ?? null
+  let fallbackOrganizationId = primaryUnknownDatedWorkExperience?.organizationId
+
+  if (!fallbackOrganizationId) {
+    fallbackOrganizationId =
+      _.chain(memberOrganizations)
+        .filter((row) => !row.dateStart && !row.dateEnd)
+        .sortBy('createdAt')
+        .reverse()
+        .map('organizationId')
+        .head()
+        .value() ?? null
+  }
 
   return buildTimeline(memberOrganizations, manualAffiliations, fallbackOrganizationId)
 }
