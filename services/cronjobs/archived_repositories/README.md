@@ -24,7 +24,8 @@ It has two main processes:
 
 ## Configuration
 
-The software expects all configuration options to come from environment variables.
+The software expects all configuration options to come from environment variables, or a .env file. It uses the dotenv
+package to load the environment variables from a `.env` file in local development.
 
 ### For production
 
