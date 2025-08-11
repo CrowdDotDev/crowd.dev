@@ -3,7 +3,9 @@ DESCRIPTION >
     Returns necessary columns for projects
 
 SQL >
-    SELECT id, segmentId, slug, widgets from insightsProjects FINAL WHERE segmentId != ''
+    SELECT id, segmentId, slug, widgets
+    from insightsProjects FINAL
+    WHERE deletedAt = null and segmentId != ''
 
 NODE health_score_copy_data
 SQL >
