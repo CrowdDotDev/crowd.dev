@@ -17,9 +17,9 @@ export function parseRepoURL(url: string): ParsedRepoInfo {
 
   const [owner, repo] = parts;
 
-  if (parsed.hostname.includes('github.com')) {
+  if (parsed.hostname === 'github.com') {
     return { platform: Platform.GITHUB, owner, repo };
-  } else if (parsed.hostname.includes('gitlab.com')) {
+  } else if (parsed.hostname === 'gitlab.com') {
     return { platform: Platform.GITLAB, owner, repo };
   }
 
