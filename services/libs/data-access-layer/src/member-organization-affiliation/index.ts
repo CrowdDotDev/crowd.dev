@@ -78,6 +78,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       // 2. get the two orgs with the most members, and return the one with the most members if there's no draw
       // only compare member orgs (manual affiliations don't have memberCount)
       const memberOrgsOnly = orgs.filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (row: any) => !row.segmentId,
       ) as MemberOrganizationWithOverrides[]
       if (memberOrgsOnly.length >= 2) {
