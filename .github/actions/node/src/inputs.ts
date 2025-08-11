@@ -46,9 +46,6 @@ const getPushInputs = (): IPushInput => {
 const getDeployIUputs = (): IDeployInput => {
   const services = getInputList('services')
 
-  core.info(`services to deploy: ${services}`)
-
-
   const cloudEnvironment = process.env['CLOUD_ENV'] as CloudEnvironment
   if (!cloudEnvironment) {
     core.error('No CLOUD_ENV environment variable found!')

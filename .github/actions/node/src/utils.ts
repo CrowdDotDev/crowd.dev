@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
 import { IBuilderDefinition } from './types'
 import fs from 'fs'
-import * as core from '@actions/core'
 
 let definitions: IBuilderDefinition[] | undefined
 
@@ -12,8 +11,6 @@ export const getBuilderDefinitions = async (): Promise<IBuilderDefinition[]> => 
 
   const results: IBuilderDefinition[] = []
   const files = fs.readdirSync('./scripts/builders')
-
-  core.info(`files found: ${JSON.stringify(files)}`)
 
   for (const result of files) {
     if (result.endsWith('.env')) {
