@@ -759,59 +759,73 @@ export default class ActivityService extends LoggerBase {
     }
 
     if (payloadsNotInDb.length > 0) {
-      // if we don't have db activity or db member or db object member we need to load members by username
-      const usernameFilter = payloadsNotInDb
-        .filter((p) => !p.dbMember)
-        .map((p) => {
-          return {
-            platform: p.platform,
-            username: p.activity.username,
-            segmentId: p.segmentId,
-          }
-        })
-        .concat(
+      // map DB results to payloads by matching platform + value
+      const mapResultsToPayloads = (
+        results: Map<string | { platform: string; value: string }, any>,
+        matchFn: (p: any, value: string, platform?: string) => boolean,
+        setMemberFn: (p: any, member: any) => void,
+      ) => {
+        for (const [key, dbMember] of results) {
+          const value = typeof key === 'string' ? key : key.value
+          const platform = typeof key === 'string' ? undefined : key.platform
+
           payloadsNotInDb
-            .filter((p) => !p.dbObjectMember && p.activity.objectMemberUsername)
-            .map((p) => {
-              return {
-                platform: p.platform,
-                username: p.activity.objectMemberUsername,
-                segmentId: p.segmentId,
-              }
-            }),
-        )
-
-      const dbMembersByUsername = await logExecutionTimeV2(
-        async () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
-        this.log,
-        'processActivities -> memberRepo.findMembersByUsernames',
-      )
-
-      // and map them to payloads
-      for (const [identity, dbMember] of dbMembersByUsername) {
-        for (const payload of payloadsNotInDb.filter(
-          (p) =>
-            !p.dbMember &&
-            p.platform === identity.platform &&
-            p.activity.username.toLowerCase() === identity.value.toLowerCase(),
-        )) {
-          payload.dbMember = dbMember
-          payload.dbMemberSource = 'username'
-        }
-
-        for (const payload of payloadsNotInDb.filter(
-          (p) =>
-            !p.dbObjectMember &&
-            p.platform === identity.platform &&
-            p.activity.objectMemberUsername &&
-            p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
-        )) {
-          payload.dbObjectMember = dbMember
-          payload.dbObjectMemberSource = 'username'
+            .filter((p) => matchFn(p, value, platform))
+            .forEach((p) => setMemberFn(p, dbMember))
         }
       }
 
-      // or by email if we don't find anything by username
+      // Look up members using verified usernames (same platform)
+      const usernameFilter = payloadsNotInDb
+        .filter((p) => !p.dbMember)
+        .map((p) => ({
+          platform: p.platform,
+          username: p.activity.username,
+          segmentId: p.segmentId,
+        }))
+        .concat(
+          payloadsNotInDb
+            .filter((p) => !p.dbObjectMember && p.activity.objectMemberUsername)
+            .map((p) => ({
+              platform: p.platform,
+              username: p.activity.objectMemberUsername,
+              segmentId: p.segmentId,
+            })),
+        )
+
+      if (usernameFilter.length > 0) {
+        const dbMembersByUsername = await logExecutionTimeV2(
+          () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByUsernames',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbMember &&
+            p.platform === platform &&
+            p.activity.username?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbObjectMember &&
+            p.platform === platform &&
+            p.activity.objectMemberUsername?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Look up members using verified emails (same platform)
       const emails = new Set<string>()
       for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
         for (const identity of payload.activity.member.identities.filter(
@@ -832,42 +846,192 @@ export default class ActivityService extends LoggerBase {
 
       if (emails.size > 0) {
         const dbMembersByEmail = await logExecutionTimeV2(
-          async () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
+          () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
           this.log,
           'processActivities -> memberRepo.findMembersByEmails',
         )
 
-        // and map them to payloads
-        for (const [email, dbMember] of dbMembersByEmail) {
-          for (const payload of payloadsNotInDb.filter(
-            (p) =>
-              !p.dbMember &&
-              p.activity.member.identities.some(
-                (i) =>
-                  i.verified &&
-                  i.type === MemberIdentityType.EMAIL &&
-                  i.value.toLowerCase() === email.toLowerCase(),
-              ),
-          )) {
-            payload.dbMember = dbMember
-            payload.dbMemberSource = 'email'
-          }
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
 
-          for (const payload of payloadsNotInDb.filter(
-            (p) =>
-              !p.dbObjectMember &&
-              p.activity.objectMember &&
-              p.activity.objectMember.identities.some(
-                (i) =>
-                  i.verified &&
-                  i.type === MemberIdentityType.EMAIL &&
-                  i.value.toLowerCase() === email.toLowerCase(),
-              ),
-          )) {
-            payload.dbObjectMember = dbMember
-            payload.dbObjectMemberSource = 'email'
-          }
-        }
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
+      }
+
+      // Look up members using cross-identity matching (different platforms)
+      // we will check only on platforms that store email identities as usernames
+
+      // regex to detect if a username looks like an email address
+      const EMAIL_LIKE_USERNAME = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
+
+      // only these platforms are considered for emails-as-usernames
+      const EMAIL_AS_USERNAME_PLATFORMS = [
+        PlatformType.GERRIT,
+        PlatformType.JIRA,
+        PlatformType.CONFLUENCE,
+      ]
+
+      // Verified email identities used as usernames -> match to verified usernames
+      const emailAsUsernameFilter = payloadsNotInDb
+        .filter((p) => !p.dbMember)
+        .flatMap((p) =>
+          p.activity.member.identities
+            .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+            .flatMap((i) =>
+              EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+                segmentId: p.segmentId,
+                platform,
+                username: i.value,
+              })),
+            ),
+        )
+        .concat(
+          payloadsNotInDb
+            .filter((p) => !p.dbObjectMember && p.activity.objectMember)
+            .flatMap((p) =>
+              p.activity.objectMember.identities
+                .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+                .flatMap((i) =>
+                  EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+                    segmentId: p.segmentId,
+                    platform,
+                    username: i.value,
+                  })),
+                ),
+            ),
+        )
+
+      if (emailAsUsernameFilter.length > 0) {
+        const dbMembersByEmailAsUsername = await logExecutionTimeV2(
+          () => findMembersByVerifiedUsernames(this.pgQx, [...new Set(emailAsUsernameFilter)]),
+          this.log,
+          'processActivities -> cross email->username',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Verified email-like usernames -> match to verified email identities
+      const emailLikeUsernameFilter = payloadsNotInDb
+        .filter(
+          (p) =>
+            !p.dbMember &&
+            EMAIL_AS_USERNAME_PLATFORMS.includes(p.platform) &&
+            p.activity.username &&
+            EMAIL_LIKE_USERNAME.test(p.activity.username),
+        )
+        .map((p) => ({
+          platform: p.platform,
+          username: p.activity.username,
+          segmentId: p.segmentId,
+        }))
+        .concat(
+          payloadsNotInDb
+            .filter(
+              (p) =>
+                !p.dbObjectMember &&
+                EMAIL_AS_USERNAME_PLATFORMS.includes(p.platform) &&
+                p.activity.objectMemberUsername &&
+                EMAIL_LIKE_USERNAME.test(p.activity.objectMemberUsername),
+            )
+            .map((p) => ({
+              platform: p.platform,
+              username: p.activity.objectMemberUsername,
+              segmentId: p.segmentId,
+            })),
+        )
+
+      if (emailLikeUsernameFilter.length > 0) {
+        const dbMembersByEmailLikeUsername = await logExecutionTimeV2(
+          () =>
+            findMembersByVerifiedEmails(this.pgQx, [
+              ...new Set(emailLikeUsernameFilter.map((p) => p.username)),
+            ]),
+          this.log,
+          'processActivities -> cross username->email',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.username &&
+            EMAIL_LIKE_USERNAME.test(p.activity.username) &&
+            p.activity.username.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMemberUsername &&
+            EMAIL_LIKE_USERNAME.test(p.activity.objectMemberUsername) &&
+            p.activity.objectMemberUsername.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
       }
     }
 
