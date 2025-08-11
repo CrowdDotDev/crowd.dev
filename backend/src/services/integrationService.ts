@@ -253,10 +253,9 @@ export default class IntegrationService {
     data.widgets = widgets
 
     if (IntegrationService.isCodePlatform(platform)) {
-      const [reposToBeRemoved, repositories] = await Promise.all([
-        collectionService.findNangoRepositoriesToBeRemoved(integrationId),
-        collectionService.findRepositoriesForSegment(segmentId),
-      ])
+      const reposToBeRemoved =
+        await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
+      const repositories = await collectionService.findRepositoriesForSegment(segmentId)
 
       data.repositories = [
         ...new Set(
