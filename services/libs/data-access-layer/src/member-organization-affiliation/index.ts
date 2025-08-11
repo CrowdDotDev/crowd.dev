@@ -303,7 +303,11 @@ async function processAffiliationActivities(
   const conditions = [`"memberId" = $(memberId)`]
 
   // Organization filtering
-  conditions.push(`"organizationId" IS DISTINCT FROM $(organizationId)`)
+  if (affiliation.organizationId) {
+    conditions.push(`"organizationId" is null or "organizationId" != $(organizationId)`)
+  } else {
+    conditions.push(`"organizationId" is not null`)
+  }
 
   // Date filtering
   if (affiliation.dateStart) {
