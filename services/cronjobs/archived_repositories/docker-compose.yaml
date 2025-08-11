@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ${CROWD_DB_DATABASE:-crowd}
       POSTGRES_USER: ${CROWD_DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${CROWD_DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${CROWD_DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
