@@ -53,7 +53,7 @@ export async function createMemberOrganization(
   memberId: string,
   data: Partial<IMemberOrganization>,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
         INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
         VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), $(date), $(date))
@@ -76,7 +76,7 @@ export async function updateMemberOrganization(
   id: string,
   data: Partial<IMemberOrganization>,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
           UPDATE "memberOrganizations"
           SET
@@ -106,7 +106,7 @@ export async function deleteMemberOrganization(
   memberId: string,
   id: string,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
       UPDATE "memberOrganizations"
       SET "deletedAt" = NOW()
@@ -125,7 +125,7 @@ export async function cleanSoftDeletedMemberOrganization(
   organizationId: string,
   data: Partial<IMemberOrganization>,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
       DELETE FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)

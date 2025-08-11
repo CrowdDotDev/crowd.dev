@@ -9,7 +9,6 @@ import {
   IMemberRoleWithOrganization,
   IMemberUsername,
   IOrganization,
-  ITag,
   LLMSuggestionVerdictType,
   MergeActionState,
   MergeActionStep,
@@ -43,7 +42,6 @@ export type IMergeActionColumns = keyof IMergeAction
 
 export interface IMemberUnmergeBackup {
   id: string
-  tags: ITag[]
   reach: IMemberReach
   joinedAt: string
   tenantId: string
@@ -60,7 +58,6 @@ export interface IMemberUnmergeBackup {
 
 export interface IMemberUnmergePreviewResult {
   id: string
-  tags: ITag[]
   reach: IMemberReach
   joinedAt: string
   tenantId: string
