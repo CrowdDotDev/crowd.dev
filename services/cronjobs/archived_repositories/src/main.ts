@@ -73,7 +73,7 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
       parsedResult = parseRepoURL(url);
     } catch (error) {
       console.warn(`Skipping URL due to error: ${error}`);
-      continue;
+      return;
     }
 
     const jobData = {
