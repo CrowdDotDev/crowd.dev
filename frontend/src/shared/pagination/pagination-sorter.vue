@@ -107,7 +107,6 @@ const model = computed({
   get() {
     if (
       props.module !== 'activity'
-      && props.module !== 'conversation'
     ) {
       return props.pageSize;
     }
@@ -127,16 +126,6 @@ const computedOptions = computed(() => {
         value: 'trending',
         label: 'Trending',
       },
-      {
-        value: 'recentActivity',
-        label: 'Most recent activity',
-      },
-    ];
-  }
-
-  if (props.module === 'conversation'
-  ) {
-    return [
       {
         value: 'recentActivity',
         label: 'Most recent activity',
