@@ -67,7 +67,6 @@ import { encryptData } from '../utils/crypto'
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
 import { getGithubInstallationToken } from './helpers/githubToken'
-import { fetchMappedReposTx } from '@crowd/data-access-layer/src/integrations'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -80,8 +79,6 @@ export default class IntegrationService {
 
   async createOrUpdate(data, transaction: Transaction, options?: IRepositoryOptions) {
     try {
-      console.log(`CREATE OR UPDATE INTEGRATION DATA: ${JSON.stringify(data)}`)
-
       const record = await IntegrationRepository.findByPlatform(data.platform, {
         ...(options || this.options),
         transaction,
@@ -158,7 +155,6 @@ export default class IntegrationService {
 
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
-      console.log(`CREATE INTEGRATION DATA: ${JSON.stringify(data)}`)
       const record = await IntegrationRepository.create(data, {
         ...(options || this.options),
         transaction,
@@ -223,6 +219,7 @@ export default class IntegrationService {
 
         await this.updateInsightsProject({
           insightsProjectId: insightsProject.id,
+          integrationId: record.id,
           isFirstUpdate: true,
           platform: data.platform,
           segmentId: record.segmentId,
@@ -256,13 +253,26 @@ export default class IntegrationService {
     data.widgets = widgets
 
     if (IntegrationService.isCodePlatform(platform)) {
-      const repositories = await collectionService.findRepositoriesForSegment(segmentId)
-      console.log(`Repositories found for segment ${segmentId}: ${JSON.stringify(repositories)}`)
+      const [reposToBeRemoved, repositories] = await Promise.all([
+        collectionService.findNangoRepositoriesToBeRemoved(integrationId),
+        collectionService.findRepositoriesForSegment(segmentId),
+      ])
+
       data.repositories = [
-        ...new Set([
-          ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-        ]),
-      ]
+        ...new Set(
+          Object.values(repositories).flatMap((repoGroups) => repoGroups.map((repo) => repo.url)),
+        ),
+      ].filter((url) => !reposToBeRemoved.includes(url))
+
+      if (platform !== PlatformType.GIT) {
+        await this.gitConnectOrUpdate({
+          remotes: data.repositories,
+        })
+      }
+
+      for (const repo of reposToBeRemoved) {
+        await collectionService.unmapGithubRepo(integrationId, repo)
+      }
     }
 
     if (
@@ -305,14 +315,10 @@ export default class IntegrationService {
     this.options.log.info(`Insight Project updated: ${insightsProjectId}`)
 
     await collectionService.updateInsightsProject(insightsProjectId, data)
-
   }
 
   async update(id, data, transaction?: any, options?: IRepositoryOptions) {
     try {
-
-      console.log(`UPDATE INTEGRATION ID: ${id}, data: ${JSON.stringify(data)}`)
-
       const record = await IntegrationRepository.update(id, data, {
         ...(options || this.options),
         transaction,
@@ -326,6 +332,7 @@ export default class IntegrationService {
 
       if (insightsProject) {
         await this.updateInsightsProject({
+          integrationId: record.id,
           insightsProjectId: insightsProject.id,
           platform: data.platform,
           segmentId: record.segmentId,
@@ -480,8 +487,6 @@ export default class IntegrationService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
-
-
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -2504,26 +2509,5 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
-  }
-
-  private static parseGithubUrl(url: string): { owner: string; repoName: string } {
-    // Create URL object
-    const parsedUrl = new URL(url)
-
-    // Get pathname (e.g., "/islet-project/3rd-kvmtool")
-    const pathname = parsedUrl.pathname
-
-    // Split by '/' and remove empty elements
-    const parts = pathname.split('/').filter(Boolean)
-
-    // First part is owner, second is repo
-    if (parts.length >= 2) {
-      return {
-        owner: parts[0],
-        repoName: parts[1],
-      }
-    }
-
-    throw new Error('Invalid GitHub URL format')
   }
 }
