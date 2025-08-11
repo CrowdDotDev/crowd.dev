@@ -31,7 +31,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import IntegrationRepository from './integrationRepository'
 import { RepositoryBase } from './repositoryBase'
 import SequelizeRepository from './sequelizeRepository'
-import { QueryExecutor } from '@crowd/data-access-layer'
 
 class SegmentRepository extends RepositoryBase<
   SegmentData,
@@ -926,8 +925,6 @@ class SegmentRepository extends RepositoryBase<
     const transaction = SequelizeRepository.getTransaction(this.options)
     const tenantId = this.options.currentTenant.id
 
-    console.log(`Fetching mapped repositories for segmentId: ${segmentId}, tenantId: ${tenantId}`)
-
     const result = await this.options.database.sequelize.query(
       `
       select
@@ -950,30 +947,6 @@ class SegmentRepository extends RepositoryBase<
     )
 
     return result
-  }
-
-  async getMappedReposTx(qx: QueryExecutor, segmentId: string) {
-    const tenantId = this.options.currentTenant.id
-
-    console.log(`Fetching mapped repositories for segmentId: ${segmentId}, tenantId: ${tenantId}`)
-
-    return qx.select(
-      `
-      select
-         r.url as url
-       from
-        "githubRepos" r
-       where r."segmentId" = $(segmentId)
-       and r."tenantId" = $(tenantId)
-       and r."deletedAt" is null
-       order by r.url
-      `,
-      {
-        segmentId,
-        tenantId,
-      },
-    )
-
   }
 }
 
