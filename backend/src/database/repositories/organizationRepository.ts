@@ -20,6 +20,7 @@ import {
   IDbOrganization,
   OrgIdentityField,
   addOrgIdentity,
+  addOrgsToSegments,
   cleanUpOrgIdentities,
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
@@ -170,41 +171,15 @@ class OrganizationRepository {
       await OrganizationRepository.setIdentities(record.id, data.identities, options)
     }
 
-    await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+    await addOrgsToSegments(
+      optionsQx(options),
+      options.currentSegments.map((s) => s.id),
+      [record.id],
+    )
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let bulkInsertOrganizationSegments = `INSERT INTO "organizationSegments" ("organizationId","segmentId", "tenantId", "createdAt") VALUES `
-    const replacements = {
-      organizationId,
-      tenantId: options.currentTenant.id,
-    }
-
-    for (let idx = 0; idx < options.currentSegments.length; idx++) {
-      bulkInsertOrganizationSegments += ` (:organizationId, :segmentId${idx}, :tenantId, now()) `
-
-      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
-
-      if (idx !== options.currentSegments.length - 1) {
-        bulkInsertOrganizationSegments += `,`
-      }
-    }
-
-    bulkInsertOrganizationSegments += ` ON CONFLICT DO NOTHING`
-
-    await seq.query(bulkInsertOrganizationSegments, {
-      replacements,
-      type: QueryTypes.INSERT,
-      transaction,
-    })
   }
 
   static async excludeOrganizationsFromSegments(
@@ -464,7 +439,11 @@ class OrganizationRepository {
     }
 
     if (data.segments) {
-      await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+      await addOrgsToSegments(
+        optionsQx(options),
+        options.currentSegments.map((s) => s.id),
+        [record.id],
+      )
     }
 
     await captureApiChange(

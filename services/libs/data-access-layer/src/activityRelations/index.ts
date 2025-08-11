@@ -224,7 +224,7 @@ export async function moveActivityRelationsToAnotherMember(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
           SET "memberId" = $(toId)
@@ -242,7 +242,7 @@ export async function moveActivityRelationsToAnotherMember(
       },
     )
 
-    rowsUpdated = result?.rowCount
+    rowsUpdated = rowCount
   } while (rowsUpdated === batchSize)
 }
 
@@ -257,7 +257,7 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
           SET "memberId" = $(toId)
@@ -280,7 +280,7 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
       },
     )
 
-    rowsUpdated = result?.rowCount
+    rowsUpdated = rowCount
   } while (rowsUpdated === batchSize)
 }
 
@@ -293,7 +293,7 @@ export async function moveActivityRelationsToAnotherOrganization(
   let rowsUpdated
 
   do {
-    const result = await qe.result(
+    const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
           SET "organizationId" = $(toId)
@@ -311,7 +311,7 @@ export async function moveActivityRelationsToAnotherOrganization(
       },
     )
 
-    rowsUpdated = result?.rowCount
+    rowsUpdated = rowCount
   } while (rowsUpdated === batchSize)
 }
 
@@ -572,7 +572,7 @@ export async function deleteActivityRelationsById(
   qx: QueryExecutor,
   activityIds: string[],
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
     DELETE FROM "activityRelations" WHERE "activityId" IN ($(activityIds:csv));
     `,

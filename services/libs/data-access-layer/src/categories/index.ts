@@ -88,7 +88,7 @@ export async function connectCategoriesToCategoryGroup(
   categoryGroupId: string,
   categoryIds: string[],
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
       UPDATE "categories"
       SET "categoryGroupId" = $(categoryGroupId)

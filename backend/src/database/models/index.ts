@@ -123,7 +123,6 @@ async function models(queryTimeoutMilliseconds: number, databaseHostnameOverride
     require('./file').default,
     require('./integration').default,
     require('./settings').default,
-    require('./tag').default,
     require('./tenant').default,
     require('./tenantUser').default,
     require('./user').default,

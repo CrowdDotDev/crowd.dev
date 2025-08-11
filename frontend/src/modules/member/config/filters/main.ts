@@ -12,7 +12,6 @@ import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
 import reach from './reach/config';
 import projects from './projects/config';
-import tags from './tags/config';
 import memberName from './memberName/config';
 import jobTitle from './jobTitle/config';
 import organizations from './organizations/config';
@@ -32,7 +31,6 @@ export const memberFilters: Record<string, FilterConfig> = {
   lastActivityDate,
   reach,
   projects,
-  tags,
   unaffiliated,
 };
 

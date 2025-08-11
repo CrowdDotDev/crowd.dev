@@ -2,7 +2,8 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
 
-import { distinct, singleOrDefault } from '@crowd/common'
+import { distinct, mergeObjects, singleOrDefault } from '@crowd/common'
+import { CommonMemberService } from '@crowd/common_services'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   addActivityToConversation,
@@ -38,8 +39,6 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
-import merge from './helpers/merge'
-import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 
@@ -122,7 +121,7 @@ export default class ActivityService extends LoggerBase {
       if (existing) {
         const { id } = existing
         delete existing.id
-        const toUpdate = merge(existing, data, {
+        const toUpdate = mergeObjects(existing, data, {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           timestamp: (oldValue, _newValue) => oldValue,
           attributes: (oldValue, newValue) => {
@@ -162,9 +161,14 @@ export default class ActivityService extends LoggerBase {
           data.username = displayName
         }
 
-        const memberAffilationService = new MemberAffiliationService(this.options)
-        data.organizationId = await memberAffilationService.findAffiliation(
+        const commonMemberService = new CommonMemberService(
+          optionsQx(this.options),
+          this.options.temporal,
+          this.options.log,
+        )
+        data.organizationId = await commonMemberService.findAffiliation(
           data.member,
+          SequelizeRepository.getStrictlySingleActiveSegment(this.options).id,
           data.timestamp,
         )
 
