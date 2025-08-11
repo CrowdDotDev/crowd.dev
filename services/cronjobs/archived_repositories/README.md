@@ -56,7 +56,7 @@ pnpm start-main
 To run the worker process:
 
 ```bash
-pnpm start-worker
+pnpm start-workers
 ```
 
 If you want to run a development version with tsx and automatic code reloading, use this for the main process:
@@ -68,7 +68,7 @@ pnpm dev-main
 And this for the worker process:
 
 ```bash
-pnpm dev-worker
+pnpm dev-workers
 ```
 
 

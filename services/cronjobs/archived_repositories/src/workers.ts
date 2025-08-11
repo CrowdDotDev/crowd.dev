@@ -32,7 +32,7 @@ async function handleJob(job: Job) {
   }
 
   // Now update the database table with the result
-  updateRepositoryStatus(job.data.url, archived, config)
+  await updateRepositoryStatus(job.data.url, archived, config)
 }
 
 // TODO: make this configurable via environment variables
@@ -77,4 +77,4 @@ gitlabWorker.on('failed', (job, err) => {
 
 // TODO: Check if there are event listeners for when we hit the rate limit, and log that, as well as for resume.
 
-export { githubWorker };
+export { githubWorker, gitlabWorker };

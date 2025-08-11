@@ -58,9 +58,9 @@ async function main(config: Config) {
     await sleep(config.BatchDelayMs);
 
     batchNumber++;
-
-    await closeConnection();
   }
+
+  await closeConnection();
 }
 
 function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; gitlabJobs: JobData[] } {
@@ -73,6 +73,7 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
       parsedResult = parseRepoURL(url);
     } catch (error) {
       console.warn(`Skipping URL due to error: ${error}`);
+      continue;
     }
 
     const jobData = {
@@ -98,8 +99,6 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
 
 if (require.main === module) {
   const config = getConfig();
-
-  console.log(config);
 
   main(config).catch(error => {
     console.error('Error in main execution:', error);

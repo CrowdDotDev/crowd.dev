@@ -6,6 +6,5 @@ export async function isGitHubRepoArchived(owner: string, repo: string, config: 
     headers: { Authorization: `Bearer ${config.GithubToken}` },
   });
 
-  console.log('GitHub API response:', data.archived);
   return data.archived;
 }
