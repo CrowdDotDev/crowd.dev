@@ -1,0 +1,61 @@
+services:
+  postgresql:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${CROWD_DB_DATABASE:-crowd}
+      POSTGRES_USER: ${CROWD_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${CROWD_DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${CROWD_DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CROWD_DB_USERNAME:-postgres} -d ${CROWD_DB_DATABASE:-crowd}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+  redis:
+    image: redis:8-alpine
+    command: redis-server ${CROWD_REDIS_PASSWORD:+--requirepass ${CROWD_REDIS_PASSWORD}}
+    ports:
+      - "${CROWD_REDIS_PORT:-6379}:6379"
+    environment:
+      CROWD_REDIS_PASSWORD: ${CROWD_REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  main:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node main.js
+    volumes:
+      - ./.env:/app/.env
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  workers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node workers.js
+    volumes:
+      - ./.env:/app/.env
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
