@@ -304,7 +304,7 @@ async function processAffiliationActivities(
 
   // Organization filtering
   if (affiliation.organizationId) {
-    conditions.push(`"organizationId" is null or "organizationId" != $(organizationId)`)
+    conditions.push(`("organizationId" is null or "organizationId" <> $(organizationId))`)
   } else {
     conditions.push(`"organizationId" is not null`)
   }
