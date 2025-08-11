@@ -81,6 +81,7 @@ export enum CollectionField {
   SLUG = 'slug',
   STARRED = 'starred',
   UPDATED_AT = 'updatedAt',
+  DELETED_AT = 'deletedAt',
 }
 
 export async function queryCollections<T extends CollectionField>(
@@ -162,6 +163,7 @@ export enum InsightsProjectField {
   UPDATED_AT = 'updatedAt',
   WEBSITE = 'website',
   WIDGETS = 'widgets',
+  DELETED_AT = 'deletedAt',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(
