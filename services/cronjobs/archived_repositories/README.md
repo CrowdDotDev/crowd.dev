@@ -15,6 +15,13 @@ BullMQ requires a Redis instance to be running, which it uses as storage.
 
 It is meant to be run as a recurring Job in a Kubernetes cluster.
 
+It has two main processes:
+- The main process, which is responsible for fetching the repositories from the database and adding them to the
+  BullMQ queue.
+- The workers process, which is responsible for processing the jobs in the queue, which, for each queued repository,
+  involves calling the GitHub and GitLab APIs to check if the repository is archived, and updating the repositories in 
+  the database.
+
 ## Configuration
 
 The software expects all configuration options to come from environment variables.
