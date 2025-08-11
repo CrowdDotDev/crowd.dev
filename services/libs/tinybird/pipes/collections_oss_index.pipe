@@ -7,7 +7,7 @@ SQL >
     SELECT categories.id
     FROM categories
     WHERE
-        categories.deletedAt = null
+        isNull (categories.deletedAt)
         {% if defined(categorySlug) %}
             AND categories.slug = {{ String(categorySlug, description="Category slug", required=True) }}
         {% end %}
@@ -83,7 +83,7 @@ SQL >
     SELECT collections.id, collections.slug, collections.name
     FROM collections FINAL
     WHERE
-        collections.deletedAt = null
+        isNull (collections.deletedAt)
         and collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
 
 NODE collections_oss_index_top_projects
