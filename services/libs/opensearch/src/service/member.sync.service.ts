@@ -11,7 +11,7 @@ import {
   cleanupMemberAggregates,
   fetchAbsoluteMemberAggregates,
   findLastSyncDate,
-  insertMemberSegments,
+  insertMemberSegmentAggregates,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentCoreAggregates } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
@@ -364,7 +364,7 @@ export class MemberSyncService {
               )
               await logExecutionTimeV2(
                 () =>
-                  insertMemberSegments(
+                  insertMemberSegmentAggregates(
                     qx,
                     memberData.map((m) => ({
                       ...m,

@@ -1,6 +1,6 @@
 NODE segmentIds_in_nonlf_projects
 SQL >
-    select segmentId from insightsProjects where isLF = 0 and segmentId != ''
+    select segmentId from insightsProjects where isLF = 0 and segmentId != '' and deletedAt = null
 
 NODE members_public_names_result
 SQL >

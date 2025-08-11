@@ -7,7 +7,7 @@ export async function updateMemberContributions(
   memberId: string,
   contributions: IMemberContribution[],
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
           UPDATE "members"
           SET

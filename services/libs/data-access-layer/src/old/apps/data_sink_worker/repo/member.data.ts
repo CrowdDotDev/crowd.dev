@@ -57,6 +57,8 @@ export interface IDbMemberUpdateData {
   identitiesToUpdate: IMemberIdentity[]
   displayName: string
   reach: Partial<Record<PlatformType, number>>
+  updatedById?: string
+  manuallyChangedFields?: string[]
 }
 
 export interface IDbMemberSegment {

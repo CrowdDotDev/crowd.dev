@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
@@ -9,13 +9,7 @@ import {
 } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
 
-import {
-  IDbMember,
-  IDbMemberCreateData,
-  IDbMemberUpdateData,
-  getInsertMemberColumnSet,
-  getSelectMemberColumnSet,
-} from './member.data'
+import { IDbMember, getInsertMemberColumnSet, getSelectMemberColumnSet } from './member.data'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
@@ -26,118 +20,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
-  }
-
-  public async findMembersByEmails(emails: string[]): Promise<Map<string, IDbMember>> {
-    const data = {
-      type: MemberIdentityType.EMAIL,
-      emails: emails.map((e) => e.toLowerCase()),
-    }
-
-    const results = await this.db().any(
-      `
-      with matching_identities as (
-        select mi."memberId", mi.value
-        from "memberIdentities" mi
-        where mi.type = $(type) and lower(mi.value) in ($(emails:csv))
-        limit ${emails.length}
-      )
-      select mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
-      from "members" m inner join matching_identities mi on m.id = mi."memberId"
-    `,
-      data,
-    )
-
-    const resultMap = new Map<string, IDbMember>()
-
-    for (const result of results) {
-      resultMap.set(result.identityValue, result)
-    }
-
-    return resultMap
-  }
-
-  public async findMembersByUsernames(
-    params: { segmentId: string; platform: string; username: string }[],
-  ): Promise<Map<{ platform: string; value: string }, IDbMember>> {
-    const orConditions: string[] = []
-    let index = 0
-
-    const data: Record<string, string> = {
-      type: MemberIdentityType.USERNAME,
-    }
-
-    for (const param of params) {
-      const platformParam = `platform_${index++}`
-      const usernameParam = `username_${index++}`
-
-      orConditions.push(
-        `(mi.platform = $(${platformParam}) and lower(mi.value) = $(${usernameParam}))`,
-      )
-
-      data[platformParam] = param.platform
-      data[usernameParam] = param.username.toLowerCase()
-    }
-
-    const results = await this.db().any(
-      `
-      with matching_identities as (
-        select mi."memberId", mi.platform, mi.value
-        from "memberIdentities" mi
-        where mi.type = $(type) and (${orConditions.join(' or ')})
-        limit ${params.length}
-      )
-      select mi.platform as "identityPlatform", mi.value as "identityValue", ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
-      from "members" m inner join matching_identities mi on m.id = mi."memberId"
-    `,
-      data,
-    )
-
-    const resultMap = new Map<{ platform: string; value: string }, IDbMember>()
-
-    for (const result of results) {
-      resultMap.set({ platform: result.identityPlatform, value: result.identityValue }, result)
-    }
-
-    return resultMap
-  }
-
-  public async findIdentities(
-    identities: IMemberIdentity[],
-    memberId?: string,
-  ): Promise<Map<string, string>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {}
-
-    let condition = ''
-    if (memberId) {
-      condition = 'and "memberId" <> $(memberId)'
-      params.memberId = memberId
-    }
-
-    const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.value}', '${identity.type}')`)
-      .join(', ')
-
-    const result = await this.db().any(
-      `
-      with input_identities (platform, value, type) as (
-        values ${identityParams}
-      )
-      select "memberId", i.platform, i.value, i.type
-      from "memberIdentities" mi
-        inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
-      where ${condition}
-    `,
-      params,
-    )
-
-    const resultMap = new Map<string, string>()
-    result.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.type}:${row.value}`, row.memberId)
-    })
-
-    return resultMap
   }
 
   public async findByIds(ids: string[]): Promise<IDbMember[]> {
@@ -151,75 +33,13 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async create(data: IDbMemberCreateData): Promise<string> {
-    const id = generateUUIDv1()
-    const ts = new Date()
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        id,
-        tenantId: DEFAULT_TENANT_ID,
-        createdAt: ts,
-        updatedAt: ts,
-      },
-      this.insertMemberColumnSet,
-    )
-    const query = this.dbInstance.helpers.insert(prepared, this.insertMemberColumnSet)
-    await this.db().none(query)
-    return id
-  }
-
-  public async update(id: string, data: IDbMemberUpdateData): Promise<void> {
-    const keys = Object.keys(data)
-    if (keys.length === 0) {
-      return
-    }
-
-    keys.push('updatedAt')
-    // construct custom column set
-    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
-      table: {
-        table: 'members',
-      },
-    })
-
-    const updatedAt = new Date()
-
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        updatedAt,
-      },
-      dynamicColumnSet,
-    )
-    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-
-    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
-      id,
-      updatedAt,
-    })
-    await this.db().result(`${query} ${condition}`)
-  }
-
-  public async getIdentities(memberId: string): Promise<IMemberIdentity[]> {
-    return await this.db().any(
-      `
-      select "sourceId", platform, value, type, verified from "memberIdentities"
-      where "memberId" = $(memberId)
-    `,
-      {
-        memberId,
-      },
-    )
-  }
-
   public async removeIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {
-    const result = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
+    const rowCount = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
       memberId,
       identities,
     })
 
-    this.checkUpdateRowCount(result.rowCount, identities.length)
+    this.checkUpdateRowCount(rowCount, identities.length)
   }
 
   public async updateIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {

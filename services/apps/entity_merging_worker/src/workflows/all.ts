@@ -29,7 +29,7 @@ export async function finishMemberMerging(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  userId: string,
+  userId?: string,
 ): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
@@ -45,13 +45,16 @@ export async function finishMemberMerging(
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
   })
-  await notifyFrontendMemberMergeSuccessful(
-    primaryId,
-    secondaryId,
-    primaryDisplayName,
-    secondaryDisplayName,
-    userId,
-  )
+
+  if (userId) {
+    await notifyFrontendMemberMergeSuccessful(
+      primaryId,
+      secondaryId,
+      primaryDisplayName,
+      secondaryDisplayName,
+      userId,
+    )
+  }
 }
 
 export async function finishMemberUnmerging(

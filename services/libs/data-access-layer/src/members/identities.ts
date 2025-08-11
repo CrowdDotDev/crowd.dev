@@ -1,5 +1,6 @@
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
+import { deleteMemberIdentities, moveToNewMember, updateVerifiedFlag } from '../member_identities'
 import { QueryExecutor } from '../queryExecutor'
 
 export async function fetchMemberIdentities(
@@ -61,7 +62,7 @@ export async function createMemberIdentity(
   tenantId: string,
   memberId: string,
   data: Partial<IMemberIdentity>,
-): Promise<void> {
+): Promise<number> {
   return qx.result(
     `
         INSERT INTO "memberIdentities"("tenantId", "memberId", platform, type, value, verified)
@@ -120,7 +121,7 @@ export async function updateMemberIdentity(
   memberId: string,
   id: string,
   data: Partial<IMemberIdentity>,
-): Promise<void> {
+): Promise<number> {
   return qx.result(
     `
           UPDATE "memberIdentities"
@@ -150,7 +151,7 @@ export async function deleteMemberIdentity(
   qx: QueryExecutor,
   memberId: string,
   id: string,
-): Promise<void> {
+): Promise<number> {
   return qx.result(
     `
         DELETE FROM "memberIdentities"
@@ -161,4 +162,43 @@ export async function deleteMemberIdentity(
       id,
     },
   )
+}
+
+export async function moveIdentitiesBetweenMembers(
+  qx: QueryExecutor,
+  fromMemberId: string,
+  toMemberId: string,
+  identitiesToMove: IMemberIdentity[],
+  identitiesToUpdate: IMemberIdentity[],
+): Promise<void> {
+  for (const i of identitiesToMove) {
+    await moveToNewMember(qx, {
+      oldMemberId: fromMemberId,
+      newMemberId: toMemberId,
+      platform: i.platform,
+      value: i.value,
+      type: i.type,
+    })
+  }
+
+  if (identitiesToUpdate.length > 0) {
+    for (const i of identitiesToUpdate) {
+      // first we remove them from the old member (we can't update and delete at the same time because of a unique index where only one identity can have a verified type:value combination for a tenant, member and platform)
+      await deleteMemberIdentities(qx, {
+        memberId: fromMemberId,
+        platform: i.platform,
+        value: i.value,
+        type: i.type,
+      })
+
+      // then we update verified flag for the identities in the new member
+      await updateVerifiedFlag(qx, {
+        memberId: toMemberId,
+        platform: i.platform,
+        value: i.value,
+        type: i.type,
+        verified: true,
+      })
+    }
+  }
 }

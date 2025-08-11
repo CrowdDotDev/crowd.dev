@@ -186,3 +186,16 @@ export async function refreshMaterializedView(
 ) {
   await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
 }
+
+export function injectSoftDeletionCriteria(filter?: QueryFilter): QueryFilter {
+  if (!filter) {
+    filter = {}
+  }
+
+  filter = {
+    ...filter,
+    deletedAt: { eq: null },
+  }
+
+  return filter
+}

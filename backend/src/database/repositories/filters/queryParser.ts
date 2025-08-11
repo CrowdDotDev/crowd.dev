@@ -270,8 +270,7 @@ class QueryParser {
 
     // The mapping comes from the manyToMany field for that key
     const mapping = this.manyToMany[key]
-    // We construct the items to filter on. For example, if we were filtering tags for members
-    // "memberTags"."tagId"  = '{{id1}}' OR "memberTags"."tagId"  = '{{id2}}'
+    // We construct the items to filter on.
     const items = value.reduce((acc, item, index) => {
       if (index === 0) {
         return `${acc} "${mapping.relationTable.name}"."${
@@ -286,13 +285,11 @@ class QueryParser {
     const joinField = mapping.overrideJoinField ?? 'id'
 
     // Find all the rows in the table that have the items we are filtering on
-    // For example, find all members that have the tags with id1 or id2
     const literal = Sequelize.literal(
       `(SELECT "${mapping.table}"."${joinField}" FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}"."${joinField}" WHERE ${items})`,
     )
 
-    // It coudl be that we have more than 1 many to many filter, so we could need to append. For example:
-    // {tags: [id1, id2], organizations: [id3, id4]}
+    // It coudl be that we have more than 1 many to many filter, so we could need to append.
     if (query[Op.and]) {
       query[Op.and].push(
         Sequelize.where(Sequelize.literal(`"${mapping.model}"."${joinField}"`), Op.in, literal),
