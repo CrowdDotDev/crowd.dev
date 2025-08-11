@@ -459,4 +459,3 @@ export async function removePlainGitHubRepoMapping(
   const cache = new RedisCache('githubRepos', redisClient, log)
   await cache.deleteAll()
 }
-
