@@ -10,9 +10,6 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
 const fields = {
-  tags: TagField.relationToMany('tags', 'Tags', {
-    filterable: true,
-  }),
   jobTitle: new StringField('jobTitle', 'Job title'),
   username: new JsonField('username', 'Username', {
     nonEmpty: true,

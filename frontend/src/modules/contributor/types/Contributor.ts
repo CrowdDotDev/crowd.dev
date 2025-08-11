@@ -94,7 +94,6 @@ export interface Contributor {
   organizations: Organization[];
   reach:ContributorReach;
   score: number;
-  tags: ContributorTag[];
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>
