@@ -7,7 +7,7 @@ SQL >
     SELECT categoryGroups.id,
     FROM categoryGroups
     WHERE
-        deletedAt = null
+        isNull (deletedAt)
         {% if defined(categoryGroupSlug) %}
             AND categoryGroups.slug
             = {{ String(categoryGroupSlug, description="Category group slug", required=True) }}
@@ -43,7 +43,7 @@ DESCRIPTION >
     Returns only needed columns from collections
 
 SQL >
-    SELECT collections.id, collections.name FROM collections FINAL where deletedAt = null
+    SELECT collections.id, collections.name FROM collections FINAL where isNull (deletedAt)
 
 NODE categories_oss_index_projects_ranked_by_category
 DESCRIPTION >
@@ -126,7 +126,7 @@ SQL >
     SELECT categories.id, categories.name, categories.slug
     FROM categories FINAL
     WHERE
-        categories.deletedAt = null
+        isNull (categories.deletedAt)
         and categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
 
 NODE categories_oss_index_top_collections
