@@ -67,46 +67,6 @@ export default {
     }
   },
 
-  async doBulkUpdateMembersTags(
-    { commit },
-    {
-      members, tagsInCommon, tagsToSave, segments,
-    },
-  ) {
-    const { fields } = MemberModel;
-    const formSchema = new FormSchema([
-      fields.username,
-      fields.info,
-      fields.tags,
-      fields.emails,
-    ]);
-
-    try {
-      const payload = members.reduce((acc, item) => {
-        const memberToUpdate = { ...item };
-        const tagsToKeep = item.tags.filter(
-          (tag) => tagsInCommon.filter((t) => t.id === tag.id).length === 0
-            && tagsToSave.filter((t) => t.id === tag.id).length === 0,
-        );
-
-        memberToUpdate.tags = [...tagsToKeep, ...tagsToSave];
-        acc.push(
-          formSchema.cast({
-            id: memberToUpdate.id,
-            tags: memberToUpdate.tags,
-          }),
-        );
-        return acc;
-      }, []);
-      const updatedMembers = await MemberService.updateBulk(payload, segments);
-      ToastStore.success('Tags updated successfully');
-      commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
-    } catch (error) {
-      Errors.handle(error);
-      ToastStore.error('There was an error updating tags');
-    }
-  },
-
   async doBulkUpdateMembersAttribute({ commit }, { members, attributesToSave }) {
     const { fields } = MemberModel;
     const formSchema = new FormSchema([
