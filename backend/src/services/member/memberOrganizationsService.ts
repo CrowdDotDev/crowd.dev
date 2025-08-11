@@ -17,7 +17,6 @@ import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization }
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
-import { CommonMemberService } from '../../../../services/libs/common_services/src/services/common.member.service'
 import { IServiceOptions } from '../IServiceOptions'
 
 type IOrganizationSummary = Pick<IOrganization, 'id' | 'displayName' | 'logo'>
