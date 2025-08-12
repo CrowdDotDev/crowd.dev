@@ -179,7 +179,7 @@ SQL >
         ON insights_projects_populated_copy_health_score_deduplicated.id = insightsProjects.id
     LEFT JOIN
         archived_excluded_repositories
-        ON archived_repositories.insightsProjectId = insightsProjects.id
+        ON archived_excluded_repositories.insightsProjectId = insightsProjects.id
     WHERE isNull (insightsProjects.deletedAt)
 
 TYPE COPY
