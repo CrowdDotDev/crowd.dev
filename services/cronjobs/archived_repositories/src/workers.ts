@@ -8,8 +8,6 @@ import { updateRepositoryStatus } from "./database";
 
 const config = getConfig();
 
-const redis = { connection: { url: config.RedisUrl } };
-
 async function handleJob(job: Job) {
   if (!job.data || !job.data.url) {
     throw new Error('Job data must contain a valid URL');
@@ -46,19 +44,19 @@ async function handleJob(job: Job) {
 // Conversely, the `duration` parameter is the time period in milliseconds during which the `max` number
 // of jobs can be processed. If the limit is reached, the worker will pause until the next period starts.
 const githubWorkerOptions: WorkerOptions = {
-  ...redis,
+  connection: { url: config.RedisUrl },
   concurrency: 5,
   limiter: {
-    max: 5000,
+    max: 3500, // GitHub allows 5000 requests per hour for authenticated requests, but let's play it safe.
     duration: 3600000
   },
 };
 
 const gitlabWorkerOptions: WorkerOptions = {
-  ...redis,
+  connection: { url: config.RedisUrl },
   concurrency: 5,
   limiter: {
-    max: 2000,
+    max: 1500, // GitLab allows 2000 requests per minute, but let's play it safe.
     duration: 60000
   },
 };
