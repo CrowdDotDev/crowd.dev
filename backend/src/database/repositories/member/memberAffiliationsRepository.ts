@@ -15,7 +15,7 @@ class MemberAffiliationsRepository {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
       // Fetch member affiliations
       const affiliations = await fetchMemberAffiliations(qx, memberId)
@@ -84,7 +84,7 @@ class MemberAffiliationsRepository {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
       // Delete all member affiliations
       await deleteMemberAffiliations(qx, memberId)
