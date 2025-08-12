@@ -4,6 +4,7 @@ import mergeWith from 'lodash.mergewith'
 
 import {
   ApplicationError,
+  EMAIL_REGEX,
   UnrepeatableError,
   distinct,
   distinctBy,
@@ -887,11 +888,8 @@ export default class ActivityService extends LoggerBase {
       // Look up members using cross-identity matching (different platforms)
       // we will check only on platforms that store email identities as usernames
 
-      // regex to detect if a username looks like an email address
-      const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
-
       // only these platforms are considered for emails-as-usernames
-      const EMAIL_AS_USERNAME_PLATFORMS = [
+      const EMAIL_AS_USERNAME_PLATFORMS: PlatformType[] = [
         PlatformType.GERRIT,
         PlatformType.JIRA,
         PlatformType.CONFLUENCE,
