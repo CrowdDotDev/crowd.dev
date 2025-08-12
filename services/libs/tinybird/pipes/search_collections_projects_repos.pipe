@@ -30,8 +30,7 @@ SQL >
         insightsProjects_filtered.slug,
         insightsProjects_filtered.logo,
         insightsProjects_filtered.slug as "projectSlug",
-        insightsProjects_filtered.name,
-        insightsProjects_filtered.archivedRepositories
+        insightsProjects_filtered.name
     from insightsProjects_filtered
     where
         not (
@@ -46,7 +45,10 @@ SQL >
         activityRepositories_filtered.repo as slug,
         null as logo,
         activityRepositories_filtered.projectSlug as "projectSlug",
-        null as name
+        null as name,
+        sr.archived as archived,
+        sr.excluded as excluded
     from activityRepositories_filtered
+    join segmentRepositories as sr on sr.insightsProjectId = activityRepositories_filtered.projectId
     order by activityRepositories_filtered.repo asc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
