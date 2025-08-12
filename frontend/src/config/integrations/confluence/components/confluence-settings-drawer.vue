@@ -12,6 +12,46 @@
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
+        Authentication
+      </div>
+      <div class="text-2xs text-gray-500">
+        Provide your Confluence instance credentials.
+      </div>
+
+      <el-input
+        id="username"
+        v-model="form.username"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence username/email"
+      />
+
+      <el-input
+        id="apiToken"
+        v-model="form.apiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter API Token"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
+        Organization Admin Access
+      </div>
+      <div class="text-2xs text-gray-500">
+        Required to access users' data across your organization. Create an API key without scopes at <a href="https://support.atlassian.com/organization-administration/docs/manage-an-organization-with-the-admin-apis/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">admin.atlassian.com</a>
+      </div>
+
+      <el-input
+        id="orgAdminApiToken"
+        v-model="form.orgAdminApiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter Organization Admin API Token (without scopes)"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
         Remote URL
       </div>
       <div class="text-2xs text-gray-500">
@@ -68,7 +108,7 @@
           id="confluenceConnect"
           type="primary"
           size="medium"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
+          :disabled="$v.$invalid || loading"
           :loading="loading"
           @click="connect"
         >
@@ -122,12 +162,18 @@ const { trackEvent } = useProductTracking();
 const loading = ref(false);
 const form = reactive({
   url: '',
+  username: '',
+  apiToken: '',
+  orgAdminApiToken: '',
   spaces: [''],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate({
   url: { required: true },
+  username: { required: true },
+  apiToken: { required: true },
+  orgAdminApiToken: { required: true },
   spaces: {
     required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
   },
@@ -155,6 +201,9 @@ const removeSpaceKey = (index: number) => {
 onMounted(() => {
   if (props.integration?.settings) {
     form.url = props.integration?.settings.url;
+    form.username = props.integration?.settings.username || '';
+    form.apiToken = props.integration?.settings.apiToken || '';
+    form.orgAdminApiToken = props.integration?.settings.orgAdminApiToken || '';
     // to handle both single and multiple spaces
     if (props.integration?.settings.space) {
       form.spaces = [props.integration?.settings.space.key];
@@ -177,6 +226,9 @@ const connect = async () => {
   doConfluenceConnect({
     settings: {
       url: form.url,
+      username: form.username,
+      apiToken: form.apiToken,
+      orgAdminApiToken: form.orgAdminApiToken,
       spaces: form.spaces,
     },
     isUpdate,

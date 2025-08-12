@@ -7,6 +7,9 @@ export enum NangoIntegration {
   JIRA_CLOUD_BASIC = 'jira-basic',
   JIRA_DATA_CENTER_API_KEY = 'jira-data-center-api-key',
   JIRA_DATA_CENTER_BASIC = 'jira-data-center-basic',
+  CONFLUENCE = 'confluence',
+  CONFLUENCE_BASIC = 'confluence-basic',
+  CONFLUENCE_DATA_CENTER = 'confluence-data-center',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
@@ -21,6 +24,10 @@ export const nangoIntegrationToPlatform = (integration: NangoIntegration): Platf
     case NangoIntegration.JIRA_DATA_CENTER_API_KEY:
     case NangoIntegration.JIRA_DATA_CENTER_BASIC:
       return PlatformType.JIRA
+    case NangoIntegration.CONFLUENCE:
+    case NangoIntegration.CONFLUENCE_BASIC:
+    case NangoIntegration.CONFLUENCE_DATA_CENTER:
+      return PlatformType.CONFLUENCE
     default:
       throw new Error('Unknown integration')
   }
@@ -114,6 +121,48 @@ export const NANGO_INTEGRATION_CONFIG = {
       ISSUES: 'issues',
       ISSUE_COMMENT: 'issue-comments',
       ISSUE_ATTACHMENTS: 'issue-attachments',
+    },
+  },
+  [NangoIntegration.CONFLUENCE]: {
+    models: {
+      PAGE: 'Page',
+      BLOGPOST: 'BlogPost',
+      COMMENT: 'Comment',
+      ATTACHMENT: 'Attachment',
+    },
+    syncs: {
+      PAGES: 'pages',
+      BLOGPOSTS: 'blog-posts',
+      COMMENTS: 'page-comments',
+      ATTACHMENTS: 'page-attachments',
+    },
+  },
+  [NangoIntegration.CONFLUENCE_BASIC]: {
+    models: {
+      PAGE: 'Page',
+      BLOGPOST: 'BlogPost',
+      COMMENT: 'Comment',
+      ATTACHMENT: 'Attachment',
+    },
+    syncs: {
+      PAGES: 'pages',
+      BLOGPOSTS: 'blog-posts',
+      COMMENTS: 'page-comments',
+      ATTACHMENTS: 'page-attachments',
+    },
+  },
+  [NangoIntegration.CONFLUENCE_DATA_CENTER]: {
+    models: {
+      PAGE: 'Page',
+      BLOGPOST: 'BlogPost',
+      COMMENT: 'Comment',
+      ATTACHMENT: 'Attachment',
+    },
+    syncs: {
+      PAGES: 'pages',
+      BLOGPOSTS: 'blog-posts',
+      COMMENTS: 'page-comments',
+      ATTACHMENTS: 'page-attachments',
     },
   },
 } as const satisfies IntegrationConfig
