@@ -117,13 +117,13 @@ export class CollectionService extends LoggerBase {
       })
       const projects = connections.length
         ? await queryInsightsProjects(qx, {
-          filter: {
-            id: {
-              in: connections.map((c) => c.insightsProjectId),
+            filter: {
+              id: {
+                in: connections.map((c) => c.insightsProjectId),
+              },
             },
-          },
-          fields: Object.values(InsightsProjectField),
-        })
+            fields: Object.values(InsightsProjectField),
+          })
         : []
 
       return {
@@ -182,11 +182,11 @@ export class CollectionService extends LoggerBase {
     const projects =
       connections.length > 0
         ? await queryInsightsProjects(qx, {
-          filter: {
-            id: { in: uniq(connections.map((c) => c.insightsProjectId)) },
-          },
-          fields: Object.values(InsightsProjectField),
-        })
+            filter: {
+              id: { in: uniq(connections.map((c) => c.insightsProjectId)) },
+            },
+            fields: Object.values(InsightsProjectField),
+          })
         : []
 
     const total = await countCollections(qx, filter)
@@ -268,20 +268,20 @@ export class CollectionService extends LoggerBase {
       const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
       const organization = project.organizationId
         ? await findOrgById(qx, project.organizationId, [
-          OrganizationField.ID,
-          OrganizationField.DISPLAY_NAME,
-          OrganizationField.LOGO,
-        ])
+            OrganizationField.ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOGO,
+          ])
         : null
 
       const collections =
         connections.length > 0
           ? await queryCollections(qx, {
-            filter: {
-              id: { in: uniq(connections.map((c) => c.collectionId)) },
-            },
-            fields: Object.values(CollectionField),
-          })
+              filter: {
+                id: { in: uniq(connections.map((c) => c.collectionId)) },
+              },
+              fields: Object.values(CollectionField),
+            })
           : []
 
       return {
@@ -343,11 +343,11 @@ export class CollectionService extends LoggerBase {
     const collections =
       connections.length > 0
         ? await queryCollections(qx, {
-          filter: {
-            id: { in: uniq(connections.map((c) => c.collectionId)) },
-          },
-          fields: Object.values(CollectionField),
-        })
+            filter: {
+              id: { in: uniq(connections.map((c) => c.collectionId)) },
+            },
+            fields: Object.values(CollectionField),
+          })
         : []
 
     const total = await countInsightsProjects(qx, filter)
@@ -552,13 +552,13 @@ export class CollectionService extends LoggerBase {
 
       const details = CollectionService.isSingleRepoOrg(settings.orgs)
         ? await GithubIntegrationService.findRepoDetails(
-          mainOrg.name,
-          settings.orgs[0].repos[0].name,
-        )
+            mainOrg.name,
+            settings.orgs[0].repos[0].name,
+          )
         : {
-          ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
-          topics: mainOrg.topics,
-        }
+            ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
+            topics: mainOrg.topics,
+          }
 
       if (!details) {
         return null
