@@ -9,6 +9,8 @@ DESCRIPTION >
     - `logoUrl`, `organizationId`, `website`, `github`, `linkedin`, `twitter` contain project branding and social links.
     - `widgets` array defines which insights widgets are enabled for this project.
     - `repositories` array contains the list of repository URLs associated with the project.
+    - `archivedRepositories` contains a list of archived repositories for the project.
+    - `excludedRepositories` contains a list of excluded repositories for the project.
     - `enabled` and `isLF` are flags for project status and Linux Foundation association (UInt8 boolean).
     - `keywords` array contains searchable keywords and tags for the project.
     - `collectionsSlugs` array contains slugs of collections this project belongs to.
@@ -38,6 +40,8 @@ SCHEMA >
     `twitter` String,
     `widgets` Array(String),
     `repositories` Array(String),
+    `archivedRepositories` Array(String),
+    `excludedRepositories` Array(String),
     `enabled` UInt8,
     `isLF` UInt8,
     `keywords` Array(String),
