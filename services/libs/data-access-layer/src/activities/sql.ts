@@ -1222,7 +1222,7 @@ export async function createOrUpdateRelations(
             "updatedAt")
     VALUES ${valueList.join(',')}
 
-    ON CONFLICT ON CONSTRAINT "ix_unique_activity_relations_dedup_key"
+    ON CONFLICT ("timestamp", "platform", "type", "sourceId", "channel", "segmentId")
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
