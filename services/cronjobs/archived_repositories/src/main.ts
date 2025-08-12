@@ -13,7 +13,17 @@ async function main(config: Config) {
   let totalProcessed = 0;
   let batchNumber = 1;
 
-  const queueOptions = { connection: { url: config.RedisUrl } };
+  const queueOptions = {
+    connection: { url: config.RedisUrl },
+    defaultJobOptions: {
+      attempts: 4,
+      backoff: {
+        type: 'exponential',
+        delay: 3000,
+        jitter: 0.5,
+      },
+    },
+  };
   const githubQueue = new Queue(GITHUB_QUEUE_NAME, queueOptions);
   const gitlabQueue = new Queue(GITLAB_QUEUE_NAME, queueOptions);
 
