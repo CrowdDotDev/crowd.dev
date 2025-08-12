@@ -34,7 +34,7 @@ export async function fetchRepositoryUrls(batchSize: number, config: Config): Pr
   
   try {
     const result = await client.query(
-      `SELECT repository FROM segmentrepositories
+      `SELECT repository FROM "segmentRepositories"
        WHERE last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL \'5 days\'
        ORDER BY last_archived_check
        LIMIT $1`,
