@@ -1,4 +1,6 @@
 /* eslint-disable no-continue */
+import { Transaction } from 'sequelize'
+
 import { Error404 } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
@@ -37,8 +39,11 @@ export default class MemberOrganizationsService extends LoggerBase {
   }
 
   // Member organization list
-  async list(memberId: string): Promise<IRenderFriendlyMemberOrganization[]> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+  async list(
+    memberId: string,
+    transaction?: Transaction,
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     // Fetch member organizations
     const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(qx, memberId)
@@ -111,7 +116,7 @@ export default class MemberOrganizationsService extends LoggerBase {
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
       // Fetch updated list
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -138,7 +143,7 @@ export default class MemberOrganizationsService extends LoggerBase {
 
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -171,7 +176,7 @@ export default class MemberOrganizationsService extends LoggerBase {
         true,
       )
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
