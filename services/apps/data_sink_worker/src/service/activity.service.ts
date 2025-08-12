@@ -4,7 +4,7 @@ import mergeWith from 'lodash.mergewith'
 
 import {
   ApplicationError,
-  EMAIL_REGEX,
+  matchesEmailPattern,
   UnrepeatableError,
   distinct,
   distinctBy,
@@ -976,7 +976,7 @@ export default class ActivityService extends LoggerBase {
       const emailLikeUsernames = new Set<string>()
       for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
         for (const identity of payload.activity.member.identities.filter(
-          (i) => i.verified && i.type === MemberIdentityType.USERNAME && EMAIL_REGEX.test(i.value),
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && matchesEmailPattern(i.value),
         )) {
           emailLikeUsernames.add(identity.value)
         }
@@ -986,7 +986,7 @@ export default class ActivityService extends LoggerBase {
         (p) => !p.dbObjectMember && p.activity.objectMember,
       )) {
         for (const identity of payload.activity.objectMember.identities.filter(
-          (i) => i.verified && i.type === MemberIdentityType.USERNAME && EMAIL_REGEX.test(i.value),
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && matchesEmailPattern(i.value),
         )) {
           emailLikeUsernames.add(identity.value)
         }
@@ -1007,7 +1007,7 @@ export default class ActivityService extends LoggerBase {
               (i) =>
                 i.verified &&
                 i.type === MemberIdentityType.USERNAME &&
-                EMAIL_REGEX.test(i.value) &&
+                matchesEmailPattern(i.value) &&
                 i.value.toLowerCase() === value.toLowerCase(),
             ),
           (p, member) => {
@@ -1024,7 +1024,7 @@ export default class ActivityService extends LoggerBase {
               (i) =>
                 i.verified &&
                 i.type === MemberIdentityType.USERNAME &&
-                EMAIL_REGEX.test(i.value) &&
+                matchesEmailPattern(i.value) &&
                 i.value.toLowerCase() === value.toLowerCase(),
             ),
           (p, member) => {
