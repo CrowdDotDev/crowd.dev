@@ -4,7 +4,7 @@ import {
   addAuditAction,
 } from '@crowd/data-access-layer/src/audit_logs/repo'
 
-import { IS_DEV_ENV, IS_PROD_ENV, SERVICE, generateUUIDv1 } from '../../common/src'
+import { IS_PROD_ENV, SERVICE, generateUUIDv1 } from '../../common/src'
 
 import { BuildActionFn } from './baseActions'
 
