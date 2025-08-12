@@ -30,7 +30,7 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
   await svc.temporal.workflow.start('memberUpdate', {
     taskQueue: 'profiles',
     workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`,
-    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
     retry: {
       maximumAttempts: 10,
     },

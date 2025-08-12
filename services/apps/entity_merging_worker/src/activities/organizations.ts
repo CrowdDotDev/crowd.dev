@@ -14,6 +14,7 @@ import { RedisPubSubEmitter } from '@crowd/redis'
 import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
 
 import { svc } from '../main'
+import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)
@@ -39,6 +40,7 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   await svc.temporal.workflow.start('organizationUpdate', {
     taskQueue: 'profiles',
     workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
     followRuns: true,
     retry: {
       maximumAttempts: 10,
