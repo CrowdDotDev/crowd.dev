@@ -36,9 +36,6 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
-import ConversationService from './conversationService'
-import merge from './helpers/merge'
-import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 
