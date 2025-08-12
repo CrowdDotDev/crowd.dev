@@ -307,8 +307,7 @@ class OrganizationRepository {
   }
 
   static async updateOrgAttributes(organizationId: string, data: any, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const { orgAttributes, defaultColumns } =
       OrganizationRepository.convertOrgAttributesForInsert(data)
@@ -449,7 +448,7 @@ class OrganizationRepository {
     await captureApiChange(
       options,
       organizationEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
-        const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+        const qx = SequelizeRepository.getQueryExecutor(options)
         const initialIdentities = await fetchOrgIdentities(qx, id)
 
         function convertIdentitiesForAudit(identities: IOrganizationIdentity[]) {
@@ -577,8 +576,7 @@ class OrganizationRepository {
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await cleanUpOrgIdentities(qx, organizationId)
 
@@ -600,9 +598,7 @@ class OrganizationRepository {
     identity: IOrganizationIdentity,
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await updateOrgIdentityVerifiedFlag(qx, {
       organizationId,
@@ -618,9 +614,7 @@ class OrganizationRepository {
     identity: IOrganizationIdentity,
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await addOrgIdentity(qx, {
       organizationId,
@@ -1108,8 +1102,7 @@ class OrganizationRepository {
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<IDbOrganization | null> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const foundOrgs = await queryOrgIdentities(qx, {
       fields: [OrgIdentityField.ORGANIZATION_ID],
@@ -1564,9 +1557,7 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const withAggregates = include.aggregates
 

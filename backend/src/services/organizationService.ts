@@ -868,7 +868,7 @@ export default class OrganizationService extends LoggerBase {
         txOptions,
       )
 
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
       if (existing) {
         record = existing

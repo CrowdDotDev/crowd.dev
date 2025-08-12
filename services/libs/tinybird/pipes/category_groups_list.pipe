@@ -15,7 +15,7 @@ SQL >
     SELECT name, slug, type
     FROM categoryGroups
     WHERE
-        deletedAt = null
+        isNull (deletedAt)
         {% if defined(slug) %}
             AND slug = {{ String(slug, description="category group slug") }}
         {% end %}

@@ -45,7 +45,7 @@ export default class MemberAttributesService extends LoggerBase {
           await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
         const tx = repoOptions.transaction
-        const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+        const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
         try {
           const currentMemberAttributes = await fetchMemberAttributes(qx, memberId)

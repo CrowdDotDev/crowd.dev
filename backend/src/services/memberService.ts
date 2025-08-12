@@ -471,7 +471,7 @@ export default class MemberService extends LoggerBase {
         )
       }
 
-      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
       await (async function includeMemberInSegments(
         qx: QueryExecutor,
         memberId: string,

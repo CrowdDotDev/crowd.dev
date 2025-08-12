@@ -160,7 +160,7 @@ async function check(): Promise<number> {
       try {
         transaction = await SequelizeRepository.createTransaction(options)
         const txOptions = { ...options, transaction }
-        const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
         const allMembers: { id: string; joinedAt: string; username: IMemberUsername }[] = []
         for (const id of data.all_ids) {

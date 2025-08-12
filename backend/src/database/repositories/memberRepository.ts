@@ -133,7 +133,7 @@ class MemberRepository {
       }),
     )
 
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     if (data.identities) {
       for (const i of data.identities as IMemberIdentity[]) {
@@ -540,15 +540,13 @@ class MemberRepository {
   }
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await removeMemberToMerge(qx, id, toMergeId)
   }
 
   static async addNoMerge(id, toMergeId, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await addMemberNoMerge(qx, id, toMergeId)
   }
@@ -979,7 +977,7 @@ class MemberRepository {
       }
     }
 
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     if (data.identitiesToCreate && data.identitiesToCreate.length > 0) {
       for (const i of data.identitiesToCreate) {
@@ -1077,7 +1075,7 @@ class MemberRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
     const memberSegments = await fetchAbsoluteMemberAggregates(qx, id)
 
     // if member doesn't belong to any other segment anymore, remove it
@@ -1672,14 +1670,12 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
     if (!attributesSettings) {
       attributesSettings = (await MemberAttributeSettingsRepository.findAndCountAll({}, options))
         .rows
     }
 
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const withAggregates = !!segmentId
     let segment
@@ -2400,9 +2396,7 @@ class MemberRepository {
     identities: IMemberIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     for (const identity of identities) {
       await deleteMemberIdentities(qx, {
@@ -2418,9 +2412,7 @@ class MemberRepository {
     identities: IMemberIdentity[],
     options: IRepositoryOptions,
   ): Promise<IMemberIdentity[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const existingIdentities = await findAlreadyExistingVerifiedIdentities(qx, { identities })
 
