@@ -1,4 +1,6 @@
 /* eslint-disable no-continue */
+import { Transaction } from 'sequelize'
+
 import { Error404 } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
@@ -14,7 +16,6 @@ import {
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
-import { Transaction } from 'sequelize'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -38,7 +39,10 @@ export default class MemberOrganizationsService extends LoggerBase {
   }
 
   // Member organization list
-  async list(memberId: string, transaction?: Transaction): Promise<IRenderFriendlyMemberOrganization[]> {
+  async list(
+    memberId: string,
+    transaction?: Transaction,
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
     const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     // Fetch member organizations
