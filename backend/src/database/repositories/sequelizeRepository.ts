@@ -200,8 +200,9 @@ export default class SequelizeRepository {
     return options.database.sequelize as Sequelize
   }
 
-  static getQueryExecutor(options: IRepositoryOptions, transaction?): QueryExecutor {
+  static getQueryExecutor(options: IRepositoryOptions): QueryExecutor {
     const seq = this.getSequelize(options)
+    const transaction = this.getTransaction(options)
     return transaction
       ? new TransactionalSequelizeQueryExecutor(seq, transaction)
       : new SequelizeQueryExecutor(seq)

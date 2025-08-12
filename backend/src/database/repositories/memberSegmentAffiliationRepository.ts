@@ -70,8 +70,7 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
   }
 
   async setForMember(memberId: string, data: MemberSegmentAffiliationCreate[]): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(this.options)
-    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
 
     await captureApiChange(
       this.options,

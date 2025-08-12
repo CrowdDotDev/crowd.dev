@@ -155,7 +155,7 @@ export default class ActivityService extends LoggerBase {
             // we have some custom platform types in db that are not in enum
             !Object.values(PlatformType).includes(data.platform))
         ) {
-          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions, transaction)
+          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions)
           const { displayName } = await findMemberById(qx, data.member, [MemberField.DISPLAY_NAME])
           // Get the first key of the username object as a string
           data.username = displayName

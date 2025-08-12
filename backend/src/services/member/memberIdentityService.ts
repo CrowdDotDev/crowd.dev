@@ -59,7 +59,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -130,7 +130,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if any of the identities already exist
           for (const identity of data) {
@@ -205,7 +205,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -257,7 +257,7 @@ export default class MemberIdentityService extends LoggerBase {
 
       tx = repoOptions.transaction
 
-      const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+      const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
       // Delete member identity
       await deleteMemberIdentity(qx, memberId, id)
