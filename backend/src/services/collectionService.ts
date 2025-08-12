@@ -681,7 +681,6 @@ export class CollectionService extends LoggerBase {
           repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
         }
       }
-
       // determine which connections to delete if needed
       for (const mappedRepo of Object.values(settings.nangoMapping) as {
         owner: string
