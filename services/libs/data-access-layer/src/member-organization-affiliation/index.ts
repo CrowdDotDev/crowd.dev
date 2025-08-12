@@ -109,6 +109,13 @@ async function prepareMemberOrganizationAffiliationTimeline(
           )
         : null
 
+    logger.debug({
+      memberId,
+      fallbackOrganizationId,
+      allAffiliationsWithDates,
+      earliestStartDate,
+    }, '[buildTimeline] Timeline build start')
+
     const timeline: TimelineItem[] = []
     const now = new Date()
 
@@ -119,8 +126,8 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
     if (earliestStartDate) {
       logger.debug(
-        { memberId, earliestStartDate },
-        'Constructing timeline with earliest start date!',
+        { memberId, earliestStartDate, fallbackOrganizationId },
+        '[buildTimeline] Entering dated timeline for-loop',
       )
 
       // loop from earliest to latest start date, day by day
@@ -134,6 +141,13 @@ async function prepareMemberOrganizationAffiliationTimeline(
         if (orgs.length === 0) {
           // means there's a gap in the timeline, close the current range if there's one
           if (currentPrimaryOrg) {
+            logger.debug({
+              memberId,
+              currentPrimaryOrg,
+              currentStartDate,
+              date,
+            }, '[buildTimeline] Pushing current primary org to timeline')
+
             timeline.push({
               organizationId: currentPrimaryOrg.organizationId,
               dateStart: currentStartDate.toISOString(),
@@ -151,6 +165,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
         } else {
           // if we were in a gap, close it first
           if (gapStartDate !== null) {
+            logger.debug({
+              memberId,
+              gapStartDate,
+              date,
+            }, '[buildTimeline] Pushing gap to timeline')
+            
             timeline.push({
               organizationId: fallbackOrganizationId,
               dateStart: gapStartDate.toISOString(),
@@ -167,6 +187,13 @@ async function prepareMemberOrganizationAffiliationTimeline(
             currentStartDate = new Date(date)
           } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
             // we have a new primary org, we need to close the current range and open a new one
+            logger.debug({
+              memberId,
+              currentPrimaryOrg,
+              currentStartDate,
+              date,
+            }, '[buildTimeline] Pushing new primary org to timeline')
+            
             timeline.push({
               organizationId: currentPrimaryOrg.organizationId,
               dateStart: currentStartDate.toISOString(),
@@ -181,6 +208,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
         // if we're at the end, close the current range
         if (new Date(date.getTime() + 86400000) > now) {
           if (currentPrimaryOrg && currentStartDate) {
+            logger.debug({
+              memberId,
+              currentPrimaryOrg,
+              currentStartDate,
+            }, '[buildTimeline] Pushing final primary org to timeline')
+            
             timeline.push({
               organizationId: currentPrimaryOrg.organizationId,
               dateStart: currentStartDate.toISOString(),
@@ -190,6 +223,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
           }
 
           if (gapStartDate !== null) {
+            logger.debug({
+              memberId,
+              gapStartDate,
+              now,
+            }, '[buildTimeline] Pushing final gap to timeline')
+            
             timeline.push({
               organizationId: fallbackOrganizationId,
               dateStart: gapStartDate.toISOString(),
@@ -211,6 +250,12 @@ async function prepareMemberOrganizationAffiliationTimeline(
       dateStart: fallbackStart.toISOString(),
       dateEnd: fallbackEnd.toISOString(),
     })
+
+    logger.debug({
+      memberId,
+      fallbackOrganizationId,
+      timeline,
+    }, '[buildTimeline] Timeline build result')
 
     return timeline
   }
