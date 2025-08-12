@@ -598,7 +598,7 @@ export default class ActivityService extends LoggerBase {
     const memberIds: string[] = []
     const organizationIds: string[] = []
     for (const row of page.rows) {
-      ; (row as any).display = ActivityDisplayService.getDisplayOptions(
+      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
         row,
         SegmentRepository.getActivityTypes(this.options),
       )
@@ -634,7 +634,7 @@ export default class ActivityService extends LoggerBase {
           this.options,
         ).then((organizations) => {
           for (const row of page.rows.filter((r) => r.organizationId)) {
-            ; (row as any).organization = singleOrDefault(
+            ;(row as any).organization = singleOrDefault(
               organizations.rows,
               (o) => o.id === row.organizationId,
             )
