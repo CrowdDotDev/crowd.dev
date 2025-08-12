@@ -74,10 +74,6 @@ export default (sequelize, DataTypes) => {
       as: 'settings',
     })
 
-    models.tenant.hasMany(models.conversationSettings, {
-      as: 'conversationSettings',
-    })
-
     models.tenant.hasMany(models.tenantUser, {
       as: 'users',
     })
