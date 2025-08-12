@@ -14,6 +14,7 @@ import {
 import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
+import { Transaction } from 'sequelize'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -37,8 +38,8 @@ export default class MemberOrganizationsService extends LoggerBase {
   }
 
   // Member organization list
-  async list(memberId: string): Promise<IRenderFriendlyMemberOrganization[]> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+  async list(memberId: string, transaction?: Transaction): Promise<IRenderFriendlyMemberOrganization[]> {
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     // Fetch member organizations
     const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(qx, memberId)
@@ -111,7 +112,7 @@ export default class MemberOrganizationsService extends LoggerBase {
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
       // Fetch updated list
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -138,7 +139,7 @@ export default class MemberOrganizationsService extends LoggerBase {
 
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -171,7 +172,7 @@ export default class MemberOrganizationsService extends LoggerBase {
         true,
       )
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
