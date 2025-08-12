@@ -30,7 +30,8 @@ SQL >
         insightsProjects_filtered.slug,
         insightsProjects_filtered.logo,
         insightsProjects_filtered.slug as "projectSlug",
-        insightsProjects_filtered.name
+        insightsProjects_filtered.name,
+        insightsProjects_filtered.archivedRepositories
     from insightsProjects_filtered
     where
         not (
