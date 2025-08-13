@@ -57,23 +57,11 @@
         </div>
       </div>
     </div>
-
-    <!-- Activity actions -->
-    <div class="flex items-center gap-3">
-      <app-activity-dropdown
-        :show-affiliations="inProfile"
-        :activity="activity"
-        @edit="emit('edit')"
-        @on-update="emit('onUpdate')"
-        @activity-destroyed="emit('activity-destroyed')"
-      />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { lfIdentities } from '@/config/identities';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
@@ -84,10 +72,6 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import { toSentenceCase } from '@/utils/string';
 import { computed } from 'vue';
 
-const emit = defineEmits<{(e: 'edit'): void;
-  (e: 'onUpdate'): void;
-  (e: 'activity-destroyed'): void;
-}>();
 const props = defineProps<{
   activity: Activity;
   inProfile?: boolean;

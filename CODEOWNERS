@@ -21,7 +21,6 @@
 /backend/src/api/nango/                                     @themarolt
 /backend/src/serverless/integrations/                       @themarolt
 /backend/src/services/activityService.ts                    @themarolt
-/backend/src/services/conversationService.ts                @themarolt
 /backend/src/services/integrationService.ts                 @themarolt
 
 # monitoring and alerting

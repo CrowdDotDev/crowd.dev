@@ -71,7 +71,6 @@ export enum FeatureEventKey {
   DELETE_ACTIVITY_TYPE = 'Delete activity type',
   ADD_ACTIVITY = 'Add activity',
   EDIT_ACTIVITY = 'Edit activity',
-  DELETE_ACTIVITY = 'Delete activity',
   DELETE_CONVERSATION = 'Delete conversation',
   VIEW_CONVERSATION = 'View conversation',
   EDIT_MEMBER_IDENTITY = 'Edit contributor identity',

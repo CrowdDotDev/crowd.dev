@@ -21,14 +21,6 @@
       </div>
     </div>
   </article>
-  <!-- For now only render a special UI for Git -->
-  <article v-else-if="activity.platform === Platform.GIT" class="py-5">
-    <lf-activity-display
-      in-dashboard
-      :activity="activity"
-      @activity-destroyed="$emit('activity-destroyed', activity.id)"
-    />
-  </article>
   <article v-else class="py-5 border-gray-200 relative">
     <div class="flex">
       <!-- avatar -->
@@ -74,14 +66,6 @@
                 class="flex text-2xs leading-4 pl-2"
               />
             </div>
-          </div>
-          <div>
-            <app-activity-dropdown
-              :show-affiliations="false"
-              :activity="activity"
-              @on-update="$emit('activity-destroyed', activity.id)"
-              @activity-destroyed="$emit('activity-destroyed', activity.id)"
-            />
           </div>
         </div>
         <!-- Content -->
@@ -131,7 +115,6 @@
 
 <script>
 import AppAvatar from '@/shared/avatar/avatar.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
@@ -139,7 +122,6 @@ import AppActivityContentFooter from '@/modules/activity/components/activity-con
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { lfIdentities } from '@/config/identities';
@@ -151,11 +133,9 @@ export default {
     AppMemberDisplayName,
     AppActivityContent,
     AppLoading,
-    AppActivityDropdown,
     AppAvatar,
     AppActivityContentFooter,
     AppActivityHeader,
-    LfActivityDisplay,
   },
   props: {
     activity: {
@@ -169,7 +149,6 @@ export default {
       default: false,
     },
   },
-  emits: ['activity-destroyed'],
   data() {
     return {
       Platform,
