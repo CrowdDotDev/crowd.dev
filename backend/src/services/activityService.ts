@@ -474,50 +474,6 @@ export default class ActivityService extends LoggerBase {
     }
   }
 
-  async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
-
-    try {
-      if (data.parent) {
-        data.parent = await ActivityRepository.filterIdInTenant(data.parent, {
-          ...this.options,
-          transaction,
-        })
-      }
-
-      const record = await ActivityRepository.update(id, data, {
-        ...this.options,
-        transaction,
-      })
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(record.memberId, {
-        withAggs: true,
-      })
-      return record
-    } catch (error) {
-      if (error.name && error.name.includes('Sequelize')) {
-        this.log.error(
-          error,
-          {
-            query: error.sql,
-            errorMessage: error.original.message,
-          },
-          'Error during activity update!',
-        )
-      } else {
-        this.log.error(error, 'Error during activity update!')
-      }
-      await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
-
-      throw error
-    }
-  }
-
   async destroyAll(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
