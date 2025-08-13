@@ -1,20 +1,13 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
-import { distinct, mergeObjects, singleOrDefault } from '@crowd/common'
-import { CommonMemberService } from '@crowd/common_services'
+import { singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   deleteActivities,
-  insertActivities,
   queryActivities,
-  updateActivity,
 } from '@crowd/data-access-layer'
-import {
-  MemberField,
-  findMemberById,
-  queryMembersAdvanced,
-} from '@crowd/data-access-layer/src/members'
+import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
@@ -22,7 +15,7 @@ import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } fro
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { QUEUE_CLIENT, getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -32,11 +25,9 @@ import {
   UsernameIdentities,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
-import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
-import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
@@ -47,215 +38,6 @@ export default class ActivityService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
-  }
-
-  /**
-   * Upsert an activity. If the member exists, it updates it. If it does not exist, it creates it.
-   * The update is done with a deep merge of the original and the new activities.
-   * @param data Activity data
-   * data.sourceId is the platform specific id given by the platform.
-   * data.sourceParentId is the platform specific parentId given by the platform
-   * We save both ids to create relationships with other activities.
-   * When a sourceParentId is present in upsert, all sourceIds are searched to find the activity entity where sourceId = sourceParentId
-   * Found activity's(parent) id(uuid) is written to the new activities parentId.
-   * If data.sourceParentId is not present, we try finding children activities of current activity
-   * where sourceParentId = data.sourceId. Found activity's parentId and conversations gets updated accordingly
-   * @param existing If the activity already exists, the activity. If it doesn't or we don't know, false
-   * @returns The upserted activity
-   */
-  async upsert(
-    data,
-    existing: boolean | any = false,
-    fireCrowdWebhooks: boolean = true,
-    fireSync: boolean = true,
-  ) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
-    const repositoryOptions = { ...this.options, transaction }
-
-    try {
-      // check type exists, if doesn't exist, create a placeholder type with activity type key
-      if (
-        data.platform &&
-        data.type &&
-        !SegmentRepository.activityTypeExists(data.platform, data.type, repositoryOptions)
-      ) {
-        await new SegmentService(repositoryOptions).createActivityType(
-          { type: data.type },
-          data.platform,
-        )
-        await SegmentService.refreshSegments(repositoryOptions)
-      }
-
-      // check if channel exists in settings for respective platform. If not, update by adding channel to settings
-      if (data.platform && data.channel) {
-        await new SegmentService(repositoryOptions).updateActivityChannels(data)
-        await SegmentService.refreshSegments(repositoryOptions)
-      }
-
-      // If a sourceParentId is sent, try to find it in our db
-      if ('sourceParentId' in data && data.sourceParentId) {
-        const parent = await ActivityRepository.findOne(
-          {
-            filter: {
-              and: [{ sourceId: { eq: data.sourceParentId } }],
-            },
-          },
-          repositoryOptions,
-        )
-        if (parent) {
-          data.parent = await ActivityRepository.filterIdInTenant(parent.id, repositoryOptions)
-        } else {
-          data.parent = null
-        }
-      }
-
-      if (!existing) {
-        existing = await this._activityExists(data, transaction)
-      }
-
-      let record
-      if (existing) {
-        const { id } = existing
-        delete existing.id
-        const toUpdate = mergeObjects(existing, data, {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          timestamp: (oldValue, _newValue) => oldValue,
-          attributes: (oldValue, newValue) => {
-            if (oldValue && newValue) {
-              const out = { ...oldValue, ...newValue }
-              // If either of the two has isMainBranch set to true, then set it to true
-              if (oldValue.isMainBranch || newValue.isMainBranch) {
-                out.isMainBranch = true
-              }
-              return out
-            }
-            return newValue
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          organizationId: (oldValue, _newValue) => oldValue,
-        })
-        await updateActivity(this.options.qdb, id, toUpdate)
-        record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
-      } else {
-        if (!data.sentiment) {
-          const sentiment = await this.getSentiment(data)
-          data.sentiment = sentiment
-        }
-
-        if (
-          !data.username &&
-          (data.platform === PlatformType.OTHER ||
-            // we have some custom platform types in db that are not in enum
-            !Object.values(PlatformType).includes(data.platform))
-        ) {
-          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions)
-          const { displayName } = await findMemberById(qx, data.member, [MemberField.DISPLAY_NAME])
-          // Get the first key of the username object as a string
-          data.username = displayName
-        }
-
-        const commonMemberService = new CommonMemberService(
-          optionsQx(this.options),
-          this.options.temporal,
-          this.options.log,
-        )
-        data.organizationId = await commonMemberService.findAffiliation(
-          data.member,
-          SequelizeRepository.getStrictlySingleActiveSegment(this.options).id,
-          data.timestamp,
-        )
-
-        record = await ActivityRepository.create(data, repositoryOptions)
-        await insertActivities(QUEUE_CLIENT(), [
-          { ...data, id: record.id, createdAt: record.id, createdById: record.createdById },
-        ])
-
-        // Only track activity's platform and timestamp and memberId. It is completely annonymous.
-        telemetryTrack(
-          'Activity created',
-          {
-            id: record.id,
-            platform: record.platform,
-            timestamp: record.timestamp,
-            memberId: record.memberId,
-            createdAt: record.createdAt,
-          },
-          this.options,
-        )
-
-        // newly created activity can be a parent or a child (depending on the insert order)
-        // if it's not a child, it may be a parent of previously added activities
-        if (!data.parent && 'sourceId' in data && data.sourceId) {
-          const children = await queryActivities(
-            repositoryOptions.qdb,
-            {
-              segmentIds: [record.segmentId],
-              filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
-            },
-            DEFAULT_COLUMNS_TO_SELECT,
-          )
-
-          const memberIds = distinct(children.rows.map((c) => c.memberId))
-          if (memberIds.length > 0) {
-            const memberResults = await queryMembersAdvanced(
-              optionsQx(repositoryOptions),
-              repositoryOptions.redis,
-              {
-                filter: { and: [{ id: { in: memberIds } }] },
-                limit: memberIds.length,
-              },
-            )
-
-            for (const activity of children.rows) {
-              const member = singleOrDefault(memberResults.rows, (m) => m.id === activity.memberId)
-              if (member) {
-                activity.member = member
-              }
-            }
-          }
-
-          for (const child of children.rows) {
-            // update children with newly created parentId
-            await updateActivity(this.options.qdb, child.id, { ...record, parentId: record.id })
-            await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
-          }
-        }
-      }
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      if (fireSync) {
-        await searchSyncService.triggerMemberSync(record.memberId, {
-          withAggs: true,
-        })
-      }
-
-      if (!fireCrowdWebhooks) {
-        this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
-      }
-
-      return record
-    } catch (error) {
-      if (error.name && error.name.includes('Sequelize')) {
-        this.log.error(
-          error,
-          {
-            query: error.sql,
-            errorMessage: error.original.message,
-          },
-          'Error during activity upsert!',
-        )
-      } else {
-        this.log.error(error, 'Error during activity upsert!')
-      }
-
-      await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
-
-      throw error
-    }
   }
 
   /**
