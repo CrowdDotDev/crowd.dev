@@ -2,11 +2,7 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
 import { singleOrDefault } from '@crowd/common'
-import {
-  DEFAULT_COLUMNS_TO_SELECT,
-  deleteActivities,
-  queryActivities,
-} from '@crowd/data-access-layer'
+import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
 import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
@@ -252,25 +248,6 @@ export default class ActivityService extends LoggerBase {
       await dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, true)
     } catch (error) {
       this.log.error(error, 'Error during activity create with member!')
-      throw error
-    }
-  }
-
-  async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      await deleteActivities(this.options.qdb, ids)
-      for (const id of ids) {
-        await ActivityRepository.destroy(id, {
-          ...this.options,
-          transaction,
-        })
-      }
-
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
   }
