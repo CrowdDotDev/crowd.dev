@@ -256,25 +256,6 @@ export default class ActivityService extends LoggerBase {
     }
   }
 
-  async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      await deleteActivities(this.options.qdb, ids)
-      for (const id of ids) {
-        await ActivityRepository.destroy(id, {
-          ...this.options,
-          transaction,
-        })
-      }
-
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
-    }
-  }
-
   async findById(id) {
     return ActivityRepository.findById(id, this.options)
   }
@@ -336,7 +317,7 @@ export default class ActivityService extends LoggerBase {
     const memberIds: string[] = []
     const organizationIds: string[] = []
     for (const row of page.rows) {
-      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
+      ; (row as any).display = ActivityDisplayService.getDisplayOptions(
         row,
         SegmentRepository.getActivityTypes(this.options),
       )
@@ -372,7 +353,7 @@ export default class ActivityService extends LoggerBase {
           this.options,
         ).then((organizations) => {
           for (const row of page.rows.filter((r) => r.organizationId)) {
-            ;(row as any).organization = singleOrDefault(
+            ; (row as any).organization = singleOrDefault(
               organizations.rows,
               (o) => o.id === row.organizationId,
             )
