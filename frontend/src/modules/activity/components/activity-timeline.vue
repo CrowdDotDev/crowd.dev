@@ -107,21 +107,6 @@
                     'mt-1.5': isMemberEntity,
                   }"
                 />
-
-                <div class="flex items-center flex-nowrap">
-                  <app-activity-dropdown
-                    v-if="showAffiliations"
-                    :show-affiliations="true"
-                    :activity="activity"
-                    :organizations="
-                      entity.organizations
-                        ?? activity.member.organizations
-                        ?? []
-                    "
-                    :disable-edit="true"
-                    @on-update="fetchActivities({ reset: true })"
-                  />
-                </div>
               </div>
 
               <!-- For now only render a special UI for Git -->
@@ -231,7 +216,6 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
