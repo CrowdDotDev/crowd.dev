@@ -1,12 +1,10 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
-import { Transaction } from 'sequelize/types'
 
 import { distinct, mergeObjects, singleOrDefault } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
-  addActivityToConversation,
   deleteActivities,
   insertActivities,
   queryActivities,
@@ -38,7 +36,6 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
-import ConversationService from './conversationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 
@@ -140,9 +137,6 @@ export default class ActivityService extends LoggerBase {
         })
         await updateActivity(this.options.qdb, id, toUpdate)
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
-        if (data.parent) {
-          await this.addToConversation(record.id, data.parent, transaction)
-        }
       } else {
         if (!data.sentiment) {
           const sentiment = await this.getSentiment(data)
@@ -155,7 +149,7 @@ export default class ActivityService extends LoggerBase {
             // we have some custom platform types in db that are not in enum
             !Object.values(PlatformType).includes(data.platform))
         ) {
-          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions, transaction)
+          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions)
           const { displayName } = await findMemberById(qx, data.member, [MemberField.DISPLAY_NAME])
           // Get the first key of the username object as a string
           data.username = displayName
@@ -191,11 +185,8 @@ export default class ActivityService extends LoggerBase {
         )
 
         // newly created activity can be a parent or a child (depending on the insert order)
-        // if child
-        if (data.parent) {
-          record = await this.addToConversation(record.id, data.parent, transaction)
-        } else if ('sourceId' in data && data.sourceId) {
-          // if it's not a child, it may be a parent of previously added activities
+        // if it's not a child, it may be a parent of previously added activities
+        if (!data.parent && 'sourceId' in data && data.sourceId) {
           const children = await queryActivities(
             repositoryOptions.qdb,
             {
@@ -228,9 +219,6 @@ export default class ActivityService extends LoggerBase {
             // update children with newly created parentId
             await updateActivity(this.options.qdb, child.id, { ...record, parentId: record.id })
             await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
-
-            // manage conversations for each child
-            await this.addToConversation(child.id, record.id, transaction)
           }
         }
       }
@@ -396,91 +384,6 @@ export default class ActivityService extends LoggerBase {
       acc.push(...i)
       return acc
     }, [])
-  }
-
-  /**
-   * Adds an activity to a conversation.
-   * If parent already has a conversation, adds child to parent's conversation
-   * If parent doesn't have a conversation, and child has one,
-   * adds parent to child's conversation.
-   * If both of them doesn't have a conversation yet, creates one and adds both to the conversation.
-   * @param {string} id id of the activity
-   * @param parentId id of the parent activity
-   * @param {Transaction} transaction
-   * @returns updated activity plain object
-   */
-
-  async addToConversation(id: string, parentId: string, transaction: Transaction) {
-    const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
-    const child = await ActivityRepository.findById(id, { ...this.options, transaction })
-    const conversationService = new ConversationService({
-      ...this.options,
-      transaction,
-    } as IServiceOptions)
-
-    let record
-    let conversation
-
-    // check if parent is in a conversation already
-    if (parent.conversationId) {
-      conversation = await conversationService.findById(parent.conversationId)
-      record = await ActivityRepository.update(
-        id,
-        { conversationId: parent.conversationId },
-        { ...this.options, transaction },
-      )
-    } else if (child.conversationId) {
-      // if child is already in a conversation
-      conversation = await conversationService.findById(child.conversationId)
-
-      record = child
-
-      // if conversation is not already published, update conversation info with new parent
-      if (!conversation.published) {
-        const newConversationTitle = await conversationService.generateTitle(
-          parent.title || parent.body,
-          ActivityService.hasHtmlActivities(parent.platform),
-        )
-
-        conversation = await conversationService.update(conversation.id, {
-          title: newConversationTitle,
-          slug: await conversationService.generateSlug(newConversationTitle),
-        })
-      }
-
-      // add parent to the conversation
-      await ActivityRepository.update(
-        parent.id,
-
-        { conversationId: conversation.id },
-        { ...this.options, transaction },
-      )
-      await addActivityToConversation(this.options.qdb, parent.id, conversation.id)
-    } else {
-      // neither child nor parent is in a conversation, create one from parent
-      const conversationTitle = await conversationService.generateTitle(
-        parent.title || parent.body,
-        ActivityService.hasHtmlActivities(parent.platform),
-      )
-      conversation = await conversationService.create({
-        title: conversationTitle,
-        published: false,
-        slug: await conversationService.generateSlug(conversationTitle),
-        platform: parent.platform,
-      })
-      await ActivityRepository.update(
-        parentId,
-        { conversationId: conversation.id },
-        { ...this.options, transaction },
-      )
-      record = await ActivityRepository.update(
-        id,
-        { conversationId: conversation.id },
-        { ...this.options, transaction },
-      )
-    }
-
-    return record
   }
 
   /**
