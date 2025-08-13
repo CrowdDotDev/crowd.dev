@@ -327,14 +327,6 @@ export async function addActivityToConversation(
   )
 }
 
-export async function deleteActivities(conn: DbConnOrTx, ids: string[]): Promise<void> {
-  await Promise.all(
-    ids.map(async (id) => {
-      return await conn.none('UPDATE activities SET deletedAt = NOW() WHERE id = $(id);', { id })
-    }),
-  )
-}
-
 const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['isTeamMember', 'a."member_isTeamMember"'],
   ['isBot', 'a."member_isBot"'],
