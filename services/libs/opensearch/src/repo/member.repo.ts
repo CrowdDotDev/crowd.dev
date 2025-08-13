@@ -188,7 +188,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     m."manuallyCreated",
     m."createdAt",
     m.reach,
-    coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
+    CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END as "numberOfOpenSourceContributions",
 
     coalesce(i.identities, '[]'::json)            as "identities",
     coalesce(mo.all_organizations, json_build_array()) as organizations,
