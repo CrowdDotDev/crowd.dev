@@ -12,9 +12,6 @@ export default {
       state.filters.segments = payload.segments || state.filters.segments || { segments: [route.query.projectGroup], childSegments: [] };
     }
   },
-  SET_RECENT_CONVERSATIONS(state, { rows }) {
-    state.conversations.recent = rows;
-  },
   SET_RECENT_ACTIVITIES(state, { rows }) {
     state.activities.recent = rows;
   },

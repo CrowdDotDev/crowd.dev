@@ -7,10 +7,6 @@ export default {
   // ChartData
   chartData: (state) => state.chartData,
 
-  // Conversations
-  recentConversations: (state) => state.conversations.recent,
-  conversations: (state) => state.conversations,
-
   // Activities
   recentActivities: (state) => state.activities.recent,
   activities: (state) => state.activities,

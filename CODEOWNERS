@@ -1,7 +1,7 @@
 /.github/CODEOWNERS @joanagmaia
 
 # frontend
-/frontend/                                                  @gaspergrom @Sameh16
+/frontend/                                                  @gaspergrom
 
 # infra
 /.github/                                                   @themarolt
@@ -21,20 +21,19 @@
 /backend/src/api/nango/                                     @themarolt
 /backend/src/serverless/integrations/                       @themarolt
 /backend/src/services/activityService.ts                    @themarolt
-/backend/src/services/conversationService.ts                @themarolt
 /backend/src/services/integrationService.ts                 @themarolt
 
 # monitoring and alerting
-/services/libs/alerting/                                     @themarolt @sausage-todd
-/services/libs/logging/                                      @themarolt @sausage-todd
-/services/libs/telemetry/                                    @themarolt @sausage-todd
+/services/libs/alerting/                                     @themarolt
+/services/libs/logging/                                      @themarolt
+/services/libs/telemetry/                                    @themarolt
 
 # database
-/services/libs/database/                                     @sausage-todd
-/services/libs/questdb/                                      @sausage-todd
-/backend/src/database/                                       @sausage-todd
-/backend/src/serverless/dbOperations/                        @sausage-todd
-/backend/src/middlewares/databaseMiddleware.ts               @sausage-todd
+/services/libs/database/                                     @themarolt
+/services/libs/questdb/                                      @themarolt
+/backend/src/database/                                       @themarolt
+/backend/src/serverless/dbOperations/                        @themarolt
+/backend/src/middlewares/databaseMiddleware.ts               @themarolt
 
 # api
 /backend/src/api/                                            @skwowet

@@ -1,5 +1,5 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
+import { DbColumnSet, DbStore, RepositoryBase, prepareBatchForModification } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
   IIntegrationResult,
@@ -437,7 +437,7 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   }
 
   public async publishWebhookStreams(records: IInsertableWebhookStream[]): Promise<void> {
-    const preparedObjects = RepositoryBase.prepareBatch(
+    const preparedObjects = prepareBatchForModification(
       records.map((w) => {
         return {
           identifier: w.identifier,

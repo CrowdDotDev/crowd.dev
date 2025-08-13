@@ -5,7 +5,6 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, RawQueryParser } from '@crowd/common'
 import {
   IQueryActivitiesParameters,
-  deleteActivities,
   insertActivities,
   queryActivities,
   updateActivity,
@@ -164,18 +163,6 @@ class ActivityRepository {
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  static async destroy(id: string, options: IRepositoryOptions) {
-    const record = await this.findById(id, options, false)
-
-    if (!record) {
-      throw new Error404()
-    }
-
-    await deleteActivities(options.qdb, [id])
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findById(id: string, options: IRepositoryOptions, loadChildren = true) {
@@ -703,15 +690,6 @@ class ActivityRepository {
             reach: 'reach.total',
           },
           manyToMany: {
-            tags: {
-              table: 'members',
-              model: 'member',
-              relationTable: {
-                name: 'memberTags',
-                from: 'memberId',
-                to: 'tagId',
-              },
-            },
             segments: {
               table: 'members',
               model: 'member',

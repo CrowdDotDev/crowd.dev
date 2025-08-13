@@ -1,6 +1,8 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
+import { MEMBER_SELECT_COLUMNS } from '../members/base'
+import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 
@@ -66,7 +68,7 @@ export async function moveToNewMember(
     type: MemberIdentityType
   },
 ) {
-  return qx.result(
+  const rowCount = await qx.result(
     `
       update "memberIdentities"
       set
@@ -79,6 +81,14 @@ export async function moveToNewMember(
     `,
     p,
   )
+
+  if (rowCount !== 1) {
+    throw new Error(
+      `Expected 1 row to be updated, but got ${rowCount} when moving identity from ${p.oldMemberId} to ${p.newMemberId}!`,
+    )
+  }
+
+  return rowCount
 }
 
 export async function deleteMemberIdentitiesByCombinations(
@@ -223,4 +233,150 @@ export async function findAlreadyExistingVerifiedIdentities(
     `,
     values,
   )
+}
+
+export async function findMembersByVerifiedEmails(
+  qx: QueryExecutor,
+  emails: string[],
+): Promise<Map<string, IDbMember>> {
+  const data = {
+    type: MemberIdentityType.EMAIL,
+    emails: emails.map((e) => e.toLowerCase()),
+  }
+
+  const results = await qx.select(
+    `
+    with matching_identities as (
+      select mi."memberId", mi.value
+      from "memberIdentities" mi
+      where mi.type = $(type) and lower(mi.value) in ($(emails:csv))
+      limit ${emails.length}
+    )
+    select mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
+    from "members" m inner join matching_identities mi on m.id = mi."memberId"
+  `,
+    data,
+  )
+
+  const resultMap = new Map<string, IDbMember>()
+
+  for (const result of results) {
+    resultMap.set(result.identityValue, result)
+  }
+
+  return resultMap
+}
+
+export async function findMembersByVerifiedUsernames(
+  qx: QueryExecutor,
+  params: { segmentId: string; platform: string; username: string }[],
+): Promise<Map<{ platform: string; value: string }, IDbMember>> {
+  const orConditions: string[] = []
+  let index = 0
+
+  const data: Record<string, string> = {
+    type: MemberIdentityType.USERNAME,
+  }
+
+  for (const param of params) {
+    const platformParam = `platform_${index++}`
+    const usernameParam = `username_${index++}`
+
+    orConditions.push(
+      `(mi.platform = $(${platformParam}) and lower(mi.value) = $(${usernameParam}))`,
+    )
+
+    data[platformParam] = param.platform
+    data[usernameParam] = param.username.toLowerCase()
+  }
+
+  const results = await qx.select(
+    `
+      with matching_identities as (
+        select mi."memberId", mi.platform, mi.value
+        from "memberIdentities" mi
+        where mi.type = $(type) and (${orConditions.join(' or ')})
+        limit ${params.length}
+      )
+      select mi.platform as "identityPlatform", mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
+      from "members" m inner join matching_identities mi on m.id = mi."memberId"
+    `,
+    data,
+  )
+
+  const resultMap = new Map<{ platform: string; value: string }, IDbMember>()
+
+  for (const result of results) {
+    resultMap.set({ platform: result.identityPlatform, value: result.identityValue }, result)
+  }
+
+  return resultMap
+}
+
+export async function findMembersByIdentities(
+  qx: QueryExecutor,
+  identities: IMemberIdentity[],
+  memberIdToIgnore?: string,
+  onlyVerified = false,
+): Promise<Map<string, string>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any = {}
+
+  const conditions: string[] = []
+  if (memberIdToIgnore) {
+    conditions.push('mi."memberId" <> $(memberIdToIgnore)')
+    params.memberIdToIgnore = memberIdToIgnore
+  }
+
+  if (onlyVerified) {
+    conditions.push('mi.verified = true')
+  }
+
+  const identityParams = identities
+    .map((identity) => `('${identity.platform}', '${identity.value}', '${identity.type}')`)
+    .join(', ')
+
+  const result = await qx.select(
+    `
+    with input_identities (platform, value, type) as (
+      values ${identityParams}
+    )
+    select "memberId", i.platform, i.value, i.type
+    from "memberIdentities" mi
+      inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
+    where ${conditions.join(' and ')}
+  `,
+    params,
+  )
+
+  const resultMap = new Map<string, string>()
+  result.forEach((row) => {
+    resultMap.set(`${row.platform}:${row.type}:${row.value}`, row.memberId)
+  })
+
+  return resultMap
+}
+
+export async function findIdentitiesForMembers(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<Map<string, IMemberIdentity[]>> {
+  const resultMap = new Map<string, IMemberIdentity[]>()
+
+  const results = await qx.select(
+    `
+      select * from "memberIdentities"
+      where "memberId" in ($(memberIds:csv))
+    `,
+    {
+      memberIds,
+    },
+  )
+
+  for (const memberId of memberIds) {
+    const identities = results.filter((r) => r.memberId === memberId)
+    resultMap.set(memberId, identities)
+  }
+
+  return resultMap
 }

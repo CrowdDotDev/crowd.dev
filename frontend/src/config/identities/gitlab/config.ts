@@ -14,14 +14,6 @@ const gitlab: IdentityConfig = {
   activity: {
     showLink: true,
   },
-  conversation: {
-    showLabels: true,
-    replyContent: (conversation) => ({
-      icon: 'message',
-      copy: 'comment',
-      number: conversation.activityCount - 1,
-    }),
-  },
 };
 
 export default gitlab;

@@ -8,12 +8,11 @@ import {
   findMemberAffiliations,
   insertMemberAffiliations,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
-
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationCreate,
   MemberSegmentAffiliationUpdate,
-} from '../../types/memberSegmentAffiliationTypes'
+} from '@crowd/types'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
@@ -71,8 +70,7 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
   }
 
   async setForMember(memberId: string, data: MemberSegmentAffiliationCreate[]): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(this.options)
-    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
 
     await captureApiChange(
       this.options,

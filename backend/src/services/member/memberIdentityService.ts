@@ -3,6 +3,8 @@ import lodash from 'lodash'
 
 import { captureApiChange, memberEditIdentitiesAction } from '@crowd/audit-logs'
 import { Error409 } from '@crowd/common'
+import { optionsQx } from '@crowd/data-access-layer'
+import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
 import {
   checkIdentityExistance,
   createMemberIdentity,
@@ -16,7 +18,6 @@ import { LoggerBase } from '@crowd/logging'
 import { IMemberIdentity } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import MemberRepository from '@/database/repositories/memberRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -48,7 +49,9 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+          const memberIdentities = (
+            await findIdentitiesForMembers(optionsQx(repoOptions), [memberId])
+          )
             .get(memberId)
             .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
 
@@ -56,7 +59,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -117,7 +120,9 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+          const memberIdentities = (
+            await findIdentitiesForMembers(optionsQx(repoOptions), [memberId])
+          )
             .get(memberId)
             .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
 
@@ -125,7 +130,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if any of the identities already exist
           for (const identity of data) {
@@ -190,7 +195,9 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+          const memberIdentities = (
+            await findIdentitiesForMembers(optionsQx(repoOptions), [memberId])
+          )
             .get(memberId)
             .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
 
@@ -198,7 +205,7 @@ export default class MemberIdentityService extends LoggerBase {
 
           tx = repoOptions.transaction
 
-          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -250,7 +257,7 @@ export default class MemberIdentityService extends LoggerBase {
 
       tx = repoOptions.transaction
 
-      const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+      const qx = SequelizeRepository.getQueryExecutor(repoOptions)
 
       // Delete member identity
       await deleteMemberIdentity(qx, memberId, id)

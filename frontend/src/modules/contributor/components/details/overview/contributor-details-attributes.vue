@@ -30,18 +30,6 @@
         </div>
       </article>
 
-      <!-- Tags -->
-      <article v-if="tags.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Tags
-          </p>
-        </div>
-        <div class="w-7/12">
-          <lf-contributor-attribute-tags :data="tags.map((t) => t.name)" />
-        </div>
-      </article>
-
       <!-- Reach -->
       <article v-if="reach?.total > 0" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
@@ -166,7 +154,6 @@
     </div>
     <div
       v-if="!bio?.default
-        && !tags.length
         && reach?.total <= 0
         && !education?.default?.length
         && !certifications?.default?.length
@@ -222,7 +209,6 @@ const { customAttributes } = storeToRefs(memberStore);
 
 const bio = computed(() => props.contributor.attributes?.bio);
 const reach = computed(() => props.contributor.reach);
-const tags = computed(() => props.contributor.tags);
 const certifications = computed(() => props.contributor.attributes?.certifications);
 const education = computed(() => props.contributor.attributes?.education);
 const awards = computed(() => props.contributor.attributes?.awards);

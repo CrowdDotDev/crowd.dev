@@ -15,14 +15,6 @@ const git: IdentityConfig = {
     showSourceId: true,
     typeIcon: 'commit',
   },
-  conversation: {
-    attributes: (attributes) => ({
-      changes: attributes.lines,
-      changesCopy: 'line',
-      insertions: attributes.insertions,
-      deletions: attributes.deletions,
-    }),
-  },
 };
 
 export default git;

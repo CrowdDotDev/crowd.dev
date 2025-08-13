@@ -24,6 +24,7 @@ SCHEMA >
     `segmentId` String `json:$.record.segmentId` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`,
     `logoUrl` String `json:$.record.logoUrl` DEFAULT '',
     `organizationId` String `json:$.record.organizationId` DEFAULT '',
     `website` String `json:$.record.website` DEFAULT '',

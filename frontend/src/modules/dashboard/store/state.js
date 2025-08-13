@@ -10,11 +10,6 @@ export default () => ({
     },
   },
   chartData: null,
-  conversations: {
-    loading: false,
-    recent: [],
-    total: 0,
-  },
   activities: {
     loading: false,
     recent: [],

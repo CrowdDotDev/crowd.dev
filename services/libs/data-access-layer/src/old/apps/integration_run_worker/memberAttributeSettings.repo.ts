@@ -1,5 +1,5 @@
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
-import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
+import { DbColumnSet, DbStore, RepositoryBase, prepareBatchForModification } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberAttribute } from '@crowd/types'
 
@@ -33,7 +33,7 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
     if (newAttributes.length > 0) {
       // create new
       const now = new Date()
-      const preparedObjects = RepositoryBase.prepareBatch(
+      const preparedObjects = prepareBatchForModification(
         newAttributes.map((a) => {
           return {
             ...a,

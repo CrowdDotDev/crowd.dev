@@ -384,7 +384,7 @@ export async function insertOrganization(
     values(${columns.map((c) => `$(${c})`).join(', ')})
   `
 
-  const result = await qe.result(query, {
+  const rowCount = await qe.result(query, {
     ...data,
     id,
     tenantId: DEFAULT_TENANT_ID,
@@ -392,7 +392,7 @@ export async function insertOrganization(
     updatedAt: now,
   })
 
-  if (result.rowCount !== 1) {
+  if (rowCount !== 1) {
     throw new Error('Failed to insert organization')
   }
 

@@ -43,7 +43,9 @@ SQL >
     %
     SELECT not isLF AS result
     FROM insightsProjects final
-    WHERE slug = {{ String(project, description="Filter by project slug", required=True) }}
+    WHERE
+        isNull (deletedAt)
+        and slug = {{ String(project, description="Filter by project slug", required=True) }}
 
 NODE contributors_leaderboard_2
 SQL >

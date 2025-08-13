@@ -51,7 +51,7 @@ export class CollectionService extends LoggerBase {
 
   async createCollection(collection: ICreateCollectionWithProjects) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       const slug = collection.slug ?? getCleanString(collection.name).replace(/\s+/g, '-')
 
@@ -81,7 +81,7 @@ export class CollectionService extends LoggerBase {
 
   async updateCollection(id: string, collection: Partial<ICreateCollectionWithProjects>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await updateCollection(qx, id, collection)
 
       if (collection.projects) {
@@ -106,7 +106,7 @@ export class CollectionService extends LoggerBase {
 
   async findById(id: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const collection = await queryCollectionById(qx, id, Object.values(CollectionField))
       const connections = await findCollectionProjectConnections(qx, {
         collectionIds: [id],
@@ -143,7 +143,7 @@ export class CollectionService extends LoggerBase {
 
   async destroy(id: string) {
     await SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await disconnectProjectsAndCollections(qx, { collectionId: id })
       await deleteCollection(qx, id)
     })
@@ -217,7 +217,7 @@ export class CollectionService extends LoggerBase {
 
   async createInsightsProject(project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const slug = getCleanString(project.name).replace(/\s+/g, '-')
 
       const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
@@ -247,7 +247,7 @@ export class CollectionService extends LoggerBase {
 
   async destroyInsightsProject(id: string) {
     await SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
       await deleteInsightsProject(qx, id)
     })
@@ -255,7 +255,7 @@ export class CollectionService extends LoggerBase {
 
   async findInsightsProjectById(id: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const project = await queryInsightsProjectById(qx, id, Object.values(InsightsProjectField))
       const connections = await findCollectionProjectConnections(qx, {
         insightsProjectIds: [id],
@@ -377,7 +377,7 @@ export class CollectionService extends LoggerBase {
 
   async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       // If segmentId is being updated, fetch the new segment's isLF value
       if (project.segmentId) {
@@ -422,7 +422,7 @@ export class CollectionService extends LoggerBase {
 
   async findRepositoriesForSegment(segmentId: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const integrations = await fetchIntegrationsForSegment(qx, segmentId)
 
       // Initialize result with platform arrays
@@ -509,7 +509,7 @@ export class CollectionService extends LoggerBase {
 
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const integrations = await fetchIntegrationsForSegment(qx, segmentId)
       const segment = await findSegmentById(qx, segmentId)
 
@@ -580,7 +580,7 @@ export class CollectionService extends LoggerBase {
     segmentId: string,
   ): Promise<{ platforms: PlatformType[]; widgets: Widgets[] }> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const widgets = new Set<Widgets>()
       const integrations = await fetchIntegrationsForSegment(qx, segmentId)
       const platforms = [

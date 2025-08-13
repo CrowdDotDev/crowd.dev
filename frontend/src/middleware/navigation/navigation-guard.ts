@@ -28,11 +28,7 @@ export default async function ({ to }: { to: RouteLocationNormalized }) {
   if (to.meta.eventKey && !to.redirectedFrom) {
     let eventKey = to.meta.eventKey as PageEventKey;
 
-    if (eventKey === PageEventKey.ACTIVITIES) {
-      if (to.hash === '#conversations') {
-        eventKey = PageEventKey.CONVERSATIONS;
-      }
-    } else if (eventKey === PageEventKey.ADMIN_PANEL) {
+    if (eventKey === PageEventKey.ADMIN_PANEL) {
       if (to.hash === '#project-groups') {
         eventKey = PageEventKey.ADMIN_PANEL_PROJECT_GROUPS;
       } else if (to.hash === '#api-keys') {

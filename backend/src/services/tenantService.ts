@@ -1,5 +1,4 @@
 import { DEFAULT_TENANT_ID, Error400, Error404 } from '@crowd/common'
-import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
 
@@ -252,27 +251,6 @@ export default class TenantService {
           ...this.options,
           currentTenant: { id },
         }).validateHas(Permissions.values.tenantEdit)
-      }
-
-      // if tenant already has some published conversations, updating url is not allowed
-      if (data.url && data.url !== record.url) {
-        const segmentIds = SequelizeRepository.getSegmentIds(this.options)
-
-        const publishedConversations = await queryConversations(this.options.qdb, {
-          segmentIds,
-          filter: {
-            and: [
-              {
-                published: true,
-              },
-            ],
-          },
-          countOnly: true,
-        })
-
-        if (publishedConversations.count > 0) {
-          throw new Error400(this.options.language, 'tenant.errors.publishedConversationExists')
-        }
       }
 
       record = await TenantRepository.update(id, data, {

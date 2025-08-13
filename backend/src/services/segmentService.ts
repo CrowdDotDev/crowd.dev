@@ -78,7 +78,7 @@ export default class SegmentService extends LoggerBase {
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     const collectionService = new CollectionService({ ...this.options, transaction })
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
@@ -137,7 +137,7 @@ export default class SegmentService extends LoggerBase {
       throw new Error('Missing parentSlug. Projects must belong to a project group.')
     }
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
@@ -182,7 +182,7 @@ export default class SegmentService extends LoggerBase {
 
   async createSubproject(data: SegmentData): Promise<SegmentData> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       return this.createSubprojectInternal(data, qx, tx)
     })
   }

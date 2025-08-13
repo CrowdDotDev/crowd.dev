@@ -5,7 +5,6 @@
         v-for="el of new Array(4)"
         :key="el"
         :loading="true"
-        @activity-destroyed="refreshActivities"
       />
     </div>
     <div v-else>
@@ -16,7 +15,6 @@
           'border-b': ai < recentActivities.length - 1,
         }"
         :activity="activity"
-        @activity-destroyed="refreshActivities"
       />
 
       <app-dashboard-empty-state
@@ -64,13 +62,6 @@ export default {
       const lsSegmentsStore = useLfSegmentsStore();
 
       return storeToRefs(lsSegmentsStore).selectedProjectGroup.value;
-    },
-  },
-  methods: {
-    refreshActivities() {
-      this.$store.dispatch(
-        'dashboard/getRecentActivities',
-      );
     },
   },
 };

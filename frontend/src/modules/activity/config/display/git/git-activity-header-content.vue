@@ -57,57 +57,26 @@
         </div>
       </div>
     </div>
-
-    <!-- Activity actions -->
-    <div class="flex items-center gap-3">
-      <div v-if="activity.conversationId && !inDashboard">
-        <a
-          class="text-xs font-medium flex items-center cursor-pointer hover:underline"
-          target="_blank"
-          @click="openConversation"
-        >
-          <lf-icon name="eye" :size="14" class="mr-1" />
-          <span class="block">View commit</span></a>
-      </div>
-
-      <app-activity-dropdown
-        :show-affiliations="inProfile"
-        :activity="activity"
-        @edit="emit('edit')"
-        @on-update="emit('onUpdate')"
-        @activity-destroyed="emit('activity-destroyed')"
-      />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Activity } from '@/shared/modules/activity/types/Activity';
-import AppAvatar from '@/shared/avatar/avatar.vue';
-import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
-import { computed } from 'vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
-import { formatDateToTimeAgo } from '@/utils/date';
-import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
-import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
-import { toSentenceCase } from '@/utils/string';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { lfIdentities } from '@/config/identities';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import AppMemberDisplayName from '@/modules/member/components/member-display-name.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
+import { Activity } from '@/shared/modules/activity/types/Activity';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { formatDateToTimeAgo } from '@/utils/date';
+import { toSentenceCase } from '@/utils/string';
+import { computed } from 'vue';
 
-const emit = defineEmits<{(e: 'edit'): void;
-  (e: 'onUpdate'): void;
-  (e: 'activity-destroyed'): void;
-  (e: 'openConversation'): void;
-}>();
 const props = defineProps<{
   activity: Activity;
   inProfile?: boolean;
   inDashboard?: boolean;
 }>();
-
-const { trackEvent } = useProductTracking();
 
 const platform = computed(() => lfIdentities[props.activity.platform]);
 
@@ -115,17 +84,6 @@ const activityMessage = computed(() => props.activity.display?.default ?? '');
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
 const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
 
-const openConversation = () => {
-  trackEvent({
-    key: FeatureEventKey.VIEW_CONVERSATION,
-    type: EventType.FEATURE,
-    properties: {
-      conversationPlatform: props.activity.platform,
-    },
-  });
-
-  emit('openConversation');
-};
 </script>
 
 <style lang="scss">

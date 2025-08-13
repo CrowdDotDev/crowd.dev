@@ -116,11 +116,12 @@ export const getDbConnection = async (
 
   const client = dbInstance({
     ...config,
-    ssl: IS_CLOUD_ENV
-      ? {
-          rejectUnauthorized: false,
-        }
-      : false,
+    ssl:
+      IS_CLOUD_ENV || process.env.DEBUG_PGDB_SSL === 'true'
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
     max: maxPoolSize || (IS_DEV_ENV ? 5 : 20),
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,

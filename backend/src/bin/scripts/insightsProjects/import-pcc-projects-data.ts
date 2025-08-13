@@ -130,7 +130,7 @@ if (parameters.help || !parameters.file) {
           ],
         )
 
-        if (result.rows?.length > 0) {
+        if (result > 0) {
           console.log('Updated project:', slug)
           updatedCount++
         } else {

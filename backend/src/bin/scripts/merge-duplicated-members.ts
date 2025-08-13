@@ -1,6 +1,8 @@
 import { QueryTypes } from 'sequelize'
 
 import { generateUUIDv1, timeout } from '@crowd/common'
+import { CommonMemberService } from '@crowd/common_services'
+import { optionsQx } from '@crowd/data-access-layer'
 import {
   MemberField,
   fetchMemberIdentities,
@@ -11,7 +13,6 @@ import { IMemberUsername, MemberIdentityType } from '@crowd/types'
 
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import MemberService from '../../services/memberService'
 
 /* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-loop-func */
@@ -56,7 +57,7 @@ async function doMerge(data, logger: Logger) {
     id: data.tenantId,
   })
   tenantOptions.log = logger
-  const service = new MemberService(tenantOptions)
+  const service = new CommonMemberService(optionsQx(tenantOptions), tenantOptions.temporal, logger)
 
   for (let i = 1; i < data.all_ids.length; i++) {
     logger.info(`Merging ${data.all_ids[i]} into ${firstId}...`)
@@ -159,7 +160,7 @@ async function check(): Promise<number> {
       try {
         transaction = await SequelizeRepository.createTransaction(options)
         const txOptions = { ...options, transaction }
-        const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
         const allMembers: { id: string; joinedAt: string; username: IMemberUsername }[] = []
         for (const id of data.all_ids) {

@@ -18,8 +18,6 @@ import {
 import { useRoute } from 'vue-router';
 import config from '@/config';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -33,15 +31,11 @@ const props = defineProps<{
   grandparentId: string | null,
 }>();
 
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
 const { doGitlabConnect } = mapActions('integration');
 
 const isFinishingModalOpen = ref(false);
 
-const connectUrl = computed(() => `${config.backendUrl}/gitlab/${
-  tenant.value.id
-}/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`);
+const connectUrl = computed(() => `${config.backendUrl}/gitlab/connect?crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`);
 
 const connect = async () => {
   try {

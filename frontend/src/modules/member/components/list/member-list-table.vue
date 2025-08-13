@@ -382,9 +382,6 @@
                     </div>
                   </lf-table-head>
 
-                  <lf-table-head class="!px-3 !py-4 min-w-76">
-                    Tags
-                  </lf-table-head>
                   <lf-table-head
                     v-if="hasPermissions"
                     :sticky="true"
@@ -746,24 +743,6 @@
                     </router-link>
                   </lf-table-cell>
 
-                  <!-- Tags -->
-                  <lf-table-cell class="!py-4 pl-3">
-                    <router-link
-                      :to="{
-                        name: 'memberView',
-                        params: { id: member.id },
-                        query: { projectGroup: selectedProjectGroup?.id },
-                      }"
-                      class="block"
-                    >
-                      <app-tag-list
-                        :member="member"
-                        :editable="hasPermission(LfPermission.tagEdit)"
-                        @edit="handleEditTagsDialog(member)"
-                      />
-                    </router-link>
-                  </lf-table-cell>
-
                   <!-- Action button -->
                   <lf-table-cell
                     v-if="hasPermissions"
@@ -854,11 +833,6 @@
       v-model="isFindGithubDrawerOpen"
     />
     <app-member-merge-dialog v-model="isMergeDialogOpen" />
-    <app-tag-popover
-      v-model="isEditTagsDialogOpen"
-      :member="editTagMember"
-      @reload="fetchMembers({ reload: true })"
-    />
   </div>
 </template>
 
@@ -872,14 +846,12 @@ import { storeToRefs } from 'pinia';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
 import AppMemberJobTitle from '@/modules/member/components/member-job-title.vue';
-import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
-import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
@@ -922,8 +894,6 @@ const isTableHovered = ref(false);
 const isCursorDown = ref(false);
 
 const isMergeDialogOpen = ref(null);
-const isEditTagsDialogOpen = ref(false);
-const editTagMember = ref(null);
 
 const showMemberDropdownPopover = ref(false);
 const actionBtnRefs = ref({});
@@ -967,7 +937,6 @@ const memberStore = useMemberStore();
 const {
   members, totalMembers, filters, selectedMembers, savedFilterBody,
 } = storeToRefs(memberStore);
-const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -1072,11 +1041,6 @@ const onClickOutside = (el) => {
     closeDropdown();
   }
 };
-
-function handleEditTagsDialog(member) {
-  isEditTagsDialogOpen.value = true;
-  editTagMember.value = member;
-}
 
 const toggleAllMembersSelection = () => {
   if (selectedRows.value.length === members.value.length) {

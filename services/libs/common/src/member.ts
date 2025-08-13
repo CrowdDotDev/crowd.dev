@@ -1,3 +1,8 @@
+import merge from 'lodash.merge'
+import ldSum from 'lodash.sum'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export async function setAttributesDefaultValues(
   attributes: Record<string, unknown>,
   priorities: string[],
@@ -42,4 +47,23 @@ export function getHighestPriorityPlatformForAttributes(
   }
   const filteredPlatforms = priorityArray.filter((i) => platforms.includes(i))
   return filteredPlatforms.length > 0 ? filteredPlatforms[0] : platforms[0]
+}
+
+/**
+ *
+ * @param oldReach The old reach object
+ * @param newReach the new reach object
+ * @returns The new reach object
+ */
+export const calculateReach = (oldReach: any, newReach: any): { total: number } => {
+  // Totals are recomputed, so we delete them first
+  delete oldReach.total
+  delete newReach.total
+  const out = merge(oldReach, newReach)
+  if (Object.keys(out).length === 0) {
+    return { total: -1 }
+  }
+  // Total is the sum of all attributes
+  out.total = ldSum(Object.values(out))
+  return out
 }

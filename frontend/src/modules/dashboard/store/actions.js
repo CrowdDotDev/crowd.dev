@@ -1,7 +1,6 @@
 import { MemberService } from '@/modules/member/member-service';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { ActivityService } from '@/modules/activity/activity-service';
-import { ConversationService } from '@/modules/conversation/conversation-service';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
@@ -24,7 +23,6 @@ export default {
       segments,
     });
     dispatch('getChartData');
-    dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
@@ -42,82 +40,6 @@ export default {
       .then((data) => {
         state.chartData = data;
         return Promise.resolve(data);
-      });
-  },
-
-  // fetch conversations data
-  async getConversations({ dispatch }) {
-    dispatch('getRecentConversations');
-    dispatch('getConversationCount');
-  },
-  // Fetch recent conversations
-  async getRecentConversations({ commit, state }) {
-    state.conversations.loading = true;
-
-    const { platform, period, segments } = state.filters;
-
-    return ConversationService.query({
-      filter: {
-        and: [
-          {
-            lastActive: {
-              gte: dateHelper()
-                .utc()
-                .startOf('day')
-                .subtract(
-                  period.value - 1,
-                  period.granularity,
-                )
-                .toISOString(),
-            },
-          },
-          {
-            lastActive: {
-              lte: dateHelper()
-                .utc()
-                .toISOString(),
-            },
-          },
-          ...(platform !== 'all'
-            ? [
-              {
-                platform,
-              },
-            ]
-            : []),
-        ],
-      },
-      orderBy: 'lastActive_DESC',
-      limit: 20,
-      offset: 0,
-      segments: segments.childSegments,
-    })
-      .then((data) => {
-        commit('SET_RECENT_CONVERSATIONS', data);
-        return Promise.resolve(data);
-      })
-      .finally(() => {
-        state.conversations.loading = false;
-      });
-  },
-  // fetch conversations total
-  async getConversationCount({ state }) {
-    const { segments } = state.filters;
-
-    return ConversationService.query({
-      filter: {},
-      orderBy: '',
-      limit: 1,
-      offset: 0,
-      segments: segments.childSegments,
-      countOnly: true,
-    })
-      .then(({ count }) => {
-        state.conversations.total = count;
-        return Promise.resolve(count);
-      })
-      .finally(() => {
-        state.conversations.loading = false;
       });
   },
 

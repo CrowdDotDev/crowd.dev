@@ -237,21 +237,6 @@
           </p>
         </article>
         <article
-          v-if="member.tags.length > 0 || compareMember?.tags.length > 0"
-          class="pb-4"
-        >
-          <p class="text-2xs font-medium text-gray-500 pb-1">
-            Tags
-          </p>
-          <app-tags
-            v-if="member.tags.length > 0"
-            :member="member"
-            :editable="false"
-            tag-classes="!bg-white !text-xs !leading-5 !py-0.5 !px-1.5"
-          />
-          <span v-else>-</span>
-        </article>
-        <article
           v-if="member.activityCount > 0"
           class="pb-4"
         >
@@ -286,7 +271,6 @@ import {
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
-import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';

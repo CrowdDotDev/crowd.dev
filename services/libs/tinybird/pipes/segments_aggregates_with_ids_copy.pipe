@@ -2,7 +2,7 @@ NODE segments_aggregates_with_ids_projects
 SQL >
     SELECT insightsProjects.id, insightsProjects.segmentId
     FROM insightsProjects FINAL
-    WHERE insightsProjects.segmentId != ''
+    WHERE insightsProjects.segmentId != '' and isNull (insightsProjects.deletedAt)
 
 NODE segments_aggregates_with_ids_collections_projects
 SQL >
@@ -11,11 +11,11 @@ SQL >
 
 NODE segments_aggregates_with_ids_collections
 SQL >
-    SELECT collections.id, collections.categoryId, FROM collections FINAL
+    SELECT collections.id, collections.categoryId, FROM collections FINAL where isNull (deletedAt)
 
 NODE segments_aggregates_with_ids_categories
 SQL >
-    SELECT categories.id, categories.categoryGroupId, FROM categories FINAL
+    SELECT categories.id, categories.categoryGroupId, FROM categories FINAL where isNull (deletedAt)
 
 NODE segments_aggregates_with_ids_aggregates
 SQL >
@@ -38,10 +38,14 @@ SQL >
         segments_aggregates_with_ids_criticality_scores_deduplicated
         ON segments_aggregates_with_ids_criticality_scores_deduplicated.repoUrl
         = insightsProjects.github
+    where isNull (insightsProjects.deletedAt)
 
 NODE segments_aggregates_with_ids_copy_flatten_project_deduplicated
 SQL >
-    SELECT id, repo AS repository FROM insightsProjects FINAL ARRAY JOIN repositories AS repo
+    SELECT id, repo AS repository
+    FROM insightsProjects FINAL ARRAY
+    JOIN repositories AS repo
+    where isNull (insightsProjects.deletedAt)
 
 NODE segments_aggregates_with_ids_copy_software_value_deduplicated
 SQL >

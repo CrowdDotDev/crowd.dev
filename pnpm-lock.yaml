@@ -467,49 +467,6 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
-  services/apps/activities_worker:
-    dependencies:
-      '@crowd/archetype-standard':
-        specifier: workspace:*
-        version: link:../../archetypes/standard
-      '@crowd/archetype-worker':
-        specifier: workspace:*
-        version: link:../../archetypes/worker
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../../libs/common
-      '@crowd/data-access-layer':
-        specifier: workspace:*
-        version: link:../../libs/data-access-layer
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../../libs/types
-      '@temporalio/activity':
-        specifier: ~1.11.8
-        version: 1.11.8
-      '@temporalio/client':
-        specifier: ~1.11.8
-        version: 1.11.8
-      '@temporalio/workflow':
-        specifier: ~1.11.8
-        version: 1.11.8
-      html-to-text:
-        specifier: ^9.0.5
-        version: 9.0.5
-      tsx:
-        specifier: ^4.7.1
-        version: 4.7.3
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.12.7
-      nodemon:
-        specifier: ^3.0.1
-        version: 3.1.0
-
   services/apps/cache_worker:
     dependencies:
       '@crowd/archetype-standard':
@@ -1756,9 +1713,39 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
       lodash.get:
         specifier: ~4.4.2
         version: 4.4.2
+      lodash.isarray:
+        specifier: ^4.0.0
+        version: 4.0.0
+      lodash.isequal:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.isplainobject:
+        specifier: ^4.0.6
+        version: 4.0.6
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
+      lodash.mergewith:
+        specifier: ^4.6.2
+        version: 4.6.2
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      lodash.set:
+        specifier: ^4.3.2
+        version: 4.3.2
+      lodash.sum:
+        specifier: ^4.0.2
+        version: 4.0.2
+      lodash.unionwith:
+        specifier: ^4.6.0
+        version: 4.6.0
       moment-timezone:
         specifier: ^0.5.34
         version: 0.5.45
@@ -1781,6 +1768,9 @@ importers:
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.572.0
         version: 3.572.0
+      '@crowd/audit-logs':
+        specifier: workspace:*
+        version: link:../audit-logs
       '@crowd/common':
         specifier: workspace:*
         version: link:../common
@@ -1796,9 +1786,21 @@ importers:
       '@crowd/queue':
         specifier: workspace:*
         version: link:../queue
+      '@crowd/temporal':
+        specifier: workspace:*
+        version: link:../temporal
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      lodash.isequal:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      moment:
+        specifier: ^2.30.1
+        version: 2.30.1
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -7423,6 +7425,10 @@ packages:
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
+  lodash.isarray@4.0.0:
+    resolution: {integrity: sha512-V8ViWvoNlXpCrB6Ewaj3ScRXUpmCvqp4tJUxa3dlovuJj/8lp3SND5Kw4v5OeuHgoyw4qJN+gl36qZqp6WYQ6g==}
+    deprecated: This package is deprecated. Use Array.isArray.
+
   lodash.isboolean@3.0.3:
     resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
 
@@ -7470,6 +7476,9 @@ packages:
   lodash.pickby@4.6.0:
     resolution: {integrity: sha512-AZV+GsS/6ckvPOVQPXSiFFacKvKB4kOQu6ynt9wz0F3LO4R9Ij4K1ddYsIytDpSgLz88JHd9P+oaLeej5/Sl7Q==}
 
+  lodash.set@4.3.2:
+    resolution: {integrity: sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==}
+
   lodash.snakecase@4.1.1:
     resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==}
 
@@ -7478,6 +7487,12 @@ packages:
 
   lodash.startcase@4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}
+
+  lodash.sum@4.0.2:
+    resolution: {integrity: sha512-1GcLFsMpU0K7uGPjo5FePq0fNlL3sSTZtSWwQUxr9VL8T3xeJiprwbfjDptTUPtkB8cUBpAnMtvQpju5XXaBeA==}
+
+  lodash.unionwith@4.6.0:
+    resolution: {integrity: sha512-Hk8otPCkVM4UxRoft3E5dAREwExyXci6iVPCibHIEiG7neb9KAdWHYS75MYpVTvxDrnpp7WCJNZ84vAk7j7tVA==}
 
   lodash.uniq@4.5.0:
     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
@@ -9856,8 +9871,8 @@ snapshots:
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sso-oidc': 3.572.0
-      '@aws-sdk/client-sts': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)
+      '@aws-sdk/client-sso-oidc': 3.572.0(@aws-sdk/client-sts@3.572.0)
+      '@aws-sdk/client-sts': 3.572.0
       '@aws-sdk/core': 3.572.0
       '@aws-sdk/credential-provider-node': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)(@aws-sdk/client-sts@3.572.0)
       '@aws-sdk/middleware-host-header': 3.567.0
@@ -10054,11 +10069,11 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sso-oidc@3.572.0':
+  '@aws-sdk/client-sso-oidc@3.572.0(@aws-sdk/client-sts@3.572.0)':
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sts': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)
+      '@aws-sdk/client-sts': 3.572.0
       '@aws-sdk/core': 3.572.0
       '@aws-sdk/credential-provider-node': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)(@aws-sdk/client-sts@3.572.0)
       '@aws-sdk/middleware-host-header': 3.567.0
@@ -10097,6 +10112,7 @@ snapshots:
       '@smithy/util-utf8': 2.3.0
       tslib: 2.6.2
     transitivePeerDependencies:
+      - '@aws-sdk/client-sts'
       - aws-crt
 
   '@aws-sdk/client-sso-oidc@3.687.0(@aws-sdk/client-sts@3.687.0)':
@@ -10317,11 +10333,11 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sts@3.572.0(@aws-sdk/client-sso-oidc@3.572.0)':
+  '@aws-sdk/client-sts@3.572.0':
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sso-oidc': 3.572.0
+      '@aws-sdk/client-sso-oidc': 3.572.0(@aws-sdk/client-sts@3.572.0)
       '@aws-sdk/core': 3.572.0
       '@aws-sdk/credential-provider-node': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)(@aws-sdk/client-sts@3.572.0)
       '@aws-sdk/middleware-host-header': 3.567.0
@@ -10360,7 +10376,6 @@ snapshots:
       '@smithy/util-utf8': 2.3.0
       tslib: 2.6.2
     transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
   '@aws-sdk/client-sts@3.687.0':
@@ -10520,7 +10535,7 @@ snapshots:
 
   '@aws-sdk/credential-provider-ini@3.572.0(@aws-sdk/client-sso-oidc@3.572.0)(@aws-sdk/client-sts@3.572.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)
+      '@aws-sdk/client-sts': 3.572.0
       '@aws-sdk/credential-provider-env': 3.568.0
       '@aws-sdk/credential-provider-process': 3.572.0
       '@aws-sdk/credential-provider-sso': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)
@@ -10687,7 +10702,7 @@ snapshots:
 
   '@aws-sdk/credential-provider-web-identity@3.568.0(@aws-sdk/client-sts@3.572.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.572.0(@aws-sdk/client-sso-oidc@3.572.0)
+      '@aws-sdk/client-sts': 3.572.0
       '@aws-sdk/types': 3.567.0
       '@smithy/property-provider': 2.2.0
       '@smithy/types': 2.12.0
@@ -10947,7 +10962,7 @@ snapshots:
 
   '@aws-sdk/token-providers@3.572.0(@aws-sdk/client-sso-oidc@3.572.0)':
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.572.0
+      '@aws-sdk/client-sso-oidc': 3.572.0(@aws-sdk/client-sts@3.572.0)
       '@aws-sdk/types': 3.567.0
       '@smithy/property-provider': 2.2.0
       '@smithy/shared-ini-file-loader': 2.4.0
@@ -17029,6 +17044,8 @@ snapshots:
 
   lodash.includes@4.3.0: {}
 
+  lodash.isarray@4.0.0: {}
+
   lodash.isboolean@3.0.3: {}
 
   lodash.isequal@4.5.0: {}
@@ -17059,11 +17076,17 @@ snapshots:
 
   lodash.pickby@4.6.0: {}
 
+  lodash.set@4.3.2: {}
+
   lodash.snakecase@4.1.1: {}
 
   lodash.sortby@4.7.0: {}
 
   lodash.startcase@4.4.0: {}
+
+  lodash.sum@4.0.2: {}
+
+  lodash.unionwith@4.6.0: {}
 
   lodash.uniq@4.5.0: {}
 
