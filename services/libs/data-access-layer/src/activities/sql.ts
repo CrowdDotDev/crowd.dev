@@ -1222,7 +1222,7 @@ export async function createOrUpdateRelations(
             "updatedAt")
     VALUES ${valueList.join(',')}
 
-    ON CONFLICT ("activityId") 
+    ON CONFLICT ("timestamp", "platform", "type", "sourceId", "channel", "segmentId")
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
@@ -1243,7 +1243,6 @@ export async function createOrUpdateRelations(
         "score" = EXCLUDED."score",
         "isContribution" = EXCLUDED."isContribution",
         "pullRequestReviewState" = EXCLUDED."pullRequestReviewState";
-
     `,
     params,
   )
