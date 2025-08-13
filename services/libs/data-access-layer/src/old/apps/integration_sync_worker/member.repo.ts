@@ -146,7 +146,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."joinedAt",
               m."createdAt",
               (m.reach -> 'total')::integer                      as "totalReach",
-              coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
+              CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END as "numberOfOpenSourceContributions",
 
               ad."activeOn",
               ad."activityCount",
