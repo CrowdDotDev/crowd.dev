@@ -2,11 +2,7 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
 import { singleOrDefault } from '@crowd/common'
-import {
-  DEFAULT_COLUMNS_TO_SELECT,
-  deleteActivities,
-  queryActivities,
-} from '@crowd/data-access-layer'
+import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
 import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
@@ -317,7 +313,7 @@ export default class ActivityService extends LoggerBase {
     const memberIds: string[] = []
     const organizationIds: string[] = []
     for (const row of page.rows) {
-      ; (row as any).display = ActivityDisplayService.getDisplayOptions(
+      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
         row,
         SegmentRepository.getActivityTypes(this.options),
       )
@@ -353,7 +349,7 @@ export default class ActivityService extends LoggerBase {
           this.options,
         ).then((organizations) => {
           for (const row of page.rows.filter((r) => r.organizationId)) {
-            ; (row as any).organization = singleOrDefault(
+            ;(row as any).organization = singleOrDefault(
               organizations.rows,
               (o) => o.id === row.organizationId,
             )
