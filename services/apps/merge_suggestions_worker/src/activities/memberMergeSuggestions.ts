@@ -84,8 +84,8 @@ export async function getMemberMergeSuggestions(
       },
     })
 
-    // prevent processing more than 200 identities because of opensearch limits
-    for (const identity of fullMember.identities.slice(0, 200)) {
+    // prevent processing more than 100 identities because of opensearch limits (maxClauseCount = 1024)
+    for (const identity of fullMember.identities.slice(0, 100)) {
       if (identity.value && identity.value.length > 0) {
         // For verified identities (either email or username)
         // 1. Exact search the identity in other unverified identities
