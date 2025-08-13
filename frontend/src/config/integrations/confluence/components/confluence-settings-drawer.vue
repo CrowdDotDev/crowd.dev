@@ -178,7 +178,7 @@ const form = reactive({
   spaces: [''],
 });
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+const { formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate({
   url: { required },
   username: { required },

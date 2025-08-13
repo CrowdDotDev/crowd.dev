@@ -10,7 +10,7 @@ export enum NangoIntegration {
   CONFLUENCE = 'confluence',
   CONFLUENCE_BASIC = 'confluence-basic',
   CONFLUENCE_DATA_CENTER = 'confluence-data-center',
-  ATLASSIAN_ADMIN = 'atlassian-admin'
+  ATLASSIAN_ADMIN = 'atlassian-admin',
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
@@ -166,6 +166,10 @@ export const NANGO_INTEGRATION_CONFIG = {
       ATTACHMENTS: 'page-attachments',
     },
   },
+  [NangoIntegration.ATLASSIAN_ADMIN]: {
+    models: {},
+    syncs: {},
+  }
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {
