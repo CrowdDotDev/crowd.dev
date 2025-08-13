@@ -53,9 +53,6 @@
           :activity="activity"
           class="mb-6"
           v-bind="cardOptions"
-          @edit="emit('edit', activity)"
-          @on-update="fetch(savedFilterBody)"
-          @activity-destroyed="fetch(savedFilterBody)"
         />
 
         <!-- Load more button -->
@@ -93,8 +90,6 @@ defineProps({
     default: () => ({}),
   },
 });
-
-const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {

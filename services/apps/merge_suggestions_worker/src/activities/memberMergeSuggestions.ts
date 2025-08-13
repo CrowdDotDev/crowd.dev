@@ -8,13 +8,17 @@ import {
   ILLMConsumableMember,
   IMemberBaseForMergeSuggestions,
   IMemberMergeSuggestion,
+  MemberIdentityType,
   MemberMergeSuggestionTable,
   OpenSearchIndex,
+  PlatformType,
 } from '@crowd/types'
 
 import { svc } from '../main'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
 import { ISimilarMemberOpensearchResult, ISimilarityFilter } from '../types'
+
+import { EMAIL_AS_USERNAME_PLATFORMS } from './common'
 
 /**
  * Finds similar members of given member in a tenant
@@ -105,6 +109,56 @@ export async function getMemberMergeSuggestions(
             },
           })
 
+          // handle email as username platforms: email identity matching username identity
+          if (identity.type === MemberIdentityType.EMAIL) {
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { term: { [`nested_identities.keyword_value`]: identity.value } },
+                  {
+                    terms: {
+                      [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.bool_verified`]: false,
+                    },
+                  },
+                ],
+              },
+            })
+          }
+
+          // handle email as username platforms: username identity matching email identity
+          if (
+            identity.type === MemberIdentityType.USERNAME &&
+            EMAIL_AS_USERNAME_PLATFORMS.includes(identity.platform as PlatformType)
+          ) {
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { term: { [`nested_identities.keyword_value`]: identity.value } },
+                  {
+                    term: {
+                      [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.bool_verified`]: false,
+                    },
+                  },
+                ],
+              },
+            })
+          }
+
           // some identities have https? in the beginning, resulting in false positive suggestions
           // remove these when making fuzzy and wildcard searches
           const cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
@@ -146,6 +200,56 @@ export async function getMemberMergeSuggestions(
               ],
             },
           })
+
+          // handle email as username platforms: unverified email matching verified username
+          if (identity.type === MemberIdentityType.EMAIL) {
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { term: { [`nested_identities.keyword_value`]: identity.value } },
+                  {
+                    terms: {
+                      [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.bool_verified`]: true,
+                    },
+                  },
+                ],
+              },
+            })
+          }
+
+          // handle email as username platforms: unverified username matching verified email
+          if (
+            identity.type === MemberIdentityType.USERNAME &&
+            EMAIL_AS_USERNAME_PLATFORMS.includes(identity.platform as PlatformType)
+          ) {
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  { term: { [`nested_identities.keyword_value`]: identity.value } },
+                  {
+                    term: {
+                      [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL,
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.bool_verified`]: true,
+                    },
+                  },
+                ],
+              },
+            })
+          }
         }
       }
     }

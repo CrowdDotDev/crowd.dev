@@ -8,8 +8,10 @@ import {
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeName,
   MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
 
+import { EMAIL_AS_USERNAME_PLATFORMS } from './activities/common'
 import { MemberAttributeOpensearch } from './enums'
 
 class MemberSimilarityCalculator {
@@ -75,6 +77,32 @@ class MemberSimilarityCalculator {
       ) {
         return 0.98
       }
+
+      // Unverified email matches verified username on a platform that uses emails as usernames
+      if (
+        primaryIdentity.type === MemberIdentityType.EMAIL &&
+        this.hasEmailAsUsernameIdentityMatch(
+          primaryIdentity,
+          similarMember,
+          MemberIdentityType.USERNAME,
+          true,
+        )
+      ) {
+        return 0.95
+      }
+
+      // Unverified username matches verified email on a platform that uses emails as usernames
+      if (
+        primaryIdentity.type === MemberIdentityType.USERNAME &&
+        this.hasEmailAsUsernameIdentityMatch(
+          primaryIdentity,
+          similarMember,
+          MemberIdentityType.EMAIL,
+          true,
+        )
+      ) {
+        return 0.95
+      }
     }
 
     for (const primaryIdentity of primaryMember.identities.filter((i) => i.verified)) {
@@ -88,6 +116,32 @@ class MemberSimilarityCalculator {
             unverifiedIdentity.string_value === primaryIdentity.value &&
             unverifiedIdentity.keyword_type === primaryIdentity.type &&
             unverifiedIdentity.string_platform === primaryIdentity.platform,
+        )
+      ) {
+        return 0.95
+      }
+
+      // Verified email matches unverified username on a platform that uses emails as usernames
+      if (
+        primaryIdentity.type === MemberIdentityType.EMAIL &&
+        this.hasEmailAsUsernameIdentityMatch(
+          primaryIdentity,
+          similarMember,
+          MemberIdentityType.USERNAME,
+          false,
+        )
+      ) {
+        return 0.95
+      }
+
+      // Verified username matches unverified email on a platform that uses emails as usernames
+      if (
+        primaryIdentity.type === MemberIdentityType.USERNAME &&
+        this.hasEmailAsUsernameIdentityMatch(
+          primaryIdentity,
+          similarMember,
+          MemberIdentityType.EMAIL,
+          false,
         )
       ) {
         return 0.95
@@ -148,6 +202,25 @@ class MemberSimilarityCalculator {
     }
 
     return false
+  }
+
+  static hasEmailAsUsernameIdentityMatch(
+    primaryIdentity: IMemberIdentity,
+    similarMember: IMemberOpensearch,
+    targetType: MemberIdentityType,
+    isVerified: boolean,
+  ): boolean {
+    return (
+      similarMember.nested_identities &&
+      similarMember.nested_identities.length > 0 &&
+      similarMember.nested_identities.some(
+        (identity) =>
+          identity.bool_verified === isVerified &&
+          identity.string_value === primaryIdentity.value &&
+          identity.keyword_type === targetType &&
+          EMAIL_AS_USERNAME_PLATFORMS.includes(identity.string_platform as PlatformType),
+      )
+    )
   }
 
   static hasSameLocation(
