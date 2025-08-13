@@ -20,7 +20,8 @@ SCHEMA >
     `categoryId` String `json:$.record.categoryId` DEFAULT '',
     `starred` Bool `json:$.record.starred` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

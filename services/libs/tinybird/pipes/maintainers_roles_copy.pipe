@@ -1,6 +1,9 @@
 NODE maintainers_roles_copy_project_repos
 SQL >
-    SELECT id, repo AS repository FROM insightsProjects ARRAY JOIN repositories AS repo
+    SELECT id, repo AS repository
+    FROM insightsProjects ARRAY
+    JOIN repositories AS repo
+    where isNull (deletedAt)
 
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >
@@ -8,7 +11,16 @@ SQL >
 
 NODE maintainers_roles_copy_maintainers_deduplicated
 SQL >
-    SELECT id, identityId, repoUrl, role FROM maintainersInternal FINAL WHERE toYear(endDate) <= 1970
+    SELECT id, identityId, repoUrl, role, startDate, endDate FROM maintainersInternal FINAL
+
+NODE maintainers_roles_copy_organizations
+SQL >
+    SELECT
+        memberId,
+        argMax(organizationId, timestamp) AS organizationId,
+        argMax(timestamp, timestamp) AS latestActivityTimestamp
+    FROM activityRelations_deduplicated_cleaned_ds
+    GROUP BY memberId
 
 NODE maintainers_roles_copy_result
 SQL >
@@ -16,7 +28,10 @@ SQL >
         maintainers_roles_copy_maintainers_deduplicated.id as id,
         maintainers_roles_copy_maintainers_deduplicated.repoUrl as repoUrl,
         maintainers_roles_copy_maintainers_deduplicated.role as role,
+        maintainers_roles_copy_maintainers_deduplicated.startDate as startDate,
+        maintainers_roles_copy_maintainers_deduplicated.endDate as endDate,
         maintainers_roles_copy_member_identities_deduplicated.memberId as memberId,
+        maintainers_roles_copy_organizations.organizationId as organizationId,
         maintainers_roles_copy_project_repos.id as insightsProjectId
     FROM maintainers_roles_copy_maintainers_deduplicated
     JOIN
@@ -27,6 +42,10 @@ SQL >
         maintainers_roles_copy_project_repos
         ON maintainers_roles_copy_project_repos.repository
         = maintainers_roles_copy_maintainers_deduplicated.repoUrl
+    LEFT JOIN
+        maintainers_roles_copy_organizations
+        ON maintainers_roles_copy_organizations.memberId
+        = maintainers_roles_copy_member_identities_deduplicated.memberId
 
 TYPE COPY
 TARGET_DATASOURCE maintainers_roles_copy_ds

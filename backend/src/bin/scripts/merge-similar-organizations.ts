@@ -4,10 +4,11 @@ import * as fs from 'fs'
 import path from 'path'
 import { QueryTypes } from 'sequelize'
 
+import { optionsQx } from '@crowd/data-access-layer'
+import { addMergeAction, setMergeAction } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { MergeActionState, MergeActionType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import getUserContext from '@/database/utils/getUserContext'
 import OrganizationService from '@/services/organizationService'
 import TenantService from '@/services/tenantService'
@@ -143,21 +144,21 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
               console.log(
                 `Merging [${row.organizationId}] "${row.orgDisplayName}" into ${row.toMergeId} "${row.mergeDisplayName}"...`,
               )
-              await MergeActionsRepository.add(
+              await addMergeAction(
+                optionsQx(userContext),
                 MergeActionType.ORG,
                 row.organizationId,
                 row.toMergeId,
-                userContext,
                 undefined,
               )
               await orgService.mergeSync(row.organizationId, row.toMergeId, null)
             } catch (err) {
               console.log('Error merging organizations - continuing with the rest', err)
-              await MergeActionsRepository.setMergeAction(
+              await setMergeAction(
+                optionsQx(userContext),
                 MergeActionType.ORG,
                 row.organizationId,
                 row.toMergeId,
-                userContext,
                 {
                   state: MergeActionState.ERROR,
                 },

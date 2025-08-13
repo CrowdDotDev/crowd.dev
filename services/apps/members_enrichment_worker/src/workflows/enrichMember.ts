@@ -24,11 +24,11 @@ const {
   hasRemainingCredits,
   getMemberById,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '1 minute',
+  startToCloseTimeout: '5 minutes',
   retry: {
-    initialInterval: '5s',
+    initialInterval: '60s',
     backoffCoefficient: 2.0,
-    maximumInterval: '30s',
+    maximumInterval: '5 minutes',
     maximumAttempts: 4,
   },
 })

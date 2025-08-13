@@ -314,7 +314,7 @@ async function processAffiliationActivities(
   const whereClause = conditions.join(' and ')
 
   do {
-    const result = await qx.result(
+    const rowCount = await qx.result(
       `
         UPDATE "activityRelations"
         SET "organizationId" = $(organizationId), "updatedAt" = CURRENT_TIMESTAMP
@@ -328,7 +328,7 @@ async function processAffiliationActivities(
       params,
     )
 
-    rowsUpdated = result?.rowCount
+    rowsUpdated = rowCount
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
@@ -369,7 +369,7 @@ async function processFallbackActivities(
   const whereClause = conditions.join(' and ')
 
   do {
-    const result = await qx.result(
+    const rowCount = await qx.result(
       `
         UPDATE "activityRelations"
         SET "organizationId" = $(fallbackOrganizationId), "updatedAt" = CURRENT_TIMESTAMP
@@ -383,7 +383,7 @@ async function processFallbackActivities(
       params,
     )
 
-    rowsUpdated = result?.rowCount
+    rowsUpdated = rowCount
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 

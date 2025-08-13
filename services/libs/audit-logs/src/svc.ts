@@ -3,7 +3,8 @@ import {
   AuditLogRequestOptions,
   addAuditAction,
 } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
+
+import { IS_DEV_ENV, IS_PROD_ENV, SERVICE, generateUUIDv1 } from '../../common/src'
 
 import { BuildActionFn } from './baseActions'
 
@@ -41,14 +42,7 @@ async function captureChange(
     }
   }
 
-  const db = await getDbConnection({
-    host: process.env.CROWD_DB_WRITE_HOST,
-    port: parseInt(process.env.CROWD_DB_PORT),
-    database: process.env.CROWD_DB_DATABASE,
-    user: process.env.CROWD_DB_USERNAME,
-    password: process.env.CROWD_DB_PASSWORD,
-  })
-  await addAuditAction(db, options, action)
+  await addAuditAction(options, action)
 }
 
 export async function captureApiChange<T>(
@@ -56,16 +50,25 @@ export async function captureApiChange<T>(
   buildActionFn: BuildActionFn<T>,
   skipAuditLog = false,
 ): Promise<T> {
-  const auditOptions = convertRepositoryOptions(options)
+  let skip = skipAuditLog
+
+  let auditOptions: AuditLogRequestOptions
+  if (options) {
+    auditOptions = convertRepositoryOptions(options)
+  } else if (process.env.CROWD_API_SERVICE_USER_ID) {
+    auditOptions = {
+      userId: process.env.CROWD_API_SERVICE_USER_ID,
+      requestId: generateUUIDv1(),
+      ipAddress: '127.0.0.1',
+      userAgent: SERVICE,
+    }
+  } else if (!IS_PROD_ENV) {
+    skip = true
+  }
 
   const buildActionResult = await buildActionFn()
   try {
-    await captureChange(
-      auditOptions,
-      buildActionResult.auditLog,
-      skipAuditLog,
-      buildActionResult.error,
-    )
+    await captureChange(auditOptions, buildActionResult.auditLog, skip, buildActionResult.error)
   } catch (error) {
     throw new Error(`Error capturing change: ${error.message}`)
   }

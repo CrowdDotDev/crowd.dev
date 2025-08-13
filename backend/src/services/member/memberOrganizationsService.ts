@@ -1,11 +1,15 @@
 /* eslint-disable no-continue */
+import { Transaction } from 'sequelize'
+
 import { Error404 } from '@crowd/common'
+import { CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
   deleteMemberOrganization,
   fetchMemberOrganizations,
+  optionsQx,
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
@@ -16,21 +20,30 @@ import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization }
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
-import MemberAffiliationService from '../memberAffiliationService'
 
 type IOrganizationSummary = Pick<IOrganization, 'id' | 'displayName' | 'logo'>
 
 export default class MemberOrganizationsService extends LoggerBase {
   options: IServiceOptions
 
+  private readonly commonMemberService: CommonMemberService
+
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
+    this.commonMemberService = new CommonMemberService(
+      optionsQx(options),
+      options.temporal,
+      options.log,
+    )
   }
 
   // Member organization list
-  async list(memberId: string): Promise<IRenderFriendlyMemberOrganization[]> {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+  async list(
+    memberId: string,
+    transaction?: Transaction,
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     // Fetch member organizations
     const memberOrganizations: IMemberOrganization[] = await fetchMemberOrganizations(qx, memberId)
@@ -100,14 +113,10 @@ export default class MemberOrganizationsService extends LoggerBase {
       await createMemberOrganization(qx, memberId, data)
 
       // Start affiliation recalculation within the same transaction
-      await MemberAffiliationService.startAffiliationRecalculation(
-        memberId,
-        [data.organizationId],
-        repositoryOptions,
-      )
+      await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
       // Fetch updated list
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -132,13 +141,9 @@ export default class MemberOrganizationsService extends LoggerBase {
       await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
       await updateMemberOrganization(qx, memberId, id, data)
 
-      await MemberAffiliationService.startAffiliationRecalculation(
-        memberId,
-        [data.organizationId],
-        repositoryOptions,
-      )
+      await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
@@ -165,14 +170,13 @@ export default class MemberOrganizationsService extends LoggerBase {
 
       await deleteMemberOrganization(qx, memberId, id)
 
-      await MemberAffiliationService.startAffiliationRecalculation(
+      await this.commonMemberService.startAffiliationRecalculation(
         memberId,
         [memberOrganizationToBeDeleted.organizationId],
-        repositoryOptions,
         true,
       )
 
-      const result = await this.list(memberId)
+      const result = await this.list(memberId, transaction)
 
       await SequelizeRepository.commitTransaction(transaction)
       return result
