@@ -25,6 +25,7 @@ export * from './http'
 export * from './domain'
 export * from './displayName'
 export * from './jira'
+export * from './email'
 
 export * from './i18n'
 export * from './member'
