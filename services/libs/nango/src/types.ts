@@ -169,7 +169,7 @@ export const NANGO_INTEGRATION_CONFIG = {
   [NangoIntegration.ATLASSIAN_ADMIN]: {
     models: {},
     syncs: {},
-  }
+  },
 } as const satisfies IntegrationConfig
 
 export type IntegrationConfig = {
