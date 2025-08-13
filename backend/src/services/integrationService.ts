@@ -55,8 +55,8 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
-import { JiraIntegrationData } from '../types/jiraTypes'
 import { ConfluenceIntegrationData } from '../types/confluenceTypes'
+import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -1169,6 +1169,23 @@ export default class IntegrationService {
     return integration
   }
 
+  async atlassianAdminConnect(adminApi: string, organizationId: string) {
+    const nangoPayload = {
+      params: {
+        organizationId,
+      },
+      credentials: {
+        apiKey: adminApi,
+      },
+    }
+    const adminConnectionId = await connectNangoIntegration(
+      NangoIntegration.ATLASSIAN_ADMIN,
+      nangoPayload,
+    )
+    this.options.log.info(`Admin api connection created successfully ${adminConnectionId}`)
+    return adminConnectionId
+  }
+
   /**
    * Adds/updates Confluence integration
    * @param integrationData: ConfluenceIntegrationData
@@ -1179,6 +1196,10 @@ export default class IntegrationService {
     let integration: any
     let connectionId: string
     try {
+      const adminConnectionId = await this.atlassianAdminConnect(
+        integrationData.settings.orgAdminApiToken,
+        integrationData.settings.orgAdminId,
+      )
       const constructNangoConnectionPayload = (
         integrationData: ConfluenceIntegrationData,
       ): Record<string, any> => {
@@ -1187,7 +1208,6 @@ export default class IntegrationService {
         // check https://github.com/NangoHQ/nango/blob/master/packages/providers/providers.yaml#L2547
         let nangoPayload: any
         const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
-        this.options.log.info(integrationData)
         const baseUrl = integrationData.settings.url.trim()
         const hostname = new URL(baseUrl).hostname
         const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
@@ -1233,7 +1253,9 @@ export default class IntegrationService {
             ...integrationData.settings,
             apiToken: encryptData(integrationData.settings.apiToken),
             orgAdminApiToken: encryptData(integrationData.settings.orgAdminApiToken),
+            orgAdminId: integrationData.settings.orgAdminId,
             nangoIntegrationName: confluenceIntegrationType,
+            adminConnectionId,
           },
           status: 'done',
         },
@@ -1242,6 +1264,7 @@ export default class IntegrationService {
 
       await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
         spaceKeysToSync: integrationData.settings.spaces,
+        adminApiConnection: adminConnectionId,
       })
       await startNangoSync(NangoIntegration.CONFLUENCE_BASIC, connectionId)
       await SequelizeRepository.commitTransaction(transaction)

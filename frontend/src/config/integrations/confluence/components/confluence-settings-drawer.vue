@@ -51,6 +51,14 @@
         placeholder="Enter Organization Admin API Token (without scopes)"
       />
 
+      <el-input
+        id="orgAdminId"
+        v-model="form.orgAdminId"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Organization ID"
+      />
+
       <div class="text-gray-900 text-sm font-medium mt-4">
         Remote URL
       </div>
@@ -121,6 +129,7 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
@@ -165,15 +174,17 @@ const form = reactive({
   username: '',
   apiToken: '',
   orgAdminApiToken: '',
+  orgAdminId: '',
   spaces: [''],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate({
-  url: { required: true },
-  username: { required: true },
-  apiToken: { required: true },
-  orgAdminApiToken: { required: true },
+  url: { required },
+  username: { required },
+  apiToken: { required },
+  orgAdminApiToken: { required },
+  orgAdminId: { required },
   spaces: {
     required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
   },
@@ -204,6 +215,7 @@ onMounted(() => {
     form.username = props.integration?.settings.username || '';
     form.apiToken = props.integration?.settings.apiToken || '';
     form.orgAdminApiToken = props.integration?.settings.orgAdminApiToken || '';
+    form.orgAdminId = props.integration?.settings.orgAdminId || '';
     // to handle both single and multiple spaces
     if (props.integration?.settings.space) {
       form.spaces = [props.integration?.settings.space.key];
@@ -229,6 +241,7 @@ const connect = async () => {
       username: form.username,
       apiToken: form.apiToken,
       orgAdminApiToken: form.orgAdminApiToken,
+      orgAdminId: form.orgAdminId,
       spaces: form.spaces,
     },
     isUpdate,

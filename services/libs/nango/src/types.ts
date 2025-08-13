@@ -10,6 +10,7 @@ export enum NangoIntegration {
   CONFLUENCE = 'confluence',
   CONFLUENCE_BASIC = 'confluence-basic',
   CONFLUENCE_DATA_CENTER = 'confluence-data-center',
+  ATLASSIAN_ADMIN = 'atlassian-admin'
 }
 
 export const ALL_NANGO_INTEGRATIONS = Object.values(NangoIntegration)
