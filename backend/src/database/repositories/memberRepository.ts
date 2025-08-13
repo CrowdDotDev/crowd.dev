@@ -1611,7 +1611,7 @@ class MemberRepository {
       ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
       [
         'numberOfOpenSourceContributions',
-        { name: 'coalesce(jsonb_array_length(m.contributions), 0)' },
+        { name: 'CASE WHEN jsonb_typeof(m.contributions) = \'array\' THEN jsonb_array_length(m.contributions) ELSE 0 END' },
       ],
       ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
       [
