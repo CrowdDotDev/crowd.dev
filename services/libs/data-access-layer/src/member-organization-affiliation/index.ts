@@ -145,7 +145,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
           }
         } else {
           // if we were in a gap, close it first
-          if (gapStartDate !== null) {            
+          if (gapStartDate !== null) {
             timeline.push({
               organizationId: fallbackOrganizationId,
               dateStart: gapStartDate.toISOString(),
@@ -161,7 +161,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
             currentPrimaryOrg = primaryOrg
             currentStartDate = new Date(date)
           } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
-            // we have a new primary org, we need to close the current range and open a new one          
+            // we have a new primary org, we need to close the current range and open a new one
             timeline.push({
               organizationId: currentPrimaryOrg.organizationId,
               dateStart: currentStartDate.toISOString(),
@@ -175,7 +175,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
         // if we're at the end, close the current range
         if (new Date(date.getTime() + 86400000) > now) {
-          if (currentPrimaryOrg && currentStartDate) {            
+          if (currentPrimaryOrg && currentStartDate) {
             timeline.push({
               organizationId: currentPrimaryOrg.organizationId,
               dateStart: currentStartDate.toISOString(),
@@ -184,7 +184,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
             })
           }
 
-          if (gapStartDate !== null) {            
+          if (gapStartDate !== null) {
             timeline.push({
               organizationId: fallbackOrganizationId,
               dateStart: gapStartDate.toISOString(),
