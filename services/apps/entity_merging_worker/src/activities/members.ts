@@ -27,21 +27,45 @@ export async function deleteMember(memberId: string): Promise<void> {
 export async function recalculateActivityAffiliationsOfMemberAsync(
   memberId: string,
 ): Promise<void> {
-  await svc.temporal.workflow.start('memberUpdate', {
-    taskQueue: 'profiles',
-    workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`,
-    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
-    retry: {
-      maximumAttempts: 10,
-    },
-    args: [
-      {
-        member: {
-          id: memberId,
-        },
+  const workflowId = `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`
+
+  const startMemberUpdateWorkflow = async () => {
+    await svc.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId,
+      // if the workflow is already running, this policy will throw an error
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+      retry: {
+        maximumAttempts: 10,
       },
-    ],
-  })
+      args: [
+        {
+          member: {
+            id: memberId,
+          },
+        },
+      ],
+    })
+  }
+
+  try {
+    await startMemberUpdateWorkflow()
+  } catch (err) {
+    if (err.name === 'WorkflowExecutionAlreadyStartedError') {
+      const handle = svc.temporal.workflow.getHandle(workflowId)
+      // wait for the previous workflow to complete
+      await handle.result()
+      const execution = await handle.describe()
+
+      if (execution.status.name !== 'RUNNING') {
+        await startMemberUpdateWorkflow()
+      }
+
+      return
+    }
+
+    throw err
+  }
 }
 
 export async function syncMember(memberId: string): Promise<void> {
