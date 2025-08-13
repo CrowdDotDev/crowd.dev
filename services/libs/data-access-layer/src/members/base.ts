@@ -122,7 +122,12 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   // ['tags', {name: 'm."tags"'}], // ignore, not used
   ['joinedAt', { name: 'm."joinedAt"' }],
   ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
-  ['numberOfOpenSourceContributions', { name: 'coalesce(jsonb_array_length(m.contributions), 0)' }],
+  [
+    'numberOfOpenSourceContributions',
+    {
+      name: "CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END",
+    },
+  ],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
   [
     'isTeamMember',
