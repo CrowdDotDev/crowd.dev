@@ -4,12 +4,12 @@ import mergeWith from 'lodash.mergewith'
 
 import {
   ApplicationError,
-  isValidEmail,
   UnrepeatableError,
   distinct,
   distinctBy,
   escapeNullByte,
   generateUUIDv1,
+  isValidEmail,
   single,
   singleOrDefault,
   trimUtf8ToMaxByteLength,
