@@ -60,7 +60,7 @@ export async function updateRepositoryStatus(
   
   try {
     await client.query(
-      `UPDATE segmentrepositories 
+      `UPDATE "segmentRepositories" 
        SET archived = $1, excluded = $2, last_archived_check = NOW()
        WHERE repository = $3`,
       [isArchived, isArchived, repository]
