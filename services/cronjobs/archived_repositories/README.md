@@ -95,7 +95,7 @@ The Kubernenetes resource files are in our private repository.
 The Dockerfile doesn't contain a `CMD` instruction, so you need to specify the command to run when starting the
 container.
 
-To build the Docker image, run:
+To build the Docker image, tagged both with a local name and one for the OCI registry, run:
 
 ```bash
 export DATE_TAG=$(date +%s).$(git rev-parse --short HEAD) && \
