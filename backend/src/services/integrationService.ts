@@ -165,6 +165,31 @@ export default class IntegrationService {
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
+      // const qx = SequelizeRepository.getQueryExecutor({
+      //   ...this.options,
+      //   transaction,
+      // })
+
+
+      // if (IntegrationService.isCodePlatform(data.platform)) {
+      //   const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+      //   data.repositories = [
+      //     ...new Set([
+      //       ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+      //     ]),
+      //   ]
+
+      //   await insertSegmentRepositories(qx, {
+      //     insightsProjectId: insightsProject.id,
+      //     repositories: CollectionService.normalizeRepositories(data.repositories),
+      //     segmentId: record.segmentId,
+      //   })
+      // }
+
+      // await deleteMissingSegmentRepositories(qx, {
+      //   repositories,
+      //   insightsProjectId: insightsProject.id,
+      // })
 
       if (!insightsProject) {
         return record
@@ -334,7 +359,7 @@ export default class IntegrationService {
             let shouldUpdateGit: boolean
             const mapping =
               integration.platform === PlatformType.GITHUB ||
-              integration.platform === PlatformType.GITHUB_NANGO
+                integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
 
@@ -813,8 +838,8 @@ export default class IntegrationService {
               ...settings,
               ...(integration.settings.nangoMapping
                 ? {
-                    nangoMapping: integration.settings.nangoMapping,
-                  }
+                  nangoMapping: integration.settings.nangoMapping,
+                }
                 : {}),
             },
           },
@@ -845,13 +870,22 @@ export default class IntegrationService {
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
+    console.log('mapGithubRepos', integrationId, mapping, fireOnboarding)
+
     const txOptions = {
       ...this.options,
       transaction,
     }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+
+      for (const [url, segmentId] of Object.entries(mapping)) {
+        console.log('updateSegmentRepositories', segmentId, url)
+        // await updateSegmentRepositories(qx, { segmentId: segmentId as string, repository: url as string })
+      }
 
       // add the repos to the git integration
       const repos: Record<string, string[]> = Object.entries(mapping).reduce(
@@ -2258,9 +2292,16 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions)
+
 
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+
+      for (const [segmentId, urls] of Object.entries(mapping)) {
+        await updateSegmentRepositories(qx, { segmentId, repository: urls })
+      }
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
