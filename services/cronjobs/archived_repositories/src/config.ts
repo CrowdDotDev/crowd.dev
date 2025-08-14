@@ -65,7 +65,7 @@ export function getConfig(): Config {
   }
 
   // Assemble database connection URL strings for convenience
-  const postgresURL = `postgresql://${process.env.CROWD_DB_USERNAME}:${process.env.CROWD_DB_PASSWORD}@${process.env.CROWD_DB_WRITE_HOST}:${process.env.CROWD_DB_PORT}/${process.env.CROWD_DB_DATABASE}`;
+  const postgresURL = `postgresql://${process.env.CROWD_DB_USERNAME}:${process.env.CROWD_DB_PASSWORD}@${process.env.CROWD_DB_WRITE_HOST}:${process.env.CROWD_DB_PORT}/${process.env.CROWD_DB_DATABASE}?sslmode=require`;
   const redisURL = `redis://${process.env.CROWD_REDIS_USERNAME}:${process.env.CROWD_REDIS_PASSWORD}@${process.env.CROWD_REDIS_HOST}:${process.env.CROWD_REDIS_PORT}/${process.env.ARCHIVED_REPOSITORIES_CHECKER_REDIS_DB}`;
 
   return {
