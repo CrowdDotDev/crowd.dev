@@ -50,7 +50,7 @@ and the GitHub and GitLab API tokens.
 
 ## Building and Running
 
-Node 24 is required to build and run this software, as well as pnpm for dependency management.
+Node 24 is required to build and run this, as well as pnpm for dependency management.
 
 Notice that since this is a much simpler tool than the other workers and doesn't use the same dependencies, you have to
 install the dependencies with the `--ignore-workspace` flag to avoid installing all the other workspace dependencies.
@@ -94,3 +94,16 @@ The Kubernenetes resource files are in our private repository.
 
 The Dockerfile doesn't contain a `CMD` instruction, so you need to specify the command to run when starting the
 container.
+
+To build the Docker image, run:
+
+```bash
+export DATE_TAG=$(date +%s).$(git rev-parse --short HEAD) && \
+echo $DATE_TAG && \
+docker build -f ./Dockerfile --tag archived-repositories-checker:"${DATE_TAG}" --tag sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}" .
+```
+To push the Docker image to the OCI registry, run:
+
+```bash
+docker push sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}"
+```
