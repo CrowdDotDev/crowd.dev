@@ -7,6 +7,16 @@ import { CollectionService } from '../collectionService'
 describe('CollectionService.findNangoRepositoriesToBeRemoved', () => {
   let service: CollectionService
 
+  const INTEGRATION_ID = 'int-1'
+  const buildIntegration = (settings: any, platform: any = PlatformType.GITHUB_NANGO) => ({
+    id: INTEGRATION_ID,
+    platform,
+    settings,
+  })
+  const mockFetchIntegrationById = (integration: any | null) => {
+    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue(integration as any)
+  }
+
   beforeEach(() => {
     jest.resetAllMocks()
 
@@ -17,31 +27,23 @@ describe('CollectionService.findNangoRepositoriesToBeRemoved', () => {
   })
 
   it('returns [] if integration not found', async () => {
-    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue(null)
+    mockFetchIntegrationById(null)
 
     const result = await service.findNangoRepositoriesToBeRemoved('non-existent-id')
     expect(result).toEqual([])
   })
 
   it('returns [] if platform is not GITHUB_NANGO', async () => {
-    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue({
-      id: 'int-1',
-      platform: 'NOT_GITHUB_NANGO',
-      settings: { orgs: [], repos: [] },
-    })
+    mockFetchIntegrationById(buildIntegration({ orgs: [], repos: [] }, 'NOT_GITHUB_NANGO'))
 
-    const result = await service.findNangoRepositoriesToBeRemoved('int-1')
+    const result = await service.findNangoRepositoriesToBeRemoved(INTEGRATION_ID)
     expect(result).toEqual([])
   })
 
   it('returns [] if settings.nangoMapping is missing', async () => {
-    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue({
-      id: 'int-1',
-      platform: 'GITHUB_NANGO',
-      settings: { orgs: [], repos: [] },
-    })
+    mockFetchIntegrationById(buildIntegration({ orgs: [], repos: [] }, PlatformType.GITHUB_NANGO))
 
-    const result = await service.findNangoRepositoriesToBeRemoved('int-1')
+    const result = await service.findNangoRepositoriesToBeRemoved(INTEGRATION_ID)
     expect(result).toEqual([])
   })
 
@@ -60,17 +62,14 @@ describe('CollectionService.findNangoRepositoriesToBeRemoved', () => {
       },
     }
 
-    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue({
-      id: 'int-1',
-      platform: PlatformType.GITHUB_NANGO,
-      settings,
-    })
+    mockFetchIntegrationById(buildIntegration(settings))
 
-    const result = await service.findNangoRepositoriesToBeRemoved('int-1')
+    const result = await service.findNangoRepositoriesToBeRemoved(INTEGRATION_ID)
 
-    expect(result.sort()).toEqual(
-      ['https://github.com/foo/bar', 'https://github.com/baz/qux'].sort(),
+    expect(result).toEqual(
+      expect.arrayContaining(['https://github.com/foo/bar', 'https://github.com/baz/qux']),
     )
+    expect(result).toHaveLength(2)
   })
 
   it('handles empty orgs/repos gracefully', async () => {
@@ -82,13 +81,9 @@ describe('CollectionService.findNangoRepositoriesToBeRemoved', () => {
       },
     }
 
-    jest.spyOn(Integrations, 'fetchIntegrationById').mockResolvedValue({
-      id: 'int-1',
-      platform: PlatformType.GITHUB_NANGO,
-      settings,
-    })
+    mockFetchIntegrationById(buildIntegration(settings))
 
-    const result = await service.findNangoRepositoriesToBeRemoved('int-1')
+    const result = await service.findNangoRepositoriesToBeRemoved(INTEGRATION_ID)
     expect(result).toEqual(['https://github.com/only/mapped'])
   })
 })
