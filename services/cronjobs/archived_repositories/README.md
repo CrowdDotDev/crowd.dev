@@ -24,8 +24,14 @@ It has two main processes:
 
 ## Configuration
 
-The software expects all configuration options to come from environment variables, or a .env file. It uses the dotenv
-package to load the environment variables from a `.env` file in local development.
+The software expects all configuration options to come from environment variables, or a .env file.
+
+The dotenv package is used to load the environment variables from a `.env` file in local development.
+
+For production, everything should be set as environment variables.
+
+Also for production, the PostgreSQL and Redis connection details don't need to be present in `.env`, as they are
+in the crowd.dev backend ConfigMap, which is loaded into the container as environment variables.
 
 ### For production
 
