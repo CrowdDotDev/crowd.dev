@@ -18,7 +18,10 @@ function getPool(config: Config): Pool {
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
-    maxLifetimeSeconds: 60
+    maxLifetimeSeconds: 60,
+    ssl: {
+      rejectUnauthorized: false
+    },
   });
 
   return pool;
