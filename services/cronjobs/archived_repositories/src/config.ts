@@ -38,8 +38,8 @@ const requiredEnvVars = [
 ];
 
 const defaults = {
-  BATCH_SIZE: '100',
-  BATCH_DELAY_MS: '5000',
+  BATCH_SIZE: 100,
+  BATCH_DELAY_MS: 5000,
 }
 
 
