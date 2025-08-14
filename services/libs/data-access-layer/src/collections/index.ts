@@ -51,11 +51,11 @@ export interface IInsightsProject {
   twitter: string
   widgets: string[]
   repositories:
-    | {
-        platform: string
-        url: string
-      }[]
-    | string[]
+  | {
+    platform: string
+    url: string
+  }[]
+  | string[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -326,7 +326,7 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function upsertSegmentRepositories(
+export async function insertSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
@@ -355,6 +355,27 @@ export async function upsertSegmentRepositories(
       data,
       '("repository", "insightsProjectId") DO NOTHING',
     ),
+  )
+}
+
+export async function updateSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+    repository
+  }: {
+    segmentId: string,
+    repository: string
+  }
+) {
+
+  return qx.result(
+    `
+      UPDATE "segmentRepositories"
+      SET "segmentId" = $(segmentId)
+      WHERE "repository" = $(repository)
+    `,
+    { segmentId, repository },
   )
 }
 
