@@ -15,7 +15,19 @@
         Authentication
       </div>
       <div class="text-2xs text-gray-500">
-        Provide your Confluence instance credentials.
+        Connect to a Confluence instance, you must be an admin of the organization, or have access to the required credentials to be able to connect.
+      </div>
+
+      <el-input
+        id="url"
+        v-model="form.url"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence URL"
+      />
+
+      <div class="text-2xs text-gray-500 mt-2">
+        Provide a username/API token combination.
       </div>
 
       <el-input
@@ -39,7 +51,10 @@
         Organization Admin Access
       </div>
       <div class="text-2xs text-gray-500">
-        Required to access users' data across your organization. Create an API key without scopes at <a href="https://support.atlassian.com/organization-administration/docs/manage-an-organization-with-the-admin-apis/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">admin.atlassian.com</a>
+        Please enter your Organization Admin API Key and Organization ID.
+        Personal or scoped tokens won't work — this key must have full admin
+        access to perform the required operations. The token will be used for
+        read-only operations.
       </div>
 
       <el-input
@@ -48,7 +63,7 @@
         class="text-green-500 mt-2"
         type="password"
         spellcheck="false"
-        placeholder="Enter Organization Admin API Token (without scopes)"
+        placeholder="Enter Organization Admin API Token"
       />
 
       <el-input
@@ -60,20 +75,13 @@
       />
 
       <div class="text-gray-900 text-sm font-medium mt-4">
-        Remote URL
+        Connect spaces
       </div>
       <div class="text-2xs text-gray-500">
-        Connect remote Confluence space.
+        Select which spaces you want to track.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <el-input
-          id="url"
-          v-model="form.url"
-          class="text-green-500"
-          spellcheck="false"
-          placeholder="Enter Organization URL"
-        />
         <app-array-input
           v-for="(_, index) of form.spaces"
           :id="`spaceKey-${index}`"
