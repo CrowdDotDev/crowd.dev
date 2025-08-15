@@ -1245,6 +1245,10 @@ export default class IntegrationService {
         `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
       )
       connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
+      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
+        spaceKeysToSync: integrationData.settings.spaces,
+        adminApiConnection: adminConnectionId,
+      })
       integration = await this.createOrUpdate(
         {
           id: connectionId,
@@ -1261,11 +1265,6 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
-        spaceKeysToSync: integrationData.settings.spaces,
-        adminApiConnection: adminConnectionId,
-      })
       await startNangoSync(NangoIntegration.CONFLUENCE_BASIC, connectionId)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
