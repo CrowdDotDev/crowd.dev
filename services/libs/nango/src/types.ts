@@ -29,8 +29,10 @@ export const nangoIntegrationToPlatform = (integration: NangoIntegration): Platf
     case NangoIntegration.CONFLUENCE_BASIC:
     case NangoIntegration.CONFLUENCE_DATA_CENTER:
       return PlatformType.CONFLUENCE
+    case NangoIntegration.ATLASSIAN_ADMIN:
+      return null
     default:
-      throw new Error('Unknown integration')
+      throw new Error(`Unknown integration ${integration}`)
   }
 }
 
@@ -44,7 +46,8 @@ export const platformToNangoIntegration = (
     case PlatformType.GITHUB_NANGO:
       return NangoIntegration.GITHUB
     case PlatformType.JIRA:
-      // nango has multiple Jira integrations based on auth method
+    case PlatformType.CONFLUENCE:
+      // nango has multiple jira/confluence integrations based on auth method
       return platformSetting.nangoIntegrationName
     default:
       throw new Error('Unknown platform')
@@ -127,43 +130,43 @@ export const NANGO_INTEGRATION_CONFIG = {
   [NangoIntegration.CONFLUENCE]: {
     models: {
       PAGE: 'Page',
+      PAGE_COMMENT: 'PageComment',
+      PAGE_ATTACHMENT: 'PageAttachment',
       BLOGPOST: 'BlogPost',
-      COMMENT: 'Comment',
-      ATTACHMENT: 'Attachment',
     },
     syncs: {
       PAGES: 'pages',
+      PAGE_COMMENTS: 'page-comments',
+      PAGE_ATTACHMENTS: 'page-attachments',
       BLOGPOSTS: 'blog-posts',
-      COMMENTS: 'page-comments',
-      ATTACHMENTS: 'page-attachments',
     },
   },
   [NangoIntegration.CONFLUENCE_BASIC]: {
     models: {
       PAGE: 'Page',
+      PAGE_COMMENT: 'PageComment',
+      PAGE_ATTACHMENT: 'PageAttachment',
       BLOGPOST: 'BlogPost',
-      COMMENT: 'Comment',
-      ATTACHMENT: 'Attachment',
     },
     syncs: {
       PAGES: 'pages',
+      PAGE_COMMENTS: 'page-comments',
+      PAGE_ATTACHMENTS: 'page-attachments',
       BLOGPOSTS: 'blog-posts',
-      COMMENTS: 'page-comments',
-      ATTACHMENTS: 'page-attachments',
     },
   },
   [NangoIntegration.CONFLUENCE_DATA_CENTER]: {
     models: {
       PAGE: 'Page',
+      PAGE_COMMENT: 'PageComment',
+      PAGE_ATTACHMENT: 'PageAttachment',
       BLOGPOST: 'BlogPost',
-      COMMENT: 'Comment',
-      ATTACHMENT: 'Attachment',
     },
     syncs: {
       PAGES: 'pages',
+      PAGE_COMMENTS: 'page-comments',
+      PAGE_ATTACHMENTS: 'page-attachments',
       BLOGPOSTS: 'blog-posts',
-      COMMENTS: 'page-comments',
-      ATTACHMENTS: 'page-attachments',
     },
   },
   [NangoIntegration.ATLASSIAN_ADMIN]: {
