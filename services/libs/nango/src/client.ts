@@ -267,7 +267,7 @@ export const setNangoMetadata = async (
     // changed setMetadata to updateMetadata since it was deprecated
     await backendClient.updateMetadata(integration, connectionId, metadata)
     // Temporary sleep to ensure metadata is fully updated (bug on Nango's side)
-    await new Promise(r => setTimeout(r, 200))
+    await new Promise((r) => setTimeout(r, 200))
   } catch (err) {
     if (retries <= MAX_RETRIES) {
       await timeout(100)
