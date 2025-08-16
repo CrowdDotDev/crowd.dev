@@ -6,9 +6,7 @@ DESCRIPTION >
     - `segmentId` links to the segment the repository belongs to.
     - `insightsProjectId` links to the insightsProject the repository belongs to.
     - `createdAt` is a standard timestamp field to record lifecycle tracking.
-    - `archived` indicates whether the repository is archived (true/false).
-    - `excluded` indicates whether the repository is excluded from analytics and metrics (true/false).
-    - `last_archived_check` is the timestamp of the last check for whether the repository is archived.
+    - `updatedAt` is a standard timestamp field to record lifecycle tracking.
 
 SCHEMA >
     `repository` String `json:$.record.repository`,
