@@ -1,0 +1,24 @@
+{
+  "name": "repository-archive-checker",
+  "scripts": {
+    "build": "tsc",
+    "start-main": "pnpm run build && node dist/main.js",
+    "start-workers": "pnpm run build && node dist/workers.js",
+    "dev-main": "tsx --watch src/main.ts",
+    "dev-workers": "tsx --watch src/workers.ts",
+    "test": "vitest run --reporter verbose"
+  },
+  "dependencies": {
+    "bullmq": "^5.56.9",
+    "dotenv": "^16.6.1",
+    "ofetch": "^1.4.1",
+    "pg": "^8.16.3",
+    "tsx": "^4.20.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "@types/pg": "^8.15.5",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
