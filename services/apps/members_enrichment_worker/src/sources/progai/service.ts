@@ -18,7 +18,11 @@ import {
   IMemberEnrichmentAttributeSettings,
   IMemberEnrichmentDataNormalized,
 } from '../../types'
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+import {
+  EnrichmentRateLimitError,
+  normalizeAttributes,
+  normalizeSocialIdentity,
+} from '../../utils/common'
 
 import {
   IEnrichmentAPICertificationProgAI,
@@ -336,36 +340,74 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   async getDataUsingGitHubHandle(githubUsername: string): Promise<IMemberEnrichmentDataProgAI> {
-    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        github_handle: githubUsername,
-        with_emails: true,
-        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-      },
-      headers: {},
+    let response: IMemberEnrichmentDataProgAIResponse
+
+    try {
+      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          github_handle: githubUsername,
+          with_emails: true,
+          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+        },
+        headers: {},
+        validateStatus: function (status) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
+      }
+
+      response = (await axios(config)).data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          this.log.warn('ProgAI API rate limit exceeded!')
+          throw new EnrichmentRateLimitError('progai/getDataUsingGitHubHandle', err)
+        }
+
+        this.log.warn(
+          `Axios error occurred while getting ProgAI data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+      }
     }
 
-    const response: IMemberEnrichmentDataProgAIResponse = (await axios(config)).data
     return response?.profile || null
   }
 
   async getDataUsingEmailAddress(email: string): Promise<IMemberEnrichmentDataProgAI> {
-    const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        email,
-        with_emails: true,
-        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-      },
-      headers: {},
+    let response: IMemberEnrichmentDataProgAIResponse
+
+    try {
+      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          email,
+          with_emails: true,
+          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+        },
+        headers: {},
+        validateStatus: function (status) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
+      }
+
+      response = (await axios(config)).data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          this.log.warn('ProgAI API rate limit exceeded!')
+          throw new EnrichmentRateLimitError('progai/getDataUsingEmailAddress', err)
+        }
+
+        this.log.warn(
+          `Axios error occurred while getting ProgAI data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+      }
     }
 
-    const response = (await axios(config)).data
     return response?.profile || null
   }
 }
