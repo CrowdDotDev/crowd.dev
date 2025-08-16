@@ -15,10 +15,11 @@ SCHEMA >
     `repository` String `json:$.record.repository`,
     `segmentId` UUID `json:$.record.segmentId`,
     `insightsProjectId` UUID `json:$.record.insightsProjectId`,
-    `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `archived` Bool `json:$.record.archived`,
     `excluded` Bool `json:$.record.excluded`,
-    `last_archived_check` Nullable(DateTime64(3)) `json:$.record.last_archived_check`
+    `last_archived_check` Nullable(DateTime64(3)) `json:$.record.last_archived_check`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updated_at`
 
 
 ENGINE ReplacingMergeTree
