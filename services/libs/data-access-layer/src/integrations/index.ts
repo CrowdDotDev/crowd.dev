@@ -436,3 +436,26 @@ export async function removeGitHubRepoMapping(
   const cache = new RedisCache('githubRepos', redisClient, log)
   await cache.deleteAll()
 }
+
+export async function removePlainGitHubRepoMapping(
+  qx: QueryExecutor,
+  redisClient: RedisClient,
+  integrationId: string,
+  repo: string,
+): Promise<void> {
+  await qx.result(
+    `
+    update "githubRepos"
+    set "deletedAt" = now()
+    where "integrationId" = $(integrationId)
+    and lower(url) = lower($(repo))
+    `,
+    {
+      integrationId,
+      repo,
+    },
+  )
+
+  const cache = new RedisCache('githubRepos', redisClient, log)
+  await cache.deleteAll()
+}
