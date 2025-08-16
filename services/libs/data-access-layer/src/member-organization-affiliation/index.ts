@@ -4,29 +4,28 @@ import { getLongestDateRange } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { findMemberAffiliations } from '../member_segment_affiliations'
+import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
 import { QueryExecutor } from '../queryExecutor'
 
-import type {
-  MemberOrganizationAffiliationTimeline,
-  MemberOrganizationWithOverrides,
-  TimelineItem,
-} from './types'
+import type { MemberOrganizationWithOverrides, TimelineItem } from './types'
 
 const logger = getServiceChildLogger('member-affiliations')
+
+type AffiliationItem = MemberOrganizationWithOverrides | IManualAffiliationData
 
 async function prepareMemberOrganizationAffiliationTimeline(
   qx: QueryExecutor,
   memberId: string,
-): Promise<MemberOrganizationAffiliationTimeline> {
+): Promise<TimelineItem[]> {
   const isDateInInterval = (date: Date, start: Date | null, end: Date | null) => {
     return (!start || date >= start) && (!end || date <= end)
   }
 
   const findOrgsWithRolesInDate = (
     date: Date,
-    memberOrganizations: MemberOrganizationWithOverrides[],
-  ): MemberOrganizationWithOverrides[] => {
-    const p = memberOrganizations.filter((row) => {
+    affiliations: AffiliationItem[],
+  ): AffiliationItem[] => {
+    const p = affiliations.filter((row) => {
       const dateStart = row.dateStart ? new Date(row.dateStart) : null
       const dateEnd = row.dateEnd ? new Date(row.dateEnd) : null
 
@@ -42,11 +41,17 @@ async function prepareMemberOrganizationAffiliationTimeline(
     return newDate
   }
 
-  const selectPrimaryWorkExperience = (
-    orgs: MemberOrganizationWithOverrides[],
-  ): MemberOrganizationWithOverrides => {
+  const selectPrimaryWorkExperience = (orgs: AffiliationItem[]): AffiliationItem => {
     if (orgs.length === 1) {
       return orgs[0]
+    }
+
+    // manual affiliations (identified by segmentId) always take highest precedence
+    const manualAffiliations = orgs.filter((row) => 'segmentId' in row && !!row.segmentId)
+    if (manualAffiliations.length > 0) {
+      if (manualAffiliations.length === 1) return manualAffiliations[0]
+      // if multiple manual affiliations, pick the one with the longest date range
+      return getLongestDateRange(manualAffiliations)
     }
 
     // first check if there's a primary work experience
@@ -71,9 +76,15 @@ async function prepareMemberOrganizationAffiliationTimeline(
       }
 
       // 2. get the two orgs with the most members, and return the one with the most members if there's no draw
-      const sortedByMembers = orgs.sort((a, b) => b.memberCount - a.memberCount)
-      if (sortedByMembers[0].memberCount > sortedByMembers[1].memberCount) {
-        return sortedByMembers[0]
+      // only compare member orgs (manual affiliations don't have memberCount)
+      const memberOrgsOnly = orgs.filter(
+        (row: AffiliationItem) => 'segmentId' in row && !!row.segmentId,
+      ) as MemberOrganizationWithOverrides[]
+      if (memberOrgsOnly.length >= 2) {
+        const sortedByMembers = memberOrgsOnly.sort((a, b) => b.memberCount - a.memberCount)
+        if (sortedByMembers[0].memberCount > sortedByMembers[1].memberCount) {
+          return sortedByMembers[0]
+        }
       }
 
       // 3. there's a draw, return the one with the longer date range
@@ -84,94 +95,119 @@ async function prepareMemberOrganizationAffiliationTimeline(
   // solves conflicts in timeranges, always decides on one org when there are overlapping ranges
   const buildTimeline = (
     memberOrganizations: MemberOrganizationWithOverrides[],
-  ): { timeline: TimelineItem[]; earliestStartDate: string } => {
-    const memberOrgsWithDates = memberOrganizations.filter((row) => !!row.dateStart)
-
-    if (memberOrgsWithDates.length === 0) {
-      return { timeline: [], earliestStartDate: null }
-    }
-
-    const earliestStartDate = new Date(
-      Math.min(...memberOrgsWithDates.map((row) => new Date(row.dateStart).getTime())),
+    manualAffiliations: IManualAffiliationData[],
+    fallbackOrganizationId: string | null,
+  ): TimelineItem[] => {
+    const allAffiliationsWithDates = [...memberOrganizations, ...manualAffiliations].filter(
+      (row) => !!row.dateStart,
     )
 
+    const earliestStartDate =
+      allAffiliationsWithDates.length > 0
+        ? new Date(
+            Math.min(...allAffiliationsWithDates.map((row) => new Date(row.dateStart).getTime())),
+          )
+        : null
+
+    const timeline: TimelineItem[] = []
     const now = new Date()
 
-    // loop from earliest to latest start date, day by day
-    const timeline = []
-    let currentPrimaryOrg = null
-    let currentStartDate = null
-    let gapStartDate = null
+    // default fallback start and end
+    // fallback end will be updated if earliest start date exists
+    const fallbackStart = new Date('1970-01-01')
+    let fallbackEnd = now
 
-    for (let date = earliestStartDate; date <= now; date.setDate(date.getDate() + 1)) {
-      const orgs = findOrgsWithRolesInDate(date, memberOrganizations)
+    if (earliestStartDate) {
+      // loop from earliest to latest start date, day by day
+      let currentPrimaryOrg = null
+      let currentStartDate = null
+      let gapStartDate = null
 
-      if (orgs.length === 0) {
-        // means there's a gap in the timeline, close the current range if there's one
-        if (currentPrimaryOrg) {
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-          })
+      for (let date = new Date(earliestStartDate); date <= now; date.setDate(date.getDate() + 1)) {
+        const orgs = findOrgsWithRolesInDate(date, [...memberOrganizations, ...manualAffiliations])
+
+        if (orgs.length === 0) {
+          // means there's a gap in the timeline, close the current range if there's one
+          if (currentPrimaryOrg) {
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+          }
+          currentPrimaryOrg = null
+          currentStartDate = null
+
+          // start tracking gap if we haven't already
+          if (gapStartDate === null) {
+            gapStartDate = new Date(date)
+          }
+        } else {
+          // if we were in a gap, close it first
+          if (gapStartDate !== null) {
+            timeline.push({
+              organizationId: fallbackOrganizationId,
+              dateStart: gapStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+            })
+            gapStartDate = null
+          }
+
+          const primaryOrg = selectPrimaryWorkExperience(orgs)
+
+          if (currentPrimaryOrg == null) {
+            // means there's a new range starting
+            currentPrimaryOrg = primaryOrg
+            currentStartDate = new Date(date)
+          } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
+            // we have a new primary org, we need to close the current range and open a new one
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: oneDayBefore(date).toISOString(),
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+            currentPrimaryOrg = primaryOrg
+            currentStartDate = new Date(date)
+          }
         }
-        currentPrimaryOrg = null
-        currentStartDate = null
 
-        // start tracking gap if we haven't already
-        if (gapStartDate === null) {
-          gapStartDate = new Date(date)
-        }
-      } else {
-        // if we were in a gap, close it first
-        if (gapStartDate !== null) {
-          timeline.push({
-            organizationId: null,
-            dateStart: gapStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-          })
-          gapStartDate = null
-        }
+        // if we're at the end, close the current range
+        if (new Date(date.getTime() + 86400000) > now) {
+          if (currentPrimaryOrg && currentStartDate) {
+            timeline.push({
+              organizationId: currentPrimaryOrg.organizationId,
+              dateStart: currentStartDate.toISOString(),
+              dateEnd: currentPrimaryOrg.dateEnd,
+              segmentId: currentPrimaryOrg.segmentId || undefined,
+            })
+          }
 
-        const primaryOrg = selectPrimaryWorkExperience(orgs)
-
-        if (currentPrimaryOrg == null) {
-          // means there's a new range starting
-          currentPrimaryOrg = primaryOrg
-          currentStartDate = new Date(date)
-        } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
-          // we have a new primary org, we need to close the current range and open a new one
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: oneDayBefore(date).toISOString(),
-          })
-          currentPrimaryOrg = primaryOrg
-          currentStartDate = new Date(date)
+          if (gapStartDate !== null) {
+            timeline.push({
+              organizationId: fallbackOrganizationId,
+              dateStart: gapStartDate.toISOString(),
+              dateEnd: now.toISOString(),
+            })
+          }
         }
       }
 
-      // if we're at the end, close the current range
-      if (new Date(date.getTime() + 86400000) > now) {
-        if (currentPrimaryOrg && currentStartDate) {
-          timeline.push({
-            organizationId: currentPrimaryOrg.organizationId,
-            dateStart: currentStartDate.toISOString(),
-            dateEnd: currentPrimaryOrg.dateEnd,
-          })
-        }
-
-        if (gapStartDate !== null) {
-          timeline.push({
-            organizationId: null,
-            dateStart: gapStartDate.toISOString(),
-            dateEnd: now.toISOString(),
-          })
-        }
-      }
+      // set fallback end to the day before the earliest start date to prevent overlap with
+      // the dated timeline ranges above.
+      fallbackEnd = oneDayBefore(earliestStartDate)
     }
 
-    return { timeline, earliestStartDate: earliestStartDate.toISOString() }
+    // prepend range to cover all activities before the earliest affiliation date
+    // also handles edge case where fallback org is null and the timeline is empty.
+    timeline.unshift({
+      organizationId: fallbackOrganizationId,
+      dateStart: fallbackStart.toISOString(),
+      dateEnd: fallbackEnd.toISOString(),
+    })
+
+    return timeline
   }
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
@@ -232,43 +268,19 @@ async function prepareMemberOrganizationAffiliationTimeline(
     )
   }
 
-  const { timeline, earliestStartDate } = buildTimeline(memberOrganizations)
+  let fallbackOrganizationId = primaryUnknownDatedWorkExperience?.organizationId
 
-  const affiliations: TimelineItem[] = [
-    ..._.chain(manualAffiliations)
-      .sortBy('dateStart')
-      .reverse()
-      .map((row) => ({
-        organizationId: row.organizationId,
-        dateStart: row.dateStart,
-        dateEnd: row.dateEnd,
-        // we need segmentId for manual affiliations
-        segmentId: row.segmentId,
-      }))
-      .value(),
+  if (!fallbackOrganizationId) {
+    fallbackOrganizationId =
+      _.chain(memberOrganizations)
+        .filter((row) => !row.dateStart && !row.dateEnd)
+        .sortBy('createdAt')
+        .map('organizationId')
+        .head()
+        .value() ?? null
+  }
 
-    ..._.chain(timeline)
-      .filter((row) => !!row.dateStart)
-      .sortBy('dateStart')
-      .reverse()
-      .value(),
-
-    ..._.chain(memberOrganizations)
-      .filter((row) => !row.dateStart && !row.dateEnd)
-      .sortBy('createdAt')
-      .reverse()
-      .value(),
-  ]
-
-  const fallbackOrganizationId =
-    _.chain(memberOrganizations)
-      .filter((row) => !row.dateStart && !row.dateEnd)
-      .sortBy('createdAt')
-      .map((row) => row.organizationId)
-      .head()
-      .value() ?? null
-
-  return { affiliations, earliestStartDate, fallbackOrganizationId }
+  return buildTimeline(memberOrganizations, manualAffiliations, fallbackOrganizationId)
 }
 
 async function processAffiliationActivities(
@@ -280,17 +292,18 @@ async function processAffiliationActivities(
   let rowsUpdated
   let processed = 0
 
-  // Build the where conditions for the subquery
-  const conditions = [`"memberId" = $(memberId)`]
   const params: Record<string, unknown> = {
     memberId,
     batchSize,
-    organizationId: affiliation.organizationId,
+    organizationId: affiliation.organizationId ?? null,
   }
+
+  // Build the where conditions for the subquery
+  const conditions = [`"memberId" = $(memberId)`]
 
   // Organization filtering
   if (affiliation.organizationId) {
-    conditions.push(`"organizationId" != $(organizationId)`)
+    conditions.push(`("organizationId" is null or "organizationId" <> $(organizationId))`)
   } else {
     conditions.push(`"organizationId" is not null`)
   }
@@ -323,7 +336,6 @@ async function processAffiliationActivities(
           where ${whereClause}
           limit $(batchSize)
         )
-        returning "activityId"
       `,
       params,
     )
@@ -332,62 +344,7 @@ async function processAffiliationActivities(
     processed += rowsUpdated
   } while (rowsUpdated === batchSize)
 
-  logger.info({ memberId, affiliation, processed }, 'Processed activities for affiliation!')
-
-  return processed
-}
-
-async function processFallbackActivities(
-  qx: QueryExecutor,
-  memberId: string,
-  earliestStartDate: string,
-  fallbackOrganizationId: string | null,
-  batchSize = 5000,
-): Promise<number> {
-  let rowsUpdated
-  let processed = 0
-
-  // Build the where conditions for the subquery
-  const conditions = [`"memberId" = $(memberId)`]
-  const params: Record<string, unknown> = {
-    memberId,
-    fallbackOrganizationId,
-    batchSize,
-  }
-
-  if (fallbackOrganizationId) {
-    conditions.push(`"organizationId" != $(fallbackOrganizationId)`)
-  } else {
-    conditions.push(`"organizationId" is not null`)
-  }
-
-  if (earliestStartDate) {
-    conditions.push(`"timestamp" <= $(earliestStartDate)`)
-    params.earliestStartDate = earliestStartDate
-  }
-
-  const whereClause = conditions.join(' and ')
-
-  do {
-    const rowCount = await qx.result(
-      `
-        UPDATE "activityRelations"
-        SET "organizationId" = $(fallbackOrganizationId), "updatedAt" = CURRENT_TIMESTAMP
-        WHERE "activityId" in (
-          select "activityId" from "activityRelations"
-          where ${whereClause}
-          limit $(batchSize)
-        )
-        returning "activityId"
-      `,
-      params,
-    )
-
-    rowsUpdated = rowCount
-    processed += rowsUpdated
-  } while (rowsUpdated === batchSize)
-
-  logger.info({ memberId, fallbackOrganizationId, processed }, 'Processed fallback activities!')
+  logger.debug({ memberId, affiliation, processed }, 'Processed activities for affiliation!')
 
   return processed
 }
@@ -395,19 +352,12 @@ async function processFallbackActivities(
 export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, memberId: string) {
   const start = performance.now()
 
-  const { affiliations, earliestStartDate, fallbackOrganizationId } =
-    await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
-
-  if (affiliations.length === 0) {
-    logger.info({ memberId }, `No affiliations for member, skipping refresh!`)
-    return
-  }
+  const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
   // process timeline in parallel
-  const results = await Promise.all([
-    ...affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
-    processFallbackActivities(qx, memberId, earliestStartDate, fallbackOrganizationId),
-  ])
+  const results = await Promise.all(
+    affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
+  )
 
   const duration = performance.now() - start
   const processed = results.reduce((acc, processed) => acc + processed, 0)
