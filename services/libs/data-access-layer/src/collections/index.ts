@@ -51,11 +51,11 @@ export interface IInsightsProject {
   twitter: string
   widgets: string[]
   repositories:
-  | {
-    platform: string
-    url: string
-  }[]
-  | string[]
+    | {
+        platform: string
+        url: string
+      }[]
+    | string[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -329,11 +329,13 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
 export async function insertSegmentRepositories(
   qx: QueryExecutor,
   {
+    insightsProjectId,
     repositories,
     segmentId,
   }: {
+    insightsProjectId?: string
     repositories: string[]
-    segmentId?: string
+    segmentId: string
   },
 ) {
   if (repositories.length === 0) {
@@ -341,6 +343,7 @@ export async function insertSegmentRepositories(
   }
 
   const data = repositories.map((repo) => ({
+    insightsProjectId,
     repository: repo,
     segmentId,
   }))
@@ -348,50 +351,52 @@ export async function insertSegmentRepositories(
   return qx.result(
     prepareBulkInsert(
       'segmentRepositories',
-      ['repository', 'segmentId'],
+      ['insightsProjectId', 'repository', 'segmentId'],
       data,
       '("repository") DO NOTHING',
     ),
   )
 }
 
-export async function updateSegmentRepositories(
+export async function updateExistingSegmentRepositories(
   qx: QueryExecutor,
   {
     segmentId,
-    repository
+    repositories,
   }: {
-    segmentId: string,
-    repository: string
-  }
+    segmentId: string
+    repositories: string[]
+  },
 ) {
-
   return qx.result(
     `
-      UPDATE "segmentRepositories"
-      SET "segmentId" = $(segmentId)
-      WHERE "repository" = $(repository)
+    UPDATE "segmentRepositories"
+    SET "segmentId" = $(segmentId)
+    WHERE "repository" IN ($(repositories:csv));
     `,
-    { segmentId, repository },
+    {
+      segmentId,
+      repositories,
+    },
   )
 }
 
 export async function deleteMissingSegmentRepositories(
   qx: QueryExecutor,
   {
-    insightsProjectId,
+    segmentId,
     repositories,
   }: {
-    insightsProjectId: string
+    segmentId: string
     repositories: string[]
   },
 ) {
   return qx.result(
     `
     DELETE FROM "segmentRepositories"
-    WHERE "insightsProjectId" = '${insightsProjectId}'
+    WHERE "segmentId" = '${segmentId}'
       AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
     `,
-    { insightsProjectId, repositories },
+    { segmentId, repositories },
   )
 }

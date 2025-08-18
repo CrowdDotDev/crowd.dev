@@ -7,7 +7,12 @@ import moment from 'moment'
 import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
-import { deleteMissingSegmentRepositories, ICreateInsightsProject, insertSegmentRepositories, updateSegmentRepositories } from '@crowd/data-access-layer/src/collections'
+import {
+  ICreateInsightsProject,
+  deleteMissingSegmentRepositories,
+  insertSegmentRepositories,
+  updateExistingSegmentRepositories,
+} from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -165,7 +170,6 @@ export default class IntegrationService {
         transaction,
       })
 
-
       if (IntegrationService.isCodePlatform(data.platform)) {
         const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
         data.repositories = [
@@ -173,19 +177,16 @@ export default class IntegrationService {
             ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
           ]),
         ]
+      }
 
+      if (insightsProject) {
+        // TODO: remove the insightsProjectId check when this is not mandatory anymore
         await insertSegmentRepositories(qx, {
+          insightsProjectId: insightsProject.id,
           repositories: CollectionService.normalizeRepositories(data.repositories),
           segmentId: record.segmentId,
         })
-      }
 
-      // await deleteMissingSegmentRepositories(qx, {
-      //   repositories,
-      //   insightsProjectId: insightsProject.id,
-      // })
-
-      if (insightsProject) {
         await this.updateInsightsProject({
           insightsProjectId: insightsProject.id,
           isFirstUpdate: true,
@@ -330,7 +331,7 @@ export default class IntegrationService {
             let shouldUpdateGit: boolean
             const mapping =
               integration.platform === PlatformType.GITHUB ||
-                integration.platform === PlatformType.GITHUB_NANGO
+              integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
 
@@ -342,7 +343,14 @@ export default class IntegrationService {
               return acc
             }, {})
 
+            const qx = SequelizeRepository.getQueryExecutor(this.options)
+
             for (const [segmentId, urls] of Object.entries(repos)) {
+              await deleteMissingSegmentRepositories(qx, {
+                repositories: [],
+                segmentId,
+              })
+
               urls.forEach((url) => toRemoveRepo.add(url))
 
               const segmentOptions: IRepositoryOptions = {
@@ -802,8 +810,8 @@ export default class IntegrationService {
               ...settings,
               ...(integration.settings.nangoMapping
                 ? {
-                  nangoMapping: integration.settings.nangoMapping,
-                }
+                    nangoMapping: integration.settings.nangoMapping,
+                  }
                 : {}),
             },
           },
@@ -834,8 +842,6 @@ export default class IntegrationService {
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    console.log('mapGithubRepos', integrationId, mapping, fireOnboarding)
-
     const txOptions = {
       ...this.options,
       transaction,
@@ -844,10 +850,6 @@ export default class IntegrationService {
 
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
-
-      for (const [url, segmentId] of Object.entries(mapping)) {
-        await updateSegmentRepositories(qx, { segmentId: segmentId as string, repository: url as string })
-      }
 
       // add the repos to the git integration
       const repos: Record<string, string[]> = Object.entries(mapping).reduce(
@@ -860,6 +862,14 @@ export default class IntegrationService {
         },
         {},
       )
+
+      for (const [segmentId, repositories] of Object.entries(repos)) {
+        await updateExistingSegmentRepositories(qx, { segmentId, repositories })
+        await deleteMissingSegmentRepositories(qx, {
+          repositories,
+          segmentId,
+        })
+      }
 
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
@@ -2236,14 +2246,8 @@ export default class IntegrationService {
     }
     const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
-
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
-
-
-      for (const [segmentId, urls] of Object.entries(mapping)) {
-        await updateSegmentRepositories(qx, { segmentId, repository: urls })
-      }
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
@@ -2257,6 +2261,14 @@ export default class IntegrationService {
           },
           {},
         )
+
+        for (const [segmentId, repositories] of Object.entries(repos)) {
+          await updateExistingSegmentRepositories(qx, { segmentId, repositories })
+          await deleteMissingSegmentRepositories(qx, {
+            repositories,
+            segmentId,
+          })
+        }
 
         for (const [segmentId, urls] of Object.entries(repos)) {
           let isGitintegrationConfigured
