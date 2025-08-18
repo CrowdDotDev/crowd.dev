@@ -97,9 +97,19 @@ export const getNangoConnectionStatus = async (
 ): Promise<SyncStatus[]> => {
   ensureBackendClient()
 
-  const res = await backendClient.syncStatus(integration, '*', connectionId)
-
-  return res.syncs
+  try {
+    log.info(`Getting nango sync status for connection ${connectionId}`)
+    const res = await backendClient.syncStatus(integration, '*', connectionId)
+    return res.syncs
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 404) {
+        log.warn(`Connection ${connectionId} could not be found in Nango`)
+        return null
+      }
+    }
+    throw error
+  }
 }
 
 export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
