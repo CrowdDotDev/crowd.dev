@@ -170,7 +170,6 @@ export default class IntegrationService {
         transaction,
       })
 
-
       if (IntegrationService.isCodePlatform(data.platform)) {
         const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
         data.repositories = [
@@ -178,71 +177,74 @@ export default class IntegrationService {
             ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
           ]),
         ]
-
-        await insertSegmentRepositories(qx, {
-          repositories: CollectionService.normalizeRepositories(data.repositories),
-          segmentId: record.segmentId,
-        })
       }
 
-      // await deleteMissingSegmentRepositories(qx, {
-      //   repositories,
-      //   insightsProjectId: insightsProject.id,
-      // })
-
-      if (!insightsProject) {
-        return record
-      }
-
-      const qx = SequelizeRepository.getQueryExecutor({
-        ...(options || this.options),
-        transaction,
-      })
-
-      if (IntegrationService.isCodePlatform(data.platform)) {
-        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
-        data.repositories = [
-          ...new Set([
-            ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-          ]),
-        ]
-
+      if (insightsProject) {
         // TODO: remove the insightsProjectId check when this is not mandatory anymore
         await insertSegmentRepositories(qx, {
           insightsProjectId: insightsProject.id,
           repositories: CollectionService.normalizeRepositories(data.repositories),
           segmentId: record.segmentId,
         })
+
+        // await deleteMissingSegmentRepositories(qx, {
+        //   repositories,
+        //   insightsProjectId: insightsProject.id,
+        // })
+
+        if (!insightsProject) {
+          return record
+        }
+
+        const qx = SequelizeRepository.getQueryExecutor({
+          ...(options || this.options),
+          transaction,
+        })
+
+        if (IntegrationService.isCodePlatform(data.platform)) {
+          const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+          data.repositories = [
+            ...new Set([
+              ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+            ]),
+          ]
+
+          // TODO: remove the insightsProjectId check when this is not mandatory anymore
+          await insertSegmentRepositories(qx, {
+            insightsProjectId: insightsProject.id,
+            repositories: CollectionService.normalizeRepositories(data.repositories),
+            segmentId: record.segmentId,
+          })
+        }
+
+        await this.updateInsightsProject({
+          insightsProjectId: insightsProject.id,
+          isFirstUpdate: true,
+          platform: data.platform,
+          segmentId: record.segmentId,
+          transaction,
+        })
+
+        return record
+      } catch (error) {
+        SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
+        throw error
       }
-
-      await this.updateInsightsProject({
-        insightsProjectId: insightsProject.id,
-        isFirstUpdate: true,
-        platform: data.platform,
-        segmentId: record.segmentId,
-        transaction,
-      })
-
-      return record
-    } catch (error) {
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
-      throw error
     }
-  }
 
   private async updateInsightsProject({
-    insightsProjectId,
-    isFirstUpdate = false,
-    platform,
-    segmentId,
-    transaction,
-  }: {
-    insightsProjectId: string
-    isFirstUpdate?: boolean
-    platform: PlatformType
-    segmentId: string
-    transaction: Transaction
-  }) {
+      insightsProjectId,
+      isFirstUpdate = false,
+      platform,
+      segmentId,
+      transaction,
+    }: {
+      insightsProjectId: string
+      isFirstUpdate?: boolean
+      platform: PlatformType
+      segmentId: string
+      transaction: Transaction
+    }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
@@ -869,8 +871,6 @@ export default class IntegrationService {
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    console.log('mapGithubRepos', integrationId, mapping, fireOnboarding)
-
     const txOptions = {
       ...this.options,
       transaction,
@@ -879,10 +879,6 @@ export default class IntegrationService {
 
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
-
-      for (const [url, segmentId] of Object.entries(mapping)) {
-        await updateSegmentRepositories(qx, { segmentId: segmentId as string, repository: url as string })
-      }
 
       // add the repos to the git integration
       const repos: Record<string, string[]> = Object.entries(mapping).reduce(
@@ -2291,14 +2287,8 @@ export default class IntegrationService {
     }
     const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
-
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
-
-
-      for (const [segmentId, urls] of Object.entries(mapping)) {
-        await updateSegmentRepositories(qx, { segmentId, repository: urls })
-      }
 
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
