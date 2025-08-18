@@ -33,7 +33,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/*.spec.ts', '**/*.test.ts'],
+      files: ['*.ts'],
       extends: ['airbnb-base', 'airbnb-typescript/base', 'prettier'],
       parserOptions: {
         ecmaVersion: 'latest',

@@ -10,7 +10,6 @@ import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   ICreateInsightsProject,
   deleteMissingSegmentRepositories,
-  insertSegmentRepositories,
   updateExistingSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import {

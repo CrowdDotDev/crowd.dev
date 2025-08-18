@@ -326,7 +326,7 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function insertSegmentRepositories(
+export async function upsertSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
