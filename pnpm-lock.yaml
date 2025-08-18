@@ -376,9 +376,6 @@ importers:
       '@types/html-to-text':
         specifier: ^8.1.1
         version: 8.1.1
-      '@types/jest':
-        specifier: ^30.0.0
-        version: 30.0.0
       '@types/node':
         specifier: ~18.0.4
         version: 18.0.6
@@ -397,9 +394,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^5.17.0
         version: 5.62.0(eslint@8.57.0)(typescript@5.6.3)
-      babel-jest:
-        specifier: ^30.0.5
-        version: 30.0.5(@babel/core@7.24.4)
       copyfiles:
         specifier: 2.4.1
         version: 2.4.1
@@ -424,9 +418,6 @@ importers:
       eslint-plugin-import:
         specifier: ^2.25.4
         version: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.6.3))(eslint@8.57.0)
-      jest:
-        specifier: ^30.0.5
-        version: 30.0.5(@types/node@18.0.6)(ts-node@10.9.2(@swc/core@1.4.17)(@types/node@18.0.6)(typescript@5.6.3))
       lint-staged:
         specifier: ^15.4.3
         version: 15.4.3
@@ -2730,10 +2721,6 @@ packages:
 
   '@babel/core@7.24.4':
     resolution: {integrity: sha512-MBVlMXP+kkl5394RBLSxxk/iLTeVGuXTV3cIDXavPpMMqnSnt6apKgan/U8O3USWZCWZT/TbgfEpKa4uMgN4Dg==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/core@7.28.0':
-    resolution: {integrity: sha512-UlLAnTPrFdNGoFtbSXwcGFQBtQZJCNjaN6hQNP3UPvuNXT1i82N26KL3dZeIpNalWywr9IuQuncaAfUaS1g6sQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/generator@7.17.7':
