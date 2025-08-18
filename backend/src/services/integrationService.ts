@@ -889,7 +889,6 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
-
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
