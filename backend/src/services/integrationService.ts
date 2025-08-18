@@ -875,7 +875,6 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
@@ -2285,7 +2284,6 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
