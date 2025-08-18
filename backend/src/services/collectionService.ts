@@ -383,20 +383,7 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
-
-      const repositories = CollectionService.normalizeRepositories(project.repositories)
-
-      // await insertSegmentRepositories(qx, {
-      //   insightsProjectId,
-      //   repositories,
-      //   segmentId,
-      // })
-
-      // await deleteMissingSegmentRepositories(qx, {
-      //   repositories,
-      //   insightsProjectId,
-      // })
+      await updateInsightsProject(qx, insightsProjectId, project)
 
       if (project.collections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId })
