@@ -30,7 +30,6 @@
 
 # database
 /services/libs/database/                                     @themarolt
-/services/libs/questdb/                                      @themarolt
 /backend/src/database/                                       @themarolt
 /backend/src/serverless/dbOperations/                        @themarolt
 /backend/src/middlewares/databaseMiddleware.ts               @themarolt
@@ -60,5 +59,3 @@
 **/.tinyenv                                                  @epipav @borfast
 services/libs/tinybird/                                      @epipav @borfast
 scaffold/kafka-connect/kafka-connect-http/*                  @epipav @borfast
-**/copy-activities-from-questdb-to-tinybird/                 @epipav @borfast
-**/copyActivitiesFromQuestdbToTinybird.ts                    @epipav @borfast

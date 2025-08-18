@@ -35,7 +35,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     level: QueuePriorityLevel,
     private readonly client: IQueue,
     private readonly pgConn: DbConnection,
-    private readonly qdbConn: DbConnection,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -69,7 +68,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
         const service = new DataSinkService(
           new DbStore(logger, this.pgConn, undefined, false),
-          new DbStore(logger, this.qdbConn, undefined, false),
           this.searchSyncWorkerEmitter,
           this.dataSinkWorkerEmitter,
           this.redisClient,
@@ -107,7 +105,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
         const service = new DataSinkService(
           new DbStore(logger, this.pgConn, undefined, false),
-          new DbStore(logger, this.qdbConn, undefined, false),
           this.searchSyncWorkerEmitter,
           this.dataSinkWorkerEmitter,
           this.redisClient,
@@ -166,7 +163,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
         case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
           const service = new DataSinkService(
             new DbStore(this.log, this.pgConn, undefined, false),
-            new DbStore(this.log, this.qdbConn, undefined, false),
             this.searchSyncWorkerEmitter,
             this.dataSinkWorkerEmitter,
             this.redisClient,

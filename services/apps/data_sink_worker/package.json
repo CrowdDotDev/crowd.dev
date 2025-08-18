@@ -30,7 +30,6 @@
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
-    "@crowd/questdb": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/telemetry": "workspace:*",

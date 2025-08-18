@@ -23,7 +23,6 @@ echo "Using token [$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN] in Tinybird http sink 
 exec connect-standalone \
   /etc/kafka-connect/worker-local.properties \
   /etc/kafka-connect/console-local-sink.properties \
-  /etc/kafka-connect/questdb-local-sink.properties \
   "$TINYBIRD_SINK_TEMP_FILE" 
 
 

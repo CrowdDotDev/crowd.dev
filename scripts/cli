@@ -68,7 +68,6 @@ function prepare_dev_env() {
     set -eo pipefail
 
     mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
-    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
 }
 
 prepare_dev_env
@@ -542,12 +541,6 @@ function migrate_env() {
         -e PGPASSWORD=$CROWD_DB_PASSWORD \
         -e PGDATABASE=$CROWD_DB_DATABASE \
         crowd_flyway
-
-    say "Applying QuestDB migrations to $CROWD_QUESTDB_SQL_HOST!"
-    docker run --rm --network "${PROJECT_NAME}-bridge" \
-        -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
-        postgres psql postgresql://$CROWD_QUESTDB_SQL_USERNAME:$CROWD_QUESTDB_SQL_PASSWORD@$CROWD_QUESTDB_SQL_HOST:$CROWD_QUESTDB_SQL_PORT/qdb \
-        -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
 function wait_for_tinybird() {
@@ -587,12 +580,10 @@ function migrate_tinybird_local() {
 
     say "Authenticating to tinybird staging..."
     cd "$CLI_HOME/../services/libs/tinybird" && tb auth --region us-west-2
-        
+
     set -eo pipefail
     return 1
 }
-
-
 
 function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
@@ -605,14 +596,6 @@ function migrate_postgres_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=crowd-web \
         crowd_flyway
-}
-
-function migrate_questdb_local() {
-    say "Applying QuestDB migrations!"
-    docker run --rm --network "${PROJECT_NAME}-bridge" \
-        -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
-        postgres psql postgresql://admin:quest@questdb:8812/qdb \
-        -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
 function migrate_productdb_local() {
@@ -630,7 +613,6 @@ function migrate_productdb_local() {
 
 function migrate_local() {
     migrate_postgres_local
-    migrate_questdb_local
     migrate_productdb_local
     if [[ "$WITH_INSIGHTS" == "1" ]]; then
         migrate_tinybird_local
@@ -669,10 +651,10 @@ function install_libs() {
 }
 
 function install_tinybird_cli() {
-        if ! tb --version &> /dev/null; then
-            echo "Tinybird CLI not found. Installing..."
-            curl -s https://tinybird.co | sh
-        fi
+    if ! tb --version &>/dev/null; then
+        echo "Tinybird CLI not found. Installing..."
+        curl -s https://tinybird.co | sh
+    fi
 }
 
 function set_tinybird_workspace_admin_token() {
@@ -682,21 +664,18 @@ function set_tinybird_workspace_admin_token() {
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
-    download_kafka_connect_questdb_connector "$CLI_HOME/scaffold/kafka-connect"
-
     if [[ "$WITH_INSIGHTS" == "1" ]]; then
         download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
         install_tinybird_cli
     fi
 
-    
     if [[ "$WITH_INSIGHTS" == "1" ]]; then
         # first up tinybird, then wait for it to be ready, then set the token env for kafka connect
         $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build tinybird
         wait_for_tinybird
         set_tinybird_workspace_admin_token
     fi
-    
+
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build --no-recreate
 
 }
@@ -706,7 +685,7 @@ function post_up_scaffold() {
     bash $CLI_HOME/nango-integrations.sh
 }
 
-function down_scaffold() {    
+function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE down
 }
 
@@ -855,7 +834,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
+        INGORED_SERVICES=("api" "frontend" "python-worker" "security-best-practices-worker" "cache-worker" "nango-webhook-api" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker")
         CLEAN_START=1
         DEV=1
         start

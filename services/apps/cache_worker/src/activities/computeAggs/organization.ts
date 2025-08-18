@@ -44,12 +44,7 @@ export async function checkOrganizationExists(orgId: string): Promise<boolean> {
 }
 
 export async function syncOrganization(orgId: string): Promise<void> {
-  const service = new OrganizationSyncService(
-    new DbStore(svc.log, svc.questdbSQL),
-    svc.postgres.writer,
-    svc.opensearch,
-    svc.log,
-  )
+  const service = new OrganizationSyncService(svc.postgres.writer, svc.opensearch, svc.log)
 
   await service.syncOrganizations([orgId])
 }

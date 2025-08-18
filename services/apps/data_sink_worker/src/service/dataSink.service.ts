@@ -40,7 +40,6 @@ export default class DataSinkService extends LoggerBase {
 
   constructor(
     private readonly pgStore: DbStore,
-    private readonly qdbStore: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -295,7 +294,6 @@ export default class DataSinkService extends LoggerBase {
 
         const service = new ActivityService(
           this.pgStore,
-          this.qdbStore,
           this.searchSyncWorkerEmitter,
           this.redisClient,
           this.temporal,

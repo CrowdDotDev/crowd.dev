@@ -28,8 +28,6 @@ import {
 
 import { svc } from '../../main'
 
-const qdb = new DbStore(svc.log, svc.questdbSQL)
-
 export async function getDashboardCacheLastRefreshedAt(segmentId: string): Promise<string> {
   const segmentRepo = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
   return segmentRepo.getDashboardCacheLastRefreshedAt(segmentId)

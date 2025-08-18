@@ -35,7 +35,6 @@ export interface IQueryActivityResult {
     member?: IDbMember
   }
 
-  // TODO questdb: Needed?
   ids?: string[]
   count?: number
 }
@@ -59,7 +58,6 @@ export interface IQueryActivitiesParameters {
   countOnly?: boolean
   noCount?: boolean
   groupBy?: string
-  useHttp?: boolean
 }
 
 export interface IQueryGroupedActivitiesParameters {

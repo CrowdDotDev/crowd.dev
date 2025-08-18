@@ -8,7 +8,6 @@ import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
-import { queryOverHttp } from '@crowd/questdb'
 import {
   ActivityDisplayVariant,
   IActivityBySentimentMoodResult,
@@ -597,22 +596,16 @@ export async function queryActivities(
 
     logger.debug('QuestDB activity query', query)
 
-    if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
-      const formatted = formatQuery(query, params)
-      activities = await queryOverHttp(formatted)
-      count = 0
-    } else {
-      const formattedQuery = formatQuery(query, params)
-      const formattedCountQuery = formatQuery(countQuery, params)
+    const formattedQuery = formatQuery(query, params)
+    const formattedCountQuery = formatQuery(countQuery, params)
 
-      const [results, countResults] = await Promise.all([
-        qdbConn.any(formattedQuery),
-        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
-      ])
+    const [results, countResults] = await Promise.all([
+      qdbConn.any(formattedQuery),
+      arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
+    ])
 
-      activities = results
-      count = countResults[0] ? countResults[0].count : 0
-    }
+    activities = results
+    count = countResults[0] ? countResults[0].count : 0
   }
 
   const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))

@@ -10,13 +10,7 @@ import { svc } from '../main'
 import { ResultS3Upload } from '../types/s3'
 import { uploadToS3 } from '../utils/s3'
 
-const search = new MemberSearchService(
-  svc.redis,
-  svc.postgres.reader,
-  svc.questdbSQL,
-  svc.opensearch,
-  svc.log,
-)
+const search = new MemberSearchService(svc.redis, svc.postgres.reader, svc.opensearch, svc.log)
 
 /*
 buildAndUploadMembersCSV is a Temporal activity that fetches members based on the
