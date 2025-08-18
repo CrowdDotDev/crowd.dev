@@ -846,7 +846,6 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
@@ -863,6 +862,7 @@ export default class IntegrationService {
         {},
       )
 
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
       for (const [segmentId, repositories] of Object.entries(repos)) {
         await updateExistingSegmentRepositories(qx, { segmentId, repositories })
         await deleteMissingSegmentRepositories(qx, {
@@ -2244,7 +2244,6 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
@@ -2262,6 +2261,7 @@ export default class IntegrationService {
           {},
         )
 
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
         for (const [segmentId, repositories] of Object.entries(repos)) {
           await updateExistingSegmentRepositories(qx, { segmentId, repositories })
           await deleteMissingSegmentRepositories(qx, {
