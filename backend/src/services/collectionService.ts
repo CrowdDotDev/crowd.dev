@@ -22,10 +22,6 @@ import {
   queryInsightsProjects,
   updateCollection,
   updateInsightsProject,
-<<<<<<< HEAD
-=======
-  upsertSegmentRepositories,
->>>>>>> d2f38ac76 (fix: remove tests)
 } from '@crowd/data-access-layer/src/collections'
 import {
   fetchIntegrationById,

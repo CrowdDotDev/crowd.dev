@@ -9,6 +9,7 @@ import { Transaction } from 'sequelize'
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   ICreateInsightsProject,
+  insertSegmentRepositories,
   deleteMissingSegmentRepositories,
   updateExistingSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
@@ -164,6 +165,11 @@ export default class IntegrationService {
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
+
+      if (!insightsProject) {
+        return record
+      }
+
       const qx = SequelizeRepository.getQueryExecutor({
         ...this.options,
         transaction,
@@ -171,14 +177,18 @@ export default class IntegrationService {
 
       if (IntegrationService.isCodePlatform(data.platform)) {
         const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+
+        console.log(`per il segment ${record.id} abbiamo le repositories: ${JSON.stringify(repositories)}`)
+
         data.repositories = [
           ...new Set([
             ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
           ]),
         ]
-      }
 
-      if (insightsProject) {
+        console.log(`repo filtrate: ${JSON.stringify(data.repositories)}`)
+
+
         // TODO: remove the insightsProjectId check when this is not mandatory anymore
         await insertSegmentRepositories(qx, {
           insightsProjectId: insightsProject.id,
@@ -885,6 +895,7 @@ export default class IntegrationService {
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
+
     const txOptions = {
       ...this.options,
       transaction,
@@ -903,6 +914,8 @@ export default class IntegrationService {
         },
         {},
       )
+
+      console.log(`Github mappin repos ${JSON.stringify(repos)}`)
 
       const qx = SequelizeRepository.getQueryExecutor(txOptions)
       const collectionService = new CollectionService(txOptions)
