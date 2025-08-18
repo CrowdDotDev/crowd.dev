@@ -353,7 +353,6 @@ export async function insertSegmentRepositories(
       'segmentRepositories',
       ['insightsProjectId', 'repository', 'segmentId'],
       data,
-      '("repository") DO NOTHING',
     ),
   )
 }
