@@ -160,26 +160,25 @@ export default class IntegrationService {
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
-      // const qx = SequelizeRepository.getQueryExecutor({
-      //   ...this.options,
-      //   transaction,
-      // })
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...this.options,
+        transaction,
+      })
 
 
-      // if (IntegrationService.isCodePlatform(data.platform)) {
-      //   const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
-      //   data.repositories = [
-      //     ...new Set([
-      //       ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-      //     ]),
-      //   ]
+      if (IntegrationService.isCodePlatform(data.platform)) {
+        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+        data.repositories = [
+          ...new Set([
+            ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+          ]),
+        ]
 
-      //   await insertSegmentRepositories(qx, {
-      //     insightsProjectId: insightsProject.id,
-      //     repositories: CollectionService.normalizeRepositories(data.repositories),
-      //     segmentId: record.segmentId,
-      //   })
-      // }
+        await insertSegmentRepositories(qx, {
+          repositories: CollectionService.normalizeRepositories(data.repositories),
+          segmentId: record.segmentId,
+        })
+      }
 
       // await deleteMissingSegmentRepositories(qx, {
       //   repositories,
@@ -846,10 +845,8 @@ export default class IntegrationService {
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
-
       for (const [url, segmentId] of Object.entries(mapping)) {
-        console.log('updateSegmentRepositories', segmentId, url)
-        // await updateSegmentRepositories(qx, { segmentId: segmentId as string, repository: url as string })
+        await updateSegmentRepositories(qx, { segmentId: segmentId as string, repository: url as string })
       }
 
       // add the repos to the git integration

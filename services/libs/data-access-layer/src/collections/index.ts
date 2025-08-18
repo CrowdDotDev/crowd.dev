@@ -329,11 +329,9 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
 export async function insertSegmentRepositories(
   qx: QueryExecutor,
   {
-    insightsProjectId,
     repositories,
     segmentId,
   }: {
-    insightsProjectId: string
     repositories: string[]
     segmentId?: string
   },
@@ -343,7 +341,6 @@ export async function insertSegmentRepositories(
   }
 
   const data = repositories.map((repo) => ({
-    insightsProjectId,
     repository: repo,
     segmentId,
   }))
@@ -351,9 +348,9 @@ export async function insertSegmentRepositories(
   return qx.result(
     prepareBulkInsert(
       'segmentRepositories',
-      ['insightsProjectId', 'repository', 'segmentId'],
+      ['repository', 'segmentId'],
       data,
-      '("repository", "insightsProjectId") DO NOTHING',
+      '("repository") DO NOTHING',
     ),
   )
 }

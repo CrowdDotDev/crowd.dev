@@ -395,10 +395,10 @@ export class CollectionService extends LoggerBase {
       //   segmentId,
       // })
 
-      await deleteMissingSegmentRepositories(qx, {
-        repositories,
-        insightsProjectId,
-      })
+      // await deleteMissingSegmentRepositories(qx, {
+      //   repositories,
+      //   insightsProjectId,
+      // })
 
       if (project.collections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId })
