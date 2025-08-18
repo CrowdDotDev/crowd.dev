@@ -657,7 +657,7 @@ export class CollectionService extends LoggerBase {
 
   async findNangoRepositoriesToBeRemoved(integrationId: string): Promise<string[]> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const integration = await fetchIntegrationById(qx, integrationId)
 
       if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
@@ -701,7 +701,7 @@ export class CollectionService extends LoggerBase {
 
   async unmapGithubRepo(integrationId: string, repo: string): Promise<void> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
     })
   }
