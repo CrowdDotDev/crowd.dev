@@ -26,7 +26,6 @@ SCHEMA >
     `id` String `json:$.record.id`,
     `parentId` String `json:$.record.parentId` DEFAULT '',
     `grandparentId` String `json:$.record.grandparentId` DEFAULT '',
-    `type` String `json:$.record.type`,
     `url` String `json:$.record.url` DEFAULT '',
     `name` String `json:$.record.name` DEFAULT '',
     `parentName` String `json:$.record.parentName` DEFAULT '',
