@@ -89,26 +89,23 @@ class MaintainerService(BaseService):
             )
         self.logger.info("Maintainers file content analyzed by AI")
         self.logger.info(f"Maintainers response: {maintainer_info}")
-        try:
-            if maintainer_info.output.info is not None:
-                return AggregatedMaintainerInfo(
-                    output=AggregatedMaintainerInfoItems(info=maintainer_info.output.info),
-                    cost=maintainer_info.cost,
-                )
-            elif maintainer_info.output.error == "not_found":
-                raise MaintanerAnalysisError(ai_cost=maintainer_info.cost)
-            else:
-                self.logger.error(
-                    f"Expected a list of maintainer info or an error message, got: {str(maintainer_info)}"
-                )
-                raise ValueError(
-                    "Expected a list of maintainer info or an error message, got: "
-                    + str(maintainer_info)
-                )
-        except ValueError as e:
-            raise
+        if maintainer_info.output.info is not None:
+            return AggregatedMaintainerInfo(
+                output=AggregatedMaintainerInfoItems(info=maintainer_info.output.info),
+                cost=maintainer_info.cost,
+            )
+        elif maintainer_info.output.error == "not_found":
+            raise MaintanerAnalysisError(ai_cost=maintainer_info.cost)
+        else:
+            self.logger.error(
+                f"Expected a list of maintainer info or an error message, got: {str(maintainer_info)}"
+            )
+            raise MaintanerAnalysisError(
+                error_message="Unexpected response from AI for Maintainers analysis",
+                ai_cost=maintainer_info.cost,
+            )
 
-    async def find_maintainer_file_with_ai(self, file_names, owner, repo):
+    async def find_maintainer_file_with_ai(self, file_names):
         self.logger.info("Using AI to find maintainer files...")
         instructions = (
             "You are a helpful assistant.",
@@ -129,7 +126,6 @@ class MaintainerService(BaseService):
 
         if result.output.file_name is not None:
             file_name = result.output.file_name
-            # update_stats(file_name, owner, repo)
             return file_name, result.cost
         else:
             return None, result.cost
@@ -199,14 +195,15 @@ class MaintainerService(BaseService):
         try:
             self.logger.info(f"Starting maintainers processing for repo: {repo_url}")
             owner, repo_name = parse_repo_url(repo_url)
-            if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
-                # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
-                return
+            # if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
+            #     # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
+            #     return
             maintainers = await self.extract_maintainers(
                 repo_path, owner, repo_name, maintainers_file
             )
-            self.logger.info("Maintainers extracted")
-            self.logger.info(maintainers)
+            self.logger.info(
+                f"Extracted {len(maintainers.maintainer_info)} maintainers from {maintainers.maintainer_file} file"
+            )
         except Exception as e:
             # TODO: handle errors properly
             self.logger.error(f"Failed to process maintainers with error: {repr(e)}")
