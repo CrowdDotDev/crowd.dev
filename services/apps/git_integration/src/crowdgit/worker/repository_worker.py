@@ -151,7 +151,11 @@ class RepositoryWorker:
                 logger.info("Clone batch info: {}", batch)
 
                 # Process commits for this specific batch using hash range for precision
-                if not batch.is_first_batch:
+                if batch.is_first_batch:
+                    await self.maintainer_service.process_maintainers(
+                        repository.id, batch.remote, batch.repo_path
+                    )
+                else:
                     await self.commit_service.process_single_batch_commits(
                         repo_path=batch.repo_path,
                         edge_commit=batch.edge_commit,
@@ -169,7 +173,7 @@ class RepositoryWorker:
             processing_state = RepositoryState.COMPLETED
         except Exception as e:
             processing_state = RepositoryState.FAILED
-            logger.error("Processing failed: {}", e)
+            logger.error(f"Processing failed with error: {repr(e)}")
         finally:
             # Reset logger context for all services
             self._reset_all_contexts()
