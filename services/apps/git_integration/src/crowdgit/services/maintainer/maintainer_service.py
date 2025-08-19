@@ -12,10 +12,13 @@ from crowdgit.models.maintainer_info import (
     MaintainerFile,
     MaintainerInfo,
     MaintainerResult,
+    MaintainerInfoItem,
     AggregatedMaintainerInfo,
     AggregatedMaintainerInfoItems,
 )
 from crowdgit.services.maintainer.bedrock import invoke_bedrock
+from slugify import slugify
+from crowdgit.database.crud import find_github_identity, upsert_maintainer, update_maintainer_run
 
 
 class MaintainerService(BaseService):
@@ -36,6 +39,41 @@ class MaintainerService(BaseService):
         ".github/MAINTAINERS.md",
         ".github/CONTRIBUTORS.md",
     ]
+
+    def make_role(self, title: str):
+        title = title.lower()
+        title = (
+            title.replace("repository", "").replace("active", "").replace("project", "").strip()
+        )
+        return slugify(title)
+
+    async def store_maintainers(
+        self, repo_id: str, repo_url: str, maintainers: list[MaintainerInfoItem]
+    ):
+        async def process_maintainer(maintainer: MaintainerInfoItem):
+            self.logger.info(f"Processing maintainer: {maintainer.github_username}")
+            role = maintainer.normalized_title
+            original_role = self.make_role(maintainer.title)
+            # Find the identity in the database
+            github_username = maintainer.github_username
+            if github_username == "unknown":
+                self.logger.warning("github username with value 'unknown' aborting")
+                return
+            identity_id = await find_github_identity(github_username)
+            self.logger.info(f"Found identity: {identity_id}")
+            if identity_id:
+                self.logger.info("upserting maintainers")
+                # await upsert_maintainer(repo_id, identity_id, repo_url, role, original_role)
+            else:
+                self.logger.warning(f"Identity not found for GitHub user: {maintainer}")
+
+        semaphore = asyncio.Semaphore(3)
+
+        async def process_with_semaphore(maintainer: MaintainerInfoItem):
+            async with semaphore:
+                await process_maintainer(maintainer)
+
+        await asyncio.gather(*[process_with_semaphore(maintainer) for maintainer in maintainers])
 
     async def analyze_file_content(self, content: str):
         instructions = (
@@ -195,15 +233,18 @@ class MaintainerService(BaseService):
         try:
             self.logger.info(f"Starting maintainers processing for repo: {repo_url}")
             owner, repo_name = parse_repo_url(repo_url)
-            # if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
-            #     # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
-            #     return
+            if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
+                self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
+                # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
+                return
             maintainers = await self.extract_maintainers(
                 repo_path, owner, repo_name, maintainers_file
             )
             self.logger.info(
                 f"Extracted {len(maintainers.maintainer_info)} maintainers from {maintainers.maintainer_file} file"
             )
+            await self.store_maintainers(repo_id, repo_url, maintainers.maintainer_info)
+            await update_maintainer_run(repo_id, maintainers.maintainer_file)
         except Exception as e:
             # TODO: handle errors properly
             self.logger.error(f"Failed to process maintainers with error: {repr(e)}")

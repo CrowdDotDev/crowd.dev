@@ -1,5 +1,5 @@
 from typing import Dict, Any, Optional, List
-from .registry import fetchval, fetchrow, executemany
+from .registry import fetchval, fetchrow, executemany, execute
 from crowdgit.models.repository import Repository
 from .connection import get_db_connection
 from crowdgit.enums import RepositoryPriority, RepositoryState
@@ -128,7 +128,7 @@ async def release_repo(repo_id: str):
         "updatedAt" = NOW()
     WHERE id = $1
     """
-    result = await fetchval(query, (repo_id,))
+    result = await execute(query, (repo_id,))
     return str(result)
 
 
@@ -142,7 +142,7 @@ async def update_last_processed_commit(repo_id: str, commit_hash: str):
         "updatedAt" = NOW()
     WHERE id = $2
     """
-    result = await fetchval(query, (commit_hash, repo_id))
+    result = await execute(query, (commit_hash, repo_id))
     return str(result)
 
 
@@ -155,7 +155,7 @@ async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
         "priority" = $3
     WHERE id = $1
     """
-    result = await fetchval(query, (repo_id, repo_state, RepositoryPriority.NORMAL))
+    result = await execute(query, (repo_id, repo_state, RepositoryPriority.NORMAL))
     return str(result)
 
 
@@ -169,3 +169,48 @@ async def batch_insert_activities(records: List[tuple], batch_size=100):
         batch = records[i : i + batch_size]
         await executemany(query, batch)
     logger.info("activities saved into integration.results")
+
+
+async def find_github_identity(github_username: str):
+    query = """
+    SELECT id
+        FROM "memberIdentities"
+    WHERE
+        platform = 'github'
+        AND value = $1
+    LIMIT 1
+    """
+    result = await fetchval(
+        query,
+        (github_username,),
+    )
+    return str(result)
+
+
+async def upsert_maintainer(
+    repo_id: str, identity_id: str, repo_url: str, role: str, original_role: str
+):
+    query = """
+        INSERT INTO "maintainersInternal" 
+        (role, "originalRole", "repoUrl", "repoId", "identityId")
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT ("repoId", "identityId", "endDate", "startDate") DO UPDATE
+        SET role = EXCLUDED.role, "originalRole" = EXCLUDED."originalRole", "updatedAt" = NOW()
+    """
+    await execute(
+        query,
+        (role, original_role, repo_url, repo_id, identity_id),
+    )
+
+
+async def update_maintainer_run(repo_id: str, maintainer_file: str):
+    query = """
+        UPDATE "githubRepos"
+            SET "maintainerFile" = $1,
+                "lastMaintainerRunAt" = NOW()
+        WHERE id = $2
+        """
+    await execute(
+        query,
+        (maintainer_file, repo_id),
+    )
