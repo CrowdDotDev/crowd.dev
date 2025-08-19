@@ -1,11 +1,28 @@
 DESCRIPTION >
-    Deduplicates activityRelations and the destination datasource (activityRelations_deduplicated_ds) has optimized sorting key for merge operation that will follow
+	Deduplicates activityRelations and the destination datasource (activityRelations_deduplicated_ds) has optimized sorting key for merge operation that will follow
+
 
 NODE activityRelations_deduplicated
 SQL >
-    SELECT * FROM activityRelations final
 
-TYPE COPY
+    SELECT
+        activityId,
+        conversationId,
+        createdAt,
+        updatedAt,
+        memberId,
+        objectMemberId,
+        objectMemberUsername,
+        organizationId,
+        parentId,
+        platform,
+        segmentId,
+        username
+    FROM activityRelations final
+
+TYPE copy
 TARGET_DATASOURCE activityRelations_deduplicated_ds
 COPY_MODE replace
 COPY_SCHEDULE 0 * * * *
+
+
