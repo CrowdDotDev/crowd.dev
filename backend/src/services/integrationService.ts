@@ -165,6 +165,11 @@ export default class IntegrationService {
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
+
+      if (!insightsProject) {
+        return record
+      }
+
       const qx = SequelizeRepository.getQueryExecutor({
         ...(options || this.options),
         transaction,
@@ -177,24 +182,22 @@ export default class IntegrationService {
             ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
           ]),
         ]
-      }
 
-      if (insightsProject) {
         // TODO: remove the insightsProjectId check when this is not mandatory anymore
         await insertSegmentRepositories(qx, {
           insightsProjectId: insightsProject.id,
           repositories: CollectionService.normalizeRepositories(data.repositories),
           segmentId: record.segmentId,
         })
-
-        await this.updateInsightsProject({
-          insightsProjectId: insightsProject.id,
-          isFirstUpdate: true,
-          platform: data.platform,
-          segmentId: record.segmentId,
-          transaction,
-        })
       }
+
+      await this.updateInsightsProject({
+        insightsProjectId: insightsProject.id,
+        isFirstUpdate: true,
+        platform: data.platform,
+        segmentId: record.segmentId,
+        transaction,
+      })
 
       return record
     } catch (error) {
