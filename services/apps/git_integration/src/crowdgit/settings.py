@@ -25,3 +25,8 @@ CROWD_KAFKA_TOPIC = load_env_var("CROWD_KAFKA_TOPIC")
 CROWD_KAFKA_EXTRA = load_env_var("CROWD_KAFKA_EXTRA", required=False)
 CROWD_KAFKA_USER = load_env_var("CROWD_KAFKA_USER", required=False)
 CROWD_KAFKA_PASSWORD = load_env_var("CROWD_KAFKA_PASSWORD", required=False)
+CROWD_AWS_BEDROCK_ACCESS_KEY_ID = load_env_var("CROWD_AWS_BEDROCK_ACCESS_KEY_ID", required=False)
+CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY = load_env_var(
+    "CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY", required=False
+)
+CROWD_AWS_BEDROCK_REGION = load_env_var("CROWD_AWS_BEDROCK_REGION", required=False)

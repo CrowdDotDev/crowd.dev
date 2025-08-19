@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 import asyncio
 import re
+from urllib.parse import urlparse
 
 from crowdgit.logger import logger
 from crowdgit.errors import (
@@ -9,7 +10,20 @@ from crowdgit.errors import (
     NetworkError,
     PermissionError,
     CommandExecutionError,
+    ValidationError,
 )
+
+
+def parse_repo_url(repo_url: str):
+    """
+    Parse repository url and returns owner and repo_name
+    """
+    parsed_url = urlparse(repo_url)
+    path_parts = parsed_url.path.strip("/").split("/")
+
+    if len(path_parts) >= 2:
+        return path_parts[:2]
+    raise ValidationError("Failed to get owner and repo_name from repo_url")
 
 
 def get_repo_name(remote: str) -> str:

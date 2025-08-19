@@ -10,18 +10,20 @@ from crowdgit.services import (
     CommitService,
     SoftwareValueService,
     MaintainerService,
+    QueueService,
 )
+from typing import AsyncIterator
 
 
 def setup_signal_handlers(worker: RepositoryWorker):
     """Setup signal handlers for graceful shutdown"""
+    pass
+    # def signal_handler(signum, frame):
+    #     logger.info(f"Received signal {signum}, initiating graceful shutdown")
+    #     asyncio.create_task(worker.shutdown())
 
-    def signal_handler(signum, frame):
-        logger.info(f"Received signal {signum}, initiating graceful shutdown")
-        asyncio.create_task(worker.shutdown())
-
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+    # signal.signal(signal.SIGTERM, signal_handler)
+    # signal.signal(signal.SIGINT, signal_handler)
 
 
 @asynccontextmanager
@@ -30,7 +32,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting application lifespan")
 
     clone_service = CloneService()
-    commit_service = CommitService()
+    queue_service = QueueService()
+    commit_service = CommitService(queue_service=queue_service)
     software_value_service = SoftwareValueService()
     maintainer_service = MaintainerService()
 
@@ -39,6 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         commit_service=commit_service,
         software_value_service=software_value_service,
         maintainer_service=maintainer_service,
+        queue_service=queue_service,
     )
     try:
         logger.info("Repo worker intialized")
