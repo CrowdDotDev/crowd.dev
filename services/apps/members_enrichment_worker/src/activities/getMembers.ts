@@ -1,5 +1,6 @@
 import { MemberField, findMemberById, pgpQx } from '@crowd/data-access-layer'
 import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
+import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
   IMemberEnrichmentSourceQueryInput,
@@ -10,12 +11,26 @@ import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../service'
 import { IEnrichmentService } from '../types'
 
+export async function shouldSkipSourceDueToRateLimit(
+  source: MemberEnrichmentSource,
+): Promise<boolean> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
+  return backoff.isActive()
+}
+
 export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
 ): Promise<IEnrichableMember[]> {
+  const availableSources = (
+    await Promise.all(
+      sources.map(async (s) => ((await shouldSkipSourceDueToRateLimit(s)) ? null : s)),
+    )
+  ).filter((s): s is MemberEnrichmentSource => s !== null)
+
   let rows: IEnrichableMember[] = []
-  const sourceInputs: IMemberEnrichmentSourceQueryInput[] = sources.map((s) => {
+  const sourceInputs: IMemberEnrichmentSourceQueryInput[] = availableSources.map((s) => {
     const srv = EnrichmentSourceServiceFactory.getEnrichmentSourceService(s, svc.log)
     return {
       source: s,
@@ -23,6 +38,7 @@ export async function getEnrichableMembers(
       enrichableBySql: srv.enrichableBySql,
     }
   })
+
   const db = svc.postgres.reader
   rows = await fetchMembersForEnrichment(db, limit, sourceInputs)
 

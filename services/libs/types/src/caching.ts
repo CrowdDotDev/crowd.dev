@@ -14,6 +14,11 @@ export interface IRateLimiter {
   incrementRateLimit(): Promise<void>
 }
 
+export interface IRateLimitBackoff {
+  set(seconds: number): Promise<void>
+  isActive(): Promise<boolean>
+}
+
 export interface IConcurrentRequestLimiter {
   checkConcurrentRequestLimit(integrationId: string): Promise<void>
   incrementConcurrentRequest(integrationId: string): Promise<void>

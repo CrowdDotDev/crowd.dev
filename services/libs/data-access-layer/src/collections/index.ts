@@ -326,16 +326,16 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function upsertSegmentRepositories(
+export async function insertSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
     repositories,
     segmentId,
   }: {
-    insightsProjectId: string
+    insightsProjectId?: string
     repositories: string[]
-    segmentId?: string
+    segmentId: string
   },
 ) {
   if (repositories.length === 0) {
@@ -358,22 +358,48 @@ export async function upsertSegmentRepositories(
   )
 }
 
-export async function deleteMissingSegmentRepositories(
+export async function updateExistingSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
     repositories,
+    segmentId,
   }: {
     insightsProjectId: string
+    repositories: string[]
+    segmentId: string
+  },
+) {
+  return qx.result(
+    `
+    UPDATE "segmentRepositories"
+    SET "segmentId" = $(segmentId), "insightsProjectId" = $(insightsProjectId)
+    WHERE "repository" IN ($(repositories:csv));
+    `,
+    {
+      insightsProjectId,
+      repositories,
+      segmentId,
+    },
+  )
+}
+
+export async function deleteMissingSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+    repositories,
+  }: {
+    segmentId: string
     repositories: string[]
   },
 ) {
   return qx.result(
     `
     DELETE FROM "segmentRepositories"
-    WHERE "insightsProjectId" = '${insightsProjectId}'
+    WHERE "segmentId" = '${segmentId}'
       AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
     `,
-    { insightsProjectId, repositories },
+    { segmentId, repositories },
   )
 }

@@ -120,7 +120,9 @@ const job: IJobDefinition = {
               : (int.platform as NangoIntegration),
             nangoConnection.connection_id,
           )
-
+          if (!results)
+            // connection not found
+            continue
           statusMap.set(
             {
               ...int,
