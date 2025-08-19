@@ -363,7 +363,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           this.log.warn('ProgAI API rate limit exceeded!')
-          throw  new EnrichmentRateLimitError('progai/getDataUsingGitHubHandle', err)
+          throw new EnrichmentRateLimitError('progai/getDataUsingGitHubHandle', err)
         }
 
         this.log.warn(
