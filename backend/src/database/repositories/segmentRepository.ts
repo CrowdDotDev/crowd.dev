@@ -921,7 +921,7 @@ class SegmentRepository extends RepositoryBase<
     return result[0].segment_name as string
   }
 
-  async getMappedRepos(segmentId: string) {
+  async getGithubMappedRepos(segmentId: string) {
     const transaction = SequelizeRepository.getTransaction(this.options)
     const tenantId = this.options.currentTenant.id
 
@@ -931,6 +931,34 @@ class SegmentRepository extends RepositoryBase<
          r.url as url
        from
         "githubRepos" r
+       where r."segmentId" = :segmentId
+       and r."tenantId" = :tenantId
+       and r."deletedAt" is null
+       order by r.url
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result
+  }
+
+  async getGitlabMappedRepos(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+      select
+         r.url as url
+       from
+        "gitlabRepos" r
        where r."segmentId" = :segmentId
        and r."tenantId" = :tenantId
        and r."deletedAt" is null

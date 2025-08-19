@@ -7,7 +7,12 @@ import moment from 'moment'
 import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
-import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
+import {
+  ICreateInsightsProject,
+  deleteMissingSegmentRepositories,
+  insertSegmentRepositories,
+  updateExistingSegmentRepositories,
+} from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -155,21 +160,44 @@ export default class IntegrationService {
         transaction,
       })
 
-      const collectionService = new CollectionService({ ...this.options, transaction })
+      const collectionService = new CollectionService({ ...(options || this.options), transaction })
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
 
-      if (insightsProject) {
-        await this.updateInsightsProject({
+      if (!insightsProject) {
+        return record
+      }
+
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...(options || this.options),
+        transaction,
+      })
+
+      if (IntegrationService.isCodePlatform(data.platform)) {
+        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+        data.repositories = [
+          ...new Set([
+            ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+          ]),
+        ]
+
+        // TODO: remove the insightsProjectId check when this is not mandatory anymore
+        await insertSegmentRepositories(qx, {
           insightsProjectId: insightsProject.id,
-          isFirstUpdate: true,
-          platform: data.platform,
+          repositories: CollectionService.normalizeRepositories(data.repositories),
           segmentId: record.segmentId,
-          transaction,
         })
       }
+
+      await this.updateInsightsProject({
+        insightsProjectId: insightsProject.id,
+        isFirstUpdate: true,
+        platform: data.platform,
+        segmentId: record.segmentId,
+        transaction,
+      })
 
       return record
     } catch (error) {
@@ -318,7 +346,14 @@ export default class IntegrationService {
               return acc
             }, {})
 
+            const qx = SequelizeRepository.getQueryExecutor(this.options)
+
             for (const [segmentId, urls] of Object.entries(repos)) {
+              await deleteMissingSegmentRepositories(qx, {
+                repositories: [],
+                segmentId,
+              })
+
               urls.forEach((url) => toRemoveRepo.add(url))
 
               const segmentOptions: IRepositoryOptions = {
@@ -829,6 +864,25 @@ export default class IntegrationService {
         },
         {},
       )
+
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
+      const collectionService = new CollectionService(txOptions)
+
+      for (const [segmentId, repositories] of Object.entries(repos)) {
+        const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+        if (insightsProject) {
+          await updateExistingSegmentRepositories(qx, {
+            insightsProjectId: insightsProject.id,
+            repositories,
+            segmentId,
+          })
+          await deleteMissingSegmentRepositories(qx, {
+            repositories,
+            segmentId,
+          })
+        }
+      }
 
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
@@ -2100,12 +2154,13 @@ export default class IntegrationService {
       return null
     }
 
-    const repositories = await segmentRepository.getMappedRepos(segmentId)
+    const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
+    const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
 
     return {
       project,
-      repositories,
+      repositories: [...githubMappedRepos, ...gitlabMappedRepos],
     }
   }
 
@@ -2199,7 +2254,6 @@ export default class IntegrationService {
     settings.userProjects = [...userProjects]
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     const txOptions = {
       ...this.options,
       transaction,
@@ -2220,6 +2274,26 @@ export default class IntegrationService {
           },
           {},
         )
+
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        const collectionService = new CollectionService(txOptions)
+
+        for (const [segmentId, repositories] of Object.entries(repos)) {
+          const [insightsProject] =
+            await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+          if (insightsProject) {
+            await updateExistingSegmentRepositories(qx, {
+              insightsProjectId: insightsProject.id,
+              repositories,
+              segmentId,
+            })
+            await deleteMissingSegmentRepositories(qx, {
+              repositories,
+              segmentId,
+            })
+          }
+        }
 
         for (const [segmentId, urls] of Object.entries(repos)) {
           let isGitintegrationConfigured
