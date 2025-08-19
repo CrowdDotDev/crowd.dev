@@ -14,7 +14,6 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
-  deleteMissingSegmentRepositories,
   disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
@@ -23,7 +22,6 @@ import {
   queryInsightsProjects,
   updateCollection,
   updateInsightsProject,
-  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
@@ -385,20 +383,7 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
-
-      const repositories = CollectionService.normalizeRepositories(project.repositories)
-
-      await upsertSegmentRepositories(qx, {
-        insightsProjectId,
-        repositories,
-        segmentId,
-      })
-
-      await deleteMissingSegmentRepositories(qx, {
-        repositories,
-        insightsProjectId,
-      })
+      await updateInsightsProject(qx, insightsProjectId, project)
 
       if (project.collections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId })
@@ -442,15 +427,20 @@ export class CollectionService extends LoggerBase {
 
       // Add mapped repositories to GitHub platform
       const segmentRepository = new SegmentRepository(this.options)
-      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+      const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+      const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
 
-      for (const repo of mappedRepos) {
+      for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
         const url = repo.url
         try {
           const parsedUrl = new URL(url)
           if (parsedUrl.hostname === 'github.com') {
             const label = parsedUrl.pathname.slice(1) // removes leading '/'
             addToResult(PlatformType.GITHUB, url, label)
+          }
+          if (parsedUrl.hostname === 'gitlab.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITLAB, url, label)
           }
         } catch (err) {
           // Do nothing
