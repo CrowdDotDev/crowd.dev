@@ -430,7 +430,7 @@ export class CollectionService extends LoggerBase {
       }
 
       // Add mapped repositories to GitHub platform
-      const segmentRepository = new SegmentRepository(this.options)
+      const segmentRepository = new SegmentRepository({ ...this.options, transaction: tx })
       const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
       const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
 
