@@ -866,12 +866,22 @@ export default class IntegrationService {
       )
 
       const qx = SequelizeRepository.getQueryExecutor(txOptions)
+      const collectionService = new CollectionService(txOptions)
+
       for (const [segmentId, repositories] of Object.entries(repos)) {
-        await updateExistingSegmentRepositories(qx, { segmentId, repositories })
-        await deleteMissingSegmentRepositories(qx, {
-          repositories,
-          segmentId,
-        })
+        const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+        if (insightsProject) {
+          await updateExistingSegmentRepositories(qx, {
+            insightsProjectId: insightsProject.id,
+            repositories,
+            segmentId,
+          })
+          await deleteMissingSegmentRepositories(qx, {
+            repositories,
+            segmentId,
+          })
+        }
       }
 
       for (const [segmentId, urls] of Object.entries(repos)) {
@@ -2144,12 +2154,13 @@ export default class IntegrationService {
       return null
     }
 
-    const repositories = await segmentRepository.getMappedRepos(segmentId)
+    const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
+    const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
 
     return {
       project,
-      repositories,
+      repositories: [...githubMappedRepos, ...gitlabMappedRepos],
     }
   }
 
@@ -2265,12 +2276,23 @@ export default class IntegrationService {
         )
 
         const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        const collectionService = new CollectionService(txOptions)
+
         for (const [segmentId, repositories] of Object.entries(repos)) {
-          await updateExistingSegmentRepositories(qx, { segmentId, repositories })
-          await deleteMissingSegmentRepositories(qx, {
-            repositories,
-            segmentId,
-          })
+          const [insightsProject] =
+            await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+          if (insightsProject) {
+            await updateExistingSegmentRepositories(qx, {
+              insightsProjectId: insightsProject.id,
+              repositories,
+              segmentId,
+            })
+            await deleteMissingSegmentRepositories(qx, {
+              repositories,
+              segmentId,
+            })
+          }
         }
 
         for (const [segmentId, urls] of Object.entries(repos)) {

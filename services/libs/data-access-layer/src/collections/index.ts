@@ -361,22 +361,25 @@ export async function insertSegmentRepositories(
 export async function updateExistingSegmentRepositories(
   qx: QueryExecutor,
   {
-    segmentId,
+    insightsProjectId,
     repositories,
+    segmentId,
   }: {
-    segmentId: string
+    insightsProjectId: string
     repositories: string[]
+    segmentId: string
   },
 ) {
   return qx.result(
     `
     UPDATE "segmentRepositories"
-    SET "segmentId" = $(segmentId)
+    SET "segmentId" = $(segmentId), "insightsProjectId" = $(insightsProjectId)
     WHERE "repository" IN ($(repositories:csv));
     `,
     {
-      segmentId,
+      insightsProjectId,
       repositories,
+      segmentId,
     },
   )
 }

@@ -427,15 +427,20 @@ export class CollectionService extends LoggerBase {
 
       // Add mapped repositories to GitHub platform
       const segmentRepository = new SegmentRepository(this.options)
-      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+      const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+      const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
 
-      for (const repo of mappedRepos) {
+      for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
         const url = repo.url
         try {
           const parsedUrl = new URL(url)
           if (parsedUrl.hostname === 'github.com') {
             const label = parsedUrl.pathname.slice(1) // removes leading '/'
             addToResult(PlatformType.GITHUB, url, label)
+          }
+          if (parsedUrl.hostname === 'gitlab.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITLAB, url, label)
           }
         } catch (err) {
           // Do nothing
