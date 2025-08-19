@@ -32,7 +32,7 @@ import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizat
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RedisCache } from '@crowd/redis'
+import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -59,12 +59,13 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export async function isEnrichableBySource(
+async function setRateLimitBackoff(
   source: MemberEnrichmentSource,
-  input: IEnrichmentSourceInput,
-): Promise<boolean> {
-  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  return service.isEnrichableBySource(input)
+  backoffSeconds: number,
+): Promise<void> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
+  await backoff.set(backoffSeconds)
 }
 
 export async function getEnrichmentData(
@@ -72,9 +73,22 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
   if (await service.isEnrichableBySource(input)) {
-    return service.getData(input)
+    try {
+      return await service.getData(input)
+    } catch (err) {
+      if (err.name === 'EnrichmentRateLimitError') {
+        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
+        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
+        return null
+      }
+
+      svc.log.error({ source, err }, 'Error getting enrichment data!')
+      throw err
+    }
   }
+
   return null
 }
 
@@ -159,7 +173,6 @@ export async function hasRemainingCredits(source: MemberEnrichmentSource): Promi
   }
 
   const hasCredits = await service.hasRemainingCredits()
-
   await setHasRemainingCredits(source, hasCredits)
   return hasCredits
 }
