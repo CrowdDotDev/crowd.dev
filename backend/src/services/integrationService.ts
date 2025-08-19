@@ -170,15 +170,17 @@ export default class IntegrationService {
         return record
       }
 
-      const qx = SequelizeRepository.getQueryExecutor({
-        ...this.options,
-        transaction,
-      })
+      console.log(`sto creando una integrazione: ${data.platform}`)
+
 
       if (IntegrationService.isCodePlatform(data.platform)) {
-        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
 
-        console.log(`per il segment ${record.id} abbiamo le repositories: ${JSON.stringify(repositories)}`)
+        const qx = SequelizeRepository.getQueryExecutor({
+          ...(options || this.options),
+          transaction,
+        })
+
+        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
 
         data.repositories = [
           ...new Set([
@@ -186,8 +188,8 @@ export default class IntegrationService {
           ]),
         ]
 
-        console.log(`repo filtrate: ${JSON.stringify(data.repositories)}`)
 
+        console.log(`queste sono le repo: ${JSON.stringify(repositories)} filtrate con ${data.repositories}`)
 
         // TODO: remove the insightsProjectId check when this is not mandatory anymore
         await insertSegmentRepositories(qx, {
@@ -196,65 +198,39 @@ export default class IntegrationService {
           segmentId: record.segmentId,
         })
 
-        // await deleteMissingSegmentRepositories(qx, {
-        //   repositories,
-        //   insightsProjectId: insightsProject.id,
-        // })
-
-        if (!insightsProject) {
-          return record
-        }
-
-        const qx = SequelizeRepository.getQueryExecutor({
-          ...(options || this.options),
-          transaction,
-        })
-
-        if (IntegrationService.isCodePlatform(data.platform)) {
-          const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
-          data.repositories = [
-            ...new Set([
-              ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-            ]),
-          ]
-
-          // TODO: remove the insightsProjectId check when this is not mandatory anymore
-          await insertSegmentRepositories(qx, {
-            insightsProjectId: insightsProject.id,
-            repositories: CollectionService.normalizeRepositories(data.repositories),
-            segmentId: record.segmentId,
-          })
-        }
-
-        await this.updateInsightsProject({
-          insightsProjectId: insightsProject.id,
-          integrationId: record.id,
-          isFirstUpdate: true,
-          platform: data.platform,
-          segmentId: record.segmentId,
-          transaction,
-        })
-
-        return record
-      } catch (error) {
-        SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
-        throw error
       }
+
+      await this.updateInsightsProject({
+        insightsProjectId: insightsProject.id,
+        integrationId: record.id,
+        isFirstUpdate: true,
+        platform: data.platform,
+        segmentId: record.segmentId,
+        transaction,
+      })
+
+      return record
+    } catch (error) {
+      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
+      throw error
     }
+  }
 
   private async updateInsightsProject({
-      insightsProjectId,
-      isFirstUpdate = false,
-      platform,
-      segmentId,
-      transaction,
-    }: {
-      insightsProjectId: string
-      isFirstUpdate?: boolean
-      platform: PlatformType
-      segmentId: string
-      transaction: Transaction
-    }) {
+    integrationId,
+    insightsProjectId,
+    isFirstUpdate = false,
+    platform,
+    segmentId,
+    transaction,
+  }: {
+    integrationId: string
+    insightsProjectId: string
+    isFirstUpdate?: boolean
+    platform: PlatformType
+    segmentId: string
+    transaction: Transaction
+  }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
