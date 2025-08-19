@@ -29,12 +29,26 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
 ): Promise<void> {
   const workflowId = `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`
 
-  const startMemberUpdateWorkflow = async () => {
+  try {
+    const handle = svc.temporal.workflow.getHandle(workflowId)
+    const { status } = await handle.describe()
+
+    if (status.name === 'RUNNING') {
+      await handle.result()
+    }
+  } catch (err) {
+    if (err.name !== 'WorkflowNotFoundError') {
+      svc.log.error({ err }, 'Failed to check workflow state')
+      throw err
+    }
+  }
+
+  try {
     await svc.temporal.workflow.start('memberUpdate', {
       taskQueue: 'profiles',
       workflowId,
       // if the workflow is already running, this policy will throw an error
-      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       retry: {
         maximumAttempts: 10,
       },
@@ -46,21 +60,9 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
         },
       ],
     })
-  }
-
-  try {
-    await startMemberUpdateWorkflow()
   } catch (err) {
     if (err.name === 'WorkflowExecutionAlreadyStartedError') {
-      const handle = svc.temporal.workflow.getHandle(workflowId)
-      // wait for the previous workflow to complete
-      await handle.result()
-      const execution = await handle.describe()
-
-      if (execution.status.name !== 'RUNNING') {
-        await startMemberUpdateWorkflow()
-      }
-
+      svc.log.info({ workflowId }, 'Workflow already started, skipping')
       return
     }
 
