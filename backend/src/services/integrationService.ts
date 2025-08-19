@@ -160,13 +160,13 @@ export default class IntegrationService {
         transaction,
       })
 
-      const collectionService = new CollectionService({ ...this.options, transaction })
+      const collectionService = new CollectionService({ ...(options || this.options), transaction })
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
       const qx = SequelizeRepository.getQueryExecutor({
-        ...this.options,
+        ...(options || this.options),
         transaction,
       })
 
