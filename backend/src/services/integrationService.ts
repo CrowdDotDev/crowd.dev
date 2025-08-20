@@ -9,9 +9,9 @@ import { Transaction } from 'sequelize'
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   ICreateInsightsProject,
-  insertSegmentRepositories,
   deleteMissingSegmentRepositories,
-  updateExistingSegmentRepositories,
+  deleteSegmentRepositories,
+  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
@@ -153,111 +153,179 @@ export default class IntegrationService {
     ].includes(value as PlatformType)
   }
 
+  private async updateRepositories({
+    insightsProjectId,
+    integrationId,
+    segmentId,
+    txOptions,
+  }: {
+    insightsProjectId: string
+    integrationId: string
+    segmentId: string
+    txOptions: IRepositoryOptions
+  }) {
+    const repositories: string[] = []
+
+    const qx = SequelizeRepository.getQueryExecutor(txOptions)
+
+    const collectionService = new CollectionService(txOptions)
+
+    const reposToBeRemoved = await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
+
+    const currentRepositories = await collectionService.findRepositoriesForSegment(segmentId)
+
+    repositories.push(
+      ...[
+        ...new Set([
+          ...Object.values(currentRepositories).flatMap((repos) => repos.map((repo) => repo.url)),
+        ]),
+      ].filter((url) => !reposToBeRemoved.includes(url)),
+    )
+
+    deleteMissingSegmentRepositories(qx, {
+      repositories,
+      segmentId,
+    })
+
+    await upsertSegmentRepositories(qx, {
+      insightsProjectId,
+      repositories,
+      segmentId,
+    })
+
+    return repositories
+  }
+
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
-      const record = await IntegrationRepository.create(data, {
+      const txOptions = {
         ...(options || this.options),
         transaction,
-      })
+      }
 
-      const collectionService = new CollectionService({ ...(options || this.options), transaction })
+      const integration = await IntegrationRepository.create(data, txOptions)
+
+      const collectionService = new CollectionService(txOptions)
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
-        record.segmentId,
+        integration.segmentId,
       )
 
       if (!insightsProject) {
-        return record
+        this.options.log.info(
+          `The segmentId: ${integration.segmentId} does not have any InsightsProject related`,
+        )
+        return integration
       }
 
-      console.log(`sto creando una integrazione: ${data.platform}`)
+      const { segmentId, id: insightsProjectId } = insightsProject
+      const { platform } = data
 
+      const repositories = IntegrationService.isCodePlatform(platform)
+        ? await this.updateRepositories({
+            insightsProjectId,
+            integrationId: integration.id,
+            segmentId,
+            txOptions,
+          })
+        : []
 
-      if (IntegrationService.isCodePlatform(data.platform)) {
-
-        const qx = SequelizeRepository.getQueryExecutor({
-          ...(options || this.options),
-          transaction,
-        })
-
-        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
-
-        data.repositories = [
-          ...new Set([
-            ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
-          ]),
-        ]
-
-
-        console.log(`queste sono le repo: ${JSON.stringify(repositories)} filtrate con ${data.repositories}`)
-
-        // TODO: remove the insightsProjectId check when this is not mandatory anymore
-        await insertSegmentRepositories(qx, {
-          insightsProjectId: insightsProject.id,
-          repositories: CollectionService.normalizeRepositories(data.repositories),
-          segmentId: record.segmentId,
-        })
-
-      }
+      this.options.log.info(
+        `Creating integration with segmentId: ${segmentId}, insightsProjectId: ${insightsProjectId}, repositories: ${repositories}, platform: ${platform}`,
+      )
 
       await this.updateInsightsProject({
-        insightsProjectId: insightsProject.id,
-        integrationId: record.id,
+        insightsProjectId,
         isFirstUpdate: true,
-        platform: data.platform,
-        segmentId: record.segmentId,
+        platform,
+        repositories,
+        segmentId,
         transaction,
       })
 
-      return record
+      return integration
     } catch (error) {
       SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'integration')
       throw error
     }
   }
 
+  async update(id, data, transaction?: any, options?: IRepositoryOptions) {
+    try {
+      const txOptions = {
+        ...(options || this.options),
+        transaction,
+      }
+
+      const integration = await IntegrationRepository.update(id, data, txOptions)
+
+      const collectionService = new CollectionService(txOptions)
+
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+        integration.segmentId,
+      )
+
+      if (!insightsProject) {
+        this.options.log.info(
+          `The segmentId: ${integration.segmentId} does not have any InsightsProject related`,
+        )
+        return integration
+      }
+
+      const { segmentId, id: insightsProjectId } = insightsProject
+      const { platform } = data
+
+      const repositories = IntegrationService.isCodePlatform(platform)
+        ? await this.updateRepositories({
+            insightsProjectId,
+            integrationId: integration.id,
+            segmentId,
+            txOptions,
+          })
+        : []
+
+      this.options.log.info(
+        `Updating integration with segmentId: ${segmentId}, insightsProjectId: ${insightsProjectId}, repositories: ${repositories}, platform: ${platform}`,
+      )
+
+      await this.updateInsightsProject({
+        insightsProjectId,
+        platform,
+        repositories,
+        segmentId,
+        transaction,
+      })
+
+      return integration
+    } catch (err) {
+      this.options.log.error(err)
+      SequelizeRepository.handleUniqueFieldError(err, this.options.language, 'integration')
+
+      throw err
+    }
+  }
+
   private async updateInsightsProject({
-    integrationId,
     insightsProjectId,
     isFirstUpdate = false,
     platform,
     segmentId,
     transaction,
+    repositories,
   }: {
-    integrationId: string
     insightsProjectId: string
     isFirstUpdate?: boolean
     platform: PlatformType
     segmentId: string
     transaction: Transaction
+    repositories: string[]
   }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
     const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
     data.widgets = widgets
-
-    if (IntegrationService.isCodePlatform(platform)) {
-      const reposToBeRemoved =
-        await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
-      const repositories = await collectionService.findRepositoriesForSegment(segmentId)
-
-      data.repositories = [
-        ...new Set(
-          Object.values(repositories).flatMap((repoGroups) => repoGroups.map((repo) => repo.url)),
-        ),
-      ].filter((url) => !reposToBeRemoved.includes(url))
-
-      if (platform !== PlatformType.GIT) {
-        await this.gitConnectOrUpdate({
-          remotes: data.repositories,
-        })
-      }
-
-      for (const repo of reposToBeRemoved) {
-        await collectionService.unmapGithubRepo(integrationId, repo)
-      }
-    }
+    data.repositories = repositories
 
     if (
       (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO) &&
@@ -301,38 +369,6 @@ export default class IntegrationService {
     await collectionService.updateInsightsProject(insightsProjectId, data)
   }
 
-  async update(id, data, transaction?: any, options?: IRepositoryOptions) {
-    try {
-      const record = await IntegrationRepository.update(id, data, {
-        ...(options || this.options),
-        transaction,
-      })
-
-      const collectionService = new CollectionService({ ...this.options, transaction })
-
-      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
-        record.segmentId,
-      )
-
-      if (insightsProject) {
-        await this.updateInsightsProject({
-          integrationId: record.id,
-          insightsProjectId: insightsProject.id,
-          platform: data.platform,
-          segmentId: record.segmentId,
-          transaction,
-        })
-      }
-
-      return record
-    } catch (err) {
-      this.options.log.error(err)
-      SequelizeRepository.handleUniqueFieldError(err, this.options.language, 'integration')
-
-      throw err
-    }
-  }
-
   async destroyAll(ids) {
     const toRemoveRepo = new Set<string>()
     let segmentId
@@ -360,7 +396,7 @@ export default class IntegrationService {
             let shouldUpdateGit: boolean
             const mapping =
               integration.platform === PlatformType.GITHUB ||
-                integration.platform === PlatformType.GITHUB_NANGO
+              integration.platform === PlatformType.GITHUB_NANGO
                 ? await this.getGithubRepos(id)
                 : await this.getGitlabRepos(id)
 
@@ -372,14 +408,7 @@ export default class IntegrationService {
               return acc
             }, {})
 
-            const qx = SequelizeRepository.getQueryExecutor(this.options)
-
             for (const [segmentId, urls] of Object.entries(repos)) {
-              await deleteMissingSegmentRepositories(qx, {
-                repositories: [],
-                segmentId,
-              })
-
               urls.forEach((url) => toRemoveRepo.add(url))
 
               const segmentOptions: IRepositoryOptions = {
@@ -455,11 +484,17 @@ export default class IntegrationService {
 
       const collectionService = new CollectionService({ ...this.options, transaction })
 
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
 
       const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
 
       const insightsRepo = insightsProject?.repositories ?? []
+
+      await deleteSegmentRepositories(qx, {
+        segmentId,
+      })
 
       const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
 
@@ -839,8 +874,8 @@ export default class IntegrationService {
               ...settings,
               ...(integration.settings.nangoMapping
                 ? {
-                  nangoMapping: integration.settings.nangoMapping,
-                }
+                    nangoMapping: integration.settings.nangoMapping,
+                  }
                 : {}),
             },
           },
@@ -871,7 +906,6 @@ export default class IntegrationService {
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-
     const txOptions = {
       ...this.options,
       transaction,
@@ -891,8 +925,6 @@ export default class IntegrationService {
         {},
       )
 
-      console.log(`Github mappin repos ${JSON.stringify(repos)}`)
-
       const qx = SequelizeRepository.getQueryExecutor(txOptions)
       const collectionService = new CollectionService(txOptions)
 
@@ -900,7 +932,7 @@ export default class IntegrationService {
         const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
 
         if (insightsProject) {
-          await updateExistingSegmentRepositories(qx, {
+          await upsertSegmentRepositories(qx, {
             insightsProjectId: insightsProject.id,
             repositories,
             segmentId,
@@ -926,7 +958,8 @@ export default class IntegrationService {
         try {
           await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
 
-          isGitintegrationConfigured = true
+          // isGitintegrationConfigured = true
+          isGitintegrationConfigured = false
         } catch (err) {
           isGitintegrationConfigured = false
         }
@@ -2311,7 +2344,7 @@ export default class IntegrationService {
             await collectionService.findInsightsProjectsBySegmentId(segmentId)
 
           if (insightsProject) {
-            await updateExistingSegmentRepositories(qx, {
+            await upsertSegmentRepositories(qx, {
               insightsProjectId: insightsProject.id,
               repositories,
               segmentId,
