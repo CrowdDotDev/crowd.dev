@@ -1,0 +1,17 @@
+NODE org_dash_metrics_results
+DESCRIPTION >
+    Filters all pr opened activities in last year for given project
+
+SQL >
+    %
+    SELECT *
+    FROM org_dash_metric_copy_ds
+    WHERE
+        1 = 1
+        {% if defined(accountName) %}
+            AND accountName
+            = {{ String(accountName, description="Filter accountName", required=False) }}
+        {% end %}
+        {% if defined(slugs) %}
+            AND slug in {{ Array(slugs, 'String', description="Filter slugs", required=False) }}
+        {% end %}
