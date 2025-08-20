@@ -153,7 +153,7 @@ export default class IntegrationService {
     ].includes(value as PlatformType)
   }
 
-  private async updateRepositories({
+  private static async updateRepositories({
     insightsProjectId,
     integrationId,
     segmentId,
@@ -222,7 +222,7 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.updateRepositories({
+        ? await IntegrationService.updateRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
@@ -276,7 +276,7 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.updateRepositories({
+        ? await IntegrationService.updateRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
