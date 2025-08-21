@@ -1504,7 +1504,7 @@ export default class ActivityService extends LoggerBase {
 
     // Filter out relations that don't need updates to avoid unnecessary database writes
     let skippedCount = 0
-    const relationsToUpdate = preparedForUpsert
+    const relationsToUpsert = preparedForUpsert
       .map((a) => {
         const relationData: IActivityRelationCreateOrUpdateData = {
           activityId: a.payload.id,
@@ -1548,11 +1548,11 @@ export default class ActivityService extends LoggerBase {
       })
       .map((d) => d.relation)
 
-    if (relationsToUpdate.length > 0) {
+    if (relationsToUpsert.length > 0) {
       this.log.trace(
-        `[ACTIVITY] Updating ${relationsToUpdate.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
+        `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
       )
-      await createOrUpdateRelations(this.pgQx, relationsToUpdate)
+      await createOrUpdateRelations(this.pgQx, relationsToUpsert)
     } else {
       this.log.trace(
         `[ACTIVITY] No activity relations need updating (all ${preparedForUpsert.length} would only update updatedAt)`,
