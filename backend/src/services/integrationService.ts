@@ -179,7 +179,7 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.updateRepositories({
+        ? await this.syncSegmentRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
@@ -229,7 +229,7 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.updateRepositories({
+        ? await this.syncSegmentRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
@@ -2179,7 +2179,7 @@ export default class IntegrationService {
     }
   }
 
-  async getAlreadyMappedRepos(urls: string[], segmentId: string) {
+  async findAlreadyMappedRepos(urls: string[], segmentId: string) {
     const segmentRepository = new SegmentRepository(this.options)
 
     const githubAlreadyMappedRepos = await segmentRepository.getGithubRepoUrlsMappedToOtherSegments(
@@ -2499,7 +2499,7 @@ export default class IntegrationService {
     return integration
   }
 
-  private async updateRepositories({
+  private async syncSegmentRepositories({
     insightsProjectId,
     integrationId,
     segmentId,
@@ -2522,7 +2522,7 @@ export default class IntegrationService {
       repos.map((repo) => repo.url),
     )
 
-    const alreadyMappedRepos = await this.getAlreadyMappedRepos(currentUrls, segmentId)
+    const alreadyMappedRepos = await this.findAlreadyMappedRepos(currentUrls, segmentId)
 
     for (const repo of reposToBeRemoved) {
       await collectionService.unmapGithubRepo(integrationId, repo)
