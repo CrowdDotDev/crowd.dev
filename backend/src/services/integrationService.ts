@@ -25,6 +25,7 @@ import { RedisCache } from '@crowd/redis'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
+import integration from '@/api/integration'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
@@ -153,49 +154,6 @@ export default class IntegrationService {
     ].includes(value as PlatformType)
   }
 
-  private static async updateRepositories({
-    insightsProjectId,
-    integrationId,
-    segmentId,
-    txOptions,
-  }: {
-    insightsProjectId: string
-    integrationId: string
-    segmentId: string
-    txOptions: IRepositoryOptions
-  }) {
-    const repositories: string[] = []
-
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
-
-    const collectionService = new CollectionService(txOptions)
-
-    const reposToBeRemoved = await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
-
-    const currentRepositories = await collectionService.findRepositoriesForSegment(segmentId)
-
-    repositories.push(
-      ...[
-        ...new Set([
-          ...Object.values(currentRepositories).flatMap((repos) => repos.map((repo) => repo.url)),
-        ]),
-      ].filter((url) => !reposToBeRemoved.includes(url)),
-    )
-
-    deleteMissingSegmentRepositories(qx, {
-      repositories,
-      segmentId,
-    })
-
-    await upsertSegmentRepositories(qx, {
-      insightsProjectId,
-      repositories,
-      segmentId,
-    })
-
-    return repositories
-  }
-
   async create(data, transaction?: any, options?: IRepositoryOptions) {
     try {
       const txOptions = {
@@ -222,17 +180,13 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await IntegrationService.updateRepositories({
+        ? await this.updateRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
             txOptions,
           })
         : []
-
-      this.options.log.info(
-        `Creating integration with segmentId: ${segmentId}, insightsProjectId: ${insightsProjectId}, repositories: ${repositories}, platform: ${platform}`,
-      )
 
       await this.updateInsightsProject({
         insightsProjectId,
@@ -276,7 +230,7 @@ export default class IntegrationService {
       const { platform } = data
 
       const repositories = IntegrationService.isCodePlatform(platform)
-        ? await IntegrationService.updateRepositories({
+        ? await this.updateRepositories({
             insightsProjectId,
             integrationId: integration.id,
             segmentId,
@@ -284,9 +238,11 @@ export default class IntegrationService {
           })
         : []
 
-      this.options.log.info(
-        `Updating integration with segmentId: ${segmentId}, insightsProjectId: ${insightsProjectId}, repositories: ${repositories}, platform: ${platform}`,
-      )
+      if (IntegrationService.isCodePlatform(platform) && platform != PlatformType.GIT) {
+        this.gitConnectOrUpdate({
+          remotes: repositories,
+        })
+      }
 
       await this.updateInsightsProject({
         insightsProjectId,
@@ -958,8 +914,7 @@ export default class IntegrationService {
         try {
           await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
 
-          // isGitintegrationConfigured = true
-          isGitintegrationConfigured = false
+          isGitintegrationConfigured = true
         } catch (err) {
           isGitintegrationConfigured = false
         }
@@ -2225,6 +2180,21 @@ export default class IntegrationService {
     }
   }
 
+  async getAlreadyMappedRepos(urls: string[], segmentId: string) {
+    const segmentRepository = new SegmentRepository(this.options)
+
+    const githubAlreadyMappedRepos = await segmentRepository.getGithubRepoUrlsMappedToOtherSegments(
+      urls,
+      segmentId,
+    )
+    const gitlabAlreadyMappedRepos = await segmentRepository.getGitlabRepoUrlsMappedToOtherSegments(
+      urls,
+      segmentId,
+    )
+
+    return [...githubAlreadyMappedRepos, ...gitlabAlreadyMappedRepos]
+  }
+
   async gitlabConnect(code: string) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration
@@ -2528,5 +2498,53 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
+  }
+
+  private async updateRepositories({
+    insightsProjectId,
+    integrationId,
+    segmentId,
+    txOptions,
+  }: {
+    insightsProjectId: string
+    integrationId: string
+    segmentId: string
+    txOptions: IRepositoryOptions
+  }) {
+    const qx = SequelizeRepository.getQueryExecutor(txOptions)
+
+    const collectionService = new CollectionService(txOptions)
+
+    const reposToBeRemoved = await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
+
+    const currentRepositories = await collectionService.findRepositoriesForSegment(segmentId)
+
+    const currentUrls = Object.values(currentRepositories).flatMap((repos) =>
+      repos.map((repo) => repo.url),
+    )
+
+    const alreadyMappedRepos = await this.getAlreadyMappedRepos(currentUrls, segmentId)
+
+    for (let repo of reposToBeRemoved) {
+      await collectionService.unmapGithubRepo(integrationId, repo)
+      await collectionService.unmapGitlabRepo(integrationId, repo)
+    }
+
+    const repositories = [...new Set(currentUrls)].filter(
+      (url) => !reposToBeRemoved.includes(url) && !alreadyMappedRepos.includes(url),
+    )
+
+    await upsertSegmentRepositories(qx, {
+      insightsProjectId,
+      repositories,
+      segmentId,
+    })
+
+    await deleteMissingSegmentRepositories(qx, {
+      repositories,
+      segmentId,
+    })
+
+    return repositories
   }
 }

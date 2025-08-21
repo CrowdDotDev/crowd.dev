@@ -701,4 +701,11 @@ export class CollectionService extends LoggerBase {
       await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
     })
   }
+
+  async unmapGitlabRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
+  }
 }
