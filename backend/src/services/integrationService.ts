@@ -25,7 +25,6 @@ import { RedisCache } from '@crowd/redis'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
-import integration from '@/api/integration'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
@@ -238,7 +237,7 @@ export default class IntegrationService {
           })
         : []
 
-      if (IntegrationService.isCodePlatform(platform) && platform != PlatformType.GIT) {
+      if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
         this.gitConnectOrUpdate({
           remotes: repositories,
         })
@@ -2525,7 +2524,7 @@ export default class IntegrationService {
 
     const alreadyMappedRepos = await this.getAlreadyMappedRepos(currentUrls, segmentId)
 
-    for (let repo of reposToBeRemoved) {
+    for (const repo of reposToBeRemoved) {
       await collectionService.unmapGithubRepo(integrationId, repo)
       await collectionService.unmapGitlabRepo(integrationId, repo)
     }
