@@ -51,11 +51,11 @@ export interface IInsightsProject {
   twitter: string
   widgets: string[]
   repositories:
-    | {
-        platform: string
-        url: string
-      }[]
-    | string[]
+  | {
+    platform: string
+    url: string
+  }[]
+  | string[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -350,7 +350,7 @@ export async function upsertSegmentRepositories(
     INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
     SELECT "repository", $(segmentId), $(insightsProjectId)
     FROM "input"
-    ON CONFLICT ("repository")
+    ON CONFLICT ("repository", "insightsProjectId")
     DO UPDATE SET
       "segmentId" = EXCLUDED."segmentId",
       "insightsProjectId" = EXCLUDED."insightsProjectId";
