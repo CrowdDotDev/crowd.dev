@@ -338,6 +338,10 @@ export async function upsertSegmentRepositories(
     segmentId: string
   },
 ) {
+  if (repositories.length === 0) {
+    return
+  }
+
   return qx.result(
     `
     WITH "input" AS (
