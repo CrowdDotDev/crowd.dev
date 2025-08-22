@@ -1,5 +1,11 @@
 import { timeout } from '@crowd/common'
-import { ICache, IConcurrentRequestLimiter, IRateLimiter, RateLimitError } from '@crowd/types'
+import {
+  ICache,
+  IConcurrentRequestLimiter,
+  IRateLimitBackoff,
+  IRateLimiter,
+  RateLimitError,
+} from '@crowd/types'
 
 export class RateLimiter implements IRateLimiter {
   constructor(
@@ -31,6 +37,33 @@ export class RateLimiter implements IRateLimiter {
 
   public async incrementRateLimit() {
     await this.cache.increment(this.counterKey, 1)
+  }
+}
+
+export class RateLimitBackoff implements IRateLimitBackoff {
+  constructor(
+    private readonly cache: ICache,
+    private readonly key: string,
+  ) {}
+
+  /**
+   * Set a backoff window
+   */
+  async set(seconds: number): Promise<void> {
+    const resetTime = Date.now() + seconds * 1000
+    // 60s buffer to avoid race conditions
+    await this.cache.set(this.key, resetTime.toString(), seconds + 60)
+  }
+
+  /**
+   * Check if backoff is still active
+   */
+  async isActive(): Promise<boolean> {
+    const value = await this.cache.get(this.key)
+    if (!value) return false
+
+    const resetTime = parseInt(value)
+    return Date.now() < resetTime
   }
 }
 

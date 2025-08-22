@@ -7,7 +7,12 @@ import moment from 'moment'
 import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
-import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
+import {
+  ICreateInsightsProject,
+  deleteMissingSegmentRepositories,
+  insertSegmentRepositories,
+  updateExistingSegmentRepositories,
+} from '@crowd/data-access-layer/src/collections'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -55,6 +60,7 @@ import {
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
+import { ConfluenceIntegrationData } from '../types/confluenceTypes'
 import { JiraIntegrationData } from '../types/jiraTypes'
 import { encryptData } from '../utils/crypto'
 
@@ -154,21 +160,44 @@ export default class IntegrationService {
         transaction,
       })
 
-      const collectionService = new CollectionService({ ...this.options, transaction })
+      const collectionService = new CollectionService({ ...(options || this.options), transaction })
 
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
         record.segmentId,
       )
 
-      if (insightsProject) {
-        await this.updateInsightsProject({
+      if (!insightsProject) {
+        return record
+      }
+
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...(options || this.options),
+        transaction,
+      })
+
+      if (IntegrationService.isCodePlatform(data.platform)) {
+        const repositories = await collectionService.findRepositoriesForSegment(record.segmentId)
+        data.repositories = [
+          ...new Set([
+            ...Object.values(repositories).flatMap((entries) => entries.map((e) => e.url)),
+          ]),
+        ]
+
+        // TODO: remove the insightsProjectId check when this is not mandatory anymore
+        await insertSegmentRepositories(qx, {
           insightsProjectId: insightsProject.id,
-          isFirstUpdate: true,
-          platform: data.platform,
+          repositories: CollectionService.normalizeRepositories(data.repositories),
           segmentId: record.segmentId,
-          transaction,
         })
       }
+
+      await this.updateInsightsProject({
+        insightsProjectId: insightsProject.id,
+        isFirstUpdate: true,
+        platform: data.platform,
+        segmentId: record.segmentId,
+        transaction,
+      })
 
       return record
     } catch (error) {
@@ -317,7 +346,14 @@ export default class IntegrationService {
               return acc
             }, {})
 
+            const qx = SequelizeRepository.getQueryExecutor(this.options)
+
             for (const [segmentId, urls] of Object.entries(repos)) {
+              await deleteMissingSegmentRepositories(qx, {
+                repositories: [],
+                segmentId,
+              })
+
               urls.forEach((url) => toRemoveRepo.add(url))
 
               const segmentOptions: IRepositoryOptions = {
@@ -829,6 +865,25 @@ export default class IntegrationService {
         {},
       )
 
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
+      const collectionService = new CollectionService(txOptions)
+
+      for (const [segmentId, repositories] of Object.entries(repos)) {
+        const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+        if (insightsProject) {
+          await updateExistingSegmentRepositories(qx, {
+            insightsProjectId: insightsProject.id,
+            repositories,
+            segmentId,
+          })
+          await deleteMissingSegmentRepositories(qx, {
+            repositories,
+            segmentId,
+          })
+        }
+      }
+
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
         const segmentOptions: IRepositoryOptions = {
@@ -1168,28 +1223,114 @@ export default class IntegrationService {
     return integration
   }
 
+  async atlassianAdminConnect(adminApi: string, organizationId: string) {
+    const nangoPayload = {
+      params: {
+        organizationId,
+      },
+      credentials: {
+        apiKey: adminApi,
+      },
+    }
+    const adminConnectionId = await connectNangoIntegration(
+      NangoIntegration.ATLASSIAN_ADMIN,
+      nangoPayload,
+    )
+    this.options.log.info(`Admin api connection created successfully ${adminConnectionId}`)
+    return adminConnectionId
+  }
+
   /**
    * Adds/updates Confluence integration
-   * @param integrationData  to create the integration object
+   * @param integrationData: ConfluenceIntegrationData
    * @returns integration object
    */
-  async confluenceConnectOrUpdate(integrationData) {
+  async confluenceConnectOrUpdate(integrationData: ConfluenceIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let integration
+    let integration: any
+    let connectionId: string
     try {
+      const adminConnectionId = await this.atlassianAdminConnect(
+        integrationData.settings.orgAdminApiToken,
+        integrationData.settings.orgAdminId,
+      )
+      const constructNangoConnectionPayload = (
+        integrationData: ConfluenceIntegrationData,
+      ): Record<string, any> => {
+        let confluenceIntegrationType: NangoIntegration
+        // nangoPayload is different for each integration
+        // check https://github.com/NangoHQ/nango/blob/master/packages/providers/providers.yaml#L2547
+        let nangoPayload: any
+        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+        const baseUrl = integrationData.settings.url.trim()
+        const hostname = new URL(baseUrl).hostname
+        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+        if (isCloudUrl) {
+          confluenceIntegrationType = NangoIntegration.CONFLUENCE_BASIC
+          nangoPayload = {
+            params: {
+              subdomain,
+            },
+            credentials: {
+              username: integrationData.settings.username,
+              password: integrationData.settings.apiToken,
+            },
+          }
+          return { confluenceIntegrationType, nangoPayload }
+        }
+        confluenceIntegrationType = NangoIntegration.CONFLUENCE_DATA_CENTER
+        nangoPayload = {
+          params: {
+            baseUrl,
+          },
+          credentials: {
+            // TODO: double check if this works for DC instance, once we have creds
+            apiKey: integrationData.settings.apiToken,
+          },
+        }
+
+        return { confluenceIntegrationType, nangoPayload }
+      }
+      const { confluenceIntegrationType, nangoPayload } =
+        constructNangoConnectionPayload(integrationData)
+      this.options.log.info(
+        `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
+      )
+      connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
+      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
+        spaceKeysToSync: integrationData.settings.spaces,
+        adminApiConnection: adminConnectionId,
+      })
       integration = await this.createOrUpdate(
         {
+          id: connectionId,
           platform: PlatformType.CONFLUENCE,
-          settings: integrationData.settings,
+          settings: {
+            ...integrationData.settings,
+            apiToken: encryptData(integrationData.settings.apiToken),
+            orgAdminApiToken: encryptData(integrationData.settings.orgAdminApiToken),
+            orgAdminId: integrationData.settings.orgAdminId,
+            nangoIntegrationName: confluenceIntegrationType,
+            adminConnectionId,
+          },
           status: 'done',
         },
         transaction,
       )
-
+      await startNangoSync(NangoIntegration.CONFLUENCE_BASIC, connectionId)
       await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
+    } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.settings.url}`)
+        throw new Error400(this.options.language, 'errors.confluence.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.confluence.invalidCredentials')
+      }
+      throw error
     }
     return integration
   }
@@ -2013,12 +2154,13 @@ export default class IntegrationService {
       return null
     }
 
-    const repositories = await segmentRepository.getMappedRepos(segmentId)
+    const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
+    const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
 
     return {
       project,
-      repositories,
+      repositories: [...githubMappedRepos, ...gitlabMappedRepos],
     }
   }
 
@@ -2112,7 +2254,6 @@ export default class IntegrationService {
     settings.userProjects = [...userProjects]
 
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     const txOptions = {
       ...this.options,
       transaction,
@@ -2133,6 +2274,26 @@ export default class IntegrationService {
           },
           {},
         )
+
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        const collectionService = new CollectionService(txOptions)
+
+        for (const [segmentId, repositories] of Object.entries(repos)) {
+          const [insightsProject] =
+            await collectionService.findInsightsProjectsBySegmentId(segmentId)
+
+          if (insightsProject) {
+            await updateExistingSegmentRepositories(qx, {
+              insightsProjectId: insightsProject.id,
+              repositories,
+              segmentId,
+            })
+            await deleteMissingSegmentRepositories(qx, {
+              repositories,
+              segmentId,
+            })
+          }
+        }
 
         for (const [segmentId, urls] of Object.entries(repos)) {
           let isGitintegrationConfigured
