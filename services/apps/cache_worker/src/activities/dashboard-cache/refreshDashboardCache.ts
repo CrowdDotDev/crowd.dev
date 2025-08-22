@@ -1,13 +1,8 @@
 import {
-  activitiesBySentiment,
-  activitiesByTypeAndPlatform,
-  activitiesTimeseries,
   getTimeseriesOfActiveMembers,
   getTimeseriesOfNewMembers,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
-import { DbStore } from '@crowd/data-access-layer/src/database'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
@@ -19,8 +14,6 @@ import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
 import {
   DashboardTimeframe,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
   IDashboardData,
   IQueryTimeseriesParams,
   ITimeseriesDatapoint,
@@ -47,8 +40,18 @@ export async function findNewActivityPlatforms(
   dashboardLastRefreshedAt: string,
   leafSegmentIds: string[],
 ): Promise<string[]> {
-  const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
-  return activityRepo.findNewActivityPlatforms(dashboardLastRefreshedAt, leafSegmentIds)
+  // TODO questdb to tinybird
+  // const result = await getNewActivityPlatforms(svc.qdb, {
+  //   segmentIds: leafSegmentIds,
+  //   after: new Date(Date.parse(dashboardLastRefreshedAt)),
+  // })
+
+  // return result.platforms
+
+  // TODO questdb to tinybird remove this log once fixed - just to keep the linter happy
+  svc.log.info({ dashboardLastRefreshedAt, leafSegmentIds }, 'findNewActivityPlatforms')
+
+  return []
 }
 
 export async function updateMemberMergeSuggestionsLastGeneratedAt(
@@ -67,7 +70,7 @@ export async function getNewMembersTimeseries(
 export async function getActiveMembersTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveMembers(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveMembers(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getNewOrganizationsTimeseries(
@@ -79,7 +82,7 @@ export async function getNewOrganizationsTimeseries(
 export async function getActiveOrganizationsTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveOrganizations(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveOrganizations(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promise<number> {
@@ -127,56 +130,21 @@ export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promi
 export async function getActivitiesTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  let result: ITimeseriesDatapoint[]
+  // let result: ITimeseriesDatapoint[]
 
   try {
-    result = await activitiesTimeseries(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
+    // TODO questdb to tinybird
+    // result = await activitiesTimeseries(svc.questdbSQL, {
+    //   segmentIds: params.segmentIds,
+    //   after: params.startDate,
+    //   before: params.endDate,
+    //   platform: params.platform,
+    // })
+    return []
   } catch (err) {
+    svc.log.error({ err, params }, 'Error getting activities timeseries')
     throw new Error(err)
   }
-
-  return result
-}
-export async function getActivitiesBySentiment(
-  params: IQueryTimeseriesParams,
-): Promise<IActivityBySentimentMoodResult[]> {
-  let result: IActivityBySentimentMoodResult[]
-
-  try {
-    result = await activitiesBySentiment(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-export async function getActivitiesByType(
-  params: IQueryTimeseriesParams,
-): Promise<IActivityByTypeAndPlatformResult[]> {
-  let result: IActivityByTypeAndPlatformResult[]
-
-  try {
-    result = await activitiesByTypeAndPlatform(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
 }
 
 export async function saveToCache(

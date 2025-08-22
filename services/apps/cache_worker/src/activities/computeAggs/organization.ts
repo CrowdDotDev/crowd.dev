@@ -1,4 +1,3 @@
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { OrganizationSyncService } from '@crowd/opensearch'
 

@@ -2,12 +2,18 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
 import { singleOrDefault } from '@crowd/common'
-import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
+import { IQueryActivityResult } from '@crowd/data-access-layer'
 import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
+import {
+  IMemberIdentity,
+  IntegrationResultType,
+  PageData,
+  PlatformType,
+  SegmentData,
+} from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
@@ -16,7 +22,6 @@ import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   UsernameIdentities,
   mapUsernameToIdentities,
@@ -288,26 +293,34 @@ export default class ActivityService extends LoggerBase {
   }
 
   async query(data) {
-    const filter = data.filter
-    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    // TODO questdb to tinybird
+    // const filter = data.filter
+    // const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
-    const countOnly = data.countOnly ?? false
+    // const countOnly = data.countOnly ?? false
 
-    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+    // const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
-    const page = await queryActivities(
-      this.options.qdb,
-      {
-        segmentIds,
-        filter,
-        orderBy,
-        limit,
-        offset,
-        countOnly,
-      },
-      DEFAULT_COLUMNS_TO_SELECT,
-    )
+    // const page = await queryActivities(
+    //   this.options.qdb,
+    //   {
+    //     segmentIds,
+    //     filter,
+    //     orderBy,
+    //     limit,
+    //     offset,
+    //     countOnly,
+    //   },
+    //   DEFAULT_COLUMNS_TO_SELECT,
+    // )
+
+    const page: PageData<IQueryActivityResult | any> = {
+      rows: [],
+      count: 0,
+      limit,
+      offset,
+    }
 
     // const parentIds: string[] = []
     const memberIds: string[] = []

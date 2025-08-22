@@ -70,79 +70,85 @@ class IntegrationProgressRepository {
     repos: Repos,
     options: IRepositoryOptions,
   ): Promise<GitHubStats> {
-    const starsQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'star'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+    // TODO questdb to tinybird remove - it's here for linter to be happy
+    options.log.info('getDbStatsForGithub', { repos })
+    // TODO questdb to tinybird
+    // const starsQuery = `
+    //   SELECT COUNT_DISTINCT("sourceId") AS count
+    //   FROM activities
+    //   WHERE platform = 'github'
+    //   AND type = 'star'
+    //   AND "deletedAt" IS NULL
+    //   AND channel IN ($(remotes:csv))
+    // `
 
-    const unstarsQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'unstar'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+    // const unstarsQuery = `
+    //   SELECT COUNT_DISTINCT("sourceId") AS count
+    //   FROM activities
+    //   WHERE platform = 'github'
+    //   AND type = 'unstar'
+    //   AND "deletedAt" IS NULL
+    //   AND channel IN ($(remotes:csv))
+    // `
 
-    const forksQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'fork'
-      AND "deletedAt" IS NULL
-      AND "gitIsIndirectFork" != TRUE
-      AND channel IN ($(remotes:csv))
-    `
+    // const forksQuery = `
+    //   SELECT COUNT_DISTINCT("sourceId") AS count
+    //   FROM activities
+    //   WHERE platform = 'github'
+    //   AND type = 'fork'
+    //   AND "deletedAt" IS NULL
+    //   AND "gitIsIndirectFork" != TRUE
+    //   AND channel IN ($(remotes:csv))
+    // `
 
-    const issuesOpenedQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'issues-opened'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+    // const issuesOpenedQuery = `
+    //   SELECT COUNT_DISTINCT("sourceId") AS count
+    //   FROM activities
+    //   WHERE platform = 'github'
+    //   AND type = 'issues-opened'
+    //   AND "deletedAt" IS NULL
+    //   AND channel IN ($(remotes:csv))
+    // `
 
-    const prOpenedQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'pull_request-opened'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+    // const prOpenedQuery = `
+    //   SELECT COUNT_DISTINCT("sourceId") AS count
+    //   FROM activities
+    //   WHERE platform = 'github'
+    //   AND type = 'pull_request-opened'
+    //   AND "deletedAt" IS NULL
+    //   AND channel IN ($(remotes:csv))
+    // `
 
-    const remotes = repos.map((r) => r.url)
+    // const remotes = repos.map((r) => r.url)
 
-    const promises: Promise<any[]>[] = [
-      options.qdb.query(starsQuery, {
-        remotes,
-      }),
-      options.qdb.query(unstarsQuery, {
-        remotes,
-      }),
-      options.qdb.query(forksQuery, {
-        remotes,
-      }),
-      options.qdb.query(issuesOpenedQuery, {
-        remotes,
-      }),
-      options.qdb.query(prOpenedQuery, {
-        remotes,
-      }),
-    ]
+    // const promises: Promise<any[]>[] = [
+    //   options.qdb.query(starsQuery, {
+    //     remotes,
+    //   }),
+    //   options.qdb.query(unstarsQuery, {
+    //     remotes,
+    //   }),
+    //   options.qdb.query(forksQuery, {
+    //     remotes,
+    //   }),
+    //   options.qdb.query(issuesOpenedQuery, {
+    //     remotes,
+    //   }),
+    //   options.qdb.query(prOpenedQuery, {
+    //     remotes,
+    //   }),
+    // ]
 
-    const results = await Promise.all(promises)
-
+    // const results = await Promise.all(promises)
     return {
-      stars: parseInt(results[0][0].count, 10) - parseInt(results[1][0].count, 10),
-      forks: parseInt(results[2][0].count, 10),
-      totalIssues: parseInt(results[3][0].count, 10),
-      totalPRs: parseInt(results[4][0].count, 10),
+      // stars: parseInt(results[0][0].count, 10) - parseInt(results[1][0].count, 10),
+      // forks: parseInt(results[2][0].count, 10),
+      // totalIssues: parseInt(results[3][0].count, 10),
+      // totalPRs: parseInt(results[4][0].count, 10),
+      stars: 0,
+      forks: 0,
+      totalIssues: 0,
+      totalPRs: 0,
     }
   }
 

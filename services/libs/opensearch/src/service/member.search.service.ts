@@ -1,16 +1,7 @@
-import merge from 'lodash.merge'
-
 import { DbStore } from '@crowd/database'
-import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ActivityDisplayVariant,
-  IMemberAttributeData,
-  OpenSearchIndex,
-  PageData,
-  SegmentRawData,
-} from '@crowd/types'
+import { IMemberAttributeData, OpenSearchIndex, PageData } from '@crowd/types'
 
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'

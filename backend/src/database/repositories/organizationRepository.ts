@@ -9,11 +9,7 @@ import {
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
-import {
-  getActiveOrganizations,
-  queryActivities,
-  queryActivityRelations,
-} from '@crowd/data-access-layer'
+import { getActiveOrganizations, queryActivityRelations } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   IDbOrgAttribute,
@@ -1822,7 +1818,7 @@ class OrganizationRepository {
       await new SegmentRepository(options).getSegmentSubprojects(currentSegments)
     ).map((s) => s.id)
 
-    const result = await queryActivities(options.qdb, {
+    const result = await queryActivityRelations(optionsQx(options), {
       segmentIds: subprojectIds,
       countOnly: true,
       filter: {

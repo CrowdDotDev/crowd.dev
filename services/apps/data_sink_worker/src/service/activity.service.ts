@@ -17,7 +17,6 @@ import {
 import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
-  findMatchingPullRequestNodeId,
   insertActivities,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
@@ -1423,7 +1422,7 @@ export default class ActivityService extends LoggerBase {
               payload.platform === PlatformType.GITHUB &&
               payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
               payload.activity.sourceParentId
-                ? // TODO: questdb replace this findMatchingPullRequestNodeId with query to tinybird
+                ? // TODO: questdb to tinybird
                   // await logExecutionTimeV2(
                   //   () =>
                   //     findMatchingPullRequestNodeId(this.qdbStore.connection(), payload.activity),

@@ -197,20 +197,6 @@ async function getDashboardCacheData(
     platform,
   })
 
-  // activities by sentiment mood
-  const activitiesBySentimentMood = await activity.getActivitiesBySentiment({
-    segmentIds,
-    ...timeframe.previous,
-    platform,
-  })
-
-  // activities by type and platform
-  const activitiesByTypeAndPlatform = await activity.getActivitiesByType({
-    segmentIds,
-    ...timeframe.previous,
-    platform,
-  })
-
   return {
     newMembers,
     activeMembers,
@@ -220,8 +206,6 @@ async function getDashboardCacheData(
       total: activitiesTotal,
       previousPeriodTotal: activitiesPreviousPeriodTotal,
       timeseries: activitiesTimeseries,
-      bySentimentMood: activitiesBySentimentMood,
-      byTypeAndPlatform: activitiesByTypeAndPlatform,
     },
   }
 }

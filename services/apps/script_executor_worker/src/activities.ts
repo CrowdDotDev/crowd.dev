@@ -10,7 +10,6 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
-  doesEntityActivityExistInQuestDb,
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
@@ -19,29 +18,10 @@ import {
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 import {
-  getActivitiesToCopyToTinybird,
-  getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird,
-  markActivitiesAsIndexedForSyncingActivitiesToTinybird,
-  resetIndexedIdentitiesForSyncingActivitiesToTinybird,
-  sendActivitiesToTinybird,
-} from './activities/copy-activities-from-questdb-to-tinybird'
-import {
-  checkActivitiesWithTimestampExistInQuestDb,
-  deleteActivityRelations,
-  getActivityRelationsDuplicateGroups,
-  getMissingActivityInQuestDb,
-  saveMissingActivityInQuestDb,
-} from './activities/dedup-activity-relations'
-import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
-import {
-  calculateMemberAffiliations,
-  findMergeActionsWithDeletedSecondaryEntities,
-  moveActivitiesToCorrectEntity,
-} from './activities/fix-activity-foriegn-keys'
 import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
@@ -58,13 +38,6 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
-import {
-  createRelations,
-  getActivitiesToCopy,
-  getLatestSyncedActivityTimestamp,
-  markActivitiesAsIndexed,
-  resetIndexedIdentities,
-} from './activities/populate-activity-relations'
 import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
 import { deleteIndexedEntities } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
@@ -86,32 +59,18 @@ export {
   updateOrganizationIdentity,
   deleteOrganizationIdentity,
   isLfxMember,
-  resetIndexedIdentitiesForSyncingActivitiesToTinybird,
-  getActivitiesToCopy,
-  getLatestSyncedActivityTimestampForSyncingActivitiesToTinybird,
-  markActivitiesAsIndexed,
-  sendActivitiesToTinybird,
-  createRelations,
-  resetIndexedIdentities,
-  getLatestSyncedActivityTimestamp,
   deleteMember,
   syncRemoveMember,
   getMembersToCleanup,
   deleteOrganization,
   syncRemoveOrganization,
   getOrganizationsToCleanup,
-  doesEntityActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,
   syncOrganizationsBatch,
   deleteIndexedEntities,
-  getActivitiesToCopyToTinybird,
-  markActivitiesAsIndexedForSyncingActivitiesToTinybird,
-  findMergeActionsWithDeletedSecondaryEntities,
-  moveActivitiesToCorrectEntity,
-  calculateMemberAffiliations,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
   findDuplicateMembersAfterDate,
@@ -119,9 +78,4 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
-  getActivityRelationsDuplicateGroups,
-  deleteActivityRelations,
-  checkActivitiesWithTimestampExistInQuestDb,
-  saveMissingActivityInQuestDb,
-  getMissingActivityInQuestDb,
 }

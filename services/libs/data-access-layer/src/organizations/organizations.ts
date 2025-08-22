@@ -456,9 +456,8 @@ export async function getTimeseriesOfActiveOrganizations(
     SELECT
       COUNT_DISTINCT("organizationId") AS count,
       DATE_TRUNC('day', timestamp)
-    FROM activities
-    WHERE "deletedAt" IS NULL
-      AND "organizationId" IS NOT NULL
+    FROM "activityRelations"
+    WHERE "organizationId" IS NOT NULL
       ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
       AND timestamp >= $(startDate)
       AND timestamp < $(endDate)

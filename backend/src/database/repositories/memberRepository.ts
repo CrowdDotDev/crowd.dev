@@ -15,7 +15,6 @@ import {
   getActiveMembers,
   getLastActivitiesForMembers,
   queryActivityRelations,
-  setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
@@ -56,7 +55,6 @@ import {
   ActivityDisplayVariant,
   IMemberIdentity,
   IMemberUsername,
-  MemberAttributeName,
   MemberAttributeType,
   MemberIdentityType,
   MemberSegmentAffiliation,
@@ -828,21 +826,24 @@ class MemberRepository {
           transaction,
         })
 
-        if (
-          manualChange &&
-          data.attributes &&
-          (data.attributes[MemberAttributeName.IS_BOT] ||
-            data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
-        ) {
-          await setMemberDataToActivities(options.qdb, record.id, {
-            isBot: data.attributes[MemberAttributeName.IS_BOT]
-              ? data.attributes[MemberAttributeName.IS_BOT].default
-              : false,
-            isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
-              ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
-              : false,
-          })
-        }
+        // TODO questdb to tinybird - check with yeganathan and anil if this is ok - we have the info
+        // on a member but now we won't have it on activities
+
+        // if (
+        //   manualChange &&
+        //   data.attributes &&
+        //   (data.attributes[MemberAttributeName.IS_BOT] ||
+        //     data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
+        // ) {
+        //   await setMemberDataToActivities(options.qdb, record.id, {
+        //     isBot: data.attributes[MemberAttributeName.IS_BOT]
+        //       ? data.attributes[MemberAttributeName.IS_BOT].default
+        //       : false,
+        //     isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
+        //       ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
+        //       : false,
+        //   })
+        // }
 
         return record
       }),
@@ -1580,7 +1581,7 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, segments)
+      const lastActivities = await getLastActivitiesForMembers(qx, memberIds, segments)
 
       for (const row of translatedRows) {
         const r = row as any
@@ -1960,9 +1961,7 @@ class MemberRepository {
     }
 
     if (memberIds.length > 0) {
-      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, [
-        segmentId,
-      ])
+      const lastActivities = await getLastActivitiesForMembers(qx, memberIds, [segmentId])
 
       rows.forEach((r) => {
         r.lastActivity = lastActivities.find((a) => a.memberId === r.id)

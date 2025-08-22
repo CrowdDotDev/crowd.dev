@@ -9,7 +9,6 @@ import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, WORKER_SETTINGS
 import { WorkerQueueReceiver } from './queue'
 
 const log = getServiceLogger()
-const ilp = getClientILP()
 
 const MAX_CONCURRENT_PROCESSING = 5
 
@@ -52,14 +51,4 @@ setImmediate(async () => {
     log.error({ err }, 'Failed to start queues!')
     process.exit(1)
   }
-})
-
-process.on('SIGTERM', async () => {
-  await ilp.flush()
-  await ilp.close()
-})
-
-process.on('SIGINT', async () => {
-  await ilp.flush()
-  await ilp.close()
 })

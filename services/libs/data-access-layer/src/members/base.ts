@@ -8,7 +8,7 @@ import {
   getProperDisplayName,
   groupBy,
 } from '@crowd/common'
-import { DbConnOrTx, formatSql, getDbInstance, prepareForModification } from '@crowd/database'
+import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -183,7 +183,6 @@ export async function queryMembersAdvanced(
     },
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
-  qdbConn?: DbConnOrTx,
 ): Promise<PageData<IDbMemberData>> {
   if (!attributeSettings || attributeSettings.length === 0) {
     attributeSettings = await getMemberAttributeSettings(qx, redis)
@@ -471,8 +470,8 @@ export async function queryMembersAdvanced(
     row.tags = []
   })
 
-  if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qx, qdbConn, memberIds, [segmentId])
+  if (memberIds.length > 0) {
+    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
