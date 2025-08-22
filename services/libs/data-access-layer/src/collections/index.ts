@@ -350,7 +350,7 @@ export async function upsertSegmentRepositories(
     INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
     SELECT "repository", $(segmentId), $(insightsProjectId)
     FROM "input"
-    ON CONFLICT ("repository", "insightsProjectId")
+    ON CONFLICT ("repository")
     DO UPDATE SET
       "segmentId" = EXCLUDED."segmentId",
       "insightsProjectId" = EXCLUDED."insightsProjectId";

@@ -218,38 +218,42 @@ export default class IntegrationService {
         integration.segmentId,
       )
 
-      if (!insightsProject) {
-        this.options.log.info(
-          `The segmentId: ${integration.segmentId} does not have any InsightsProject related`,
-        )
-        return integration
-      }
-
-      const { segmentId, id: insightsProjectId } = insightsProject
+      let repositories = []
       const { platform } = data
 
-      const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.syncSegmentRepositories({
-            insightsProjectId,
-            integrationId: integration.id,
-            segmentId,
-            txOptions,
-          })
-        : []
+      if (insightsProject) {
+        const { segmentId, id: insightsProjectId } = insightsProject
+
+        repositories = IntegrationService.isCodePlatform(platform)
+          ? await this.syncSegmentRepositories({
+              insightsProjectId,
+              integrationId: integration.id,
+              segmentId,
+              txOptions,
+            })
+          : []
+
+        await this.updateInsightsProject({
+          insightsProjectId,
+          platform,
+          repositories,
+          segmentId,
+          transaction,
+        })
+      } else {
+        const currentRepositories = await collectionService.findRepositoriesForSegment(
+          integration.segmentId,
+        )
+        repositories = Object.values(currentRepositories).flatMap((repos) =>
+          repos.map((repo) => repo.url),
+        )
+      }
 
       if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
         this.gitConnectOrUpdate({
           remotes: repositories,
         })
       }
-
-      await this.updateInsightsProject({
-        insightsProjectId,
-        platform,
-        repositories,
-        segmentId,
-        transaction,
-      })
 
       return integration
     } catch (err) {
