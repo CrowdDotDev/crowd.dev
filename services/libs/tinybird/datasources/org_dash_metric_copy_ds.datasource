@@ -3,7 +3,7 @@ DESCRIPTION >
 
 SCHEMA >
     `slug` String,
-    `accountName` String,
+    `organizationId` String,
     `commits` UInt64,
     `orgCommits` UInt64,
     `prsOpened` UInt64,
@@ -15,4 +15,4 @@ SCHEMA >
     `maintainersCount` UInt64
 
 ENGINE MergeTree
-ENGINE_SORTING_KEY accountName, slug
+ENGINE_SORTING_KEY organizationId, slug
