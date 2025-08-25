@@ -182,3 +182,9 @@ export enum MemberIdentityType {
   USERNAME = 'username',
   EMAIL = 'email',
 }
+
+export enum MemberBotDetection {
+  CONFIRMED_BOT = 'confirmed_bot',
+  SUSPECTED_BOT = 'suspected_bot',
+  NOT_BOT = 'not_bot',
+}
