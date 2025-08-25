@@ -1,0 +1,49 @@
+DESCRIPTION >
+    - `lfxMemberships` contains LFX membership data tracking organization memberships and subscriptions.
+    - Raw datasource replicated from Postgres - tracks organizational membership details and subscription information.
+    - Links organizations to their LFX membership status, products, and pricing information.
+    - `id` is the unique identifier for each membership record.
+    - `organizationId` identifies the organization holding the membership.
+    - `segmentId` links to project segments for filtering and organization.
+    - `accountName` is the primary account name for the LFX membership.
+    - `parentAccount` identifies parent/umbrella accounts for hierarchical relationships.
+    - `project` specifies the associated project or initiative.
+    - `productName` identifies the LFX product or service being subscribed to.
+    - `purchaseHistoryName` contains the purchase history reference name.
+    - `installDate` tracks when the membership/subscription was activated.
+    - `usageEndDate` indicates when the membership/subscription expires or ends.
+    - `status` shows the current membership status (active, expired, cancelled, etc.).
+    - `priceCurrency` specifies the currency used for pricing (USD, EUR, etc.).
+    - `price` contains the membership cost in the specified currency.
+    - `productFamily` categorizes the product into product family.
+    - `tier` indicates the membership tier or level.
+    - `accountDomain` contains the primary domain associated with the account.
+    - `domainAlias` is an array of alternative domains linked to the account.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `organizationId` String `json:$.record.organizationId` DEFAULT '',
+    `segmentId` String `json:$.record.segmentId` DEFAULT '',
+    `accountName` String `json:$.record.accountName`,
+    `parentAccount` String `json:$.record.parentAccount` DEFAULT '',
+    `project` String `json:$.record.project` DEFAULT '',
+    `productName` String `json:$.record.productName`,
+    `purchaseHistoryName` String `json:$.record.purchaseHistoryName`,
+    `installDate` DateTime64(3) `json:$.record.installDate`,
+    `usageEndDate` DateTime64(3) `json:$.record.usageEndDate`,
+    `status` String `json:$.record.status`,
+    `priceCurrency` String `json:$.record.priceCurrency`,
+    `price` Int32 `json:$.record.price`,
+    `productFamily` String `json:$.record.productFamily`,
+    `tier` String `json:$.record.tier`,
+    `accountDomain` String `json:$.record.accountDomain`,
+    `domainAlias` Array(String) `json:$.record.domainAlias[:]` DEFAULT []
+
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY segmentId, organizationId, id
+ENGINE_VER updatedAt
