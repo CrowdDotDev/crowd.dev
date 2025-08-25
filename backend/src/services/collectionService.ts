@@ -14,7 +14,6 @@ import {
   createInsightsProject,
   deleteCollection,
   deleteInsightsProject,
-  deleteMissingSegmentRepositories,
   disconnectProjectsAndCollections,
   findCollectionProjectConnections,
   queryCollectionById,
@@ -23,9 +22,12 @@ import {
   queryInsightsProjects,
   updateCollection,
   updateInsightsProject,
-  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
-import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchIntegrationById,
+  fetchIntegrationsForSegment,
+  removePlainGitHubRepoMapping,
+} from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
@@ -385,20 +387,7 @@ export class CollectionService extends LoggerBase {
         project.isLF = segment?.isLF ?? false
       }
 
-      const { segmentId } = await updateInsightsProject(qx, insightsProjectId, project)
-
-      const repositories = CollectionService.normalizeRepositories(project.repositories)
-
-      await upsertSegmentRepositories(qx, {
-        insightsProjectId,
-        repositories,
-        segmentId,
-      })
-
-      await deleteMissingSegmentRepositories(qx, {
-        repositories,
-        insightsProjectId,
-      })
+      await updateInsightsProject(qx, insightsProjectId, project)
 
       if (project.collections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId })
@@ -441,16 +430,21 @@ export class CollectionService extends LoggerBase {
       }
 
       // Add mapped repositories to GitHub platform
-      const segmentRepository = new SegmentRepository(this.options)
-      const mappedRepos = await segmentRepository.getMappedRepos(segmentId)
+      const segmentRepository = new SegmentRepository({ ...this.options, transaction: tx })
+      const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+      const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
 
-      for (const repo of mappedRepos) {
+      for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
         const url = repo.url
         try {
           const parsedUrl = new URL(url)
           if (parsedUrl.hostname === 'github.com') {
             const label = parsedUrl.pathname.slice(1) // removes leading '/'
             addToResult(PlatformType.GITHUB, url, label)
+          }
+          if (parsedUrl.hostname === 'gitlab.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITLAB, url, label)
           }
         } catch (err) {
           // Do nothing
@@ -643,5 +637,75 @@ export class CollectionService extends LoggerBase {
     })
 
     return result
+  }
+
+  static extractGithubRepoSlug(url: string): any {
+    const parsedUrl = new URL(url)
+    const pathname = parsedUrl.pathname
+    const parts = pathname.split('/').filter(Boolean)
+
+    if (parts.length >= 2) {
+      return `${parts[0]}/${parts[1]}`
+    }
+
+    throw new Error('Invalid GitHub URL format')
+  }
+
+  async findNangoRepositoriesToBeRemoved(integrationId: string): Promise<string[]> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const integration = await fetchIntegrationById(qx, integrationId)
+
+      if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
+        return []
+      }
+
+      const repoSlugs = new Set<string>()
+      const settings = integration.settings as any
+      const reposToBeRemoved = []
+
+      if (!settings.nangoMapping) {
+        return []
+      }
+
+      if (settings.orgs) {
+        for (const org of settings.orgs) {
+          for (const repo of org.repos ?? []) {
+            repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+          }
+        }
+      }
+
+      if (settings.repos) {
+        for (const repo of settings.repos) {
+          repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+        }
+      }
+      // determine which connections to delete if needed
+      for (const mappedRepo of Object.values(settings.nangoMapping) as {
+        owner: string
+        repoName: string
+      }[]) {
+        if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
+          reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
+        }
+      }
+
+      return reposToBeRemoved
+    })
+  }
+
+  async unmapGithubRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
+  }
+
+  async unmapGitlabRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
   }
 }

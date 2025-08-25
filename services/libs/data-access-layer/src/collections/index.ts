@@ -335,45 +335,63 @@ export async function upsertSegmentRepositories(
   }: {
     insightsProjectId: string
     repositories: string[]
-    segmentId?: string
+    segmentId: string
   },
 ) {
   if (repositories.length === 0) {
-    return null
+    return
   }
 
-  const data = repositories.map((repo) => ({
-    insightsProjectId,
-    repository: repo,
-    segmentId,
-  }))
-
   return qx.result(
-    prepareBulkInsert(
-      'segmentRepositories',
-      ['insightsProjectId', 'repository', 'segmentId'],
-      data,
-      '("repository", "insightsProjectId") DO NOTHING',
-    ),
+    `
+    WITH "input" AS (
+      SELECT DISTINCT unnest(ARRAY[$(repositories:csv)]::text[]) AS "repository"
+    )
+    INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
+    SELECT "repository", $(segmentId), $(insightsProjectId)
+    FROM "input"
+    ON CONFLICT ("repository")
+    DO UPDATE SET
+      "segmentId" = EXCLUDED."segmentId",
+      "insightsProjectId" = EXCLUDED."insightsProjectId";
+    `,
+    { insightsProjectId, repositories, segmentId },
+  )
+}
+
+export async function deleteSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+  }: {
+    segmentId: string
+  },
+) {
+  return qx.result(
+    `
+    DELETE FROM "segmentRepositories"
+    WHERE "segmentId" = '${segmentId}'
+     `,
+    { segmentId },
   )
 }
 
 export async function deleteMissingSegmentRepositories(
   qx: QueryExecutor,
   {
-    insightsProjectId,
+    segmentId,
     repositories,
   }: {
-    insightsProjectId: string
+    segmentId: string
     repositories: string[]
   },
 ) {
   return qx.result(
     `
     DELETE FROM "segmentRepositories"
-    WHERE "insightsProjectId" = '${insightsProjectId}'
+    WHERE "segmentId" = '${segmentId}'
       AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
     `,
-    { insightsProjectId, repositories },
+    { segmentId, repositories },
   )
 }
