@@ -22,7 +22,12 @@ export default async (req, res) => {
 
   const memberAttributesService = new MemberAttributesService(req)
 
-  const payload = await memberAttributesService.update(req.params.memberId, req.body)
+  const manuallyChanged = req.query.manuallyChanged === 'false' ? false : true
+  const payload = await memberAttributesService.update(
+    req.params.memberId,
+    req.body,
+    manuallyChanged,
+  )
 
   await req.responseHandler.success(req, res, payload)
 }

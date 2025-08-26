@@ -9,3 +9,12 @@ export interface MemberUpdateInput {
 export interface IRecalculateAffiliationsForNewRolesInput {
   offset?: number
 }
+
+export interface IProcessMemberBotSuggestionWithLLM {
+  memberId: string
+}
+
+export interface MemberBotSuggestionResult {
+  isBot: boolean
+  confidence: number
+}
