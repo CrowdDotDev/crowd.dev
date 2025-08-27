@@ -100,6 +100,10 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
         url,
         platform: parsedResult.platform,
       },
+      opts: {
+        removeOnComplete: 1000,
+        removeOnFail: 5000
+      }
     };
 
     switch (parsedResult.platform) {
