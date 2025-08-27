@@ -50,7 +50,7 @@ export const normalizeHostname = (url: string, throwError = true): string | unde
  * @return {boolean} true if the domain is excluded, false otherwise.
  */
 export const isDomainExcluded = (domain: string) => {
-  return blacklistedDomains.includes(domain.toLowerCase())
+  return blacklistedDomains.has(domain.toLowerCase())
 }
 
 /**
