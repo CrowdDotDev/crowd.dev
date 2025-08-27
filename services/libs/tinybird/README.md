@@ -195,6 +195,9 @@ This guide explains how to test a Tinybird data pipeline ("pipe") on your local 
 
    TB_HOST_STAGING=https://api.us-west-2.aws.tinybird.co
    TB_TOKEN_STAGING=<YOUR_STAGING_TOKEN>
+
+   TB_HOST_PRODUCTION=https://api.us-west-2.aws.tinybird.co
+   TB_TOKEN_PRODUCTION=<YOUR_PRODUCTION_TOKEN>
    ```
 
    Then load the environment variables into your current shell (Linux/macOS, or Windows with Git Bash/WSL):
@@ -211,6 +214,9 @@ This guide explains how to test a Tinybird data pipeline ("pipe") on your local 
 
    # Authenticate to staging Tinybird workspace
    tb auth --host "$TB_HOST_STAGING" --token "$TB_TOKEN_STAGING"
+
+   # Authenticate to production Tinybird workspace
+   tb auth --host "$TB_HOST_PRODUCTION" --token "$TB_TOKEN_PRODUCTION"
    ```
 
    ⚠️ **Note for Windows PowerShell users:**  
@@ -229,6 +235,7 @@ This guide explains how to test a Tinybird data pipeline ("pipe") on your local 
    ```
 
    ⚠️ Check if this data is not already present in the `fixtures` folder. If not, place the output in the `fixtures` folder and commit it.
+   **for production you must use the ${TB_TOKEN_PRODUCTION}
 
 3. **Switch Back to Local Workspace**  
    Now that we have the fixture data, we need to switch the Tinybird CLI context back to the local environment before importing data and pushing pipes:
