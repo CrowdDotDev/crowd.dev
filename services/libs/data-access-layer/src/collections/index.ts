@@ -326,39 +326,7 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
   return collections
 }
 
-export async function insertSegmentRepositories(
-  qx: QueryExecutor,
-  {
-    insightsProjectId,
-    repositories,
-    segmentId,
-  }: {
-    insightsProjectId?: string
-    repositories: string[]
-    segmentId: string
-  },
-) {
-  if (repositories.length === 0) {
-    return null
-  }
-
-  const data = repositories.map((repo) => ({
-    insightsProjectId,
-    repository: repo,
-    segmentId,
-  }))
-
-  return qx.result(
-    prepareBulkInsert(
-      'segmentRepositories',
-      ['insightsProjectId', 'repository', 'segmentId'],
-      data,
-      '("repository", "insightsProjectId") DO NOTHING',
-    ),
-  )
-}
-
-export async function updateExistingSegmentRepositories(
+export async function upsertSegmentRepositories(
   qx: QueryExecutor,
   {
     insightsProjectId,
@@ -370,17 +338,41 @@ export async function updateExistingSegmentRepositories(
     segmentId: string
   },
 ) {
+  if (repositories.length === 0) {
+    return
+  }
+
   return qx.result(
     `
-    UPDATE "segmentRepositories"
-    SET "segmentId" = $(segmentId), "insightsProjectId" = $(insightsProjectId)
-    WHERE "repository" IN ($(repositories:csv));
+    WITH "input" AS (
+      SELECT DISTINCT unnest(ARRAY[$(repositories:csv)]::text[]) AS "repository"
+    )
+    INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
+    SELECT "repository", $(segmentId), $(insightsProjectId)
+    FROM "input"
+    ON CONFLICT ("repository")
+    DO UPDATE SET
+      "segmentId" = EXCLUDED."segmentId",
+      "insightsProjectId" = EXCLUDED."insightsProjectId";
     `,
-    {
-      insightsProjectId,
-      repositories,
-      segmentId,
-    },
+    { insightsProjectId, repositories, segmentId },
+  )
+}
+
+export async function deleteSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+  }: {
+    segmentId: string
+  },
+) {
+  return qx.result(
+    `
+    DELETE FROM "segmentRepositories"
+    WHERE "segmentId" = '${segmentId}'
+     `,
+    { segmentId },
   )
 }
 

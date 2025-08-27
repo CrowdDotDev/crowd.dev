@@ -1,19 +1,8 @@
-NODE org_dash_metric_copy_pipe_memberships_deduplicated
-SQL >
-    SELECT accountName, organizationId FROM lfxMemberships FINAL WHERE organizationId != ''
-
 NODE org_dash_metric_copy_pipe_projects_deduplicated
 SQL >
     SELECT id, slug, segmentId
     FROM insights_projects_populated_ds
     WHERE contributorCount > 0 AND organizationCount > 0
-    GROUP BY id, slug, segmentId
-
-NODE org_dash_metric_copy_pipe_org_project_options
-SQL >
-    SELECT *
-    FROM org_dash_metric_copy_pipe_memberships_deduplicated
-    CROSS JOIN org_dash_metric_copy_pipe_projects_deduplicated
 
 NODE org_dash_metric_copy_pipe_project_activities
 SQL >
@@ -42,18 +31,29 @@ SQL >
         ) as orgPrsOpened,
         uniq(memberId) AS orgContributorCount
     FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        organizationId != ''
+        AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
+        AND timestamp < toStartOfDay(now())
     GROUP BY segmentId, organizationId
 
 NODE org_dash_metric_copy_pipe_project_avg_merge_time
 SQL >
     SELECT segmentId, round(avg(mergedInSeconds)) as averageMergeTimeSeconds
     FROM pull_requests_analyzed
+    WHERE
+        openedAt >= toStartOfDay(now() - toIntervalDay(365))
+        AND openedAt < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId
 
 NODE org_dash_metric_copy_pipe_org_avg_merge_time
 SQL >
     SELECT segmentId, organizationId, round(avg(mergedInSeconds)) as orgAverageMergeTimeSeconds
     FROM pull_requests_analyzed
+    WHERE
+        organizationId != ''
+        AND openedAt >= toStartOfDay(now() - toIntervalDay(365))
+        AND openedAt < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId, organizationId
 
 NODE org_dash_metric_copy_pipe_org_maintainers
@@ -67,7 +67,7 @@ NODE org_dash_metric_copy_pipe_metrics
 SQL >
     SELECT
         slug,
-        accountName,
+        organizationId,
         sum(commits) as commits,
         sum(orgCommits) as orgCommits,
         sum(prsOpened) as prsOpened,
@@ -77,13 +77,14 @@ SQL >
         avg(averageMergeTimeSeconds) as averageMergeTimeSeconds,
         avg(orgAverageMergeTimeSeconds) as orgAverageMergeTimeSeconds,
         sum(maintainersCount) as maintainersCount
-    FROM org_dash_metric_copy_pipe_org_project_options
+    FROM org_dash_metric_copy_pipe_org_activities
+    LEFT JOIN org_dash_metric_copy_pipe_projects_deduplicated USING (segmentId)
     LEFT JOIN org_dash_metric_copy_pipe_project_activities USING (segmentId)
-    LEFT JOIN org_dash_metric_copy_pipe_org_activities USING (segmentId, organizationId)
     LEFT JOIN org_dash_metric_copy_pipe_project_avg_merge_time USING (segmentId)
     LEFT JOIN org_dash_metric_copy_pipe_org_avg_merge_time USING (segmentId, organizationId)
     LEFT JOIN org_dash_metric_copy_pipe_org_maintainers USING (id, organizationId)
-    GROUP BY slug, accountName
+    WHERE slug != ''
+    GROUP BY slug, organizationId
 
 TYPE COPY
 TARGET_DATASOURCE org_dash_metric_copy_ds

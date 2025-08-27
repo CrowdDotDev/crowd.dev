@@ -874,6 +874,7 @@ class SegmentRepository extends RepositoryBase<
           LEFT JOIN "integrations" i ON r."integrationId" = i.id
           WHERE r."segmentId" = :segmentId
           AND r."tenantId" = :tenantId
+          AND r."deletedAt" IS NULL
           AND (i.id IS NULL OR i."segmentId" != :segmentId)
           LIMIT 1
         ) as has_repos
@@ -975,6 +976,66 @@ class SegmentRepository extends RepositoryBase<
     )
 
     return result
+  }
+
+  async getGithubRepoUrlsMappedToOtherSegments(urls: string[], segmentId: string) {
+    if (!urls || urls.length === 0) {
+      return []
+    }
+
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const rows = await this.options.database.sequelize.query(
+      `
+      select distinct
+        r."url" as "url"
+      from
+        "githubRepos" r
+      where
+        r."tenantId"  = :tenantId
+        and r."url"   in (:urls)
+        and r."deletedAt" is null
+        and r."segmentId" <> :segmentId
+      `,
+      {
+        replacements: { tenantId, urls, segmentId },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return rows.map((r) => r.url)
+  }
+
+  async getGitlabRepoUrlsMappedToOtherSegments(urls: string[], segmentId: string) {
+    if (!urls || urls.length === 0) {
+      return []
+    }
+
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const rows = await this.options.database.sequelize.query(
+      `
+      select distinct
+        r."url" as "url"
+      from
+        "gitlabRepos" r
+      where
+        r."tenantId"  = :tenantId
+        and r."url"   in (:urls)
+        and r."deletedAt" is null
+        and r."segmentId" <> :segmentId
+      `,
+      {
+        replacements: { tenantId, urls, segmentId },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return rows.map((r) => r.url)
   }
 }
 

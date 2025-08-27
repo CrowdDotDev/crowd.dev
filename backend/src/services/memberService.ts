@@ -964,7 +964,7 @@ export default class MemberService extends LoggerBase {
                 }
               } else if (key === 'contributions') {
                 // check secondary member has any contributions to extract from current member
-                if (member.contributions) {
+                if (member.contributions && Array.isArray(member.contributions)) {
                   member.contributions = member.contributions.filter(
                     (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
                   )
