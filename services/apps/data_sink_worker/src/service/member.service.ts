@@ -112,10 +112,11 @@ export default class MemberService extends LoggerBase {
           if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
 
-            attributes.isBot = {
-              ...(attributes.isBot as object),
-              default: true,
-              system: true,
+            const existingIsBot = attributes.isBot as Record<string, boolean> | {}
+
+            // add default and system flags only if no active flag exists
+            if (!Object.values(existingIsBot).some(Boolean)) {
+              attributes.isBot = { ...existingIsBot, default: true, system: true }
             }
           }
 
