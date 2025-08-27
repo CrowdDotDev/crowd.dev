@@ -4,6 +4,7 @@ import uniqby from 'lodash.uniqby'
 
 import {
   ApplicationError,
+  DEFAULT_TENANT_ID,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -26,6 +27,7 @@ import {
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IMemberData,
   IMemberIdentity,
@@ -36,6 +38,7 @@ import {
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
+  TemporalWorkflowId,
 } from '@crowd/types'
 
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
@@ -50,6 +53,7 @@ export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly redisClient: RedisClient,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -173,7 +177,7 @@ export default class MemberService extends LoggerBase {
           // trigger LLM validation if the member is suspected as a bot
           if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
             this.log.debug({ memberId: id }, 'Member suspected as bot. Triggering LLM validation.')
-            // TODO: trigger LLM validation workflow goes here
+            await this.startMemberBotDetectionWithLLMWorkflow(id)
           }
 
           const organizations = []
@@ -723,5 +727,19 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = Object.values(out).reduce((a: number, b: number) => a + b, 0)
     return out
+  }
+
+  private async startMemberBotDetectionWithLLMWorkflow(memberId: string): Promise<void> {
+    await this.temporal.workflow.start('processMemberBotDetectionWithLLM', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_BOT_DETECTION_WITH_LLM}/${memberId}`,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [memberId],
+      searchAttributes: {
+        TenantId: [DEFAULT_TENANT_ID],
+      },
+    })
   }
 }

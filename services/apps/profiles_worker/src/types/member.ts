@@ -10,7 +10,7 @@ export interface IRecalculateAffiliationsForNewRolesInput {
   offset?: number
 }
 
-export interface IProcessMemberBotSuggestionWithLLM {
+export interface IProcessMemberBotSuggestionWithLLMInput {
   memberId: string
 }
 

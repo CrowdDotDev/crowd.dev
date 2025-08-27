@@ -388,7 +388,12 @@ export default class DataSinkService extends LoggerBase {
         // just process individually
         for (const entry of groupedByType.get(type)) {
           try {
-            const service = new MemberService(this.pgStore, this.redisClient, this.log)
+            const service = new MemberService(
+              this.pgStore,
+              this.redisClient,
+              this.temporal,
+              this.log,
+            )
             const memberData = entry.data.data as IMemberData
 
             await service.processMemberUpdate(entry.integrationId, entry.platform, memberData)

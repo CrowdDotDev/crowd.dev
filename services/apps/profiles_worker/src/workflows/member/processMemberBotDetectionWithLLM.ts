@@ -3,7 +3,10 @@ import { proxyActivities } from '@temporalio/workflow'
 import { LlmQueryType } from '@crowd/types'
 
 import * as activities from '../../activities'
-import { IProcessMemberBotSuggestionWithLLM, MemberBotSuggestionResult } from '../../types/member'
+import {
+  IProcessMemberBotSuggestionWithLLMInput,
+  MemberBotSuggestionResult,
+} from '../../types/member'
 
 const {
   findMember,
@@ -18,8 +21,8 @@ const {
   startToCloseTimeout: '15 minutes',
 })
 
-export async function generateMemberBotSuggestionWithLLM(
-  args: IProcessMemberBotSuggestionWithLLM,
+export async function processMemberBotDetectionWithLLM(
+  args: IProcessMemberBotSuggestionWithLLMInput,
 ): Promise<void> {
   const memberId = args.memberId
   const CONFIDENCE_THRESHOLD = 0.9
