@@ -80,4 +80,7 @@ export interface IDbMemberBotSuggestion {
   createdAt: string
 }
 
-export type IDbMemberBotSuggestionInsert = Omit<IDbMemberBotSuggestion, 'id' | 'createdAt' | 'updatedAt'>
+export type IDbMemberBotSuggestionInsert = Omit<
+  IDbMemberBotSuggestion,
+  'id' | 'createdAt' | 'updatedAt'
+>

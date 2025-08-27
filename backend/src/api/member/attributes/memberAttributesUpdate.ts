@@ -22,7 +22,9 @@ export default async (req, res) => {
 
   const memberAttributesService = new MemberAttributesService(req)
 
-  const manuallyChanged = req.query.manuallyChanged === 'false' ? false : true
+  // defaults to true unless query param is 'false'
+  const manuallyChanged = req.query.manuallyChanged !== 'false'
+
   const payload = await memberAttributesService.update(
     req.params.memberId,
     req.body,
