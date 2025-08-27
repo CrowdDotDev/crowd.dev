@@ -28,7 +28,7 @@ export async function generateMemberBotSuggestionWithLLM(
 
   if (!member) return
 
-  // Prioritize verified identities and limit to top 30 for LLM evaluation
+  // edge case: limit to top 30 verified identities for LLM evaluation
   if (member.identities) {
     member.identities = member.identities
       .sort((a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1))
@@ -40,8 +40,9 @@ export async function generateMemberBotSuggestionWithLLM(
     <json> ${JSON.stringify(member)} </json>.
     Use both the provided fields and your knowledge of non-human accounts (e.g., bots, services, ai agents) common in open source communities.
     Check fields in this order of importance: Identities >> Attributes >> Display name.
-    1. Identities: Generic or auto-generated handles (e.g., 'build-bot-123', 'ci-runner', 'automation-test') indicate bots.
-    Known bot or service accounts should be classified as bots. Human-like, consistent identities across platforms suggest real members.
+    1. Identities: Generic or auto-generated handles (e.g., 'build-bot-123', 'ci-runner') indicate bots. 
+    Username type identities take precedence over email, and known bot/service accounts should be classified as bots.
+    Human-like, consistent identities across platforms suggest real members.
     2. Attributes: Includes location, languages, timezone, avatar, description, or bio. Missing attributes alone are not enough.
     Descriptions or bios that explicitly indicate bot, service, or automated behavior strongly increase bot likelihood.
     Unrealistic or placeholder values raise suspicion, while rich, natural values reduce it.
