@@ -24,8 +24,16 @@ async function main(config: Config) {
       },
     },
   };
+
   const githubQueue = new Queue(GITHUB_QUEUE_NAME, queueOptions);
+  githubQueue.on('error', (err) => {
+    console.error('GitHub Queue Error:', err);
+  });
+
   const gitlabQueue = new Queue(GITLAB_QUEUE_NAME, queueOptions);
+  gitlabQueue.on('error', (err) => {
+    console.error('GitLab Queue Error:', err);
+  });
 
   console.log(`Starting batch processing with batch size: ${config.BatchSize}, delay: ${config.BatchDelayMs}ms`);
 

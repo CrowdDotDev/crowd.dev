@@ -75,10 +75,16 @@ const gitlabWorker = new Worker(GITLAB_QUEUE_NAME, handleJob, gitlabWorkerOption
 githubWorker.on('failed', (job, err) => {
   console.error(`GitHub job ${job?.id || 'unknown'} has failed with message: ${err}, ${err.stack}`);
 });
+githubWorker.on('error', (err) => {
+  console.error(`GitHub worker error: ${err}, ${err.stack}`);
+});
 
 gitlabWorker.on('failed', (job, err) => {
   console.error(`GitLab job ${job?.id || 'unknown'} has failed with message: ${err}, ${err.stack}`);
-})
+});
+gitlabWorker.on('error', (err) => {
+  console.error(`GitLab worker error: ${err}, ${err.stack}`);
+});
 
 // TODO: Check if there are event listeners for when we hit the rate limit, and log that, as well as for resume.
 
