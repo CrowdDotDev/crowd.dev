@@ -874,6 +874,7 @@ class SegmentRepository extends RepositoryBase<
           LEFT JOIN "integrations" i ON r."integrationId" = i.id
           WHERE r."segmentId" = :segmentId
           AND r."tenantId" = :tenantId
+          AND r."deletedAt" IS NULL
           AND (i.id IS NULL OR i."segmentId" != :segmentId)
           LIMIT 1
         ) as has_repos
