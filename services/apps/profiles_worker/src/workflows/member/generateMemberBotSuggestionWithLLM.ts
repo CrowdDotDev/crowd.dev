@@ -64,7 +64,7 @@ export async function generateMemberBotSuggestionWithLLM(
 
   // Mark the member as a bot directly if confidence gte the threshold
   if (CONFIDENCE_THRESHOLD <= result.confidence) {
-    await updateMemberAttributes(memberId, { isBot: { default: true, custom: true } })
+    await updateMemberAttributes(memberId, { isBot: { default: true, system: true } })
     await removeMemberOrganizations(memberId)
     await updateMemberAffiliations(memberId)
     await syncMember(memberId, true)

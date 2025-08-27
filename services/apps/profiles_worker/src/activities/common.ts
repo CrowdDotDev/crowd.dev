@@ -1,3 +1,4 @@
+import { LlmService } from '@crowd/common_services'
 import { pgpQx } from '@crowd/data-access-layer'
 import {
   getAffiliationsLastCheckedAt as getAffiliationsLastCheckedAtDAL,
@@ -7,7 +8,6 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import { ILlmResponse, LlmQueryType } from '@crowd/types'
 
-import { LlmService } from '../../../../libs/common_services/src/services/llm.service'
 import { svc } from '../main'
 
 export async function getAffiliationsLastCheckedAt(): Promise<string> {
