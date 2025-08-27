@@ -3,7 +3,6 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 
 import { svc } from '../../main'
-import { MemberUpdateInput } from '../../types/member'
 
 /*
 updateMemberAffiliations is a Temporal activity that updates all affiliations for
