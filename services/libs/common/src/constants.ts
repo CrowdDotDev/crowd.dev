@@ -1,4 +1,4 @@
-export const blacklistedDomains = [
+export const blacklistedDomains = new Set([
   'gmail.com',
   'yahoo.com',
   'hotmail.com',
@@ -109,4 +109,74 @@ export const blacklistedDomains = [
   '163.com',
   'foxmail.com',
   'groups.io',
-]
+])
+
+/**
+ * A set of known bot handles that are not easily caught by the generic regex patterns.
+ * This list handles exceptions with unique names or non-standard formats.
+ */
+export const knownBots = new Set([
+  // GitHub bots
+  'allcontributors',
+  'better-code-hub',
+  'bors',
+  'bors-servo',
+  'brewtestbot',
+  'codeclimate',
+  'codepilot',
+  'easycla',
+  'fabbot',
+  'facebook-github-bot',
+  'github-merge-queue',
+  'goreleaserbot',
+  'harness-ci',
+  'hashibot',
+  'homebrewbumpbot',
+  'homu',
+  'jenkins',
+  'msftbot',
+  'opentelemetrybot',
+  'pep8speaks',
+  'prombot',
+  'pullrequest',
+  'reviewdog',
+  'rust-highfive',
+  'rustbot',
+  'scala-steward',
+  'scrutinizer-auto-fixer',
+  'sonatype-lift',
+  'sphinx-bot',
+  'teamcity',
+  'tensorflower',
+  'web-flow',
+  'weblate',
+  'zuul',
+
+  // Discord Bots
+  'arcane',
+  'craig',
+  'dankmemer',
+  'dyno',
+  'fredboat',
+  'groovy',
+  'helper.gg',
+  'idlerpg',
+  'maki',
+  'mee6',
+  'mudae',
+  'notsobot',
+  'rythm',
+  'serverstats',
+  'tatsu',
+  'tickettool',
+  'unbelievaboat',
+  'yagpdb.xyz',
+
+  // Reddit Bots
+  'apollo',
+  'automoderator',
+  'common-misspelling-bot',
+  'remindmebot',
+  'totesmessenger',
+  'vredditdownloader',
+])

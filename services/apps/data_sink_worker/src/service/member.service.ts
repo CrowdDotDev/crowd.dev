@@ -11,6 +11,7 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
+import { BotDetectionService } from '@crowd/common_services'
 import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -29,6 +30,7 @@ import {
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
+  MemberBotDetection,
   MemberIdentityType,
   OrganizationAttributeSource,
   OrganizationIdentityType,
@@ -43,6 +45,7 @@ import { OrganizationService } from './organization.service'
 export default class MemberService extends LoggerBase {
   private readonly memberRepo: MemberRepository
   private readonly pgQx: QueryExecutor
+  private readonly botDetectionService: BotDetectionService
 
   constructor(
     private readonly store: DbStore,
@@ -52,6 +55,7 @@ export default class MemberService extends LoggerBase {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
+    this.botDetectionService = new BotDetectionService(this.log)
     this.pgQx = dbStoreQx(this.store)
   }
 
@@ -98,6 +102,19 @@ export default class MemberService extends LoggerBase {
           // validate emails
           data.identities = this.validateEmails(data.identities)
 
+          // detect if the member is a bot
+          const botDetection = this.botDetectionService.isMemberBot(data.identities, attributes)
+
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
+            this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
+
+            attributes.isBot = {
+              ...(attributes.isBot as object),
+              default: true,
+              system: true,
+            }
+          }
+
           const id = await logExecutionTimeV2(
             () =>
               createMember(this.pgQx, {
@@ -108,7 +125,7 @@ export default class MemberService extends LoggerBase {
                 reach: MemberService.calculateReach({}, data.reach),
               }),
             this.log,
-            'memberService -> create -> create',
+            'memberService -> create -> createMember',
           )
 
           try {
@@ -148,9 +165,15 @@ export default class MemberService extends LoggerBase {
           }
 
           // we should prevent organization creation for bot members
-          if (MemberService.isBot(attributes)) {
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug('Skipping organization creation for bot member')
             return id
+          }
+
+          // trigger LLM validation if the member is suspected as a bot
+          if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
+            this.log.debug({ memberId: id }, 'Member suspected as bot. Triggering LLM validation.')
+            // TODO: trigger LLM validation workflow goes here
           }
 
           const organizations = []
@@ -358,7 +381,7 @@ export default class MemberService extends LoggerBase {
             await releaseMemberLock()
           }
 
-          if (MemberService.isBot(toUpdate.attributes)) {
+          if (this.botDetectionService.isFlaggedAsBot(toUpdate.attributes)) {
             this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
             return
           }
@@ -685,10 +708,6 @@ export default class MemberService extends LoggerBase {
       displayName: dbMember.displayName ? undefined : member.displayName,
       reach,
     }
-  }
-
-  private static isBot(attributes: Record<string, unknown>): boolean {
-    return typeof attributes?.isBot === 'object' && Object.values(attributes.isBot).includes(true)
   }
 
   private static calculateReach(
