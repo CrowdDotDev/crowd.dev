@@ -54,6 +54,7 @@ export async function fetchRepositoryUrls(batchSize: number, config: Config): Pr
 export async function updateRepositoryStatus(
   repository: string,
   isArchived: boolean,
+  isExcluded: boolean,
   config: Config
 ): Promise<void> {
   const client = getPool(config);
@@ -63,7 +64,7 @@ export async function updateRepositoryStatus(
       `UPDATE "segmentRepositories" 
        SET archived = $1, excluded = $2, last_archived_check = NOW(), updatedAt = NOW()
        WHERE repository = $3`,
-      [isArchived, isArchived, repository]
+      [isArchived, isExcluded, repository]
     );
   } catch (error) {
     console.error(`Error updating repository status for ${repository}:`, error);

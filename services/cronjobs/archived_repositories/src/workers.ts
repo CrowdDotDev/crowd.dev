@@ -15,22 +15,29 @@ async function handleJob(job: Job) {
 
   const parseResult = parseRepoURL(job.data.url);
 
-  let archived;
+  let archived, excluded;
   switch (job.data.platform) {
     case Platform.GITHUB:
       console.log(`Processing GitHub repo: ${parseResult.owner}/${parseResult.repo}`);
-      archived = await isGitHubRepoArchived(parseResult.owner, parseResult.repo, config);
+      archived = excluded = await isGitHubRepoArchived(parseResult.owner, parseResult.repo, config);
+
+      // .github repositories should always be excluded from calculations, regardless of whether they are archived.
+      if (parseResult.repo === '.github') {
+        console.log(`Skipping .github repository: ${job.data.url}`);
+        excluded = true;
+      }
+
       break;
     case Platform.GITLAB:
       console.log(`Processing GitLab repo: ${parseResult.owner}/${parseResult.repo}`);
-      archived = await isGitLabRepoArchived(parseResult.owner, parseResult.repo, config);
+      archived = excluded = await isGitLabRepoArchived(parseResult.owner, parseResult.repo, config);
       break;
     default:
       throw new Error(`Unsupported platform: ${job.data.platform}`);
   }
 
   // Now update the database table with the result
-  await updateRepositoryStatus(job.data.url, archived, config)
+  await updateRepositoryStatus(job.data.url, archived, excluded, config)
 }
 
 // TODO: make this configurable via environment variables
