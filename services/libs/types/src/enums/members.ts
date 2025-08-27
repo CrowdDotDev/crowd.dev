@@ -182,4 +182,3 @@ export enum MemberIdentityType {
   USERNAME = 'username',
   EMAIL = 'email',
 }
-
