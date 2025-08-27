@@ -2,7 +2,7 @@ import { isKnownBot } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IMemberIdentity, MemberBotDetection } from '@crowd/types'
 
-export class BotService extends LoggerBase {
+export class BotDetectionService extends LoggerBase {
   private static readonly STRONG_PATTERNS = [
     // explicit "[bot]" notation
     /\[bot\]/i,
@@ -36,14 +36,14 @@ export class BotService extends LoggerBase {
   /** Identity matches a strong bot pattern */
   private hasStrongBotIndicators(identities: IMemberIdentity[]): boolean {
     return identities.some(({ value }) =>
-      BotService.STRONG_PATTERNS.some((regex) => regex.test(value)),
+      BotDetectionService.STRONG_PATTERNS.some((regex) => regex.test(value)),
     )
   }
 
   /** Identity matches a common (weak) bot pattern */
   private hasCommonBotIndicators(identities: IMemberIdentity[]): boolean {
     return identities.some(({ value }) =>
-      BotService.COMMON_PATTERNS.some((regex) => regex.test(value)),
+      BotDetectionService.COMMON_PATTERNS.some((regex) => regex.test(value)),
     )
   }
 

@@ -11,7 +11,7 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
-import { BotService } from '@crowd/common_services'
+import { BotDetectionService } from '@crowd/common_services'
 import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -45,7 +45,7 @@ import { OrganizationService } from './organization.service'
 export default class MemberService extends LoggerBase {
   private readonly memberRepo: MemberRepository
   private readonly pgQx: QueryExecutor
-  private readonly botService: BotService
+  private readonly botDetectionService: BotDetectionService
 
   constructor(
     private readonly store: DbStore,
@@ -55,7 +55,7 @@ export default class MemberService extends LoggerBase {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
-    this.botService = new BotService(this.log)
+    this.botDetectionService = new BotDetectionService(this.log)
     this.pgQx = dbStoreQx(this.store)
   }
 
@@ -103,14 +103,15 @@ export default class MemberService extends LoggerBase {
           data.identities = this.validateEmails(data.identities)
 
           // detect if the member is a bot
-          const botDetection = this.botService.isMemberBot(data.identities, attributes)
+          const botDetection = this.botDetectionService.isMemberBot(data.identities, attributes)
 
           if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
 
             attributes.isBot = {
               ...(attributes.isBot as object),
-              custom: true,
+              default: true,
+              system: true,
             }
           }
 
@@ -380,7 +381,7 @@ export default class MemberService extends LoggerBase {
             await releaseMemberLock()
           }
 
-          if (this.botService.isFlaggedAsBot(toUpdate.attributes)) {
+          if (this.botDetectionService.isFlaggedAsBot(toUpdate.attributes)) {
             this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
             return
           }

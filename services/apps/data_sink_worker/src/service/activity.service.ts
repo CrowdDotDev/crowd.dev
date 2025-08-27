@@ -1766,6 +1766,9 @@ export default class ActivityService extends LoggerBase {
       if (att.custom) {
         // manually set
         result = att.custom
+      } else if (att.system) {
+        // system set (e.g., BotDetectionService or LLM service)
+        result = att.system
       } else {
         // if it's not manually set we check if incoming member data has the attribute set for the platform
         if (member.attributes[attName] && member.attributes[attName][platform]) {
