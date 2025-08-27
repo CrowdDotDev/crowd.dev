@@ -5,22 +5,34 @@ import {
   deleteMemberOrganizations,
   fetchMemberIdentities,
   findMemberById,
-  insertBotSuggestion,
+  insertMemberBotSuggestion,
+  insertMemberNoBot,
 } from '@crowd/data-access-layer'
-import { IDbBotSuggestionInsert } from '@crowd/data-access-layer/src/members/types'
+import { IDbMemberBotSuggestionInsert } from '@crowd/data-access-layer/src/members/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { BotSuggestionStatus, IAttributes, IMemberData } from '@crowd/types'
+import { IAttributes, IMemberData } from '@crowd/types'
 
 import { svc } from '../../main'
 
-export async function createBotSuggestion(
-  suggestion: Pick<IDbBotSuggestionInsert, 'memberId' | 'confidence'>,
+export async function createMemberBotSuggestion(
+  suggestion: IDbMemberBotSuggestionInsert,
 ): Promise<void> {
   try {
     const qx = pgpQx(svc.postgres.writer.connection())
-    await insertBotSuggestion(qx, { ...suggestion, status: BotSuggestionStatus.PENDING })
+    await insertMemberBotSuggestion(qx, suggestion)
   } catch (error) {
-    svc.log.error({ error, suggestion }, `Failed to create bot suggestion!`)
+    svc.log.error({ error, suggestion }, `Failed to create member bot suggestion!`)
+
+    throw error
+  }
+}
+
+export async function createMemberNoBot(memberId: string): Promise<void> {
+  try {
+    const qx = pgpQx(svc.postgres.writer.connection())
+    await insertMemberNoBot(qx, memberId)
+  } catch (error) {
+    svc.log.error({ error, memberId }, `Failed to create member no bot!`)
 
     throw error
   }

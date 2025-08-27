@@ -183,8 +183,3 @@ export enum MemberIdentityType {
   EMAIL = 'email',
 }
 
-export enum BotSuggestionStatus {
-  ACCEPTED = 'accepted',
-  REJECTED = 'rejected',
-  PENDING = 'pending',
-}

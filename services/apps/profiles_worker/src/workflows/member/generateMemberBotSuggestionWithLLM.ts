@@ -9,10 +9,11 @@ const {
   findMember,
   getLLMResult,
   updateMemberAttributes,
-  createBotSuggestion,
+  createMemberBotSuggestion,
   removeMemberOrganizations,
   updateMemberAffiliations,
   syncMember,
+  createMemberNoBot,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '15 minutes',
 })
@@ -56,8 +57,10 @@ export async function generateMemberBotSuggestionWithLLM(
 
   const result = JSON.parse(llm.answer) as MemberBotSuggestionResult
 
-  // Exit early if the member is not a bot
-  if (!result.isBot) return
+  if (!result.isBot) {
+    await createMemberNoBot(memberId)
+    return
+  }
 
   // Mark the member as a bot directly if confidence gte the threshold
   if (CONFIDENCE_THRESHOLD <= result.confidence) {
@@ -67,6 +70,6 @@ export async function generateMemberBotSuggestionWithLLM(
     await syncMember(memberId, true)
   } else {
     // Otherwise, record a bot suggestion for further review
-    await createBotSuggestion({ memberId, confidence: result.confidence })
+    await createMemberBotSuggestion({ memberId, confidence: result.confidence })
   }
 }

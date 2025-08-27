@@ -5,7 +5,8 @@ import {
   updateAffiliationsLastCheckedAt,
 } from './activities/common'
 import {
-  createBotSuggestion,
+  createMemberBotSuggestion,
+  createMemberNoBot,
   findMember,
   removeMemberOrganizations,
   updateMemberAttributes,
@@ -51,6 +52,7 @@ export {
   findMember,
   updateMemberAttributes,
   removeMemberOrganizations,
-  createBotSuggestion,
+  createMemberBotSuggestion,
+  createMemberNoBot,
   getLLMResult,
 }

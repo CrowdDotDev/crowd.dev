@@ -1,4 +1,4 @@
-import { BotSuggestionStatus, IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
 
 export interface IQueryNumberOfNewMembers {
   segmentIds?: string[]
@@ -73,13 +73,11 @@ export interface IDbMemberData {
   activeDaysCount?: number
 }
 
-export interface IDbBotSuggestion {
+export interface IDbMemberBotSuggestion {
   id: string
   memberId: string
   confidence: number
-  status: BotSuggestionStatus
   createdAt: string
-  updatedAt: string
 }
 
-export type IDbBotSuggestionInsert = Omit<IDbBotSuggestion, 'id' | 'createdAt' | 'updatedAt'>
+export type IDbMemberBotSuggestionInsert = Omit<IDbMemberBotSuggestion, 'id' | 'createdAt' | 'updatedAt'>
