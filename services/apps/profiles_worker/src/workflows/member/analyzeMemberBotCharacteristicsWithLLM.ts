@@ -21,7 +21,7 @@ const {
   startToCloseTimeout: '15 minutes',
 })
 
-export async function processMemberBotDetectionWithLLM(
+export async function analyzeMemberBotCharacteristicsWithLLM(
   args: IProcessMemberBotSuggestionWithLLMInput,
 ): Promise<void> {
   const memberId = args.memberId

@@ -178,7 +178,7 @@ export default class MemberService extends LoggerBase {
           // trigger LLM validation if the member is suspected as a bot
           if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
             this.log.debug({ memberId: id }, 'Member suspected as bot. Triggering LLM validation.')
-            await this.startMemberBotDetectionWithLLMWorkflow(id)
+            await this.startMemberBotAnalysisWithLLMWorkflow(id)
           }
 
           const organizations = []
@@ -730,10 +730,10 @@ export default class MemberService extends LoggerBase {
     return out
   }
 
-  private async startMemberBotDetectionWithLLMWorkflow(memberId: string): Promise<void> {
-    await this.temporal.workflow.start('processMemberBotDetectionWithLLM', {
+  private async startMemberBotAnalysisWithLLMWorkflow(memberId: string): Promise<void> {
+    await this.temporal.workflow.start('analyzeMemberBotCharacteristicsWithLLM', {
       taskQueue: 'profiles',
-      workflowId: `${TemporalWorkflowId.MEMBER_BOT_DETECTION_WITH_LLM}/${memberId}`,
+      workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${memberId}`,
       retry: {
         maximumAttempts: 10,
       },

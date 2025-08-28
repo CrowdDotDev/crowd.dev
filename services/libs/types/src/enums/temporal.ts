@@ -8,5 +8,5 @@ export enum TemporalWorkflowId {
   MEMBERS_CSV_EXPORTS = 'members-csv-exports',
   ORGANIZATIONS_CSV_EXPORTS = 'organizations-csv-exports',
 
-  MEMBER_BOT_DETECTION_WITH_LLM = 'member-bot-detection-with-llm',
+  MEMBER_BOT_ANALYSIS_WITH_LLM = 'member-bot-analysis-with-llm',
 }
