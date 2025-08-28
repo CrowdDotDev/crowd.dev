@@ -7,7 +7,7 @@ export class BotDetectionService extends LoggerBase {
     // explicit "[bot]" notation
     /\[bot\]/i,
   ] as const
-  
+
   private static readonly COMMON_PATTERNS = [
     // bot-like identifiers
     /(?:^|[-_/\s])(bot|robot)(?:$|[-_/\s])/i,
