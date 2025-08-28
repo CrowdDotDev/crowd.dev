@@ -124,6 +124,9 @@ export const knownBots = new Set([
   'brewtestbot',
   'codeclimate',
   'codepilot',
+  'coderabbit',
+  'copilot',
+  'dependabot',
   'easycla',
   'fabbot',
   'facebook-github-bot',
@@ -134,11 +137,13 @@ export const knownBots = new Set([
   'homebrewbumpbot',
   'homu',
   'jenkins',
+  'mergify',
   'msftbot',
   'opentelemetrybot',
   'pep8speaks',
   'prombot',
   'pullrequest',
+  'renovate',
   'reviewdog',
   'rust-highfive',
   'rustbot',
@@ -151,6 +156,13 @@ export const knownBots = new Set([
   'web-flow',
   'weblate',
   'zuul',
+
+  // Service automation bots
+  'codecov',
+  'deepsource',
+  'gitguardian',
+  'snyk',
+  'whitesource',
 
   // Discord Bots
   'arcane',
