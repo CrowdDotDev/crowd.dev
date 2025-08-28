@@ -2,6 +2,7 @@ packages:
   - 'services/libs/*'
   - 'services/archetypes/*'
   - 'services/apps/*'
+  - '!services/cronjobs'
   - 'services'
   - 'backend'
   - '.github/actions/node'
