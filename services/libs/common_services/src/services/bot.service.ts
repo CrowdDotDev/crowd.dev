@@ -12,14 +12,23 @@ export class BotDetectionService extends LoggerBase {
     // bot-like identifiers
     /(?:^|[-_/\s])(bot|robot)(?:$|[-_/\s])/i,
 
-    // generic automation/service conventions
+    // automation/service conventions
     /(?:^|[-_/\s])(actions?|agent|automation|build|deploy|hook|integration|pipeline|runner|sync|svc|ci|cd|auto-?roll|release|merge)(?:$|[-_/\s])/i,
 
-    // provider/org prefix + automation marker
-    /(?:^|[-_/])(github|gitlab|bitbucket|azure|aws|gcp|k8s|openshift)(?:[-_/](bot|ci|actions?|pipeline|runner))?(?:$|[-_/])/i,
+    // provider automation accounts
+    /(?:^|[-_/])(github|gitlab|bitbucket|azure|aws|gcp|k8s|openshift)[-_](bot|ci|actions?|pipeline|runner|automation)(?:$|[-_/])/i,
 
-    // org/project style prefixes (standalone names)
-    /(?:^|[-_/])(k8s|knative|istio|openshift|okd|azure|aws|gcp|google|cncf|lf|linuxfoundation|microsoft|redhat|ibm|intel|nvidia|tensorflow|pytorch|onnx|react|angular|vue|svelte|rust|go|python|java|flutter)(?:$|[-_/])/i,
+    // service/system account naming
+    /^(service|system|automation|deploy|ci|build|release)[-_]?(account|bot|user)?$/i,
+
+    // org/project prefixes + automation marker (prevents false positives on plain names)
+    /(?:^|[-_/])(k8s|knative|istio|openshift|okd|cncf|lf|linuxfoundation|redhat|ibm|intel|nvidia|tensorflow|pytorch|onnx|react|angular|vue|svelte|rust|go|python|java|flutter)[-_](bot|ci|actions?|pipeline|runner|automation)(?:$|[-_/])/i,
+
+    // numbered automation patterns (ci2, bot123, automation555)
+    /(?:^|[-_/])(bot|automation|ci|cd|deploy|build|release)[-_]?\d+$/i,
+
+    // environment-based automation (dev-service, prod-bot, staging-automation)
+    /(?:^|[-_/])(dev|prod|staging|test|qa|canary)[-_](service|automation|bot|account)$/i,
   ] as const
 
   public constructor(parentLog: Logger) {
