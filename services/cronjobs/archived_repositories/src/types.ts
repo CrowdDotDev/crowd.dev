@@ -6,6 +6,11 @@ export enum Platform {
   GITLAB = 'gitlab',
 }
 
+export interface RepositoryStatus {
+  archived: boolean;
+  excluded: boolean;
+}
+
 export interface JobData {
   name: string;
   data: {
