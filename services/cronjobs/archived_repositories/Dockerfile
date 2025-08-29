@@ -1,5 +1,5 @@
 ARG NODE_VERSION=24
-ARG PNPM_VERSION=10.14.0
+ARG PNPM_VERSION=10.15.0
 ARG PNPM_CACHE_DIR=/tmp/archived-repositories-cronjob-pnpm-cache
 
 ## Builder stage
