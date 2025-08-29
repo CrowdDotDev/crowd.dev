@@ -135,39 +135,41 @@ class RepositoryWorker:
     async def _process_single_repository(self, repository: Repository):
         """Process a single repository through services with incremental processing"""
         logger.info("Processing repository: {}", repository.url)
-        processing_state = None
-
-        # Get repository name and bind context for all services
-        repo_name = get_repo_name(repository.url)
-        self._bind_repository_context(repository, repo_name)
+        processing_state = RepositoryState.PENDING
 
         try:
+            repo_name = get_repo_name(repository.url)
+            self._bind_repository_context(repository, repo_name)
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
             logger.info("Starting repository cloning...")
             async for batch in self.clone_service.clone_batches(
                 repository.url,
                 repository.last_processed_commit,
+                # TODO: add flag to enable working directory cleanup after first batch
             ):
                 logger.info("Clone batch info: {}", batch)
 
                 # Process commits for this specific batch using hash range for precision
-                if batch.is_first_batch:
+                await self.commit_service.process_single_batch_commits(
+                    repo_path=batch.repo_path,
+                    edge_commit=batch.edge_commit,
+                    prev_batch_edge_commit=batch.prev_batch_edge_commit,
+                    remote=batch.remote,
+                    segment_id=repository.segment_id,
+                    integration_id=repository.integration_id,
+                )
+                if batch.is_final_batch:
+                    # maintainers process at final batch to allow some time until new identities are created
                     await self.maintainer_service.process_maintainers(
-                        repository.id, batch.remote, batch.repo_path
-                    )
-                else:
-                    await self.commit_service.process_single_batch_commits(
+                        repo_id=repository.id,
+                        repo_url=batch.remote,
                         repo_path=batch.repo_path,
-                        edge_commit=batch.edge_commit,
-                        prev_batch_edge_commit=batch.prev_batch_edge_commit,
-                        remote=batch.remote,
-                        segment_id=repository.segment_id,
-                        integration_id=repository.integration_id,
+                        maintainer_file=repository.maintainer_file,
+                        last_maintainer_run_at=repository.last_maintainer_run_at,
                     )
-                    if batch.is_final_batch:
-                        await update_last_processed_commit(
-                            repo_id=repository.id, commit_hash=batch.latest_commit_in_repo
-                        )
+                    await update_last_processed_commit(
+                        repo_id=repository.id, commit_hash=batch.latest_commit_in_repo
+                    )
 
             logger.info("Incremental processing completed successfully")
             processing_state = RepositoryState.COMPLETED

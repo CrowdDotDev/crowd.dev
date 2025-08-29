@@ -3,6 +3,7 @@ from loguru import logger
 from crowdgit.services.utils import parse_repo_url
 from crowdgit.services.base.base_service import BaseService
 from crowdgit.errors import MaintainerFileNotFoundError, MaintanerAnalysisError
+from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
 import os
 import base64
 import asyncio
@@ -18,7 +19,14 @@ from crowdgit.models.maintainer_info import (
 )
 from crowdgit.services.maintainer.bedrock import invoke_bedrock
 from slugify import slugify
-from crowdgit.database.crud import find_github_identity, upsert_maintainer, update_maintainer_run
+from crowdgit.database.crud import (
+    find_github_identity,
+    upsert_maintainer,
+    update_maintainer_run,
+    get_maintainers_for_repo,
+    set_maintainer_end_date,
+)
+from datetime import datetime, timezone, time
 
 
 class MaintainerService(BaseService):
@@ -47,8 +55,8 @@ class MaintainerService(BaseService):
         )
         return slugify(title)
 
-    async def store_maintainers(
-        self, repo_id: str, repo_url: str, maintainers: list[MaintainerInfoItem]
+    async def insert_new_maintainers(
+        self, repo_url: str, repo_id: str, maintainers: list[MaintainerInfoItem]
     ):
         async def process_maintainer(maintainer: MaintainerInfoItem):
             self.logger.info(f"Processing maintainer: {maintainer.github_username}")
@@ -60,10 +68,14 @@ class MaintainerService(BaseService):
                 self.logger.warning("github username with value 'unknown' aborting")
                 return
             identity_id = await find_github_identity(github_username)
-            self.logger.info(f"Found identity: {identity_id}")
+            self.logger.debug(
+                f"Found identity_id for {github_username}: {identity_id} (type: {type(identity_id)})"
+            )
             if identity_id:
-                self.logger.info("upserting maintainers")
-                # await upsert_maintainer(repo_id, identity_id, repo_url, role, original_role)
+                await upsert_maintainer(repo_id, identity_id, repo_url, role, original_role)
+                self.logger.info(
+                    f"Successfully upserted maintainer {github_username} with identity_id {identity_id}"
+                )
             else:
                 self.logger.warning(f"Identity not found for GitHub user: {maintainer}")
 
@@ -74,6 +86,90 @@ class MaintainerService(BaseService):
                 await process_maintainer(maintainer)
 
         await asyncio.gather(*[process_with_semaphore(maintainer) for maintainer in maintainers])
+
+    async def compare_and_update_maintainers(
+        self,
+        repo_id: str,
+        repo_url: str,
+        maintainers: list[MaintainerInfoItem],
+        change_date: datetime,
+    ):
+        self.logger.info(f"Comparing and updating maintainers for repo: {repo_id}")
+        current_maintainers = await get_maintainers_for_repo(repo_id)
+        current_maintainers_dict = {m["github_username"]: m for m in current_maintainers}
+        new_maintainers_dict = {m.github_username: m for m in maintainers}
+
+        for github_username, maintainer in new_maintainers_dict.items():
+            role = maintainer.normalized_title
+            original_role = self.make_role(maintainer.title)
+            if github_username == "unknown":
+                self.logger.warning(
+                    f"Skipping unkown github_username with title {maintainer.title}"
+                )
+                continue
+            elif github_username not in current_maintainers_dict:
+                # New maintainer
+                identity_id = await find_github_identity(github_username)
+                self.logger.info(f"Found new maintainer {github_username} to be inserted")
+                if identity_id:
+                    await upsert_maintainer(
+                        repo_id, identity_id, repo_url, role, original_role, start_date=change_date
+                    )
+                    self.logger.info(
+                        f"Successfully inserted new maintainer {github_username} with identity_id {identity_id}"
+                    )
+                else:
+                    # will happend for new users if their identity isn't created yet but should fixed on the next iteration
+                    self.logger.warning(f"Identity not found for username: {github_username}")
+            else:
+                # Existing maintainer
+                current_maintainer = current_maintainers_dict[github_username]
+                if current_maintainer["role"] != role:
+                    # Role has changed: we set endDate for previous role and create new one with new role
+                    self.logger.info(
+                        f"Role changed from {current_maintainer['role']} to {role} for maintainer {current_maintainer['identityId']}"
+                    )
+                    await upsert_maintainer(
+                        repo_id,
+                        current_maintainer["identityId"],
+                        repo_url,
+                        role,
+                        original_role,
+                        change_date,
+                    )
+
+        for github_username, current_maintainer in current_maintainers_dict.items():
+            if github_username not in new_maintainers_dict:
+                self.logger.info(
+                    f"Maintainer {github_username} with identity {current_maintainer['identityId']} no longer exists, updating its endDate..."
+                )
+                await set_maintainer_end_date(
+                    repo_id,
+                    current_maintainer["identityId"],
+                    current_maintainer["role"],
+                    change_date,
+                )
+
+    async def save_maintainers(
+        self,
+        repo_id: str,
+        repo_url: str,
+        maintainers: list[MaintainerInfoItem],
+        last_maintainer_run_at: datetime | None,
+    ):
+        """
+        add/update maintainers in database
+        """
+        if not last_maintainer_run_at:
+            # 1st time processing maintainer for this repo
+            self.logger.info(f"1st time processing maintainers for repo {repo_id}")
+            return await self.insert_new_maintainers(repo_url, repo_id, maintainers)
+        self.logger.info(f"Updating maintainers for repo {repo_id}")
+        # start/end Dates (change_date) is set to the day when detected the change which not very accurate, but acceptable for now
+        today_midnight = datetime.combine(datetime.now(timezone.utc).date(), time.min)
+        await self.compare_and_update_maintainers(
+            repo_id, repo_url, maintainers, change_date=today_midnight
+        )
 
     async def analyze_file_content(self, content: str):
         instructions = (
@@ -195,24 +291,22 @@ class MaintainerService(BaseService):
 
         return None, None, ai_cost
 
-    async def extract_maintainers(
-        self, repo_path: str, owner: str, repo: str, maintainers_file: str | None
-    ):
+    async def extract_maintainers(self, repo_path: str, owner: str, repo: str):
         total_cost = 0
 
-        if not maintainers_file:
-            file_name, file_content, ai_cost = await self.find_maintainer_file(
-                repo_path, owner, repo
-            )
-            total_cost += ai_cost
+        self.logger.info("Looking for maintainer file...")
+        maintainer_file, file_content, cost = await self.find_maintainer_file(
+            repo_path, owner, repo
+        )
+        total_cost += cost
 
-        if not file_name or not file_content:
+        if not maintainer_file or not file_content:
             self.logger.error("No maintainer file found")
             raise MaintainerFileNotFoundError(ai_cost=total_cost)
 
         decoded_content = base64.b64decode(file_content).decode("utf-8")
 
-        self.logger.info(f"Analyzing maintainer file: {file_name}")
+        self.logger.info(f"Analyzing maintainer file: {maintainer_file}")
         result = await self.analyze_file_content(decoded_content)
         maintainer_info = result.output.info
         total_cost += result.cost
@@ -222,13 +316,18 @@ class MaintainerService(BaseService):
             raise MaintanerAnalysisError(ai_cost=total_cost)
 
         return MaintainerResult(
-            maintainer_file=file_name,
+            maintainer_file=maintainer_file,
             maintainer_info=maintainer_info,
             total_cost=total_cost,
         )
 
     async def process_maintainers(
-        self, repo_id: str, repo_url: str, repo_path: str, maintainers_file: str | None = None
+        self,
+        repo_id: str,
+        repo_url: str,
+        repo_path: str,
+        maintainer_file: str | None = None,
+        last_maintainer_run_at: datetime | None = None,
     ):
         try:
             self.logger.info(f"Starting maintainers processing for repo: {repo_url}")
@@ -237,15 +336,29 @@ class MaintainerService(BaseService):
                 self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
                 # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
                 return
-            maintainers = await self.extract_maintainers(
-                repo_path, owner, repo_name, maintainers_file
-            )
+
+            # Check if configured days interval has passed since last run for repos without maintainers file
+            if not maintainer_file and last_maintainer_run_at:
+                days_since_last_run = (datetime.now(timezone.utc) - last_maintainer_run_at).days
+                if days_since_last_run < MAINTAINER_RETRY_INTERVAL_DAYS:
+                    self.logger.info(
+                        f"Repo without maintainers file will be processed only after {MAINTAINER_RETRY_INTERVAL_DAYS} days. Days since last run: {days_since_last_run}"
+                    )
+                    return
+                self.logger.info(
+                    f"{MAINTAINER_RETRY_INTERVAL_DAYS} days have passed, processing repo without maintainers file. Days since last run: {days_since_last_run}"
+                )
+
+            maintainers = await self.extract_maintainers(repo_path, owner, repo_name)
+            latest_maintainer_file = maintainers.maintainer_file
             self.logger.info(
-                f"Extracted {len(maintainers.maintainer_info)} maintainers from {maintainers.maintainer_file} file"
+                f"Extracted {len(maintainers.maintainer_info)} maintainers from {latest_maintainer_file} file"
             )
-            await self.store_maintainers(repo_id, repo_url, maintainers.maintainer_info)
-            await update_maintainer_run(repo_id, maintainers.maintainer_file)
+            await self.save_maintainers(
+                repo_id, repo_url, maintainers.maintainer_info, last_maintainer_run_at
+            )
         except Exception as e:
             # TODO: handle errors properly
             self.logger.error(f"Failed to process maintainers with error: {repr(e)}")
-            raise
+        finally:
+            await update_maintainer_run(repo_id, latest_maintainer_file)
