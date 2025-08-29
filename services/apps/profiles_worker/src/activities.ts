@@ -7,9 +7,10 @@ import {
 import {
   createMemberBotSuggestion,
   createMemberNoBot,
-  findMember,
+  getMemberForBotAnalysis,
   removeMemberOrganizations,
   updateMemberAttributes,
+  calculateMemberBotConfidence,
 } from './activities/member/botSuggestion'
 import {
   getMemberDisplayAggregates,
@@ -49,10 +50,11 @@ export {
   getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
-  findMember,
+  getMemberForBotAnalysis,
   updateMemberAttributes,
   removeMemberOrganizations,
   createMemberBotSuggestion,
   createMemberNoBot,
+  calculateMemberBotConfidence,
   getLLMResult,
 }

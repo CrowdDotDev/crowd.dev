@@ -15,7 +15,6 @@ const log = getServiceLogger()
 
 setImmediate(async () => {
   let temporal: TemporalClient | undefined
-  // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }

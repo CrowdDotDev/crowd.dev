@@ -27,7 +27,6 @@ const memberId = processArguments[0]
 
 setImmediate(async () => {
   let temporal: TemporalClient | undefined
-  // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
