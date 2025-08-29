@@ -3,7 +3,20 @@ DESCRIPTION >
 
 NODE activityRelations_deduplicated
 SQL >
-    SELECT * FROM activityRelations final
+    SELECT
+        activityId,
+        conversationId,
+        createdAt,
+        updatedAt,
+        memberId,
+        objectMemberId,
+        objectMemberUsername,
+        organizationId,
+        parentId,
+        platform,
+        segmentId,
+        username
+    FROM activityRelations final
 
 TYPE COPY
 TARGET_DATASOURCE activityRelations_deduplicated_ds
