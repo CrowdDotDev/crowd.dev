@@ -1,9 +1,8 @@
 import { Queue } from 'bullmq';
 import { getConfig, Config } from './config.js';
 import { closeConnection, fetchRepositoryUrls } from './database.js';
-import { parseRepoURL } from './utils';
 import { GITHUB_QUEUE_NAME, GITLAB_QUEUE_NAME } from './types';
-import { JobData, ParsedRepoInfo, Platform } from './types.js';
+import { JobData, Platform } from './types.js';
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -85,20 +84,29 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
   const githubJobs: JobData[] = [];
   const gitlabJobs: JobData[] = [];
 
-  let parsedResult: ParsedRepoInfo;
   repoURLs.forEach((url) => {
+    let platform: Platform;
+    
     try {
-      parsedResult = parseRepoURL(url);
+      const parsed = new URL(url);
+      
+      if (parsed.hostname === 'github.com') {
+        platform = Platform.GITHUB;
+      } else if (parsed.hostname === 'gitlab.com') {
+        platform = Platform.GITLAB;
+      } else {
+        throw new Error(`Unsupported platform for URL: ${url}`);
+      }
     } catch (error) {
       console.warn(`Skipping URL due to error: ${error}`);
       return;
     }
 
     const jobData = {
-      name: `${parsedResult.platform}-repo-${parsedResult.owner}-${parsedResult.repo}`,
+      name: `${platform}-repo-${url.replace(/[^a-zA-Z0-9]/g, '-')}`,
       data: {
         url,
-        platform: parsedResult.platform,
+        platform,
       },
       opts: {
         removeOnComplete: 1000,
@@ -106,7 +114,7 @@ function prepareJobsByPlatform(repoURLs: string[]): { githubJobs: JobData[]; git
       }
     };
 
-    switch (parsedResult.platform) {
+    switch (platform) {
       case Platform.GITHUB:
         githubJobs.push(jobData);
         break;

@@ -6,12 +6,6 @@ export enum Platform {
   GITLAB = 'gitlab',
 }
 
-export interface ParsedRepoInfo {
-  platform: Platform.GITHUB | Platform.GITLAB;
-  owner: string;
-  repo: string;
-}
-
 export interface JobData {
   name: string;
   data: {
