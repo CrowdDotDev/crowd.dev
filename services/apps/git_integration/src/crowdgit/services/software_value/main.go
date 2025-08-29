@@ -11,19 +11,24 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/knadh/koanf/v2"
 )
-
-var k = koanf.New(".")
-
-const configFile = "./config.toml"
 
 func main() {
 	var err error
 	ctx := context.Background()
 
-	config := getConfig(configFile)
+	// Get target path from command line argument
+	var targetPath string
+	if len(os.Args) > 1 {
+		targetPath = os.Args[1]
+	} else {
+		log.Fatalf("Usage: %s <target-path>", os.Args[0])
+	}
+
+	config := getConfig(targetPath)
+
+	// Process single repository (the target path argument)
+	repoDir := config.TargetPath
 
 	insightsDb, err := NewInsightsDB(ctx, config.InsightsDatabase)
 	if err != nil {
@@ -37,75 +42,30 @@ func main() {
 	}
 	defer cmdb.Close()
 
-	repoDirs, err := findRepositoriesDirectories(config.TargetPath)
+	// Get git URL for the repository
+	gitUrl, err := getGitRepositoryURL(repoDir)
 	if err != nil {
-		log.Fatalf("Error finding subdirectories: %v", err)
+		log.Fatalf("Could not get the git repository URL for '%s': %v", repoDir, err)
 	}
 
-	batchSize := config.BatchSize
-	var batch []SCCReport
-
-	for _, repoDir := range repoDirs {
-		gitUrl, err := getGitRepositoryURL(repoDir)
-		if err != nil {
-			log.Printf("Could not get the git repository URL for '%s': %v", repoDir, err)
-			continue
-		}
-
-		report, err := getSCCReport(config.SCCPath, repoDir)
-		if err != nil {
-			log.Printf("Error processing repository '%s': %v", repoDir, err)
-			continue
-		}
-		report.Repository.URL = gitUrl
-
-		batch = append(batch, report)
-
-		fmt.Printf("Directory: %s", repoDir)
-		fmt.Printf("Estimated Cost in Dollars: %.2f\n", report.Cocomo.CostInDollars)
-		fmt.Printf("Git URL: %s\n\n", gitUrl)
-
-		if len(batch) >= batchSize {
-			saveBatch(ctx, insightsDb, batch)
-			batch = batch[:0]
-		}
+	// Process the repository with SCC
+	report, err := getSCCReport(config.SCCPath, repoDir)
+	if err != nil {
+		log.Fatalf("Error processing repository '%s': %v", repoDir, err)
 	}
-	// Save any remaining reports
-	if len(batch) > 0 {
-		saveBatch(ctx, insightsDb, batch)
+	report.Repository.URL = gitUrl
+
+	// Save to database
+	if err := insightsDb.saveProjectCost(ctx, report.Repository, report.Cocomo.CostInDollars); err != nil {
+		log.Fatalf("Error saving project cost: %v", err)
+	}
+
+	if err := insightsDb.saveLanguageStats(ctx, report.Repository, report.LanguageStats); err != nil {
+		log.Fatalf("Error saving language stats: %v", err)
 	}
 }
 
-// findRepositoriesDirectories returns all immediate subdirectories within the given path, which contain a .git directory.
-// This creates a list (repoDirs) with all the repositories into memory.
-// At the time of writing, we have a little over 14K directories.
-// It doesn't seem to be a problem for now, but we should keep this in mind in the future with more repositories.
-func findRepositoriesDirectories(dirPath string) ([]string, error) {
-	var repoDirs []string
 
-	entries, err := os.ReadDir(dirPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read directory '%s': %w", dirPath, err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			subdirPath := filepath.Join(dirPath, entry.Name())
-			gitDirPath := filepath.Join(subdirPath, ".git")
-			if stat, err := os.Stat(gitDirPath); err == nil && stat.IsDir() {
-				repoDirs = append(repoDirs, subdirPath)
-			} else {
-				log.Printf("Skipping directory '%s', it does not contain a .git directory.", subdirPath)
-			}
-		}
-	}
-
-	if len(repoDirs) == 0 {
-		log.Printf("No git repositories found in %s", dirPath)
-	}
-
-	return repoDirs, nil
-}
 
 // getSCCReport analyzes a directory with scc and returns a report containing the estimated cost and language statistics.
 func getSCCReport(sccPath, dirPath string) (SCCReport, error) {
@@ -228,14 +188,4 @@ func parseCocomoMetrics(output string) (float64, error) {
 	return cost, nil
 }
 
-func saveBatch(ctx context.Context, db *InsightsDB, batch []SCCReport) {
-	for _, report := range batch {
-		if err := db.saveProjectCost(ctx, report.Repository, report.Cocomo.CostInDollars); err != nil {
-			log.Printf("Error saving project cost for '%s': %v", report.Repository, err)
-		}
 
-		if err := db.saveLanguageStats(ctx, report.Repository, report.LanguageStats); err != nil {
-			log.Printf("Error saving language stats for '%s': %v", report.Repository, err)
-		}
-	}
-}
