@@ -13,6 +13,9 @@ class ErrorCode(str, Enum):
     SHELL_COMMAND_FAILED = "shell-command-failed"
     QUEUE_EMIT_ERROR = "queue-emit-error"
     QUEUE_CONNECTION_ERROR = "queue-connection-error"
+    VALIDATION = "validation"
+    NO_MAINTAINER_FILE = "no-maintainer-file"
+    MAINTAINER_ANALYSIS_FAILED = "maintainer_analysis_failed"
 
 
 class RepositoryState(str, Enum):

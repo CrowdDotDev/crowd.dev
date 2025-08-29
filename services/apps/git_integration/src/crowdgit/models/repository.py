@@ -19,6 +19,13 @@ class Repository(BaseModel):
     locked_at: Optional[datetime] = Field(
         None, description="Timestamp when repository was locked for processing"
     )
+    maintainer_file: Optional[str] = Field(
+        None, description="Name of the maintainer file found in repository"
+    )
+    last_maintainer_run_at: Optional[datetime] = Field(
+        None,
+        description="Timestamp of when the repository maintainer processing was last executed",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -42,6 +49,8 @@ class Repository(BaseModel):
             "lockedAt": "locked_at",
             "segmentId": "segment_id",
             "integrationId": "integration_id",
+            "maintainerFile": "maintainer_file",
+            "lastMaintainerRunAt": "last_maintainer_run_at",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:

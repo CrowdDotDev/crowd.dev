@@ -530,6 +530,9 @@ class CommitService(BaseService):
         """
         commit_texts = [c.strip() for c in raw_output.split(self.COMMIT_END_SPLITTER) if c.strip()]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
+        if len(commit_texts) == 0:
+            self.logger.info("No commits to be processed")
+            return
         chunk_size = min(max(20, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
 
         self.logger.info(f"Spliting commits into chunks of {chunk_size}")
