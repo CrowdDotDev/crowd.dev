@@ -5,14 +5,20 @@ import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_wo
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import MemberService from '../service/member.service'
 import { OrganizationService } from '../service/organization.service'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
+  let temporal: TemporalClient | undefined
+  if (TEMPORAL_CONFIG().serverUrl) {
+    temporal = await getTemporalClient(TEMPORAL_CONFIG())
+  }
+
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
@@ -31,7 +37,7 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const memberService = new MemberService(store, redis, log)
+  const memberService = new MemberService(store, redis, temporal, log)
   const orgService = new OrganizationService(store, log)
 
   const limit = 100

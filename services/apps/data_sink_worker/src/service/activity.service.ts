@@ -1055,7 +1055,7 @@ export default class ActivityService extends LoggerBase {
     )
     const preparedActivities: IActivityPrepareForUpsertResult[] = []
 
-    const memberService = new MemberService(this.pgStore, this.redisClient, this.log)
+    const memberService = new MemberService(this.pgStore, this.redisClient, this.temporal, this.log)
 
     // find distinct members to create
     const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(

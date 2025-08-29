@@ -2,7 +2,6 @@
 import { LoggerBase } from '@crowd/logging'
 
 import DataQualityRepository from '@/database/repositories/dataQualityRepository'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IDataQualityParams, IDataQualityType } from '@/types/data-quality/data-quality-filters'
 
 import { IServiceOptions } from './IServiceOptions'
@@ -23,7 +22,6 @@ export default class DataQualityService extends LoggerBase {
    * @return {Promise<Array>} A promise that resolves to an array of members with the specified data quality issues.
    */
   async findMemberIssues(params: IDataQualityParams, segmentId: string) {
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const methodMap = {
       [IDataQualityType.NO_WORK_EXPERIENCE]: DataQualityRepository.findMembersWithNoWorkExperience,
       [IDataQualityType.TOO_MANY_IDENTITIES]:
@@ -42,7 +40,7 @@ export default class DataQualityService extends LoggerBase {
     const method = methodMap[params.type]
 
     if (method) {
-      return method(this.options, tenantId, params.limit || 10, params.offset || 0, segmentId)
+      return method(this.options, params.limit || 10, params.offset || 0, segmentId)
     }
     return []
   }

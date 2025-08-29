@@ -16,11 +16,12 @@ memberUpdate is a Temporal workflow that:
   - [Activity]: Sync member and memberOrganizations to OpenSearch if specified.
 */
 export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
+  const memberId = input.member.id
   try {
-    await updateMemberAffiliations(input)
+    await updateMemberAffiliations(memberId)
     if (input.syncToOpensearch) {
       // sync member
-      await syncMember(input.member.id, input.syncToOpensearch)
+      await syncMember(memberId, input.syncToOpensearch)
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {

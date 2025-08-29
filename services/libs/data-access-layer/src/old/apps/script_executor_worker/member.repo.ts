@@ -383,20 +383,6 @@ class MemberRepository {
 
     return results.map((r) => r.memberId)
   }
-
-  public async markMemberAsBot(memberIds: string[]): Promise<void> {
-    await this.connection.none(
-      `UPDATE members SET 
-        "attributes" = jsonb_set(
-          "attributes",
-          '{isBot}',
-          (coalesce("attributes"->'isBot', '{}'::jsonb) || '{"default": true}'::jsonb)
-        ),
-        "updatedAt" = now()
-      WHERE id IN ($(memberIds:csv))`,
-      { memberIds },
-    )
-  }
 }
 
 export default MemberRepository

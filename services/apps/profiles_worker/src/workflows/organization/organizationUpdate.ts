@@ -42,7 +42,7 @@ export async function organizationUpdate(input: IOrganizationProfileSyncInput): 
   }
 
   for (const memberId of memberIds) {
-    await updateMemberAffiliations({ member: { id: memberId } })
+    await updateMemberAffiliations(memberId)
   }
 
   await continueAsNew<typeof organizationUpdate>({

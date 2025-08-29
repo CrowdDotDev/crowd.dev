@@ -1,8 +1,16 @@
 import {
   getAffiliationsLastCheckedAt,
+  getLLMResult,
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAt,
 } from './activities/common'
+import {
+  createMemberBotSuggestion,
+  createMemberNoBot,
+  getMemberForBotAnalysis,
+  removeMemberOrganizations,
+  updateMemberAttributes,
+} from './activities/member/botSuggestion'
 import {
   getMemberDisplayAggregates,
   getMemberDisplayAggsLastSyncedAt,
@@ -41,4 +49,10 @@ export {
   getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
+  getMemberForBotAnalysis,
+  updateMemberAttributes,
+  removeMemberOrganizations,
+  createMemberBotSuggestion,
+  createMemberNoBot,
+  getLLMResult,
 }

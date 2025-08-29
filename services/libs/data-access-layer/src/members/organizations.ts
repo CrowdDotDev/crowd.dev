@@ -223,22 +223,29 @@ export async function updateMemberOrganization(
   )
 }
 
-export async function deleteMemberOrganization(
+export async function deleteMemberOrganizations(
   qx: QueryExecutor,
   memberId: string,
-  id: string,
+  ids?: string[],
+  softDelete = true,
 ): Promise<void> {
-  await qx.result(
-    `
-      UPDATE "memberOrganizations"
-      SET "deletedAt" = NOW()
-      WHERE "memberId" = $(memberId) AND "id" = $(id);
-    `,
-    {
-      memberId,
-      id,
-    },
-  )
+  // Base query depends on soft vs hard delete
+  const baseQuery = softDelete
+    ? 'UPDATE "memberOrganizations" SET "deletedAt" = NOW()'
+    : 'DELETE FROM "memberOrganizations"'
+
+  // Build WHERE clause
+  const conditions = ['"memberId" = $(memberId)']
+  const params: Record<string, unknown> = { memberId }
+
+  if (ids?.length) {
+    conditions.push(`"id" IN ($(ids:csv))`)
+    params.ids = ids
+  }
+
+  const query = `${baseQuery} WHERE ${conditions.join(' AND ')};`
+
+  await qx.result(query, params)
 }
 
 export async function cleanSoftDeletedMemberOrganization(

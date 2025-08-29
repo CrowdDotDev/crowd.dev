@@ -36,8 +36,11 @@ export default class MemberAttributesService extends LoggerBase {
     return result
   }
 
-  // Update member attributes
-  async update(memberId: string, data: IAttributes): Promise<IAttributes> {
+  async update(
+    memberId: string,
+    data: IAttributes,
+    manuallyChanged: boolean,
+  ): Promise<IAttributes> {
     return captureApiChange(
       this.options,
       memberEditProfileAction(memberId, async (captureOldState, captureNewState) => {
@@ -75,7 +78,9 @@ export default class MemberAttributesService extends LoggerBase {
 
           await updateMemberAttributes(qx, memberId, data)
 
-          await setMemberManuallyChangedFields(qx, memberId, updatedManuallyChangedFields)
+          if (manuallyChanged) {
+            await setMemberManuallyChangedFields(qx, memberId, updatedManuallyChangedFields)
+          }
 
           const updatedAttributes = await fetchMemberAttributes(qx, memberId)
 
