@@ -27,10 +27,15 @@ function getPool(config: Config): Pool {
   return pool;
 }
 
-export async function fetchRepositoryUrls(batchSize: number, config: Config): Promise<string[]> {
+export async function fetchRepositoryUrls(batchSize: number, offset: number, config: Config): Promise<string[]> {
   // Ensure that batchSize is a positive integer
   if (batchSize <= 0) {
     throw new Error('Invalid batch size. Please provide a positive integer.');
+  }
+
+  // Ensure that offset is a non-negative integer
+  if (offset < 0) {
+    throw new Error('Invalid offset. Please provide a non-negative integer.');
   }
 
   const client = getPool(config);
@@ -38,10 +43,10 @@ export async function fetchRepositoryUrls(batchSize: number, config: Config): Pr
   try {
     const result = await client.query(
       `SELECT repository FROM "segmentRepositories"
-       WHERE last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL \'5 days\'
+       WHERE (last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL \'5 days\'
        ORDER BY last_archived_check
-       LIMIT $1`,
-      [batchSize]
+       LIMIT $1 OFFSET $2`,
+      [batchSize, offset]
     );
     
     return result.rows.map(row => row.repository);

@@ -11,6 +11,7 @@ function sleep(ms: number): Promise<void> {
 async function main(config: Config) {
   let totalProcessed = 0;
   let batchNumber = 1;
+  let offset = 0;
 
   const queueOptions = {
     connection: { url: config.RedisUrl },
@@ -39,7 +40,7 @@ async function main(config: Config) {
   while (true) {
     console.log(`Processing batch ${batchNumber}...`);
 
-    const repoURLs = await fetchRepositoryUrls(config.BatchSize, config);
+    const repoURLs = await fetchRepositoryUrls(config.BatchSize, offset, config);
 
     if (repoURLs.length === 0) {
       console.log(`No more repositories found. Total processed: ${totalProcessed} repositories.`);
@@ -75,6 +76,7 @@ async function main(config: Config) {
     await sleep(config.BatchDelayMs);
 
     batchNumber++;
+    offset += repoURLs.length;
   }
 
   await closeConnection();
