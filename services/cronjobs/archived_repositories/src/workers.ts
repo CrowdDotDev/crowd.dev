@@ -1,7 +1,7 @@
 import { Worker, Job, WorkerOptions } from 'bullmq';
 import { getConfig } from './config.js';
-import { isGitHubRepoArchived } from './clients/github';
-import { isGitLabRepoArchived } from './clients/gitlab';
+import { getGithubRepoStatus } from './clients/github';
+import { getGitlabRepoStatus } from './clients/gitlab';
 import { GITHUB_QUEUE_NAME, GITLAB_QUEUE_NAME, Platform } from './types';
 import { updateRepositoryStatus } from "./database";
 
@@ -16,20 +16,24 @@ async function handleJob(job: Job) {
   switch (job.data.platform) {
     case Platform.GITHUB:
       console.log(`Processing GitHub repo: ${job.data.url}`);
-      archived = excluded = await isGitHubRepoArchived(job.data.url, config);
+      const githubStatus = await getGithubRepoStatus(job.data.url, config);
+      archived = githubStatus.archived;
+      excluded = githubStatus.excluded;
 
       // .github repositories should always be excluded from calculations, regardless of whether they are archived.
       const parsed = new URL(job.data.url);
       const parts = parsed.pathname.split('/').filter(Boolean);
       if (parts.length >= 2 && parts[1] === '.github') {
-        console.log(`Skipping .github repository: ${job.data.url}`);
+        console.log(`Forcefully marking .github repository as excluded: ${job.data.url}`);
         excluded = true;
       }
 
       break;
     case Platform.GITLAB:
       console.log(`Processing GitLab repo: ${job.data.url}`);
-      archived = excluded = await isGitLabRepoArchived(job.data.url, config);
+      const gitlabStatus = await getGitlabRepoStatus(job.data.url, config);
+      archived = gitlabStatus.archived;
+      excluded = gitlabStatus.excluded;
       break;
     default:
       throw new Error(`Unsupported platform: ${job.data.platform}`);
