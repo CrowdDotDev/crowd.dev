@@ -25,7 +25,7 @@ export interface MemberForLLMBotSuggestion {
 export enum MemberBotSignalType {
   IDENTITIES = 'identities',
   BIO = 'bio',
-  DISPLAY_NAME = 'displayName'
+  DISPLAY_NAME = 'displayName',
 }
 
 export enum MemberBotSignalStrength {

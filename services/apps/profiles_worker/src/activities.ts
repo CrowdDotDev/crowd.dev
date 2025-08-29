@@ -10,7 +10,6 @@ import {
   getMemberForBotAnalysis,
   removeMemberOrganizations,
   updateMemberAttributes,
-  calculateMemberBotConfidence,
 } from './activities/member/botSuggestion'
 import {
   getMemberDisplayAggregates,
@@ -55,6 +54,5 @@ export {
   removeMemberOrganizations,
   createMemberBotSuggestion,
   createMemberNoBot,
-  calculateMemberBotConfidence,
   getLLMResult,
 }

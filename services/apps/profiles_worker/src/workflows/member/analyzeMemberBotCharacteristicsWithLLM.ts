@@ -4,9 +4,10 @@ import { LlmQueryType } from '@crowd/types'
 
 import * as activities from '../../activities'
 import {
-  ProcessMemberBotSuggestionWithLLMInput,
   MemberBotSuggestionResult,
+  ProcessMemberBotSuggestionWithLLMInput,
 } from '../../types/member'
+import { calculateMemberBotConfidence } from '../../utils'
 
 const {
   getMemberForBotAnalysis,
@@ -17,7 +18,6 @@ const {
   updateMemberAffiliations,
   syncMember,
   createMemberNoBot,
-  calculateMemberBotConfidence,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '15 minutes',
 })
@@ -32,7 +32,7 @@ export async function analyzeMemberBotCharacteristicsWithLLM(
 
   if (!member) return
 
-  // edge case: limit to top 30 verified identities for LLM evaluation
+  // limit to top 30 verified identities for LLM input
   if (member.identities) {
     member.identities = member.identities.slice(0, 30)
   }
@@ -64,14 +64,14 @@ export async function analyzeMemberBotCharacteristicsWithLLM(
 
   const llm = await getLLMResult(LlmQueryType.MEMBER_BOT_VALIDATION, PROMPT, memberId)
 
-  const result = JSON.parse(llm.answer) as MemberBotSuggestionResult
+  const { isBot, signals } = JSON.parse(llm.answer) as MemberBotSuggestionResult
 
-  if (!result.isBot) {
+  if (!isBot) {
     await createMemberNoBot(memberId)
     return
   }
 
-  const confidence = await calculateMemberBotConfidence(result.signals)
+  const confidence = calculateMemberBotConfidence(signals)
 
   // Mark the member as a bot directly if confidence gte the threshold
   if (confidence >= THRESHOLD) {
