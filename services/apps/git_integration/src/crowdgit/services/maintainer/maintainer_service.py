@@ -125,7 +125,7 @@ class MaintainerService(BaseService):
                 # Existing maintainer
                 current_maintainer = current_maintainers_dict[github_username]
                 if current_maintainer["role"] != role:
-                    # Role has changed: we set endDate for previous role and create new one with new role
+                    # Role has changed: we update maintainer
                     self.logger.info(
                         f"Role changed from {current_maintainer['role']} to {role} for maintainer {current_maintainer['identityId']}"
                     )
