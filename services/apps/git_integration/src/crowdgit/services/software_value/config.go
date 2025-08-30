@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -25,7 +25,7 @@ type Config struct {
 	CMDatabase       DBConfig `koanf:"database.cm"`
 }
 
-func getConfig(targetPath string) Config {
+func getConfig(targetPath string) (Config, error) {
 	var config Config
 	var err error
 
@@ -34,15 +34,15 @@ func getConfig(targetPath string) Config {
 	// SCC path will be auto-discovered via exec.LookPath("scc")
 
 	if _, err := os.Stat(config.TargetPath); os.IsNotExist(err) {
-		log.Fatalf("Error: Target path '%s' does not exist: %v", config.TargetPath, err)
+		return config, fmt.Errorf("target path '%s' does not exist: %w", config.TargetPath, err)
 	} else if err != nil {
-		log.Fatalf("Error checking target path '%s': %v", config.TargetPath, err)
+		return config, fmt.Errorf("error checking target path '%s': %w", config.TargetPath, err)
 	}
 
 	// Auto-discover scc binary in PATH (should be at /usr/local/bin/scc in container)
 	config.SCCPath, err = exec.LookPath("scc")
 	if err != nil {
-		log.Fatalf("Error: Could not find 'scc' executable in PATH: %v", err)
+		return config, fmt.Errorf("could not find 'scc' executable in PATH: %w", err)
 	}
 
 	config.InsightsDatabase.User = os.Getenv("INSIGHTS_DB_USERNAME")
@@ -78,10 +78,12 @@ func getConfig(targetPath string) Config {
 		if poolMax, err := strconv.Atoi(poolMaxStr); err == nil {
 			config.CMDatabase.PoolMax = poolMax
 		}
+	} else {
+		config.CMDatabase.PoolMax = 10 // Default pool max
 	}
 	if readOnlyStr := os.Getenv("CROWD_DB_READONLY"); readOnlyStr != "" {
 		config.CMDatabase.ReadOnly = readOnlyStr == "true"
 	}
 
-	return config
+	return config, nil
 }

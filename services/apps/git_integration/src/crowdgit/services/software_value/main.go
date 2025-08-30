@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +13,14 @@ import (
 )
 
 func main() {
-	var err error
+	response := processRepository()
+	outputJSON(response)
+	
+	// Always exit with code 0 - status details are in JSON response
+}
+
+// processRepository handles the main logic and returns a StandardResponse
+func processRepository() StandardResponse {
 	ctx := context.Background()
 
 	// Get target path from command line argument
@@ -22,46 +28,104 @@ func main() {
 	if len(os.Args) > 1 {
 		targetPath = os.Args[1]
 	} else {
-		log.Fatalf("Usage: %s <target-path>", os.Args[0])
+		errorCode := ErrorCodeInvalidArguments
+		errorMessage := fmt.Sprintf("Usage: %s <target-path>", os.Args[0])
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 
-	config := getConfig(targetPath)
+	config, err := getConfig(targetPath)
+	if err != nil {
+		errorCode := getErrorCodeFromConfigError(err)
+		errorMessage := err.Error()
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
 
 	// Process single repository (the target path argument)
 	repoDir := config.TargetPath
 
 	insightsDb, err := NewInsightsDB(ctx, config.InsightsDatabase)
 	if err != nil {
-		log.Fatalf("Error connecting to insights database: %v", err)
+		errorCode := ErrorCodeDatabaseConnection
+		errorMessage := fmt.Sprintf("Error connecting to insights database: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 	defer insightsDb.Close()
 
 	cmdb, err := NewCMDB(ctx, config.CMDatabase)
 	if err != nil {
-		log.Fatalf("Error connecting to CM database: %v", err)
+		errorCode := ErrorCodeDatabaseConnection
+		errorMessage := fmt.Sprintf("Error connecting to CM database: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 	defer cmdb.Close()
 
 	// Get git URL for the repository
 	gitUrl, err := getGitRepositoryURL(repoDir)
 	if err != nil {
-		log.Fatalf("Could not get the git repository URL for '%s': %v", repoDir, err)
+		errorCode := ErrorCodeGitRepositoryURL
+		errorMessage := fmt.Sprintf("Could not get the git repository URL for '%s': %v", repoDir, err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 
 	// Process the repository with SCC
 	report, err := getSCCReport(config.SCCPath, repoDir)
 	if err != nil {
-		log.Fatalf("Error processing repository '%s': %v", repoDir, err)
+		errorCode := getErrorCodeFromSCCError(err)
+		errorMessage := fmt.Sprintf("Error processing repository '%s': %v", repoDir, err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 	report.Repository.URL = gitUrl
 
 	// Save to database
 	if err := insightsDb.saveProjectCost(ctx, report.Repository, report.Cocomo.CostInDollars); err != nil {
-		log.Fatalf("Error saving project cost: %v", err)
+		errorCode := ErrorCodeDatabaseOperation
+		errorMessage := fmt.Sprintf("Error saving project cost: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 
 	if err := insightsDb.saveLanguageStats(ctx, report.Repository, report.LanguageStats); err != nil {
-		log.Fatalf("Error saving language stats: %v", err)
+		errorCode := ErrorCodeDatabaseOperation
+		errorMessage := fmt.Sprintf("Error saving language stats: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+
+	// Success response
+	return StandardResponse{
+		Status:       StatusSuccess,
+		ErrorCode:    nil,
+		ErrorMessage: nil,
 	}
 }
 
@@ -188,4 +252,49 @@ func parseCocomoMetrics(output string) (float64, error) {
 	return cost, nil
 }
 
+// outputJSON outputs the StandardResponse as JSON to stdout
+func outputJSON(response StandardResponse) {
+	jsonBytes, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		// Fallback error response if JSON marshaling fails
+		errorCode := ErrorCodeUnknown
+		errorMessage := fmt.Sprintf("Failed to marshal response to JSON: %v", err)
+		fallbackResponse := StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+		fallbackJSON, _ := json.Marshal(fallbackResponse)
+		fmt.Println(string(fallbackJSON))
+		return
+	}
+	fmt.Println(string(jsonBytes))
+}
+
+// getErrorCodeFromConfigError maps config errors to appropriate error codes
+func getErrorCodeFromConfigError(err error) string {
+	errStr := err.Error()
+	if strings.Contains(errStr, "does not exist") {
+		return ErrorCodeTargetPathNotFound
+	}
+	if strings.Contains(errStr, "scc") {
+		return ErrorCodeSCCNotFound
+	}
+	return ErrorCodeUnknown
+}
+
+// getErrorCodeFromSCCError maps SCC errors to appropriate error codes
+func getErrorCodeFromSCCError(err error) string {
+	errStr := err.Error()
+	if strings.Contains(errStr, "no project cost found") {
+		return ErrorCodeNoCostFound
+	}
+	if strings.Contains(errStr, "scc command failed") {
+		return ErrorCodeSCCExecution
+	}
+	if strings.Contains(errStr, "parse") {
+		return ErrorCodeSCCParsing
+	}
+	return ErrorCodeUnknown
+}
 
