@@ -147,7 +147,9 @@ class RepositoryWorker:
                 repository.last_processed_commit,
                 # TODO: add flag to enable working directory cleanup after first batch
             ):
-                logger.info("Clone batch info: {}", batch)
+                logger.info(f"Clone batch info: {batch}")
+                if batch.is_first_batch:
+                    await self.software_value_service.run(batch.repo_path)
 
                 # Process commits for this specific batch using hash range for precision
                 await self.commit_service.process_single_batch_commits(
