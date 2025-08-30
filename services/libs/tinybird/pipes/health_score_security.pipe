@@ -1,11 +1,11 @@
 NODE health_score_security_project_repos
 SQL >
     %
-    SELECT id, repo AS repo, slug
-    FROM insightsProjects FINAL ARRAY
+    SELECT id, repo AS repo, slug, excludedRepositories
+    FROM insights_projects_populated_ds FINAL ARRAY
     JOIN repositories AS repo
     WHERE
-        isNull (deletedAt)
+        NOT has(excludedRepositories, repo)
         {% if defined(project) %}
             AND id = (SELECT insightsProjectId FROM segments_filtered)
             AND repo in (select arrayJoin(repositories) from segments_filtered)
