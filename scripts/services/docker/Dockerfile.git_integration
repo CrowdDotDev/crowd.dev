@@ -2,7 +2,7 @@
 FROM python:3.13.5-slim-bullseye AS base
 
 # Go builder stage: build the software-value binary and install scc
-FROM golang:1.24-bullseye AS go-builder
+FROM golang:1.25-alpine AS go-builder
 
 WORKDIR /go/src/software-value
 
