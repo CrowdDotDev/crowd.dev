@@ -45,105 +45,63 @@ sinks:
   - name: members_sink
     status: active
     table: public.members
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: members
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
   - name: activityRelations_sink
     status: active
     table: public.activityRelations
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: activityRelations
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - activityId
-    consumer_start:
-      position: beginning
   - name: segments_sink
     status: active
     table: public.segments
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: segments
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
   - name: collections_sink
     status: active
     table: public.collections
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: collections
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
   - name: insightsProjects_sink
     status: active
     table: public.insightsProjects
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: insightsProjects
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
   - name: collectionsInsightsProjects_sink
     status: active
     table: public.collectionsInsightsProjects
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: collectionsInsightsProjects
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
   - name: organizations_sink
     status: active
     table: public.organizations
-    filters: []
     destination:
       type: kafka
       hosts: kafka:9092
       tls: false
       topic: organizations
     database: cm-local
-    max_deliver:
-    group_column_names:
-      - id
-    consumer_start:
-      position: beginning
