@@ -28,21 +28,19 @@ export async function testMemberBotCharacteristicAnalysis(
       member.identities = member.identities.slice(0, 30)
     }
 
-    const PROMPT = `Your task is to analyze the following JSON document and decide whether the member is an automated/bot account or a human contributor.
+    const PROMPT = `Analyze the following JSON document and decide whether the member is an automated/bot account or a human contributor.
                     <json> ${JSON.stringify(member)} </json>
                     Input may include displayName, bio, and identities (usernames, emails, URLs). Sometimes only identities are provided.
                     Guidelines:
-                    - Use both the provided fields and your knowledge of common bots, services, and automated accounts in communities.
-                    - Do not rely solely on pattern-matching (e.g., presence of '-bot' in a username). Instead, consider the overall context of all available fields together.
-                    - If the displayName or bio provide clear evidence of a real person, treat that as stronger than bot-like identity patterns, unless the account is widely known as an actual service bot.
-                    - If only identities are available, rely on them but adjust confidence according to how strongly they resemble automation patterns.
-                    - Treat identities as strong bot evidence only if they match well-known or standard bot/service accounts (e.g., dependabot, renovate, github-actions).
-                    - Do not classify as a bot solely because a username or displayName contains “bot” or “robot”. Many real users include these terms.
-                    - Mixed signals should reduce confidence rather than force a wrong decision.
-                    Respond with ONLY valid JSON in the format and do not output anything else:
+                    - Consider the overall context of all fields; do not rely solely on usernames or identity patterns.
+                    - Human evidence (personal displayName, bio, personal email) strongly outweighs weak bot-like patterns.
+                    - Treat identities as strong bot signals only if they match widely recognized service or automation accounts (e.g., dependabot, renovate, github-actions).
+                    - Do not classify as a bot solely because the username or displayName contains words like “bot” or “robot.”
+                    - If signals conflict, reduce confidence rather than forcing a decision.
+                    Respond with ONLY valid JSON and do not output anything else:
                     {
-                        "isBot": boolean,           
-                        // include "signals" only if isBot is true             
+                        "isBot": boolean,
+                        // include "signals" only if isBot is true
                         "signals": { "identities"|"bio"|"displayName": "weak|medium|strong" },
                         "reason": "<short one-line concise explanation>"
                     }
