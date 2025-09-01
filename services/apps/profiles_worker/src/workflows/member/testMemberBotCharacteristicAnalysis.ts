@@ -31,6 +31,13 @@ export async function testMemberBotCharacteristicAnalysis(
     const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
                     <json> ${JSON.stringify(member)} </json>
                     ${args.prompt}
+                    Respond with ONLY valid JSON and do not output anything else:
+                    {
+                        "isBot": boolean,
+                        // include "signals" only if isBot is true
+                        "signals": { "identities"|"bio"|"displayName": "weak|medium|strong" },
+                        "reason": "<short one-line concise explanation>"
+                    }
     `
 
     const llm = await getLLMResult(LlmQueryType.MEMBER_BOT_VALIDATION, PROMPT, memberId)
