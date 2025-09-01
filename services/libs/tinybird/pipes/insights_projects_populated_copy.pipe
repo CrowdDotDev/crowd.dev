@@ -118,8 +118,7 @@ SQL >
         groupArrayIf(repository, archived = true) AS "archivedRepositories",
         groupArrayIf(repository, excluded = true) AS "excludedRepositories"
     FROM segmentRepositories FINAL
-    WHERE
-        archived = true OR excluded = true
+    WHERE archived = true OR excluded = true
     GROUP BY segmentId, insightsProjectId
 
 NODE insights_projects_populated_copy_results
