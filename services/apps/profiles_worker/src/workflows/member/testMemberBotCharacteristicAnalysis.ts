@@ -28,21 +28,24 @@ export async function testMemberBotCharacteristicAnalysis(
       member.identities = member.identities.slice(0, 30)
     }
 
-    const PROMPT = `Analyze the following JSON document and decide whether the member is an automated/bot account or a human contributor.
+    const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
                     <json> ${JSON.stringify(member)} </json>
-                    Input may include displayName, bio, and identities (usernames, emails, URLs). Sometimes only identities are provided.
-                    Guidelines:
-                    - Consider the overall context of all fields; do not rely solely on usernames or identity patterns.
-                    - Human evidence (personal displayName, bio, personal email) strongly outweighs weak bot-like patterns.
-                    - Treat identities as strong bot signals only if they match widely recognized service or automation accounts (e.g., dependabot, renovate, github-actions).
-                    - Do not classify as a bot solely because the username or displayName contains words like “bot” or “robot.”
-                    - If signals conflict, reduce confidence rather than forcing a decision.
+                    CONTEXTUAL ANALYSIS:
+                    - Evaluate all available evidence holistically (bio, displayName, identities)
+                    - Personal indicators (emails, education, company, location, personal websites) suggest human contributors
+                    - Service patterns combined with empty personal info suggest automation
+                    SIGNAL STRENGTH GUIDANCE:
+                    Identities: Reserve "strong" for widely recognized service accounts (dependabot, renovate, etc.)
+                    Bio: Use "strong" only when explicitly describing automated functionality
+                    DisplayName: Consider context - many humans use creative names with "bot"
+                    CLASSIFICATION PRINCIPLE:
+                    Default to human unless confident it's an automated service. Mixed signals = lower confidence, not forced classification.
                     Respond with ONLY valid JSON and do not output anything else:
                     {
                         "isBot": boolean,
                         // include "signals" only if isBot is true
-                        "signals": { "identities"|"bio"|"displayName": "weak|medium|strong" },
-                        "reason": "<short one-line concise explanation>"
+                        "signals": { "identities|bio|displayName": "weak|medium|strong" },
+                        "reason": "brief explanation"
                     }
     `
 
