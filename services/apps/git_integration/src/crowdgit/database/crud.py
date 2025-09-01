@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional, List
 from .registry import fetchval, fetchrow, executemany, execute, query
 from crowdgit.models.repository import Repository
+from crowdgit.models.service_execution import ServiceExecution
 from .connection import get_db_connection
 from crowdgit.enums import RepositoryPriority, RepositoryState
 from loguru import logger
@@ -33,7 +34,6 @@ async def get_repository_by_url(url: str) -> Optional[Dict[str, Any]]:
 
 
 async def acquire_onboarding_repo() -> Repository | None:
-    logger.info("Trying to acquire onboarding repo...")
     onboarding_repo_sql_query = """
     UPDATE git.repositories
     SET "lockedAt" = NOW(),
@@ -82,8 +82,6 @@ async def acquire_repository(query: str, params: tuple = None) -> Repository | N
 
 async def acquire_recurrent_repo() -> Optional[Repository]:
     """Acquire a regular (non-onboarding) repository, that were not processed in the last x hours (REPOSITORY_UPDATE_INTERVAL_HOURS)"""
-    logger.info("Trying to acquire non-onboarding repository...")
-    # TODO: review ordering filters (priority, createdAt, lastProcessedAt)
     recurrent_repo_sql_query = """
     UPDATE git.repositories
     SET "lockedAt" = NOW(),
@@ -96,7 +94,7 @@ async def acquire_recurrent_repo() -> Optional[Repository]:
             AND "lockedAt" IS NULL
             AND "deletedAt" IS NULL
             AND "lastProcessedAt" < NOW() - INTERVAL '1 hour' * $3
-        ORDER BY priority ASC, "createdAt" ASC
+        ORDER BY priority ASC, "lastProcessedAt" ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
@@ -268,3 +266,41 @@ async def set_maintainer_end_date(
             role,
         ),
     )
+
+
+async def save_service_execution(service_execution: ServiceExecution) -> None:
+    """
+    Save service execution record to database.
+    """
+    try:
+        sql_query = """
+        INSERT INTO git."serviceExecutions" (
+            "repoId", "operationType", "status", "errorCode", 
+            "errorMessage", "executionTimeSec"
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        """
+
+        db_data = service_execution.to_db_dict()
+        await execute(
+            sql_query,
+            (
+                db_data["repoId"],
+                db_data["operationType"],
+                db_data["status"],
+                db_data["errorCode"],
+                db_data["errorMessage"],
+                db_data["executionTimeSec"],
+            ),
+        )
+        logger.debug(
+            f"Successfully saved service execution: {service_execution.operation_type} for repo {service_execution.repo_id}"
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Failed to save service execution record: operation={service_execution.operation_type}, "
+            f"repo_id={service_execution.repo_id}, status={service_execution.status.value}, "
+            f"error: {e}"
+        )
+        # Do not re-raise - we don't want metrics saving to disrupt main operations

@@ -39,7 +39,6 @@ class RepositoryWorker:
         self.maintainer_service = maintainer_service
         self.queue_service = queue_service
         self._shutdown = False
-        self.running_tasks: set[asyncio.Task] = set()
 
     async def run(self):
         """Run the worker processing loop"""
@@ -47,13 +46,17 @@ class RepositoryWorker:
 
         try:
             await self._run()
+            logger.info("Worker _run() method completed")
         except Exception as e:
             logger.error("Worker failed: {}", e)
             raise InternalError("Repository worker failed")
+        finally:
+            logger.info("Worker run() method exiting")
 
     async def _run(self):
         """Internal run method with the processing loop"""
         try:
+            logger.info("Starting repo worker loop...")
             while not self._shutdown:
                 try:
                     await self._process_repositories()
@@ -61,17 +64,16 @@ class RepositoryWorker:
                 except Exception as e:
                     logger.error("Worker error: {}", e)
                     await asyncio.sleep(WORKER_ERROR_BACKOFF_SEC)
+            logger.info("Worker loop completed")
         finally:
-            if self.running_tasks:
-                logger.info(
-                    f"Waiting for {len(self.running_tasks)} tasks to finish before shutdown"
-                )
-                await asyncio.gather(*self.running_tasks, return_exceptions=True)
+            logger.info("Worker processing loop completed")
 
     async def shutdown(self):
-        """Shutdown the worker"""
+        """Shutdown the worker and all its services"""
         logger.info("Shutting down repository worker")
         self._shutdown = True
+
+        logger.info("Worker services shutdown triggered")
 
     async def _process_repositories(self):
         """
@@ -84,12 +86,11 @@ class RepositoryWorker:
             available_repo_to_process = await acquire_repo_for_processing()
 
             if not available_repo_to_process:
-                # TODO: remove before deploying to avoid spammy logs
-                # logger.debug("No repositories to process")
+                logger.debug("No repositories to process")
                 return
+
             await self._process_single_repository(available_repo_to_process)
         except Exception as e:
-            # TODO: Mark repository processing as failed
             logger.error(
                 f"Failed to process repository {available_repo_to_process} with error {e}"
             )
@@ -143,25 +144,14 @@ class RepositoryWorker:
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
             logger.info("Starting repository cloning...")
             async for batch in self.clone_service.clone_batches(
-                repository.url,
-                repository.last_processed_commit,
-                # TODO: add flag to enable working directory cleanup after first batch
+                repo_id=repository.id,
+                remote=repository.url,
+                target_commit_hash=repository.last_processed_commit,
+                working_dir_cleanup=True,
             ):
                 logger.info(f"Clone batch info: {batch}")
                 if batch.is_first_batch:
-                    await self.software_value_service.run(batch.repo_path)
-
-                # Process commits for this specific batch using hash range for precision
-                await self.commit_service.process_single_batch_commits(
-                    repo_path=batch.repo_path,
-                    edge_commit=batch.edge_commit,
-                    prev_batch_edge_commit=batch.prev_batch_edge_commit,
-                    remote=batch.remote,
-                    segment_id=repository.segment_id,
-                    integration_id=repository.integration_id,
-                )
-                if batch.is_final_batch:
-                    # maintainers process at final batch to allow some time until new identities are created
+                    await self.software_value_service.run(repository.id, batch.repo_path)
                     await self.maintainer_service.process_maintainers(
                         repo_id=repository.id,
                         repo_url=batch.remote,
@@ -169,6 +159,19 @@ class RepositoryWorker:
                         maintainer_file=repository.maintainer_file,
                         last_maintainer_run_at=repository.last_maintainer_run_at,
                     )
+                else:
+                    await self.commit_service.process_single_batch_commits(
+                        repo_id=repository.id,
+                        repo_path=batch.repo_path,
+                        edge_commit=batch.edge_commit,
+                        prev_batch_edge_commit=batch.prev_batch_edge_commit,
+                        remote=batch.remote,
+                        segment_id=repository.segment_id,
+                        integration_id=repository.integration_id,
+                        is_final_batch=batch.is_final_batch,
+                    )
+
+                if batch.is_final_batch:
                     await update_last_processed_commit(
                         repo_id=repository.id, commit_hash=batch.latest_commit_in_repo
                     )
