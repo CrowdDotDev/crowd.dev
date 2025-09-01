@@ -30,23 +30,7 @@ export async function testMemberBotCharacteristicAnalysis(
 
     const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
                     <json> ${JSON.stringify(member)} </json>
-                    CONTEXTUAL ANALYSIS:
-                    - Evaluate all available evidence holistically (bio, displayName, identities)
-                    - Personal indicators (emails, education, company, location, personal websites) suggest human contributors
-                    - Service patterns combined with empty personal info suggest automation
-                    SIGNAL STRENGTH GUIDANCE:
-                    Identities: Reserve "strong" for widely recognized service accounts (dependabot, renovate, etc.)
-                    Bio: Use "strong" only when explicitly describing automated functionality
-                    DisplayName: Consider context - many humans use creative names with "bot"
-                    CLASSIFICATION PRINCIPLE:
-                    Default to human unless confident it's an automated service. Mixed signals = lower confidence, not forced classification.
-                    Respond with ONLY valid JSON and do not output anything else:
-                    {
-                        "isBot": boolean,
-                        // include "signals" only if isBot is true
-                        "signals": { "identities|bio|displayName": "weak|medium|strong" },
-                        "reason": "brief explanation"
-                    }
+                    ${args.prompt}
     `
 
     const llm = await getLLMResult(LlmQueryType.MEMBER_BOT_VALIDATION, PROMPT, memberId)
