@@ -25,4 +25,4 @@ SCHEMA >
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY repository
-ENGINE_VER createdAt
+ENGINE_VER updatedAt
