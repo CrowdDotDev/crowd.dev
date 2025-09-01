@@ -18,7 +18,6 @@ export interface ProcessMemberBotSuggestionWithLLMInput {
 
 export interface TestMemberBotCharacteristicAnalysisInput {
   memberIds: string[]
-  prompt: string
 }
 
 export interface MemberForLLMBotSuggestion {
