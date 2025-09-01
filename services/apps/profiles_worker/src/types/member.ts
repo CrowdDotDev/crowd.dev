@@ -16,6 +16,10 @@ export interface ProcessMemberBotSuggestionWithLLMInput {
   memberId: string
 }
 
+export interface TestMemberBotCharacteristicAnalysisInput {
+  memberIds: string[]
+}
+
 export interface MemberForLLMBotSuggestion {
   displayName: string
   identities: IMemberIdentity[]
