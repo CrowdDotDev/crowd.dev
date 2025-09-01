@@ -34,7 +34,7 @@ export async function testMemberBotCharacteristicAnalysis(
                     Guidelines:
                     - Use both the provided fields and your knowledge of common bots, services, and automated accounts in communities.
                     - Do not rely solely on pattern-matching (e.g., presence of '-bot' in a username). Instead, consider the overall context of all available fields together.
-                    - If displayName or bio clearly indicate a real person, treat that as strong human evidence even if an identity looks bot-like.
+                    - If the displayName or bio provide clear evidence of a real person, treat that as stronger than bot-like identity patterns, unless the account is widely known as an actual service bot.
                     - If only identities are available, rely on them but adjust confidence according to how strongly they resemble automation patterns.
                     - Treat identities as strong bot evidence only if they match well-known or standard bot/service accounts (e.g., dependabot, renovate, github-actions).
                     - Do not classify as a bot solely because a username or displayName contains “bot” or “robot”. Many real users include these terms.
