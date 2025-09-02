@@ -5,6 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
+import { v4 as uuidv4 } from 'uuid'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
@@ -1268,6 +1269,11 @@ export default class IntegrationService {
    * @param transaction Database transaction
    * @param integrationId The integration ID from the git integration
    * @param inheritFromGithubRepos If true, queries githubRepos for IDs; if false, generates new UUIDs
+   *
+   * TODO: @Mouad After migration is complete, simplify this function by:
+   * 1. Using an object parameter instead of multiple parameters for better maintainability
+   * 2. Removing the inheritFromGithubRepos parameter since git.repositories will be the source of truth
+   * 3. Simplifying the logic to only handle git.repositories operations
    */
   private async syncRepositoriesToGitV2(
     remotes: string[],
@@ -1317,7 +1323,7 @@ export default class IntegrationService {
     } else {
       // Generate new entries with auto-generated UUIDs
       repositoriesToSync = remotes.map((url) => ({
-        id: require('uuid').v4(), // Generate new UUID
+        id: uuidv4(), // Generate new UUID
         url,
         integrationId,
         segmentId: options.currentSegments[0].id,

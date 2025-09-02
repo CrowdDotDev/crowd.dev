@@ -43,6 +43,10 @@ export default class GitReposRepository {
     }>,
     options: IRepositoryOptions,
   ) {
+    if (!repositories || repositories.length === 0) {
+      return
+    }
+
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
