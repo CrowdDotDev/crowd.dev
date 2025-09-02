@@ -731,7 +731,7 @@ export default class MemberService extends LoggerBase {
   }
 
   private async startMemberBotAnalysisWithLLMWorkflow(memberId: string): Promise<void> {
-    await this.temporal.workflow.start('analyzeMemberBotCharacteristicsWithLLM', {
+    await this.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
       taskQueue: 'profiles',
       workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${memberId}`,
       retry: {

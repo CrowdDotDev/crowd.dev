@@ -26,9 +26,9 @@ export function calculateMemberBotConfidence(signals: MemberBotSignal): number {
   }
 
   const baseScores = {
-    [MemberBotSignalStrength.WEAK]: 0.3,
-    [MemberBotSignalStrength.MEDIUM]: 0.6,
-    [MemberBotSignalStrength.STRONG]: 0.9,
+    [MemberBotSignalStrength.WEAK]: 0.2,
+    [MemberBotSignalStrength.MEDIUM]: 0.4,
+    [MemberBotSignalStrength.STRONG]: 0.85,
   }
 
   const priorityMultipliers = {
@@ -49,10 +49,9 @@ export function calculateMemberBotConfidence(signals: MemberBotSignal): number {
   let finalConfidence = maxScore
 
   // 3. Add a small boost for each additional piece of corroborating evidence.
-  const booster = 0.05
+  const booster = 0.15
   const numberOfAdditionalSignals = signalEntries.length - 1
   finalConfidence += numberOfAdditionalSignals * booster
 
-  // Cap the final score to a maximum of 0.95 to avoid overconfidence.
-  return Math.min(0.95, finalConfidence)
+  return Math.min(1.0, parseFloat(finalConfidence.toFixed(2)))
 }
