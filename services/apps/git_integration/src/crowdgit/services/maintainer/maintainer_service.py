@@ -284,7 +284,7 @@ class MaintainerService(BaseService):
 
         self.logger.warning("No maintainer files found using the known file names.")
 
-        file_name, ai_cost = await self.find_maintainer_file_with_ai(file_names, owner, repo)
+        file_name, ai_cost = await self.find_maintainer_file_with_ai(file_names)
 
         if file_name:
             file_path = os.path.join(repo_path, file_name)
