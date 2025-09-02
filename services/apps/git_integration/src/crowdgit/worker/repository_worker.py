@@ -143,7 +143,7 @@ class RepositoryWorker:
             self._bind_repository_context(repository, repo_name)
             # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
             logger.info("Starting repository cloning...")
-            async for batch in self.clone_service.clone_batches(
+            async for batch in self.clone_service.clone_batches_generator(
                 repo_id=repository.id,
                 remote=repository.url,
                 target_commit_hash=repository.last_processed_commit,

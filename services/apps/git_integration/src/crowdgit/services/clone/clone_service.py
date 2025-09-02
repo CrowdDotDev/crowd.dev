@@ -228,7 +228,7 @@ class CloneService(BaseService):
         )
         return calculated_depth
 
-    async def clone_batches(
+    async def clone_batches_generator(
         self,
         repo_id: str,
         remote: str,
