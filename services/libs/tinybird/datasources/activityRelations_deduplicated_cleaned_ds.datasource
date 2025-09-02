@@ -28,11 +28,11 @@ DESCRIPTION >
     - `organizationName` column is the denormalized display name of the organization the activity is affiliated with
 
 SCHEMA >
-    `activityId` String
+    `activityId` String,
     `conversationId` String,
     `createdAt` DateTime64(3),
     `updatedAt` DateTime64(3),
-    `memberId` ,
+    `memberId` String,
     `objectMemberId` String,
     `objectMemberUsername` String,
     `organizationId` String,
