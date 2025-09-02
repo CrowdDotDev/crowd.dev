@@ -46,8 +46,8 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
-import GithubReposRepository from '../database/repositories/githubReposRepository'
 import GitReposRepository from '../database/repositories/gitReposRepository'
+import GithubReposRepository from '../database/repositories/githubReposRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -409,7 +409,7 @@ export default class IntegrationService {
                 ...this.options,
                 transaction,
               })
-              
+
               // Also soft delete from git.repositories for git-integration V2
               await GitReposRepository.delete(integration.id, {
                 ...this.options,
@@ -1227,15 +1227,15 @@ export default class IntegrationService {
       }
       return url
     }
-    
+
     const remotes = integrationData.remotes.map((remote) => stripGit(remote))
-    
+
     try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes: remotes,
+            remotes,
           },
           status: 'done',
         },
@@ -1245,11 +1245,11 @@ export default class IntegrationService {
 
       // upsert repositories to git.repositories in order to be processed by git-integration V2
       await this.syncRepositoriesToGitV2(
-        remotes, 
-        options || this.options, 
+        remotes,
+        options || this.options,
         transaction,
         integration.id,
-        true // inheritFromGithubRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of githubRepos
+        true, // inheritFromGithubRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of githubRepos
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -1270,19 +1270,19 @@ export default class IntegrationService {
    * @param inheritFromGithubRepos If true, queries githubRepos for IDs; if false, generates new UUIDs
    */
   private async syncRepositoriesToGitV2(
-    remotes: string[], 
-    options: IRepositoryOptions, 
+    remotes: string[],
+    options: IRepositoryOptions,
     transaction: Transaction,
     integrationId: string,
     inheritFromGithubRepos: boolean,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
-    
+
     let repositoriesToSync: Array<{
-      id: string;
-      url: string;
-      integrationId: string;
-      segmentId: string;
+      id: string
+      url: string
+      integrationId: string
+      segmentId: string
     }> = []
 
     if (inheritFromGithubRepos) {
@@ -1296,31 +1296,31 @@ export default class IntegrationService {
         `,
         {
           replacements: {
-            urls: remotes
+            urls: remotes,
           },
           type: QueryTypes.SELECT,
           transaction,
         },
       )
 
-      repositoriesToSync = (githubRepos as any[]).map(repo => ({
+      repositoriesToSync = (githubRepos as any[]).map((repo) => ({
         id: repo.id,
         url: repo.url,
-        integrationId: integrationId,
-        segmentId: options.currentSegments[0].id
+        integrationId,
+        segmentId: options.currentSegments[0].id,
       }))
-      
+
       if (repositoriesToSync.length === 0) {
         this.options.log.warn('No githubRepos found - skipping repository sync to git v2')
         return
       }
     } else {
       // Generate new entries with auto-generated UUIDs
-      repositoriesToSync = remotes.map(url => ({
+      repositoriesToSync = remotes.map((url) => ({
         id: require('uuid').v4(), // Generate new UUID
-        url: url,
-        integrationId: integrationId,
-        segmentId: options.currentSegments[0].id
+        url,
+        integrationId,
+        segmentId: options.currentSegments[0].id,
       }))
     }
 

@@ -1,6 +1,7 @@
 import { QueryTypes } from 'sequelize'
-import SequelizeRepository from './sequelizeRepository'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import SequelizeRepository from './sequelizeRepository'
 
 export default class GitReposRepository {
   /**
@@ -33,30 +34,33 @@ export default class GitReposRepository {
    * @param repositories Array of repository data to upsert
    * @param options Repository options
    */
-  static async upsert(repositories: Array<{
-    id: string;
-    url: string;
-    integrationId: string;
-    segmentId: string;
-  }>, options: IRepositoryOptions) {
+  static async upsert(
+    repositories: Array<{
+      id: string
+      url: string
+      integrationId: string
+      segmentId: string
+    }>,
+    options: IRepositoryOptions,
+  ) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
     // Build SQL placeholders and parameter replacements in a single loop
     const placeholders: string[] = []
     const replacements: Record<string, any> = {}
-    
+
     repositories.forEach((repo, idx) => {
       // Build placeholder for this repository
       placeholders.push(`(:id_${idx}, :url_${idx}, :integrationId_${idx}, :segmentId_${idx})`)
-      
+
       // Build replacements for this repository
       replacements[`id_${idx}`] = repo.id
       replacements[`url_${idx}`] = repo.url
       replacements[`integrationId_${idx}`] = repo.integrationId
       replacements[`segmentId_${idx}`] = repo.segmentId
     })
-    
+
     const placeholdersString = placeholders.join(', ')
 
     await seq.query(
