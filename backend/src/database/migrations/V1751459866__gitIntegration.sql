@@ -13,7 +13,7 @@ CREATE TABLE git.repositories (
     
     -- Processing state and priority
     state VARCHAR(50) NOT NULL DEFAULT 'pending',
-    priority INTEGER NOT NULL DEFAULT 0, -- 0=urgent, 1=high, 2=normal
+    priority INTEGER NOT NULL DEFAULT 1, -- 0=urgent, 1=high, 2=normal
     
     -- Processing metadata
     "lastProcessedAt" TIMESTAMP WITH TIME ZONE,
