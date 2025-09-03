@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/knadh/koanf/parsers/toml/v2"
-	"github.com/knadh/koanf/providers/file"
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 type DBConfig struct {
@@ -22,53 +21,69 @@ type DBConfig struct {
 type Config struct {
 	TargetPath       string   `koanf:"target.path"`
 	SCCPath          string   `koanf:"scc.path"`
-	BatchSize        int      `koanf:"batch.size"`
 	InsightsDatabase DBConfig `koanf:"database.insights"`
 	CMDatabase       DBConfig `koanf:"database.cm"`
 }
 
-func getConfig(configFile string) Config {
+func getConfig(targetPath string) (Config, error) {
 	var config Config
 	var err error
 
-	if err := k.Load(file.Provider(configFile), toml.Parser()); err != nil {
-		log.Fatalf("Error loading config file '%s': %v", configFile, err)
-	}
-
-	config.TargetPath = k.String("target.path")
-	config.SCCPath = k.String("scc.path")
-	config.BatchSize = k.Int("batch.size")
+	// Load configuration from command line argument and environment variables
+	config.TargetPath = targetPath
+	// SCC path will be auto-discovered via exec.LookPath("scc")
 
 	if _, err := os.Stat(config.TargetPath); os.IsNotExist(err) {
-		log.Fatalf("Error: Target path '%s' does not exist: %v", config.TargetPath, err)
+		return config, fmt.Errorf("target path '%s' does not exist: %w", config.TargetPath, err)
 	} else if err != nil {
-		log.Fatalf("Error checking target path '%s': %v", config.TargetPath, err)
+		return config, fmt.Errorf("error checking target path '%s': %w", config.TargetPath, err)
 	}
 
-	if config.SCCPath == "" {
-		config.SCCPath, err = exec.LookPath("scc")
-		if err != nil {
-			log.Fatalf("Error: Could not find 'scc' executable in PATH. Use -scc-path flag or ensure scc is in PATH: %v", err)
+	// Auto-discover scc binary in PATH (should be at /usr/local/bin/scc in container)
+	config.SCCPath, err = exec.LookPath("scc")
+	if err != nil {
+		return config, fmt.Errorf("could not find 'scc' executable in PATH: %w", err)
+	}
+
+	config.InsightsDatabase.User = os.Getenv("INSIGHTS_DB_USERNAME")
+	config.InsightsDatabase.Password = os.Getenv("INSIGHTS_DB_PASSWORD")
+	config.InsightsDatabase.DBName = os.Getenv("INSIGHTS_DB_DATABASE")
+	config.InsightsDatabase.Host = os.Getenv("INSIGHTS_DB_WRITE_HOST")
+	if portStr := os.Getenv("INSIGHTS_DB_PORT"); portStr != "" {
+		if port, err := strconv.Atoi(portStr); err == nil {
+			config.InsightsDatabase.Port = port
 		}
 	}
+	config.InsightsDatabase.SSLMode = os.Getenv("INSIGHTS_DB_SSLMODE")
+	if poolMaxStr := os.Getenv("INSIGHTS_DB_POOL_MAX"); poolMaxStr != "" {
+		if poolMax, err := strconv.Atoi(poolMaxStr); err == nil {
+			config.InsightsDatabase.PoolMax = poolMax
+		}
+	}
+	if readOnlyStr := os.Getenv("INSIGHTS_DB_READONLY"); readOnlyStr != "" {
+		config.InsightsDatabase.ReadOnly = readOnlyStr == "true"
+	}
 
-	config.InsightsDatabase.User = k.String("database.insights.user")
-	config.InsightsDatabase.Password = k.String("database.insights.password")
-	config.InsightsDatabase.DBName = k.String("database.insights.dbname")
-	config.InsightsDatabase.Host = k.String("database.insights.host")
-	config.InsightsDatabase.Port = k.Int("database.insights.port")
-	config.InsightsDatabase.SSLMode = k.String("database.insights.sslmode")
-	config.InsightsDatabase.PoolMax = k.Int("database.insights.pool_max")
-	config.InsightsDatabase.ReadOnly = k.Bool("database.insights.readonly")
+	config.CMDatabase.User = os.Getenv("CROWD_DB_USERNAME")
+	config.CMDatabase.Password = os.Getenv("CROWD_DB_PASSWORD")
+	config.CMDatabase.DBName = os.Getenv("CROWD_DB_DATABASE")
+	config.CMDatabase.Host = os.Getenv("CROWD_DB_READ_HOST")
+	if portStr := os.Getenv("CROWD_DB_PORT"); portStr != "" {
+		if port, err := strconv.Atoi(portStr); err == nil {
+			config.CMDatabase.Port = port
+		}
+	}
+	config.CMDatabase.SSLMode = os.Getenv("CROWD_DB_SSLMODE")
+	if poolMaxStr := os.Getenv("CROWD_DB_POOL_MAX"); poolMaxStr != "" {
+		if poolMax, err := strconv.Atoi(poolMaxStr); err == nil {
+			config.CMDatabase.PoolMax = poolMax
+		}
+	} else {
+		config.CMDatabase.PoolMax = 10 // Default pool max
+	}
+	if readOnlyStr := os.Getenv("CROWD_DB_READONLY"); readOnlyStr != "" {
+		config.CMDatabase.ReadOnly = readOnlyStr == "true"
+	}
 
-	config.CMDatabase.User = k.String("database.cm.user")
-	config.CMDatabase.Password = k.String("database.cm.password")
-	config.CMDatabase.DBName = k.String("database.cm.dbname")
-	config.CMDatabase.Host = k.String("database.cm.host")
-	config.CMDatabase.Port = k.Int("database.cm.port")
-	config.CMDatabase.SSLMode = k.String("database.cm.sslmode")
-	config.CMDatabase.PoolMax = k.Int("database.cm.pool_max")
-	config.CMDatabase.ReadOnly = k.Bool("database.cm.readonly")
-
-	return config
+	return config, nil
 }

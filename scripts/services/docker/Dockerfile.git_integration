@@ -1,6 +1,27 @@
 # Base image for both stages
 FROM python:3.13.5-slim-bullseye AS base
 
+# Go builder stage: build the software-value binary and install scc
+FROM golang:1.25-alpine AS go-builder
+
+WORKDIR /go/src/software-value
+
+# Install scc using the official Go toolchain (specific version as per project README)
+RUN go install github.com/boyter/scc/v3@v3.5.0
+
+# Copy Go module files
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/go.mod ./
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/ ./
+
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-w -s" -o software-value ./
+
 # Builder stage: install build dependencies, uv, and dependencies
 FROM base AS builder
 
@@ -59,11 +80,17 @@ WORKDIR /usr/crowd/app
 COPY --from=builder /usr/crowd/app/.venv /usr/crowd/app/.venv
 COPY --from=builder /usr/crowd/app /usr/crowd/app
 
+# Copy both software-value and scc binaries from go-builder stage
+COPY --from=go-builder /go/src/software-value/software-value /usr/local/bin/software-value
+COPY --from=go-builder /go/bin/scc /usr/local/bin/scc
+
 # Add virtual environment bin to PATH
 ENV PATH="/usr/crowd/app/.venv/bin:$PATH"
 
-# Make runner script executable
-RUN chmod +x ./src/runner.sh
+# Make runner script and binaries executable
+RUN chmod +x ./src/runner.sh \
+    && chmod +x /usr/local/bin/software-value \
+    && chmod +x /usr/local/bin/scc
 
 EXPOSE 8085
 
