@@ -1,5 +1,32 @@
 package main
 
+// Standard response structure for all outputs
+type StandardResponse struct {
+	Status       string  `json:"status"`
+	ErrorCode    *string `json:"error_code"`
+	ErrorMessage *string `json:"error_message"`
+}
+
+// Error codes for different failure scenarios
+const (
+	ErrorCodeInvalidArguments     = "INVALID_ARGUMENTS"
+	ErrorCodeTargetPathNotFound   = "TARGET_PATH_NOT_FOUND"
+	ErrorCodeSCCNotFound          = "SCC_NOT_FOUND"
+	ErrorCodeDatabaseConnection   = "DATABASE_CONNECTION_ERROR"
+	ErrorCodeGitRepositoryURL     = "GIT_REPOSITORY_URL_ERROR"
+	ErrorCodeSCCExecution         = "SCC_EXECUTION_ERROR"
+	ErrorCodeSCCParsing           = "SCC_PARSING_ERROR"
+	ErrorCodeDatabaseOperation    = "DATABASE_OPERATION_ERROR"
+	ErrorCodeNoCostFound          = "NO_COST_FOUND"
+	ErrorCodeUnknown              = "UNKNOWN_ERROR"
+)
+
+// Status constants
+const (
+	StatusSuccess = "success"
+	StatusFailure = "failure"
+)
+
 type Repository struct {
 	Path string `json:"Path"`
 	URL  string `json:"URL"`
