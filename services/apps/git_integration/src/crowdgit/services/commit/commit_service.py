@@ -2,17 +2,32 @@ from typing import Dict, Any, Optional, List, Tuple
 from loguru import logger
 import hashlib
 from crowdgit.services.base.base_service import BaseService
+from crowdgit.services.queue.queue_service import QueueService
 from crowdgit.services.utils import get_default_branch
 from crowdgit.services.utils import run_shell_command
+from crowdgit.models.service_execution import ServiceExecution
+
+from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
+from crowdgit.database.crud import save_service_execution
+from crowdgit.errors import CrowdGitError
 import re
 import time
 import datetime
 import asyncio
-from crowdgit.settings import MAX_WORKER_PROCESSES
+import json
+from decimal import Decimal
+from crowdgit.settings import MAX_WORKER_PROCESSES, DEFAULT_TENANT_ID
 from concurrent.futures import ProcessPoolExecutor
 from tenacity import retry, stop_after_attempt, wait_fixed
 import subprocess
 from crowdgit.services.commit.activitymap import ActivityMap
+import uuid
+from crowdgit.enums import (
+    IntegrationResultType,
+    IntegrationResultState,
+    DataSinkWorkerQueueMessageType,
+)
+from crowdgit.database.crud import batch_insert_activities
 
 
 class CommitService(BaseService):
@@ -35,9 +50,12 @@ class CommitService(BaseService):
 
     MAX_CHUNK_SIZE = 250
 
-    def __init__(self):
+    def __init__(self, queue_service: QueueService):
         super().__init__()
         self.process_pool = None
+        self.queue_service = queue_service
+        # Metrics tracking for current repository
+        self._metrics_context = None
 
     def _get_or_create_pool(self) -> ProcessPoolExecutor:
         """Get or create process pool with proper lifecycle management"""
@@ -83,24 +101,42 @@ class CommitService(BaseService):
         except ValueError:
             return False
 
-    async def process_batch_commits(
-        self, repo_path: str, edge_commit: Optional[str], prev_batch_edge_commit: str, remote: str
-    ) -> List[Dict[str, Any]]:
+    async def process_single_batch_commits(
+        self,
+        repo_id: str,
+        repo_path: str,
+        edge_commit: Optional[str],
+        prev_batch_edge_commit: str,
+        remote: str,
+        segment_id: str,
+        integration_id,
+        is_final_batch: bool = False,
+    ) -> None:
         """
-        Extract commits from repository in batches.
+        Process commits from a cloned batch.
 
         Args:
             repo_path: Path to the Git repository.
             edge_commit: The edge commit for the current batch. It should be excluded from processing because its data may be incomplete or inaccurate.
             prev_batch_edge_commit: The edge commit from the previous batch. Which is used as the starting point (included) for the current batch processing.
-        Returns:
-            List of commit dictionaries
-
-        Raises:
-            RuntimeError: If git operations fail
+            remote: Remote repository URL
+            segment_id: Segment identifier
+            integration_id: Integration identifier
+            is_final_batch: Whether this is the final batch (triggers metrics saving)
         """
+        # Initialize metrics context on first call
+        if self._metrics_context is None:
+            self._metrics_context = {
+                "start_time": time.time(),
+                "total_execution_time": 0.0,
+                "execution_status": ExecutionStatus.SUCCESS,
+                "error_code": None,
+                "error_message": None,
+            }
+
+        batch_start_time = time.time()
+
         try:
-            start_time = time.time()
             self.logger.info(
                 f"Starting commits processing for new batch having commits older than {prev_batch_edge_commit}"
             )
@@ -108,23 +144,62 @@ class CommitService(BaseService):
                 repo_path, prev_batch_edge_commit, edge_commit
             )
 
-            activities = await self._parse_activities_from_commits(
-                raw_commits, repo_path, edge_commit, remote
+            await self._process_activities_from_commits(
+                raw_commits, repo_path, edge_commit, remote, segment_id, integration_id
             )
 
-            end_time = time.time()
-            processing_time = end_time - start_time
+            batch_end_time = time.time()
+            batch_time = round(batch_end_time - batch_start_time, 2)
+            self._metrics_context["total_execution_time"] += batch_time
 
-            self.logger.info(
-                f"{len(activities)} activity extracted from {remote} in {int(processing_time)}sec ({processing_time / 60:.2f} min)"
-            )
+            self.logger.info(f"Batch activity processed from {remote} in {batch_time}sec")
 
-            return activities
+            # Save metrics if this is the final batch
+            if is_final_batch:
+                service_execution = ServiceExecution(
+                    repo_id=repo_id,
+                    operation_type=OperationType.COMMIT,
+                    status=self._metrics_context["execution_status"],
+                    error_code=self._metrics_context["error_code"],
+                    error_message=self._metrics_context["error_message"],
+                    execution_time_sec=Decimal(
+                        str(round(self._metrics_context["total_execution_time"], 2))
+                    ),
+                )
+                await save_service_execution(service_execution)
+                # Reset metrics context after saving
+                self._metrics_context = None
 
         except Exception as e:
-            # TODO: return unified Result object for all services including status and error code/message
-            self.logger.error(f"Failed to get commits for batch from {repo_path}: {e}")
-            return None
+            # Update metrics context with error info
+            batch_end_time = time.time()
+            batch_time = round(batch_end_time - batch_start_time, 2)
+            self._metrics_context["total_execution_time"] += batch_time
+            self._metrics_context["execution_status"] = ExecutionStatus.FAILURE
+
+            error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
+            self._metrics_context["error_code"] = (
+                e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
+            )
+            self._metrics_context["error_message"] = error_message
+
+            self.logger.error(f"Commit processing failed: {error_message}")
+
+            # Save metrics on error
+            service_execution = ServiceExecution(
+                repo_id=repo_id,
+                operation_type=OperationType.COMMIT,
+                status=self._metrics_context["execution_status"],
+                error_code=self._metrics_context["error_code"],
+                error_message=self._metrics_context["error_message"],
+                execution_time_sec=Decimal(
+                    str(round(self._metrics_context["total_execution_time"], 2))
+                ),
+            )
+            await save_service_execution(service_execution)
+            # Reset metrics context after saving
+            self._metrics_context = None
+            raise
 
     async def _get_commit_reference(self, repo_path: str) -> str:
         """Get the commit reference for git log command."""
@@ -203,6 +278,7 @@ class CommitService(BaseService):
         activity_type: str,
         member: Dict,
         source_id: str,
+        segment_id: str,
         source_parent_id: str = "",
     ) -> Dict:
         """
@@ -265,7 +341,6 @@ class CommitService(BaseService):
         # Pre-calculate commit attributes to avoid repeated lookups
         insertions = commit.get("insertions", 0)
         deletions = commit.get("deletions", 0)
-
         return {
             "type": activity_type,
             "timestamp": timestamp,
@@ -285,6 +360,7 @@ class CommitService(BaseService):
             },
             "url": remote,
             "member": processed_member,
+            "segmentId": segment_id,
         }
 
     @staticmethod
@@ -319,7 +395,42 @@ class CommitService(BaseService):
         return activities
 
     @staticmethod
-    def create_activities_from_commit(remote: str, commit: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def prepare_activity_for_db_and_queue(
+        activity: Dict, segment_id: str, integration_id: str
+    ) -> tuple[tuple, dict]:
+        activity["segmentId"] = segment_id
+        result_id = str(uuid.uuid1())
+
+        data_dict = {
+            "type": IntegrationResultType.ACTIVITY,
+            "data": activity,
+        }
+        activity_db = (
+            result_id,
+            IntegrationResultState.PENDING,
+            json.dumps(data_dict),
+            DEFAULT_TENANT_ID,
+            integration_id,
+        )
+        operation = "upsert_activities_with_members"
+        activity_kafka = {
+            "message_id": f"{DEFAULT_TENANT_ID}-{operation}-{CommitService._GIT_PLATFORM}-{result_id}",
+            "payload": json.dumps(
+                {
+                    "type": DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT,
+                    "tenantId": DEFAULT_TENANT_ID,
+                    "segmentId": segment_id,
+                    "integrationId": integration_id,
+                    "resultId": result_id,
+                }
+            ),
+        }
+        return activity_db, activity_kafka
+
+    @staticmethod
+    def create_activities_from_commit(
+        remote: str, commit: Dict[str, Any], segment_id: str, integration_id: str
+    ) -> tuple[List[tuple], List[Dict[str, Any]]]:
         """
         Create activities from a commit with improved efficiency.
 
@@ -330,7 +441,8 @@ class CommitService(BaseService):
         Returns:
             List of activity dictionaries
         """
-        activities = []
+        activities_db = []
+        activities_queue = []
         commit_hash = commit["hash"]
 
         # Pre-calculate common values to avoid repeated lookups
@@ -345,9 +457,19 @@ class CommitService(BaseService):
             "displayName": author_name,
             "emails": [author_email],
         }
-        activities.append(
-            CommitService.create_activity(remote, commit, "authored-commit", author, commit_hash)
+        activity = CommitService.create_activity(
+            remote=remote,
+            commit=commit,
+            activity_type="authored-commit",
+            member=author,
+            source_id=commit_hash,
+            segment_id=segment_id,
         )
+        activity_db, activity_kafka = CommitService.prepare_activity_for_db_and_queue(
+            activity, segment_id, integration_id
+        )
+        activities_db.append(activity_db)
+        activities_queue.append(activity_kafka)
 
         # Only create committer activity if author and committer are different
         if author_name != committer_name or author_email != committer_email:
@@ -360,39 +482,52 @@ class CommitService(BaseService):
                 "displayName": committer_name,
                 "emails": [committer_email],
             }
-            activities.append(
-                CommitService.create_activity(
-                    remote,
-                    commit,
-                    "committed-commit",
-                    committer,
-                    committer_source_id,
-                    commit_hash,
-                )
+            activity = CommitService.create_activity(
+                remote=remote,
+                commit=commit,
+                activity_type="committed-commit",
+                member=committer,
+                source_id=committer_source_id,
+                source_parent_id=commit_hash,
+                segment_id=segment_id,
             )
+            activity_db, activity_kafka = CommitService.prepare_activity_for_db_and_queue(
+                activity, segment_id, integration_id
+            )
+            activities_db.append(activity_db)
+            activities_queue.append(activity_kafka)
 
-        return activities
+        return activities_db, activities_queue
 
     @staticmethod
-    def parse_commits_chunk(
+    def process_commits_chunk(
         commit_texts_chunk: List[Optional[str]],
         repo_path: str,
         edge_commit_hash: Optional[str],
         remote: str,
-    ) -> List[Dict[str, Any]]:
+        segment_id: str,
+        integration_id: str,
+    ) -> List[tuple]:
         """
-        Parse a chunk of commit texts into activities with improved efficiency.
+        Process a chunk of raw commit texts into activities.
+
+        This is a low-level method used for parallel processing of commit data.
+        It takes pre-split commit text chunks, converts them to activity objects,
+        and returns them for batch processing in the main async context.
 
         Args:
             commit_texts_chunk: List of commit text strings to process
             repo_path: Path to the repository
             edge_commit_hash: Edge commit hash for filtering
             remote: Remote repository URL
+            segment_id: Segment identifier
+            integration_id: Integration identifier
 
         Returns:
-            List of activity dictionaries
+            List of activity dictionaries for database insertion
         """
-        activities = []
+        activities_db = []
+        activities_queue = []
         bad_commits = 0
         processed_commits = 0
 
@@ -411,38 +546,52 @@ class CommitService(BaseService):
             try:
                 commit = CommitService._construct_commit_dict(commit_lines, repo_path)
                 if CommitService._validate_commit_data(commit):
-                    activities.extend(CommitService.create_activities_from_commit(remote, commit))
+                    activity_db_records, activity_kafka = (
+                        CommitService.create_activities_from_commit(
+                            remote, commit, segment_id, integration_id
+                        )
+                    )
+                    activities_db.extend(activity_db_records)
+                    activities_queue.extend(activity_kafka)
                     processed_commits += 1
                 else:
                     bad_commits += 1
+
             except Exception as e:
                 logger.warning(f"Failed to parse commit in {repo_path}: {e}")
                 bad_commits += 1
                 continue
 
-        if processed_commits > 0 or bad_commits > 0:
-            logger.info(
-                f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
-            )
+        logger.info(
+            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
+        )
 
-        return activities
+        return activities_db, activities_queue
 
-    async def _parse_activities_from_commits(
-        self, raw_output: str, repo_path: str, edge_commit_hash: Optional[str], remote: str
-    ) -> List[Dict[str, Any]]:
+    async def _process_activities_from_commits(
+        self,
+        raw_output: str,
+        repo_path: str,
+        edge_commit_hash: Optional[str],
+        remote: str,
+        segment_id: str,
+        integration_id: str,
+    ):
         """
         Parse raw git log output into commit dictionaries.
         """
-        activities = []
-
         commit_texts = [c.strip() for c in raw_output.split(self.COMMIT_END_SPLITTER) if c.strip()]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
-        chunk_size = min(max(1, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
+        if len(commit_texts) == 0:
+            self.logger.info("No commits to be processed")
+            return
+        chunk_size = min(max(20, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
 
         self.logger.info(f"Spliting commits into chunks of {chunk_size}")
         chunks = [
             commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
         ]
+        self.logger.info(f"Total commits {len(commit_texts)} chunks {len(chunks)}")
         loop = asyncio.get_event_loop()
 
         executor = self._get_or_create_pool()
@@ -450,17 +599,23 @@ class CommitService(BaseService):
         futures = [
             loop.run_in_executor(
                 executor,
-                CommitService.parse_commits_chunk,
+                CommitService.process_commits_chunk,
                 chunk,
                 repo_path,
                 edge_commit_hash,
                 remote,
+                segment_id,
+                integration_id,
             )
             for chunk in chunks
         ]
-        results = await asyncio.gather(*futures)
-        activities = [item for sublist in results for item in sublist]
-        return activities
+
+        # Save each chunk's activities as they complete
+        for future in asyncio.as_completed(futures):
+            chunk_activities_db, chunk_activities_queue = await future
+            if chunk_activities_db and chunk_activities_queue:
+                await batch_insert_activities(chunk_activities_db)
+                await self.queue_service.send_batch_activities(chunk_activities_queue)
 
     @staticmethod
     def _validate_commit_structure(commit_lines: List[str]) -> bool:

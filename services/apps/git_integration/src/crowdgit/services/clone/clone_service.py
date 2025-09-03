@@ -7,14 +7,22 @@ import os
 from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.utils import run_shell_command, get_repo_name, get_default_branch
 from crowdgit.models import CloneBatchInfo
-from crowdgit.errors import CommandExecutionError
+from crowdgit.models.service_execution import ServiceExecution
+from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
+from crowdgit.database.crud import save_service_execution
+from crowdgit.errors import CommandExecutionError, CrowdGitError
 from tenacity import retry, stop_after_attempt, wait_fixed
+import time
+from decimal import Decimal
 
 DEFAULT_CLONE_BATCH_DEPTH = 10
 
 
 class CloneService(BaseService):
     """Service for cloning repositories"""
+
+    def __init__(self):
+        super().__init__()
 
     async def _check_if_final_batch(self, path: str, target_commit_hash: Optional[str]) -> bool:
         """
@@ -161,6 +169,42 @@ class CloneService(BaseService):
         except FileNotFoundError:
             return None
 
+    async def _cleanup_working_directory(self, repo_path: str) -> None:
+        """
+        Remove all files and directories from the repository except the .git directory.
+        This helps reduce disk usage while preserving git history for commit processing.
+        """
+        try:
+            self.logger.info(f"Cleaning working directory: {repo_path}")
+
+            # Use find command to remove everything except .git directory
+            await run_shell_command(
+                [
+                    "find",
+                    ".",
+                    "-mindepth",
+                    "1",
+                    "-maxdepth",
+                    "1",
+                    "!",
+                    "-name",
+                    ".git",
+                    "-exec",
+                    "rm",
+                    "-rf",
+                    "{}",
+                    "+",
+                ],
+                cwd=repo_path,
+            )
+
+            self.logger.info("Working directory cleanup completed")
+
+        except Exception as e:
+            self.logger.error(f"Failed to cleanup working directory: {e}")
+            # Don't raise the exception as cleanup failure shouldn't stop the cloning process
+            # The process can continue with the files present
+
     async def _calculate_batch_depth(self, repo_path: str, remote: str) -> int:
         calculated_depth = None
         total_branches_tags = await run_shell_command(
@@ -184,18 +228,25 @@ class CloneService(BaseService):
         )
         return calculated_depth
 
-    async def clone_batches(
+    async def clone_batches_generator(
         self,
+        repo_id: str,
         remote: str,
         target_commit_hash: Optional[str] = None,
+        working_dir_cleanup: Optional[bool] = False,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
         Async generator that yields CloneBatchInfo for each batch of repository cloning.
         """
         temp_repo_path = None
+        execution_status = ExecutionStatus.SUCCESS
+        error_code = None
+        error_message = None
+        total_execution_time = 0.0
+
         batch_info = CloneBatchInfo(
             repo_path=temp_repo_path,
-            remote=remote,
+            remote=remote.removesuffix(".git"),
             is_final_batch=False,
             is_first_batch=True,
             total_commits_count=0,
@@ -204,22 +255,50 @@ class CloneService(BaseService):
             temp_repo_path = tempfile.mkdtemp(prefix=f"{get_repo_name(remote)}_")
             batch_info.repo_path = temp_repo_path
 
+            # First batch - initial clone
+            batch_start_time = time.time()
             await self._init_minimal_clone(temp_repo_path, remote)
             batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
             await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
+            batch_end_time = time.time()
+            total_execution_time += round(batch_end_time - batch_start_time, 2)
+
             yield batch_info
+            if working_dir_cleanup:
+                await self._cleanup_working_directory(temp_repo_path)
 
             batch_info.is_first_batch = False
             while not batch_info.is_final_batch:
+                batch_start_time = time.time()
                 batch_info.prev_batch_edge_commit = await self._get_edge_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
                 await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
+                batch_end_time = time.time()
+                total_execution_time += round(batch_end_time - batch_start_time, 2)
+
                 yield batch_info
+
         except Exception as e:
-            # TODO: catch and handle all cloning exceptions
-            self.logger.error(f"Error during cloning: {e}")
+            # Handle both CrowdGitError and generic Exception
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
+            error_code = (
+                e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
+            )
+            self.logger.error(f"Cloning failed: {error_message}")
             raise
         finally:
             if temp_repo_path and os.path.exists(temp_repo_path):
                 self.logger.info(f"cleaning temp dir {temp_repo_path}")
                 shutil.rmtree(temp_repo_path)
+
+            # Save metrics
+            service_execution = ServiceExecution(
+                repo_id=repo_id,
+                operation_type=OperationType.CLONE,
+                status=execution_status,
+                error_code=error_code,
+                error_message=error_message,
+                execution_time_sec=Decimal(str(round(total_execution_time, 2))),
+            )
+            await save_service_execution(service_execution)

@@ -10,18 +10,10 @@ from crowdgit.services import (
     CommitService,
     SoftwareValueService,
     MaintainerService,
+    QueueService,
 )
-
-
-def setup_signal_handlers(worker: RepositoryWorker):
-    """Setup signal handlers for graceful shutdown"""
-
-    def signal_handler(signum, frame):
-        logger.info(f"Received signal {signum}, initiating graceful shutdown")
-        asyncio.create_task(worker.shutdown())
-
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+from crowdgit.settings import WORKER_SHUTDOWN_TIMEOUT_SEC
+from typing import AsyncIterator
 
 
 @asynccontextmanager
@@ -30,45 +22,33 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting application lifespan")
 
     clone_service = CloneService()
-    commit_service = CommitService()
+    queue_service = QueueService()
+    commit_service = CommitService(queue_service=queue_service)
     software_value_service = SoftwareValueService()
     maintainer_service = MaintainerService()
 
+    worker_task = None
     worker = RepositoryWorker(
         clone_service=clone_service,
         commit_service=commit_service,
         software_value_service=software_value_service,
         maintainer_service=maintainer_service,
+        queue_service=queue_service,
     )
+    logger.info("Repo worker initialized")
     try:
-        logger.info("Repo worker intialized")
-        setup_signal_handlers(worker)
         worker_task = asyncio.create_task(worker.run())
         logger.info("RepositoryWorker started successfully")
+        # Yield control to FastAPI - it will handle signals and trigger shutdown
         yield
     finally:
-        logger.info("Shutting down application")
-        # TODO: implement proper graceful shutdown to wait for processing tasks
-        await worker.shutdown()
-        logger.info("RepositoryWorker shutdown completed")
-
-        # Wait for worker task to complete
-        if not worker_task.done():
-            logger.info("Waiting for worker task to complete")
-            try:
-                # TODO: define reasonable timeout based on task processing duration
-                await asyncio.wait_for(worker_task, timeout=30.0)
-                logger.info("Worker task completed successfully")
-            except asyncio.TimeoutError:
-                # TODO: handle it properly, sending slack alert or so...
-                logger.warning("Worker task did not complete within timeout, cancelling")
-                worker_task.cancel()
-                try:
-                    await worker_task
-                except asyncio.CancelledError:
-                    pass
-
-        logger.info("Application shutdown completed")
+        await worker.shutdown()  # stopping worker to process new repos
+        try:
+            await asyncio.wait_for(worker_task, timeout=WORKER_SHUTDOWN_TIMEOUT_SEC)
+            logger.info("Worker shutdown complete")
+        except asyncio.TimeoutError:
+            logger.warning("Worker shutdown timeout, forcing cancellation")
+            worker_task.cancel()
 
 
 app = FastAPI(lifespan=lifespan)
