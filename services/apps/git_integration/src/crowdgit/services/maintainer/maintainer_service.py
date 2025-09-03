@@ -2,8 +2,11 @@ from typing import Dict, Any
 from loguru import logger
 from crowdgit.services.utils import parse_repo_url
 from crowdgit.services.base.base_service import BaseService
-from crowdgit.errors import MaintainerFileNotFoundError, MaintanerAnalysisError
+from crowdgit.errors import MaintainerFileNotFoundError, MaintanerAnalysisError, CrowdGitError
 from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
+from crowdgit.models.service_execution import ServiceExecution
+from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
+from crowdgit.database.crud import save_service_execution
 import os
 import base64
 import asyncio
@@ -27,6 +30,8 @@ from crowdgit.database.crud import (
     set_maintainer_end_date,
 )
 from datetime import datetime, timezone, time
+import time as time_module
+from decimal import Decimal
 
 
 class MaintainerService(BaseService):
@@ -279,7 +284,7 @@ class MaintainerService(BaseService):
 
         self.logger.warning("No maintainer files found using the known file names.")
 
-        file_name, ai_cost = await self.find_maintainer_file_with_ai(file_names, owner, repo)
+        file_name, ai_cost = await self.find_maintainer_file_with_ai(file_names)
 
         if file_name:
             file_path = os.path.join(repo_path, file_name)
@@ -328,7 +333,13 @@ class MaintainerService(BaseService):
         repo_path: str,
         maintainer_file: str | None = None,
         last_maintainer_run_at: datetime | None = None,
-    ):
+    ) -> None:
+        start_time = time_module.time()
+        execution_status = ExecutionStatus.SUCCESS
+        error_code = None
+        error_message = None
+        latest_maintainer_file = None
+
         try:
             self.logger.info(f"Starting maintainers processing for repo: {repo_url}")
             owner, repo_name = parse_repo_url(repo_url)
@@ -358,7 +369,25 @@ class MaintainerService(BaseService):
                 repo_id, repo_url, maintainers.maintainer_info, last_maintainer_run_at
             )
         except Exception as e:
-            # TODO: handle errors properly
-            self.logger.error(f"Failed to process maintainers with error: {repr(e)}")
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
+            error_code = (
+                e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
+            )
+
+            self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
             await update_maintainer_run(repo_id, latest_maintainer_file)
+
+            end_time = time_module.time()
+            execution_time = Decimal(str(round(end_time - start_time, 2)))
+
+            service_execution = ServiceExecution(
+                repo_id=repo_id,
+                operation_type=OperationType.MAINTAINER,
+                status=execution_status,
+                error_code=error_code,
+                error_message=error_message,
+                execution_time_sec=execution_time,
+            )
+            await save_service_execution(service_execution)

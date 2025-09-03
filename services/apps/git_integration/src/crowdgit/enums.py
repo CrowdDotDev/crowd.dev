@@ -45,3 +45,19 @@ class IntegrationResultState(str, Enum):
 
 class DataSinkWorkerQueueMessageType(str, Enum):
     PROCESS_INTEGRATION_RESULT = "process_integration_result"
+
+
+class ExecutionStatus(str, Enum):
+    """Service execution status"""
+
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+
+class OperationType(str, Enum):
+    """Service operation types for metrics tracking"""
+
+    CLONE = "Clone"
+    COMMIT = "Commit"
+    MAINTAINER = "Maintainer"
+    SOFTWARE_VALUE = "SoftwareValue"
