@@ -4,108 +4,132 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/knadh/koanf/v2"
 )
 
-var k = koanf.New(".")
-
-const configFile = "./config.toml"
-
 func main() {
-	var err error
+	response := processRepository()
+	outputJSON(response)
+	
+	// Always exit with code 0 - status details are in JSON response
+}
+
+// processRepository handles the main logic and returns a StandardResponse
+func processRepository() StandardResponse {
 	ctx := context.Background()
 
-	config := getConfig(configFile)
+	// Get target path from command line argument
+	var targetPath string
+	if len(os.Args) > 1 {
+		targetPath = os.Args[1]
+	} else {
+		errorCode := ErrorCodeInvalidArguments
+		errorMessage := fmt.Sprintf("Usage: %s <target-path>", os.Args[0])
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+
+	config, err := getConfig(targetPath)
+	if err != nil {
+		errorCode := getErrorCodeFromConfigError(err)
+		errorMessage := err.Error()
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+
+	// Process single repository (the target path argument)
+	repoDir := config.TargetPath
 
 	insightsDb, err := NewInsightsDB(ctx, config.InsightsDatabase)
 	if err != nil {
-		log.Fatalf("Error connecting to insights database: %v", err)
+		errorCode := ErrorCodeDatabaseConnection
+		errorMessage := fmt.Sprintf("Error connecting to insights database: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 	defer insightsDb.Close()
 
 	cmdb, err := NewCMDB(ctx, config.CMDatabase)
 	if err != nil {
-		log.Fatalf("Error connecting to CM database: %v", err)
+		errorCode := ErrorCodeDatabaseConnection
+		errorMessage := fmt.Sprintf("Error connecting to CM database: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
 	}
 	defer cmdb.Close()
 
-	repoDirs, err := findRepositoriesDirectories(config.TargetPath)
+	// Get git URL for the repository
+	gitUrl, err := getGitRepositoryURL(repoDir)
 	if err != nil {
-		log.Fatalf("Error finding subdirectories: %v", err)
-	}
-
-	batchSize := config.BatchSize
-	var batch []SCCReport
-
-	for _, repoDir := range repoDirs {
-		gitUrl, err := getGitRepositoryURL(repoDir)
-		if err != nil {
-			log.Printf("Could not get the git repository URL for '%s': %v", repoDir, err)
-			continue
-		}
-
-		report, err := getSCCReport(config.SCCPath, repoDir)
-		if err != nil {
-			log.Printf("Error processing repository '%s': %v", repoDir, err)
-			continue
-		}
-		report.Repository.URL = gitUrl
-
-		batch = append(batch, report)
-
-		fmt.Printf("Directory: %s", repoDir)
-		fmt.Printf("Estimated Cost in Dollars: %.2f\n", report.Cocomo.CostInDollars)
-		fmt.Printf("Git URL: %s\n\n", gitUrl)
-
-		if len(batch) >= batchSize {
-			saveBatch(ctx, insightsDb, batch)
-			batch = batch[:0]
+		errorCode := ErrorCodeGitRepositoryURL
+		errorMessage := fmt.Sprintf("Could not get the git repository URL for '%s': %v", repoDir, err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
 		}
 	}
-	// Save any remaining reports
-	if len(batch) > 0 {
-		saveBatch(ctx, insightsDb, batch)
+
+	// Process the repository with SCC
+	report, err := getSCCReport(config.SCCPath, repoDir)
+	if err != nil {
+		errorCode := getErrorCodeFromSCCError(err)
+		errorMessage := fmt.Sprintf("Error processing repository '%s': %v", repoDir, err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+	report.Repository.URL = gitUrl
+
+	// Save to database
+	if err := insightsDb.saveProjectCost(ctx, report.Repository, report.Cocomo.CostInDollars); err != nil {
+		errorCode := ErrorCodeDatabaseOperation
+		errorMessage := fmt.Sprintf("Error saving project cost: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+
+	if err := insightsDb.saveLanguageStats(ctx, report.Repository, report.LanguageStats); err != nil {
+		errorCode := ErrorCodeDatabaseOperation
+		errorMessage := fmt.Sprintf("Error saving language stats: %v", err)
+		return StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
+		}
+	}
+
+	// Success response
+	return StandardResponse{
+		Status:       StatusSuccess,
+		ErrorCode:    nil,
+		ErrorMessage: nil,
 	}
 }
 
-// findRepositoriesDirectories returns all immediate subdirectories within the given path, which contain a .git directory.
-// This creates a list (repoDirs) with all the repositories into memory.
-// At the time of writing, we have a little over 14K directories.
-// It doesn't seem to be a problem for now, but we should keep this in mind in the future with more repositories.
-func findRepositoriesDirectories(dirPath string) ([]string, error) {
-	var repoDirs []string
 
-	entries, err := os.ReadDir(dirPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read directory '%s': %w", dirPath, err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			subdirPath := filepath.Join(dirPath, entry.Name())
-			gitDirPath := filepath.Join(subdirPath, ".git")
-			if stat, err := os.Stat(gitDirPath); err == nil && stat.IsDir() {
-				repoDirs = append(repoDirs, subdirPath)
-			} else {
-				log.Printf("Skipping directory '%s', it does not contain a .git directory.", subdirPath)
-			}
-		}
-	}
-
-	if len(repoDirs) == 0 {
-		log.Printf("No git repositories found in %s", dirPath)
-	}
-
-	return repoDirs, nil
-}
 
 // getSCCReport analyzes a directory with scc and returns a report containing the estimated cost and language statistics.
 func getSCCReport(sccPath, dirPath string) (SCCReport, error) {
@@ -228,14 +252,49 @@ func parseCocomoMetrics(output string) (float64, error) {
 	return cost, nil
 }
 
-func saveBatch(ctx context.Context, db *InsightsDB, batch []SCCReport) {
-	for _, report := range batch {
-		if err := db.saveProjectCost(ctx, report.Repository, report.Cocomo.CostInDollars); err != nil {
-			log.Printf("Error saving project cost for '%s': %v", report.Repository, err)
+// outputJSON outputs the StandardResponse as JSON to stdout
+func outputJSON(response StandardResponse) {
+	jsonBytes, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		// Fallback error response if JSON marshaling fails
+		errorCode := ErrorCodeUnknown
+		errorMessage := fmt.Sprintf("Failed to marshal response to JSON: %v", err)
+		fallbackResponse := StandardResponse{
+			Status:       StatusFailure,
+			ErrorCode:    &errorCode,
+			ErrorMessage: &errorMessage,
 		}
-
-		if err := db.saveLanguageStats(ctx, report.Repository, report.LanguageStats); err != nil {
-			log.Printf("Error saving language stats for '%s': %v", report.Repository, err)
-		}
+		fallbackJSON, _ := json.Marshal(fallbackResponse)
+		fmt.Println(string(fallbackJSON))
+		return
 	}
+	fmt.Println(string(jsonBytes))
 }
+
+// getErrorCodeFromConfigError maps config errors to appropriate error codes
+func getErrorCodeFromConfigError(err error) string {
+	errStr := err.Error()
+	if strings.Contains(errStr, "does not exist") {
+		return ErrorCodeTargetPathNotFound
+	}
+	if strings.Contains(errStr, "scc") {
+		return ErrorCodeSCCNotFound
+	}
+	return ErrorCodeUnknown
+}
+
+// getErrorCodeFromSCCError maps SCC errors to appropriate error codes
+func getErrorCodeFromSCCError(err error) string {
+	errStr := err.Error()
+	if strings.Contains(errStr, "no project cost found") {
+		return ErrorCodeNoCostFound
+	}
+	if strings.Contains(errStr, "scc command failed") {
+		return ErrorCodeSCCExecution
+	}
+	if strings.Contains(errStr, "parse") {
+		return ErrorCodeSCCParsing
+	}
+	return ErrorCodeUnknown
+}
+

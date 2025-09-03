@@ -13,6 +13,9 @@ class ErrorCode(str, Enum):
     SHELL_COMMAND_FAILED = "shell-command-failed"
     QUEUE_EMIT_ERROR = "queue-emit-error"
     QUEUE_CONNECTION_ERROR = "queue-connection-error"
+    VALIDATION = "validation"
+    NO_MAINTAINER_FILE = "no-maintainer-file"
+    MAINTAINER_ANALYSIS_FAILED = "maintainer_analysis_failed"
 
 
 class RepositoryState(str, Enum):
@@ -42,3 +45,19 @@ class IntegrationResultState(str, Enum):
 
 class DataSinkWorkerQueueMessageType(str, Enum):
     PROCESS_INTEGRATION_RESULT = "process_integration_result"
+
+
+class ExecutionStatus(str, Enum):
+    """Service execution status"""
+
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+
+class OperationType(str, Enum):
+    """Service operation types for metrics tracking"""
+
+    CLONE = "Clone"
+    COMMIT = "Commit"
+    MAINTAINER = "Maintainer"
+    SOFTWARE_VALUE = "SoftwareValue"

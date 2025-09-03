@@ -5,11 +5,17 @@ from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.queue.queue_service import QueueService
 from crowdgit.services.utils import get_default_branch
 from crowdgit.services.utils import run_shell_command
+from crowdgit.models.service_execution import ServiceExecution
+
+from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
+from crowdgit.database.crud import save_service_execution
+from crowdgit.errors import CrowdGitError
 import re
 import time
 import datetime
 import asyncio
 import json
+from decimal import Decimal
 from crowdgit.settings import MAX_WORKER_PROCESSES, DEFAULT_TENANT_ID
 from concurrent.futures import ProcessPoolExecutor
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -48,6 +54,8 @@ class CommitService(BaseService):
         super().__init__()
         self.process_pool = None
         self.queue_service = queue_service
+        # Metrics tracking for current repository
+        self._metrics_context = None
 
     def _get_or_create_pool(self) -> ProcessPoolExecutor:
         """Get or create process pool with proper lifecycle management"""
@@ -95,21 +103,17 @@ class CommitService(BaseService):
 
     async def process_single_batch_commits(
         self,
+        repo_id: str,
         repo_path: str,
         edge_commit: Optional[str],
         prev_batch_edge_commit: str,
         remote: str,
         segment_id: str,
         integration_id,
-    ):
+        is_final_batch: bool = False,
+    ) -> None:
         """
         Process commits from a cloned batch.
-
-        This is the main orchestration method that handles the complete workflow:
-        1. Executes git log command to retrieve raw commit data
-        2. Processes the raw data into activity objects
-        3. Stores activities in database and publishes to Kafka
-        4. Handles timing, logging, and error management
 
         Args:
             repo_path: Path to the Git repository.
@@ -118,14 +122,21 @@ class CommitService(BaseService):
             remote: Remote repository URL
             segment_id: Segment identifier
             integration_id: Integration identifier
-        Returns:
-            List of activity dictionaries
-
-        Raises:
-            RuntimeError: If git operations fail
+            is_final_batch: Whether this is the final batch (triggers metrics saving)
         """
+        # Initialize metrics context on first call
+        if self._metrics_context is None:
+            self._metrics_context = {
+                "start_time": time.time(),
+                "total_execution_time": 0.0,
+                "execution_status": ExecutionStatus.SUCCESS,
+                "error_code": None,
+                "error_message": None,
+            }
+
+        batch_start_time = time.time()
+
         try:
-            start_time = time.time()
             self.logger.info(
                 f"Starting commits processing for new batch having commits older than {prev_batch_edge_commit}"
             )
@@ -137,16 +148,57 @@ class CommitService(BaseService):
                 raw_commits, repo_path, edge_commit, remote, segment_id, integration_id
             )
 
-            end_time = time.time()
-            processing_time = end_time - start_time
+            batch_end_time = time.time()
+            batch_time = round(batch_end_time - batch_start_time, 2)
+            self._metrics_context["total_execution_time"] += batch_time
 
-            self.logger.info(
-                f"Batch activity processed from {remote} in {int(processing_time)}sec ({processing_time / 60:.2f} min)"
-            )
+            self.logger.info(f"Batch activity processed from {remote} in {batch_time}sec")
+
+            # Save metrics if this is the final batch
+            if is_final_batch:
+                service_execution = ServiceExecution(
+                    repo_id=repo_id,
+                    operation_type=OperationType.COMMIT,
+                    status=self._metrics_context["execution_status"],
+                    error_code=self._metrics_context["error_code"],
+                    error_message=self._metrics_context["error_message"],
+                    execution_time_sec=Decimal(
+                        str(round(self._metrics_context["total_execution_time"], 2))
+                    ),
+                )
+                await save_service_execution(service_execution)
+                # Reset metrics context after saving
+                self._metrics_context = None
 
         except Exception as e:
-            # TODO: return unified Result object for all services including status and error code/message
-            self.logger.error(f"Failed to get commits for batch from {remote}: {e}")
+            # Update metrics context with error info
+            batch_end_time = time.time()
+            batch_time = round(batch_end_time - batch_start_time, 2)
+            self._metrics_context["total_execution_time"] += batch_time
+            self._metrics_context["execution_status"] = ExecutionStatus.FAILURE
+
+            error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
+            self._metrics_context["error_code"] = (
+                e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
+            )
+            self._metrics_context["error_message"] = error_message
+
+            self.logger.error(f"Commit processing failed: {error_message}")
+
+            # Save metrics on error
+            service_execution = ServiceExecution(
+                repo_id=repo_id,
+                operation_type=OperationType.COMMIT,
+                status=self._metrics_context["execution_status"],
+                error_code=self._metrics_context["error_code"],
+                error_message=self._metrics_context["error_message"],
+                execution_time_sec=Decimal(
+                    str(round(self._metrics_context["total_execution_time"], 2))
+                ),
+            )
+            await save_service_execution(service_execution)
+            # Reset metrics context after saving
+            self._metrics_context = None
             raise
 
     async def _get_commit_reference(self, repo_path: str) -> str:
@@ -296,7 +348,7 @@ class CommitService(BaseService):
             "sourceParentId": source_parent_id,
             "platform": CommitService._GIT_PLATFORM,
             "channel": remote,
-            "body": "\n".join(commit["message"]),  # TODO: check if truncate is needed here
+            "body": "\n".join(commit["message"]),
             "isContribution": True,
             "attributes": {
                 "insertions": insertions,
@@ -530,6 +582,9 @@ class CommitService(BaseService):
         """
         commit_texts = [c.strip() for c in raw_output.split(self.COMMIT_END_SPLITTER) if c.strip()]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
+        if len(commit_texts) == 0:
+            self.logger.info("No commits to be processed")
+            return
         chunk_size = min(max(20, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
 
         self.logger.info(f"Spliting commits into chunks of {chunk_size}")
