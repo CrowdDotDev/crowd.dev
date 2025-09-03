@@ -167,6 +167,13 @@ SQL >
     FROM category_groups_oss_index_projects
     GROUP BY categoryGroupId
 
+NODE category_groups_oss_index_project_count
+SQL >
+    SELECT categoryGroupId, count(projectId) as projectCount
+    FROM segments_aggregates_with_ids_datasource
+    WHERE categoryGroupId != '' AND projectId != ''
+    GROUP BY categoryGroupId
+
 NODE category_groups_oss_index_results
 SQL >
     SELECT
@@ -178,10 +185,12 @@ SQL >
         a.softwareValue,
         a.avgScore,
         c.topCollections,
-        p.topProjects
+        p.topProjects,
+        pc.projectCount as projectCount
     FROM category_groups_oss_index_agregates a
     LEFT JOIN category_groups_oss_index_top_collections c USING (categoryGroupId)
     LEFT JOIN category_groups_oss_index_top_projects p USING (categoryGroupId)
+    LEFT JOIN category_groups_oss_index_project_count pc USING (categoryGroupId)
     JOIN
         category_groups_oss_index_category_groups_deduplicated
         cgd ON category_groups_oss_index_category_groups_deduplicated.id = a.categoryGroupId
