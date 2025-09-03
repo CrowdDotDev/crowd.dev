@@ -1,4 +1,29 @@
-FROM python:3.13.5-slim-bullseye AS builder
+# Base image for both stages
+FROM python:3.13.5-slim-bullseye AS base
+
+# Go builder stage: build the software-value binary and install scc
+FROM golang:1.25-alpine AS go-builder
+
+WORKDIR /go/src/software-value
+
+# Install scc using the official Go toolchain (specific version as per project README)
+RUN go install github.com/boyter/scc/v3@v3.5.0
+
+# Copy Go module files
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/go.mod ./
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY ./services/apps/git_integration/src/crowdgit/services/software_value/ ./
+
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-w -s" -o software-value ./
+
+# Builder stage: install build dependencies, uv, and dependencies
+FROM base AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -6,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv from official image
+# Copy uv binary from official image
 COPY --from=ghcr.io/astral-sh/uv:0.7.17 /uv /usr/local/bin/uv
 
 WORKDIR /usr/crowd/app
@@ -18,20 +43,25 @@ ENV UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/usr/crowd/app/.venv \
     UV_VENV_PATH=/usr/crowd/app/.venv
 
-# Copy only necessary files for dependency resolution (for better caching)
-COPY ./services/apps/git_integration/pyproject.toml ./services/apps/git_integration/uv.lock ./services/apps/git_integration/README.md ./
-COPY ./LICENSE ./
+# Copy only lock, pyproject.toml and License for dependency install caching
+COPY ./services/apps/git_integration/pyproject.toml ./services/apps/git_integration/uv.lock ./LICENSE ./
 
-# Install dependencies
-RUN uv sync --frozen --no-dev
+# Install dependencies excluding the project itself for better caching
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
 
-# Copy source code
-COPY ./services/apps/git_integration ./
+# Copy full source code
+COPY ./services/apps/git_integration ./LICENSE ./
+
+# Sync full project including the project itself
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 
-FROM python:3.13.5-slim-bullseye AS runner
+# Runner: minimal image with runtime deps and virtualenv only
+FROM base AS runner
 
-# Install runtime dependencies
+# Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
@@ -40,27 +70,28 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && apt-get autoremove -y
 
-# Set Python environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PIP_NO_CACHE_DIR=off
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=off
 
 WORKDIR /usr/crowd/app
 
-# Copy the virtual environment from builder stage
+# Copy virtual environment and app source from builder
 COPY --from=builder /usr/crowd/app/.venv /usr/crowd/app/.venv
+COPY --from=builder /usr/crowd/app /usr/crowd/app
 
-# Copy the git_integration service from builder stage
-COPY --from=builder /usr/crowd/app/ ./
+# Copy both software-value and scc binaries from go-builder stage
+COPY --from=go-builder /go/src/software-value/software-value /usr/local/bin/software-value
+COPY --from=go-builder /go/bin/scc /usr/local/bin/scc
 
-# Activate virtual environment by adding it to PATH
+# Add virtual environment bin to PATH
 ENV PATH="/usr/crowd/app/.venv/bin:$PATH"
 
-# Make runner script executable
-RUN chmod +x ./src/runner.sh
+# Make runner script and binaries executable
+RUN chmod +x ./src/runner.sh \
+    && chmod +x /usr/local/bin/software-value \
+    && chmod +x /usr/local/bin/scc
 
-# Expose the default port
 EXPOSE 8085
 
-# Set the default command to run the server
 CMD ["./src/runner.sh"]
