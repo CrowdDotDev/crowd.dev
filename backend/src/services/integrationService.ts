@@ -1220,8 +1220,6 @@ export default class IntegrationService {
    * @returns integration object
    */
   async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
-    const transaction = await SequelizeRepository.createTransaction(options || this.options)
-    let integration
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
         return url.slice(0, -4)
@@ -1230,6 +1228,15 @@ export default class IntegrationService {
     }
 
     const remotes = integrationData.remotes.map((remote) => stripGit(remote))
+
+    // Early return if no remotes to avoid unnecessary processing and SQL errors
+    if (!remotes || remotes.length === 0) {
+      this.options.log.warn('No remotes provided - skipping git integration update')
+      return null
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(options || this.options)
+    let integration
 
     try {
       integration = await this.createOrUpdate(
