@@ -737,7 +737,7 @@ export default class MemberService extends LoggerBase {
       retry: {
         maximumAttempts: 10,
       },
-      args: [memberId],
+      args: [{ memberId }],
       searchAttributes: {
         TenantId: [DEFAULT_TENANT_ID],
       },
