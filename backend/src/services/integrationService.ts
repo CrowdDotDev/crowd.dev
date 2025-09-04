@@ -412,10 +412,27 @@ export default class IntegrationService {
               })
 
               // Also soft delete from git.repositories for git-integration V2
-              await GitReposRepository.delete(integration.id, {
-                ...this.options,
-                transaction,
-              })
+              try {
+                // Find the Git integration ID for this segment
+                const gitIntegration = await IntegrationRepository.findByPlatform(
+                  PlatformType.GIT,
+                  {
+                    ...this.options,
+                    currentSegments: [{ id: integration.segmentId } as any],
+                    transaction,
+                  },
+                )
+                if (gitIntegration) {
+                  await GitReposRepository.delete(gitIntegration.id, {
+                    ...this.options,
+                    transaction,
+                  })
+                }
+              } catch (err) {
+                this.options.log.info(
+                  'No Git integration found for segment, skipping git.repositories cleanup',
+                )
+              }
             }
           }
 
