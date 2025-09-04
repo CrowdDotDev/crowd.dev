@@ -7,8 +7,8 @@ export async function insertMemberBotSuggestion(
   suggestion: IDbMemberBotSuggestionInsert,
 ): Promise<void> {
   await qx.result(
-    `INSERT INTO "memberBotSuggestions" ("memberId", "confidence", "createdAt", "updatedAt") 
-     VALUES ($(memberId), $(confidence), now(), now())
+    `INSERT INTO "memberBotSuggestions" ("memberId", "confidence", "createdAt") 
+     VALUES ($(memberId), $(confidence), now())
      ON CONFLICT DO NOTHING`,
     suggestion,
   )
