@@ -75,11 +75,10 @@ SQL >
                 'merge_request-comment',
                 'merge_request-review-approved',
                 'merge_request-review-changes-requested',
-                'merge_request-assigned',
-                'merge_request-review-requested',
                 'merge_request-merged',
                 'changeset-closed',
                 'changeset_comment-created',
+                'patchset-created',
                 'patchset_comment-created',
                 'patchset_approval-created'
             )
