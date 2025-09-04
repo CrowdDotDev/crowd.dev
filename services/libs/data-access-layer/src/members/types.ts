@@ -72,3 +72,15 @@ export interface IDbMemberData {
   averageSentiment?: number
   activeDaysCount?: number
 }
+
+export interface IDbMemberBotSuggestion {
+  id: string
+  memberId: string
+  confidence: number
+  createdAt: string
+}
+
+export type IDbMemberBotSuggestionInsert = Omit<
+  IDbMemberBotSuggestion,
+  'id' | 'createdAt' | 'updatedAt'
+>

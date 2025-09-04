@@ -21,7 +21,7 @@ import {
   MemberField,
   QueryExecutor,
   createOrUpdateMemberOrganizations,
-  deleteMemberOrganization,
+  deleteMemberOrganizations,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberOrganizations,
   findAllUnkownDatedOrganizations,
@@ -104,7 +104,7 @@ export class CommonMemberService extends LoggerBase {
           )
 
           for (const item of toDelete) {
-            await deleteMemberOrganization(this.qx, memberId, (item as any).id)
+            await deleteMemberOrganizations(this.qx, memberId, [item.id])
             ;(item as any).delete = true
           }
         }

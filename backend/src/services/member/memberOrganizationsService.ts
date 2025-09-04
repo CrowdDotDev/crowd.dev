@@ -7,7 +7,7 @@ import {
   OrganizationField,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
-  deleteMemberOrganization,
+  deleteMemberOrganizations,
   fetchMemberOrganizations,
   optionsQx,
   queryOrgs,
@@ -168,7 +168,7 @@ export default class MemberOrganizationsService extends LoggerBase {
         throw new Error404(`Member organization with id ${id} not found!`)
       }
 
-      await deleteMemberOrganization(qx, memberId, id)
+      await deleteMemberOrganizations(qx, memberId, [id], true)
 
       await this.commonMemberService.startAffiliationRecalculation(
         memberId,
