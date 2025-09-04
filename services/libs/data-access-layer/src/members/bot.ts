@@ -23,10 +23,12 @@ export async function insertMemberNoBot(qx: QueryExecutor, memberId: string): Pr
   )
 }
 
-export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): Promise<string[]> {
+export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100, countOnly = false): Promise<string[] | number> {
+  const query = countOnly ? 'SELECT COUNT(DISTINCT m.id) AS "total_members"' : 'SELECT DISTINCT m.id AS "memberId"'
+
   const rows = await qx.select(
     `
-    SELECT DISTINCT m.id AS "memberId"
+    ${query}
     FROM "memberIdentities" mi
     JOIN "members" m ON mi."memberId" = m.id
     WHERE m."deletedAt" IS NULL
@@ -106,12 +108,16 @@ export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): 
         )
         AND NOT EXISTS (SELECT 1 FROM "memberBotSuggestions" WHERE "memberId" = m.id)
         AND NOT EXISTS (SELECT 1 FROM "memberNoBot" WHERE "memberId" = m.id)
-    LIMIT $(limit);
+    ${countOnly ? '' : 'LIMIT $(limit)'}
     `,
     {
       limit,
     },
   )
+
+  if (countOnly) {
+    return parseInt(rows[0].total_members, 10)
+  }
 
   return rows.map((r) => r.memberId)
 }
