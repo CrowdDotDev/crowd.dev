@@ -1,7 +1,7 @@
 import commandLineArgs from 'command-line-args'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { fetchBotCandidateMembers, fetchBotCandidateMembersCount } from '@crowd/data-access-layer'
+import { fetchBotCandidateMembers } from '@crowd/data-access-layer'
 import { chunkArray } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/utils'
 import { getServiceLogger } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
@@ -40,50 +40,47 @@ setImmediate(async () => {
 
   let botLikeMembers = []
 
-  // do {
-  //   botLikeMembers = await fetchBotCandidateMembers(qx, BATCH_SIZE)
+  do {
+    botLikeMembers = await fetchBotCandidateMembers(qx, BATCH_SIZE)
 
-  //   const chunks = chunkArray(botLikeMembers, 10)
+    const chunks = chunkArray(botLikeMembers, 10)
 
-  //   for (const chunk of chunks) {
-  //     // parallel processing
-  //     await Promise.all(
-  //       chunk.map(async (memberId) => {
-  //         if (testRun) {
-  //           log.info({ memberId }, 'Triggering workflow for member!')
-  //         }
+    for (const chunk of chunks) {
+      // parallel processing
+      await Promise.all(
+        chunk.map(async (memberId) => {
+          if (testRun) {
+            log.info({ memberId }, 'Triggering workflow for member!')
+          }
 
-  //         try {
-  //           await temporal.workflow.start('processMemberBotAnalysisWithLLM', {
-  //             taskQueue: 'profiles',
-  //             workflowId: `member-bot-analysis-with-llm/${memberId}`,
-  //             retry: {
-  //               maximumAttempts: 10,
-  //             },
-  //             args: [{ memberId }],
-  //             searchAttributes: {
-  //               TenantId: [DEFAULT_TENANT_ID],
-  //             },
-  //           })
+          try {
+            await temporal.workflow.start('processMemberBotAnalysisWithLLM', {
+              taskQueue: 'profiles',
+              workflowId: `member-bot-analysis-with-llm/${memberId}`,
+              retry: {
+                maximumAttempts: 10,
+              },
+              args: [{ memberId }],
+              searchAttributes: {
+                TenantId: [DEFAULT_TENANT_ID],
+              },
+            })
 
-  //           // wait till the workflow is finished
-  //           await temporal.workflow.result(`member-bot-analysis-with-llm/${memberId}`)
-  //         } catch (err) {
-  //           log.error({ memberId, err }, 'Failed to trigger workflow for member!')
-  //           throw err
-  //         }
-  //       }),
-  //     )
-  //   }
+            // wait till the workflow is finished
+            await temporal.workflow.result(`member-bot-analysis-with-llm/${memberId}`)
+          } catch (err) {
+            log.error({ memberId, err }, 'Failed to trigger workflow for member!')
+            throw err
+          }
+        }),
+      )
+    }
 
-  //   if (testRun) {
-  //     log.info('Test run - stopping after first batch!')
-  //     break
-  //   }
-  // } while (botLikeMembers.length > 0)
-
-  const totalMembers = await fetchBotCandidateMembersCount(qx)
-  log.info({ totalMembers }, '[DEBUG] Total members!')
+    if (testRun) {
+      log.info('Test run - stopping after first batch!')
+      break
+    }
+  } while (botLikeMembers.length > 0)
 
   process.exit(0)
 })
