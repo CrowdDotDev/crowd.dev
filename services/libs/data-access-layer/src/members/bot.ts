@@ -104,8 +104,8 @@ export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): 
             OR m.attributes->'isBot' IS NULL
             OR (m.attributes->'isBot'->>'default')::boolean IS NOT TRUE
         )
-        AND m.id NOT IN (SELECT "memberId" FROM "memberBotSuggestions")
-        AND m.id NOT IN (SELECT "memberId" FROM "memberNoBot")
+        AND NOT EXISTS (SELECT 1 FROM "memberBotSuggestions" WHERE "memberId" = m.id)
+        AND NOT EXISTS (SELECT 1 FROM "memberNoBot" WHERE "memberId" = m.id)
     LIMIT $(limit);
     `,
     {
