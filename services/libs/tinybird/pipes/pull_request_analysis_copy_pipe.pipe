@@ -34,21 +34,32 @@ NODE pull_request_first_reviewed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS reviewedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'pull_request-reviewed' OR type = 'merge_request-review-changes-requested' OR type = 'changeset_comment-created' OR type = 'patchset_comment-created'
+    WHERE
+        type = 'pull_request-reviewed'
+        OR type = 'merge_request-review-changes-requested'
+        OR type = 'changeset_comment-created'
+        OR type = 'patchset_comment-created'
     GROUP BY sourceParentId
 
 NODE pull_request_first_review_approved
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS approvedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE (type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED') OR type = 'merge_request-review-approved' OR type = 'patchset_approval-created'
+    WHERE
+        (type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED')
+        OR type = 'merge_request-review-approved'
+        OR type = 'patchset_approval-created'
     GROUP BY sourceParentId
 
 NODE pull_request_first_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'pull_request-closed' OR type = 'merge_request-closed' OR type = 'changeset-closed' OR type = 'changeset-abandoned'
+    WHERE
+        type = 'pull_request-closed'
+        OR type = 'merge_request-closed'
+        OR type = 'changeset-closed'
+        OR type = 'changeset-abandoned'
     GROUP BY sourceParentId
 
 NODE pull_request_first_merged
@@ -65,7 +76,14 @@ NODE pull_request_first_resolved
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS resolvedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'pull_request-closed' OR type = 'pull_request-merged' OR type = 'merge_request-closed' OR type = 'merge_request-merged' OR type = 'changeset-merged' OR type = 'changeset-closed' OR type = 'changeset-abandoned'
+    WHERE
+        type = 'pull_request-closed'
+        OR type = 'pull_request-merged'
+        OR type = 'merge_request-closed'
+        OR type = 'merge_request-merged'
+        OR type = 'changeset-merged'
+        OR type = 'changeset-closed'
+        OR type = 'changeset-abandoned'
     GROUP BY sourceParentId
 
 NODE pull_request_analysis_results_merged
