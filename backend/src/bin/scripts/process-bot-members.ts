@@ -1,7 +1,7 @@
 import commandLineArgs from 'command-line-args'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { fetchBotCandidateMembers } from '@crowd/data-access-layer'
+import { fetchBotCandidateMembers, fetchBotCandidateMembersCount } from '@crowd/data-access-layer'
 import { chunkArray } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/utils'
 import { getServiceLogger } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
@@ -82,7 +82,7 @@ setImmediate(async () => {
   //   }
   // } while (botLikeMembers.length > 0)
 
-  const totalMembers = await fetchBotCandidateMembers(qx, BATCH_SIZE, true)
+  const totalMembers = await fetchBotCandidateMembersCount(qx)
   log.info({ totalMembers }, '[DEBUG] Total members!')
 
   process.exit(0)
