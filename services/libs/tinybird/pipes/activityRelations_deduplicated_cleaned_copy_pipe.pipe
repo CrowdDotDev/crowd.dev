@@ -30,7 +30,10 @@ SQL >
         o.displayName as "organizationName"
     from activityRelations final
     left join organizations o final on o.id = activityRelations.organizationId
-    left join segmentRepositories sr final on sr.segmentId = toUUID(activityRelations.segmentId) AND sr.repository = activityRelations.channel
+    left join
+        segmentRepositories sr final
+        on sr.segmentId = toUUID(activityRelations.segmentId)
+        AND sr.repository = activityRelations.channel
     where
         memberId IN (SELECT id FROM members_sorted)
         and (
