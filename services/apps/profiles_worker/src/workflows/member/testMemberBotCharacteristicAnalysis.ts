@@ -44,11 +44,11 @@ export async function testMemberBotCharacteristicAnalysis(
                     - Default to human if any clear personal context exists.
                     - Classify as bot only if strong automation evidence exists AND no personal indicators are present.
                     - Mixed signals -> classify as human, but note the ambiguity
-                    Respond with ONLY valid JSON:
+                    Respond with ONLY valid JSON and do not output anything else:
                     {
-                        "isBot": boolean,
-                        "signals": { "identities|bio|displayName": "weak|medium|strong" },
-                        "reason": "<short explanation>"
+                      "isBot": boolean,
+                      "signals": { "identities|bio|displayName": "weak|medium|strong" },
+                      "reason": "<short explanation>"
                     }
     `
 
