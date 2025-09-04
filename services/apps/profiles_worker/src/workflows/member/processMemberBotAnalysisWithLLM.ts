@@ -41,23 +41,23 @@ export async function processMemberBotAnalysisWithLLM(
                   <json> ${JSON.stringify(member)} </json>
                   EVALUATION PRINCIPLES:
                   - Consider all evidence holistically (bio, displayName, identities).
-                  - Member data may be in any language — translate or interpret when evaluating.
-                  - Human indicators: personal emails, student/education references, company affiliations, personal websites, detailed bios.
-                  - Bot indicators: recognized service accounts (dependabot, renovate, github-actions), explicit automation/CI descriptions, bot naming with empty personal info.
+                  - Human indicators: personal emails (gmail.com, outlook.com, etc.), student/education references, company affiliations, personal websites, or rich detailed bios.
+                  - Bot indicators: widely recognized service accounts (dependabot, renovate, github-actions, etc.), explicit automation/CI descriptions in bio, or bot/service-like naming combined with empty personal info.
                   - Name patterns alone (e.g. "-bot") are never sufficient for bot classification.
                   SIGNAL STRENGTH:
-                  - weak = Generic patterns or empty/minimal information
-                  - medium = Suggests automation/service but not definitively 
-                  - strong = Well-known service bots or explicit automation statements
+                  - Identities: strong = recognized service bots; medium = service/automation patterns; weak = "-bot" suffix only.
+                  - Bio: strong = explicitly states automation/CI; medium = mentions automation/deployment vaguely; weak = generic/empty.
+                  - DisplayName: strong = exact service names (Dependabot, GitHub Actions); medium = service-like patterns; weak = "-bot" suffix only.
                   CLASSIFICATION RULES:
                   - Default to human if any clear personal context exists.
                   - Classify as bot only if strong automation evidence exists AND no personal indicators are present.
-                  - Mixed signals -> classify as human, but note the ambiguity
-                  Respond with ONLY valid JSON:
+                  - Mixed signals -> classify as human, but note the ambiguity.
+                  Respond with ONLY valid JSON and do not output anything else:
                   {
-                      "isBot": boolean,
-                      "signals": { "identities|bio|displayName": "weak|medium|strong" },
-                      "reason": "<short explanation>"
+                    "isBot": boolean,
+                    // include "signals" only if isBot is true
+                    "signals": { "identities|bio|displayName": "weak|medium|strong" },
+                    "reason": "<short one-line concise explanation>"
                   }
   `
 
