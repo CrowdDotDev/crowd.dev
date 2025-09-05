@@ -28,37 +28,30 @@ export async function testMemberBotCharacteristicAnalysis(
       member.identities = member.identities.slice(0, 30)
     }
 
-    const PROMPT = `Analyze the following JSON metadata about a contributor and determine if they are 
-                    likely an automation/service account or a human contributor.
-                    <json>${JSON.stringify(member)}</json>
+    const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
+                    <json> ${JSON.stringify(member)} </json>
                     EVALUATION PRINCIPLES:
                     - Consider all available evidence holistically across the provided JSON fields.
                     - Data may be in any language, translate or interpret when needed.
-                    - Automation/service indicators include:
-                      * Known service accounts (e.g., dependabot, renovate, github-actions, GitLab CI, release-drafter, semantic-release)
-                      * CI/CD, release automation, deployment, monitoring, moderation bots
-                      * Platform-native automation (e.g., Reddit AutoModerator, StackOverflow Community user)
-                      * Generic handles with empty or minimal personal info
-                    - Human indicators include:
-                      * Personal emails, student/education references
-                      * Employment or company affiliations
-                      * Personal websites, portfolios, or social media links
-                      * Detailed bios with personal background
-                    - Name patterns alone (e.g., "-bot", "-ci", "-actions") are never sufficient without supporting evidence.
-                    - If both strong human and strong automation signals appear, treat as ambiguous and classify with signals.
+                    - Human indicators: personal emails (gmail.com, outlook.com, etc.), student/education references, company affiliations, personal websites, or rich detailed bios.
+                    - Bot indicators: widely recognized service accounts (dependabot, renovate, github-actions, etc.), explicit automation/CI descriptions in bio, or bot/service-like naming combined with empty personal info.
+                    - Name patterns alone (e.g., "-bot", "-ci", "-deploy") are insufficient without supporting evidence.
                     SIGNAL STRENGTH GUIDE:
-                    - weak = Generic or minimal suggestion
-                    - medium = Some evidence but not definitive
-                    - strong = Clear, explicit, or well-known evidence
+                    - strong: Definitive evidence (e.g., "github-actions" in identities/displayName or bio explicitly states "I am a CI bot")
+                    - medium: Suggestive patterns pointing toward automation but not conclusive
+                    - weak: Ambiguous hints or minimal evidence that could indicate automation
                     CLASSIFICATION RULES:
-                    - If there is strong human evidence and no automation evidence, return isBot: false.
-                    - Otherwise, return isBot: true and provide signal strengths for each available field.
-                    - Include signals in the response only if isBot is true.
+                    1. Return isBot: false ONLY when there is strong, unambiguous human evidence AND zero automation signals.
+                    2. For all other cases (any automation evidence, mixed signals, or uncertainty), return isBot: true with appropriate signal strengths.
+                    3. When uncertain, favor flagging for review rather than assuming human.
+                    4. Report actual signal strength - do not downgrade based on mixed evidence.
                     OUTPUT FORMAT:
+                    - Include "signals" object only when isBot: true
+                    - Omit fields from signals that provide no automation evidence
                     - You must return ONLY valid JSON.
                     - Do NOT add code fences, explanations, or extra text.
                     - The JSON must begin with '{' and end with '}'.
-                    SCHEMA:
+                    JSON SCHEMA:
                     {
                       "isBot": boolean,
                       "signals": {
@@ -66,7 +59,7 @@ export async function testMemberBotCharacteristicAnalysis(
                       },
                       "reason": "<short concise explanation>"
                     }
-    `  
+    `
 
     const llm = await getLLMResult(LlmQueryType.MEMBER_BOT_VALIDATION, PROMPT, memberId)
 

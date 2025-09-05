@@ -49,7 +49,7 @@ export function calculateMemberBotConfidence(signals: MemberBotSignal): number {
   let finalConfidence = maxScore
 
   // 3. Add a small boost for each additional piece of corroborating evidence.
-  const booster = 0.15
+  const booster = 0.10
   const numberOfAdditionalSignals = signalEntries.length - 1
   finalConfidence += numberOfAdditionalSignals * booster
 
