@@ -26,7 +26,7 @@ export default class GithubIntegrationService {
     this.options.log.info(`Searching repo ${query}, page ${page} and limit: ${limit}`)
     const [orgRepos, repos] = await Promise.all([
       request('GET /search/repositories', {
-        q: `owner:${query}`,
+        q: `owner:${query} fork:true`,
         per_page: limit,
         page,
         headers: {
@@ -37,7 +37,7 @@ export default class GithubIntegrationService {
         return { data: { items: [], total_count: 0 } }
       }),
       request('GET /search/repositories', {
-        q: query,
+        q: `${query} fork:true`,
         per_page: limit,
         page,
         headers: {
