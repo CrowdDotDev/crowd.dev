@@ -30,52 +30,43 @@ SQL >
     --   WHERE ar.segmentId = (SELECT segmentId FROM segments_filtered)
     -- Otherwise, this node accepts `segments` as a parameter (array of segment IDs).
 
-    SELECT
-        ar.activityId,
-        ar.channel,
-        ar.isContribution,
-        ar.memberId,
-        ar.organizationId,
-        ar.platform,
-        ar.segmentId,
-        ar.sourceId,
-        ar.sourceParentId,
-        ar.timestamp,
-        ar.type
+   SELECT
+    ar.activityId,
+    ar.channel,
+    ar.isContribution,
+    ar.memberId,
+    ar.organizationId,
+    ar.platform,
+    ar.segmentId,
+    ar.sourceId,
+    ar.sourceParentId,
+    ar.timestamp,
+    ar.type
+    
     FROM activityRelations_deduplicated_ds AS ar
     WHERE
-        {% if defined(segments) %}
-            ar.segmentId IN {{ Array(segments, 'String', description="List of segment IDs", required=False) }}
-        {% else %}
-            1 = 1
-        {% end %}
-
+        ar.segmentId IN {{ Array(segments, 'String', description="Required list of segment IDs", required=True) }}
         {% if defined(startDate) %}
             AND ar.timestamp > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
         {% end %}
         {% if defined(endDate) %}
             AND ar.timestamp < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
-
         {% if defined(repos) %}
             AND ar.channel IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
-
         {% if defined(platform) %}
             AND ar.platform = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-
         {% if (not defined(onlyContributions) or (defined(onlyContributions) and onlyContributions == 1)) %}
             AND ar.isContribution
         {% end %}
-
         {% if defined(activity_type) %}
             AND ar.type = {{ String(activity_type, description="Filter single activity type", required=False) }}
         {% end %}
         {% if defined(activity_types) %}
             AND ar.type IN {{ Array(activity_types, 'String', description="Filter multiple activity types", required=False) }}
         {% end %}
-
     ORDER BY ar.timestamp DESC, ar.activityId DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
