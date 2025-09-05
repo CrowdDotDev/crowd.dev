@@ -54,11 +54,15 @@ export async function testMemberBotCharacteristicAnalysis(
                     - If there is strong human evidence and no automation evidence, return isBot: false.
                     - Otherwise, return isBot: true and provide signal strengths for each available field.
                     - Include signals in the response only if isBot is true.
-                    Respond with ONLY valid JSON and do not output anything else:
+                    OUTPUT FORMAT:
+                    - You must return ONLY valid JSON.
+                    - Do NOT add code fences, explanations, or extra text.
+                    - The JSON must begin with '{' and end with '}'.
+                    SCHEMA:
                     {
                       "isBot": boolean,
                       "signals": {
-                        "identities|bio|displayName": "weak|medium|strong"
+                        "identities|bio|displayName": "weak|medium|strong",
                       },
                       "reason": "<short concise explanation>"
                     }
