@@ -1,13 +1,13 @@
 import commandLineArgs from 'command-line-args'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { fetchBotCandidateMembers } from '@crowd/data-access-layer'
+import { fetchBotCandidateMembers, pgpQx } from '@crowd/data-access-layer'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { chunkArray } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/utils'
 import { getServiceLogger } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
 
-import { TEMPORAL_CONFIG } from '@/conf'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { DB_CONFIG, TEMPORAL_CONFIG } from '@/conf'
 
 const log = getServiceLogger()
 
@@ -32,8 +32,15 @@ setImmediate(async () => {
   const testRun = parameters.testRun ?? false
   const BATCH_SIZE = testRun ? 10 : 100
 
-  const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
-  const qx = SequelizeRepository.getQueryExecutor(dbOptions)
+  const db = await getDbConnection({
+    host: DB_CONFIG.readHost,
+    port: DB_CONFIG.port,
+    database: DB_CONFIG.database,
+    user: DB_CONFIG.username,
+    password: DB_CONFIG.password,
+  })
+
+  const qx = pgpQx(db)
   const temporal = await getTemporalClient(TEMPORAL_CONFIG)
 
   log.info({ testRun, BATCH_SIZE }, 'Running script with the following parameters!')
