@@ -84,9 +84,16 @@ SQL >
     FROM securityInsightsEvaluations eval final
     left join evaluation_controlId_category_mapz ecm on ecm.controlId = eval.controlId
     left join
+        segmentRepositories sr final
+        on sr.insightsProjectId = toUUID(eval.insightsProjectId)
+        AND sr.repository = eval.repo
+    left join
         securityInsightsEvaluationAssessments assessment final
         on eval.id = assessment.securityInsightsEvaluationId
-    where eval.result <> 'Not Run' and assessment.result <> 'Not Run'
+    where
+        eval.result <> 'Not Run'
+        and assessment.result <> 'Not Run'
+        and (sr.excluded IS NULL OR sr.excluded = false)
     group by
         eval.id,
         eval.insightsProjectSlug,
