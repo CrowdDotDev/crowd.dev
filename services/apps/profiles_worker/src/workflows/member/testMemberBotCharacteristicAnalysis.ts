@@ -28,29 +28,40 @@ export async function testMemberBotCharacteristicAnalysis(
       member.identities = member.identities.slice(0, 30)
     }
 
-    const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
-                    <json> ${JSON.stringify(member)} </json>
+    const PROMPT = `Analyze the following JSON metadata about a contributor and determine if they are 
+                    likely an automation/service account or a human contributor.
+                    <json>${JSON.stringify(member)}</json>
                     EVALUATION PRINCIPLES:
-                    - Consider all evidence holistically (bio, displayName, identities).
-                    - Member data may be in any language — translate or interpret when evaluating.
-                    - Human indicators: personal emails, student/education references, company affiliations, personal websites, detailed bios.
-                    - Bot indicators: recognized service accounts (dependabot, renovate, github-actions), explicit automation/CI descriptions, bot naming with empty personal info.
-                    - Name patterns alone (e.g. "-bot") are never sufficient for bot classification.
-                    SIGNAL STRENGTH:
-                    - weak = Generic patterns or empty/minimal information
-                    - medium = Suggests automation/service but not definitively 
-                    - strong = Well-known service bots or explicit automation statements
+                    - Consider all available evidence holistically across the provided JSON fields.
+                    - Data may be in any language, translate or interpret when needed.
+                    - Automation/service indicators include:
+                      * Known service accounts (e.g., dependabot, renovate, github-actions, GitLab CI, release-drafter, semantic-release)
+                      * CI/CD, release automation, deployment, monitoring, moderation bots
+                      * Platform-native automation (e.g., Reddit AutoModerator, StackOverflow Community user)
+                      * Generic handles with empty or minimal personal info
+                    - Human indicators include:
+                      * Personal emails, student/education references
+                      * Employment or company affiliations
+                      * Personal websites, portfolios, or social media links
+                      * Detailed bios with personal background
+                    - Name patterns alone (e.g., "-bot", "-ci", "-actions") are never sufficient without supporting evidence.
+                    - If both strong human and strong automation signals appear, treat as ambiguous and classify with signals.
+                    SIGNAL STRENGTH GUIDE:
+                    - weak = Generic or minimal suggestion
+                    - medium = Some evidence but not definitive
+                    - strong = Clear, explicit, or well-known evidence
                     CLASSIFICATION RULES:
-                    - Default to human if any clear personal context exists.
-                    - Classify as bot only if strong automation evidence exists AND no personal indicators are present.
-                    - Mixed signals -> classify as human, but note the ambiguity
-                    Respond with ONLY valid JSON and do not output anything else:
+                    - If there is strong human evidence and no automation evidence, return isBot: false.
+                    - Otherwise, return isBot: true and provide signal strengths for each available field.
+                    OUTPUT JSON FORMAT (only valid JSON, no extra text):
                     {
                       "isBot": boolean,
-                      "signals": { "identities|bio|displayName": "weak|medium|strong" },
-                      "reason": "<short explanation>"
+                      "signals": {
+                        "identities|bio|displayName": "weak|medium|strong"
+                      },
+                      "reason": "<short concise explanation>"
                     }
-    `
+    `  
 
     const llm = await getLLMResult(LlmQueryType.MEMBER_BOT_VALIDATION, PROMPT, memberId)
 
