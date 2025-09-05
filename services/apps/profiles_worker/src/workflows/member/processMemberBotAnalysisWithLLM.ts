@@ -40,24 +40,33 @@ export async function processMemberBotAnalysisWithLLM(
   const PROMPT = `Analyze the following JSON document and determine if this member is an automated service account or a human contributor.
                   <json> ${JSON.stringify(member)} </json>
                   EVALUATION PRINCIPLES:
-                  - Consider all evidence holistically (bio, displayName, identities).
+                  - Consider all available evidence holistically across the provided JSON fields.
+                  - Data may be in any language, translate or interpret when needed.
                   - Human indicators: personal emails (gmail.com, outlook.com, etc.), student/education references, company affiliations, personal websites, or rich detailed bios.
                   - Bot indicators: widely recognized service accounts (dependabot, renovate, github-actions, etc.), explicit automation/CI descriptions in bio, or bot/service-like naming combined with empty personal info.
-                  - Name patterns alone (e.g. "-bot") are never sufficient for bot classification.
-                  SIGNAL STRENGTH:
-                  - Identities: strong = recognized service bots; medium = service/automation patterns; weak = "-bot" suffix only.
-                  - Bio: strong = explicitly states automation/CI; medium = mentions automation/deployment vaguely; weak = generic/empty.
-                  - DisplayName: strong = exact service names (Dependabot, GitHub Actions); medium = service-like patterns; weak = "-bot" suffix only.
+                  - Name patterns alone (e.g., "-bot", "-ci", "-deploy") are insufficient without supporting evidence.
+                  SIGNAL STRENGTH GUIDE:
+                  - strong: Definitive evidence (e.g., "github-actions" in identities/displayName or bio explicitly states "I am a CI bot")
+                  - medium: Suggestive patterns pointing toward automation but not conclusive
+                  - weak: Ambiguous hints or minimal evidence that could indicate automation
                   CLASSIFICATION RULES:
-                  - Default to human if any clear personal context exists.
-                  - Classify as bot only if strong automation evidence exists AND no personal indicators are present.
-                  - Mixed signals -> classify as human, but note the ambiguity.
-                  Respond with ONLY valid JSON and do not output anything else:
+                  1. Return isBot: false ONLY when there is strong, unambiguous human evidence AND zero automation signals.
+                  2. For all other cases (any automation evidence, mixed signals, or uncertainty), return isBot: true with appropriate signal strengths.
+                  3. When uncertain, favor flagging for review rather than assuming human.
+                  4. Report actual signal strength - do not downgrade based on mixed evidence.
+                  OUTPUT FORMAT:
+                  - Include "signals" object only when isBot: true
+                  - Omit fields from signals that provide no automation evidence
+                  - You must return ONLY valid JSON.
+                  - Do NOT add code fences, explanations, or extra text.
+                  - The JSON must begin with '{' and end with '}'.
+                  JSON SCHEMA:
                   {
                     "isBot": boolean,
-                    // include "signals" only if isBot is true
-                    "signals": { "identities|bio|displayName": "weak|medium|strong" },
-                    "reason": "<short one-line concise explanation>"
+                    "signals": {
+                      "identities|bio|displayName": "weak|medium|strong",
+                    },
+                    "reason": "<short concise explanation>"
                   }
   `
 
