@@ -53,7 +53,8 @@ export async function testMemberBotCharacteristicAnalysis(
                     CLASSIFICATION RULES:
                     - If there is strong human evidence and no automation evidence, return isBot: false.
                     - Otherwise, return isBot: true and provide signal strengths for each available field.
-                    OUTPUT JSON FORMAT (only valid JSON, no extra text):
+                    - Include signals in the response only if isBot is true.
+                    Respond with ONLY valid JSON and do not output anything else:
                     {
                       "isBot": boolean,
                       "signals": {
