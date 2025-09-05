@@ -37,15 +37,18 @@ export function calculateMemberBotConfidence(signals: MemberBotSignal): number {
     [MemberBotSignalType.DISPLAY_NAME]: 0.8,
   }
 
+  // 1. Calculate the initial score for each signal found.
   const initialScores = signalEntries.map(([type, strength]) => {
     const base = baseScores[strength]
     const multiplier = priorityMultipliers[type as MemberBotSignalType]
     return base * multiplier
   })
 
+  // 2. Find the highest, most influential signal score.
   const maxScore = Math.max(...initialScores)
   let finalConfidence = maxScore
 
+  // 3. Add a small boost for each additional piece of corroborating evidence.
   const booster = 0.15
   const numberOfAdditionalSignals = signalEntries.length - 1
   finalConfidence += numberOfAdditionalSignals * booster

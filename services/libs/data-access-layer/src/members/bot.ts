@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 import { QueryExecutor } from '../queryExecutor'
 
 import { IDbMemberBotSuggestionInsert } from './types'
@@ -8,8 +7,8 @@ export async function insertMemberBotSuggestion(
   suggestion: IDbMemberBotSuggestionInsert,
 ): Promise<void> {
   await qx.result(
-    `INSERT INTO "memberBotSuggestions" ("memberId", "confidence", "status", "createdAt", "updatedAt") 
-     VALUES ($(memberId), $(confidence), $(status), now(), now())
+    `INSERT INTO "memberBotSuggestions" ("memberId", "confidence", "createdAt") 
+     VALUES ($(memberId), $(confidence), now())
      ON CONFLICT DO NOTHING`,
     suggestion,
   )

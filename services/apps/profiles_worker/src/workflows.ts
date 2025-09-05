@@ -1,5 +1,6 @@
 import { analyzeMemberBotCharacteristicsWithLLM } from './workflows/member/analyzeMemberBotCharacteristicsWithLLM'
 import { memberUpdate } from './workflows/member/memberUpdate'
+import { processMemberBotAnalysisWithLLM } from './workflows/member/processMemberBotAnalysisWithLLM'
 import { recalculateAffiliationsForNewRoles } from './workflows/member/recalculateAffiliationsForNewRoles'
 import { refreshMemberDisplayAggregates } from './workflows/member/refreshMemberDisplayAggregates'
 import { testMemberBotCharacteristicAnalysis } from './workflows/member/testMemberBotCharacteristicAnalysis'
@@ -14,6 +15,6 @@ export {
   triggerRecalculateAffiliations,
   refreshMemberDisplayAggregates,
   refreshOrganizationDisplayAggregates,
-  analyzeMemberBotCharacteristicsWithLLM,
+  processMemberBotAnalysisWithLLM,
   testMemberBotCharacteristicAnalysis,
 }

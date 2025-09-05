@@ -30,6 +30,10 @@ SQL >
         o.displayName as "organizationName"
     from activityRelations final
     left join organizations o final on o.id = activityRelations.organizationId
+    left join
+        segmentRepositories sr final
+        on sr.segmentId = toUUID(activityRelations.segmentId)
+        AND sr.repository = activityRelations.channel
     where
         memberId IN (SELECT id FROM members_sorted)
         and (
@@ -37,6 +41,7 @@ SQL >
                 platform IN ('git', 'gerrit', 'github', 'gitlab')
                 AND channel
                 IN (SELECT arrayJoin(i.repositories) FROM insightsProjects i where isNull (i.deletedAt))
+                AND (sr.excluded IS NULL OR sr.excluded = false)
             )
             OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
         )

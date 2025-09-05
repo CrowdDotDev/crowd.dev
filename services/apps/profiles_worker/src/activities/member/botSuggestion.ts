@@ -48,7 +48,7 @@ export async function updateMemberAttributes(
 ): Promise<void> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${memberId}/attributes`
   const requestOptions = {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
       'Content-Type': 'application/json',
