@@ -4,7 +4,8 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
-import { Transaction } from 'sequelize'
+import { QueryTypes, Transaction } from 'sequelize'
+import { v4 as uuidv4 } from 'uuid'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
@@ -46,6 +47,7 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
+import GitReposRepository from '../database/repositories/gitReposRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -408,6 +410,29 @@ export default class IntegrationService {
                 ...this.options,
                 transaction,
               })
+
+              // Also soft delete from git.repositories for git-integration V2
+              try {
+                // Find the Git integration ID for this segment
+                const gitIntegration = await IntegrationRepository.findByPlatform(
+                  PlatformType.GIT,
+                  {
+                    ...this.options,
+                    currentSegments: [{ id: integration.segmentId } as any],
+                    transaction,
+                  },
+                )
+                if (gitIntegration) {
+                  await GitReposRepository.delete(gitIntegration.id, {
+                    ...this.options,
+                    transaction,
+                  })
+                }
+              } catch (err) {
+                this.options.log.info(
+                  'No Git integration found for segment, skipping git.repositories cleanup',
+                )
+              }
             }
           }
 
@@ -1212,25 +1237,44 @@ export default class IntegrationService {
    * @returns integration object
    */
   async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
-    const transaction = await SequelizeRepository.createTransaction(options || this.options)
-    let integration
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
         return url.slice(0, -4)
       }
       return url
     }
+
+    const remotes = integrationData.remotes.map((remote) => stripGit(remote))
+
+    // Early return if no remotes to avoid unnecessary processing and SQL errors
+    if (!remotes || remotes.length === 0) {
+      this.options.log.warn('No remotes provided - skipping git integration update')
+      return null
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(options || this.options)
+    let integration
+
     try {
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes: integrationData.remotes.map((remote) => stripGit(remote)),
+            remotes,
           },
           status: 'done',
         },
         transaction,
         options,
+      )
+
+      // upsert repositories to git.repositories in order to be processed by git-integration V2
+      await this.syncRepositoriesToGitV2(
+        remotes,
+        options || this.options,
+        transaction,
+        integration.id,
+        true, // inheritFromGithubRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of githubRepos
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -1240,6 +1284,83 @@ export default class IntegrationService {
       throw err
     }
     return integration
+  }
+
+  /**
+   * Syncs repositories to git.repositories table (git-integration V2)
+   * @param remotes Array of repository URLs
+   * @param options Repository options
+   * @param transaction Database transaction
+   * @param integrationId The integration ID from the git integration
+   * @param inheritFromGithubRepos If true, queries githubRepos for IDs; if false, generates new UUIDs
+   *
+   * TODO: @Mouad After migration is complete, simplify this function by:
+   * 1. Using an object parameter instead of multiple parameters for better maintainability
+   * 2. Removing the inheritFromGithubRepos parameter since git.repositories will be the source of truth
+   * 3. Simplifying the logic to only handle git.repositories operations
+   */
+  private async syncRepositoriesToGitV2(
+    remotes: string[],
+    options: IRepositoryOptions,
+    transaction: Transaction,
+    integrationId: string,
+    inheritFromGithubRepos: boolean,
+  ) {
+    const seq = SequelizeRepository.getSequelize(options)
+
+    let repositoriesToSync: Array<{
+      id: string
+      url: string
+      integrationId: string
+      segmentId: string
+    }> = []
+
+    if (inheritFromGithubRepos) {
+      // Query from githubRepos records to inherit their IDs for smoother migration into git-integration V2
+      const githubRepos = await seq.query(
+        `
+          SELECT id, url
+          FROM "githubRepos" 
+          WHERE url IN (:urls)
+          AND "deletedAt" IS NULL
+        `,
+        {
+          replacements: {
+            urls: remotes,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+
+      repositoriesToSync = (githubRepos as any[]).map((repo) => ({
+        id: repo.id,
+        url: repo.url,
+        integrationId,
+        segmentId: options.currentSegments[0].id,
+      }))
+
+      if (repositoriesToSync.length === 0) {
+        this.options.log.warn('No githubRepos found - skipping repository sync to git v2')
+        return
+      }
+    } else {
+      // Generate new entries with auto-generated UUIDs
+      repositoriesToSync = remotes.map((url) => ({
+        id: uuidv4(), // Generate new UUID
+        url,
+        integrationId,
+        segmentId: options.currentSegments[0].id,
+      }))
+    }
+
+    // Sync to git.repositories v2
+    await GitReposRepository.upsert(repositoriesToSync, {
+      ...options,
+      transaction,
+    })
+
+    this.options.log.info(`Synced ${repositoriesToSync.length} repos to git v2`)
   }
 
   async atlassianAdminConnect(adminApi: string, organizationId: string) {
