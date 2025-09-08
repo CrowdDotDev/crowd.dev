@@ -474,73 +474,69 @@ export async function queryActivities(
   qx: QueryExecutor,
   activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
-  if (process.env.TINYBIRD_CM_BASE_URL && process.env.TINYBIRD_CM_TOKEN) {
-    const tb = new TinybirdClient()
+  const tb = new TinybirdClient()
 
-    const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
-      'activities_relations_filtered',
-      {
-        segments: arg.segmentIds,
-      },
-    )
+  const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+    'activities_relations_filtered',
+    {
+      segments: arg.segmentIds,
+    },
+  )
 
-    logger.info(`Tinybird returned ${JSON.stringify(tbActivities.data)}`)
+  logger.info(`Tinybird returned ${JSON.stringify(tbActivities.data)}`)
 
-    const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
+  const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
 
-    logger.info(
-      `Extracted orgIds: ${JSON.stringify(orgIds)}, memberIds: ${JSON.stringify(memberIds)}`,
-    )
+  logger.info(
+    `Extracted orgIds: ${JSON.stringify(orgIds)}, memberIds: ${JSON.stringify(memberIds)}`,
+  )
 
-    const [membersInfo, orgsInfo] = await Promise.all([
-      memberIds.length
-        ? queryMembers(qx, {
-            filter: { id: { in: memberIds } },
-            fields: [MemberField.ATTRIBUTES, MemberField.ID, MemberField.DISPLAY_NAME],
-          })
-        : Promise.resolve([]),
-      orgIds.length ? findOrgsByIds(qx, orgIds) : Promise.resolve([]),
-    ])
+  const [membersInfo, orgsInfo] = await Promise.all([
+    memberIds.length
+      ? queryMembers(qx, {
+          filter: { id: { in: memberIds } },
+          fields: [MemberField.ATTRIBUTES, MemberField.ID, MemberField.DISPLAY_NAME],
+        })
+      : Promise.resolve([]),
+    orgIds.length ? findOrgsByIds(qx, orgIds) : Promise.resolve([]),
+  ])
 
-    const membersMap = Object.fromEntries(membersInfo.map((item) => [item.id, item]))
+  const membersMap = Object.fromEntries(membersInfo.map((item) => [item.id, item]))
 
-    const organizationsMap = Object.fromEntries(orgsInfo.map((item) => [item.id, item]))
+  const organizationsMap = Object.fromEntries(orgsInfo.map((item) => [item.id, item]))
 
-    const enrichedActivities = tbActivities.data.map((activity) => {
-      const org = activity.organizationId ? organizationsMap[activity.organizationId] : undefined
-      const mem = activity.memberId ? membersMap[activity.memberId] : undefined
+  const enrichedActivities = tbActivities.data.map((activity) => {
+    const org = activity.organizationId ? organizationsMap[activity.organizationId] : undefined
+    const mem = activity.memberId ? membersMap[activity.memberId] : undefined
 
-      // TODO: check if this should be mandatory
-      const display = activityTypeSettings
-        ? ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
-        : {}
+    // TODO: check if this should be mandatory
+    const display = activityTypeSettings
+      ? ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
+      : {}
 
-      return {
-        ...activity,
-        ...(org && {
-          organization: {
-            id: org.id,
-            displayName: org.displayName,
+    return {
+      ...activity,
+      ...(org && {
+        organization: {
+          id: org.id,
+          displayName: org.displayName,
+        },
+      }),
+      ...(mem && {
+        member: {
+          id: mem.id,
+          displayName: mem.displayName,
+          attributes: {
+            avatarUrl: mem.attributes?.avatarUrl,
+            isBot: mem.attributes?.isBot,
           },
-        }),
-        ...(mem && {
-          member: {
-            id: mem.id,
-            displayName: mem.displayName,
-            attributes: {
-              avatarUrl: mem.attributes?.avatarUrl,
-              isBot: mem.attributes?.isBot,
-            },
-          },
-        }),
-        display,
-      }
-    })
+        },
+      }),
+      display,
+    }
+  })
 
-    logger.info(`Enriched activities: ${JSON.stringify(enrichedActivities)}`)
-  } else {
-    logger.warn('Tinybird credentials are not set. Skipping Tinybird query.')
-  }
+  logger.info(`Enriched activities: ${JSON.stringify(enrichedActivities)}`)
 
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
@@ -721,6 +717,7 @@ export async function queryActivities(
   }
 
   const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
+  logger.info(`Queried ${JSON.stringify(results)} `)
 
   return {
     count: Number(count),
