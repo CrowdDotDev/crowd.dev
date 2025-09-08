@@ -73,11 +73,11 @@ export const DEFAULT_WIDGET_VALUES: Record<
   // Popularity
   [Widgets.STARS]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
+    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO, PlatformType.GITLAB],
   },
   [Widgets.FORKS]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
+    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO, PlatformType.GITLAB],
   },
   // [Widgets.SOCIAL_MENTIONS]: {
   //   enabled: false,
@@ -128,7 +128,12 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.PULL_REQUESTS]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
   [Widgets.ACTIVE_DAYS]: {
     enabled: true,
@@ -140,22 +145,47 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.MERGE_LEAD_TIME]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
   [Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
   [Widgets.AVERAGE_TIME_TO_MERGE]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
   [Widgets.WAIT_TIME_FOR_1ST_REVIEW]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
   [Widgets.CODE_REVIEW_ENGAGEMENT]: {
     enabled: true,
-    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
+    platform: [
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
+    ],
   },
 }
