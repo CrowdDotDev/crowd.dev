@@ -5,7 +5,7 @@ import min from 'lodash.min'
 import moment from 'moment'
 
 import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
-import { DbConnOrTx, TinybirdClient } from '@crowd/database'
+import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { queryOverHttp } from '@crowd/questdb'
@@ -474,15 +474,15 @@ export async function queryActivities(
   qx: QueryExecutor,
   activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
-  if (process.env.TINYBIRD_CM_HOST && process.env.TINYBIRD_CM_TOKEN) {
-    const tb = new TinybirdClient({
-      host: process.env.TINYBIRD_CM_HOST,
-      token: process.env.TINYBIRD_CM_TOKEN,
-    })
+  if (process.env.TINYBIRD_CM_BASE_URL && process.env.TINYBIRD_CM_TOKEN) {
+    const tb = new TinybirdClient()
 
-    const tbActivities = await tb.pipe<any>('activities_relations_filtered', {
-      segments: arg.segmentIds,
-    })
+    const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+      'activities_relations_filtered',
+      {
+        segments: arg.segmentIds,
+      },
+    )
 
     logger.info(`Tinybird returned ${JSON.stringify(tbActivities.data)}`)
 
