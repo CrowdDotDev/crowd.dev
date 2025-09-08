@@ -26,6 +26,10 @@ export interface InsightsProjectAddFormModel {
     enabled: boolean;
     platforms: string[];
   }[];
+  repositoryGroups: {
+    name: string;
+    repositories: string[];
+  }[];
   widgets: {
     [key: string]: {
       enabled: boolean;
