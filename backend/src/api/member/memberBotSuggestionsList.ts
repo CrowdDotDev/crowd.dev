@@ -4,7 +4,7 @@ import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /member/bot-suggestions
+ * GET /member/bot-suggestions
  * @summary List member bot suggestions
  * @tag Members
  * @security Bearer
