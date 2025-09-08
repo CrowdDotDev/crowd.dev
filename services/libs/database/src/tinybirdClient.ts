@@ -31,7 +31,7 @@ export class TinybirdClient {
 
   constructor() {
     this.host = process.env.TINYBIRD_CM_BASE_URL ?? 'https://api.tinybird.co'
-    this.token = process.env.TINYBIRD_TOKEN ?? ''
+    this.token = process.env.TINYBIRD_CM_TOKEN ?? ''
   }
 
   /**
