@@ -15,8 +15,7 @@ export class TinybirdClient {
     if (!host || !token) {
       throw new Error('Tinybird: host and token are required')
     }
-    // normalize host (remove trailing slash)
-    this.host = host.replace(/\/+$/, '')
+    this.host = host
     this.token = token
   }
 
