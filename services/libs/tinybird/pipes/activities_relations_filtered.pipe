@@ -5,67 +5,81 @@ DESCRIPTION >
     - By default, this pipe returns only contribution activities (`isContribution = 1`) unless explicitly overridden with `onlyContributions = 0`.
     - Security / scoping: if you use a `segments_filtered` pipe in your environment, replace the `segmentId` filter to read from it (see comment in Node 1).
     - Parameters:
-      - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
-      - `startDate`: Optional DateTime to filter activities after (e.g., '2024-01-01 00:00:00').
-      - `endDate`: Optional DateTime to filter activities before (e.g., '2024-12-31 23:59:59').
-      - `repos`: Optional array of repository URLs (e.g., ['https://github.com/apache/dubbo']).
-      - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack').
-      - `activity_type`: Optional string filter for a single activity type (e.g., 'star', 'authored-commit').
-      - `activity_types`: Optional array of activity types.
-      - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
-      - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
-      - `pageSize`: Optional integer page size, defaults to 10.
+    - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
+    - `startDate`: Optional DateTime to filter activities after (e.g., '2024-01-01 00:00:00').
+    - `endDate`: Optional DateTime to filter activities before (e.g., '2024-12-31 23:59:59').
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/apache/dubbo']).
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack').
+    - `activity_type`: Optional string filter for a single activity type (e.g., 'star', 'authored-commit').
+    - `activity_types`: Optional array of activity types.
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
+    - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
+    - `pageSize`: Optional integer page size, defaults to 10.
     - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title` from activities.
     - Performance:
-      - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered page from Node 1, minimizing I/O.
-      - Keep page sizes reasonable (50–200) for consistent latency.
-      - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
+    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered page from Node 1, minimizing I/O.
+    - Keep page sizes reasonable (50–200) for consistent latency.
+    - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
 
 NODE activities_enriched_filter_v1
 SQL >
     %
     -- Node: activities_enriched_filter_v1
     -- Description: Filtered and paginated subset of activity relations (base node for enrichment)
-    -- Note: If you have a `segments_filtered` pipe to scope by project, you can replace the segment filter with:
-    --   WHERE ar.segmentId = (SELECT segmentId FROM segments_filtered)
+    -- Note: If you have a `segments_filtered` pipe to scope by project, you can replace the segment
+    -- filter with:
+    -- WHERE ar.segmentId = (SELECT segmentId FROM segments_filtered)
     -- Otherwise, this node accepts `segments` as a parameter (array of segment IDs).
-
-   SELECT
-    ar.activityId,
-    ar.channel,
-    ar.isContribution,
-    ar.memberId,
-    ar.organizationId,
-    ar.platform,
-    ar.segmentId,
-    ar.sourceId,
-    ar.sourceParentId,
-    ar.timestamp,
-    ar.type
-    
+    SELECT
+        ar.activityId,
+        ar.channel,
+        ar.isContribution,
+        ar.memberId,
+        ar.organizationId,
+        ar.platform,
+        ar.segmentId,
+        ar.sourceId,
+        ar.sourceParentId,
+        ar.timestamp,
+        ar.type
     FROM activityRelations_deduplicated_ds AS ar
     WHERE
-        ar.segmentId IN {{ Array(segments, 'String', description="Required list of segment IDs", required=True) }}
+        ar.segmentId
+        IN {{ Array(segments, 'String', description="Required list of segment IDs", required=True) }}
         {% if defined(startDate) %}
-            AND ar.timestamp > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+            AND ar.timestamp
+            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
         {% end %}
         {% if defined(endDate) %}
-            AND ar.timestamp < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+            AND ar.timestamp
+            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
         {% if defined(repos) %}
-            AND ar.channel IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            AND ar.channel
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
         {% if defined(platform) %}
-            AND ar.platform = {{ String(platform, description="Filter activity platform", required=False) }}
+            AND ar.platform
+            = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if (not defined(onlyContributions) or (defined(onlyContributions) and onlyContributions == 1)) %}
-            AND ar.isContribution
-        {% end %}
+        {% if (
+            not defined(onlyContributions)
+            or (defined(onlyContributions) and onlyContributions == 1)
+        ) %} AND ar.isContribution {% end %}
         {% if defined(activity_type) %}
-            AND ar.type = {{ String(activity_type, description="Filter single activity type", required=False) }}
+            AND ar.type
+            = {{ String(activity_type, description="Filter single activity type", required=False) }}
         {% end %}
         {% if defined(activity_types) %}
-            AND ar.type IN {{ Array(activity_types, 'String', description="Filter multiple activity types", required=False) }}
+            AND ar.type
+            IN {{
+                Array(
+                    activity_types,
+                    'String',
+                    description="Filter multiple activity types",
+                    required=False,
+                )
+            }}
         {% end %}
     ORDER BY ar.timestamp DESC, ar.activityId DESC
     LIMIT {{ Int32(pageSize, 10) }}
@@ -75,10 +89,11 @@ NODE activities_enriched_v1
 SQL >
     %
     -- Node: activities_enriched_v1
-    -- Description: Enrich `activities_enriched_filter_v1` with url/body/title from `activities_deduplicated_ds`.
-    -- Mapping: `activityRelations_deduplicated_ds.activityId` (left) <-> `activities_deduplicated_ds.id` (right).
+    -- Description: Enrich `activities_enriched_filter_v1` with url/body/title from
+    -- `activities_deduplicated_ds`.
+    -- Mapping: `activityRelations_deduplicated_ds.activityId` (left) <->
+    -- `activities_deduplicated_ds.id` (right).
     -- Final node: expose this as the API endpoint.
-
     SELECT
         fr.activityId,
         fr.channel,
@@ -95,20 +110,15 @@ SQL >
         a.url,
         a.body,
         a.title
-    FROM activities_enriched_filter_v1 AS fr
-    ANY LEFT JOIN
-    (
-        -- Minimal projection; restrict to IDs present in the filtered page to avoid scanning the full table.
-        SELECT
-            CAST(id AS String) AS activity_id,
-            attributes,
-            url,
-            body,
-            title
-        FROM activities_deduplicated_ds
-        WHERE CAST(id AS String) IN (
-            SELECT DISTINCT CAST(activityId AS String)
-            FROM activities_enriched_filter_v1
-        )
-    ) AS a
-    ON CAST(fr.activityId AS String) = a.activity_id
+    FROM activities_enriched_filter_v1 AS fr ANY
+    LEFT JOIN
+        (
+            -- Minimal projection; restrict to IDs present in the filtered page to avoid scanning the
+            -- full table.
+            SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
+            FROM activities_deduplicated_ds
+            WHERE
+                CAST(id AS String)
+                IN (SELECT DISTINCT CAST(activityId AS String) FROM activities_enriched_filter_v1)
+        ) AS a
+        ON CAST(fr.activityId AS String) = a.activity_id
