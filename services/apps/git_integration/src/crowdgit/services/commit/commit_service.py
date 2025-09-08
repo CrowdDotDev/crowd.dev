@@ -527,7 +527,6 @@ class CommitService(BaseService):
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
             )
-            logger.info(f"Processing extracted activity: {activity}")
             activity_db, activity_kafka = CommitService.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
             )
