@@ -437,9 +437,11 @@ class CommitService(BaseService):
         Args:
             remote: The remote repository URL
             commit: The commit dictionary containing commit data
+            segment_id: Segment identifier
+            integration_id: Integration identifier
 
         Returns:
-            List of activity dictionaries
+            Tuple of (activities_db, activities_queue) lists
         """
         activities_db = []
         activities_queue = []
@@ -491,6 +493,41 @@ class CommitService(BaseService):
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
             )
+            activity_db, activity_kafka = CommitService.prepare_activity_for_db_and_queue(
+                activity, segment_id, integration_id
+            )
+            activities_db.append(activity_db)
+            activities_queue.append(activity_kafka)
+
+        # Process extracted activities from commit message
+        extracted_activities = CommitService.extract_activities(commit["message"])
+        for extracted_activity in extracted_activities:
+            activity_type, member_data = list(extracted_activity.items())[0]
+
+            # Convert activity type to lowercase and add "-commit" suffix
+            # This matches the legacy behavior: "signed-off-by" -> "signed-off-commit"
+            activity_type = activity_type.lower().replace("-by", "") + "-commit"
+
+            member = {
+                "username": member_data["email"],
+                "displayName": member_data["name"],
+                "emails": [member_data["email"]],
+            }
+
+            # Generate unique source ID for extracted activity
+            source_id = hashlib.sha1(
+                (commit_hash + activity_type + member_data["email"]).encode("utf-8")
+            ).hexdigest()
+            activity = CommitService.create_activity(
+                remote=remote,
+                commit=commit,
+                activity_type=activity_type,
+                member=member,
+                source_id=source_id,
+                source_parent_id=commit_hash,
+                segment_id=segment_id,
+            )
+            logger.info(f"Processing extracted activity: {activity}")
             activity_db, activity_kafka = CommitService.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
             )
