@@ -1,6 +1,6 @@
 import { QueryExecutor } from '../queryExecutor'
 
-import { IDbMemberBotSuggestionInsert, IDbMemberBotSuggestionBySegment } from './types'
+import { IDbMemberBotSuggestionBySegment, IDbMemberBotSuggestionInsert } from './types'
 
 export async function insertMemberBotSuggestion(
   qx: QueryExecutor,
@@ -111,7 +111,7 @@ export async function fetchMemberBotSuggestionsBySegment(
   qx: QueryExecutor,
   segmentId: string,
   limit: number,
-  offset: number
+  offset: number,
 ): Promise<IDbMemberBotSuggestionBySegment[]> {
   const rows = await qx.select(
     `
@@ -125,7 +125,7 @@ export async function fetchMemberBotSuggestionsBySegment(
     ORDER BY msa."activityCount" DESC, mbs.confidence DESC
     LIMIT $(limit) OFFSET $(offset);
     `,
-    { segmentId, limit, offset }
+    { segmentId, limit, offset },
   )
 
   return rows
