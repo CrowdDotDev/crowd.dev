@@ -7,16 +7,31 @@ export type QueryParams = Record<
 
 export type PipeNames = 'activities_relations_filtered'
 
+export type ActivityRelations = {
+  activityId: string
+  channel: string
+  isContribution: string
+  memberId: string
+  organizationId: string
+  platform: string
+  segmentId: string
+  sourceId: string
+  sourceParentId: string
+  timestamp: Date
+  type: string
+  attributes: string
+  url: string
+  body: string
+  title: string
+}
+
 export class TinybirdClient {
   private host: string
   private token: string
 
-  constructor({ host, token }: { host: string; token: string }) {
-    if (!host || !token) {
-      throw new Error('Tinybird: host and token are required')
-    }
-    this.host = host
-    this.token = token
+  constructor() {
+    this.host = process.env.TINYBIRD_CM_BASE_URL ?? 'https://api.tinybird.co'
+    this.token = process.env.TINYBIRD_TOKEN ?? ''
   }
 
   /**
