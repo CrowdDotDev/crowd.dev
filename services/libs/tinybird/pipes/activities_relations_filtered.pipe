@@ -91,6 +91,7 @@ SQL >
         fr.sourceParentId,
         fr.timestamp,
         fr.type,
+        a.attributes,
         a.url,
         a.body,
         a.title
@@ -100,6 +101,7 @@ SQL >
         -- Minimal projection; restrict to IDs present in the filtered page to avoid scanning the full table.
         SELECT
             CAST(id AS String) AS activity_id,
+            attributes,
             url,
             body,
             title

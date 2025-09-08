@@ -295,6 +295,8 @@ export default class ActivityService extends LoggerBase {
     const countOnly = data.countOnly ?? false
 
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const activitiyTypes = SegmentRepository.getActivityTypes(this.options)
 
     const page = await queryActivities(
       this.options.qdb,
@@ -307,6 +309,8 @@ export default class ActivityService extends LoggerBase {
         countOnly,
       },
       DEFAULT_COLUMNS_TO_SELECT,
+      qx,
+      activitiyTypes,
     )
 
     // const parentIds: string[] = []

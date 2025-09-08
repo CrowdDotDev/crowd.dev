@@ -5,12 +5,13 @@ import min from 'lodash.min'
 import moment from 'moment'
 
 import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
-import { DbConnOrTx } from '@crowd/database'
+import { DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { queryOverHttp } from '@crowd/questdb'
 import {
   ActivityDisplayVariant,
+  ActivityTypeSettings,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
   IActivityData,
@@ -21,6 +22,7 @@ import {
 } from '@crowd/types'
 
 import { getLatestMemberActivityRelations } from '../activityRelations'
+import { MemberField, queryMembers } from '../members/base'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
@@ -28,6 +30,7 @@ import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
+import { findOrgsByIds } from '../organizations'
 import { QueryExecutor, formatQuery } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
@@ -49,16 +52,24 @@ export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
   segmentIds: string[],
+  qx: QueryExecutor,
+  activityTypeSettings: ActivityTypeSettings,
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
     return []
   }
 
-  const data = await queryActivities(conn, {
-    filter: { and: [{ id: { in: ids } }] },
-    limit: ids.length,
-    segmentIds,
-  })
+  const data = await queryActivities(
+    conn,
+    {
+      filter: { and: [{ id: { in: ids } }] },
+      limit: ids.length,
+      segmentIds,
+    },
+    [],
+    qx,
+    activityTypeSettings,
+  )
 
   return data.rows
 }
@@ -432,11 +443,105 @@ export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT
 
 const logger = getServiceChildLogger('activities')
 
+function extractUniqueIds(activities: Array<{ organizationId?: string; memberId?: string }>): {
+  orgIds: string[]
+  memberIds: string[]
+} {
+  const { org, mem } = activities.reduce(
+    (
+      acc: { org: Set<string>; mem: Set<string> },
+      a: { organizationId?: string; memberId?: string },
+    ) => {
+      const orgId = a.organizationId?.trim?.() ?? a.organizationId
+      const memId = a.memberId?.trim?.() ?? a.memberId
+      if (orgId) acc.org.add(orgId)
+      if (memId) acc.mem.add(memId)
+      return acc
+    },
+    { org: new Set<string>(), mem: new Set<string>() },
+  )
+
+  return {
+    orgIds: [...org],
+    memberIds: [...mem],
+  }
+}
+
 export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
+  qx: QueryExecutor,
+  activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
+  if (process.env.TINYBIRD_CM_HOST && process.env.TINYBIRD_CM_TOKEN) {
+    const tb = new TinybirdClient({
+      host: process.env.TINYBIRD_CM_HOST,
+      token: process.env.TINYBIRD_CM_TOKEN,
+    })
+
+    const tbActivities = await tb.pipe<any>('activities_relations_filtered', {
+      segments: arg.segmentIds,
+    })
+
+    logger.info(`Tinybird returned ${JSON.stringify(tbActivities.data)}`)
+
+    const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
+
+    logger.info(
+      `Extracted orgIds: ${JSON.stringify(orgIds)}, memberIds: ${JSON.stringify(memberIds)}`,
+    )
+
+    const [membersInfo, orgsInfo] = await Promise.all([
+      memberIds.length
+        ? queryMembers(qx, {
+            filter: { id: { in: memberIds } },
+            fields: [MemberField.ATTRIBUTES, MemberField.ID, MemberField.DISPLAY_NAME],
+          })
+        : Promise.resolve([]),
+      orgIds.length ? findOrgsByIds(qx, orgIds) : Promise.resolve([]),
+    ])
+
+    const membersMap = Object.fromEntries(membersInfo.map((item) => [item.id, item]))
+
+    const organizationsMap = Object.fromEntries(orgsInfo.map((item) => [item.id, item]))
+
+    const enrichedActivities = tbActivities.data.map((activity) => {
+      const org = activity.organizationId ? organizationsMap[activity.organizationId] : undefined
+      const mem = activity.memberId ? membersMap[activity.memberId] : undefined
+
+      // TODO: check if this should be mandatory
+      const display = activityTypeSettings
+        ? ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
+        : {}
+
+      return {
+        ...activity,
+        ...(org && {
+          organization: {
+            id: org.id,
+            displayName: org.displayName,
+          },
+        }),
+        ...(mem && {
+          member: {
+            id: mem.id,
+            displayName: mem.displayName,
+            attributes: {
+              avatarUrl: mem.attributes?.avatarUrl,
+              isBot: mem.attributes?.isBot,
+            },
+          },
+        }),
+        display,
+      }
+    })
+
+    logger.info(`Enriched activities: ${JSON.stringify(enrichedActivities)}`)
+  } else {
+    logger.warn('Tinybird credentials are not set. Skipping Tinybird query.')
+  }
+
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
   }
@@ -859,6 +964,7 @@ export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
   segmentIds?: string[],
+  activityTypeSettings?: ActivityTypeSettings,
 ): Promise<IQueryActivityResult[]> {
   const results = await getLatestMemberActivityRelations(qx, memberIds)
 
@@ -869,31 +975,37 @@ export async function getLastActivitiesForMembers(
   const activityIds = results.map((r) => r.activityId)
   const timestamps = results.map((r) => r.timestamp)
 
-  const activities = await queryActivities(qdbConn, {
-    filter: {
-      and: [
-        {
-          id: {
-            in: activityIds,
+  const activities = await queryActivities(
+    qdbConn,
+    {
+      filter: {
+        and: [
+          {
+            id: {
+              in: activityIds,
+            },
           },
-        },
-        {
-          segmentId: {
-            in: segmentIds || [],
+          {
+            segmentId: {
+              in: segmentIds || [],
+            },
           },
-        },
-        {
-          timestamp:
-            activityIds.length > 1
-              ? {
-                  gte: min(timestamps),
-                  lte: max(timestamps),
-                }
-              : { eq: timestamps[0] },
-        },
-      ],
+          {
+            timestamp:
+              activityIds.length > 1
+                ? {
+                    gte: min(timestamps),
+                    lte: max(timestamps),
+                  }
+                : { eq: timestamps[0] },
+          },
+        ],
+      },
     },
-  })
+    [],
+    qx,
+    activityTypeSettings,
+  )
 
   return activities.rows
 }
