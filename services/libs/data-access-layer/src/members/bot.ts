@@ -1,6 +1,6 @@
 import { QueryExecutor } from '../queryExecutor'
 
-import { IDbMemberBotSuggestionInsert } from './types'
+import { IDbMemberBotSuggestionInsert, IDbMemberBotSuggestionBySegment } from './types'
 
 export async function insertMemberBotSuggestion(
   qx: QueryExecutor,
@@ -105,4 +105,28 @@ export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): 
   )
 
   return rows.map((r) => r.memberId)
+}
+
+export async function fetchMemberBotSuggestionsBySegment(
+  qx: QueryExecutor,
+  segmentId: string,
+  limit: number,
+  offset: number
+): Promise<IDbMemberBotSuggestionBySegment[]> {
+  const rows = await qx.select(
+    `
+    SELECT 
+      mbs."memberId",
+      mbs.confidence,
+      msa."activityCount"
+    FROM "memberBotSuggestions" mbs
+    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId" 
+    AND msa."segmentId" = $(segmentId)
+    ORDER BY msa."activityCount" DESC, mbs.confidence DESC
+    LIMIT $(limit) OFFSET $(offset);
+    `,
+    { segmentId, limit, offset }
+  )
+
+  return rows
 }

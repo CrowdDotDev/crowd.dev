@@ -28,4 +28,6 @@ export default (app) => {
   require('./affiliation').default(app)
 
   app.post(`/member/:id/data-issue`, safeWrap(require('./memberDataIssueCreate').default))
+
+  app.get(`/member/bot-suggestions`, safeWrap(require('./memberBotSuggestionsList').default))
 }
