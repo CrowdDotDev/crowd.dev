@@ -51,13 +51,22 @@ type TBParams = Record<string, string | number | boolean>
 
 /**
  * Build query params for the Tinybird pipe from a legacy `arg`.
- * Arrays are JSON-stringified because the pipe uses Array(..., 'String').
+ * - segments: array → CSV string (es. "segment1,segment2")
+ * - altre array: JSON-stringified (come prima)
  */
 export function buildActivitiesParams(arg: IQueryActivitiesParameters): TBParams {
   const params: TBParams = {}
 
-  // segments (array → JSON string)
-  params.segments = JSON.stringify(arg.segmentIds.join(',') || [])
+  // segments (array → CSV string senza []/quote)
+  const segmentsCsv = Array.isArray(arg.segmentIds)
+    ? arg.segmentIds
+        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+        .map((s) => s.trim())
+        .join(',')
+    : ''
+  if (segmentsCsv) {
+    params.segments = segmentsCsv
+  }
 
   // pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)
