@@ -1494,7 +1494,7 @@ export default class ActivityService extends LoggerBase {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
       } else {
-        this.log.info(`[DEBUG] Found duplicate activity in payload: ${key}`)
+        this.log.info('[DEBUG] Found duplicate activity in payload', JSON.stringify(item.payload))
       }
     }
 
