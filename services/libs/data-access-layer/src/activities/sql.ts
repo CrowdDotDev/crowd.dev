@@ -483,7 +483,7 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  console.log(`tbParams: ${JSON.stringify(tbParams)}`)
+  logger.info(`Tinybird query params: ${JSON.stringify(tbParams)}`)
 
   const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
@@ -536,6 +536,8 @@ export async function queryActivities(
       display,
     }
   })
+
+  logger.info(`Queried ${enrichedActivities.length} activities from Tinybird`)
 
   arg.filter = arg.filter || {}
   arg.orderBy =
@@ -711,17 +713,24 @@ export async function queryActivities(
     }
   }
 
+  logger.info(`Queried ${activities.length} activities from QuestDB`)
+
+  logger.info(`wrapping up activities`)
   const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
   const enrichedResults = enrichedActivities.map((a) => mapActivityRowToResult(a, columns))
+
+  logger.info(`Mapped activities, counting total results`)
 
   let countTb = 0
   if (!arg.noCount) {
     const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
-      ...params,
+      ...tbParams,
       countOnly: 1,
     })
     logger.info(`Tinybird count response ${JSON.stringify(countResp)}`)
     countTb = Number((countResp as any)?.count ?? 0)
+  } else {
+    logger.info(`Skipping Tinybird count`)
   }
 
   const classicResult = {
