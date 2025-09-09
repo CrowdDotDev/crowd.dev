@@ -144,7 +144,7 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
           installDate: moment(record['Install Date'], 'MM/DD/YYYY').toDate(),
           usageEndDate: moment(record['Usage End Date'], 'MM/DD/YYYY').toDate(),
           status: record['Status'],
-          priceCurrency: record['Price Currency'],
+          priceCurrency: 'USD',
           price: parseInt(record['Price'], 10),
           productFamily: record['Product Family'],
           tier: record['Tier'],
