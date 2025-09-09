@@ -483,6 +483,8 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
+  console.log(`tbParams: ${JSON.stringify(tbParams)}`)
+
   const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
