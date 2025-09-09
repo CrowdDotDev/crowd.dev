@@ -480,6 +480,8 @@ export async function queryActivities(
     'activities_relations_filtered',
     {
       segments: arg.segmentIds,
+      page: arg.offset ?? 0,
+      pageSize: arg.limit ?? 20,
     },
   )
 
