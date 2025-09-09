@@ -706,10 +706,13 @@ export async function mergeRoles(
     const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
 
     for (const removeRole of removeRoles) {
+      logger.info(`Removing role: ${JSON.stringify(removeRole)}`)
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
       const existingOverride = existingOverrides.find(
         (o) => o.memberOrganizationId === removeRole.id,
       )
+
+      logger.info(`Found existing override for role: ${JSON.stringify(existingOverride)}`)
 
       if (existingOverride) {
         await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
