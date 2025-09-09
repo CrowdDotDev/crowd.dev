@@ -24,14 +24,23 @@ DESCRIPTION >
 NODE activities_enriched_filter_v1
 SQL >
     %
-    -- Node: activities_enriched_filter_v1
-    -- Description: Filtered and paginated subset of activity relations (base node for enrichment)
-    -- Note: If you have a `segments_filtered` pipe to scope by project, you can replace the segment
-    -- filter with:
-    -- WHERE ar.segmentId = (SELECT segmentId FROM segments_filtered)
-    -- Otherwise, this node accepts `segments` as a parameter (array of segment IDs).
+    -- Parameters (all optional unless stated):
+    -- segments: Array(String)  [REQUIRED]  → project scope
+    -- startDate, endDate: DateTime         → filter by ar.timestamp
+    -- repos: Array(String)                  → ar.channel IN repos
+    -- platform: String                      → ar.platform
+    -- activity_type: String                 → ar.type = <single>
+    -- activity_types: Array(String)         → ar.type IN <many>
+    -- conversationIds: Array(String)        → ar.sourceParentId IN (...)
+    -- sourceIds: Array(String)              → ar.sourceId IN (...)
+    -- onlyContributions: UInt8 (default 1)  → include only ar.isContribution
+    -- orderBy: String (timestamp_DESC|timestamp_ASC|createdAt_DESC|createdAt_ASC)
+    -- page: Int32 (default 0)
+    -- pageSize: Int32 (default 10)
+    -- memberIsTeamMember: UInt8 (0/1)
+    -- memberIsBot: UInt8 (0/1)
     SELECT
-        ar.activityId,
+        ar.activityId AS id,
         ar.channel,
         ar.isContribution,
         ar.memberId,
@@ -42,83 +51,77 @@ SQL >
         ar.sourceParentId,
         ar.timestamp,
         ar.type
+        -- , ar.createdAt (if you want to expose createdAt too)
     FROM activityRelations_deduplicated_ds AS ar
     WHERE
-        ar.segmentId
-        IN {{ Array(segments, 'String', description="Required list of segment IDs", required=True) }}
-        {% if defined(startDate) %}
-            AND ar.timestamp
-            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        ar.segmentId IN {{ Array(segments, 'String', required=True, description="Segment IDs") }}
+        {% if defined(startDate) %} AND ar.timestamp > {{ DateTime(startDate) }} {% end %}
+        {% if defined(endDate) %}   AND ar.timestamp < {{ DateTime(endDate) }} {% end %}
+        {% if defined(repos) %}     AND ar.channel IN {{ Array(repos, 'String') }} {% end %}
+        {% if defined(platform) %}  AND ar.platform = {{ String(platform) }} {% end %}
+        {% if defined(onlyContributions) and onlyContributions == 1 %}
+          AND ar.isContribution
         {% end %}
-        {% if defined(endDate) %}
-            AND ar.timestamp
-            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+        {% if defined(activity_type) %}  AND ar.type = {{ String(activity_type) }} {% end %}
+        {% if defined(activity_types) %} AND ar.type IN {{ Array(activity_types, 'String') }} {% end %}
+        {% if defined(conversationIds) %} AND ar.sourceParentId IN {{ Array(conversationIds, 'String') }} {% end %}
+        {% if defined(sourceIds) %}       AND ar.sourceId IN {{ Array(sourceIds, 'String') }} {% end %}
+        {% if (defined(memberIsTeamMember) or defined(memberIsBot)) %}
+            AND ar.memberId IN (
+                SELECT id
+                FROM members_sorted
+                WHERE 1
+                    {% if defined(memberIsTeamMember) %}
+                        AND isTeamMember = {{ UInt8(memberIsTeamMember) }}
+                    {% end %}
+                    {% if defined(memberIsBot) %}
+                        AND isBot = {{ UInt8(memberIsBot) }}
+                    {% end %}
+            )
         {% end %}
-        {% if defined(repos) %}
-            AND ar.channel
-            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+    {% if defined(orderBy) %}
+        {% if orderBy == 'timestamp_ASC' %} ORDER BY ar.timestamp ASC, ar.activityId ASC
+        {% elif orderBy == 'createdAt_ASC' %} ORDER BY ar.timestamp ASC, ar.activityId ASC
+        {% elif orderBy == 'createdAt_DESC'%} ORDER BY ar.timestamp DESC, ar.activityId DESC
+        {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
         {% end %}
-        {% if defined(platform) %}
-            AND ar.platform
-            = {{ String(platform, description="Filter activity platform", required=False) }}
-        {% end %}
-        {% if (
-            not defined(onlyContributions)
-            or (defined(onlyContributions) and onlyContributions == 1)
-        ) %} AND ar.isContribution {% end %}
-        {% if defined(activity_type) %}
-            AND ar.type
-            = {{ String(activity_type, description="Filter single activity type", required=False) }}
-        {% end %}
-        {% if defined(activity_types) %}
-            AND ar.type
-            IN {{
-                Array(
-                    activity_types,
-                    'String',
-                    description="Filter multiple activity types",
-                    required=False,
-                )
-            }}
-        {% end %}
-    ORDER BY ar.timestamp DESC, ar.activityId DESC
+    {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
+    {% end %}
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
 
 NODE activities_enriched_v1
 SQL >
     %
-    -- Node: activities_enriched_v1
-    -- Description: Enrich `activities_enriched_filter_v1` with url/body/title from
-    -- `activities_deduplicated_ds`.
-    -- Mapping: `activityRelations_deduplicated_ds.activityId` (left) <->
-    -- `activities_deduplicated_ds.id` (right).
-    -- Final node: expose this as the API endpoint.
-    SELECT
-        fr.activityId,
-        fr.channel,
-        fr.isContribution,
-        fr.memberId,
-        fr.organizationId,
-        fr.platform,
-        fr.segmentId,
-        fr.sourceId,
-        fr.sourceParentId,
-        fr.timestamp,
-        fr.type,
-        a.attributes,
-        a.url,
-        a.body,
-        a.title
-    FROM activities_enriched_filter_v1 AS fr ANY
-    LEFT JOIN
-        (
-            -- Minimal projection; restrict to IDs present in the filtered page to avoid scanning the
-            -- full table.
+    {% if defined(countOnly) and countOnly == 1 %}
+        SELECT countDistinct(fr.id) AS count  
+        FROM filtered_relations fr
+    {% else %}
+        SELECT
+            fr.id,               
+            fr.channel,
+            fr.isContribution,
+            fr.memberId,
+            fr.organizationId,
+            fr.platform,
+            fr.segmentId,
+            fr.sourceId,
+            fr.sourceParentId,
+            fr.timestamp,
+            fr.type,
+            a.attributes,
+            a.url,
+            a.body,
+            a.title
+        FROM filtered_relations AS fr ANY
+        LEFT JOIN (
             SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
             FROM activities_deduplicated_ds
-            WHERE
-                CAST(id AS String)
-                IN (SELECT DISTINCT CAST(activityId AS String) FROM activities_enriched_filter_v1)
+            WHERE CAST(id AS String) IN (
+                SELECT DISTINCT CAST(id AS String)  
+                FROM filtered_relations
+            )
         ) AS a
-        ON CAST(fr.activityId AS String) = a.activity_id
+        ON CAST(fr.id AS String) = a.activity_id
+    {% end %}
+
