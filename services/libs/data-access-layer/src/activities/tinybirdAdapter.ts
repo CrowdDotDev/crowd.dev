@@ -57,7 +57,7 @@ export function buildActivitiesParams(arg: IQueryActivitiesParameters): TBParams
   const params: TBParams = {}
 
   // segments (array → JSON string)
-  params.segments = JSON.stringify(arg.segmentIds || [])
+  params.segments = JSON.stringify(arg.segmentIds.join(',') || [])
 
   // pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)
@@ -72,29 +72,29 @@ export function buildActivitiesParams(arg: IQueryActivitiesParameters): TBParams
   if (arg.countOnly) params.countOnly = 1
 
   // filters (narrow to known shape to avoid `any`)
-  const f = (arg.filter ?? {}) as Partial<FilterShape>
+  const filter = (arg.filter ?? {}) as Partial<FilterShape>
 
   // time range
-  if (f.timestamp?.gt) params.startDate = f.timestamp.gt
-  if (f.timestamp?.lt) params.endDate = f.timestamp.lt
+  if (filter.timestamp?.gt) params.startDate = filter.timestamp.gt
+  if (filter.timestamp?.lt) params.endDate = filter.timestamp.lt
 
   // platform
-  if (typeof f.platform?.eq === 'string') params.platform = f.platform.eq
+  if (typeof filter.platform?.eq === 'string') params.platform = filter.platform.eq
 
   // repos / channel
-  if (isNonEmptyArray<string>(f.channel?.in)) {
-    params.repos = JSON.stringify(f.channel.in)
+  if (isNonEmptyArray<string>(filter.channel?.in)) {
+    params.repos = JSON.stringify(filter.channel.in)
   }
 
   // activity types
-  if (typeof f.type?.eq === 'string') params.activity_type = f.type.eq
-  if (isNonEmptyArray<string>(f.type?.in)) {
-    params.activity_types = JSON.stringify(f.type.in)
+  if (typeof filter.type?.eq === 'string') params.activity_type = filter.type.eq
+  if (isNonEmptyArray<string>(filter.type?.in)) {
+    params.activity_types = JSON.stringify(filter.type.in)
   }
 
   // contributions (pipe default is onlyContributions=1)
-  const onlyContrib = booleanToTinybirdFlag(f.onlyContributions)
-  const isContrib = booleanToTinybirdFlag(f.isContribution)
+  const onlyContrib = booleanToTinybirdFlag(filter.onlyContributions)
+  const isContrib = booleanToTinybirdFlag(filter.isContribution)
   // prefer explicit onlyContributions; fallback to isContribution for compatibility
   const contribFlag = onlyContrib ?? isContrib
   if (contribFlag !== undefined) {
@@ -102,19 +102,19 @@ export function buildActivitiesParams(arg: IQueryActivitiesParameters): TBParams
   }
 
   // conversation/source
-  if (isNonEmptyArray<string>(f.conversationId?.in)) {
-    params.conversationIds = JSON.stringify(f.conversationId.in)
+  if (isNonEmptyArray<string>(filter.conversationId?.in)) {
+    params.conversationIds = JSON.stringify(filter.conversationId.in)
   }
-  if (isNonEmptyArray<string>(f.sourceId?.in)) {
-    params.sourceIds = JSON.stringify(f.sourceId.in)
+  if (isNonEmptyArray<string>(filter.sourceId?.in)) {
+    params.sourceIds = JSON.stringify(filter.sourceId.in)
   }
 
   // member flags
-  const teamFlag = booleanToTinybirdFlag(f.member?.isTeamMember)
+  const teamFlag = booleanToTinybirdFlag(filter.member?.isTeamMember)
   if (teamFlag !== undefined) {
     params.memberIsTeamMember = teamFlag
   }
-  const botFlag = booleanToTinybirdFlag(f.member?.isBot)
+  const botFlag = booleanToTinybirdFlag(filter.member?.isBot)
   if (botFlag !== undefined) {
     params.memberIsBot = botFlag
   }
