@@ -475,6 +475,8 @@ export async function queryActivities(
   qx: QueryExecutor,
   activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
+  logger.info(`queryActivities called with: ${JSON.stringify(arg.segmentIds)}`)
+
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
   }
