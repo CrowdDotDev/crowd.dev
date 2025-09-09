@@ -517,10 +517,10 @@ async function moveRolesBetweenEntities(
     mergeStrat.intersectBasedOnField,
   )
 
-  logger.info({ remainingRoles }, 'Found remaining roles to process')
+  logger.info(`Found remaining roles to process: ${JSON.stringify(remainingRoles)}`)
 
   for (const role of remainingRoles) {
-    logger.info(`Processing role:`, role)
+    logger.info(`Processing role: ${JSON.stringify(role)}`)
 
     // delete any existing affiliation override for the role to avoid foreign key conflicts
     // and reapply it with the new memberOrganizationId
