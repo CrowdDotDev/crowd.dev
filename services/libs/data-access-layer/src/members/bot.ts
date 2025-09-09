@@ -14,12 +14,23 @@ export async function insertMemberBotSuggestion(
   )
 }
 
+export async function deleteMemberBotSuggestion(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<void> {
+  await qx.result(`DELETE FROM "memberBotSuggestions" WHERE "memberId" = $(memberId)`, { memberId })
+}
+
 export async function insertMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
   await qx.result(
     `INSERT INTO "memberNoBot" ("memberId", "createdAt") VALUES ($(memberId), now())
      ON CONFLICT DO NOTHING`,
     { memberId },
   )
+}
+
+export async function deleteMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
+  await qx.result(`DELETE FROM "memberNoBot" WHERE "memberId" = $(memberId)`, { memberId })
 }
 
 export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): Promise<string[]> {
