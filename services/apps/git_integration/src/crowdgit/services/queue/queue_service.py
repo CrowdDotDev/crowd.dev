@@ -22,7 +22,6 @@ class QueueService(BaseService):
         self._connected = False
 
     def _build_kafka_config(self):
-        """Build Kafka configuration with SSL support (same as test script)"""
         config = {
             "bootstrap_servers": CROWD_KAFKA_BROKERS,
             "client_id": self._CLIENT_ID,
