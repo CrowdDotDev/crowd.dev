@@ -5,7 +5,7 @@ import min from 'lodash.min'
 import moment from 'moment'
 
 import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
-import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
+import { ActivityRelations, buildActivitiesParams, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { queryOverHttp } from '@crowd/questdb'
@@ -44,9 +44,8 @@ import {
   IQueryTopActivitiesParameters,
 } from './types'
 
-const s3Url = `https://${
-  process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
-}-${getEnv()}.s3.eu-central-1.amazonaws.com`
+const s3Url = `https://${process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
+  }-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -476,29 +475,21 @@ export async function queryActivities(
 ): Promise<PageData<IQueryActivityResult | any>> {
   const tb = new TinybirdClient()
 
+  const tbParams = buildActivitiesParams(arg)
+
   const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
-    {
-      segments: arg.segmentIds,
-      page: arg.offset ?? 0,
-      pageSize: arg.limit ?? 20,
-    },
+    tbParams,
   )
-
-  logger.info(`Tinybird returned ${JSON.stringify(tbActivities.data)}`)
 
   const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
-
-  logger.info(
-    `Extracted orgIds: ${JSON.stringify(orgIds)}, memberIds: ${JSON.stringify(memberIds)}`,
-  )
 
   const [membersInfo, orgsInfo] = await Promise.all([
     memberIds.length
       ? queryMembers(qx, {
-          filter: { id: { in: memberIds } },
-          fields: [MemberField.ATTRIBUTES, MemberField.ID, MemberField.DISPLAY_NAME],
-        })
+        filter: { id: { in: memberIds } },
+        fields: [MemberField.ATTRIBUTES, MemberField.ID, MemberField.DISPLAY_NAME],
+      })
       : Promise.resolve([]),
     orgIds.length ? findOrgsByIds(qx, orgIds) : Promise.resolve([]),
   ])
@@ -638,11 +629,10 @@ export async function queryActivities(
   let baseQuery = `
     from activities a
     where      
-      ${
-        arg.segmentIds && arg.segmentIds.length > 0
-          ? 'a."segmentId" in ($(segmentIds:csv)) and'
-          : ''
-      }
+      ${arg.segmentIds && arg.segmentIds.length > 0
+      ? 'a."segmentId" in ($(segmentIds:csv)) and'
+      : ''
+    }
       a."deletedAt" is null and ${filterString}
   `
   if (arg.groupBy) {
@@ -732,19 +722,19 @@ export async function queryActivities(
 export function mapActivityRowToResult(a: any, columns: string[]): any {
   const sentiment: IActivitySentiment | null =
     a.sentimentLabel &&
-    a.sentimentScore &&
-    a.sentimentScoreMixed &&
-    a.sentimentScoreNeutral &&
-    a.sentimentScoreNegative &&
-    a.sentimentScorePositive
+      a.sentimentScore &&
+      a.sentimentScoreMixed &&
+      a.sentimentScoreNeutral &&
+      a.sentimentScoreNegative &&
+      a.sentimentScorePositive
       ? {
-          label: a.sentimentLabel,
-          sentiment: a.sentimentScore,
-          mixed: a.sentimentScoreMixed,
-          neutral: a.sentimentScoreNeutral,
-          negative: a.sentimentScoreNegative,
-          positive: a.sentimentScorePositive,
-        }
+        label: a.sentimentLabel,
+        sentiment: a.sentimentScore,
+        mixed: a.sentimentScoreMixed,
+        neutral: a.sentimentScoreNeutral,
+        negative: a.sentimentScoreNegative,
+        positive: a.sentimentScorePositive,
+      }
       : null
 
   const data: any = {}
@@ -993,9 +983,9 @@ export async function getLastActivitiesForMembers(
             timestamp:
               activityIds.length > 1
                 ? {
-                    gte: min(timestamps),
-                    lte: max(timestamps),
-                  }
+                  gte: min(timestamps),
+                  lte: max(timestamps),
+                }
                 : { eq: timestamps[0] },
           },
         ],
