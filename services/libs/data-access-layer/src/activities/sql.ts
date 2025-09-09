@@ -717,7 +717,6 @@ export async function queryActivities(
 
   logger.info(`wrapping up activities`)
   const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
-  const enrichedResults = enrichedActivities.map((a) => mapActivityRowToResult(a, columns))
 
   logger.info(`Mapped activities, counting total results`)
 
@@ -742,7 +741,7 @@ export async function queryActivities(
 
   const tbResult = {
     count: Number(countTb),
-    rows: enrichedResults,
+    rows: enrichedActivities,
     limit: arg.limit,
     offset: arg.offset,
   }
@@ -750,7 +749,7 @@ export async function queryActivities(
   logger.info(`Classic result ${JSON.stringify(classicResult)} `)
   logger.info(`TB result ${JSON.stringify(tbResult)} `)
 
-  return classicResult
+  return tbResult
 }
 
 export function mapActivityRowToResult(a: any, columns: string[]): any {
