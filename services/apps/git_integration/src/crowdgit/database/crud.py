@@ -196,14 +196,14 @@ async def upsert_maintainer(
 ):
     sql_query = """
         INSERT INTO "maintainersInternal" 
-        ("role", "originalRole", "repoUrl", "repoId", "identityId", "startDate")
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT ("repoId", "identityId") DO UPDATE
+        ("role", "originalRole", "repoUrl", "repoId", "identityId", "startDate", "endDate")
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT ("repoId", "identityId", "startDate", "endDate") DO UPDATE
         SET role = EXCLUDED.role, "originalRole" = EXCLUDED."originalRole", "updatedAt" = NOW()
     """
     await execute(
         sql_query,
-        (role, original_role, repo_url, repo_id, identity_id, start_date),
+        (role, original_role, repo_url, repo_id, identity_id, start_date, None),
     )
 
 
