@@ -1493,6 +1493,8 @@ export default class ActivityService extends LoggerBase {
       if (!uniqueConstraintKeys.has(key)) {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
+      } else {
+        this.log.trace(`[DEBUG] Found duplicate activity in payload: ${key}`)
       }
     }
 
