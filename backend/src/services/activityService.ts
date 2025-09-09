@@ -6,7 +6,7 @@ import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-l
 import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { LoggerBase, logExecutionTime } from '@crowd/logging'
+import { LoggerBase, getServiceChildLogger, logExecutionTime } from '@crowd/logging'
 import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -25,6 +25,8 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import SegmentService from './segmentService'
+
+const logger = getServiceChildLogger('activities')
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -395,6 +397,8 @@ export default class ActivityService extends LoggerBase {
     }
 
     await Promise.all(promises)
+
+    logger.info('Returning activities page', JSON.stringify(page))
 
     return page
   }
