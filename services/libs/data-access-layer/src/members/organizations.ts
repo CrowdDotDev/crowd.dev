@@ -489,10 +489,14 @@ async function moveRolesBetweenEntities(
   const primaryAffiliationOverrides = await findAffiliationOverrides(qx, primaryId)
   const secondaryAffiliationOverrides = await findAffiliationOverrides(qx, secondaryId)
 
-  await mergeRoles(qx, primaryRoles, secondaryRoles, mergeStrat, {
-    primary: primaryAffiliationOverrides,
-    secondary: secondaryAffiliationOverrides,
-  })
+  await mergeRoles(
+    qx,
+    primaryRoles,
+    secondaryRoles,
+    primaryAffiliationOverrides,
+    secondaryAffiliationOverrides,
+    mergeStrat,
+  )
 
   // update rest of the o2 members
   const remainingRoles = await findNonIntersectingRoles(
@@ -583,11 +587,9 @@ export async function mergeRoles(
   qx: QueryExecutor,
   primaryRoles: IMemberOrganization[],
   secondaryRoles: IMemberOrganization[],
+  primaryAffiliationOverrides: IMemberOrganizationAffiliationOverride[],
+  secondaryAffiliationOverrides: IMemberOrganizationAffiliationOverride[],
   mergeStrat: IMergeStrat,
-  affiliationOverrides: {
-    primary: IMemberOrganizationAffiliationOverride[]
-    secondary: IMemberOrganizationAffiliationOverride[]
-  },
 ) {
   let removeRoles: IMemberOrganization[] = []
   let addRoles: IMemberOrganization[] = []
@@ -685,7 +687,7 @@ export async function mergeRoles(
       }
     }
 
-    const existingOverrides = [...affiliationOverrides.primary, ...affiliationOverrides.secondary]
+    const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
 
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
