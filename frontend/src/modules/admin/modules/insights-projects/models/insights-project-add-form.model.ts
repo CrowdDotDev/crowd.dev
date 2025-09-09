@@ -27,6 +27,7 @@ export interface InsightsProjectAddFormModel {
     platforms: string[];
   }[];
   repositoryGroups: {
+    id?: string;
     name: string;
     repositories: string[];
   }[];

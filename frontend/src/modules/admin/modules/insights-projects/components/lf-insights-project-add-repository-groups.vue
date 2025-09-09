@@ -30,7 +30,7 @@
               <lf-button :icon-only="true" type="secondary-ghost-light" @click="edit(gi)">
                 <lf-icon name="edit" />
               </lf-button>
-              <lf-button :icon-only="true" type="secondary-ghost-light" @click="cForm.repositoryGroups.splice(gi, 1)">
+              <lf-button :icon-only="true" type="secondary-ghost-light" @click="remove(gi)">
                 <lf-icon name="trash-can" />
               </lf-button>
             </div>
@@ -57,8 +57,8 @@
     v-model="isModalOpen"
     :repositories="repositories"
     :repository-group="editIndex >= 0 ? cForm.repositoryGroups[editIndex] : null"
-    @add="cForm.repositoryGroups.push($event)"
-    @edit="cForm.repositoryGroups[editIndex] = $event"
+    @add="create"
+    @edit="update"
   />
 </template>
 
@@ -72,6 +72,12 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import pluralize from 'pluralize';
 import LfSvg from '@/shared/svg/svg.vue';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
+
+interface RepositoryGroup {
+  id?: string;
+  name: string;
+  repositories: string[];
+}
 
 const props = defineProps<{
   form: InsightsProjectAddFormModel;
@@ -91,6 +97,29 @@ const add = () => {
 const edit = (index: number) => {
   editIndex.value = index;
   isModalOpen.value = true;
+};
+
+const create = (data: RepositoryGroup) => {
+  cForm.repositoryGroups = [...cForm.repositoryGroups, data];
+};
+
+const update = (data: RepositoryGroup) => {
+  const list = [...cForm.repositoryGroups];
+  if (editIndex.value >= 0 && editIndex.value < list.length) {
+    list[editIndex.value] = {
+      ...list[editIndex.value],
+      ...data,
+    };
+    cForm.repositoryGroups = list;
+  }
+};
+
+const remove = (index: number) => {
+  const list = [...cForm.repositoryGroups];
+  if (index >= 0 && index < list.length) {
+    list.splice(index, 1);
+    cForm.repositoryGroups = list;
+  }
 };
 </script>
 

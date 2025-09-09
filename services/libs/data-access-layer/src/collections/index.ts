@@ -10,6 +10,7 @@ import {
   updateTableById,
 } from '../utils'
 import { QueryOptions } from '../utils'
+import {ICreateRepositoryGroup} from "../repositoryGroups";
 
 export interface ICreateCollection {
   categoryId: string
@@ -56,6 +57,7 @@ export interface IInsightsProject {
         url: string
       }[]
     | string[]
+  repositoryGroups: ICreateRepositoryGroup[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {

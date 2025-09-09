@@ -42,6 +42,12 @@ import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
+import {
+  createRepositoryGroup, deleteRepositoryGroup,
+  ICreateRepositoryGroup, IRepositoryGroup,
+  listRepositoryGroups, updateRepositoryGroup
+} from "@crowd/data-access-layer/src/repositoryGroups";
+import {QueryExecutor} from "@crowd/data-access-layer";
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -241,6 +247,10 @@ export class CollectionService extends LoggerBase {
         )
       }
 
+      if(project.repositoryGroups){
+        await this.syncRepositoryGroupsWithDb(qx, createdProject.id,  project.repositoryGroups)
+      }
+
       const txSvc = new CollectionService({ ...this.options, transaction: tx })
 
       return txSvc.findInsightsProjectById(createdProject.id)
@@ -281,6 +291,7 @@ export class CollectionService extends LoggerBase {
               fields: Object.values(CollectionField),
             })
           : []
+      const repositoryGroups = await listRepositoryGroups(qx, { insightsProjectId: id })
 
       return {
         ...project,
@@ -296,6 +307,7 @@ export class CollectionService extends LoggerBase {
           displayName: organization?.displayName,
           logo: organization?.logo,
         },
+        repositoryGroups,
       }
     })
   }
@@ -400,6 +412,9 @@ export class CollectionService extends LoggerBase {
           })),
         )
       }
+      if(project.repositoryGroups){
+        await this.syncRepositoryGroupsWithDb(qx, insightsProjectId,  project.repositoryGroups)
+      }
 
       const txSvc = new CollectionService({
         ...this.options,
@@ -407,6 +422,64 @@ export class CollectionService extends LoggerBase {
       })
       return txSvc.findInsightsProjectById(insightsProjectId)
     })
+  }
+
+  /**
+   * Synchronizes repository groups with the database by creating, updating, or deleting groups based on the provided input.
+   *
+   * @param {QueryExecutor} qx - The query executor used to perform database operations.
+   * @param {string} insightsProjectId - The ID of the insights project to which the repository groups belong.
+   * @param {ICreateRepositoryGroup[]} repositoryGroups - The array of repository group objects to be synchronized with the database.
+   * @return {Promise<IRepositoryGroup[]>} A promise that resolves to the list of repository groups currently in the database after synchronization.
+   */
+  // eslint-disable-next-line class-methods-use-this
+  async syncRepositoryGroupsWithDb(qx: QueryExecutor, insightsProjectId: string,  repositoryGroups: ICreateRepositoryGroup[]): Promise<IRepositoryGroup[]> {
+    // Get existing repository groups for the given insights project
+    const existingRepositoryGroups = await listRepositoryGroups(qx, {insightsProjectId})
+
+    // Extract IDs of existing repository groups
+    const existingIds: string[] = existingRepositoryGroups.map(rg => rg.id)
+
+    // Extract IDs of repository groups to be synchronized
+    const repositoryGroupIds: string[] = repositoryGroups.map(rg => rg.id) as string[]
+
+    // Find repository groups that need to be updated (exist in both lists)
+    const toUpdate: ICreateRepositoryGroup[] = repositoryGroups.filter(rg => existingIds.includes(rg.id))
+
+    // Find repository groups that need to be created (don't exist or have no ID)
+    const toCreate: ICreateRepositoryGroup[] = repositoryGroups.filter(rg => !rg.id || !existingIds.includes(rg.id))
+
+    // Find repository groups that need to be deleted (exist but not in new list)
+    const toDelete: string[] = existingIds.filter(id => !repositoryGroupIds.includes(id))
+
+    // Create new repository groups
+    if (toCreate.length > 0) {
+      for (const rg of toCreate) {
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await createRepositoryGroup(qx, {
+          ...rg,
+          slug,
+          insightsProjectId,
+        })
+      }
+    }
+
+    // Delete repository groups that are no longer needed
+    if (toDelete.length > 0) {
+      for (const id of toDelete) {
+        await deleteRepositoryGroup(qx, id)
+      }
+    }
+
+    // Update existing repository groups with new data
+    if (toUpdate.length > 0) {
+      for (const rg of toUpdate) {
+        await updateRepositoryGroup(qx, rg.id, rg)
+      }
+    }
+
+    // Return the updated list of repository groups from the database
+    return listRepositoryGroups(qx, {insightsProjectId})
   }
 
   async findRepositoriesForSegment(segmentId: string) {
