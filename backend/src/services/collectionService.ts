@@ -438,6 +438,7 @@ export class CollectionService extends LoggerBase {
     insightsProjectId: string,
     repositoryGroups: ICreateRepositoryGroup[],
   ): Promise<IRepositoryGroup[]> {
+    const rg = repositoryGroups || []
     // Get existing repository groups for the given insights project
     const existingRepositoryGroups = await listRepositoryGroups(qx, { insightsProjectId })
 
@@ -445,15 +446,15 @@ export class CollectionService extends LoggerBase {
     const existingIds: string[] = existingRepositoryGroups.map((rg) => rg.id)
 
     // Extract IDs of repository groups to be synchronized
-    const repositoryGroupIds: string[] = repositoryGroups.map((rg) => rg.id) as string[]
+    const repositoryGroupIds: string[] = rg.map((rg) => rg.id) as string[]
 
     // Find repository groups that need to be updated (exist in both lists)
-    const toUpdate: ICreateRepositoryGroup[] = repositoryGroups.filter((rg) =>
+    const toUpdate: ICreateRepositoryGroup[] = rg.filter((rg) =>
       existingIds.includes(rg.id),
     )
 
     // Find repository groups that need to be created (don't exist or have no ID)
-    const toCreate: ICreateRepositoryGroup[] = repositoryGroups.filter(
+    const toCreate: ICreateRepositoryGroup[] = rg.filter(
       (rg) => !rg.id || !existingIds.includes(rg.id),
     )
 
