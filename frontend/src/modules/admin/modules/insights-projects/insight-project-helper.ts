@@ -20,6 +20,7 @@ export const buildRequest = (
   twitter: form.twitter,
   linkedin: form.linkedin,
   repositories: form.repositories?.filter((r) => r.enabled).map((r) => r.url),
+  repositoryGroups: form.repositoryGroups || [],
   keywords: form.keywords,
   searchKeywords: form.searchKeywords,
   widgets: Object.keys(form.widgets).filter(
@@ -42,6 +43,7 @@ export const buildForm = (
   collections: result.collections,
   keywords: result.keywords || [],
   searchKeywords: result.searchKeywords || [],
+  repositoryGroups: result.repositoryGroups || [],
   repositories:
     repositories?.map((repository) => ({
       ...repository,
