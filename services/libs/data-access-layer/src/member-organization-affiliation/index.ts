@@ -354,10 +354,14 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
+  logger.info(`affiliations: ${JSON.stringify(affiliations)}`)
+
   // process timeline in parallel
   const results = await Promise.all(
     affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
   )
+
+  logger.info(`results: ${JSON.stringify(results)}`)
 
   const duration = performance.now() - start
   const processed = results.reduce((acc, processed) => acc + processed, 0)
