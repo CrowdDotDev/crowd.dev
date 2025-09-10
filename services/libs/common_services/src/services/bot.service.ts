@@ -16,7 +16,7 @@ export class BotDetectionService extends LoggerBase {
     /(?:^|[-_/\s])(actions?|agent|automation|build|deploy|hook|integration|pipeline|runner|sync|svc|ci|cd|auto-?roll|release|merge)(?:$|[-_/\s])/i,
 
     // provider automation accounts
-    /(?:^|[-_/])(github|gitlab|bitbucket|azure|aws|gcp|k8s|openshift)[-_](bot|ci|actions?|pipeline|runner|automation)(?:$|[-_/])/i,
+    /(?:^|[-_/])(github|gitlab|bitbucket|azure|aws|gcp)[-_](bot|ci|actions?|pipeline|runner|automation)(?:$|[-_/])/i,
 
     // service/system account naming
     /^(service|system|automation|deploy|ci|build|release)[-_]?(account|bot|user)?$/i,
