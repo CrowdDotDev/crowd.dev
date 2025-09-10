@@ -106,8 +106,14 @@ export default class MemberService extends LoggerBase {
           // validate emails
           data.identities = this.validateEmails(data.identities)
 
+          data.displayName = getProperDisplayName(data.displayName)
+
           // detect if the member is a bot
-          const botDetection = this.botDetectionService.isMemberBot(data.identities, attributes)
+          const botDetection = this.botDetectionService.isMemberBot(
+            data.identities,
+            attributes,
+            data.displayName,
+          )
 
           if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
@@ -123,7 +129,7 @@ export default class MemberService extends LoggerBase {
           const id = await logExecutionTimeV2(
             () =>
               createMember(this.pgQx, {
-                displayName: getProperDisplayName(data.displayName),
+                displayName: data.displayName,
                 joinedAt: data.joinedAt.toISOString(),
                 attributes,
                 identities: data.identities,
