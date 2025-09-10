@@ -449,9 +449,7 @@ export class CollectionService extends LoggerBase {
     const repositoryGroupIds: string[] = rg.map((rg) => rg.id) as string[]
 
     // Find repository groups that need to be updated (exist in both lists)
-    const toUpdate: ICreateRepositoryGroup[] = rg.filter((rg) =>
-      existingIds.includes(rg.id),
-    )
+    const toUpdate: ICreateRepositoryGroup[] = rg.filter((rg) => existingIds.includes(rg.id))
 
     // Find repository groups that need to be created (don't exist or have no ID)
     const toCreate: ICreateRepositoryGroup[] = rg.filter(
