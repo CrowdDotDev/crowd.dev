@@ -24,7 +24,7 @@ import {
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
-import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
+import { findMemberAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -377,7 +377,7 @@ export async function queryMembersAdvanced(
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
       const affiliationOverrides = memberOrgs.length
-        ? await findMemberOrganizationAffiliationOverrides(
+        ? await findMemberAffiliationOverrides(
             qx,
             member.id,
             memberOrgs.map((o) => o.id),
