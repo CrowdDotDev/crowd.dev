@@ -15,7 +15,7 @@ export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
-export const IS_LLM_ENABLED: boolean = process.env.CROWD_LLM_ENABLED === 'true' || false
+export const IS_LLM_ENABLED: boolean = process.env.CROWD_ENABLE_LLM === 'true' || false
 
 export const SERVICE = process.env.SERVICE || 'unknown-service'
 
