@@ -326,6 +326,8 @@ async function processAffiliationActivities(
 
   const whereClause = conditions.join(' and ')
 
+  logger.info(`whereClause: ${whereClause}`)
+
   do {
     const rowCount = await qx.result(
       `
@@ -361,7 +363,7 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
     affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
   )
 
-  logger.info(`results: ${JSON.stringify(results)}`)
+  logger.info(`results count: ${JSON.stringify(results.length)}`)
 
   const duration = performance.now() - start
   const processed = results.reduce((acc, processed) => acc + processed, 0)
