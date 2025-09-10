@@ -1,0 +1,13 @@
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `name` String `json:$.record.name` DEFAULT '',
+    `slug` String `json:$.record.slug` DEFAULT '',
+    `repositories` Array(String) `json:$.record.repositories[:]` DEFAULT [],
+    `insightsProjectId` String `json:$.record.insightsProjectId` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY insightsProjectId, id
+ENGINE_VER updatedAt

@@ -1,8 +1,7 @@
-
 SCHEMA >
     `country` String,
     `country_code` String,
     `timezone_offset` Int16
 
-ENGINE "MergeTree"
-ENGINE_SORTING_KEY "country, timezone_offset"
+ENGINE MergeTree
+ENGINE_SORTING_KEY country, timezone_offset
