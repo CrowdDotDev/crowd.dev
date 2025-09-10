@@ -65,7 +65,7 @@ export async function changeOverride(
   )
 }
 
-export async function findOverrides(
+export async function findMemberAffiliationOverrides(
   qx: QueryExecutor,
   memberId: string,
   memberOrganizationIds?: string[],
@@ -113,6 +113,29 @@ export async function findOverrides(
   })
 
   return results
+}
+
+export async function findOrganizationAffiliationOverrides(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<IMemberOrganizationAffiliationOverride[]> {
+  return qx.select(
+    `
+      SELECT
+        moa.id,
+        moa."memberId",
+        moa."memberOrganizationId",
+        coalesce(moa."allowAffiliation", true) as "allowAffiliation",
+        coalesce(moa."isPrimaryWorkExperience", false) as "isPrimaryWorkExperience"
+      FROM "memberOrganizationAffiliationOverrides" moa
+      JOIN "memberOrganizations" mo ON moa."memberOrganizationId" = mo.id
+      WHERE mo."organizationId" = $(organizationId)
+      AND mo."deletedAt" IS NULL
+    `,
+    {
+      organizationId,
+    },
+  )
 }
 
 export async function findPrimaryWorkExperiencesOfMember(

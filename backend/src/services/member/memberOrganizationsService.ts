@@ -13,7 +13,7 @@ import {
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
-import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { findMemberAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
 
@@ -69,7 +69,7 @@ export default class MemberOrganizationsService extends LoggerBase {
     }
 
     // Fetch affiliation overrides
-    const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+    const affiliationOverrides = await findMemberAffiliationOverrides(
       qx,
       memberId,
       memberOrganizations.map((mo) => mo.id),
