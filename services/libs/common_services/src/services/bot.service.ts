@@ -35,23 +35,25 @@ export class BotDetectionService extends LoggerBase {
     super(parentLog)
   }
 
-  /** Identity matches a strong bot pattern */
-  private hasStrongBotIndicators(identities: IMemberIdentity[]): boolean {
-    return identities.some(({ value }) =>
-      BotDetectionService.STRONG_PATTERNS.some((regex) => regex.test(value)),
-    )
+  /** Get all text values to check (displayName + identity values) */
+  private getAllTextValues(displayName: string, identities: IMemberIdentity[]): string[] {
+    const values = identities.map(({ value }) => value)
+
+    if (displayName?.trim()) {
+      values.unshift(displayName.trim())
+    }
+
+    return values
   }
 
-  /** Identity matches a common (weak) bot pattern */
-  private hasCommonBotIndicators(identities: IMemberIdentity[]): boolean {
-    return identities.some(({ value }) =>
-      BotDetectionService.COMMON_PATTERNS.some((regex) => regex.test(value)),
-    )
+  /** Check if any text value matches the given patterns */
+  private matchesPatterns(textValues: string[], patterns: readonly RegExp[]): boolean {
+    return textValues.some((value) => patterns.some((regex) => regex.test(value)))
   }
 
-  /** Check if any identity matches a known bot in our dataset */
-  private isKnownBotIdentity(identities: IMemberIdentity[]): boolean {
-    return identities.some(({ value }) => isKnownBot(value))
+  /** Check if any text value is a known bot */
+  private isKnownBot(textValues: string[]): boolean {
+    return textValues.some((value) => isKnownBot(value))
   }
 
   /** Check if the member has been flagged as a bot by integration sources or users */
@@ -63,16 +65,19 @@ export class BotDetectionService extends LoggerBase {
   public isMemberBot(
     identities: IMemberIdentity[],
     attributes: Record<string, unknown>,
+    displayName: string,
   ): MemberBotDetection {
+    const textValues = this.getAllTextValues(displayName, identities)
+
     if (
       this.isFlaggedAsBot(attributes) ||
-      this.isKnownBotIdentity(identities) ||
-      this.hasStrongBotIndicators(identities)
+      this.isKnownBot(textValues) ||
+      this.matchesPatterns(textValues, BotDetectionService.STRONG_PATTERNS)
     ) {
       return MemberBotDetection.CONFIRMED_BOT
     }
 
-    if (this.hasCommonBotIndicators(identities)) {
+    if (this.matchesPatterns(textValues, BotDetectionService.COMMON_PATTERNS)) {
       return MemberBotDetection.SUSPECTED_BOT
     }
 
