@@ -749,7 +749,7 @@ export async function queryActivities(
   }
 
   // logger.info(`Classic result ${JSON.stringify(classicResult)} `)
-  logger.info(`TB result ${JSON.stringify(tbResult)} `)
+  // logger.info(`TB result ${JSON.stringify(tbResult)} `)
 
   return tbResult
 }
