@@ -717,10 +717,7 @@ export async function queryActivities(
 
   // logger.info(`Queried ${activities.length} activities from QuestDB`)
 
-  logger.info(`wrapping up activities`)
   // const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
-
-  logger.info(`Mapped activities, counting total results`)
 
   let countTb = 0
   if (!arg.noCount) {
