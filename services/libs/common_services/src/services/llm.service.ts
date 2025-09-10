@@ -5,6 +5,7 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import { performance } from 'perf_hooks'
 
+import { IS_LLM_ENABLED } from '@crowd/common'
 import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
 import { QueryExecutor } from '@crowd/data-access-layer'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -66,6 +67,11 @@ export class LlmService extends LoggerBase {
     metadata?: Record<string, unknown>,
     saveHistory = true,
   ): Promise<ILlmResponse> {
+    if (!IS_LLM_ENABLED) {
+      this.log.error('LLM usage is disabled. Check CROWD_LLM_ENABLED env variable!')
+      return
+    }
+
     const settings = LLM_SETTINGS[type]
     if (!settings) {
       throw new Error(`No settings found for LLM query type: ${type}`)
