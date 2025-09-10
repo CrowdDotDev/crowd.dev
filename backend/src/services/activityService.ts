@@ -1,16 +1,11 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
-import { singleOrDefault } from '@crowd/common'
 import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
-import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
-import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, getServiceChildLogger, logExecutionTime } from '@crowd/logging'
 import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
@@ -315,88 +310,88 @@ export default class ActivityService extends LoggerBase {
       activitiyTypes,
     )
 
-    // const parentIds: string[] = []
-    const memberIds: string[] = []
-    const organizationIds: string[] = []
-    for (const row of page.rows) {
-      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
-        row,
-        SegmentRepository.getActivityTypes(this.options),
-      )
+    // // const parentIds: string[] = []
+    // const memberIds: string[] = []
+    // const organizationIds: string[] = []
+    // for (const row of page.rows) {
+    //   ;(row as any).display = ActivityDisplayService.getDisplayOptions(
+    //     row,
+    //     SegmentRepository.getActivityTypes(this.options),
+    //   )
 
-      // if (row.parentId && !parentIds.includes(row.parentId)) {
-      //   parentIds.push(row.parentId)
-      // }
+    //   // if (row.parentId && !parentIds.includes(row.parentId)) {
+    //   //   parentIds.push(row.parentId)
+    //   // }
 
-      if (row.memberId && !memberIds.includes(row.memberId)) {
-        memberIds.push(row.memberId)
-      }
+    //   if (row.memberId && !memberIds.includes(row.memberId)) {
+    //     memberIds.push(row.memberId)
+    //   }
 
-      if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
-        memberIds.push(row.objectMemberId)
-      }
+    //   if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
+    //     memberIds.push(row.objectMemberId)
+    //   }
 
-      if (row.organizationId && !organizationIds.includes(row.organizationId)) {
-        organizationIds.push(row.organizationId)
-      }
-    }
+    //   if (row.organizationId && !organizationIds.includes(row.organizationId)) {
+    //     organizationIds.push(row.organizationId)
+    //   }
+    // }
 
-    const promises = []
-    if (organizationIds.length > 0) {
-      promises.push(
-        OrganizationRepository.findAndCountAll(
-          {
-            filter: {
-              and: [{ id: { in: organizationIds } }],
-            },
-            limit: organizationIds.length,
-            include: { identities: true, lfxMemberships: true },
-          },
-          this.options,
-        ).then((organizations) => {
-          for (const row of page.rows.filter((r) => r.organizationId)) {
-            ;(row as any).organization = singleOrDefault(
-              organizations.rows,
-              (o) => o.id === row.organizationId,
-            )
-          }
-        }),
-      )
-    }
-    // if (parentIds.length > 0) {
+    // const promises = []
+    // if (organizationIds.length > 0) {
     //   promises.push(
-    //     queryActivities(this.options.qdb, {
-    //       filter: {
-    //         and: [{ id: { in: parentIds } }],
+    //     OrganizationRepository.findAndCountAll(
+    //       {
+    //         filter: {
+    //           and: [{ id: { in: organizationIds } }],
+    //         },
+    //         limit: organizationIds.length,
+    //         include: { identities: true, lfxMemberships: true },
     //       },
-    //       tenantId,
-    //       segmentIds,
-    //       noLimit: true,
-    //     }).then((activities) => {
-    //       for (const row of page.rows.filter((r) => r.parentId)) {
-    //         ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
+    //       this.options,
+    //     ).then((organizations) => {
+    //       for (const row of page.rows.filter((r) => r.organizationId)) {
+    //         ;(row as any).organization = singleOrDefault(
+    //           organizations.rows,
+    //           (o) => o.id === row.organizationId,
+    //         )
     //       }
     //     }),
     //   )
     // }
-    if (memberIds.length > 0) {
-      promises.push(
-        queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
-          filter: { and: [{ id: { in: memberIds } }] },
-          limit: memberIds.length,
-        }).then((members) => {
-          for (const row of page.rows) {
-            row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+    // // if (parentIds.length > 0) {
+    // //   promises.push(
+    // //     queryActivities(this.options.qdb, {
+    // //       filter: {
+    // //         and: [{ id: { in: parentIds } }],
+    // //       },
+    // //       tenantId,
+    // //       segmentIds,
+    // //       noLimit: true,
+    // //     }).then((activities) => {
+    // //       for (const row of page.rows.filter((r) => r.parentId)) {
+    // //         ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
+    // //       }
+    // //     }),
+    // //   )
+    // // }
+    // if (memberIds.length > 0) {
+    //   promises.push(
+    //     queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    //       filter: { and: [{ id: { in: memberIds } }] },
+    //       limit: memberIds.length,
+    //     }).then((members) => {
+    //       for (const row of page.rows) {
+    //         row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
 
-            if (row.objectMemberId) {
-              row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
-            }
-          }
-        }),
-      )
-    }
+    //         if (row.objectMemberId) {
+    //           row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
+    //         }
+    //       }
+    //     }),
+    //   )
+    // }
 
-    await Promise.all(promises)
+    // await Promise.all(promises)
 
     logger.info('Returning activities page', JSON.stringify(page))
 
