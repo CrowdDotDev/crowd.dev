@@ -4,11 +4,10 @@ import merge from 'lodash.merge'
 import min from 'lodash.min'
 import moment from 'moment'
 
-import { IS_CLOUD_ENV, RawQueryParser, getEnv } from '@crowd/common'
+import { getEnv } from '@crowd/common'
 import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
-import { queryOverHttp } from '@crowd/questdb'
 import {
   ActivityDisplayVariant,
   ActivityTypeSettings,
@@ -31,7 +30,7 @@ import {
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { findOrgsByIds } from '../organizations'
-import { QueryExecutor, formatQuery } from '../queryExecutor'
+import { QueryExecutor } from '../queryExecutor'
 import { checkUpdateRowCount } from '../utils'
 
 import { buildActivitiesParams } from './tinybirdAdapter'
@@ -339,21 +338,21 @@ export async function addActivityToConversation(
   )
 }
 
-const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-  ['isTeamMember', 'a."member_isTeamMember"'],
-  ['isBot', 'a."member_isBot"'],
-  ['platform', 'a.platform'],
-  ['type', 'a."type"'],
-  ['channel', 'a.channel'],
-  ['timestamp', 'a.timestamp'],
-  ['memberId', 'a."memberId"'],
-  ['organizationId', 'a."organizationId"'],
-  ['conversationId', 'a."conversationId"'],
-  ['sentiment', 'a."sentimentLabel"'],
-  ['id', 'a.id'],
-  ['sourceId', 'a."sourceId"'],
-  ['sourceParentId', 'a."sourceParentId"'],
-])
+// const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+//   ['isTeamMember', 'a."member_isTeamMember"'],
+//   ['isBot', 'a."member_isBot"'],
+//   ['platform', 'a.platform'],
+//   ['type', 'a."type"'],
+//   ['channel', 'a.channel'],
+//   ['timestamp', 'a.timestamp'],
+//   ['memberId', 'a."memberId"'],
+//   ['organizationId', 'a."organizationId"'],
+//   ['conversationId', 'a."conversationId"'],
+//   ['sentiment', 'a."sentimentLabel"'],
+//   ['id', 'a.id'],
+//   ['sourceId', 'a."sourceId"'],
+//   ['sourceParentId', 'a."sourceParentId"'],
+// ])
 
 export type ActivityColumn =
   | 'id'
@@ -471,7 +470,8 @@ function extractUniqueIds(activities: Array<{ organizationId?: string; memberId?
 export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
-  columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
+  // columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
+  columns: ActivityColumn[],
   qx: QueryExecutor,
   activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
