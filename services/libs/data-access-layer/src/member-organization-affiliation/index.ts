@@ -98,6 +98,10 @@ async function prepareMemberOrganizationAffiliationTimeline(
     manualAffiliations: IManualAffiliationData[],
     fallbackOrganizationId: string | null,
   ): TimelineItem[] => {
+    logger.info(
+      `buildTimeline | ${JSON.stringify(memberOrganizations)} ${JSON.stringify(manualAffiliations)}`,
+    )
+
     const allAffiliationsWithDates = [...memberOrganizations, ...manualAffiliations].filter(
       (row) => !!row.dateStart,
     )
@@ -108,6 +112,8 @@ async function prepareMemberOrganizationAffiliationTimeline(
             Math.min(...allAffiliationsWithDates.map((row) => new Date(row.dateStart).getTime())),
           )
         : null
+
+    logger.info(`erliestStartDate: ${earliestStartDate}`)
 
     const timeline: TimelineItem[] = []
     const now = new Date()
@@ -201,6 +207,11 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
     // prepend range to cover all activities before the earliest affiliation date
     // also handles edge case where fallback org is null and the timeline is empty.
+
+    logger.info(
+      `timeline: ${timeline.length}, organizationId: ${fallbackOrganizationId}, dateStart: ${fallbackStart.toISOString()}, dateEnd: ${fallbackEnd.toISOString()}`,
+    )
+
     timeline.unshift({
       organizationId: fallbackOrganizationId,
       dateStart: fallbackStart.toISOString(),
