@@ -492,9 +492,7 @@ async function moveRolesBetweenEntities(
   const primaryAffiliationOverrides = await findAffiliationOverrides(qx, primaryId)
   const secondaryAffiliationOverrides = await findAffiliationOverrides(qx, secondaryId)
 
-    logger.info(
-    `primaryMemberAffiliationOverrides: ${JSON.stringify(primaryAffiliationOverrides)}`,
-  )
+  logger.info(`primaryMemberAffiliationOverrides: ${JSON.stringify(primaryAffiliationOverrides)}`)
   logger.info(
     `secondaryMemberAffiliationOverrides: ${JSON.stringify(secondaryAffiliationOverrides)}`,
   )
