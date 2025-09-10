@@ -250,9 +250,7 @@ export class CollectionService extends LoggerBase {
         )
       }
 
-      if (project.repositoryGroups) {
-        await this.syncRepositoryGroupsWithDb(qx, createdProject.id, project.repositoryGroups)
-      }
+      await this.syncRepositoryGroupsWithDb(qx, createdProject.id, project.repositoryGroups)
 
       const txSvc = new CollectionService({ ...this.options, transaction: tx })
 
@@ -415,9 +413,8 @@ export class CollectionService extends LoggerBase {
           })),
         )
       }
-      if (project.repositoryGroups) {
-        await this.syncRepositoryGroupsWithDb(qx, insightsProjectId, project.repositoryGroups)
-      }
+
+      await this.syncRepositoryGroupsWithDb(qx, insightsProjectId, project.repositoryGroups)
 
       const txSvc = new CollectionService({
         ...this.options,
