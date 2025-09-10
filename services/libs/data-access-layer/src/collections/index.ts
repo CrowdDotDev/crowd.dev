@@ -1,5 +1,6 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
+import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
   injectSoftDeletionCriteria,
@@ -10,7 +11,6 @@ import {
   updateTableById,
 } from '../utils'
 import { QueryOptions } from '../utils'
-import {ICreateRepositoryGroup} from "../repositoryGroups";
 
 export interface ICreateCollection {
   categoryId: string

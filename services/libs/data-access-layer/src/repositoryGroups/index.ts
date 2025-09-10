@@ -36,7 +36,7 @@ export interface IRepositoryGroupFilters {
  * - `repositories`: An array of strings containing the identifiers or names of the repositories to be included in the group.
  */
 export interface ICreateRepositoryGroup {
-  id?: string;
+  id?: string
   name: string
   slug: string
   insightsProjectId: string
