@@ -1,0 +1,84 @@
+NODE health_score_organization_dependency_contribution_count
+SQL >
+    %
+    SELECT segmentId, organizationId, count() AS contributionCount
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        organizationId != '' AND isContribution
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
+            AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+        {% end %}
+    GROUP BY segmentId, organizationId
+
+NODE health_score_organization_dependency_contribution_percentage
+SQL >
+    SELECT
+        segmentId,
+        organizationId,
+        contributionCount,
+        (
+            contributionCount * 100.0 / SUM(contributionCount) OVER (PARTITION BY segmentId)
+        ) AS contributionPercentage
+    FROM health_score_organization_dependency_contribution_count
+
+NODE health_score_organization_dependency_contribution_runnning_total
+SQL >
+    SELECT
+        segmentId,
+        organizationId,
+        contributionCount,
+        contributionPercentage,
+        SUM(contributionPercentage) OVER (
+            PARTITION BY segmentId ORDER BY contributionPercentage DESC, organizationId
+        ) AS contributionPercentageRunningTotal
+    FROM health_score_organization_dependency_contribution_percentage
+
+NODE health_score_organization_dependency_score
+SQL >
+    SELECT
+        segmentId,
+        count() AS organizationDependencyCount,
+        round(sum(contributionPercentage)) AS organizationDependencyPercentage
+    FROM health_score_organization_dependency_contribution_runnning_total
+    WHERE
+        contributionPercentageRunningTotal < 51
+        OR (contributionPercentageRunningTotal - contributionPercentage < 51)
+    GROUP BY segmentId
+
+NODE health_score_organization_dependency_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        organizationDependencyCount,
+        organizationDependencyPercentage,
+        CASE
+            WHEN organizationDependencyCount BETWEEN 0 AND 1
+            THEN 0
+            WHEN organizationDependencyCount = 2
+            THEN 1
+            WHEN organizationDependencyCount = 3
+            THEN 2
+            WHEN organizationDependencyCount BETWEEN 4 AND 5
+            THEN 3
+            WHEN organizationDependencyCount BETWEEN 6 AND 7
+            THEN 4
+            WHEN organizationDependencyCount >= 8
+            THEN 5
+            ELSE 0
+        END AS organizationDependencyBenchmark
+    FROM health_score_organization_dependency_score

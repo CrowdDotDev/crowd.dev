@@ -1,0 +1,48 @@
+NODE health_score_forks_score
+DESCRIPTION >
+    Returns activeContributors for previous quarter per project
+
+SQL >
+    %
+    SELECT segmentId, count() AS forks
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        type = 'fork'
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% end %}
+    GROUP BY segmentId
+
+NODE health_score_forks_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        forks,
+        CASE
+            WHEN forks BETWEEN 0 AND 4
+            THEN 0
+            WHEN forks BETWEEN 5 AND 9
+            THEN 1
+            WHEN forks BETWEEN 10 AND 19
+            THEN 2
+            WHEN forks BETWEEN 20 AND 39
+            THEN 3
+            WHEN forks BETWEEN 40 AND 79
+            THEN 4
+            WHEN forks >= 80
+            THEN 5
+            ELSE 0
+        END AS forksBenchmark
+    FROM health_score_forks_score

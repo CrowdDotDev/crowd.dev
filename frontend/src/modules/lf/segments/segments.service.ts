@@ -1,7 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { Pagination } from '@/shared/types/Pagination';
 import { QueryFunction } from '@tanstack/vue-query';
-import { Project, ProjectGroup } from './types/Segments';
+import { Project, ProjectGroup, ProjectRequest } from './types/Segments';
 
 class SegmentsService {
   queryProjectGroups(
@@ -26,7 +26,7 @@ class SegmentsService {
       .then((res) => res.data);
   }
 
-  updateSegment(id: string, data: ProjectGroup | Project) {
+  updateSegment(id: string, data: ProjectRequest | ProjectGroup) {
     return authAxios
       .put<ProjectGroup | Project>(`/segment/${id}`, {
         ...data,
@@ -45,7 +45,7 @@ class SegmentsService {
   }
 
   createProject(req: {
-    project: Project;
+    project: ProjectRequest;
     segments: string[];
 
   }) {

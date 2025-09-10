@@ -30,7 +30,7 @@
             </span>
           </div>
           <h5 class="text-black mt-2">
-            {{ isEditForm ? "Edit project" : "Add project" }}
+            {{ isEditForm ? 'Edit project' : 'Add project' }}
           </h5>
         </div>
       </section>
@@ -41,6 +41,7 @@
         v-loading="isLoading"
         class="app-page-spinner h-16 !relative !min-h-5"
       />
+
       <div v-else>
         <!-- Subproject selection -->
         <lf-cm-sub-project-list-dropdown
@@ -63,15 +64,17 @@
             <lf-tab name="widgets">
               Widgets
             </lf-tab>
-            <lf-tab name="advanced">
-              Advanced settings
+            <lf-tab name="repository-groups">
+              Repository groups
             </lf-tab>
           </lf-tabs>
-          <div class="pt-6">
+          <div class="pt-2.5">
             <div class="tab-content">
               <lf-insights-project-add-details-tab
                 v-if="activeTab === 'details'"
                 :form="form"
+                :old-form="oldForm"
+                :new-form="newForm"
                 :rules="rules"
               />
               <lf-insights-project-add-repository-tab
@@ -81,16 +84,22 @@
               />
               <lf-insights-project-add-widgets-tab
                 v-else-if="activeTab === 'widgets'"
+                :is-loading="isLoadingWidgets"
                 :form="form"
               />
-              <lf-insights-project-add-advanced-tab
-                v-else-if="activeTab === 'advanced'"
+              <lf-insights-project-add-repository-groups
+                v-else-if="activeTab === 'repository-groups'"
                 :form="form"
               />
             </div>
           </div>
         </div>
       </div>
+      <div
+        v-if="isLoadingProject"
+        v-loading="isLoadingProject"
+        class="app-page-spinner !absolute min-w-full !min-h-[calc(100%-320px)] my-40 top-0 left-0 bg-gray-50/10"
+      />
     </template>
     <template #footer>
       <lf-button type="secondary-ghost" class="mr-2" @click="onCancel">
@@ -104,7 +113,7 @@
         :disabled="!hasFormChanged || $v.$invalid || isLoading"
         @click="onSubmit"
       >
-        {{ isEditForm ? "Update" : "Add project" }}
+        {{ isEditForm ? 'Update' : 'Add project' }}
       </lf-button>
     </template>
   </app-drawer>
@@ -123,19 +132,21 @@ import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import cloneDeep from 'lodash/cloneDeep';
-import Message from '@/shared/message/message';
-import LfInsightsProjectAddAdvancedTab from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-advanced-tab.vue';
+import { ToastStore } from '@/shared/message/notification';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import LfInsightsProjectAddRepositoryGroups
+  from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-repository-groups.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
+  InsightsProjectDetailsResponse,
   InsightsProjectModel,
   InsightsProjectRequest,
 } from '../models/insights-project.model';
 import { InsightsProjectAddFormModel } from '../models/insights-project-add-form.model';
 import LfInsightsProjectAddWidgetsTab from './lf-insights-project-add-widgets-tab.vue';
-import { defaultWidgetsValues } from '../widgets';
+import { getDefaultWidgets } from '../widgets';
 import {
   INSIGHTS_PROJECTS_SERVICE,
   InsightsProjectsService,
@@ -160,7 +171,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 
-const submitLoading = ref(false);
 const insightsProject = ref<InsightsProjectModel | null>(null);
 
 const initialFormState: InsightsProjectAddFormModel = {
@@ -182,10 +192,21 @@ const initialFormState: InsightsProjectAddFormModel = {
   twitter: '',
   linkedin: '',
   repositories: [],
+  repositoryGroups: [],
   keywords: [],
-  widgets: cloneDeep(defaultWidgetsValues),
+  searchKeywords: [],
+  widgets: Object.fromEntries(
+    getDefaultWidgets().map((key) => [
+      key,
+      {
+        enabled: true,
+      },
+    ]),
+  ),
 };
 const form = reactive<InsightsProjectAddFormModel>(cloneDeep(initialFormState));
+let oldForm: InsightsProjectAddFormModel | undefined;
+let newForm: InsightsProjectAddFormModel | undefined;
 
 const rules = {
   name: {
@@ -194,13 +215,15 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
   widgets: {
-    required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key]),
+    required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key].enabled),
   },
 };
 
 const $v = useVuelidate(rules, form);
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+const isLoadingWidgets = ref(false);
+const isLoadingProject = ref(false);
 
 const model = computed({
   get() {
@@ -238,32 +261,16 @@ const { isLoading, isSuccess, data } = useQuery({
   enabled: !!props.insightsProjectId,
 });
 
-watch(
-  data,
-  () => {
-    if (isSuccess.value && data.value) {
-      insightsProject.value = data.value;
-      if (data.value.segment.id) {
-        fetchRepositories(data.value.segment.id, () => {
-          const form = buildForm(data.value!, initialFormState.repositories);
-          fillForm(form);
-        });
-      } else {
-        const form = buildForm(data.value, []);
-        fillForm(form);
-      }
-    }
-  },
-  { immediate: true },
-);
-
 const onProjectSelection = ({ project }: any) => {
+  if (!isEditForm.value) {
+    Object.assign(form, initialFormState);
+  }
+  fetchProjectDetails(project);
+  fetchWidgets(project.id);
+
   fetchRepositories(project.id, () => {
     if (!isEditForm.value) {
-      Object.assign(form, initialFormState);
-      form.name = project.name;
-      form.description = project.description;
-      form.logoUrl = project.url;
+      form.repositories = cloneDeep(initialFormState.repositories);
     }
 
     form.repositories = initialFormState.repositories;
@@ -276,10 +283,10 @@ const onCancel = () => {
 };
 
 const onSubmit = () => {
-  submitLoading.value = true;
   const request = buildRequest({
     ...form,
   });
+  console.log(request);
   if (isEditForm.value) {
     updateMutation.mutate({
       id: props.insightsProjectId as string,
@@ -295,8 +302,8 @@ const onSuccess = (res: InsightsProjectModel) => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
-  Message.closeAll();
-  Message.success(
+  ToastStore.closeAll();
+  ToastStore.success(
     `Insights project ${isEditForm.value ? 'updated' : 'created'} successfully`,
   );
   if (isEditForm.value) {
@@ -307,8 +314,8 @@ const onSuccess = (res: InsightsProjectModel) => {
 };
 
 const onError = () => {
-  Message.closeAll();
-  Message.error(
+  ToastStore.closeAll();
+  ToastStore.error(
     `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the project`,
   );
 };
@@ -333,6 +340,119 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
     }
   });
 };
+
+const fetchProjectDetails = async (project: any) => {
+  isLoadingProject.value = true;
+  InsightsProjectsService.getInsightsProjectDetails(project.id)
+    .then((res) => {
+      if (res) {
+        if (isEditForm.value) {
+          newForm = cloneDeep(form);
+          newForm = assignProjectDetails(res, newForm);
+          fillForm(fillIfNotExisting(form, newForm));
+          newForm = fillIfNotExisting(newForm, form);
+          oldForm = cloneDeep(form);
+        } else {
+          fillForm(assignProjectDetails(res, form));
+        }
+      } else if (isEditForm.value) {
+        form.name = project.name;
+        form.description = project.description;
+        form.logoUrl = project.url;
+      }
+    })
+    .catch((err) => {
+      form.name = project.name;
+      form.description = project.description;
+      form.logoUrl = project.url;
+      ToastStore.error(`Failed to fetch project details: ${err.message}`);
+    })
+    .finally(() => {
+      isLoadingProject.value = false;
+    });
+};
+
+const fillIfNotExisting = (
+  form: InsightsProjectAddFormModel,
+  newForm: InsightsProjectAddFormModel,
+) => {
+  const tempForm = cloneDeep(form);
+  if (!tempForm.name || tempForm.name.trim() === '') {
+    tempForm.name = newForm.name || '';
+  }
+  if (!tempForm.description || tempForm.description.trim() === '') {
+    tempForm.description = newForm.description || '';
+  }
+  if (!tempForm.logoUrl || tempForm.logoUrl.trim() === '') {
+    tempForm.logoUrl = newForm.logoUrl || '';
+  }
+  if (!tempForm.github || tempForm.github.trim() === '') {
+    tempForm.github = newForm.github || '';
+  }
+  if (!tempForm.twitter || tempForm.twitter.trim() === '') {
+    tempForm.twitter = newForm.twitter || '';
+  }
+  if (!tempForm.website || tempForm.website.trim() === '') {
+    tempForm.website = newForm.website || '';
+  }
+  if (!tempForm.keywords || tempForm.keywords.length === 0) {
+    tempForm.keywords = newForm.keywords || [];
+  }
+
+  return tempForm;
+};
+
+const assignProjectDetails = (
+  res: InsightsProjectDetailsResponse,
+  form: InsightsProjectAddFormModel,
+) => {
+  const updatedForm = cloneDeep(form);
+  updatedForm.name = res.name || '';
+  updatedForm.description = res.description || '';
+  updatedForm.github = res.github || '';
+  updatedForm.twitter = res.twitter || '';
+  updatedForm.website = res.website || '';
+  updatedForm.logoUrl = res.logoUrl || '';
+  updatedForm.keywords = res.topics || [];
+  return updatedForm;
+};
+
+const fetchWidgets = async (segmentId: string) => {
+  isLoadingWidgets.value = true;
+  InsightsProjectsService.getInsightsProjectWidgets(segmentId)
+    .then((res) => {
+      form.widgets = Object.fromEntries(
+        getDefaultWidgets().map((key) => [
+          key,
+          {
+            enabled: res.widgets?.includes(key) || false,
+          },
+        ]),
+      );
+    })
+    .finally(() => {
+      isLoadingWidgets.value = false;
+    });
+};
+
+watch(
+  data,
+  () => {
+    if (isSuccess.value && data.value) {
+      insightsProject.value = data.value;
+      if (data.value.segment.id) {
+        fetchRepositories(data.value.segment.id, () => {
+          const form = buildForm(data.value!, initialFormState.repositories);
+          fillForm(form);
+        });
+      } else {
+        const form = buildForm(data.value, []);
+        fillForm(form);
+      }
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <script lang="ts">

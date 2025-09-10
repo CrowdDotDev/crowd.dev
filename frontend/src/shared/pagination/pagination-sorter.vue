@@ -45,7 +45,8 @@ import { computed } from 'vue';
 import pluralize from 'pluralize';
 import { useRoute } from 'vue-router';
 import { showExportDialog } from '@/modules/member/member-export-limit';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -106,7 +107,6 @@ const model = computed({
   get() {
     if (
       props.module !== 'activity'
-      && props.module !== 'conversation'
     ) {
       return props.pageSize;
     }
@@ -126,16 +126,6 @@ const computedOptions = computed(() => {
         value: 'trending',
         label: 'Trending',
       },
-      {
-        value: 'recentActivity',
-        label: 'Most recent activity',
-      },
-    ];
-  }
-
-  if (props.module === 'conversation'
-  ) {
-    return [
       {
         value: 'recentActivity',
         label: 'Most recent activity',
@@ -204,12 +194,12 @@ const doExport = async () => {
 
     await getUser();
 
-    Message.success(
+    ToastStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
     if (error !== 'cancel') {
-      Message.error(
+      ToastStore.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {
           title: 'CSV Export failed',

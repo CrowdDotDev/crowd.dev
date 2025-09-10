@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS segmentRepositories_repository_uq_idx ON "segmentRepositories" ("repository");

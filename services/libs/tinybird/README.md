@@ -5,13 +5,11 @@
 ## Activity Preprocessing Pipeline
 
 1. **New activities land** on `activities` and `activityRelations` datasources 
-2. **Deduplication** of activities and relations separately via copy pipes:  
+2. **Deduplication** of activities via copy pipe:  
    - `activities_deduplicated_copy_pipe (every hour at minute 0)`  
-   - `activityRelations_deduplicated_copy_pipe (every hour at minute 0)`  
    2.1. `activities` → `activities_deduplicated_ds`  
-   2.2. `activityRelations` → `activityRelations_deduplicated_ds`  
-3. **Merging with relations, filtering and sorting data**:  
-   - `activityRelations_deduplicated_ds (every hour at minute 10)` + `activities_deduplicated_ds` → `activities_with_relations_sorted_deduplicated_ds`
+3. **Preprocessing pipeline for activityRelations - Deduplicates, filters and sorts data for performant queries**:  
+   - `activityRelations (every hour at minute 0)` → `activityRelations_deduplicated_cleaned_ds`
 
 ## Other Copy Pipes
 
@@ -100,9 +98,14 @@ ALTER TABLE public."tableName" REPLICA IDENTITY FULL;
 3. (only for PROD) u need to create the topic in oracle kafka, it doesn't get created automaticly
 4. Update tinybird kafka connect plugin env ( it's under crowd-kube/lf-prod-oracle(lf-staging-oracle)/kafka-connect/tinybird-sink.properties.enc ), there are list of tracked files in the decrypted file.
 5. Restart kafka-connect
-6. Create sequin sinks for new tables
-7. Create tinybird datasources
-8. Backfill from sequin
+6. Create tinybird datasource schema and push it to tinybird
+7. Add access to the table to sequin user in postgres
+```sql
+GRANT SELECT ON "tableName" to sequin;
+```
+8. Create sequin sinks for new tables
+9. Create tinybird datasources
+10. Backfill from sequin
 
 ---
 

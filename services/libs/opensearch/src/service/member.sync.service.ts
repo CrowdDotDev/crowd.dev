@@ -3,7 +3,7 @@ import {
   MemberField,
   fetchMemberIdentities,
   fetchMemberOrganizations,
-  filterMembersWithActivities,
+  filterMembersWithActivityRelations,
   findMemberById,
   getMemberActivityCoreAggregates,
 } from '@crowd/data-access-layer'
@@ -11,7 +11,7 @@ import {
   cleanupMemberAggregates,
   fetchAbsoluteMemberAggregates,
   findLastSyncDate,
-  insertMemberSegments,
+  insertMemberSegmentAggregates,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentCoreAggregates } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
@@ -126,8 +126,8 @@ export class MemberSyncService {
         results.map((r) => r._source.uuid_memberId),
       )
 
-      const membersWithActivities = await filterMembersWithActivities(
-        this.qdbStore.connection(),
+      const membersWithActivities = await filterMembersWithActivityRelations(
+        repoQx(this.memberRepo),
         memberData.map((m) => m.memberId),
       )
 
@@ -364,7 +364,7 @@ export class MemberSyncService {
               )
               await logExecutionTimeV2(
                 () =>
-                  insertMemberSegments(
+                  insertMemberSegmentAggregates(
                     qx,
                     memberData.map((m) => ({
                       ...m,

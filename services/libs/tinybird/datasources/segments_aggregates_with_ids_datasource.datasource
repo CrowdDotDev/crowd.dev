@@ -1,7 +1,25 @@
+DESCRIPTION >
+    - `segments_aggregates_with_ids_datasource` contains segment-level aggregated metrics with hierarchical project associations.
+    - Created via copy pipe with computed aggregate statistics and linked entity IDs for comprehensive segment analysis.
+    - Provides denormalized segment metrics with project, collection, and category relationships for efficient querying.
+    - `segmentId` is the project segment identifier being aggregated.
+    - `contributorCount` is the total number of unique contributors in the segment (UInt64).
+    - `organizationCount` is the total number of unique organizations in the segment (UInt64).
+    - `score` is the computed importance/impact score for the segment (Float64).
+    - `softwareValue` is the estimated economic value of the segment's software (UInt64).
+    - `projectId` links to the insights project this segment belongs to.
+    - `collectionId` links to the collection this segment is associated with.
+    - `categoryId` links to the category this segment is classified under.
+    - `categoryGroupId` links to the top-level category group for this segment.
+
+TAGS "Segment analytics", "Hierarchical aggregates"
+
 SCHEMA >
     `segmentId` String,
     `contributorCount` UInt64,
     `organizationCount` UInt64,
+    `score` Float64,
+    `softwareValue` UInt64,
     `projectId` String,
     `collectionId` String,
     `categoryId` String,

@@ -2,7 +2,8 @@ import io from 'socket.io-client';
 import { storeToRefs } from 'pinia';
 import { h } from 'vue';
 import config from '@/config';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
@@ -59,7 +60,6 @@ export const connectSocket = (token) => {
   });
 
   socketIoClient.on(SocketEvents.memberMerge, (data) => {
-    console.info('Member merge done', data);
     const parsedData = JSON.parse(data);
     if (!parsedData.success) {
       return;
@@ -104,8 +104,8 @@ export const connectSocket = (token) => {
       {},
       '. Finalizing profile merging might take some time to complete.',
     );
-    Message.closeAll();
-    Message.success(h(
+    ToastStore.closeAll();
+    ToastStore.success(h(
       'div',
       {},
       [secondaryMember, between, primaryMember, after],
@@ -160,8 +160,8 @@ export const connectSocket = (token) => {
       {},
       '. Finalizing profile unmerging might take some time to complete.',
     );
-    Message.closeAll();
-    Message.success(h(
+    ToastStore.closeAll();
+    ToastStore.success(h(
       'div',
       {},
       [secondaryMember, between, primaryMember, after],
@@ -212,8 +212,8 @@ export const connectSocket = (token) => {
       {},
       '. Syncing organization activities might take some time to complete.',
     );
-    Message.closeAll();
-    Message.success(h(
+    ToastStore.closeAll();
+    ToastStore.success(h(
       'div',
       {},
       [secondaryOrganization, between, primaryOrganization, after],
@@ -244,7 +244,7 @@ export const connectSocket = (token) => {
       displayName: toMerge,
     };
 
-    Message.closeAll();
+    ToastStore.closeAll();
 
     removeMergedOrganizations(primaryOrgId);
 

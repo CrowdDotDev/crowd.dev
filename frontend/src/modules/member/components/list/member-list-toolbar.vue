@@ -45,13 +45,6 @@
           <lf-icon name="file-pen" :size="20" class="mr-1" />
           Edit attribute
         </el-dropdown-item>
-        <el-dropdown-item
-          v-if="hasPermission(LfPermission.tagEdit)"
-          :command="{ action: 'editTags' }"
-        >
-          <lf-icon name="tag fa-rotated-90" :size="20" class="mr-1" />
-          Edit tags
-        </el-dropdown-item>
         <template v-if="hasPermission(LfPermission.memberDestroy)">
           <hr class="border-gray-200 my-1 mx-2" />
           <el-dropdown-item
@@ -68,10 +61,6 @@
       </template>
     </el-dropdown>
   </lf-table-bulk-actions>
-  <app-tag-popover
-    v-model="bulkTagsUpdateVisible"
-    @reload="fetchMembers({ reload: true })"
-  />
 
   <app-bulk-edit-attribute-popover
     v-model="bulkAttributesUpdateVisible"
@@ -87,10 +76,10 @@ import pluralize from 'pluralize';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
-import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -114,7 +103,6 @@ const { fetchMembers } = memberStore;
 
 const { hasPermission } = usePermissions();
 
-const bulkTagsUpdateVisible = ref(false);
 const bulkAttributesUpdateVisible = ref(false);
 
 const markAsTeamMemberOptions = computed(() => {
@@ -149,8 +137,8 @@ const handleMergeMembers = async () => {
 
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      Message.closeAll();
-      Message.info(
+      ToastStore.closeAll();
+      ToastStore.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
           title: 'Profiles merging in progress',
@@ -218,14 +206,14 @@ const handleDoExport = async () => {
 
     await getUser();
 
-    Message.success(
+    ToastStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
     console.error(error);
 
     if (error !== 'cancel') {
-      Message.error(
+      ToastStore.error(
         'An error has occured while trying to export the CSV file. Please try again',
         {
           title: 'CSV Export failed',
@@ -239,17 +227,8 @@ const handleEditAttribute = async () => {
   bulkAttributesUpdateVisible.value = true;
 };
 
-const handleAddTags = async () => {
-  bulkTagsUpdateVisible.value = true;
-};
-
 const doMarkAsTeamMember = async (value) => {
-  Message.info(
-    null,
-    {
-      title: 'People are being updated',
-    },
-  );
+  ToastStore.info('People are being updated');
 
   return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
@@ -260,15 +239,15 @@ const doMarkAsTeamMember = async (value) => {
     },
   }, member.segmentIds)))
     .then(() => {
-      Message.closeAll();
-      Message.success(`${
+      ToastStore.closeAll();
+      ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
       fetchMembers({ reload: true });
     })
     .catch(() => {
-      Message.closeAll();
-      Message.error('Error updating people');
+      ToastStore.closeAll();
+      ToastStore.error('Error updating people');
     });
 };
 
@@ -290,8 +269,6 @@ const handleCommand = async (command) => {
     await handleMergeMembers();
   } else if (command.action === 'editAttribute') {
     await handleEditAttribute();
-  } else if (command.action === 'editTags') {
-    await handleAddTags();
   } else if (command.action === 'destroyAll') {
     await doDestroyAllWithConfirm();
   }

@@ -33,6 +33,5 @@ export interface IFailedResultData extends IQueuePriorityCalculationContext {
 
 export interface IDelayedResults {
   id: string
-  platform: PlatformType
   onboarding: boolean | null
 }

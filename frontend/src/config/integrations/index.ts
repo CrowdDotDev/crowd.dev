@@ -1,5 +1,4 @@
 import config from '@/config';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import github from './github/config';
 import githubNango from './github-nango/config';
 import git from './git/config';
@@ -29,28 +28,22 @@ export interface IntegrationConfig {
   connectedParamsComponent?: Vue.Component; // Component rendered to show connected integration params (repositories, channels)
   dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
   settingComponent?: Vue.Component; // Component rendered next to dropdown for extra options
+  mappedReposComponent?: Vue.Component; // Component rendered to show mapped repositories
   showProgress: boolean; // Show progress bar when connecting
 }
 
 export const getGithubIntegration = () => {
-  if (config.env === 'local') return githubNango;
-
   if (config.env === 'staging') {
     const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true';
 
     return useGitHubNango ? githubNango : github;
   }
 
-  const authStore = useAuthStore();
-  const userId = authStore.user?.id;
-
-  return config.permissions.teamUserIds?.includes(userId)
-    ? githubNango
-    : github;
+  return github;
 };
 
-export const lfIntegrations: () => Record<string, IntegrationConfig> = () => ({
-  github: getGithubIntegration(),
+export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, IntegrationConfig> = (useGitHubNango?: boolean) => ({
+  github: useGitHubNango ? githubNango : getGithubIntegration(),
   git,
   groupsio,
   confluence,

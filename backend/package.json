@@ -32,8 +32,10 @@
     "script:purge-tenants-and-data": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/purge-tenants-and-data.ts",
     "script:import-lfx-memberships": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/import-lfx-memberships.ts",
     "script:fix-missing-org-displayName": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/fix-missing-org-displayName.ts",
-    "script:syncActivities": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/syncActivities.ts",
-    "script:refreshGithubRepoSettings": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/refresh-github-repo-settings.ts"
+    "script:refreshGithubRepoSettings": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/refresh-github-repo-settings.ts",
+    "script:fix-duplicate-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/fix-duplicate-members.ts",
+    "script:fix-members-activities-after-unaffilation": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/fix-members-activities-after-unaffilation.ts",
+    "script:process-bot-members": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/process-bot-members.ts"
   },
   "lint-staged": {
     "**/*.ts": [
@@ -68,6 +70,7 @@
     "@octokit/core": "^6.1.2",
     "@octokit/graphql": "^4.8.0",
     "@octokit/request": "^5.6.3",
+    "@octokit/rest": "^22.0.0",
     "@opensearch-project/opensearch": "^2.11.0",
     "@slack/web-api": "^6.7.2",
     "@superfaceai/one-sdk": "^1.3.0",
@@ -138,9 +141,9 @@
   },
   "private": true,
   "devDependencies": {
-    "@babel/core": "^7.21.8",
-    "@babel/preset-env": "^7.21.5",
-    "@babel/preset-typescript": "^7.21.5",
+    "@babel/core": "^7.24.4",
+    "@babel/preset-env": "^7.24.4",
+    "@babel/preset-typescript": "^7.24.1",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/bunyan": "^1.8.8",
     "@types/bunyan-format": "^0.2.5",

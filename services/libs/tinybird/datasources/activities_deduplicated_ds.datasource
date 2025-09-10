@@ -1,3 +1,22 @@
+DESCRIPTION >
+    - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
+    - Created via copy pipe from `activities` datasource with deduplication and field selection for performance.
+    - Since aggregations are mainly done on relationships, `activityRelations_deduplicated_cleaned_ds` should be used for reporting purposes instead.
+    - Optimized subset of activity fields focused on core analytics needs.
+    - `id` is the unique identifier for the activity record.
+    - `timestamp` is when the activity occurred on the source platform.
+    - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
+    - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
+    - `channel` contains the repository, channel, or forum where activity occurred.
+    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
+    - `sourceId` is the unique identifier from the source platform.
+    - `sourceParentId` is the parent activity identifier from the source platform.
+    - `sentimentLabel` and `sentimentScore` provide sentiment analysis results.
+    - `gitChangedLines` tracks the total lines changed for git activities (Int64).
+    - `gitChangedLinesBucket` categorizes the size of git changes into buckets.
+    - `score` is the computed importance/impact score for the activity.
+    - `attributes` contains additional JSON metadata specific to the activity type.
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >

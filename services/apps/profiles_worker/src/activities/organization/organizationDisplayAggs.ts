@@ -1,5 +1,5 @@
 import { getSystemSettingValue, setSystemSettingValue } from '@crowd/data-access-layer'
-import { fetchOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/activities'
+import { fetchOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/activityRelations'
 import { updateOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { IOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -9,29 +9,21 @@ import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { svc } from '../../main'
 
 export async function getOrganizationDisplayAggsLastSyncedAt(): Promise<string> {
-  try {
-    const qx = pgpQx(svc.postgres.reader.connection())
-    const setting = await getSystemSettingValue(qx, 'organizationDisplayAggsLastSyncedAt')
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const setting = await getSystemSettingValue(qx, 'organizationDisplayAggsLastSyncedAt')
 
-    if (!setting) {
-      throw new Error('Organization display aggs last sync at setting not found!')
-    }
-
-    return setting.timestamp
-  } catch (error) {
-    throw new Error(error)
+  if (!setting) {
+    throw new Error('Organization display aggs last sync at setting not found!')
   }
+
+  return setting.timestamp
 }
 
 export async function touchOrganizationDisplayAggsLastSyncedAt(): Promise<void> {
-  try {
-    const qx = pgpQx(svc.postgres.writer.connection())
-    await setSystemSettingValue(qx, 'organizationDisplayAggsLastSyncedAt', {
-      timestamp: new Date().toISOString(),
-    })
-  } catch (error) {
-    throw new Error(error)
-  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await setSystemSettingValue(qx, 'organizationDisplayAggsLastSyncedAt', {
+    timestamp: new Date().toISOString(),
+  })
 }
 
 export async function getOrganizationsForDisplayAggsRefresh(
@@ -39,36 +31,24 @@ export async function getOrganizationsForDisplayAggsRefresh(
   lastSyncedAt: string,
   afterOrganizationId?: string,
 ): Promise<IRecentlyIndexedEntity[]> {
-  try {
-    const indexingRepo = new IndexingRepository(svc.postgres.reader, svc.log)
-    return indexingRepo.getRecentlyIndexedEntities(
-      IndexedEntityType.ORGANIZATION,
-      batchSize,
-      lastSyncedAt,
-      afterOrganizationId,
-    )
-  } catch (error) {
-    throw new Error(error)
-  }
+  const indexingRepo = new IndexingRepository(svc.postgres.reader, svc.log)
+  return indexingRepo.getRecentlyIndexedEntities(
+    IndexedEntityType.ORGANIZATION,
+    batchSize,
+    lastSyncedAt,
+    afterOrganizationId,
+  )
 }
 
 export async function getOrganizationDisplayAggregates(
   organizationId: string,
 ): Promise<IOrganizationDisplayAggregates[]> {
-  try {
-    return fetchOrganizationDisplayAggregates(svc.questdbSQL, organizationId)
-  } catch (error) {
-    throw new Error(error)
-  }
+  return fetchOrganizationDisplayAggregates(pgpQx(svc.postgres.reader.connection()), organizationId)
 }
 
 export async function setOrganizationDisplayAggregates(
   data: IOrganizationDisplayAggregates[],
 ): Promise<void> {
-  try {
-    const qx = pgpQx(svc.postgres.writer.connection())
-    await updateOrganizationDisplayAggregates(qx, data)
-  } catch (error) {
-    throw new Error(error)
-  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await updateOrganizationDisplayAggregates(qx, data)
 }

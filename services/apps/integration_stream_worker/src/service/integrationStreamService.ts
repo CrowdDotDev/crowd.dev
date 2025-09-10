@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, addSeconds, singleOrDefault } from '@crowd/common'
+import { addSeconds, singleOrDefault } from '@crowd/common'
 import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -284,12 +284,13 @@ export default class IntegrationStreamService extends LoggerBase {
     )
 
     const nangoConfig = NANGO_CONFIG()
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nangoId = (streamInfo.integrationSettings as any)?.nangoId
     const context: IProcessWebhookStreamContext = {
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
+        nangoId: nangoId,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),
@@ -447,13 +448,14 @@ export default class IntegrationStreamService extends LoggerBase {
     )
 
     const nangoConfig = NANGO_CONFIG()
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nangoId = (streamInfo.integrationSettings as any)?.nangoId
     const context: IProcessStreamContext = {
       onboarding: streamInfo.onboarding,
       serviceSettings: {
         nangoUrl: nangoConfig.url,
         nangoSecretKey: nangoConfig.secretKey,
-        nangoId: `${DEFAULT_TENANT_ID}-${streamInfo.integrationType}`,
+        nangoId: nangoId,
       },
 
       platformSettings: PLATFORM_CONFIG(streamInfo.integrationType),

@@ -29,6 +29,11 @@ const en = {
         notFound: `Activity type with key {0} is not found.`,
       },
     },
+    segments: {
+      errors: {
+        isLfNotMatchingParent: `isLF doesn't match the parent project`,
+      },
+    },
   },
 
   auth: {
@@ -160,6 +165,12 @@ const en = {
       invalidCredentials:
         'The given credentials were found to be invalid. Please check the credentials and try again',
     },
+    confluence: {
+      invalidUrl:
+        'The URL provided is invalid. Please enter a valid URL format such as https://example.com or https://example.atlassian.net',
+      invalidCredentials:
+        'The given credentials were found to be invalid. Please check the credentials and try again',
+    },
     groupsio: {
       isTwoFactorRequired: 'Two-factor authentication code is required',
       invalidCredentials: 'Invalid email or password',
@@ -181,6 +192,7 @@ const en = {
       multiple: 'Cannot merge suggestions - found existing merge with {0} state',
       lfxSecondary: 'Cannot merge LFX membership organization as a secondary one!',
       noIdentities: 'Original member only has one identity, cannot extract it!',
+      identityMismatch: 'Member does not have the identity sent to be unmerged',
     },
   },
 

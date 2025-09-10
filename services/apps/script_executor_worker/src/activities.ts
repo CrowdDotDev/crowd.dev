@@ -1,3 +1,7 @@
+import {
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
+} from './activities/cleanup/duplicate-members'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -6,7 +10,7 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
@@ -22,6 +26,13 @@ import {
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
 import {
+  checkActivitiesWithTimestampExistInQuestDb,
+  deleteActivityRelations,
+  getActivityRelationsDuplicateGroups,
+  getMissingActivityInQuestDb,
+  saveMissingActivityInQuestDb,
+} from './activities/dedup-activity-relations'
+import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
@@ -31,6 +42,11 @@ import {
   findMergeActionsWithDeletedSecondaryEntities,
   moveActivitiesToCorrectEntity,
 } from './activities/fix-activity-foriegn-keys'
+import {
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
+} from './activities/fix-bot-members-affiliation'
 import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
@@ -84,7 +100,7 @@ export {
   deleteOrganization,
   syncRemoveOrganization,
   getOrganizationsToCleanup,
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
@@ -98,4 +114,14 @@ export {
   calculateMemberAffiliations,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
+  getActivityRelationsDuplicateGroups,
+  deleteActivityRelations,
+  checkActivitiesWithTimestampExistInQuestDb,
+  saveMissingActivityInQuestDb,
+  getMissingActivityInQuestDb,
 }

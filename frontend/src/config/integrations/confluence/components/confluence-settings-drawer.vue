@@ -12,44 +12,100 @@
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
-        Remote URL
+        Authentication
       </div>
       <div class="text-2xs text-gray-500">
-        Connect remote Confluence space.
+        Connect to a Confluence instance, you must be an admin of the organization, or have access to the required credentials to be able to connect.
+      </div>
+
+      <el-input
+        id="url"
+        v-model="form.url"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence URL"
+      />
+
+      <div class="text-2xs text-gray-500 mt-2">
+        Provide a username/API token combination.
+      </div>
+
+      <el-input
+        id="username"
+        v-model="form.username"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence username/email"
+      />
+
+      <el-input
+        id="apiToken"
+        v-model="form.apiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter API Token"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
+        Organization Admin Access
+      </div>
+      <div class="text-2xs text-gray-500">
+        Please enter your Organization Admin API Key and Organization ID.
+        Personal or scoped tokens won't work — this key must have full admin
+        access to perform the required operations. The token will be used for
+        read-only operations.
+      </div>
+
+      <el-input
+        id="orgAdminApiToken"
+        v-model="form.orgAdminApiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter Organization Admin API Token"
+      />
+
+      <el-input
+        id="orgAdminId"
+        v-model="form.orgAdminId"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Organization ID"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
+        Connect spaces
+      </div>
+      <div class="text-2xs text-gray-500">
+        Select which spaces you want to track.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <el-input
-          id="url"
-          v-model="form.url"
-          class="text-green-500"
-          spellcheck="false"
-          placeholder="Enter Organization URL"
-        />
-        <el-input
-          v-if="form.space"
-          id="spaceId"
-          v-model="form.space.id"
+        <app-array-input
+          v-for="(_, index) of form.spaces"
+          :id="`spaceKey-${index}`"
+          :key="index"
+          v-model="form.spaces[index]"
           class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space ID"
-        />
-        <el-input
-          v-if="form.space"
-          id="spaceKey"
-          v-model="form.space.key"
-          class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space Key"
-        />
-        <el-input
-          v-if="form.space"
-          id="spaceName"
-          v-model="form.space.name"
-          class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Space Name"
-        />
+          placeholder="Enter Space key"
+        >
+          <template #after>
+            <lf-button
+              type="primary-link"
+              size="medium"
+              class="w-10 h-10"
+              icon-only
+              @click="removeSpaceKey(index)"
+            >
+              <lf-icon name="trash-can" :size="20" />
+            </lf-button>
+          </template>
+        </app-array-input>
+
+        <lf-button type="primary-link" @click="addSpaceKey()">
+          + Add Space Key
+        </lf-button>
       </el-form>
     </template>
 
@@ -68,7 +124,7 @@
           id="confluenceConnect"
           type="primary"
           size="medium"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
+          :disabled="$v.$invalid || loading"
           :loading="loading"
           @click="connect"
         >
@@ -79,8 +135,9 @@
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
@@ -88,9 +145,14 @@ import confluence from '@/config/integrations/confluence/config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppArrayInput from '@/shared/form/array-input.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -117,15 +179,24 @@ const { trackEvent } = useProductTracking();
 const loading = ref(false);
 const form = reactive({
   url: '',
-  space: {
-    id: '',
-    key: '',
-    name: '',
-  },
+  username: '',
+  apiToken: '',
+  orgAdminApiToken: '',
+  orgAdminId: '',
+  spaces: [''],
 });
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(form);
-const $v = useVuelidate({}, form, { $stopPropagation: true });
+const { formSnapshot } = formChangeDetector(form);
+const $v = useVuelidate({
+  url: { required },
+  username: { required },
+  apiToken: { required },
+  orgAdminApiToken: { required },
+  orgAdminId: { required },
+  spaces: {
+    required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
+  },
+}, form, { $stopPropagation: true });
 
 const { doConfluenceConnect } = mapActions('integration');
 const isVisible = computed({
@@ -138,10 +209,27 @@ const isVisible = computed({
 });
 const logoUrl = confluence.image;
 
+const addSpaceKey = () => {
+  form.spaces.push('');
+};
+
+const removeSpaceKey = (index: number) => {
+  form.spaces.splice(index, 1);
+};
+
 onMounted(() => {
   if (props.integration?.settings) {
     form.url = props.integration?.settings.url;
-    form.space = props.integration?.settings.space;
+    form.username = props.integration?.settings.username || '';
+    form.apiToken = props.integration?.settings.apiToken || '';
+    form.orgAdminApiToken = props.integration?.settings.orgAdminApiToken || '';
+    form.orgAdminId = props.integration?.settings.orgAdminId || '';
+    // to handle both single and multiple spaces
+    if (props.integration?.settings.space) {
+      form.spaces = [props.integration?.settings.space.key];
+    } else {
+      form.spaces = props.integration?.settings.spaces;
+    }
   }
   formSnapshot();
 });
@@ -158,7 +246,11 @@ const connect = async () => {
   doConfluenceConnect({
     settings: {
       url: form.url,
-      space: form.space,
+      username: form.username,
+      apiToken: form.apiToken,
+      orgAdminApiToken: form.orgAdminApiToken,
+      orgAdminId: form.orgAdminId,
+      spaces: form.spaces,
     },
     isUpdate,
     segmentId: props.segmentId,
@@ -166,7 +258,9 @@ const connect = async () => {
   })
     .then(() => {
       trackEvent({
-        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        key: isUpdate
+          ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS
+          : FeatureEventKey.CONNECT_INTEGRATION,
         type: EventType.FEATURE,
         properties: {
           platform: Platform.CONFLUENCE,
@@ -181,7 +275,7 @@ const connect = async () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfConfluenceSettingsDrawer',
 };

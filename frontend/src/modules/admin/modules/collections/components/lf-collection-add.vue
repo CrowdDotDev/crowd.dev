@@ -153,7 +153,8 @@ import LfInput from '@/ui-kit/input/Input.vue';
 import LfTextarea from '@/ui-kit/textarea/Textarea.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
 import { CategoryService } from '@/modules/admin/modules/categories/services/category.service';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -179,7 +180,6 @@ const props = defineProps<{
 
 const activeTab = ref('details');
 const loading = ref(false);
-const submitLoading = ref(false);
 const form = reactive<CollectionFormModel>({
   name: '',
   description: '',
@@ -238,7 +238,6 @@ const onCancel = () => {
 };
 
 const onSubmit = () => {
-  submitLoading.value = true;
   const request: CollectionRequest = {
     name: form.name,
     description: form.description,
@@ -265,8 +264,8 @@ const onSuccess = () => {
   queryClient.invalidateQueries({
     queryKey: [TanstackKey.ADMIN_COLLECTIONS],
   });
-  Message.closeAll();
-  Message.success(
+  ToastStore.closeAll();
+  ToastStore.success(
     `Collection ${isEditForm.value ? 'updated' : 'created'} successfully`,
   );
   if (isEditForm.value) {
@@ -277,8 +276,8 @@ const onSuccess = () => {
 };
 
 const onError = () => {
-  Message.closeAll();
-  Message.error(
+  ToastStore.closeAll();
+  ToastStore.error(
     `Something went wrong while ${isEditForm.value ? 'updating' : 'creating'} the collection`,
   );
 };

@@ -1,10 +1,30 @@
+DESCRIPTION >
+    - `organizations` contains organization profiles and company metadata for community analytics.
+    - Replicated from Postgres - stores organization information associated with community members.
+    - Used to analyze organizational contributions, industry participation, and company engagement patterns.
+    - `id` is the primary key identifier for the organization record.
+    - `displayName` is the organization's primary name or brand.
+    - `location` is the organization's headquarters or primary location (empty string if not provided).
+    - `logo` contains the URL to the organization's logo image (empty string if no logo).
+    - `tags` is an array of labels or categories associated with the organization (empty array default).
+    - `employees` is the number of employees in the organization (0 default if unknown).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `isTeamOrganization` flag indicates whether this organization is part of the project team (UInt8 boolean, 0 default).
+    - `type` specifies the organization type (company, nonprofit, government, etc., empty string if not specified).
+    - `size` describes the organization size category: "1-10", "501-1000", "1001-5000", "5001-10000", "10001+" (empty string if not specified).
+    - `headline` is a brief description or tagline for the organization (empty string if not provided).
+    - `industry` specifies the primary industry or sector the organization operates in (empty string if not specified).
+    - `founded` is the year the organization was founded (0 default if unknown).
+
+TAGS "Organization profiles", "Company analytics"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `displayName` String `json:$.record.displayName`,
     `location` String `json:$.record.location` DEFAULT '',
     `logo` String `json:$.record.logo` DEFAULT '',
     `tags` Array(String) `json:$.record.tags[:]` DEFAULT [],
-    `employees` UInt16 `json:$.record.employees` DEFAULT 0,
+    `employees` UInt32 `json:$.record.employees` DEFAULT 0,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `isTeamOrganization` UInt8 `json:$.record.isTeamOrganization` DEFAULT 0,

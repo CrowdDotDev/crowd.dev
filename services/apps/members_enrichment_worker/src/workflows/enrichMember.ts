@@ -22,12 +22,13 @@ const {
   isCacheObsolete,
   getEnrichmentInput,
   hasRemainingCredits,
+  getMemberById,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '1 minute',
+  startToCloseTimeout: '5 minutes',
   retry: {
-    initialInterval: '5s',
+    initialInterval: '60s',
     backoffCoefficient: 2.0,
-    maximumInterval: '30s',
+    maximumInterval: '5 minutes',
     maximumAttempts: 4,
   },
 })
@@ -36,6 +37,11 @@ export async function enrichMember(
   input: IEnrichableMember,
   sources: MemberEnrichmentSource[],
 ): Promise<void> {
+  const member = await getMemberById(input.id)
+
+  // skip enrichment if member no longer exists
+  if (!member) return
+
   let changeInEnrichmentSourceData = false
 
   for (const source of sources) {

@@ -82,6 +82,7 @@ const markTeamMember = (teamMember: boolean) => {
       ...props.contributor.attributes,
       isTeamMember: {
         default: teamMember,
+        custom: teamMember,
       },
     }),
   }).then(() => {
@@ -106,6 +107,7 @@ const markBot = (bot: boolean) => {
       ...props.contributor.attributes,
       isBot: {
         default: bot,
+        custom: bot,
       },
     }),
   }).then(() => {

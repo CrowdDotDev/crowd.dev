@@ -456,6 +456,14 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async fetchGitHubMappedRepos(segmentId) {
+    const response = await authAxios.get(`/integration/mapped-repos/${segmentId}`, {
+      params: getSegments(),
+    });
+
+    return response.data;
+  }
+
   static async githubConnectInstallation(installId) {
     const response = await authAxios.post(
       '/integration/github-connect-installation',

@@ -2,7 +2,8 @@ import pluralize from 'pluralize';
 import { MemberService } from '@/modules/member/member-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { FormSchema } from '@/shared/form/form-schema';
 import sharedActions from '@/shared/store/actions';
 import { MemberModel } from '../member-model';
@@ -50,7 +51,7 @@ export default {
         Errors.handle(error);
       }
 
-      Message.error('Custom Attributes could not be created');
+      ToastStore.error('Custom Attributes could not be created');
     }
     return null;
   },
@@ -59,50 +60,10 @@ export default {
     try {
       await MemberService.merge(memberToKeep, memberToMerge);
 
-      Message.success('Profiles merged successfully');
+      ToastStore.success('Profiles merged successfully');
       router.push(`/people/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
-    }
-  },
-
-  async doBulkUpdateMembersTags(
-    { commit },
-    {
-      members, tagsInCommon, tagsToSave, segments,
-    },
-  ) {
-    const { fields } = MemberModel;
-    const formSchema = new FormSchema([
-      fields.username,
-      fields.info,
-      fields.tags,
-      fields.emails,
-    ]);
-
-    try {
-      const payload = members.reduce((acc, item) => {
-        const memberToUpdate = { ...item };
-        const tagsToKeep = item.tags.filter(
-          (tag) => tagsInCommon.filter((t) => t.id === tag.id).length === 0
-            && tagsToSave.filter((t) => t.id === tag.id).length === 0,
-        );
-
-        memberToUpdate.tags = [...tagsToKeep, ...tagsToSave];
-        acc.push(
-          formSchema.cast({
-            id: memberToUpdate.id,
-            tags: memberToUpdate.tags,
-          }),
-        );
-        return acc;
-      }, []);
-      const updatedMembers = await MemberService.updateBulk(payload, segments);
-      Message.success('Tags updated successfully');
-      commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
-    } catch (error) {
-      Errors.handle(error);
-      Message.error('There was an error updating tags');
     }
   },
 
@@ -166,12 +127,12 @@ export default {
 
       const updatedMembers = await MemberService.updateBulk(payload);
 
-      Message.success('Attribute updated successfully');
+      ToastStore.success('Attribute updated successfully');
 
       commit('UPDATE_SUCCESS', updatedMembers);
     } catch (error) {
       Errors.handle(error);
-      Message.error('There was an error updating attribute');
+      ToastStore.error('There was an error updating attribute');
     }
   },
 

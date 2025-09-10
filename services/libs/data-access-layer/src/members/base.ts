@@ -1,7 +1,14 @@
 import { uniq } from 'lodash'
 
-import { Error400, RawQueryParser, groupBy } from '@crowd/common'
-import { DbConnOrTx } from '@crowd/database'
+import {
+  DEFAULT_TENANT_ID,
+  Error400,
+  RawQueryParser,
+  generateUUIDv1,
+  getProperDisplayName,
+  groupBy,
+} from '@crowd/common'
+import { DbConnOrTx, formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -17,7 +24,11 @@ import {
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
-import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
+import { findMemberAffiliationOverrides } from '../member_organization_affiliation_overrides'
+import {
+  IDbMemberCreateData,
+  IDbMemberUpdateData,
+} from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
@@ -55,6 +66,51 @@ export enum MemberField {
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
 }
 
+export const MEMBER_MERGE_FIELDS = [
+  'id',
+  'tags',
+  'reach',
+  'tasks',
+  'joinedAt',
+  'tenantId',
+  'attributes',
+  'displayName',
+  'affiliations',
+  'contributions',
+  'manuallyCreated',
+  'manuallyChangedFields',
+]
+
+export const MEMBER_UPDATE_COLUMNS = [
+  MemberField.DISPLAY_NAME,
+  MemberField.ATTRIBUTES,
+  MemberField.CONTRIBUTIONS,
+  MemberField.SCORE,
+  MemberField.REACH,
+  MemberField.IMPORT_HASH,
+]
+
+export const MEMBER_SELECT_COLUMNS = [
+  'id',
+  'score',
+  'joinedAt',
+  'reach',
+  'attributes',
+  'displayName',
+  'manuallyChangedFields',
+]
+
+export const MEMBER_INSERT_COLUMNS = [
+  'id',
+  'attributes',
+  'displayName',
+  'joinedAt',
+  'tenantId',
+  'reach',
+  'createdAt',
+  'updatedAt',
+]
+
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
   // id fields
   ['id', { name: 'm.id' }],
@@ -66,7 +122,12 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   // ['tags', {name: 'm."tags"'}], // ignore, not used
   ['joinedAt', { name: 'm."joinedAt"' }],
   ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
-  ['numberOfOpenSourceContributions', { name: 'coalesce(jsonb_array_length(m.contributions), 0)' }],
+  [
+    'numberOfOpenSourceContributions',
+    {
+      name: "CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END",
+    },
+  ],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
   [
     'isTeamMember',
@@ -316,7 +377,7 @@ export async function queryMembersAdvanced(
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
       const affiliationOverrides = memberOrgs.length
-        ? await findMemberOrganizationAffiliationOverrides(
+        ? await findMemberAffiliationOverrides(
             qx,
             member.id,
             memberOrgs.map((o) => o.id),
@@ -411,7 +472,7 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, [segmentId])
+    const lastActivities = await getLastActivitiesForMembers(qx, qdbConn, memberIds, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
@@ -440,4 +501,92 @@ export async function findMemberById<T extends MemberField>(
   fields: T[],
 ): Promise<QueryResult<T>> {
   return queryTableById(qx, 'members', Object.values(MemberField), memberId, fields)
+}
+
+export async function moveAffiliationsBetweenMembers(
+  qx: QueryExecutor,
+  fromMemberId: string,
+  toMemberId: string,
+): Promise<void> {
+  const params: any = {
+    fromMemberId,
+    toMemberId,
+  }
+
+  await qx.result(
+    `update "memberSegmentAffiliations" set "memberId" = $(toMemberId) where "memberId" = $(fromMemberId);`,
+    params,
+  )
+}
+
+export async function updateMember(
+  qx: QueryExecutor,
+  id: string,
+  data: IDbMemberUpdateData,
+): Promise<void> {
+  // we shouldn't update id
+  if ('id' in data) {
+    delete data.id
+  }
+
+  const keys = Object.keys(data)
+  if (keys.length === 0) {
+    return
+  }
+
+  if (data.displayName) {
+    data.displayName = getProperDisplayName(data.displayName)
+  }
+
+  const dbInstance = getDbInstance()
+
+  keys.push('updatedAt')
+  // construct custom column set
+  const dynamicColumnSet = new dbInstance.helpers.ColumnSet(keys, {
+    table: {
+      table: 'members',
+    },
+  })
+
+  const updatedAt = new Date()
+
+  const prepared = prepareForModification(
+    {
+      ...data,
+      updatedAt,
+    },
+    dynamicColumnSet,
+  )
+  const query = dbInstance.helpers.update(prepared, dynamicColumnSet)
+
+  const condition = formatSql('where id = $(id) and "updatedAt" < $(updatedAt)', {
+    id,
+    updatedAt,
+  })
+  await qx.result(`${query} ${condition}`)
+}
+
+export async function createMember(qx: QueryExecutor, data: IDbMemberCreateData): Promise<string> {
+  const id = generateUUIDv1()
+  const ts = new Date()
+  const dbInstance = getDbInstance()
+  const columnSet = new dbInstance.helpers.ColumnSet(MEMBER_INSERT_COLUMNS, {
+    table: {
+      table: 'members',
+    },
+  })
+  const prepared = prepareForModification(
+    {
+      ...data,
+      id,
+      tenantId: DEFAULT_TENANT_ID,
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    columnSet,
+  )
+
+  const query = dbInstance.helpers.insert(prepared, columnSet)
+  await qx.select(query)
+  return id
 }

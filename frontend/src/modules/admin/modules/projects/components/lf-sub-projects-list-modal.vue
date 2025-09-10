@@ -1,43 +1,43 @@
 <template>
-  <app-dialog v-model="model" :title="title" size="medium">
-    <template #content>
-      <div class="px-6">
-        <div class="pb-8 relative">
-          <app-lf-sub-projects-list-dropdown
-            @on-change="onChange"
-          />
-        </div>
+  <lf-modal
+    v-model="model"
+    :header-title="title"
+    width="30rem"
+    content-class="!overflow-unset"
+  >
+    <div class="px-6">
+      <div class="pb-8 relative">
+        <app-lf-sub-projects-list-dropdown @on-change="onChange" />
       </div>
+    </div>
 
-      <div
-        class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+    <div
+      class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+    >
+      <lf-button
+        type="secondary-gray"
+        size="medium"
+        class="mr-3"
+        @click="model = false"
       >
-        <lf-button
-          type="secondary-gray"
-          size="medium"
-          class="mr-3"
-          @click="model = false"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          size="medium"
-          :disabled="!isSubmitEnabled"
-          @click="onSubmit"
-        >
-          Continue
-        </lf-button>
-      </div>
-    </template>
-  </app-dialog>
+        Cancel
+      </lf-button>
+      <lf-button
+        type="primary"
+        size="medium"
+        :disabled="!isSubmitEnabled"
+        @click="onSubmit"
+      >
+        Continue
+      </lf-button>
+    </div>
+  </lf-modal>
 </template>
 
 <script setup>
-import {
-  computed, ref,
-} from 'vue';
+import { computed, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfModal from '@/ui-kit/modal/Modal.vue';
 import AppLfSubProjectsListDropdown from './lf-sub-projects-list-dropdown.vue';
 
 const emit = defineEmits(['update:modelValue', 'onSubmit']);

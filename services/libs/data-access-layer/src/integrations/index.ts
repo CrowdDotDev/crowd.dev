@@ -275,21 +275,42 @@ export async function findIntegrationDataForNangoWebhookProcessing(
 export async function setNangoIntegrationCursor(
   qx: QueryExecutor,
   integrationId: string,
+  connectionId: string,
   model: string,
   cursor: string,
 ): Promise<void> {
   await qx.result(
     `
       update integrations
-      set settings = jsonb_set(
-        settings,
-        '{cursors}',
-        coalesce(settings -> 'cursors', '{}') || jsonb_build_object($(model), $(cursor))
-      )
-      where id = $(integrationId)
+      set settings = case
+          -- when we don't have any cursors yet
+                        when settings -> 'cursors' is null then
+                            jsonb_set(
+                                    settings,
+                                    array['cursors'],
+                                    jsonb_build_object($(connectionId), jsonb_build_object($(model), $(cursor)))
+                            )
+          -- when we have cursors but not yet for this connectionId
+                        when settings -> 'cursors' -> $(connectionId) is null then
+                            jsonb_set(
+                                    settings,
+                                    array['cursors'],
+                                    (settings -> 'cursors') ||
+                                    jsonb_build_object($(connectionId), jsonb_build_object($(model), $(cursor)))
+                            )
+          -- when we have cursors and entries for this connectionId
+                        else
+                            jsonb_set(
+                                    settings,
+                                    array['cursors', $(connectionId)],
+                                    (settings -> 'cursors' -> $(connectionId)) || jsonb_build_object($(model), $(cursor))
+                            )
+          end
+      where id = $(integrationId);
     `,
     {
       integrationId,
+      connectionId,
       model,
       cursor,
     },
@@ -413,5 +434,51 @@ export async function removeGitHubRepoMapping(
   )
 
   const cache = new RedisCache('githubRepos', redisClient, log)
+  await cache.deleteAll()
+}
+
+export async function removePlainGitHubRepoMapping(
+  qx: QueryExecutor,
+  redisClient: RedisClient,
+  integrationId: string,
+  repo: string,
+): Promise<void> {
+  await qx.result(
+    `
+    update "githubRepos"
+    set "deletedAt" = now()
+    where "integrationId" = $(integrationId)
+    and lower(url) = lower($(repo))
+    `,
+    {
+      integrationId,
+      repo,
+    },
+  )
+
+  const cache = new RedisCache('githubRepos', redisClient, log)
+  await cache.deleteAll()
+}
+
+export async function removePlainGitlabRepoMapping(
+  qx: QueryExecutor,
+  redisClient: RedisClient,
+  integrationId: string,
+  repo: string,
+): Promise<void> {
+  await qx.result(
+    `
+    update "gitlabRepos"
+    set "deletedAt" = now()
+    where "integrationId" = $(integrationId)
+    and lower(url) = lower($(repo))
+    `,
+    {
+      integrationId,
+      repo,
+    },
+  )
+
+  const cache = new RedisCache('gitlabRepos', redisClient, log)
   await cache.deleteAll()
 }

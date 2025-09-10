@@ -1,94 +1,166 @@
-TOKEN "categories_oss_index_endpoint_read_8383" READ
-
 NODE categories_oss_index_categoryGroups
+DESCRIPTION >
+    Return category group ids filtered by slug, needed for later filtering
+
 SQL >
     %
     SELECT categoryGroups.id,
     FROM categoryGroups
-    {% if defined(categoryGroupSlug) %}
-        WHERE
-            categoryGroups.slug
+    WHERE
+        isNull (deletedAt)
+        {% if defined(categoryGroupSlug) %}
+            AND categoryGroups.slug
             = {{ String(categoryGroupSlug, description="Category group slug", required=True) }}
-    {% end %}
+        {% end %}
 
 NODE categories_oss_index_agregates
+DESCRIPTION >
+    Returns aggregates by category
+
 SQL >
-    SELECT categoryId, coalesce(sum(contributorCount), 0) as "totalContributors"
+    %
+    SELECT
+        categoryId,
+        coalesce(sum(contributorCount), 0) as "totalContributors",
+        coalesce(sum(softwareValue), 0) as "softwareValue",
+        coalesce(avg(score), 0) as "avgScore"
     FROM segments_aggregates_with_ids_datasource
     WHERE categoryId != '' AND categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
     GROUP BY categoryId
-    ORDER BY totalContributors DESC
+    ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
 
 NODE categories_oss_index_projects_deduplicated
+DESCRIPTION >
+    Returns only needed columns from insights projects
+
 SQL >
-    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
-    FROM insightsProjects FINAL
+    SELECT id, name, logoUrl, description, healthScore
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, logoUrl, description, healthScore
 
 NODE categories_oss_index_collections_deduplicated
+DESCRIPTION >
+    Returns only needed columns from collections
+
 SQL >
-    SELECT collections.id, collections.name FROM collections FINAL
+    SELECT collections.id, collections.name FROM collections FINAL where isNull (deletedAt)
 
 NODE categories_oss_index_projects_ranked_by_category
+DESCRIPTION >
+    Returns projects by category ranked by sorting parameter
+
 SQL >
+    %
     SELECT
         categoryId,
         projectId,
         sum(contributorCount) AS totalContributors,
-        ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY sum(contributorCount) DESC) AS rn
+        sum(softwareValue) AS softwareValue,
+        avg(score) AS avgScore,
+        ROW_NUMBER() OVER (
+            PARTITION BY categoryId ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
+        ) AS rn
     FROM segments_aggregates_with_ids_datasource
     WHERE categoryId != '' AND projectId != ''
     GROUP BY categoryId, projectId
 
 NODE categories_oss_index_projects
+DESCRIPTION >
+    Returns top 5 projects per category
+
 SQL >
     SELECT
         topProjects.categoryId,
         topProjects.projectId,
         topProjects.totalContributors,
+        topProjects.softwareValue,
+        topProjects.avgScore,
         pd.name AS projectName,
-        pd.logoUrl AS projectLogo
+        pd.logoUrl AS projectLogo,
+        pd.description AS description,
+        pd.healthScore AS healthScore
     FROM categories_oss_index_projects_ranked_by_category topProjects
     JOIN categories_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
 
 NODE categories_oss_index_collections_ranked_by_category
+DESCRIPTION >
+    Returns collections by category ranked by sorting parameter
+
 SQL >
+    %
     SELECT
         categoryId,
         collectionId,
         sum(contributorCount) AS totalContributors,
-        ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY sum(contributorCount) DESC) AS rn
+        sum(softwareValue) AS softwareValue,
+        avg(score) AS avgScore,
+        ROW_NUMBER() OVER (
+            PARTITION BY categoryId ORDER BY {{ column(orderBy, 'totalContributors') }} DESC
+        ) AS rn
     FROM segments_aggregates_with_ids_datasource
     WHERE categoryId != '' AND collectionId != ''
     GROUP BY categoryId, collectionId
 
 NODE categories_oss_index_collections
+DESCRIPTION >
+    Returns top 5 collections by category
+
 SQL >
     SELECT
         topCollections.categoryId,
         topCollections.collectionId,
         topCollections.totalContributors,
+        topCollections.softwareValue,
+        topCollections.avgScore,
         cd.name AS collectionName
     FROM categories_oss_index_collections_ranked_by_category topCollections
     JOIN categories_oss_index_collections_deduplicated cd ON cd.id = topCollections.collectionId
     WHERE topCollections.rn <= 5
 
 NODE categories_oss_index_categories_deduplicated
+DESCRIPTION >
+    Returns category details filtered by category group
+
 SQL >
     SELECT categories.id, categories.name, categories.slug
     FROM categories FINAL
-    WHERE categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
+    WHERE
+        isNull (categories.deletedAt)
+        and categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
 
 NODE categories_oss_index_top_collections
+DESCRIPTION >
+    Maps top 5 collections per category into single row per category
+
 SQL >
-    SELECT categoryId, groupArray((collectionId, totalContributors, collectionName)) AS topCollections
+    SELECT
+        categoryId,
+        groupArray(
+            (collectionId, totalContributors, collectionName, softwareValue, avgScore)
+        ) AS topCollections
     FROM categories_oss_index_collections
     GROUP BY categoryId
 
 NODE categories_oss_index_top_projects
+DESCRIPTION >
+    Maps top 5 projects per category into single row per category
+
 SQL >
     SELECT
-        categoryId, groupArray((projectId, totalContributors, projectName, projectLogo)) AS topProjects
+        categoryId,
+        groupArray(
+            (
+                projectId,
+                totalContributors,
+                projectName,
+                projectLogo,
+                softwareValue,
+                avgScore,
+                healthScore,
+                description
+            )
+        ) AS topProjects
     FROM categories_oss_index_projects
     GROUP BY categoryId
 
@@ -99,6 +171,8 @@ SQL >
         cgd.name as "name",
         cgd.slug as "slug",
         a.totalContributors,
+        a.softwareValue,
+        a.avgScore,
         c.topCollections,
         p.topProjects
     FROM categories_oss_index_agregates a

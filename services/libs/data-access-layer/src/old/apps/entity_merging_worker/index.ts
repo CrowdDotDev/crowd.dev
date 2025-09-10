@@ -1,10 +1,5 @@
-import { DbConnOrTx, DbStore } from '@crowd/database'
-import { IQueue } from '@crowd/queue'
+import { DbStore } from '@crowd/database'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
-
-import { updateActivities } from '../../../activities/update'
-import { formatQuery, pgpQx } from '../../../queryExecutor'
-import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { ISegmentIds } from './types'
 
@@ -79,7 +74,7 @@ export async function getIdentitiesWithActivity(
   }
   const replacements = [memberId]
 
-  let query = `select distinct username, platform from activities a
+  let query = `select distinct username, platform from "activityRelations" a
                where a."deletedAt" is null and a."memberId" = $1 `
 
   let index = 3
@@ -97,43 +92,11 @@ export async function getIdentitiesWithActivity(
   return db.connection().any(query, replacements)
 }
 
-export async function moveIdentityActivitiesToNewMember(
-  db: DbConnOrTx,
-  pgDb: DbConnOrTx,
-  queueClient: IQueue,
-  fromId: string,
-  toId: string,
-  username: string,
-  platform: string,
-) {
-  await updateActivities(
-    db,
-    pgpQx(pgDb),
-    queueClient,
-    async (activity: IDbActivityCreateData) => ({ ...activity, memberId: toId }),
-    formatQuery(
-      `
-        "memberId" = $(fromId)
-        and "username" = $(username)
-        and "platform" = $(platform)
-      `,
-      {
-        fromId,
-        username,
-        platform,
-      },
-    ),
-    {
-      memberId: fromId,
-    },
-  )
-}
-
 export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {
   const result = await db.connection().one(
     `
       SELECT array_agg(distinct "segmentId") as "segmentIds"
-      FROM activities
+      FROM "activityRelations"
       WHERE "memberId" = $1
     `,
     [memberId],
@@ -148,7 +111,7 @@ export async function findOrganizationSegments(
   const result = await db.connection().one(
     `
       SELECT array_agg(distinct "segmentId") as "segmentIds"
-      FROM activities
+      FROM "activityRelations"
       WHERE "organizationId" = $1
     `,
     [organizationId],

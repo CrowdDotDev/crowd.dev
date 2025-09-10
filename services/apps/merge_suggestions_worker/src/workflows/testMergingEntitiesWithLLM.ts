@@ -26,6 +26,14 @@ export async function testMergingEntitiesWithLLM(
   let totalInputTokenCount = 0
   let promptCount = 0
 
+  // default model specific args
+  const modelSpecificArgs = {
+    max_tokens: 1000,
+    anthropic_version: 'bedrock-2023-05-31',
+    temperature: 0,
+    ...args.modelSpecificArgs,
+  }
+
   if (args.memberCouples && args.memberCouples.length > 0) {
     for (const memberCouple of args.memberCouples) {
       console.log(`Checking similarity between: ${memberCouple[0]} and ${memberCouple[1]}`)
@@ -44,7 +52,7 @@ export async function testMergingEntitiesWithLLM(
         args.modelId,
         args.prompt,
         args.region,
-        args.modelSpecificArgs,
+        modelSpecificArgs,
       )
       console.log(`Raw res: `)
       console.log(res.body)
@@ -73,7 +81,7 @@ export async function testMergingEntitiesWithLLM(
         args.modelId,
         args.prompt,
         args.region,
-        args.modelSpecificArgs,
+        modelSpecificArgs,
       )
       console.log(`Raw res: `)
       console.log(res.body)

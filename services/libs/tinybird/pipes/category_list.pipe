@@ -1,0 +1,64 @@
+DESCRIPTION >
+    - `category_list.pipe` provides paginated category listings with their associated category group information.
+    - Joins categories with category groups to provide complete category hierarchy and metadata.
+    - Supports filtering by category slug, search by category name, and category group type filtering.
+    - Provides flexible sorting and pagination for category management interfaces.
+    - Primary use case: powering category selections in insights.
+    - Parameters:
+    - `slug`: Optional string to filter by specific category slug
+    - `search`: Optional string for case-insensitive search in category names (with wildcards)
+    - `categoryGroupType`: Optional string to filter by category group type
+    - `orderBy`: Optional string specifying sort field, defaults to 'name'
+    - `orderDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
+    - `pageSize`: Optional integer for result limit, defaults to 10
+    - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - Response: `id`, `name`, `slug`, `categoryGroupId`, `categoryGroupName`, `categoryGroupSlug`, `categoryGroupType`
+
+TAGS "API", "Categories", "Pagination", "Category management"
+
+NODE category_list_categories_deduplicated
+SQL >
+    %
+    SELECT id, name, slug, categoryGroupId
+    FROM categories FINAL
+    WHERE
+        isNull (deletedAt)
+        {% if defined(slug) %} AND slug = {{ String(slug, description="category slug") }} {% end %}
+        {% if defined(search) %}
+            AND name ILIKE '%' || {{ String(search, description="search by name") }} || '%'
+        {% end %}
+
+NODE category_list_category_groups_deduplicated
+SQL >
+    %
+    SELECT id, name, slug, type
+    FROM categoryGroups FINAL
+    WHERE
+        isNull (deletedAt)
+        {% if defined(categoryGroupType) %}
+            AND type = {{ String(categoryGroupType, description="category group type") }}
+        {% end %}
+
+NODE category_groups_list_result
+SQL >
+    %
+    SELECT
+        category_list_categories_deduplicated.id as id,
+        category_list_categories_deduplicated.name as name,
+        category_list_categories_deduplicated.slug as slug,
+        category_list_category_groups_deduplicated.id as categoryGroupId,
+        category_list_category_groups_deduplicated.name as categoryGroupName,
+        category_list_category_groups_deduplicated.slug as categoryGroupSlug,
+        category_list_category_groups_deduplicated.type as categoryGroupType
+    FROM category_list_categories_deduplicated
+    JOIN
+        category_list_category_groups_deduplicated
+        ON category_list_category_groups_deduplicated.id
+        = category_list_categories_deduplicated.categoryGroupId
+    ORDER BY
+        {{ column(orderBy, 'name') }}
+        {% if defined(orderDirection) and orderDirection == 'desc' %} DESC
+        {% else %} ASC
+        {% end %}
+    LIMIT {{ Int32(pageSize, 10) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}

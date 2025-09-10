@@ -11,29 +11,21 @@ import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { svc } from '../../main'
 
 export async function getMemberDisplayAggsLastSyncedAt(): Promise<string | null> {
-  try {
-    const qx = pgpQx(svc.postgres.reader.connection())
-    const setting = await getSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt')
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const setting = await getSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt')
 
-    if (!setting) {
-      throw new Error('Member display aggs last sync at setting not found!')
-    }
-
-    return setting.timestamp
-  } catch (error) {
-    throw new Error(error)
+  if (!setting) {
+    throw new Error('Member display aggs last sync at setting not found!')
   }
+
+  return setting.timestamp
 }
 
 export async function touchMemberDisplayAggsLastSyncedAt(): Promise<void> {
-  try {
-    const qx = pgpQx(svc.postgres.writer.connection())
-    await setSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt', {
-      timestamp: new Date().toISOString(),
-    })
-  } catch (error) {
-    throw new Error(error)
-  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await setSystemSettingValue(qx, 'memberDisplayAggsLastSyncedAt', {
+    timestamp: new Date().toISOString(),
+  })
 }
 
 export async function getMembersForDisplayAggsRefresh(
@@ -41,36 +33,24 @@ export async function getMembersForDisplayAggsRefresh(
   lastSyncedAt: string,
   afterMemberId?: string,
 ): Promise<IRecentlyIndexedEntity[]> {
-  try {
-    const indexingRepo = new IndexingRepository(svc.postgres.reader, svc.log)
-    return indexingRepo.getRecentlyIndexedEntities(
-      IndexedEntityType.MEMBER,
-      batchSize,
-      lastSyncedAt,
-      afterMemberId,
-    )
-  } catch (error) {
-    throw new Error(error)
-  }
+  const indexingRepo = new IndexingRepository(svc.postgres.reader, svc.log)
+  return indexingRepo.getRecentlyIndexedEntities(
+    IndexedEntityType.MEMBER,
+    batchSize,
+    lastSyncedAt,
+    afterMemberId,
+  )
 }
 
 export async function getMemberDisplayAggregates(
   memberId: string,
 ): Promise<IMemberSegmentDisplayAggregates[]> {
-  try {
-    return fetchMemberDisplayAggregates(svc.questdbSQL, memberId)
-  } catch (error) {
-    throw new Error(error)
-  }
+  return fetchMemberDisplayAggregates(pgpQx(svc.postgres.reader.connection()), memberId)
 }
 
 export async function setMemberDisplayAggregates(
   data: IMemberSegmentDisplayAggregates[],
 ): Promise<void> {
-  try {
-    const qx = pgpQx(svc.postgres.writer.connection())
-    await updateMemberDisplayAggregates(qx, data)
-  } catch (error) {
-    throw new Error(error)
-  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await updateMemberDisplayAggregates(qx, data)
 }

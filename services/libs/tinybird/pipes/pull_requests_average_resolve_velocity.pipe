@@ -1,7 +1,21 @@
 DESCRIPTION >
-    Serves `Avg velocity` portion in the `Development - Pull Requests` widget
+    - `pull_requests_average_resolve_velocity.pipe` serves the "Avg velocity" portion of the "Development - Pull Requests" widget.
+    - Calculates the average time in seconds to resolve pull requests for filtered activities.
+    - Only includes PRs that have been resolved (`isNotNull(pra.resolvedAt)`) to ensure accurate velocity calculations.
+    - Primary use case: displaying average PR resolution time metrics in development health dashboards.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `segments_filtered`)
+    - `startDate`: Optional DateTime filter for activities after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Response: `averagePullRequestResolveVelocitySeconds` (average resolution time in seconds)
 
-TAGS "Widget"
+TAGS "Widget", "Pull requests", "Velocity metrics"
 
 NODE average_pull_request_resolve_velocity_0
 SQL >

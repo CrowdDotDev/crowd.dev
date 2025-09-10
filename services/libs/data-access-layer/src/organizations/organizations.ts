@@ -2,7 +2,7 @@ import {
   DEFAULT_TENANT_ID,
   UnrepeatableError,
   generateUUIDv1,
-  websiteNormalizer,
+  normalizeHostname,
 } from '@crowd/common'
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
@@ -280,19 +280,28 @@ export async function markOrganizationEnriched(
 
 export async function addOrgsToSegments(
   qe: QueryExecutor,
-  segmentId: string,
+  segmentIds: string[],
   orgIds: string[],
 ): Promise<void> {
+  if (orgIds.length === 0 || segmentIds.length === 0) {
+    return
+  }
+
   const parameters: Record<string, unknown> = {
     tenantId: DEFAULT_TENANT_ID,
-    segmentId,
   }
 
   const valueStrings = []
   for (let i = 0; i < orgIds.length; i++) {
+    const orgParam = `orgId_${i}`
     const orgId = orgIds[i]
-    parameters[`orgId_${i}`] = orgId
-    valueStrings.push(`($(tenantId), $(segmentId), $(orgId_${i}), now())`)
+    parameters[orgParam] = orgId
+
+    for (let j = 0; j < segmentIds.length; j++) {
+      const segmentParam = `segmentId_${i}_${j}`
+      parameters[segmentParam] = segmentIds[j]
+      valueStrings.push(`($(tenantId), $(${segmentParam}), $(orgId_${i}), now())`)
+    }
   }
 
   const valueString = valueStrings.join(',')
@@ -375,7 +384,7 @@ export async function insertOrganization(
     values(${columns.map((c) => `$(${c})`).join(', ')})
   `
 
-  const result = await qe.result(query, {
+  const rowCount = await qe.result(query, {
     ...data,
     id,
     tenantId: DEFAULT_TENANT_ID,
@@ -383,7 +392,7 @@ export async function insertOrganization(
     updatedAt: now,
   })
 
-  if (result.rowCount !== 1) {
+  if (rowCount !== 1) {
     throw new Error('Failed to insert organization')
   }
 
@@ -483,7 +492,7 @@ export async function findOrCreateOrganization(
         OrganizationIdentityType.ALTERNATIVE_DOMAIN,
       ].includes(i.type),
     )) {
-      identity.value = websiteNormalizer(identity.value, false)
+      identity.value = normalizeHostname(identity.value, false)
     }
 
     data.identities = data.identities.filter((i) => i.value !== undefined)

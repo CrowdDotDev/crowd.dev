@@ -1,10 +1,5 @@
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 
 export default () => {
-  Message.info(
-    null,
-    {
-      title: 'Profiles are being merged',
-    },
-  );
+  ToastStore.info('Profiles are being merged');
 };

@@ -2,6 +2,8 @@
 import { uniq } from 'lodash'
 
 import { Error400, dateIntersects, groupBy } from '@crowd/common'
+import { CommonMemberService } from '@crowd/common_services'
+import { optionsQx } from '@crowd/data-access-layer'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
@@ -16,7 +18,6 @@ import MemberOrganizationAffiliationOverridesRepository from '@/database/reposit
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from '../IServiceOptions'
-import MemberAffiliationService from '../memberAffiliationService'
 
 import MemberOrganizationsService from './memberOrganizationsService'
 
@@ -107,7 +108,12 @@ export default class MemberAffiliationsService extends LoggerBase {
       data,
       this.options,
     )
-    await MemberAffiliationService.startAffiliationRecalculation(data.memberId, [], this.options)
+    const commonMemberService = new CommonMemberService(
+      optionsQx(this.options),
+      this.options.temporal,
+      this.options.log,
+    )
+    await commonMemberService.startAffiliationRecalculation(data.memberId, [])
     return override
   }
 }

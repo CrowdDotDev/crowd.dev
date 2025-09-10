@@ -1,6 +1,11 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
-import { IOrganizationFullAggregatesOpensearch, IOrganizationIdentity } from '@crowd/types'
+import { getDomainRootLabel } from '@crowd/common'
+import {
+  IOrganizationFullAggregatesOpensearch,
+  IOrganizationIdentity,
+  OrganizationIdentityType,
+} from '@crowd/types'
 
 class OrganizationSimilarityCalculator {
   static HIGH_CONFIDENCE_SCORE = 0.9
@@ -16,11 +21,13 @@ class OrganizationSimilarityCalculator {
     let similarPrimaryIdentity: IOrganizationIdentity = null
 
     if (this.hasClashingOrganizationIdentities(primaryOrganization, similarOrganization)) {
-      return 0.2
+      return this.LOW_CONFIDENCE_SCORE
     }
 
+    const verifiedIdentities = primaryOrganization.identities.filter((i) => i.verified)
+
     // find the smallest edit distance between both identity arrays
-    for (const primaryIdentity of primaryOrganization.identities.filter((i) => i.verified)) {
+    for (const primaryIdentity of verifiedIdentities) {
       // similar organization has an unverified identity as one of primary organization's strong identity, return score 95
       if (
         similarOrganization.identities.some(
@@ -37,6 +44,15 @@ class OrganizationSimilarityCalculator {
       // check displayName match
       if (similarOrganization.displayName === primaryOrganization.displayName) {
         return this.decideSimilarityUsingAdditionalChecks(primaryOrganization, similarOrganization)
+      }
+
+      // check for domain similarity (e.g., amazon.com vs amazon.at)
+      if (this.hasSimilarDomainPattern(primaryIdentity, similarOrganization.identities)) {
+        return this.decideSimilarityUsingAdditionalChecks(
+          primaryOrganization,
+          similarOrganization,
+          0.85,
+        )
       }
 
       for (const secondaryIdentity of similarOrganization.identities) {
@@ -114,7 +130,8 @@ class OrganizationSimilarityCalculator {
             i.verified &&
             i.platform === identity.platform &&
             i.type === identity.type &&
-            i.value !== identity.value,
+            i.value !== identity.value &&
+            this.isConflictingIdentity(identity, i),
         )
       ) {
         return true
@@ -122,6 +139,34 @@ class OrganizationSimilarityCalculator {
     }
 
     return false
+  }
+
+  static isConflictingIdentity(
+    identity1: IOrganizationIdentity,
+    identity2: IOrganizationIdentity,
+  ): boolean {
+    // Both identities must have the same type and platform to be compared
+    if (identity1.type !== identity2.type || identity1.platform !== identity2.platform) {
+      return false
+    }
+
+    // For domain-based identities, different domains are not necessarily conflicting
+    // They could be regional domains, subsidiaries, etc.
+    if (
+      identity1.type === OrganizationIdentityType.PRIMARY_DOMAIN ||
+      identity1.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN
+    ) {
+      return false
+    }
+
+    // For username-based identities, different usernames are conflicting
+    // as they represent different accounts
+    if (identity1.type === OrganizationIdentityType.USERNAME) {
+      return true
+    }
+
+    // For other types, treat as conflicting if different values
+    return true
   }
 
   static hasSameLocation(
@@ -166,6 +211,42 @@ class OrganizationSimilarityCalculator {
       similarOrganization.ticker &&
       organization.ticker.toLowerCase() === similarOrganization.ticker.toLowerCase()
     )
+  }
+
+  static hasSimilarDomainPattern(
+    primaryIdentity: IOrganizationIdentity,
+    similarIdentities: IOrganizationIdentity[],
+  ): boolean {
+    const primaryDomain = primaryIdentity.value.toLowerCase()
+
+    for (const similarIdentity of similarIdentities) {
+      // Only consider verified identities for domain similarity to avoid false positives
+      if (!similarIdentity.verified) {
+        continue
+      }
+
+      if (
+        similarIdentity.type !== OrganizationIdentityType.PRIMARY_DOMAIN &&
+        similarIdentity.type !== OrganizationIdentityType.ALTERNATIVE_DOMAIN
+      ) {
+        continue
+      }
+
+      const similarDomain = similarIdentity.value.toLowerCase()
+
+      if (this.hasSameDomainRootLabel(primaryDomain, similarDomain)) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  static hasSameDomainRootLabel(domain1: string, domain2: string): boolean {
+    const main1 = getDomainRootLabel(domain1)
+    const main2 = getDomainRootLabel(domain2)
+
+    return main1 !== null && main2 !== null && main1 === main2
   }
 }
 

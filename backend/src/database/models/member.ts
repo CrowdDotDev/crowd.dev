@@ -110,11 +110,6 @@ export default (sequelize) => {
       timestamps: false,
     })
 
-    models.member.belongsToMany(models.tag, {
-      as: 'tags',
-      through: 'memberTags',
-    })
-
     models.member.belongsToMany(models.member, {
       as: 'noMerge',
       through: 'memberNoMerge',

@@ -1,0 +1,61 @@
+DESCRIPTION >
+    - `insights_projects_populated_ds` contains enriched insights project data with computed metrics and denormalized fields.
+    - Created via copy pipe with additional calculated statistics for dashboard and analytics consumption.
+    - Extends base project data with contributor counts, health scores, software valuation, and repository metrics.
+    - `id` is the primary key identifier for the project record.
+    - `name`, `slug`, `description` are basic project metadata fields.
+    - `segmentId` links to the subproject-level segment this project belongs to.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `logoUrl`, `organizationId`, `website`, `github`, `linkedin`, `twitter` contain project branding and social links.
+    - `widgets` array defines which insights widgets are enabled for this project.
+    - `repositories` array contains the list of repository URLs associated with the project.
+    - `archivedRepositories` a list of archived repositories for the project, which is used to show archived repos in the frontend.
+    - `excludedRepositories` a list of excluded repositories for the project; excluded repos are not used in health score and security metrics calculations.
+    - `enabled` and `isLF` are flags for project status and Linux Foundation association (UInt8 boolean).
+    - `keywords` array contains searchable keywords and tags for the project.
+    - `collectionsSlugs` array contains slugs of collections this project belongs to.
+    - `connectedPlatforms` array lists platforms integrated for this project.
+    - `firstCommit` is the timestamp of the earliest commit in the project (nullable).
+    - `score` and `rank` provide project importance scoring and ranking (Float64, UInt64).
+    - `repoData` array contains tuples of (repository, score, rank) for multi-repo projects.
+    - `softwareValue` is the estimated economic value of the software (UInt64).
+    - `contributorCount` and `organizationCount` are computed contributor and organization statistics (UInt64).
+    - `healthScore` is the overall project health score (Float64).
+
+TAGS "Project metadata", "Analytics enrichment"
+
+SCHEMA >
+    `id` String,
+    `name` String,
+    `slug` String,
+    `description` String,
+    `segmentId` String,
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `logoUrl` String,
+    `organizationId` String,
+    `website` String,
+    `github` String,
+    `linkedin` String,
+    `twitter` String,
+    `widgets` Array(String),
+    `repositories` Array(String),
+    `archivedRepositories` Array(String),
+    `excludedRepositories` Array(String),
+    `enabled` UInt8,
+    `isLF` UInt8,
+    `keywords` Array(String),
+    `collectionsSlugs` Array(String),
+    `connectedPlatforms` Array(String),
+    `firstCommit` Nullable(DateTime64(3)),
+    `score` Float64,
+    `rank` UInt64,
+    `repoData` Array(Tuple(String, Float64, UInt64)),
+    `softwareValue` UInt64,
+    `contributorCount` UInt64,
+    `organizationCount` UInt64,
+    `healthScore` Float64
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id, slug

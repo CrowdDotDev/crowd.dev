@@ -20,7 +20,7 @@ import { IJobDefinition } from '../types'
 const job: IJobDefinition = {
   name: 'nango-trigger',
   cronTime: IS_DEV_ENV ? CronTime.everyMinute() : CronTime.every(15).minutes(),
-  timeout: 5 * 60,
+  timeout: 60 * 60,
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
 
@@ -32,8 +32,14 @@ const job: IJobDefinition = {
       ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
     ])
 
-    for (const int of integrationsToTrigger) {
+    for (let i = 0; i < integrationsToTrigger.length; i++) {
+      const int = integrationsToTrigger[i]
+
       const { id, settings } = int
+
+      ctx.log.info(
+        `${i + 1}/${integrationsToTrigger.length} Triggering nango integration check for ${id} (${int.platform})`,
+      )
 
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
@@ -43,7 +49,7 @@ const job: IJobDefinition = {
       }
 
       for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
-        ctx.log.info(
+        ctx.log.debug(
           {
             integrationId: id,
             platform,
@@ -65,16 +71,32 @@ const job: IJobDefinition = {
               modifiedAfter: new Date().toISOString(),
             }
 
-            await temporal.workflow.start('processNangoWebhook', {
-              taskQueue: 'nango',
-              workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
-              workflowIdReusePolicy:
-                WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-              retry: {
-                maximumAttempts: 10,
-              },
-              args: [payload],
-            })
+            try {
+              await temporal.workflow.start('processNangoWebhook', {
+                taskQueue: 'nango',
+                workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
+                workflowIdReusePolicy:
+                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+                retry: {
+                  maximumAttempts: 10,
+                },
+                args: [payload],
+              })
+            } catch (error) {
+              if (error.name === 'WorkflowExecutionAlreadyStartedError') {
+                ctx.log.debug(
+                  {
+                    integrationId: id,
+                    platform,
+                    model,
+                    connectionId,
+                  },
+                  'Workflow already running, skipping...',
+                )
+                continue
+              }
+              throw error
+            }
           }
         } else {
           const payload: INangoWebhookPayload = {
@@ -87,16 +109,30 @@ const job: IJobDefinition = {
             modifiedAfter: new Date().toISOString(),
           }
 
-          await temporal.workflow.start('processNangoWebhook', {
-            taskQueue: 'nango',
-            workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-            workflowIdReusePolicy:
-              WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-            retry: {
-              maximumAttempts: 10,
-            },
-            args: [payload],
-          })
+          try {
+            await temporal.workflow.start('processNangoWebhook', {
+              taskQueue: 'nango',
+              workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
+              workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+              retry: {
+                maximumAttempts: 10,
+              },
+              args: [payload],
+            })
+          } catch (error) {
+            if (error.name === 'WorkflowExecutionAlreadyStartedError') {
+              ctx.log.debug(
+                {
+                  integrationId: id,
+                  platform,
+                  model,
+                },
+                'Workflow already running, skipping...',
+              )
+              continue
+            }
+            throw error
+          }
         }
       }
     }
