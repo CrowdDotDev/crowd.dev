@@ -22,7 +22,6 @@ SCHEMA >
     `type` String `json:$.record.type`,
     `value` String `json:$.record.value`
 
-
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY organizationId, platform, type, value

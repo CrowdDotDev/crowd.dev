@@ -37,6 +37,7 @@ export class InsightsProjectsService {
   }
 
   update(id: string, project: InsightsProjectRequest) {
+    console.log(project);
     return authAxios
       .post<InsightsProjectModel>(
         `/collections/insights-projects/${id}`,
