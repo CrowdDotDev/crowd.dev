@@ -1,7 +1,7 @@
 import { TINYBIRD_CONFIG } from '../conf'
 
 const TINYBIRD_API_URL = 'https://api.us-west-2.aws.tinybird.co/v0/datasources'
-const DATA_SOURCES = ['activityRelations', 'members', 'memberIdentities']
+const DATA_SOURCES = ['activities', 'activityRelations', 'members', 'memberIdentities']
 const TOKEN = TINYBIRD_CONFIG().token
 
 /**

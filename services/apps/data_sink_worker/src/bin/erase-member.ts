@@ -313,18 +313,24 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     )
   }
 
+  // TODO: Understand what should be done with maintainersInternal
+
   const tablesToDelete: Map<string, string[]> = new Map([
     ['activities', ['memberId']],
+    ['activityRelations', ['memberId']],
     ['memberNoMerge', ['memberId', 'noMergeId']],
+    ['memberOrganizationAffiliationOverrides', ['memberId']],
     ['memberOrganizations', ['memberId']],
-    ['memberTags', ['memberId']],
+    ['memberSegmentAffiliations', ['memberId']],
     ['memberSegments', ['memberId']],
     ['memberSegmentsAgg', ['memberId']],
     ['memberEnrichmentCache', ['memberId']],
+    ['memberEnrichments', ['memberId']],
     ['memberIdentities', ['memberId']],
-    ['memberSegmentAffiliations', ['memberId']],
     ['memberToMerge', ['memberId', 'toMergeId']],
     ['memberToMergeRaw', ['memberId', 'toMergeId']],
+    ['memberBotSuggestions', ['memberId']],
+    ['memberNoBot', ['memberId']],
   ])
 
   for (const table of Array.from(tablesToDelete.keys())) {
