@@ -1,5 +1,5 @@
 <template>
-  <lf-modal v-model="isModalOpen">
+  <lf-modal v-model="isModalOpen" :teleport="false">
     <div class="pt-6 px-6 pb-8">
       <h5 class="text-h5 mb-4">
         {{ isEdit ? 'Edit' : 'Add' }} repository group

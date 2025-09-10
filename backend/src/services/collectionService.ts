@@ -474,7 +474,11 @@ export class CollectionService extends LoggerBase {
     // Update existing repository groups with new data
     if (toUpdate.length > 0) {
       for (const rg of toUpdate) {
-        await updateRepositoryGroup(qx, rg.id, rg)
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await updateRepositoryGroup(qx, rg.id, {
+          ...rg,
+          slug,
+        })
       }
     }
 
