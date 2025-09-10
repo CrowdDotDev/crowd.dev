@@ -36,18 +36,18 @@ import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
+import {
+  createRepositoryGroup, deleteRepositoryGroup,
+  ICreateRepositoryGroup, IRepositoryGroup,
+  listRepositoryGroups, updateRepositoryGroup
+} from "@crowd/data-access-layer/src/repositoryGroups"
+import {QueryExecutor} from "@crowd/data-access-layer"
 import SegmentRepository from '@/database/repositories/segmentRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 import GithubIntegrationService from './githubIntegrationService'
-import {
-  createRepositoryGroup, deleteRepositoryGroup,
-  ICreateRepositoryGroup, IRepositoryGroup,
-  listRepositoryGroups, updateRepositoryGroup
-} from "@crowd/data-access-layer/src/repositoryGroups";
-import {QueryExecutor} from "@crowd/data-access-layer";
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
