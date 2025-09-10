@@ -541,184 +541,184 @@ export async function queryActivities(
 
   logger.info(`Queried ${enrichedActivities.length} activities from Tinybird`)
 
-  arg.filter = arg.filter || {}
-  arg.orderBy =
-    arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
-  arg.orderBy = arg.orderBy.length > 0 ? arg.orderBy : ['timestamp_DESC']
-  if (!(arg.noLimit === true)) {
-    arg.limit = arg.limit || 20
-  }
-  arg.offset = arg.offset || 0
-  arg.countOnly = arg.countOnly || false
+  // arg.filter = arg.filter || {}
+  // arg.orderBy =
+  //   arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
+  // arg.orderBy = arg.orderBy.length > 0 ? arg.orderBy : ['timestamp_DESC']
+  // if (!(arg.noLimit === true)) {
+  //   arg.limit = arg.limit || 20
+  // }
+  // arg.offset = arg.offset || 0
+  // arg.countOnly = arg.countOnly || false
 
-  if (arg.filter.member) {
-    if (arg.filter.member.isTeamMember) {
-      const condition = {
-        isTeamMember: arg.filter.member.isTeamMember,
-      }
-      if (arg.filter.and) {
-        arg.filter.and.push(condition)
-      } else {
-        arg.filter.and = [condition]
-      }
-    }
+  // if (arg.filter.member) {
+  //   if (arg.filter.member.isTeamMember) {
+  //     const condition = {
+  //       isTeamMember: arg.filter.member.isTeamMember,
+  //     }
+  //     if (arg.filter.and) {
+  //       arg.filter.and.push(condition)
+  //     } else {
+  //       arg.filter.and = [condition]
+  //     }
+  //   }
 
-    if (arg.filter.member.isBot) {
-      const condition = {
-        isBot: arg.filter.member.isBot,
-      }
+  //   if (arg.filter.member.isBot) {
+  //     const condition = {
+  //       isBot: arg.filter.member.isBot,
+  //     }
 
-      if (arg.filter.and) {
-        arg.filter.and.push(condition)
-      } else {
-        arg.filter.and = [condition]
-      }
-    }
+  //     if (arg.filter.and) {
+  //       arg.filter.and.push(condition)
+  //     } else {
+  //       arg.filter.and = [condition]
+  //     }
+  //   }
 
-    delete arg.filter.member
-  }
+  //   delete arg.filter.member
+  // }
 
-  // Delete empty arrays filtering conversationId.
-  if (arg.filter.and) {
-    for (const f of arg.filter.and) {
-      if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
-        delete f.conversationId
-      }
-    }
-  }
+  // // Delete empty arrays filtering conversationId.
+  // if (arg.filter.and) {
+  //   for (const f of arg.filter.and) {
+  //     if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
+  //       delete f.conversationId
+  //     }
+  //   }
+  // }
 
-  const parsedOrderBys = []
+  // const parsedOrderBys = []
 
-  for (const orderByPart of arg.orderBy) {
-    const orderByParts = orderByPart.split('_')
-    const direction = orderByParts[1].toLowerCase()
-    switch (orderByParts[0]) {
-      case 'timestamp':
-        parsedOrderBys.push({
-          property: orderByParts[0],
-          column: 'timestamp',
-          direction,
-        })
-        break
-      case 'createdAt':
-        parsedOrderBys.push({
-          property: orderByParts[0],
-          column: 'createdAt',
-          direction,
-        })
-        break
+  // for (const orderByPart of arg.orderBy) {
+  //   const orderByParts = orderByPart.split('_')
+  //   const direction = orderByParts[1].toLowerCase()
+  //   switch (orderByParts[0]) {
+  //     case 'timestamp':
+  //       parsedOrderBys.push({
+  //         property: orderByParts[0],
+  //         column: 'timestamp',
+  //         direction,
+  //       })
+  //       break
+  //     case 'createdAt':
+  //       parsedOrderBys.push({
+  //         property: orderByParts[0],
+  //         column: 'createdAt',
+  //         direction,
+  //       })
+  //       break
 
-      default:
-        throw new Error(`Invalid order by: ${orderByPart}!`)
-    }
-  }
+  //     default:
+  //       throw new Error(`Invalid order by: ${orderByPart}!`)
+  //   }
+  // }
 
-  const orderByString = parsedOrderBys.map((o) => `"${o.column}" ${o.direction}`).join(',')
+  // const orderByString = parsedOrderBys.map((o) => `"${o.column}" ${o.direction}`).join(',')
 
-  const params: any = {
-    segmentIds: arg.segmentIds,
-    lowerLimit: arg.offset,
-    upperLimit: arg.offset + arg.limit,
-  }
-  let filterString = RawQueryParser.parseFilters(
-    arg.filter,
-    ACTIVITY_QUERY_FILTER_COLUMN_MAP,
-    [],
-    params,
-    { pgPromiseFormat: true },
-  )
+  // const params: any = {
+  //   segmentIds: arg.segmentIds,
+  //   lowerLimit: arg.offset,
+  //   upperLimit: arg.offset + arg.limit,
+  // }
+  // let filterString = RawQueryParser.parseFilters(
+  //   arg.filter,
+  //   ACTIVITY_QUERY_FILTER_COLUMN_MAP,
+  //   [],
+  //   params,
+  //   { pgPromiseFormat: true },
+  // )
 
-  if (filterString.trim().length === 0) {
-    filterString = '1=1'
-  }
+  // if (filterString.trim().length === 0) {
+  //   filterString = '1=1'
+  // }
 
-  let baseQuery = `
-    from activities a
-    where      
-      ${
-        arg.segmentIds && arg.segmentIds.length > 0
-          ? 'a."segmentId" in ($(segmentIds:csv)) and'
-          : ''
-      }
-      a."deletedAt" is null and ${filterString}
-  `
-  if (arg.groupBy) {
-    if (arg.groupBy === 'platform') {
-      baseQuery += ' SAMPLE BY 1d ALIGN TO CALENDAR'
-    }
+  // let baseQuery = `
+  //   from activities a
+  //   where
+  //     ${
+  //       arg.segmentIds && arg.segmentIds.length > 0
+  //         ? 'a."segmentId" in ($(segmentIds:csv)) and'
+  //         : ''
+  //     }
+  //     a."deletedAt" is null and ${filterString}
+  // `
+  // if (arg.groupBy) {
+  //   if (arg.groupBy === 'platform') {
+  //     baseQuery += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+  //   }
 
-    baseQuery += ` group by a.${arg.groupBy}`
-  }
+  //   baseQuery += ` group by a.${arg.groupBy}`
+  // }
 
-  const countQuery = `
-    select count_distinct(a.id) as count ${baseQuery}
-  `
+  // const countQuery = `
+  //   select count_distinct(a.id) as count ${baseQuery}
+  // `
 
-  let activities = []
-  let count: number
-  if (arg.countOnly) {
-    const rows = await qdbConn.query(countQuery, params)
-    const countResults = rows[0] ? rows[0].count : 0
-    return {
-      rows: [],
-      count: Number(countResults),
-      limit: arg.limit,
-      offset: arg.offset,
-    }
-  } else {
-    const columnString = columns
-      .map((c) => {
-        if (c === 'body') {
-          return `left(a."${c}", 512) AS body`
-        }
+  // let activities = []
+  // let count: number
+  // if (arg.countOnly) {
+  //   const rows = await qdbConn.query(countQuery, params)
+  //   const countResults = rows[0] ? rows[0].count : 0
+  //   return {
+  //     rows: [],
+  //     count: Number(countResults),
+  //     limit: arg.limit,
+  //     offset: arg.offset,
+  //   }
+  // } else {
+  //   const columnString = columns
+  //     .map((c) => {
+  //       if (c === 'body') {
+  //         return `left(a."${c}", 512) AS body`
+  //       }
 
-        return `a."${c}"`
-      })
-      .join(', ')
+  //       return `a."${c}"`
+  //     })
+  //     .join(', ')
 
-    let query = `
-      select  ${columnString}
-      ${baseQuery}
-    `
+  //   let query = `
+  //     select  ${columnString}
+  //     ${baseQuery}
+  //   `
 
-    query += `
-      order by ${orderByString}
-    `
+  //   query += `
+  //     order by ${orderByString}
+  //   `
 
-    if (arg.limit > 0) {
-      if (params.lowerLimit) {
-        query += ` limit $(lowerLimit), $(upperLimit)`
-      } else {
-        query += ` limit $(upperLimit)`
-      }
-    }
+  //   if (arg.limit > 0) {
+  //     if (params.lowerLimit) {
+  //       query += ` limit $(lowerLimit), $(upperLimit)`
+  //     } else {
+  //       query += ` limit $(upperLimit)`
+  //     }
+  //   }
 
-    query += ';'
+  //   query += ';'
 
-    logger.debug('QuestDB activity query', query)
+  //   logger.debug('QuestDB activity query', query)
 
-    if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
-      const formatted = formatQuery(query, params)
-      activities = await queryOverHttp(formatted)
-      count = 0
-    } else {
-      const formattedQuery = formatQuery(query, params)
-      const formattedCountQuery = formatQuery(countQuery, params)
+  //   if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
+  //     const formatted = formatQuery(query, params)
+  //     activities = await queryOverHttp(formatted)
+  //     count = 0
+  //   } else {
+  //     const formattedQuery = formatQuery(query, params)
+  //     const formattedCountQuery = formatQuery(countQuery, params)
 
-      const [results, countResults] = await Promise.all([
-        qdbConn.any(formattedQuery),
-        arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
-      ])
+  //     const [results, countResults] = await Promise.all([
+  //       qdbConn.any(formattedQuery),
+  //       arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
+  //     ])
 
-      activities = results
-      count = countResults[0] ? countResults[0].count : 0
-    }
-  }
+  //     activities = results
+  //     count = countResults[0] ? countResults[0].count : 0
+  //   }
+  // }
 
-  logger.info(`Queried ${activities.length} activities from QuestDB`)
+  // logger.info(`Queried ${activities.length} activities from QuestDB`)
 
   logger.info(`wrapping up activities`)
-  const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
+  // const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
 
   logger.info(`Mapped activities, counting total results`)
 
@@ -734,12 +734,12 @@ export async function queryActivities(
     logger.info(`Skipping Tinybird count`)
   }
 
-  const classicResult = {
-    count: Number(count),
-    rows: results,
-    limit: arg.limit,
-    offset: arg.offset,
-  }
+  // const classicResult = {
+  //   count: Number(count),
+  //   rows: results,
+  //   limit: arg.limit,
+  //   offset: arg.offset,
+  // }
 
   const tbResult = {
     count: Number(countTb),
@@ -748,7 +748,7 @@ export async function queryActivities(
     offset: arg.offset,
   }
 
-  logger.info(`Classic result ${JSON.stringify(classicResult)} `)
+  // logger.info(`Classic result ${JSON.stringify(classicResult)} `)
   logger.info(`TB result ${JSON.stringify(tbResult)} `)
 
   return tbResult
