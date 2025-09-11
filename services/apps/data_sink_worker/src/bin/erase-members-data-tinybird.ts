@@ -124,6 +124,9 @@ async function getTinybirdDeletionSummary(memberId: string): Promise<string> {
     if (table === 'maintainersInternal') {
       // Use subquery to count maintainersInternal records by identityId
       condition = `identityId IN (SELECT id FROM memberIdentities WHERE memberId = '${memberId}')`
+    } else if (table === 'members') {
+      // Members table uses 'id' as the primary key, not 'memberId'
+      condition = `id = '${memberId}'`
     } else {
       condition = `memberId = '${memberId}'`
     }
@@ -154,6 +157,9 @@ async function deleteFromDataSource(tableName: string, memberId: string) {
   if (tableName === 'maintainersInternal') {
     // Delete maintainersInternal using subquery to get identityIds from memberIdentities
     deleteCondition = `identityId IN (SELECT id FROM memberIdentities WHERE memberId = '${memberId}')`
+  } else if (tableName === 'members') {
+    // Members table uses 'id' as the primary key, not 'memberId'
+    deleteCondition = `id = '${memberId}'`
   } else {
     deleteCondition = `memberId = '${memberId}'`
   }
