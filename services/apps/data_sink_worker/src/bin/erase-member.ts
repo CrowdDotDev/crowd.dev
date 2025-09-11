@@ -246,9 +246,9 @@ export async function archiveMemberIdentities(store: DbStore, memberId: string):
   const insertResult = await store.connection().result(
     `
     INSERT INTO "requestedForErasureMemberIdentities" (
-      id, "memberId", platform, value, "sourceId", "integrationId", type, verified, "createdAt", "updatedAt"
+      id, platform, value, type
     )
-    SELECT id, "memberId", platform, value, "sourceId", "integrationId", type, verified, "createdAt", NOW()
+    SELECT id, platform, value, type
     FROM "memberIdentities" 
     WHERE "memberId" = $(memberId)
     `,
