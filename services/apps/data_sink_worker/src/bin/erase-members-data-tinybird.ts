@@ -172,9 +172,39 @@ async function deleteFromDataSource(tableName: string, memberId: string) {
     deleteCondition = `memberId = '${memberId}'`
   }
 
+  // Safety check: ensure delete condition is not empty and contains the memberId
+  if (!deleteCondition || !deleteCondition.includes(memberId)) {
+    throw new Error(`Invalid delete condition generated: ${deleteCondition}`)
+  }
+
   const body = new URLSearchParams({
     delete_condition: deleteCondition,
   })
+
+  // Log the complete request details before execution
+  console.log(`\n=== ABOUT TO DELETE FROM ${tableName.toUpperCase()} ===`)
+  console.log(`URL: ${url}`)
+  console.log(`Method: POST`)
+  console.log(`Headers:`)
+  console.log(
+    `  Authorization: Bearer ${TOKEN.substring(0, 20)}...${TOKEN.substring(TOKEN.length - 10)}`,
+  )
+  console.log(`  Content-Type: application/x-www-form-urlencoded`)
+  console.log(`Body:`)
+  console.log(`  delete_condition: ${deleteCondition}`)
+  console.log(`\nEquivalent curl command:`)
+  console.log(`curl -X POST \\`)
+  console.log(`  -H "Authorization: Bearer ${TOKEN}" \\`)
+  console.log(`  -H "Content-Type: application/x-www-form-urlencoded" \\`)
+  console.log(`  --data-urlencode 'delete_condition=${deleteCondition}' \\`)
+  console.log(`  "${url}"`)
+
+  // Ask for final confirmation for this specific deletion
+  const proceed = await promptConfirmation(`\nProceed with deleting from ${tableName}?`)
+  if (!proceed) {
+    console.log(`Skipped deletion from ${tableName}`)
+    return
+  }
 
   const response = await fetch(url, {
     method: 'POST',
