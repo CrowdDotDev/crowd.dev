@@ -178,10 +178,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
             currentStartDate = new Date(date)
           } else if (currentPrimaryOrg.id !== primaryOrg.id) {
             // same org but different record, we need to keep
-            // currentPrimaryOrg = primaryOrg
-            logger.info(
-              `here we should assign ${JSON.stringify(currentPrimaryOrg)} = ${JSON.stringify(primaryOrg)}`,
-            )
+            currentPrimaryOrg = primaryOrg
           }
         }
 
