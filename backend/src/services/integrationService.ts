@@ -482,27 +482,20 @@ export default class IntegrationService {
       const qx = SequelizeRepository.getQueryExecutor(this.options)
 
       let insightsProject = null
+      let widgets = []
+
       if (segmentId) {
         const [project] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
         insightsProject = project
-      }
-
-      let widgets = []
-      if (segmentId) {
         const widgetsResult = await collectionService.findSegmentsWidgetsById(segmentId)
         widgets = widgetsResult.widgets
-      }
-
-      const insightsRepo = insightsProject?.repositories ?? []
-
-      if (segmentId) {
         await deleteSegmentRepositories(qx, {
           segmentId,
         })
       }
 
+      const insightsRepo = insightsProject?.repositories ?? []
       const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
-
       // remove duplicates
       const repositories = [...new Set<string>(filteredRepos)]
 
