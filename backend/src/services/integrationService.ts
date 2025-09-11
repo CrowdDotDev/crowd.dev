@@ -336,152 +336,166 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (EDITION === Edition.LFX) {
-        for (const id of ids) {
-          let integration
-          try {
-            integration = await this.findById(id)
+      for (const id of ids) {
+        let integration
+        try {
+          integration = await this.findById(id)
 
-            if (integration.segmentId) {
-              segmentId = integration.segmentId
-            }
-          } catch (err) {
-            throw new Error404()
+          if (integration.segmentId) {
+            segmentId = integration.segmentId
           }
-          // remove github remotes from git integration
-          if (
+        } catch (err) {
+          throw new Error404()
+        }
+        // remove github remotes from git integration
+        if (
+          integration.platform === PlatformType.GITHUB ||
+          integration.platform === PlatformType.GITLAB ||
+          integration.platform === PlatformType.GITHUB_NANGO
+        ) {
+          let shouldUpdateGit: boolean
+          const mapping =
             integration.platform === PlatformType.GITHUB ||
-            integration.platform === PlatformType.GITLAB ||
             integration.platform === PlatformType.GITHUB_NANGO
-          ) {
-            let shouldUpdateGit: boolean
-            const mapping =
-              integration.platform === PlatformType.GITHUB ||
-              integration.platform === PlatformType.GITHUB_NANGO
-                ? await this.getGithubRepos(id)
-                : await this.getGitlabRepos(id)
+              ? await this.getGithubRepos(id)
+              : await this.getGitlabRepos(id)
 
-            const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
-              if (!acc[segment.id]) {
-                acc[segment.id] = []
-              }
-              acc[segment.id].push(url)
-              return acc
-            }, {})
+          const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
+            if (!acc[segment.id]) {
+              acc[segment.id] = []
+            }
+            acc[segment.id].push(url)
+            return acc
+          }, {})
 
-            for (const [segmentId, urls] of Object.entries(repos)) {
-              urls.forEach((url) => toRemoveRepo.add(url))
+          for (const [segmentId, urls] of Object.entries(repos)) {
+            urls.forEach((url) => toRemoveRepo.add(url))
 
-              const segmentOptions: IRepositoryOptions = {
-                ...this.options,
-                currentSegments: [
-                  {
-                    ...this.options.currentSegments[0],
-                    id: segmentId as string,
-                  },
-                ],
-              }
+            const segmentOptions: IRepositoryOptions = {
+              ...this.options,
+              currentSegments: [
+                {
+                  ...this.options.currentSegments[0],
+                  id: segmentId as string,
+                },
+              ],
+            }
 
-              try {
-                await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
-                shouldUpdateGit = true
-              } catch (err) {
-                shouldUpdateGit = false
-              }
+            try {
+              await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+              shouldUpdateGit = true
+            } catch (err) {
+              shouldUpdateGit = false
+            }
 
-              if (shouldUpdateGit) {
-                const gitInfo = await this.gitGetRemotes(segmentOptions)
-                const gitRemotes = gitInfo[segmentId].remotes
+            if (shouldUpdateGit) {
+              const gitInfo = await this.gitGetRemotes(segmentOptions)
+              const gitRemotes = gitInfo[segmentId].remotes
+              const remainingRemotes = gitRemotes.filter((remote) => !urls.includes(remote))
+
+              if (remainingRemotes.length === 0) {
+                // If no remotes left, delete the Git integration entirely
+                const gitIntegration = await IntegrationRepository.findByPlatform(
+                  PlatformType.GIT,
+                  segmentOptions,
+                )
+
+                // Soft delete git.repositories for git-integration V2
+                await GitReposRepository.delete(gitIntegration.id, {
+                  ...this.options,
+                  transaction,
+                })
+
+                // Then delete the git integration
+                await IntegrationRepository.destroy(gitIntegration.id, {
+                  ...this.options,
+                  transaction,
+                })
+              } else {
+                // Update with remaining remotes
                 await this.gitConnectOrUpdate(
                   {
-                    remotes: gitRemotes.filter((remote) => !urls.includes(remote)),
+                    remotes: remainingRemotes,
                   },
                   segmentOptions,
                 )
               }
             }
-
-            if (
-              integration.platform === PlatformType.GITHUB ||
-              integration.platform === PlatformType.GITHUB_NANGO
-            ) {
-              // soft delete github repos
-              await GithubReposRepository.delete(integration.id, {
-                ...this.options,
-                transaction,
-              })
-
-              // Also soft delete from git.repositories for git-integration V2
-              try {
-                // Find the Git integration ID for this segment
-                const gitIntegration = await IntegrationRepository.findByPlatform(
-                  PlatformType.GIT,
-                  {
-                    ...this.options,
-                    currentSegments: [{ id: integration.segmentId } as any],
-                    transaction,
-                  },
-                )
-                if (gitIntegration) {
-                  await GitReposRepository.delete(gitIntegration.id, {
-                    ...this.options,
-                    transaction,
-                  })
-                }
-              } catch (err) {
-                this.options.log.info(
-                  'No Git integration found for segment, skipping git.repositories cleanup',
-                )
-              }
-            }
           }
 
-          if (integration.platform === PlatformType.GITLAB) {
-            if (integration.settings.webhooks) {
-              await removeGitlabWebhooks(
-                integration.token,
-                integration.settings.webhooks.map((hook) => hook.projectId),
-                integration.settings.webhooks.map((hook) => hook.hookId),
-              )
-            }
-
-            // soft delete gitlab repos
-            await GitlabReposRepository.delete(integration.id, {
+          if (
+            integration.platform === PlatformType.GITHUB ||
+            integration.platform === PlatformType.GITHUB_NANGO
+          ) {
+            // soft delete github repos
+            await GithubReposRepository.delete(integration.id, {
               ...this.options,
               transaction,
             })
+
+            // Also soft delete from git.repositories for git-integration V2
+            try {
+              // Find the Git integration ID for this segment
+              const gitIntegration = await IntegrationRepository.findByPlatform(PlatformType.GIT, {
+                ...this.options,
+                currentSegments: [{ id: integration.segmentId } as any],
+                transaction,
+              })
+              if (gitIntegration) {
+                await GitReposRepository.delete(gitIntegration.id, {
+                  ...this.options,
+                  transaction,
+                })
+              }
+            } catch (err) {
+              this.options.log.info(
+                'No Git integration found for segment, skipping git.repositories cleanup',
+              )
+            }
+          }
+        }
+
+        if (integration.platform === PlatformType.GITLAB) {
+          if (integration.settings.webhooks) {
+            await removeGitlabWebhooks(
+              integration.token,
+              integration.settings.webhooks.map((hook) => hook.projectId),
+              integration.settings.webhooks.map((hook) => hook.hookId),
+            )
           }
 
-          await IntegrationRepository.destroy(id, {
+          // soft delete gitlab repos
+          await GitlabReposRepository.delete(integration.id, {
             ...this.options,
             transaction,
           })
         }
-      } else {
-        for (const id of ids) {
-          await IntegrationRepository.destroy(id, {
-            ...this.options,
-            transaction,
-          })
-        }
+
+        await IntegrationRepository.destroy(id, {
+          ...this.options,
+          transaction,
+        })
       }
 
       const collectionService = new CollectionService({ ...this.options, transaction })
 
       const qx = SequelizeRepository.getQueryExecutor(this.options)
 
-      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+      let insightsProject = null
+      let widgets = []
 
-      const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
+      if (segmentId) {
+        const [project] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+        insightsProject = project
+        const widgetsResult = await collectionService.findSegmentsWidgetsById(segmentId)
+        widgets = widgetsResult.widgets
+        await deleteSegmentRepositories(qx, {
+          segmentId,
+        })
+      }
 
       const insightsRepo = insightsProject?.repositories ?? []
-
-      await deleteSegmentRepositories(qx, {
-        segmentId,
-      })
-
       const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
-
       // remove duplicates
       const repositories = [...new Set<string>(filteredRepos)]
 
