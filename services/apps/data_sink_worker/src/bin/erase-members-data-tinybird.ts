@@ -83,21 +83,24 @@ async function promptConfirmation(message: string): Promise<boolean> {
  * @returns Number of matching records, or 0 if query fails
  */
 async function getRecordCount(tableName: string, condition: string): Promise<number> {
-  const query = `SELECT count() as count FROM ${tableName} WHERE ${condition}`
+  const query = `SELECT count() as count FROM ${tableName} WHERE ${condition} FORMAT JSON`
   const url = `https://api.us-west-2.aws.tinybird.co/v0/sql`
 
-  const params = new URLSearchParams({
-    q: query,
-  })
-
-  const response = await fetch(`${url}?${params}`, {
+  const response = await fetch(url, {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${TOKEN}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      q: query,
+    }),
   })
 
   if (!response.ok) {
-    console.warn(`Failed to get count for ${tableName}: ${response.statusText}`)
+    const errorText = await response.text()
+    console.warn(`Failed to get count for ${tableName}: ${response.status} ${response.statusText}`)
+    console.warn(`Error response: ${errorText}`)
     return 0
   }
 
@@ -131,9 +134,14 @@ async function getTinybirdDeletionSummary(memberId: string): Promise<string> {
       condition = `memberId = '${memberId}'`
     }
 
+    console.log(`Checking ${table} with condition: ${condition}`)
     const count = await getRecordCount(table, condition)
+    console.log(`${table}: ${count} records found (type: ${typeof count})`)
+
     if (count > 0) {
       summary += `- ${count} records from ${table}\n`
+    } else {
+      console.log(`No records added to summary for ${table} - count was: ${count}`)
     }
   }
 
