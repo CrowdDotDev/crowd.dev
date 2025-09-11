@@ -1,57 +1,61 @@
 import * as readline from 'readline'
 
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { generateUUIDv1 } from '@crowd/common'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { getServiceChildLogger } from '@crowd/logging'
-
-import { DB_CONFIG } from '../conf'
+import { getClientSQL } from '@crowd/questdb'
 
 /**
- * Member Data Soft Deletion Script (QuestDB Analytics)
+ * Member Data Anonymization Script (QuestDB Analytics)
  *
- * This script performs soft deletion of member data in QuestDB for GDPR compliance
- * and data deletion requests. Unlike hard deletion scripts, this marks records as
- * deleted and clears sensitive references while preserving analytical structure.
+ * This script performs anonymization and soft deletion of member data in QuestDB for GDPR compliance
+ * and data deletion requests. Unlike hard deletion scripts, this replaces identifying data with
+ * anonymous dummy values while preserving analytical structure and marking records as deleted.
  *
  * WHAT THIS SCRIPT DOES:
- * 1. Shows a detailed summary of all data to be soft-deleted/modified in QuestDB
+ * 1. Shows a detailed summary of all data to be anonymized/soft-deleted in QuestDB
  * 2. Requests user confirmation before proceeding
  * 3. Performs the following operations:
+ *    - Replaces memberId with random UUID and username with deleted-{UUID}
+ *    - Replaces objectMemberId with random UUID and objectMemberUsername with deleted-{UUID}
  *    - Sets deletedAt timestamp on activities records matching memberId
- *    - Clears objectMemberId and objectMemberUsername references in activities
  *    - Updates updatedAt timestamp to reflect the changes
  *
- * SOFT DELETION APPROACH:
+ * ANONYMIZATION APPROACH:
  * - Records are not physically deleted, but marked with deletedAt timestamp
- * - This preserves referential integrity and analytical structure
+ * - Identifying data (memberId, username) is replaced with anonymous dummy values
+ * - Uses random UUIDs to ensure no collision with real data
+ * - Different UUIDs are used for member vs objectMember references to prevent correlation
+ * - Preserves referential integrity and analytical structure
  * - Queries with proper deletedAt filtering will exclude these records
- * - Allows for potential data recovery if needed
  *
  * TABLES AFFECTED:
- * - activities: Records where memberId matches are marked as deleted
- * - activities: Records where objectMemberId matches have references cleared
+ * - activities: Records where memberId matches are anonymized and marked deleted
+ * - activities: Records where objectMemberId matches have object references anonymized
  *
  * QUESTDB CONSIDERATIONS:
  * - QuestDB uses update statements to modify existing records
  * - deletedAt is set to current timestamp (NOW())
  * - updatedAt is also updated to reflect the modification time
+ * - Anonymized data uses format: memberId = random-uuid, username = deleted-{random-uuid}
  *
  * USAGE:
  *   npm run script erasure-members-data-questdb <memberId>
  *
  * REQUIREMENTS:
- * - QuestDB database connection configured in DB_CONFIG
+ * - QuestDB database connection configured via CROWD_QUESTDB_SQL_* environment variables
  * - Proper permissions to UPDATE activities table
  *
  * SAFETY FEATURES:
- * - Shows detailed summary with record counts before proceeding
+ * - Shows detailed anonymization summary with record counts before proceeding
  * - Requires explicit user confirmation (Y/n)
  * - Comprehensive error handling and logging
- * - Preserves data for potential recovery
+ * - Data is anonymized, not destroyed, allowing for analytical continuity
  *
  * RELATIONSHIP TO OTHER SCRIPTS:
  * - Complements erase-member.ts (PostgreSQL hard deletion)
  * - Complements erase-members-data-tinybird.ts (Tinybird hard deletion)
- * - Should be run before hard deletion scripts if data recovery might be needed
+ * - Can be run independently to anonymize QuestDB data while preserving analytics
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -76,99 +80,107 @@ async function promptConfirmation(message: string): Promise<boolean> {
 }
 
 /**
- * Generates a comprehensive summary of all data that will be soft-deleted or modified
+ * Generates a comprehensive summary of all data that will be anonymized and soft-deleted
  * in QuestDB for the specified member. Queries the activities table to provide exact counts.
  *
- * @param store - Database store instance
+ * @param qdbStore - QuestDB store instance
  * @param memberId - The member ID to analyze
- * @returns Formatted summary string showing what will be affected
+ * @returns Formatted summary string showing what will be anonymized
  */
-async function getQuestDbDeletionSummary(store: DbStore, memberId: string): Promise<string> {
-  let summary = `\n=== QUESTDB SOFT DELETION SUMMARY FOR MEMBER ${memberId} ===\n`
+async function getQuestDbDeletionSummary(qdbStore: DbStore, memberId: string): Promise<string> {
+  let summary = `\n=== QUESTDB ANONYMIZATION SUMMARY FOR MEMBER ${memberId} ===\n`
 
-  // Count activities that will be marked as deleted (where memberId matches)
-  const activitiesToDelete = await store
+  // Count activities that will be anonymized and marked as deleted (where memberId matches)
+  const activitiesToAnonymize = await qdbStore
     .connection()
     .one(
       `SELECT count(*) as count FROM activities WHERE "memberId" = $(memberId) AND "deletedAt" IS NULL`,
-      {
-        memberId,
-      },
+      { memberId },
     )
-  if (parseInt(activitiesToDelete.count) > 0) {
-    summary += `- ${activitiesToDelete.count} activities will be marked as deleted (deletedAt set)\n`
+  if (parseInt(activitiesToAnonymize.count) > 0) {
+    summary += `- ${activitiesToAnonymize.count} activities will be anonymized (memberId → random UUID, username → deleted-{UUID}) and marked deleted\n`
   }
 
-  // Count activities that will have object member references cleared
-  const activitiesToClear = await store
+  // Count activities that will have object member references anonymized
+  const activitiesToAnonymizeObject = await qdbStore
     .connection()
     .one(
       `SELECT count(*) as count FROM activities WHERE "objectMemberId" = $(memberId) AND "deletedAt" IS NULL`,
-      {
-        memberId,
-      },
+      { memberId },
     )
-  if (parseInt(activitiesToClear.count) > 0) {
-    summary += `- ${activitiesToClear.count} activities will have objectMemberId/objectMemberUsername cleared\n`
+  if (parseInt(activitiesToAnonymizeObject.count) > 0) {
+    summary += `- ${activitiesToAnonymizeObject.count} activities will have objectMember references anonymized (objectMemberId → random UUID, objectMemberUsername → deleted-{UUID})\n`
   }
 
   // Check for overlap (records that will have both operations applied)
-  const overlappingRecords = await store
+  const overlappingRecords = await qdbStore
     .connection()
     .one(
       `SELECT count(*) as count FROM activities WHERE "memberId" = $(memberId) AND "objectMemberId" = $(memberId) AND "deletedAt" IS NULL`,
       { memberId },
     )
   if (parseInt(overlappingRecords.count) > 0) {
-    summary += `- ${overlappingRecords.count} activities will have both operations applied (marked deleted AND references cleared)\n`
+    summary += `- ${overlappingRecords.count} activities will have both member and objectMember data anonymized\n`
   }
 
-  summary += `\n`
+  summary += `\nNOTE: Different random UUIDs will be used for member vs objectMember references to prevent correlation.\n\n`
   return summary
 }
 
 /**
- * Performs the actual soft deletion of member data in QuestDB activities table.
- * This function handles both marking records as deleted and clearing object member references.
+ * Performs anonymization and soft deletion of member data in QuestDB activities table.
+ * This function replaces identifying data with dummy values and marks records as deleted.
  *
  * OPERATIONS PERFORMED:
- * 1. Mark activities as deleted where memberId matches
- * 2. Clear objectMemberId and objectMemberUsername where they reference the member
+ * 1. Replace memberId with random UUID and username with deleted-${uuid} where memberId matches
+ * 2. Replace objectMemberId with random UUID and objectMemberUsername with deleted-${uuid} where they reference the member
  *
- * @param store - Database store instance (should be within a transaction)
- * @param memberId - The member ID to soft delete
+ * @param qdbStore - QuestDB store instance
+ * @param memberId - The member ID to anonymize and soft delete
  */
-async function softDeleteMemberFromQuestDb(store: DbStore, memberId: string): Promise<void> {
-  // Mark activities as deleted where memberId matches
-  let result = await store.connection().result(
+async function softDeleteMemberFromQuestDb(qdbStore: DbStore, memberId: string): Promise<void> {
+  // Generate random UUID for anonymization
+  const anonymousUuid = generateUUIDv1()
+  const anonymousUsername = `deleted-${anonymousUuid}`
+
+  // Anonymize activities where memberId matches
+  let result = await qdbStore.connection().result(
     `
     UPDATE activities SET 
+      "memberId" = $(anonymousUuid),
+      "username" = $(anonymousUsername),
       "deletedAt" = NOW(),
       "updatedAt" = NOW()
     WHERE "memberId" = $(memberId) AND "deletedAt" IS NULL
     `,
-    { memberId },
-  )
-
-  if (result.rowCount > 0) {
-    log.info(`Marked ${result.rowCount} activities as deleted for memberId ${memberId}`)
-  }
-
-  // Clear objectMemberId and objectMemberUsername references
-  result = await store.connection().result(
-    `
-    UPDATE activities SET 
-      "objectMemberId" = NULL,
-      "objectMemberUsername" = NULL,
-      "updatedAt" = NOW()
-    WHERE "objectMemberId" = $(memberId) AND "deletedAt" IS NULL
-    `,
-    { memberId },
+    { memberId, anonymousUuid, anonymousUsername },
   )
 
   if (result.rowCount > 0) {
     log.info(
-      `Cleared objectMember references in ${result.rowCount} activities for memberId ${memberId}`,
+      `Anonymized and marked ${result.rowCount} activities as deleted for memberId ${memberId}`,
+    )
+  }
+
+  // Generate separate UUID for object member references to avoid correlation
+  const objectAnonymousUuid = generateUUIDv1()
+  const objectAnonymousUsername = `deleted-${objectAnonymousUuid}`
+
+  // Anonymize objectMemberId and objectMemberUsername references
+  result = await qdbStore.connection().result(
+    `
+    UPDATE activities SET 
+      "objectMemberId" = $(objectAnonymousUuid),
+      "objectMemberUsername" = $(objectAnonymousUsername),
+      "updatedAt" = NOW()
+    WHERE "objectMemberId" = $(memberId) AND "deletedAt" IS NULL
+    `,
+    { memberId, objectAnonymousUuid, objectAnonymousUsername },
+  )
+
+  if (result.rowCount > 0) {
+    log.info(
+      `Anonymized objectMember references in ${result.rowCount} activities for memberId ${memberId}`,
     )
   }
 }
@@ -183,33 +195,31 @@ if (processArguments.length !== 1) {
 const memberId = processArguments[0]
 
 setImmediate(async () => {
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const qdbConnection = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConnection)
 
-  log.info(`Soft deleting member data from QuestDB for member ID: ${memberId}`)
+  log.info(`Anonymizing member data in QuestDB for member ID: ${memberId}`)
 
   try {
-    // Show deletion summary and get confirmation
-    const summary = await getQuestDbDeletionSummary(store, memberId)
+    // Show anonymization summary and get confirmation
+    const summary = await getQuestDbDeletionSummary(qdbStore, memberId)
     console.log(summary)
 
     const proceed = await promptConfirmation(
-      'Do you want to proceed with the QuestDB soft deletion?',
+      'Do you want to proceed with the QuestDB anonymization?',
     )
 
     if (!proceed) {
-      log.info('Soft deletion cancelled by user')
+      log.info('Anonymization cancelled by user')
       process.exit(0)
     }
 
-    await store.transactionally(async (t) => {
-      // Perform soft deletion operations
-      await softDeleteMemberFromQuestDb(t, memberId)
-    })
+    // Perform anonymization operations
+    await softDeleteMemberFromQuestDb(qdbStore, memberId)
 
-    log.info('QuestDB soft deletion completed successfully')
+    log.info('QuestDB member anonymization completed successfully')
   } catch (err) {
-    log.error(err, { memberId }, 'Failed to soft delete member from QuestDB!')
+    log.error(err, { memberId }, 'Failed to anonymize member data in QuestDB!')
   }
 
   process.exit(0)
