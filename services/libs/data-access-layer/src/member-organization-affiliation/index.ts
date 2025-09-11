@@ -209,7 +209,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     // also handles edge case where fallback org is null and the timeline is empty.
 
     logger.info(
-      `timeline: ${timeline.length}, organizationId: ${fallbackOrganizationId}, dateStart: ${fallbackStart.toISOString()}, dateEnd: ${fallbackEnd.toISOString()}`,
+      `timeline: ${JSON.stringify(timeline)}, organizationId: ${fallbackOrganizationId}, dateStart: ${fallbackStart.toISOString()}, dateEnd: ${fallbackEnd.toISOString()}`,
     )
 
     timeline.unshift({
