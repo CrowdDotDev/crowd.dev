@@ -33,8 +33,5 @@
   },
   "github": {
     "isSnowflakeEnabled": "CROWD_GITHUB_IS_SNOWFLAKE_ENABLED"
-  },
-  "tinybird": {
-    "token": "CROWD_TINYBIRD_TOKEN"
   }
 }

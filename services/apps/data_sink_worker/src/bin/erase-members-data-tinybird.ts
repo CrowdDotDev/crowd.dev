@@ -1,10 +1,7 @@
 import * as readline from 'readline'
 
-import { TINYBIRD_CONFIG } from '../conf'
-
 const TINYBIRD_API_URL = 'https://api.us-west-2.aws.tinybird.co/v0/datasources'
 const DATA_SOURCES = ['activityRelations', 'members', 'maintainersInternal', 'memberIdentities']
-const TOKEN = TINYBIRD_CONFIG().token
 
 /**
  * Member Data Erasure Script (Tinybird Analytics Platform)
@@ -38,10 +35,10 @@ const TOKEN = TINYBIRD_CONFIG().token
  * after the relevant copy pipes run (typically scheduled hourly).
  *
  * USAGE:
- *   npm run script erase-members-data-tinybird <memberId>
+ *   npm run script erase-members-data-tinybird <memberId> <tinybirdToken>
  *
  * REQUIREMENTS:
- * - TINYBIRD_TOKEN environment variable must be set
+ * - Tinybird token must be provided as command line argument
  * - Token must have delete permissions on the specified datasources
  *
  * SAFETY FEATURES:
@@ -53,12 +50,13 @@ const TOKEN = TINYBIRD_CONFIG().token
 
 const args = process.argv.slice(2)
 
-if (args.length !== 1) {
-  console.error('Usage: deleteMemberTinybird.ts <memberId>')
+if (args.length !== 2) {
+  console.error('Usage: erase-members-data-tinybird.ts <memberId> <tinybirdToken>')
   process.exit(1)
 }
 
 const memberId = args[0]
+const TOKEN = args[1]
 
 /**
  * Prompts the user for Y/n confirmation via command line input
@@ -183,11 +181,6 @@ async function deleteFromDataSource(tableName: string, memberId: string) {
 }
 
 async function main() {
-  if (!TOKEN) {
-    console.error('TINYBIRD_TOKEN environment variable not set!')
-    process.exit(1)
-  }
-
   // Show deletion summary and get confirmation
   const summary = await getTinybirdDeletionSummary(memberId)
   console.log(summary)

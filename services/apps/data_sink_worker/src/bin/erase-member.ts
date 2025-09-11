@@ -18,6 +18,7 @@ import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
  * 1. Shows a detailed summary of all data to be deleted/modified
  * 2. Requests user confirmation before proceeding
  * 3. Performs the following operations in order:
+ *    - Archives member identities to requestedForErasureMemberIdentities (separate step)
  *    - Deletes from maintainersInternal (respects FK constraint with memberIdentities)
  *    - Deletes from all member-related tables (relations, segments, etc.)
  *    - Deletes the main member record
@@ -29,6 +30,7 @@ import { DB_CONFIG, QUEUE_CONFIG } from '../conf'
  *
  * TABLES AFFECTED:
  * - maintainersInternal (deleted by identityId from member's identities)
+ * - requestedForErasureMemberIdentities (memberIdentities are inserted here before deletion)
  * - activityRelations, memberNoMerge, memberOrganizationAffiliationOverrides
  * - memberOrganizations, memberSegmentAffiliations, memberSegments, memberSegmentsAgg
  * - memberEnrichmentCache, memberEnrichments, memberIdentities
@@ -133,6 +135,9 @@ setImmediate(async () => {
 
       log.info('CLEANUP ACTIVITIES...')
 
+      // Archive member identities before deletion
+      await archiveMemberIdentities(t, memberId)
+
       // delete the member and everything around it
       await deleteMemberFromDb(t, memberId)
 
@@ -209,7 +214,11 @@ async function getDeletionSummary(store: DbStore, memberId: string): Promise<str
       .connection()
       .one(`select count(*) as count from "${table}" where ${condition}`, { memberId })
     if (parseInt(result.count) > 0) {
-      summary += `- ${result.count} records from ${table}\n`
+      if (table === 'memberIdentities') {
+        summary += `- ${result.count} records from ${table} (will be inserted into requestedForErasureMemberIdentities first)\n`
+      } else {
+        summary += `- ${result.count} records from ${table}\n`
+      }
     }
   }
 
@@ -226,13 +235,43 @@ async function getDeletionSummary(store: DbStore, memberId: string): Promise<str
 }
 
 /**
+ * Archives member identities to requestedForErasureMemberIdentities table before deletion.
+ * This preserves identity data for audit/compliance purposes while allowing for GDPR deletion.
+ *
+ * @param store - Database store instance (should be within a transaction)
+ * @param memberId - The member ID whose identities will be archived
+ * @returns Number of identities archived
+ */
+export async function archiveMemberIdentities(store: DbStore, memberId: string): Promise<number> {
+  const insertResult = await store.connection().result(
+    `
+    INSERT INTO "requestedForErasureMemberIdentities" (
+      id, "memberId", platform, value, "sourceId", "integrationId", type, verified, "createdAt", "updatedAt"
+    )
+    SELECT id, "memberId", platform, value, "sourceId", "integrationId", type, verified, "createdAt", NOW()
+    FROM "memberIdentities" 
+    WHERE "memberId" = $(memberId)
+    `,
+    { memberId },
+  )
+
+  if (insertResult.rowCount > 0) {
+    log.info(
+      `Archived ${insertResult.rowCount} memberIdentities to requestedForErasureMemberIdentities for member ${memberId}`,
+    )
+  }
+
+  return insertResult.rowCount
+}
+
+/**
  * Performs the actual deletion of a member and all associated data from the database.
  * This function handles the complex deletion order required by foreign key constraints.
  *
  * DELETION ORDER:
  * 1. Clear activityRelations.objectMemberId references (update, not delete)
  * 2. Delete maintainersInternal records (by identityId from memberIdentities)
- * 3. Delete from all member-related tables
+ * 3. Delete from all member-related tables (including memberIdentities)
  * 4. Delete the main member record
  *
  * @param store - Database store instance (should be within a transaction)
@@ -297,6 +336,7 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     if (memberIdColumns.length === 0) {
       throw new Error(`No fk columns specified for table ${table}!`)
     }
+
     const condition = memberIdColumns.map((c) => `"${c}" = $(memberId)`).join(' or ')
     result = await store
       .connection()
