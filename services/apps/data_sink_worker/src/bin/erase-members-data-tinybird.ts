@@ -237,7 +237,7 @@ async function main() {
   }
 
   // Process in order to respect foreign key constraints - maintainersInternal before memberIdentities
-  const orderedTables = ['activityRelations', 'members', 'maintainersInternal', 'memberIdentities']
+  const orderedTables = ['activityRelations', 'maintainersInternal', 'memberIdentities', 'members']
 
   for (const table of orderedTables) {
     try {

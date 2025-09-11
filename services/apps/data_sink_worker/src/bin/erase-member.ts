@@ -298,6 +298,18 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
   }
 
   // Delete from maintainersInternal first (foreign key constraint with memberIdentities.id)
+  const maintainersQuery = `delete from "maintainersInternal" where "identityId" in (
+      select id from "memberIdentities" where "memberId" = '${memberId}'
+    )`
+  console.log(`\n=== ABOUT TO DELETE FROM MAINTAINERSINTERNAL ===`)
+  console.log(`Query: ${maintainersQuery}`)
+  const proceedMaintainers = await promptConfirmation(
+    'Proceed with deleting from maintainersInternal?',
+  )
+  if (!proceedMaintainers) {
+    throw new Error('User cancelled deletion from maintainersInternal')
+  }
+
   result = await store.connection().result(
     `delete from "maintainersInternal" where "identityId" in (
       select id from "memberIdentities" where "memberId" = $(memberId)
@@ -338,6 +350,15 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     }
 
     const condition = memberIdColumns.map((c) => `"${c}" = $(memberId)`).join(' or ')
+    const deleteQuery = `delete from "${table}" where ${condition.replace('$(memberId)', `'${memberId}'`)}`
+    console.log(`\n=== ABOUT TO DELETE FROM ${table.toUpperCase()} ===`)
+    console.log(`Query: ${deleteQuery}`)
+    const proceedTable = await promptConfirmation(`Proceed with deleting from ${table}?`)
+    if (!proceedTable) {
+      log.info(`Skipped deletion from ${table}`)
+      continue
+    }
+
     result = await store
       .connection()
       .result(`delete from "${table}" where ${condition}`, { memberId })
@@ -345,6 +366,14 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     if (result.rowCount > 0) {
       log.info(`Deleted ${result.rowCount} rows from table ${table} for member ${memberId}!`)
     }
+  }
+
+  const finalDeleteQuery = `delete from members where id = '${memberId}'`
+  console.log(`\n=== ABOUT TO DELETE MAIN MEMBER RECORD ===`)
+  console.log(`Query: ${finalDeleteQuery}`)
+  const proceedFinal = await promptConfirmation('Proceed with deleting the main member record?')
+  if (!proceedFinal) {
+    throw new Error('User cancelled deletion of main member record')
   }
 
   result = await store
