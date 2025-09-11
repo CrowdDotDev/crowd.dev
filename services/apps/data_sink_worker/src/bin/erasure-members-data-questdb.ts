@@ -156,10 +156,14 @@ async function softDeleteMemberFromQuestDb(qdbStore: DbStore, memberId: string):
     { memberId, anonymousUuid, anonymousUsername },
   )
 
+  // NOTE: QuestDB UPDATE operations may report inaccurate rowCount due to PostgreSQL compatibility issues
+  // Also, QuestDB updates are asynchronous and may not be immediately visible in subsequent queries
   if (result.rowCount > 0) {
     log.info(
-      `Anonymized and marked ${result.rowCount} activities as deleted for memberId ${memberId}`,
+      `QuestDB reported updating ${result.rowCount} activities (note: QuestDB rowCount may be inaccurate for UPDATE operations)`,
     )
+  } else {
+    log.info(`No activities found to anonymize for memberId ${memberId}`)
   }
 
   // Generate separate UUID for object member references to avoid correlation
@@ -180,8 +184,10 @@ async function softDeleteMemberFromQuestDb(qdbStore: DbStore, memberId: string):
 
   if (result.rowCount > 0) {
     log.info(
-      `Anonymized objectMember references in ${result.rowCount} activities for memberId ${memberId}`,
+      `QuestDB reported updating ${result.rowCount} objectMember activities (note: QuestDB rowCount may be inaccurate for UPDATE operations)`,
     )
+  } else {
+    log.info(`No objectMember activities found to anonymize for memberId ${memberId}`)
   }
 }
 
