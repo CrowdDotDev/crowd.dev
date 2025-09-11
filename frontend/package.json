@@ -45,7 +45,7 @@
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
     "dayjs": "^1.11.13",
-    "element-plus": "^2.3.1",
+    "element-plus": "^2.11.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.27.5",
     "lodash": "^4.17.21",
