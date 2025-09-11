@@ -42,12 +42,14 @@ async function prepareMemberOrganizationAffiliationTimeline(
   }
 
   const selectPrimaryWorkExperience = (orgs: AffiliationItem[]): AffiliationItem => {
+    logger.info(`selectPrimaryWorkExperience | ${JSON.stringify(orgs)}`)
     if (orgs.length === 1) {
       return orgs[0]
     }
 
     // manual affiliations (identified by segmentId) always take highest precedence
     const manualAffiliations = orgs.filter((row) => 'segmentId' in row && !!row.segmentId)
+    logger.info(`manualAffiliations: ${JSON.stringify(manualAffiliations)}`)
     if (manualAffiliations.length > 0) {
       if (manualAffiliations.length === 1) return manualAffiliations[0]
       // if multiple manual affiliations, pick the one with the longest date range
@@ -59,6 +61,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
     if (primaryOrgs.length > 0) {
       // favor the one with dates if there are multiple primary work experiences
       const withDates = primaryOrgs.filter((row) => !!row.dateStart)
+      logger.info(`primaryrgs withDates: ${JSON.stringify(withDates)}`)
       if (withDates.length > 0) {
         // there can be one primary work experiences with intersecting date ranges so just return the first one found
         return withDates[0]
@@ -70,6 +73,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       // no work experience was marked as primary by the user, use additional metrics to decide the primary
       // 1. favor the one with dates if there's only one
       const withDates = orgs.filter((row) => !!row.dateStart)
+      logger.info(`withDates: ${JSON.stringify(withDates)}`)
       if (withDates.length === 1) {
         // there can be one primary work exp with intersecting date ranges
         return withDates[0]
@@ -80,6 +84,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
       const memberOrgsOnly = orgs.filter(
         (row: AffiliationItem) => 'segmentId' in row && !!row.segmentId,
       ) as MemberOrganizationWithOverrides[]
+      logger.info(`memberOrgsOnly: ${JSON.stringify(memberOrgsOnly)}`)
       if (memberOrgsOnly.length >= 2) {
         const sortedByMembers = memberOrgsOnly.sort((a, b) => b.memberCount - a.memberCount)
         if (sortedByMembers[0].memberCount > sortedByMembers[1].memberCount) {
@@ -161,6 +166,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
           }
 
           const primaryOrg = selectPrimaryWorkExperience(orgs)
+          logger.info(`primaryOrg selected: ${JSON.stringify(primaryOrg)}`)
 
           if (currentPrimaryOrg == null) {
             // means there's a new range starting
