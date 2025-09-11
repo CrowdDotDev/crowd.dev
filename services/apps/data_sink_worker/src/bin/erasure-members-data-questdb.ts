@@ -40,7 +40,7 @@ import { getClientSQL } from '@crowd/questdb'
  * - Anonymized data uses format: memberId = random-uuid, username = deleted-{random-uuid}
  *
  * USAGE:
- *   npm run script erasure-members-data-questdb <memberId>
+ *   npm run script erasure-members-data-questdb <memberId> [--no-summary]
  *
  * REQUIREMENTS:
  * - QuestDB database connection configured via CROWD_QUESTDB_SQL_* environment variables
@@ -187,12 +187,13 @@ async function softDeleteMemberFromQuestDb(qdbStore: DbStore, memberId: string):
 
 const processArguments = process.argv.slice(2)
 
-if (processArguments.length !== 1) {
-  log.error('Expected exactly one argument: memberId')
+if (processArguments.length < 1 || processArguments.length > 2) {
+  log.error('Usage: erasure-members-data-questdb <memberId> [--no-summary]')
   process.exit(1)
 }
 
 const memberId = processArguments[0]
+const skipSummary = processArguments.includes('--no-summary')
 
 setImmediate(async () => {
   const qdbConnection = await getClientSQL()
@@ -201,12 +202,14 @@ setImmediate(async () => {
   log.info(`Anonymizing member data in QuestDB for member ID: ${memberId}`)
 
   try {
-    // Show anonymization summary and get confirmation
-    const summary = await getQuestDbDeletionSummary(qdbStore, memberId)
-    console.log(summary)
+    if (!skipSummary) {
+      // Show anonymization summary and get confirmation
+      const summary = await getQuestDbDeletionSummary(qdbStore, memberId)
+      console.log(summary)
+    }
 
     const proceed = await promptConfirmation(
-      'Do you want to proceed with the QuestDB anonymization?',
+      'Do you want to proceed with the QuestDB anonymization and soft deletion?',
     )
 
     if (!proceed) {
