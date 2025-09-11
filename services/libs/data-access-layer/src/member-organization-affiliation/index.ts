@@ -160,11 +160,7 @@ async function prepareMemberOrganizationAffiliationTimeline(
             gapStartDate = null
           }
 
-          logger.info(
-            `date: ${date.toISOString()},selectPrimaryWorkExperience input: ${JSON.stringify(orgs)}`,
-          )
           const primaryOrg = selectPrimaryWorkExperience(orgs)
-          logger.info(`primaryOrg selected: ${JSON.stringify(primaryOrg)}`)
 
           if (currentPrimaryOrg == null) {
             // means there's a new range starting
@@ -183,7 +179,9 @@ async function prepareMemberOrganizationAffiliationTimeline(
           } else if (currentPrimaryOrg.id !== primaryOrg.id) {
             // same org but different record, we need to keep
             // currentPrimaryOrg = primaryOrg
-            logger.info(`here we should assign ${currentPrimaryOrg} = ${primaryOrg}`)
+            logger.info(
+              `here we should assign ${JSON.stringify(currentPrimaryOrg)} = ${JSON.stringify(primaryOrg)}`,
+            )
           }
         }
 
