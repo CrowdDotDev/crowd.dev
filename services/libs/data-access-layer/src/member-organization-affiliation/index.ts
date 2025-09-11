@@ -284,6 +284,10 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
   let fallbackOrganizationId = primaryUnknownDatedWorkExperience?.organizationId
 
+  logger.info(
+    `fallbackOrganizationId from primary unknown dated work experience: ${fallbackOrganizationId}`,
+  )
+
   if (!fallbackOrganizationId) {
     fallbackOrganizationId =
       _.chain(memberOrganizations)
