@@ -21,8 +21,6 @@ import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import SegmentService from './segmentService'
 
-const logger = getServiceChildLogger('activities')
-
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
 export default class ActivityService extends LoggerBase {
