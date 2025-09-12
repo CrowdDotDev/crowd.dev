@@ -1496,7 +1496,7 @@ export default class ActivityService extends LoggerBase {
         preparedForUpsert.push(item)
       } else {
         if (isSegmentUsingNangoIntegration(this.pgQx, item.payload.segmentId)) {
-          this.log.info({ payload: item.payload }, '[DEBUG] Found duplicate activity')
+          this.log.info({ payload: item.payload }, '[DEBUG] Found nango duplicate activity')
         }
       }
     }

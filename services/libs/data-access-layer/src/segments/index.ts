@@ -172,14 +172,17 @@ export async function isSegmentUsingNangoIntegration(
   qx: QueryExecutor,
   segmentId: string,
 ): Promise<boolean> {
-  const results = await qx.select(
+  const result = await qx.selectOne(
     `
-      SELECT platform
-      FROM integrations
-      WHERE "segmentId" = $(segmentId)
+      SELECT EXISTS (
+        SELECT 1
+        FROM integrations
+        WHERE "segmentId" = $(segmentId)
+          AND platform = 'github-nango'
+      ) AS is_nango_integration
     `,
     { segmentId },
   )
 
-  return results.some((r: { platform: string }) => r.platform === 'github-nango')
+  return result?.is_nango_integration ?? false
 }
