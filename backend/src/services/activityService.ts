@@ -2,7 +2,7 @@ import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
 import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
-import { LoggerBase, getServiceChildLogger, logExecutionTime } from '@crowd/logging'
+import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
