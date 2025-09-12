@@ -4,7 +4,7 @@ import merge from 'lodash.merge'
 import min from 'lodash.min'
 import moment from 'moment'
 
-import { getEnv } from '@crowd/common'
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -475,13 +475,13 @@ export async function queryActivities(
   qx: QueryExecutor,
   activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
-  logger.info(`queryActivities called with: ${JSON.stringify(arg.segmentIds)}`)
-
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
   }
 
   const tb = new TinybirdClient()
+
+  logger.info(`input params: ${JSON.stringify(arg)}`)
 
   const tbParams = buildActivitiesParams(arg)
 

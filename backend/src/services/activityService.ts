@@ -393,8 +393,6 @@ export default class ActivityService extends LoggerBase {
 
     // await Promise.all(promises)
 
-    logger.info('Returning activities page', JSON.stringify(page))
-
     return page
   }
 
