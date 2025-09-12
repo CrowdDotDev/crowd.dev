@@ -4,7 +4,7 @@ import merge from 'lodash.merge'
 import min from 'lodash.min'
 import moment from 'moment'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
+import { getEnv } from '@crowd/common'
 import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'

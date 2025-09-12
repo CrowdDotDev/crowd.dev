@@ -1,4 +1,3 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
