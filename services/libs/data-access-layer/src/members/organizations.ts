@@ -17,8 +17,6 @@ import { QueryExecutor } from '../queryExecutor'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const logger = getServiceChildLogger('organizations')
-
 export async function fetchMemberOrganizations(
   qx: QueryExecutor,
   memberId: string,
@@ -510,18 +508,12 @@ async function moveRolesBetweenEntities(
     mergeStrat.intersectBasedOnField,
   )
 
-  logger.info({ remainingRoles }, 'Found remaining roles to process')
-
   for (const role of remainingRoles) {
-    logger.info(`Processing role:`, role)
-
     // delete any existing affiliation override for the role to avoid foreign key conflicts
     // and reapply it with the new memberOrganizationId
     const existingOverride = secondaryAffiliationOverrides.find(
       (o) => o.memberOrganizationId === role.id,
     )
-
-    logger.info(`Found existing override for role: ${existingOverride}`)
 
     if (existingOverride) {
       await deleteAffiliationOverrides(qx, role.memberId, [role.id])
