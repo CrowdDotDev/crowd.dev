@@ -171,7 +171,6 @@ export function populateSegmentRelations(record: SegmentRawData): SegmentData {
 export async function isSegmentUsingNangoIntegration(
   qx: QueryExecutor,
   segmentId: string,
-  platform: string,
 ): Promise<boolean> {
   const result = await qx.selectOne(
     `
@@ -179,10 +178,10 @@ export async function isSegmentUsingNangoIntegration(
         SELECT 1
         FROM integrations
         WHERE "segmentId" = $(segmentId)
-          AND platform = $(platform)
+          AND platform = 'github-nango'
       ) AS is_nango_integration
     `,
-    { segmentId, platform },
+    { segmentId },
   )
 
   return result?.is_nango_integration ?? false
