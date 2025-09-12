@@ -14,6 +14,11 @@ DESCRIPTION >
     - `message` provides details about the assessment result (empty string if no message).
     - `stepsExecuted` indicates the number of assessment steps that were executed (UInt8, 0 default).
     - `runDuration` contains the time taken to complete the assessment (empty string if not measured).
+    - `recommendation` contains the recommended action or guidance for addressing the assessment result (empty string if not provided).
+    - `start` contains the start timestamp for the assessment (required string).
+    - `end` contains the end timestamp for the assessment (optional string, empty if not provided).
+    - `value` contains any additional value data from the assessment (empty string if not provided).
+    - `changes` contains any changes data from the assessment (empty string if not provided).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
 TAGS "Security insights widget"
@@ -31,6 +36,11 @@ SCHEMA >
     `message` String `json:$.record.message` DEFAULT '',
     `stepsExecuted` UInt8 `json:$.record.stepsExecuted` DEFAULT 0,
     `runDuration` String `json:$.record.runDuration` DEFAULT '',
+    `recommendation` String `json:$.record.recommendation` DEFAULT '',
+    `start` String `json:$.record.start` DEFAULT '',
+    `end` String `json:$.record.end` DEFAULT '',
+    `value` String `json:$.record.value` DEFAULT '',
+    `changes` String `json:$.record.changes` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 

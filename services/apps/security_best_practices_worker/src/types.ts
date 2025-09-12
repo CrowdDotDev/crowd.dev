@@ -32,7 +32,7 @@ export interface ISecurityInsightsPrivateerResultAssessment {
   start?: string
   end?: string
   value?: unknown
-  changes?: unknown[]
+  changes?: Record<string, unknown>
   recommendation?: string
 }
 

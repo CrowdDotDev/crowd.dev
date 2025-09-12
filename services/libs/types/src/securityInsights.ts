@@ -37,6 +37,11 @@ export interface ISecurityInsightsEvaluationAssessment {
   steps: string[]
   stepsExecuted: number
   runDuration: string
+  recommendation?: string
+  start: string
+  end?: string
+  value?: unknown
+  changes?: Record<string, unknown>
 }
 
 export interface ISecurityInsightsObsoleteRepo {
