@@ -98,9 +98,14 @@ ALTER TABLE public."tableName" REPLICA IDENTITY FULL;
 3. (only for PROD) u need to create the topic in oracle kafka, it doesn't get created automaticly
 4. Update tinybird kafka connect plugin env ( it's under crowd-kube/lf-prod-oracle(lf-staging-oracle)/kafka-connect/tinybird-sink.properties.enc ), there are list of tracked files in the decrypted file.
 5. Restart kafka-connect
-6. Create sequin sinks for new tables
-7. Create tinybird datasources
-8. Backfill from sequin
+6. Create tinybird datasource schema and push it to tinybird
+7. Add access to the table to sequin user in postgres
+```sql
+GRANT SELECT ON "tableName" to sequin;
+```
+8. Create sequin sinks for new tables
+9. Create tinybird datasources
+10. Backfill from sequin
 
 ---
 

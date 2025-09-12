@@ -1,0 +1,5 @@
+NODE repository_groups_list_repositories
+SQL >
+    SELECT name, slug, repositories
+    FROM repositoryGroups
+    WHERE deletedAt = '' AND insightsProjectId = (SELECT insightsProjectId FROM segments_filtered)

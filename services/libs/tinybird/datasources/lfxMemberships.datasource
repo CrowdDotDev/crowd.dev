@@ -42,7 +42,6 @@ SCHEMA >
     `accountDomain` String `json:$.record.accountDomain`,
     `domainAlias` Array(String) `json:$.record.domainAlias[:]` DEFAULT []
 
-
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY segmentId, organizationId, id
