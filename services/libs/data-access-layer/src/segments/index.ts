@@ -168,7 +168,7 @@ export function populateSegmentRelations(record: SegmentRawData): SegmentData {
   return segmentData
 }
 
-export async function isSegmentUsingNangoIntegration(
+export async function isSegmentUsingGitHubNangoIntegration(
   qx: QueryExecutor,
   segmentId: string,
 ): Promise<boolean> {

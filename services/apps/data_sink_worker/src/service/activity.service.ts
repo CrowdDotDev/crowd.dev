@@ -43,6 +43,7 @@ import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_wo
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import { QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { isSegmentUsingGitHubNangoIntegration } from '@crowd/data-access-layer/src/segments'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
@@ -61,7 +62,6 @@ import {
 import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import { IProcessActivityResult } from './types'
-import { isSegmentUsingNangoIntegration } from '@crowd/data-access-layer/src/segments'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -1495,8 +1495,13 @@ export default class ActivityService extends LoggerBase {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
       } else {
-        if (item.payload.platform === PlatformType.GITHUB_NANGO && 
-          await isSegmentUsingNangoIntegration(this.pgQx, item.payload.segmentId)) {
+        const nangoIntegrations = [PlatformType.CONFLUENCE, PlatformType.JIRA, PlatformType.GERRIT]
+
+        if (
+          nangoIntegrations.includes(item.payload.platform as PlatformType) ||
+          ((item.payload.platform as PlatformType) === PlatformType.GITHUB &&
+            (await isSegmentUsingGitHubNangoIntegration(this.pgQx, item.payload.segmentId)))
+        ) {
           this.log.info({ payload: item.payload }, '[DEBUG] Found nango duplicate activity')
         } else {
           this.log.info({ payload: item.payload }, '[DEBUG] Found duplicate activity')
