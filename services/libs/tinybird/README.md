@@ -154,3 +154,118 @@ Until we move fully to **Tinybird Forward** (which will support migration script
 2. **Pipe-by-pipe updates** for zero downtime where #1 is not enough
 
 Pick the method that best fits your workflow and datasource complexity.
+
+# Testing Tinybird Pipes Locally
+
+This guide explains how to test a Tinybird data pipeline ("pipe") on your local Tinybird environment. We will fetch sample data (fixtures) from a staging Tinybird workspace and use it to run and verify a pipe locally. The steps below are written for a developer who may not be familiar with Tinybird, and they are organized in a clear, numbered format for easy follow-up.
+
+## Prerequisites
+
+- **Tinybird CLI and Local Environment:** Make sure you have the Tinybird CLI (`tb`) installed.  
+  To start a local Tinybird instance, run the following Docker command:
+  ```bash
+  docker run --platform linux/amd64 -p 7181:7181 --name tinybird-classic-local \
+    -e COMPATIBILITY_MODE=1 -d tinybirdco/tinybird-local:latest
+  ```
+  This will start Tinybird Local at `http://localhost:7181`.
+
+- **Staging Workspace Access:** You need access to a Tinybird staging (or production) workspace with an API token that has permission to read data (we'll use it to export data).  
+- **Project Files:** Ensure you have your Tinybird project files available locally – this includes the data source definitions and pipe (.pipe) files you plan to test. For example, if you plan to test a pipe that uses a data source named `insightsProjects`, you should have the corresponding `insightsProjects.datasource` file (or have created that data source) in your local workspace. Similarly, have the pipe file (e.g. `activities_filtered.pipe` and any related pipes) ready in your project directory.
+
+## Steps to Test the Tinybird Integration Locally
+
+1. **Set Up Environment Variables and Authenticate**  
+   Instead of exporting variables directly in the shell (which can leak tokens into your shell history), we recommend using a `.env` file.
+
+   First, copy the example file and fill in the values:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and set your staging token. For the local token, you need to fetch it from the local Tinybird API with the following command:
+   ```bash
+   curl -s "http://localhost:7181/tokens" | jq -r '.workspace_admin_token'
+   ```
+   Copy the output and paste it into the `TB_TOKEN_LOCAL` entry inside `.env`.
+
+   Example `.env`:
+   ```bash
+   TB_HOST_LOCAL=http://localhost:7181
+   TB_TOKEN_LOCAL=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+   TB_HOST_STAGING=https://api.us-west-2.aws.tinybird.co
+   TB_TOKEN_STAGING=<YOUR_STAGING_TOKEN>
+
+   TB_HOST_PRODUCTION=https://api.us-west-2.aws.tinybird.co
+   TB_TOKEN_PRODUCTION=<YOUR_PRODUCTION_TOKEN>
+   ```
+
+   Then load the environment variables into your current shell (Linux/macOS, or Windows with Git Bash/WSL):
+   ```bash
+   set -a
+   source .env
+   set +a
+   ```
+
+   Now you can authenticate with the Tinybird CLI:
+   ```bash
+   # Authenticate to local Tinybird workspace
+   tb auth --host "$TB_HOST_LOCAL" --token "$TB_TOKEN_LOCAL"
+
+   # Authenticate to staging Tinybird workspace
+   tb auth --host "$TB_HOST_STAGING" --token "$TB_TOKEN_STAGING"
+
+   # Authenticate to production Tinybird workspace
+   tb auth --host "$TB_HOST_PRODUCTION" --token "$TB_TOKEN_PRODUCTION"
+   ```
+
+   ⚠️ **Note for Windows PowerShell users:**  
+   `source` and `set -a` are not available in PowerShell. We recommend using [dotenvx](https://dotenvx.sh/) or an equivalent approach:  
+   ```powershell
+   dotenvx run -f .env -- tb auth --host $env:TB_HOST_LOCAL --token $env:TB_TOKEN_LOCAL
+   ```
+
+2. **Export Fixture Data from Staging**  
+   Next, fetch some sample data from the staging environment to use in your local test. We will use the Tinybird SQL API via a `curl` command to retrieve data. In this example, we select up to 200 rows from the `insightsProjects` data source in the staging workspace and save it to a local file:
+   ```bash
+   curl -s -H "Authorization: Bearer $TB_TOKEN_STAGING" \
+     --data-urlencode "q=SELECT id, name, slug, description, segmentId, createdAt, updatedAt, deletedAt, logoUrl, organizationId, website, github, linkedin, twitter, widgets, repositories, enabled, isLF, keywords FROM insightsProjects LIMIT 200 FORMAT JSONEachRow" \
+     "https://api.us-west-2.aws.tinybird.co/v0/sql" \
+     | jq -c '{record: .}' > insightsProjects.ndjson
+   ```
+
+   ⚠️ Check if this data is not already present in the `fixtures` folder. If not, place the output in the `fixtures` folder and commit it.
+   **for production you must use the ${TB_TOKEN_PRODUCTION}
+
+3. **Switch Back to Local Workspace**  
+   Now that we have the fixture data, we need to switch the Tinybird CLI context back to the local environment before importing data and pushing pipes:
+   ```bash
+   tb auth --host "$TB_HOST_LOCAL" --token "$TB_TOKEN_LOCAL"
+   ```
+
+4. **Import the Fixture Data into Local Datasource**  
+   Append the data you downloaded to the corresponding data source in your local Tinybird workspace:
+   ```bash
+   tb datasource append insightsProjects --file insightsProjects.ndjson
+   ```
+
+5. **Push the Pipe to the Local Environment**  
+   Push the Tinybird pipe you want to test into your local Tinybird workspace:
+   ```bash
+   tb push pipes/activities_filtered.pipe
+   ```
+
+6. **Test the Local API Endpoint**  
+   Finally, call the pipe’s API endpoint on your local Tinybird instance to verify it works with the local data:
+   ```bash
+   curl -s "http://localhost:7181/v0/pipes/activities_count.json" \
+     -G \
+     --data-urlencode "project=umbertotest5" \
+     --data-urlencode "token=$TB_TOKEN_LOCAL"
+   ```
+
+## Additional Tips
+
+- If the `curl` request in step 6 returns an authentication error, double-check that you're using the correct token.
+- You can iterate on your pipe queries locally and rerun the endpoint call to quickly test changes.
+- Remember that any changes made locally (like new data or modified pipes) are not automatically reflected in the cloud workspace.
