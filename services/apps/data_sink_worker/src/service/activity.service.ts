@@ -61,6 +61,7 @@ import {
 import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import { IProcessActivityResult } from './types'
+import { isSegmentUsingNangoIntegration } from '@crowd/data-access-layer/src/segments'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -1494,7 +1495,9 @@ export default class ActivityService extends LoggerBase {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
       } else {
-        this.log.info({ payload: item.payload }, '[DEBUG] Found duplicate activity')
+        if (isSegmentUsingNangoIntegration(this.pgQx, item.payload.segmentId)) {
+          this.log.info({ payload: item.payload }, '[DEBUG] Found duplicate activity')
+        }
       }
     }
 
