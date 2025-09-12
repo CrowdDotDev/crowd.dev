@@ -1818,26 +1818,33 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<number> {
     const currentSegments = SequelizeRepository.getSegmentIds(options)
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
     const subprojectIds = (
       await new SegmentRepository(options).getSegmentSubprojects(currentSegments)
     ).map((s) => s.id)
 
-    const result = await queryActivities(options.qdb, {
-      segmentIds: subprojectIds,
-      countOnly: true,
-      filter: {
-        and: [
-          {
-            organizationId: {
-              eq: organizationId,
+    const result = await queryActivities(
+      options.qdb,
+      {
+        segmentIds: subprojectIds,
+        countOnly: true,
+        filter: {
+          and: [
+            {
+              organizationId: {
+                eq: organizationId,
+              },
+              platform: {
+                eq: platform,
+              },
             },
-            platform: {
-              eq: platform,
-            },
-          },
-        ],
+          ],
+        },
       },
-    })
+      [],
+      qx,
+    )
 
     return result.count
   }
