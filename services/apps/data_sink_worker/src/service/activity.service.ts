@@ -1495,7 +1495,7 @@ export default class ActivityService extends LoggerBase {
         uniqueConstraintKeys.add(key)
         preparedForUpsert.push(item)
       } else {
-        if (isSegmentUsingNangoIntegration(this.pgQx, item.payload.segmentId)) {
+        if (await isSegmentUsingNangoIntegration(this.pgQx, item.payload.segmentId)) {
           this.log.info({ payload: item.payload }, '[DEBUG] Found nango duplicate activity')
         }
       }
