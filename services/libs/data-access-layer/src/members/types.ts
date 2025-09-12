@@ -84,3 +84,9 @@ export type IDbMemberBotSuggestionInsert = Omit<
   IDbMemberBotSuggestion,
   'id' | 'createdAt' | 'updatedAt'
 >
+
+export interface IDbMemberBotSuggestionBySegment {
+  activityCount: number
+  memberId: string
+  confidence: number
+}

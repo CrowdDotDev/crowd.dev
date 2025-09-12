@@ -1,6 +1,6 @@
 import { QueryExecutor } from '../queryExecutor'
 
-import { IDbMemberBotSuggestionInsert } from './types'
+import { IDbMemberBotSuggestionBySegment, IDbMemberBotSuggestionInsert } from './types'
 
 export async function insertMemberBotSuggestion(
   qx: QueryExecutor,
@@ -14,12 +14,23 @@ export async function insertMemberBotSuggestion(
   )
 }
 
+export async function deleteMemberBotSuggestion(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<void> {
+  await qx.result(`DELETE FROM "memberBotSuggestions" WHERE "memberId" = $(memberId)`, { memberId })
+}
+
 export async function insertMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
   await qx.result(
     `INSERT INTO "memberNoBot" ("memberId", "createdAt") VALUES ($(memberId), now())
      ON CONFLICT DO NOTHING`,
     { memberId },
   )
+}
+
+export async function deleteMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
+  await qx.result(`DELETE FROM "memberNoBot" WHERE "memberId" = $(memberId)`, { memberId })
 }
 
 export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): Promise<string[]> {
@@ -105,4 +116,28 @@ export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): 
   )
 
   return rows.map((r) => r.memberId)
+}
+
+export async function fetchMemberBotSuggestionsBySegment(
+  qx: QueryExecutor,
+  segmentId: string,
+  limit: number,
+  offset: number,
+): Promise<IDbMemberBotSuggestionBySegment[]> {
+  const rows = await qx.select(
+    `
+    SELECT 
+      mbs."memberId",
+      mbs.confidence,
+      msa."activityCount"
+    FROM "memberBotSuggestions" mbs
+    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId" 
+    AND msa."segmentId" = $(segmentId)
+    ORDER BY msa."activityCount" DESC, mbs.confidence DESC
+    LIMIT $(limit) OFFSET $(offset);
+    `,
+    { segmentId, limit, offset },
+  )
+
+  return rows
 }

@@ -15,8 +15,6 @@ import Roles from '../security/roles'
 
 import { IServiceOptions } from './IServiceOptions'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import MemberService from './memberService'
-import OrganizationService from './organizationService'
 import SegmentService from './segmentService'
 import SettingsService from './settingsService'
 import PermissionChecker from './user/permissionChecker'
@@ -437,19 +435,5 @@ export default class TenantService {
     )
 
     return count > 0
-  }
-
-  /**
-   * Return a list of all the memberToMerge suggestions available in the
-   * tenant's members
-   */
-  async findMembersToMerge(args) {
-    const memberService = new MemberService(this.options)
-    return memberService.findMembersWithMergeSuggestions(args)
-  }
-
-  async findOrganizationsToMerge(args) {
-    const organizationService = new OrganizationService(this.options)
-    return organizationService.findOrganizationsWithMergeSuggestions(args)
   }
 }

@@ -4,8 +4,11 @@ import * as lodash from 'lodash'
 import { captureApiChange, memberEditProfileAction } from '@crowd/audit-logs'
 import { Error404 } from '@crowd/common'
 import {
+  deleteMemberBotSuggestion,
+  deleteMemberNoBot,
   fetchMemberAttributes,
   getMemberManuallyChangedFields,
+  insertMemberNoBot,
   setMemberManuallyChangedFields,
   updateMemberAttributes,
 } from '@crowd/data-access-layer/src/members'
@@ -77,6 +80,29 @@ export default class MemberAttributesService extends LoggerBase {
           }
 
           await updateMemberAttributes(qx, memberId, data)
+
+          // Handle isBot status and maintain consistency with bot tracking tables
+          if (Object.keys(data).includes('isBot')) {
+            const newIsBot = data.isBot?.default ?? false
+            const currentDefaultIsBot = currentMemberAttributes.isBot?.default ?? false
+
+            // Only exists if system flagged member as a bot earlier
+            const currentSystemIsBot = currentMemberAttributes.isBot?.system ?? false
+
+            // case 1: system flagged as bot, user overrides to not-bot
+            if (currentSystemIsBot && !newIsBot) {
+              // prevent future bot detection
+              await insertMemberNoBot(qx, memberId)
+            }
+            // case 2: member changed from not-bot to bot (any source)
+            else if (!currentDefaultIsBot && newIsBot) {
+              // clean up existing bot suggestions and no-bot entries
+              await Promise.all([
+                deleteMemberBotSuggestion(qx, memberId),
+                deleteMemberNoBot(qx, memberId),
+              ])
+            }
+          }
 
           if (manuallyChanged) {
             await setMemberManuallyChangedFields(qx, memberId, updatedManuallyChangedFields)
