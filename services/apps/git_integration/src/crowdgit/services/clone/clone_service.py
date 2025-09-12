@@ -16,6 +16,7 @@ import time
 from decimal import Decimal
 
 DEFAULT_CLONE_BATCH_DEPTH = 10
+DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 2000
 
 
 class CloneService(BaseService):
@@ -60,6 +61,56 @@ class CloneService(BaseService):
         )
         self.logger.info("Minimal clone initialized successfully")
 
+    async def _get_repo_size_mb(self, repo_path: str) -> float:
+        try:
+            result = await run_shell_command(["du", "-sm", repo_path], cwd=repo_path)
+            size_mb = float(result.strip().split()[0])
+            return size_mb
+        except Exception as e:
+            self.logger.warning(f"Failed to get repo size: {e}")
+            return 0.0
+
+    async def _optimize_repository_storage(
+        self, repo_path: str, threshold_mb: float = DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB
+    ) -> None:
+        """
+        Optimize repository storage if size exceeds threshold.
+        This is infrequently performed because 'git gc' is costly (CPU/IO intensive and time-consuming)
+        only runs for repositories (>2GB) that grow due to incremental fetching creating
+        inefficient pack files.
+        Uses git gc to compact repository and logs timing, size before and after operation.
+        """
+        try:
+            size_before = await self._get_repo_size_mb(repo_path)
+
+            if size_before > threshold_mb:
+                self.logger.info(
+                    f"Repository size {size_before:.1f}MB > {threshold_mb:.0f}MB threshold, running git gc"
+                )
+
+                start_time = time.time()
+                await run_shell_command(
+                    ["git", "gc", "--keep-largest-pack", "--quiet"], cwd=repo_path
+                )
+                gc_duration = time.time() - start_time
+
+                size_after = await self._get_repo_size_mb(repo_path)
+                reduction_pct = (
+                    ((size_before - size_after) / size_before) * 100 if size_before > 0 else 0
+                )
+
+                self.logger.info(
+                    f"Git gc completed in {gc_duration:.1f}s: {size_before:.1f}MB → {size_after:.1f}MB ({reduction_pct:.1f}% reduction)"
+                )
+            else:
+                self.logger.debug(
+                    f"Repository size {size_before:.1f}MB is below threshold {threshold_mb:.0f}MB, skipping storage optimization (normal - most repositories stay small)"
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to perform git gc: {repr(e)}")
+            # Don't raise - gc failure shouldn't stop processing
+
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(1),
@@ -73,6 +124,8 @@ class CloneService(BaseService):
         await run_shell_command(
             ["git", "fetch", "origin", default_branch, f"--deepen={batch_depth}"], cwd=repo_path
         )
+        # Optimize repository storage using git garbage collection
+        await self._optimize_repository_storage(repo_path)
 
     async def _get_batch_commit_info(
         self,
@@ -169,41 +222,81 @@ class CloneService(BaseService):
         except FileNotFoundError:
             return None
 
+    async def _cleanup_temp_directory(self, temp_repo_path: str, repo_id: str) -> None:
+        """
+        Clean up temporary directory with retries and error handling.
+        If cleanup fails after all retries, log the failure to service execution.
+        """
+        try:
+            await self._cleanup_temp_directory_with_retries(temp_repo_path)
+            self.logger.info(f"successfully cleaned temp dir {temp_repo_path}")
+        except Exception as e:
+            error_message = (
+                f"Failed to cleanup temp directory {temp_repo_path} after retries: {repr(e)}"
+            )
+            self.logger.error(error_message)
+
+            # Save cleanup failure to service execution (only after all retries failed)
+            try:
+                service_execution = ServiceExecution(
+                    repo_id=repo_id,
+                    operation_type=OperationType.CLONE,
+                    status=ExecutionStatus.FAILURE,
+                    error_code=ErrorCode.CLEANUP_FAILED.value,
+                    error_message=error_message,
+                    execution_time_sec=Decimal("0.0"),
+                )
+                await save_service_execution(service_execution)
+            except Exception as save_error:
+                self.logger.error(f"Failed to save cleanup failure: {repr(save_error)}")
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        reraise=True,
+    )
+    async def _cleanup_temp_directory_with_retries(self, temp_repo_path: str) -> None:
+        """
+        Actual cleanup implementation with retries.
+        Raises exceptions so @retry can handle them.
+        """
+        self.logger.info(f"cleaning temp dir {temp_repo_path}")
+        shutil.rmtree(temp_repo_path)
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        reraise=False,
+    )
     async def _cleanup_working_directory(self, repo_path: str) -> None:
         """
         Remove all files and directories from the repository except the .git directory.
         This helps reduce disk usage while preserving git history for commit processing.
         """
-        try:
-            self.logger.info(f"Cleaning working directory: {repo_path}")
+        self.logger.info(f"Cleaning working directory: {repo_path}")
 
-            # Use find command to remove everything except .git directory
-            await run_shell_command(
-                [
-                    "find",
-                    ".",
-                    "-mindepth",
-                    "1",
-                    "-maxdepth",
-                    "1",
-                    "!",
-                    "-name",
-                    ".git",
-                    "-exec",
-                    "rm",
-                    "-rf",
-                    "{}",
-                    "+",
-                ],
-                cwd=repo_path,
-            )
+        # Use find command to remove everything except .git directory
+        await run_shell_command(
+            [
+                "find",
+                ".",
+                "-mindepth",
+                "1",
+                "-maxdepth",
+                "1",
+                "!",
+                "-name",
+                ".git",
+                "-exec",
+                "rm",
+                "-rf",
+                "{}",
+                "+",
+            ],
+            cwd=repo_path,
+        )
 
-            self.logger.info("Working directory cleanup completed")
-
-        except Exception as e:
-            self.logger.error(f"Failed to cleanup working directory: {e}")
-            # Don't raise the exception as cleanup failure shouldn't stop the cloning process
-            # The process can continue with the files present
+        self.logger.info("Working directory cleanup completed")
 
     async def _calculate_batch_depth(self, repo_path: str, remote: str) -> int:
         calculated_depth = None
@@ -213,16 +306,16 @@ class CloneService(BaseService):
         total_branches_tags = len(total_branches_tags.splitlines())
         if total_branches_tags <= 200:
             # Small repo, get a decent amount of history
-            calculated_depth = 250
+            calculated_depth = 500
         elif total_branches_tags <= 1000:
             # Medium repo, get a moderate amount of history
-            calculated_depth = 150
+            calculated_depth = 300
         elif total_branches_tags <= 5000:
             # Large repo, get less history
-            calculated_depth = 10
+            calculated_depth = 20
         else:
             # Very large repo, get a minimal history
-            calculated_depth = 5
+            calculated_depth = 10
         self.logger.info(
             f"total_branches_tags={total_branches_tags}, calculated_depth={calculated_depth}"
         )
@@ -289,8 +382,7 @@ class CloneService(BaseService):
             raise
         finally:
             if temp_repo_path and os.path.exists(temp_repo_path):
-                self.logger.info(f"cleaning temp dir {temp_repo_path}")
-                shutil.rmtree(temp_repo_path)
+                await self._cleanup_temp_directory(temp_repo_path, repo_id)
 
             # Save metrics
             service_execution = ServiceExecution(

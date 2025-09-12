@@ -16,6 +16,7 @@ class ErrorCode(str, Enum):
     VALIDATION = "validation"
     NO_MAINTAINER_FILE = "no-maintainer-file"
     MAINTAINER_ANALYSIS_FAILED = "maintainer_analysis_failed"
+    CLEANUP_FAILED = "cleanup-failed"
 
 
 class RepositoryState(str, Enum):

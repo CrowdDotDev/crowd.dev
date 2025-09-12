@@ -27,7 +27,8 @@ class QueueService(BaseService):
             "client_id": self._CLIENT_ID,
             "acks": "all",
         }
-
+        if not CROWD_KAFKA_EXTRA:
+            return config
         # Parse extra configuration from kafkajs config
         extra_config = json.loads(CROWD_KAFKA_EXTRA)
 
