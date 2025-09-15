@@ -266,7 +266,7 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
-const timestamp = ref(dateHelper(props.entity.lastActive).toISOString());
+const timestamp = ref(dateHelper(props.entity.joinedAt).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
@@ -340,25 +340,13 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   filterToApply.and = [
     {
       timestamp: {
-        lte: timestamp.value,
+        gte: timestamp.value,
       },
     },
-    ...(timestamp.value
-      ? [
-        {
-          timestamp: {
-            gte: dateHelper(timestamp.value)
-              .subtract(1, 'month')
-              .toISOString(),
-          },
-        },
-      ]
-      : []),
   ];
 
   if (reset) {
     activities.value.length = 0;
-    timestamp.value = dateHelper().toISOString();
     noMore.value = false;
   }
 
@@ -379,20 +367,11 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   loading.value = false;
 
-  const activityIds = activities.value.map((a) => a.id);
-  const rows = data.rows.filter((a) => !activityIds.includes(a.id));
-  if (rows.length >= props.entity.activityCount) {
-    noMore.value = true;
-  }
-  activities.value = reset ? rows : [...activities.value, ...rows];
+  // Use response count to determine if there are more activities
+  noMore.value = data.rows.length >= data.count;
 
-  if (data.rows.length === 0) {
-    timestamp.value = dateHelper(timestamp.value)
-      .subtract(1, 'month')
-      .toISOString();
-  } else {
-    timestamp.value = dateHelper(data.rows.at(-1).timestamp).toISOString();
-  }
+  // Update activities
+  activities.value = [...activities.value, ...data.rows];
 };
 
 const reloadActivities = async () => {
