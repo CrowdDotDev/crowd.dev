@@ -48,7 +48,22 @@ SCHEMA >
     `gitLines` Int32 `json:$.gitLines` DEFAULT 0,
     `gitInsertions` Int32 `json:$.gitInsertions` DEFAULT 0,
     `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
-    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0
+    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0,
+    `importHash` String `json:$.importHash` DEFAULT '',
+    `deletedAt` DateTime64(3) `json:$.deletedAt` DEFAULT toDateTime64(0, 3),
+    `memberId` UUID `json:$.memberId`,
+    `parentId` UUID `json:$.parentId`,
+    `tenantId` LowCardinality(String) `json:$.tenantId` DEFAULT '',
+    `createdById` UUID `json:$.createdById`,
+    `updatedById` UUID `json:$.updatedById`,
+    `conversationId` UUID `json:$.conversationId`,
+    `username` String `json:$.username` DEFAULT '',
+    `objectMemberId` UUID `json:$.objectMemberId`,
+    `objectMemberUsername` String `json:$.objectMemberUsername` DEFAULT '',
+    `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT '',
+    `organizationId` UUID `json:$.organizationId`,
+    `member_isBot` UInt8 `json:$.member_isBot` DEFAULT 0,
+    `member_isTeamMember` UInt8 `json:$.member_isTeamMember` DEFAULT 0
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
