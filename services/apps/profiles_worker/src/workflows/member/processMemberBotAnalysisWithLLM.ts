@@ -26,7 +26,7 @@ export async function processMemberBotAnalysisWithLLM(
   args: ProcessMemberBotSuggestionWithLLMInput,
 ): Promise<void> {
   const memberId = args.memberId
-  const THRESHOLD = 0.9
+  const THRESHOLD = 0.99
 
   const member = await getMemberForBotAnalysis(memberId)
 
