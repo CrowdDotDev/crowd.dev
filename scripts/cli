@@ -560,7 +560,7 @@ function wait_for_tinybird() {
     attempt=1
 
     while [ $attempt -le $MAX_RETRIES ]; do
-        CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "{$TB_HOST}/tokens" | jq -r '.workspace_admin_token')
+        CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "$TB_HOST/tokens" | jq -r '.workspace_admin_token')
 
         if [ -n "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ]; then
             say "Tinybird local is ready!"
