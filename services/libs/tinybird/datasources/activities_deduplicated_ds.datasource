@@ -33,7 +33,10 @@ SCHEMA >
     `gitChangedLines` Int64,
     `gitChangedLinesBucket` String,
     `score` Int8,
-    `attributes` String
+    `attributes` String,
+    `body` String DEFAULT '',
+    `title` String DEFAULT '',
+    `url` String DEFAULT ''
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)

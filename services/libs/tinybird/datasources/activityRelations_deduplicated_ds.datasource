@@ -28,8 +28,14 @@ SCHEMA >
     `parentId` String,
     `platform` LowCardinality(String),
     `segmentId` String,
-    `username` String
-
+    `username` String,
+    `channel` String DEFAULT '',
+    `isContribution` UInt8 DEFAULT 0,
+    `sourceId` String,
+    `sourceParentId` String DEFAULT '',
+    `timestamp` DateTime64(3) DEFAULT createdAt,
+    `type` LowCardinality(String)
+    
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY updatedAt, activityId, memberId
