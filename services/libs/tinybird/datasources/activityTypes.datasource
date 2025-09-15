@@ -1,0 +1,24 @@
+DESCRIPTION >
+    - `activityTypes` contains all the possible activity types we consider.
+    - `id` is the unique identifier for the activity type record.
+    - `activityType` specifies the activity type (issues-opened, pull-request-opened, etc.). Using LowCardinality.
+    - `platform` is the platform the activity type applies to (github, gitlab, gerrit, etc.). Using LowCardinality.
+    - `isCodeContribution` indicates whether this activity counts as a code contribution.
+    - `isCollaboration` indicates whether this activity counts as a collaboration.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Activity preprocessing pipeline"
+
+SCHEMA >
+    `id` UUID `json:$.id`,
+    `activityType` LowCardinality(String) `json:$.activityType`,
+    `platform` LowCardinality(String) `json:$.platform`,
+    `isCodeContribution` Bool `json:$.isCodeContribution`,
+    `isCollaboration` Bool `json:$.isCollaboration`,
+    `createdAt` DateTime64(3) `json:$.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(platform)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt
