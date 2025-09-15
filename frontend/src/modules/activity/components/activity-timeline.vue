@@ -266,6 +266,7 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
+const offset = ref(0);
 const timestamp = ref(dateHelper(props.entity.joinedAt).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
@@ -347,6 +348,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   if (reset) {
     activities.value.length = 0;
+    offset.value = 0;
     noMore.value = false;
   }
 
@@ -360,6 +362,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
+    offset: offset.value,
     segments: selectedSegment.value
       ? [selectedSegment.value]
       : segments.value.map((s) => s.id),
@@ -368,10 +371,13 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   loading.value = false;
 
   // Use response count to determine if there are more activities
-  noMore.value = data.rows.length >= data.count;
+  noMore.value = data.rows.length < data.count;
 
   // Update activities
   activities.value = [...activities.value, ...data.rows];
+
+  // Update offset for next pagination
+  offset.value += data.rows.length;
 };
 
 const reloadActivities = async () => {
