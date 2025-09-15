@@ -371,7 +371,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   loading.value = false;
 
   // Use response count to determine if there are more activities
-  noMore.value = data.rows.length < data.count;
+  noMore.value = data.rows.length < limit.value;
 
   // Update activities
   activities.value = [...activities.value, ...data.rows];
@@ -381,7 +381,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 };
 
 const reloadActivities = async () => {
-  platform.value = undefined;
+  platform.value = null;
   await fetchActivities();
 };
 
@@ -404,7 +404,7 @@ watch(platform, async (newValue, oldValue) => {
 onMounted(async () => {
   await store.dispatch(
     'integration/doFetch',
-    segments.value.map((s) => s.id),
+    segments.value.map((s: any) => s.id),
   );
   await fetchActivities();
 });
