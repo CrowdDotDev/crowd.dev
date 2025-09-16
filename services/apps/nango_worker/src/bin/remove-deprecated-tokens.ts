@@ -22,9 +22,14 @@ setImmediate(async () => {
 
   for (const tokenConnection of tokenConnectionsToRemove) {
     log.info(`Removing token connection ${tokenConnection}`)
-    const data = await getNangoConnectionData(NangoIntegration.GITHUB, tokenConnection)
-    if (data) {
-      await deleteNangoConnection(NangoIntegration.GITHUB, tokenConnection)
+    try {
+      const data = await getNangoConnectionData(NangoIntegration.GITHUB, tokenConnection)
+      if (data) {
+        await deleteNangoConnection(NangoIntegration.GITHUB, tokenConnection)
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2))
+      throw err
     }
   }
 
