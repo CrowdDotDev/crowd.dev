@@ -1,6 +1,6 @@
 DESCRIPTION >
     - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
-    - Created via copy pipe from `activities` datasource with deduplication and field selection for performance.
+- Created via copy pipe from `activities` datasource with deduplication and field selection for performance.
     - Since aggregations are mainly done on relationships, `activityRelations_deduplicated_cleaned_ds` should be used for reporting purposes instead.
     - Optimized subset of activity fields focused on core analytics needs.
     - `id` is the unique identifier for the activity record.
@@ -16,6 +16,9 @@ DESCRIPTION >
     - `gitChangedLinesBucket` categorizes the size of git changes into buckets.
     - `score` is the computed importance/impact score for the activity.
     - `attributes` contains additional JSON metadata specific to the activity type.
+    - `body` contains the activity’s textual body/content when applicable; empty string if not applicable.
+    - `title` contains the activity’s title/subject when applicable; empty string if not applicable.
+    - `url` is the direct link to the activity on the source platform; empty string if not available.
 
 TAGS "Activity preprocessing pipeline"
 
