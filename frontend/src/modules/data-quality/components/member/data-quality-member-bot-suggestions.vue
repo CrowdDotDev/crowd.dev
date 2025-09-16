@@ -11,12 +11,13 @@
       >
         <template #action>
           <div class="flex gap-3">
-            <lf-button type="secondary" size="small" @click="markAsBot(suggestion)" :loading="itemsLoading[suggestion.memberId]">
+            <lf-button type="secondary" size="small" @click="markAsBot(suggestion, true)" :disabled="itemsLoading[suggestion.memberId]">
               <!-- <lf-icon name="eye" /> -->
-              <img alt="LFX logo" :src="botImage" />
+              <img alt="LFX logo" :src="botImage" v-if="!itemsLoading[suggestion.memberId]" />
+              <lf-spinner v-else size="16px" />
               Mark as bot
             </lf-button>
-            <lf-member-bot-suggestion-dropdown :suggestion="suggestion" @reload="reload()" />
+            <lf-member-bot-suggestion-dropdown :suggestion="suggestion" @reload="reload()" @ignoreSuggestion="markAsBot(suggestion, false)" />
           </div>
         </template>
       </lf-data-quality-member-bot-suggestion-item>
@@ -41,22 +42,12 @@
       </p>
     </div>
   </div>
-  <!-- <app-member-merge-suggestions-dialog
-    v-model="isModalOpen"
-    :offset="detailsOffset"
-    :query="{
-      orderBy: ['similarity_DESC', 'activityCount_DESC'],
-      filter: { similarity: ['high'] },
-      segments: segments,
-    }"
-    @reload="offset = 0; loadMergeSuggestions()"
-  /> -->
 </template>
 
 <script lang="ts" setup>
 import { MemberService } from '@/modules/member/member-service';
 import {
-  computed, onMounted, ref, watch,
+  onMounted, ref, watch,
 } from 'vue';
 import LfDataQualityMemberBotSuggestionItem
   from '@/modules/data-quality/components/member/data-quality-member-bot-suggestion-item.vue';
@@ -64,9 +55,6 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ToastStore } from '@/shared/message/notification';
-// import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
-// import { storeToRefs } from 'pinia';
-// import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfMemberBotSuggestionDropdown
   from '@/modules/member/components/suggestions/member-bot-suggestion-dropdown.vue';
 import LfScrollBodyControll from '@/ui-kit/scrollcontroll/ScrollBodyControll.vue';
@@ -82,28 +70,10 @@ const limit = ref(20);
 const offset = ref(0);
 const total = ref(0);
 const botSuggestions = ref<any[]>([]);
-const itemsLoading = ref<any>({"123e4567-e89b-12d3-a456-426614174001": true});
+const itemsLoading = ref<any>({});
 
-// const isModalOpen = ref<boolean>(false);
 const detailsOffset = ref<number>(0);
 
-// const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-
-// const segments = computed(() => (selectedProjectGroup.value?.id === props.projectGroup
-//   ? [
-//     selectedProjectGroup.value?.id,
-//     ...selectedProjectGroup.value.projects.map((p) => [
-//       ...p.subprojects.map((sp) => sp.id),
-//     ]).flat(),
-//   ]
-//   : [
-//     props.projectGroup,
-//     ...selectedProjectGroup.value.projects
-//       .filter((p) => p.id === props.projectGroup)
-//       .map((p) => [
-//         ...p.subprojects.map((sp) => sp.id),
-//       ]).flat(),
-//   ]));
 
 const loadBotSuggestions = () => {
   loading.value = true;
@@ -123,7 +93,7 @@ const loadBotSuggestions = () => {
     });
 };
 
-const markAsBot = (suggestion: any) => {
+const markAsBot = (suggestion: any, bot = true) => {
   itemsLoading.value[suggestion.memberId] = true;
 
   setTimeout(() => {
@@ -131,8 +101,8 @@ const markAsBot = (suggestion: any) => {
   }, 1000);
   // MemberService.update(suggestion.memberId, {
   //   "isBot": {
-  //     "custom": true,
-  //     "default": true
+  //     "custom": bot,
+  //     "default": bot
   //   }
   // }).then(() => {
   //   reload();

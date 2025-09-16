@@ -10,7 +10,7 @@
       </lf-button>
     </template>
 
-    <lf-dropdown-item @click="merge(props.suggestion)">
+    <lf-dropdown-item @click="viewProfile(props.suggestion)">
       <lf-icon name="eye" />View profile
     </lf-dropdown-item>
 
@@ -25,59 +25,35 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { MemberService } from '@/modules/member/member-service';
-
-import { ToastStore } from '@/shared/message/notification';
-import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   suggestion: any,
 }>();
 
-const emit = defineEmits<{(e: 'reload'): void}>();
+const emit = defineEmits<{
+  (e: 'reload'): void;
+  (e: 'ignoreSuggestion', suggestion: any): void;
+}>();
 
 const { trackEvent } = useProductTracking();
-
-const sending = ref<string>('');
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+const router = useRouter();
 
 const viewProfile = (suggestion: any) => {
-  if (sending.value.length) {
-    return;
-  }
+  router.push({
+    name: 'memberView',
+    params: { id: suggestion.memberId },
+    query: { projectGroup: selectedProjectGroup.value?.id },
+  });
 
-  // TODO: Implement view profile
-  // const primaryMember = suggestion.members[0];
-  // const secondaryMember = suggestion.members[1];
-  // sending.value = `${primaryMember.id}:${secondaryMember.id}`;
-
-  // const { loadingMessage } = useMemberMergeMessage;
-
-  // loadingMessage();
-
-  // MemberService.merge(primaryMember, secondaryMember)
-  //   .then(() => {
-  //     ToastStore.closeAll();
-  //     ToastStore.info(
-  //       "We're finalizing profiles merging. We will let you know once the process is completed.",
-  //       {
-  //         title: 'Profiles merging in progress',
-  //       },
-  //     );
-  //   })
-  //   .finally(() => {
-  //     emit('reload');
-  //     sending.value = '';
-  //   });
 };
 
 const ignore = (suggestion: any) => {
-  if (sending.value.length) {
-    return;
-  }
-
   trackEvent({
     key: FeatureEventKey.IGNORE_MEMBER_BOT_SUGGESTION,
     type: EventType.FEATURE,
@@ -86,19 +62,7 @@ const ignore = (suggestion: any) => {
     },
   });
 
-  const primaryMember = suggestion.members[0];
-  const secondaryMember = suggestion.members[1];
-  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
-
-  // TODO: Implement bot suggestion ignoring
-  // MemberService.addToNoMerge(...suggestion.members)
-  //   .then(() => {
-  //     ToastStore.success('Merging suggestion ignored successfully');
-  //     emit('reload');
-  //   })
-  //   .finally(() => {
-  //     sending.value = '';
-  //   });
+  emit('ignoreSuggestion', suggestion);
 };
 
 </script>
