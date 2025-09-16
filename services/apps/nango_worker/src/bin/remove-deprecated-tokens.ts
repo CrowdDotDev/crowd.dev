@@ -28,8 +28,11 @@ setImmediate(async () => {
         await deleteNangoConnection(NangoIntegration.GITHUB, tokenConnection)
       }
     } catch (err) {
-      console.log(JSON.stringify(err, null, 2))
-      throw err
+      if (err.status === 404) {
+        continue
+      } else {
+        throw err
+      }
     }
   }
 
@@ -39,23 +42,27 @@ setImmediate(async () => {
   )
 
   for (const githubConnection of githubConnections) {
-    log.info(`Modifying metadata for connection ${githubConnection.connection_id}!`)
-
     const data = await getNangoConnectionData(
       NangoIntegration.GITHUB,
       githubConnection.connection_id,
     )
 
     const metadata = data.metadata
+    const existingConnectionIds = metadata.connection_ids as string[]
+    for (const connectionId of existingConnectionIds) {
+      if (tokenConnectionsToRemove.includes(connectionId)) {
+        log.info(`Modifying metadata for connection ${githubConnection.connection_id}!`)
 
-    const newMetadata = {
-      ...metadata,
-      connection_ids: (metadata.connection_ids as string[]).filter(
-        (c) => !tokenConnectionsToRemove.includes(c),
-      ),
+        const newMetadata = {
+          ...metadata,
+          connection_ids: (metadata.connection_ids as string[]).filter(
+            (c) => !tokenConnectionsToRemove.includes(c),
+          ),
+        }
+
+        await setNangoMetadata(NangoIntegration.GITHUB, githubConnection.connection_id, newMetadata)
+      }
     }
-
-    await setNangoMetadata(NangoIntegration.GITHUB, githubConnection.connection_id, newMetadata)
   }
 
   process.exit(0)
