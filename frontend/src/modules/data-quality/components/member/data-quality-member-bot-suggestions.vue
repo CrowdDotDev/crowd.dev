@@ -3,22 +3,24 @@
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
-    <lf-scroll-body-controll v-else-if="mergeSuggestions.length > 0" @bottom="loadMore()">
+    <lf-scroll-body-controll v-else-if="botSuggestions.length > 0" @bottom="loadMore()">
       <lf-data-quality-member-bot-suggestion-item
-        v-for="(suggestion, si) of mergeSuggestions"
+        v-for="(suggestion) of botSuggestions"
         :key="suggestion.id"
         :suggestion="suggestion"
       >
         <template #action>
           <div class="flex gap-3">
-            <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
-              <lf-icon name="eye" />View suggestion
+            <lf-button type="secondary" size="small" @click="markAsBot(suggestion)" :loading="itemsLoading[suggestion.memberId]">
+              <!-- <lf-icon name="eye" /> -->
+              <img alt="LFX logo" :src="botImage" />
+              Mark as bot
             </lf-button>
             <lf-member-bot-suggestion-dropdown :suggestion="suggestion" @reload="reload()" />
           </div>
         </template>
       </lf-data-quality-member-bot-suggestion-item>
-      <div v-if="mergeSuggestions.length < total" class="pt-4">
+      <div v-if="botSuggestions.length < total" class="pt-4">
         <lf-button
           type="primary-ghost"
           loading-text="Loading suggestions..."
@@ -61,9 +63,10 @@ import LfDataQualityMemberBotSuggestionItem
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { ToastStore } from '@/shared/message/notification';
 // import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+// import { storeToRefs } from 'pinia';
+// import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfMemberBotSuggestionDropdown
   from '@/modules/member/components/suggestions/member-bot-suggestion-dropdown.vue';
 import LfScrollBodyControll from '@/ui-kit/scrollcontroll/ScrollBodyControll.vue';
@@ -72,49 +75,47 @@ const props = defineProps<{
   projectGroup: string,
 }>();
 
+const botImage = new URL('@/assets/images/suggestions/bot.svg', import.meta.url).href;
+
 const loading = ref(true);
 const limit = ref(20);
 const offset = ref(0);
 const total = ref(0);
-const mergeSuggestions = ref<any[]>([]);
+const botSuggestions = ref<any[]>([]);
+const itemsLoading = ref<any>({"123e4567-e89b-12d3-a456-426614174001": true});
 
-const isModalOpen = ref<boolean>(false);
+// const isModalOpen = ref<boolean>(false);
 const detailsOffset = ref<number>(0);
 
-const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+// const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
-const segments = computed(() => (selectedProjectGroup.value?.id === props.projectGroup
-  ? [
-    selectedProjectGroup.value?.id,
-    ...selectedProjectGroup.value.projects.map((p) => [
-      ...p.subprojects.map((sp) => sp.id),
-    ]).flat(),
-  ]
-  : [
-    props.projectGroup,
-    ...selectedProjectGroup.value.projects
-      .filter((p) => p.id === props.projectGroup)
-      .map((p) => [
-        ...p.subprojects.map((sp) => sp.id),
-      ]).flat(),
-  ]));
+// const segments = computed(() => (selectedProjectGroup.value?.id === props.projectGroup
+//   ? [
+//     selectedProjectGroup.value?.id,
+//     ...selectedProjectGroup.value.projects.map((p) => [
+//       ...p.subprojects.map((sp) => sp.id),
+//     ]).flat(),
+//   ]
+//   : [
+//     props.projectGroup,
+//     ...selectedProjectGroup.value.projects
+//       .filter((p) => p.id === props.projectGroup)
+//       .map((p) => [
+//         ...p.subprojects.map((sp) => sp.id),
+//       ]).flat(),
+//   ]));
 
-const loadMergeSuggestions = () => {
+const loadBotSuggestions = () => {
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(limit.value, offset.value, {
-    detail: false,
-    filter: { similarity: ['high'] },
-    orderBy: ['similarity_DESC', 'activityCount_DESC'],
-    segments: segments.value,
-  })
+  MemberService.fetchBotSuggestions(limit.value, offset.value)
     .then((res) => {
       total.value = +res.count;
-      const rows = res.rows.filter((s: any) => s.similarity > 0);
+      const rows = res.rows.filter((s: any) => s.confidence > 0);
       if (+res.offset > 0) {
-        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
+        botSuggestions.value = [...botSuggestions.value, ...rows];
       } else {
-        mergeSuggestions.value = rows;
+        botSuggestions.value = rows;
       }
     })
     .finally(() => {
@@ -122,23 +123,43 @@ const loadMergeSuggestions = () => {
     });
 };
 
+const markAsBot = (suggestion: any) => {
+  itemsLoading.value[suggestion.memberId] = true;
+
+  setTimeout(() => {
+    itemsLoading.value[suggestion.memberId] = false;
+  }, 1000);
+  // MemberService.update(suggestion.memberId, {
+  //   "isBot": {
+  //     "custom": true,
+  //     "default": true
+  //   }
+  // }).then(() => {
+  //   reload();
+  // }).catch((err) => {
+  //   ToastStore.error(err.response.data);
+  // }).finally(() => {
+  //   itemsLoading.value[suggestion.id] = false;
+  // });
+};
+
 const loadMore = () => {
-  offset.value = mergeSuggestions.value.length;
-  loadMergeSuggestions();
+  offset.value = botSuggestions.value.length;
+  loadBotSuggestions();
 };
 
 const reload = () => {
   offset.value = 0;
-  loadMergeSuggestions();
+  loadBotSuggestions();
 };
 
 watch(() => props.projectGroup, () => {
   offset.value = 0;
-  loadMergeSuggestions();
+  loadBotSuggestions();
 });
 
 onMounted(() => {
-  loadMergeSuggestions();
+  loadBotSuggestions();
 });
 </script>
 

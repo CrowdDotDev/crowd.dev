@@ -1,23 +1,18 @@
 <template>
   <article class="border-b border-gray-100 py-5 flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <template v-for="(member, mi) of props.suggestion.members" :key="member.id">
-        <div v-if="mi > 0">
-          <lf-icon name="arrow-left" :size="16" class="text-gray-400" />
+      <div class="flex items-center gap-3">
+        <lf-avatar
+          :src="suggestion.avatarUrl"
+          :name="suggestion.displayName"
+          :size="32"
+        />
+        <div>
+          <p class="text-medium font-semibold truncate" style="max-width: 30ch">
+            {{ suggestion.displayName }}
+          </p>
         </div>
-        <div class="flex items-center gap-3">
-          <lf-avatar
-            :src="member.avatarUrl"
-            :name="member.displayName"
-            :size="32"
-          />
-          <div>
-            <p class="text-medium font-semibold truncate" style="max-width: 30ch">
-              {{ member.displayName }}
-            </p>
-          </div>
-        </div>
-      </template>
+      </div>
       <div class="flex gap-2">
         <lf-badge type="warning" size="small" class="!font-semibold">
           Bot suggestion
