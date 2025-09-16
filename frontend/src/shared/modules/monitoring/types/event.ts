@@ -1,10 +1,10 @@
 export interface Event {
-  userId: string;
-  userEmail: string;
-  key: string;
-  type: string;
-  sessionId: string;
-  properties?: Record<string, any>;
+  userId: string
+  userEmail: string
+  key: string
+  type: string
+  sessionId: string
+  properties?: Record<string, any>
 }
 
 export enum EventType {
@@ -88,10 +88,12 @@ export enum FeatureEventKey {
   VIEW_MEMBER_MERGE_SUGGESTION = 'View contributor merge suggestion',
   NAVIGATE_MEMBERS_MERGE_SUGGESTIONS = 'Navigate contributors merge suggestions',
   IGNORE_MEMBER_MERGE_SUGGESTION = 'Ignore contributor merge suggestion',
+  IGNORE_MEMBER_BOT_SUGGESTION = 'Ignore contributor bot suggestion',
   VIEW_ORGANIZATION_MERGE_SUGGESTION = 'View organization merge suggestion',
   NAVIGATE_ORGANIZATIONS_MERGE_SUGGESTIONS = 'Navigate organizations merge suggestions',
   IGNORE_ORGANIZATION_MERGE_SUGGESTION = 'Ignore organization merge suggestion',
   MERGE_MEMBER_MERGE_SUGGESTION = 'Merge contributor merge suggestion',
+  MARK_MEMBER_BOT_SUGGESTION = 'Mark contributor as bot suggestion',
   MERGE_ORGANIZATION_MERGE_SUGGESTION = 'Merge organization merge suggestion',
   ADD_PROJECT_GROUP = 'Add project group',
   SEARCH_PROJECT_GROUPS = 'Search project groups',

@@ -139,7 +139,7 @@ services:
       - crowd-bridge
 
   kafka:
-    image: bitnami/kafka:3.8.1
+    image: bitnami/kafka:3.8.0-debian-12-r6
     restart: unless-stopped
     environment:
       - KAFKA_CFG_NODE_ID=0
@@ -178,7 +178,7 @@ services:
       - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
     networks:
       - crowd-bridge
-  
+
   temporal:
     build:
       context: scaffold/temporal
