@@ -134,13 +134,14 @@ class RepositoryWorker:
             service.reset_logger_context()
 
     async def _process_single_repository(self, repository: Repository):
-        """Process a single repository through services with incremental processing"""
+        """Process a single repository through services with full clone for new repos, incremental for existing"""
         logger.info("Processing repository: {}", repository.url)
         processing_state = RepositoryState.PENDING
 
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
+            # Use full clone for new repositories (no last_processed_commit), batched clone for existing ones
             clone_with_batches = True if repository.last_processed_commit else False
             logger.info(
                 f"Starting repository cloning for {repo_name} with batching={clone_with_batches}"

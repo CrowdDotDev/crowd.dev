@@ -133,7 +133,11 @@ class CloneService(BaseService):
         target_commit_hash: Optional[str],
         clone_with_batches: bool,
     ) -> None:
-        """Update batch info with repo path, final batch status, and total processed commits count"""
+        """Update batch info with repo path and final batch status.
+
+        For full clones (clone_with_batches=False): Marks as final batch immediately.
+        For batched clones (clone_with_batches=True): Checks if target commit reached or full history fetched.
+        """
         batch_info.repo_path = repo_path
 
         if batch_info.is_first_batch:
@@ -143,6 +147,7 @@ class CloneService(BaseService):
                 cwd=repo_path,
             )
         if not clone_with_batches:
+            # Full clone: always final batch since entire repository history is available
             batch_info.is_final_batch = True
             return
 
@@ -265,8 +270,9 @@ class CloneService(BaseService):
         return calculated_depth
 
     async def _clone_repo(self, repo_path: str, remote: str):
+        """Perform full repository clone for new repositories that haven't been processed before"""
         await run_shell_command(["git", "clone", remote, repo_path], cwd=repo_path)
-        self.logger.info("cloned full repo")
+        self.logger.info(f"Successfully completed full clone of repository: {remote}")
 
     async def clone_batches_generator(
         self,
@@ -275,7 +281,12 @@ class CloneService(BaseService):
         clone_with_batches: Optional[bool] = True,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
-        Async generator that yields CloneBatchInfo for each batch of repository cloning.
+        Async generator that yields CloneBatchInfo for repository cloning.
+
+        For new repositories (clone_with_batches=False): Performs full clone to avoid inefficient batching (stacked git objects).
+
+        For existing repositories (clone_with_batches=True): Uses incremental batched
+        processing to fetch only new commits since last processing.
         """
         temp_repo_path = None
         execution_status = ExecutionStatus.SUCCESS
@@ -300,7 +311,10 @@ class CloneService(BaseService):
                 self.logger.info(f"Performing full clone for repo: {remote}")
                 await self._clone_repo(temp_repo_path, remote)
             else:
-                # First batch - initial clone
+                # Incremental processing: start with minimal clone and fetch in batches
+                self.logger.info(
+                    f"Performing incremental batched clone for existing repository: {remote}"
+                )
                 await self._init_minimal_clone(temp_repo_path, remote)
                 batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
             await self._update_batch_info(
@@ -319,7 +333,10 @@ class CloneService(BaseService):
                 batch_info.prev_batch_edge_commit = await self._get_edge_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
                 await self._update_batch_info(
-                    batch_info, temp_repo_path, repository.last_processed_commit, clone_with_batches
+                    batch_info,
+                    temp_repo_path,
+                    repository.last_processed_commit,
+                    clone_with_batches,
                 )
                 batch_end_time = time.time()
                 total_execution_time += round(batch_end_time - batch_start_time, 2)
