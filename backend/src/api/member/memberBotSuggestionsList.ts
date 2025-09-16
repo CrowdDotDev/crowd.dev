@@ -8,7 +8,9 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @summary List member bot suggestions
  * @tag Members
  * @security Bearer
- * @description List member bot suggestions
+ * @description List member bot suggestions with pagination
+ * @queryParam {number} [offset] - Skip the first n results. Default 0.
+ * @queryParam {number} [limit] - Limit the number of results. Default 20.
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
  * @response 401 - Unauthorized

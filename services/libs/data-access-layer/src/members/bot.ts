@@ -1,3 +1,5 @@
+import { PageData } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 import { IDbMemberBotSuggestionBySegment, IDbMemberBotSuggestionInsert } from './types'
@@ -123,24 +125,41 @@ export async function fetchMemberBotSuggestionsBySegment(
   segmentId: string,
   limit: number,
   offset: number,
-): Promise<IDbMemberBotSuggestionBySegment[]> {
-  const rows = await qx.select(
-    `
+): Promise<PageData<IDbMemberBotSuggestionBySegment>> {
+  const params = { segmentId, limit, offset }
+
+  const createQuery = (fields: string) => `
     SELECT
+      ${fields}
+    FROM "memberBotSuggestions" mbs
+    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId"
+    AND msa."segmentId" = $(segmentId)
+    INNER JOIN "members" m ON mbs."memberId" = m.id
+  `
+
+  const countQuery = createQuery('COUNT(*)')
+
+  const dataQuery = `
+    ${createQuery(`
       mbs."memberId",
       mbs.confidence,
       msa."activityCount",
       m."displayName",
       m.attributes -> 'avatarUrl' ->> 'default' AS "avatarUrl"
-    FROM "memberBotSuggestions" mbs
-    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId"
-    AND msa."segmentId" = $(segmentId)
-    INNER JOIN "members" m ON mbs."memberId" = m.id
+    `)}
     ORDER BY msa."activityCount" DESC, mbs.confidence DESC
-    LIMIT $(limit) OFFSET $(offset);
-    `,
-    { segmentId, limit, offset },
-  )
+    LIMIT $(limit) OFFSET $(offset)
+  `
 
-  return rows
+  const results = await Promise.all([
+    qx.select(dataQuery, params),
+    qx.selectOne(countQuery, params),
+  ])
+
+  return {
+    rows: results[0],
+    count: parseInt(results[1].count, 10),
+    limit,
+    offset,
+  }
 }
