@@ -6,8 +6,7 @@ import shutil
 import os
 from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.utils import run_shell_command, get_repo_name, get_default_branch
-from crowdgit.models import CloneBatchInfo
-from crowdgit.models.service_execution import ServiceExecution
+from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
 from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
 from crowdgit.database.crud import save_service_execution
 from crowdgit.errors import CommandExecutionError, CrowdGitError
@@ -323,9 +322,7 @@ class CloneService(BaseService):
 
     async def clone_batches_generator(
         self,
-        repo_id: str,
-        remote: str,
-        target_commit_hash: Optional[str] = None,
+        repository: Repository,
         working_dir_cleanup: Optional[bool] = False,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
@@ -336,10 +333,11 @@ class CloneService(BaseService):
         error_code = None
         error_message = None
         total_execution_time = 0.0
+        remote = repository.url.removesuffix(".git")
 
         batch_info = CloneBatchInfo(
             repo_path=temp_repo_path,
-            remote=remote.removesuffix(".git"),
+            remote=remote,
             is_final_batch=False,
             is_first_batch=True,
             total_commits_count=0,
@@ -352,7 +350,7 @@ class CloneService(BaseService):
             batch_start_time = time.time()
             await self._init_minimal_clone(temp_repo_path, remote)
             batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
-            await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
+            await self._update_batch_info(batch_info, temp_repo_path, repository.last_processed_commit)
             batch_end_time = time.time()
             total_execution_time += round(batch_end_time - batch_start_time, 2)
 
@@ -365,7 +363,7 @@ class CloneService(BaseService):
                 batch_start_time = time.time()
                 batch_info.prev_batch_edge_commit = await self._get_edge_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
-                await self._update_batch_info(batch_info, temp_repo_path, target_commit_hash)
+                await self._update_batch_info(batch_info, temp_repo_path, repository.last_processed_commit)
                 batch_end_time = time.time()
                 total_execution_time += round(batch_end_time - batch_start_time, 2)
 
@@ -382,11 +380,11 @@ class CloneService(BaseService):
             raise
         finally:
             if temp_repo_path and os.path.exists(temp_repo_path):
-                await self._cleanup_temp_directory(temp_repo_path, repo_id)
+                await self._cleanup_temp_directory(temp_repo_path, repository.id)
 
             # Save metrics
             service_execution = ServiceExecution(
-                repo_id=repo_id,
+                repo_id=repository.id,
                 operation_type=OperationType.CLONE,
                 status=execution_status,
                 error_code=error_code,
