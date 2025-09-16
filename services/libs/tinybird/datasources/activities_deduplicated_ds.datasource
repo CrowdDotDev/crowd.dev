@@ -16,6 +16,9 @@ DESCRIPTION >
     - `gitChangedLinesBucket` categorizes the size of git changes into buckets.
     - `score` is the computed importance/impact score for the activity.
     - `attributes` contains additional JSON metadata specific to the activity type.
+    - `body` contains the activity’s textual body/content when applicable; empty string if not applicable.
+    - `title` contains the activity’s title/subject when applicable; empty string if not applicable.
+    - `url` is the direct link to the activity on the source platform; empty string if not available.
 
 TAGS "Activity preprocessing pipeline"
 
@@ -33,7 +36,10 @@ SCHEMA >
     `gitChangedLines` Int64,
     `gitChangedLinesBucket` String,
     `score` Int8,
-    `attributes` String
+    `attributes` String,
+    `body` String DEFAULT '',
+    `title` String DEFAULT '',
+    `url` String DEFAULT ''
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
