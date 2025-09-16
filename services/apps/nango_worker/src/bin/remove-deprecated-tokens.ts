@@ -47,15 +47,7 @@ setImmediate(async () => {
       ),
     }
 
-    log.info(
-      {
-        oldCount: (metadata.connection_ids as string[]).length,
-        newCount: newMetadata.connection_ids.length,
-      },
-      'Changed',
-    )
-
-    // await setNangoMetadata(NangoIntegration.GITHUB, githubConnection.connection_id, newMetadata)
+    await setNangoMetadata(NangoIntegration.GITHUB, githubConnection.connection_id, newMetadata)
   }
 
   process.exit(0)
