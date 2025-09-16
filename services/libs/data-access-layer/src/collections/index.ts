@@ -1,5 +1,6 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
+import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
   injectSoftDeletionCriteria,
@@ -56,6 +57,7 @@ export interface IInsightsProject {
         url: string
       }[]
     | string[]
+  repositoryGroups: ICreateRepositoryGroup[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {

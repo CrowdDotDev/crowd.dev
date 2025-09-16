@@ -64,6 +64,9 @@
             <lf-tab name="widgets">
               Widgets
             </lf-tab>
+            <lf-tab name="repository-groups">
+              Repository groups
+            </lf-tab>
           </lf-tabs>
           <div class="pt-2.5">
             <div class="tab-content">
@@ -82,6 +85,10 @@
               <lf-insights-project-add-widgets-tab
                 v-else-if="activeTab === 'widgets'"
                 :is-loading="isLoadingWidgets"
+                :form="form"
+              />
+              <lf-insights-project-add-repository-groups
+                v-else-if="activeTab === 'repository-groups'"
                 :form="form"
               />
             </div>
@@ -128,6 +135,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ToastStore } from '@/shared/message/notification';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import LfInsightsProjectAddRepositoryGroups
+  from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-repository-groups.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
 import LfInsightsProjectAddRepositoryTab from './lf-insights-project-add-repository-tab.vue';
 import {
@@ -183,6 +192,7 @@ const initialFormState: InsightsProjectAddFormModel = {
   twitter: '',
   linkedin: '',
   repositories: [],
+  repositoryGroups: [],
   keywords: [],
   searchKeywords: [],
   widgets: Object.fromEntries(
@@ -276,6 +286,7 @@ const onSubmit = () => {
   const request = buildRequest({
     ...form,
   });
+  console.log(request);
   if (isEditForm.value) {
     updateMutation.mutate({
       id: props.insightsProjectId as string,

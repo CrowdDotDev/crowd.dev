@@ -18,6 +18,11 @@ export interface InsightsProjectModel {
     displayName: string;
     logo: string;
   };
+  repositoryGroups?: {
+    id: string;
+    name: string;
+    repositories: string[];
+  }[];
   website: string;
   github: string;
   twitter: string;
@@ -42,7 +47,11 @@ export interface InsightsProjectRequest {
   github?: string;
   twitter?: string;
   linkedin?: string;
-  repositories?: string[]; // assuming url is a string
+  repositories?: string[];
+  repositoryGroups?: {
+    name: string;
+    repositories: string[];
+  }[];
   keywords?: string[];
   searchKeywords?: string[];
   widgets?: string[]; // enabled widget keys
