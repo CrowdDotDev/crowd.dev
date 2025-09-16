@@ -142,10 +142,11 @@ class CloneService(BaseService):
 
         if batch_info.is_first_batch:
             # Set latest commit only from first batch
-            batch_info.latest_commit_in_repo = await run_shell_command(
+            latest_commit_output = await run_shell_command(
                 ["git", "rev-parse", "HEAD"],
                 cwd=repo_path,
             )
+            batch_info.latest_commit_in_repo = latest_commit_output.strip()
         if not clone_with_batches:
             # Full clone: always final batch since entire repository history is available
             batch_info.is_final_batch = True
