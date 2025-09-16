@@ -104,6 +104,7 @@ class CommitService(BaseService):
         self,
         repository: Repository,
         batch_info: CloneBatchInfo,
+        clone_with_batches: bool,
     ) -> None:
         """
         Process commits from a cloned batch.
@@ -134,7 +135,10 @@ class CommitService(BaseService):
                 f"Starting commits processing for new batch having commits older than {batch_info.prev_batch_edge_commit}"
             )
             raw_commits = await self._execute_git_log(
-                batch_info.repo_path, batch_info.prev_batch_edge_commit, batch_info.edge_commit
+                batch_info.repo_path,
+                clone_with_batches,
+                batch_info.prev_batch_edge_commit,
+                batch_info.edge_commit,
             )
 
             await self._process_activities_from_commits(
@@ -216,6 +220,7 @@ class CommitService(BaseService):
     async def _execute_git_log(
         self,
         repo_path: str,
+        clone_with_batches: bool,
         prev_batch_edge_commit: Optional[str] = None,
         edge_commit: Optional[str] = None,
     ) -> str:
@@ -226,7 +231,21 @@ class CommitService(BaseService):
         )
 
         self.logger.info("Running git log command...")
-
+        if not clone_with_batches:
+            commit_reference = await self._get_commit_reference(repo_path)
+            self.logger.info(
+                f"Full repo cloned in single batch, getting all commits in {commit_reference}"
+            )
+            return await run_shell_command(
+                [
+                    "git",
+                    "-C",
+                    repo_path,
+                    "log",
+                    commit_reference,
+                    f"--pretty=format:{self.git_log_format}",
+                ]
+            )
         if not prev_batch_edge_commit:
             return ""
 

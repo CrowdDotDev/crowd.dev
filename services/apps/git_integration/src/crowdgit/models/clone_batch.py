@@ -12,10 +12,6 @@ class CloneBatchInfo(BaseModel):
     latest_commit_in_repo: Optional[str] = Field(
         None, description="Hash of the latest commit in repo"
     )
-    commits_count: int = Field(default=0, description="Number of cloned commits for current batch")
-    total_commits_count: int = Field(
-        default=0, description="Total number of commits cloned so far"
-    )
     edge_commit: Optional[str] = Field(
         default=None,
         description="The oldest commit in the current batch, used to track progress during incremental processing.",

@@ -126,83 +126,27 @@ class CloneService(BaseService):
         # Optimize repository storage using git garbage collection
         await self._optimize_repository_storage(repo_path)
 
-    async def _get_batch_commit_info(
-        self,
-        repo_path: str,
-        total_commits_count: int,
-        is_first_batch: bool = False,
-    ) -> tuple[int, Optional[str]]:
-        """
-        Get commit information for the current batch including count and optionally latest commit.
-
-        Args:
-            repo_path: Path to the repository
-            batch_depth: Number of commits to fetch in this batch
-            total_commits_count: Number of commits already processed in previous batches
-            is_first_batch: Whether this is the first batch (to get latest commit)
-
-        Returns:
-            tuple: (batch_commit_count, latest_commit_hash) where latest_commit_hash is only set for first batch
-        """
-        try:
-            # Count all available commits in the repository
-            #
-            # IMPORTANT: git fetch --deepen={batch_depth} can fetch MORE commits than batch_depth
-            # in repositories with merge commits and complex histories. To avoid counting mismatches
-            # and overlapping batches, we count ALL available commits after each fetch operation
-            # and calculate the actual batch size as the difference from previous total.
-            commit_count_output = await run_shell_command(
-                [
-                    "git",
-                    "rev-list",
-                    "--count",
-                    "HEAD",
-                ],
-                cwd=repo_path,
-            )
-
-            if commit_count_output.strip():
-                total_available_commits = int(commit_count_output.strip())
-
-                # Calculate actual commits in this batch
-                actual_batch_size = total_available_commits - total_commits_count
-
-                # Get latest commit only from first batch (need actual hash for this)
-                latest_commit_in_repo = None
-                if is_first_batch:
-                    latest_commit_output = await run_shell_command(
-                        ["git", "rev-parse", "HEAD"],
-                        cwd=repo_path,
-                    )
-                    latest_commit_in_repo = latest_commit_output.strip()
-
-                return actual_batch_size, latest_commit_in_repo
-
-            return 0, None
-
-        except Exception as e:
-            self.logger.error(f"Failed to get batch commit info: {e}")
-            raise
-
     async def _update_batch_info(
-        self, batch_info: CloneBatchInfo, repo_path: str, target_commit_hash: Optional[str]
+        self,
+        batch_info: CloneBatchInfo,
+        repo_path: str,
+        target_commit_hash: Optional[str],
+        clone_with_batches: bool,
     ) -> None:
         """Update batch info with repo path, final batch status, and total processed commits count"""
         batch_info.repo_path = repo_path
+
+        if batch_info.is_first_batch:
+            # Set latest commit only from first batch
+            batch_info.latest_commit_in_repo = await run_shell_command(
+                ["git", "rev-parse", "HEAD"],
+                cwd=repo_path,
+            )
+        if not clone_with_batches:
+            batch_info.is_final_batch = True
+            return
+
         batch_info.is_final_batch = await self._check_if_final_batch(repo_path, target_commit_hash)
-        (
-            actual_batch_size,
-            latest_commit_in_repo,
-        ) = await self._get_batch_commit_info(
-            repo_path, batch_info.total_commits_count, batch_info.is_first_batch
-        )
-
-        # Set latest commit only from first batch
-        if batch_info.is_first_batch and latest_commit_in_repo:
-            batch_info.latest_commit_in_repo = latest_commit_in_repo
-
-        batch_info.commits_count = actual_batch_size
-        batch_info.total_commits_count += actual_batch_size
         batch_info.edge_commit = await self._get_edge_commit(repo_path)
 
     async def _get_edge_commit(self, repo_path: str):
@@ -320,10 +264,15 @@ class CloneService(BaseService):
         )
         return calculated_depth
 
+    async def _clone_repo(self, repo_path: str, remote: str):
+        await run_shell_command(["git", "clone", remote, repo_path], cwd=repo_path)
+        self.logger.info("cloned full repo")
+
     async def clone_batches_generator(
         self,
         repository: Repository,
         working_dir_cleanup: Optional[bool] = False,
+        clone_with_batches: Optional[bool] = True,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
         Async generator that yields CloneBatchInfo for each batch of repository cloning.
@@ -345,12 +294,18 @@ class CloneService(BaseService):
         try:
             temp_repo_path = tempfile.mkdtemp(prefix=f"{get_repo_name(remote)}_")
             batch_info.repo_path = temp_repo_path
-
-            # First batch - initial clone
             batch_start_time = time.time()
-            await self._init_minimal_clone(temp_repo_path, remote)
-            batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
-            await self._update_batch_info(batch_info, temp_repo_path, repository.last_processed_commit)
+
+            if not clone_with_batches:
+                self.logger.info(f"Performing full clone for repo: {remote}")
+                await self._clone_repo(temp_repo_path, remote)
+            else:
+                # First batch - initial clone
+                await self._init_minimal_clone(temp_repo_path, remote)
+                batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
+            await self._update_batch_info(
+                batch_info, temp_repo_path, repository.last_processed_commit, clone_with_batches
+            )
             batch_end_time = time.time()
             total_execution_time += round(batch_end_time - batch_start_time, 2)
 
@@ -363,7 +318,9 @@ class CloneService(BaseService):
                 batch_start_time = time.time()
                 batch_info.prev_batch_edge_commit = await self._get_edge_commit(temp_repo_path)
                 await self._clone_next_batch(temp_repo_path, batch_depth)
-                await self._update_batch_info(batch_info, temp_repo_path, repository.last_processed_commit)
+                await self._update_batch_info(
+                    batch_info, temp_repo_path, repository.last_processed_commit, clone_with_batches
+                )
                 batch_end_time = time.time()
                 total_execution_time += round(batch_end_time - batch_start_time, 2)
 

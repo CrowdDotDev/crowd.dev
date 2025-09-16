@@ -141,18 +141,22 @@ class RepositoryWorker:
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
-            # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
-            logger.info("Starting repository cloning...")
+            clone_with_batches = True if repository.last_processed_commit else False
+            logger.info(
+                f"Starting repository cloning for {repo_name} with batching={clone_with_batches}"
+            )
             async for batch_info in self.clone_service.clone_batches_generator(
                 repository,
                 working_dir_cleanup=True,
+                clone_with_batches=clone_with_batches,
             ):
                 logger.info(f"Clone batch info: {batch_info}")
                 if batch_info.is_first_batch:
                     await self.software_value_service.run(repository.id, batch_info.repo_path)
                     await self.maintainer_service.process_maintainers(repository, batch_info)
-                else:
-                    await self.commit_service.process_single_batch_commits(repository, batch_info)
+                await self.commit_service.process_single_batch_commits(
+                    repository, batch_info, clone_with_batches
+                )
 
                 if batch_info.is_final_batch:
                     await update_last_processed_commit(
