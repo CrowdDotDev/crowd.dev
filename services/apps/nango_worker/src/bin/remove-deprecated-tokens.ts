@@ -10,7 +10,9 @@ import {
 
 const log = getServiceLogger()
 
-const tokenConnectionsToRemove = (process.env.TOKEN_CONNECTIONS_TO_REMOVE ?? '').split(',')
+const tokenConnectionsToRemove = (process.env.TOKEN_CONNECTIONS_TO_REMOVE ?? '')
+  .split(',')
+  .filter((c) => c.trim().length === 0)
 
 if (tokenConnectionsToRemove.length === 0) {
   log.error('No token connections to remove')
