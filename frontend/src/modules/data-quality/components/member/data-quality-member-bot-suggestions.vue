@@ -72,9 +72,6 @@ const total = ref(0);
 const botSuggestions = ref<any[]>([]);
 const itemsLoading = ref<any>({});
 
-const detailsOffset = ref<number>(0);
-
-
 const loadBotSuggestions = () => {
   loading.value = true;
 
@@ -96,21 +93,21 @@ const loadBotSuggestions = () => {
 const markAsBot = (suggestion: any, bot = true) => {
   itemsLoading.value[suggestion.memberId] = true;
 
-  setTimeout(() => {
+  // setTimeout(() => {
+  //   itemsLoading.value[suggestion.memberId] = false;
+  // }, 1000);
+  MemberService.updateAttributes(suggestion.memberId, {
+    "isBot": {
+      "custom": bot,
+      "default": bot
+    }
+  }).then(() => {
+    reload();
+  }).catch((err) => {
+    ToastStore.error(err.response.data);
+  }).finally(() => {
     itemsLoading.value[suggestion.memberId] = false;
-  }, 1000);
-  // MemberService.update(suggestion.memberId, {
-  //   "isBot": {
-  //     "custom": bot,
-  //     "default": bot
-  //   }
-  // }).then(() => {
-  //   reload();
-  // }).catch((err) => {
-  //   ToastStore.error(err.response.data);
-  // }).finally(() => {
-  //   itemsLoading.value[suggestion.id] = false;
-  // });
+  });
 };
 
 const loadMore = () => {

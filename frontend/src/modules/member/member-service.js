@@ -19,6 +19,15 @@ export class MemberService {
     return response.data
   }
 
+  static async updateAttributes(id, data) {
+    const response = await authAxios.patch(`/member/${id}/attributes`, {
+      ...data,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+    })
+
+    return response.data
+  }
+
   static async updateBulk(data) {
     const response = await authAxios.patch('/member', {
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
@@ -249,67 +258,67 @@ export class MemberService {
 
   static async fetchBotSuggestions(limit, offset) {
     const segments = [getSelectedProjectGroup().id]
-    const fakeData = [
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174000',
-        displayName: 'Bot1',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.9,
-        activityCount: 100,
-      },
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174001',
-        displayName: 'Bot2',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.8,
-        activityCount: 90,
-      },
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174002',
-        displayName: 'Bot3',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.7,
-        activityCount: 80,
-      },
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174003',
-        displayName: 'Bot4',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.6,
-        activityCount: 70,
-      },
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174004',
-        displayName: 'Bot5',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.5,
-        activityCount: 60,
-      },
-      {
-        memberId: '123e4567-e89b-12d3-a456-426614174005',
-        displayName: 'Bot6',
-        avatarUrl: 'https://example.com/avatar.png',
-        confidence: 0.4,
-        activityCount: 50,
-      },
-    ]
+    // const fakeData = [
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174000',
+    //     displayName: 'Bot1',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.9,
+    //     activityCount: 100,
+    //   },
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174001',
+    //     displayName: 'Bot2',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.8,
+    //     activityCount: 90,
+    //   },
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174002',
+    //     displayName: 'Bot3',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.7,
+    //     activityCount: 80,
+    //   },
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174003',
+    //     displayName: 'Bot4',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.6,
+    //     activityCount: 70,
+    //   },
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174004',
+    //     displayName: 'Bot5',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.5,
+    //     activityCount: 60,
+    //   },
+    //   {
+    //     memberId: '123e4567-e89b-12d3-a456-426614174005',
+    //     displayName: 'Bot6',
+    //     avatarUrl: 'https://example.com/avatar.png',
+    //     confidence: 0.4,
+    //     activityCount: 50,
+    //   },
+    // ]
 
-    return Promise.resolve({
-      rows: fakeData,
-      count: fakeData.length,
-      offset,
-      limit,
-    })
+    // return Promise.resolve({
+    //   rows: fakeData,
+    //   count: fakeData.length,
+    //   offset,
+    //   limit,
+    // })
 
-    // return authAxios
-    //   .get('/member/bot-suggestions', {
-    //     params: {
-    //       segments,
-    //       offset,
-    //       limit,
-    //     },
-    //   })
-    //   .then(({ data }) => Promise.resolve(data))
+    return authAxios
+      .get('/member/bot-suggestions', {
+        params: {
+          segments,
+          offset,
+          limit,
+        },
+      })
+      .then(({ data }) => Promise.resolve(data))
   }
 
   static async getCustomAttribute(id) {
