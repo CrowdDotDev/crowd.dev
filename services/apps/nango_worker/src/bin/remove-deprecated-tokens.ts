@@ -38,10 +38,17 @@ setImmediate(async () => {
 
   const allConnections = await getNangoConnections()
   const githubConnections = allConnections.filter(
-    (c) => c.provider_config_key === NangoIntegration.GITHUB,
+    (c) =>
+      c.provider_config_key === NangoIntegration.GITHUB &&
+      !c.connection_id.startsWith('github-token-'),
   )
 
-  for (const githubConnection of githubConnections) {
+  for (let i = 0; i < githubConnections.length; i++) {
+    const githubConnection = githubConnections[i]
+    log.info(
+      `Processing connection ${githubConnection.connection_id} (${i + 1} of ${githubConnections.length})!`,
+    )
+
     const data = await getNangoConnectionData(
       NangoIntegration.GITHUB,
       githubConnection.connection_id,
