@@ -29,6 +29,7 @@ setImmediate(async () => {
       }
     } catch (err) {
       if (err.status === 404) {
+        log.info(`Token connection ${tokenConnection} not found!`)
         continue
       } else {
         throw err
