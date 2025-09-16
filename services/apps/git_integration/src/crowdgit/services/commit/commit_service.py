@@ -328,7 +328,6 @@ class CommitService(BaseService):
         processed_member = {}
 
         # Handle username and displayName with fallbacks
-        username = member.get("username") or primary_email
         display_name = member.get("displayName") or primary_email.split("@")[0]
 
         # Clean up names once
@@ -742,7 +741,6 @@ class CommitService(BaseService):
         parent_hashes = commit_metadata_lines[7].split()
 
         # Handle optional fields safely
-        ref_names = commit_metadata_lines[8].strip() if len(commit_metadata_lines) > 8 else ""
         commit_message = commit_metadata_lines[9:] if len(commit_metadata_lines) > 9 else []
 
         # Validate and adjust commit datetime if it's in the future
