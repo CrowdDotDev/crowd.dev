@@ -126,13 +126,16 @@ export async function fetchMemberBotSuggestionsBySegment(
 ): Promise<IDbMemberBotSuggestionBySegment[]> {
   const rows = await qx.select(
     `
-    SELECT 
+    SELECT
       mbs."memberId",
       mbs.confidence,
-      msa."activityCount"
+      msa."activityCount",
+      m."displayName",
+      m.attributes -> 'avatarUrl' ->> 'default' AS "avatarUrl"
     FROM "memberBotSuggestions" mbs
-    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId" 
+    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId"
     AND msa."segmentId" = $(segmentId)
+    INNER JOIN "members" m ON mbs."memberId" = m.id
     ORDER BY msa."activityCount" DESC, mbs.confidence DESC
     LIMIT $(limit) OFFSET $(offset);
     `,

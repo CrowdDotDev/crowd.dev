@@ -89,4 +89,6 @@ export interface IDbMemberBotSuggestionBySegment {
   activityCount: number
   memberId: string
   confidence: number
+  displayName: string
+  avatarUrl: string
 }
