@@ -91,8 +91,11 @@ export default class MemberAttributesService extends LoggerBase {
 
             // case 1: system flagged as bot, user overrides to not-bot
             if (currentSystemIsBot && !newIsBot) {
-              // prevent future bot detection
-              await insertMemberNoBot(qx, memberId)
+              // prevent future bot detection and clean up existing suggestions
+              await Promise.all([
+                insertMemberNoBot(qx, memberId),
+                deleteMemberBotSuggestion(qx, memberId),
+              ])
             }
             // case 2: member changed from not-bot to bot (any source)
             else if (!currentDefaultIsBot && newIsBot) {
