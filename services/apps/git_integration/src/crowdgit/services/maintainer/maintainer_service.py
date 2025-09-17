@@ -18,7 +18,12 @@ from crowdgit.database.crud import (
     upsert_maintainer,
 )
 from crowdgit.enums import ErrorCode, ExecutionStatus, OperationType
-from crowdgit.errors import CrowdGitError, MaintainerFileNotFoundError, MaintanerAnalysisError
+from crowdgit.errors import (
+    CrowdGitError,
+    MaintainerFileNotFoundError,
+    MaintainerIntervalNotElapsedError,
+    MaintanerAnalysisError,
+)
 from crowdgit.models import CloneBatchInfo, Repository
 from crowdgit.models.maintainer_info import (
     AggregatedMaintainerInfo,
@@ -32,7 +37,7 @@ from crowdgit.models.service_execution import ServiceExecution
 from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.maintainer.bedrock import invoke_bedrock
 from crowdgit.services.utils import parse_repo_url
-from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
+from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS, MAINTAINER_UPDATE_INTERVAL_HOURS
 
 
 class MaintainerService(BaseService):
@@ -327,6 +332,41 @@ class MaintainerService(BaseService):
             total_cost=total_cost,
         )
 
+    async def check_if_interval_elapsed(self, repository: Repository) -> tuple[bool, float]:
+        """
+        Check if enough time has elapsed since the last maintainer run to process again.
+
+        Repositories with maintainer files are processed every {MAINTAINER_UPDATE_INTERVAL_HOURS} hours,
+        while repositories without maintainer files are retried every {MAINTAINER_RETRY_INTERVAL_DAYS} days.
+
+        Args:
+            repository: The repository to check the interval for
+
+        Returns:
+            tuple[bool, float]: (has_elapsed, remaining_hours) where has_elapsed indicates if
+            processing should occur, and remaining_hours shows time left until next processing
+        """
+        if not repository.last_maintainer_run_at:
+            self.logger.info(f"First time processing maintainers for repo {repository.remote}...")
+            return True, 0.0
+
+        time_since_last_run = datetime.now(timezone.utc) - repository.last_maintainer_run_at
+        hours_since_last_run = time_since_last_run.total_seconds() / 3600
+
+        if repository.maintainer_file:
+            remaining_hours = max(0, MAINTAINER_UPDATE_INTERVAL_HOURS - hours_since_last_run)
+            self.logger.info(
+                f"Repo with maintainers file will be processed only after {MAINTAINER_UPDATE_INTERVAL_HOURS} hours. Hours since last run: {hours_since_last_run:.2f}"
+            )
+            return hours_since_last_run >= MAINTAINER_UPDATE_INTERVAL_HOURS, remaining_hours
+        else:
+            required_hours = MAINTAINER_RETRY_INTERVAL_DAYS * 24
+            remaining_hours = max(0, required_hours - hours_since_last_run)
+            self.logger.info(
+                f"Repo without maintainers file will be processed only after {MAINTAINER_RETRY_INTERVAL_DAYS} days. Hours since last run: {hours_since_last_run:.2f}"
+            )
+            return hours_since_last_run >= required_hours, remaining_hours
+
     async def process_maintainers(
         self,
         repository: Repository,
@@ -339,27 +379,21 @@ class MaintainerService(BaseService):
         latest_maintainer_file = None
 
         try:
-            self.logger.info(f"Starting maintainers processing for repo: {batch_info.remote}")
             owner, repo_name = parse_repo_url(batch_info.remote)
             if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
                 self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
                 # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
                 return
 
-            # Check if configured days interval has passed since last run for repos without maintainers file
-            if not repository.maintainer_file and repository.last_maintainer_run_at:
-                days_since_last_run = (
-                    datetime.now(timezone.utc) - repository.last_maintainer_run_at
-                ).days
-                if days_since_last_run < MAINTAINER_RETRY_INTERVAL_DAYS:
-                    self.logger.info(
-                        f"Repo without maintainers file will be processed only after {MAINTAINER_RETRY_INTERVAL_DAYS} days. Days since last run: {days_since_last_run}"
-                    )
-                    return
-                self.logger.info(
-                    f"{MAINTAINER_RETRY_INTERVAL_DAYS} days have passed, processing repo without maintainers file. Days since last run: {days_since_last_run}"
+            has_interval_elapsed, remaining_hours = await self.check_if_interval_elapsed(
+                repository
+            )
+            if not has_interval_elapsed:
+                raise MaintainerIntervalNotElapsedError(
+                    f"Interval not elapsed yet. Remaining: {remaining_hours:.2f} hours"
                 )
 
+            self.logger.info(f"Starting maintainers processing for repo: {batch_info.remote}")
             maintainers = await self.extract_maintainers(batch_info.repo_path, owner, repo_name)
             latest_maintainer_file = maintainers.maintainer_file
             self.logger.info(
