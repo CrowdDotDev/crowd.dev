@@ -13,6 +13,40 @@ from crowdgit.errors import (
 from crowdgit.logger import logger
 
 
+def _safe_decode(data: bytes) -> str:
+    """
+    Safely decode bytes to string, handling various encodings that might be present in git output.
+
+    Git repositories can contain commit messages and other text in various encodings.
+    This function attempts to decode using UTF-8 first, then falls back to other common
+    encodings, and finally uses error handling to replace invalid bytes.
+
+    Args:
+        data: Raw bytes to decode
+
+    Returns:
+        str: Decoded string with invalid bytes replaced if necessary
+    """
+    if not data:
+        return ""
+
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+
+    # Try common legacy encodings
+    for encoding in ["latin-1", "cp1252", "iso-8859-1"]:
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+
+    # Final fallback: UTF-8 with error replacement
+    # This will replace invalid bytes with the Unicode replacement character (�)
+    return data.decode("utf-8", errors="replace")
+
+
 def parse_repo_url(repo_url: str):
     """
     Parse repository url and returns owner and repo_name
@@ -154,8 +188,9 @@ async def run_shell_command(
         else:
             stdout, stderr = await process.communicate(input=stdin_input)
 
-        stdout_text = stdout.decode("utf-8").strip() if stdout else ""
-        stderr_text = stderr.decode("utf-8").strip() if stderr else ""
+        # Handle potentially non-UTF-8 encoded output from git commands
+        stdout_text = _safe_decode(stdout).strip() if stdout else ""
+        stderr_text = _safe_decode(stderr).strip() if stderr else ""
 
         # Check return code
         if process.returncode == 0:
