@@ -468,7 +468,7 @@ function extractUniqueIds(activities: Array<{ organizationId?: string; memberId?
 export async function queryActivities(
   arg: IQueryActivitiesParameters,
   qx: QueryExecutor,
-  activityTypeSettings: ActivityTypeSettings,
+  activityTypeSettings?: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
@@ -507,7 +507,9 @@ export async function queryActivities(
     const org = activity.organizationId ? organizationsMap[activity.organizationId] : undefined
     const mem = activity.memberId ? membersMap[activity.memberId] : undefined
 
-    const display = ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
+    const display = activityTypeSettings
+      ? ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
+      : {}
 
     return {
       ...activity,
@@ -785,7 +787,7 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qx: QueryExecutor,
   memberIds: string[],
-  activityTypeSettings: ActivityTypeSettings,
+  activityTypeSettings?: ActivityTypeSettings,
   segmentIds?: string[],
 ): Promise<IQueryActivityResult[]> {
   const results = await getLatestMemberActivityRelations(qx, memberIds)

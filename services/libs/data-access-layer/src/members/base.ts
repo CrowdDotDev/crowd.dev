@@ -471,8 +471,8 @@ export async function queryMembersAdvanced(
     row.tags = []
   })
 
-  if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qx, qdbConn, memberIds, [segmentId])
+  if (memberIds.length > 0) {
+    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, undefined, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
