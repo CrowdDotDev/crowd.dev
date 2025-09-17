@@ -1,8 +1,10 @@
-from datetime import datetime
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
-from crowdgit.enums import RepositoryPriority, RepositoryState
 import uuid
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from crowdgit.enums import RepositoryPriority, RepositoryState
 
 
 class Repository(BaseModel):
@@ -10,19 +12,19 @@ class Repository(BaseModel):
 
     id: str = Field(..., description="Repository ID")
     url: str = Field(..., description="Repository URL")
-    segment_id: Optional[str] = Field(None, description="Segment ID")
-    integration_id: Optional[str] = Field(None, description="Integration ID")
+    segment_id: str | None = Field(None, description="Segment ID")
+    integration_id: str | None = Field(None, description="Integration ID")
     state: RepositoryState = Field(default=RepositoryState.PENDING, description="Repository state")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
-    last_processed_at: Optional[datetime] = Field(None, description="Last processing timestamp")
-    last_processed_commit: Optional[str] = Field(None, description="Last processed commit hash")
-    locked_at: Optional[datetime] = Field(
+    last_processed_at: datetime | None = Field(None, description="Last processing timestamp")
+    last_processed_commit: str | None = Field(None, description="Last processed commit hash")
+    locked_at: datetime | None = Field(
         None, description="Timestamp when repository was locked for processing"
     )
-    maintainer_file: Optional[str] = Field(
+    maintainer_file: str | None = Field(
         None, description="Name of the maintainer file found in repository"
     )
-    last_maintainer_run_at: Optional[datetime] = Field(
+    last_maintainer_run_at: datetime | None = Field(
         None,
         description="Timestamp of when the repository maintainer processing was last executed",
     )
@@ -30,7 +32,7 @@ class Repository(BaseModel):
     updated_at: datetime = Field(..., description="Last update timestamp")
 
     @classmethod
-    def from_db(cls, db_data: Dict[str, Any]) -> "Repository":
+    def from_db(cls, db_data: dict[str, Any]) -> "Repository":
         """Create Repository instance from database data"""
         # Convert database field names to model field names
         repo_data = db_data.copy()
@@ -69,8 +71,8 @@ class RepositoryCreate(BaseModel):
     """Model for creating a new repository"""
 
     url: str = Field(..., description="Repository URL")
-    segment_id: Optional[str] = Field(None, description="Segment ID")
-    integration_id: Optional[str] = Field(None, description="Integration ID")
+    segment_id: str | None = Field(None, description="Segment ID")
+    integration_id: str | None = Field(None, description="Integration ID")
     priority: int = Field(default=RepositoryPriority.NORMAL, description="Processing priority")
 
 
@@ -79,5 +81,5 @@ class RepositoryResponse(BaseModel):
 
     success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
-    data: Optional[Repository] = Field(None, description="Repository data")
-    error: Optional[str] = Field(None, description="Error message if any")
+    data: Repository | None = Field(None, description="Repository data")
+    error: str | None = Field(None, description="Error message if any")

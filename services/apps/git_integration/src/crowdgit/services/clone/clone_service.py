@@ -1,18 +1,18 @@
-from typing import Dict, Any, Optional, AsyncIterator
-from loguru import logger
-import tempfile
-import re
-import shutil
 import os
-from crowdgit.services.base.base_service import BaseService
-from crowdgit.services.utils import run_shell_command, get_repo_name, get_default_branch
-from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
-from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
-from crowdgit.database.crud import save_service_execution
-from crowdgit.errors import CommandExecutionError, CrowdGitError
-from tenacity import retry, stop_after_attempt, wait_fixed
+import shutil
+import tempfile
 import time
+from collections.abc import AsyncIterator
 from decimal import Decimal
+
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from crowdgit.database.crud import save_service_execution
+from crowdgit.enums import ErrorCode, ExecutionStatus, OperationType
+from crowdgit.errors import CommandExecutionError, CrowdGitError
+from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
+from crowdgit.services.base.base_service import BaseService
+from crowdgit.services.utils import get_default_branch, get_repo_name, run_shell_command
 
 DEFAULT_CLONE_BATCH_DEPTH = 10
 DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 2000
@@ -24,7 +24,7 @@ class CloneService(BaseService):
     def __init__(self):
         super().__init__()
 
-    async def _check_if_final_batch(self, path: str, target_commit_hash: Optional[str]) -> bool:
+    async def _check_if_final_batch(self, path: str, target_commit_hash: str | None) -> bool:
         """
         Final batch is determined if:
         - full history is cloned (no longer shallow_clone)
@@ -130,7 +130,7 @@ class CloneService(BaseService):
         self,
         batch_info: CloneBatchInfo,
         repo_path: str,
-        target_commit_hash: Optional[str],
+        target_commit_hash: str | None,
         clone_with_batches: bool,
     ) -> None:
         """Update batch info with repo path and final batch status.
@@ -164,7 +164,7 @@ class CloneService(BaseService):
         """
         shallow_file = os.path.join(repo_path, ".git", "shallow")
         try:
-            with open(shallow_file, "r") as f:
+            with open(shallow_file) as f:
                 oldest_commit = f.readline().strip()
             self.logger.info(f"Edge commit: {oldest_commit}")
             return oldest_commit
@@ -278,8 +278,8 @@ class CloneService(BaseService):
     async def clone_batches_generator(
         self,
         repository: Repository,
-        working_dir_cleanup: Optional[bool] = False,
-        clone_with_batches: Optional[bool] = True,
+        working_dir_cleanup: bool | None = False,
+        clone_with_batches: bool | None = True,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
         Async generator that yields CloneBatchInfo for repository cloning.

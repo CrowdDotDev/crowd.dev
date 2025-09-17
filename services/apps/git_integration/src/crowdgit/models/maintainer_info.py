@@ -1,26 +1,27 @@
+from typing import Literal
+
 from pydantic import BaseModel
-from typing import Optional, List, Literal
 
 
 class MaintainerFile(BaseModel):
-    file_name: Optional[str] = None
-    error: Optional[str] = None
+    file_name: str | None = None
+    error: str | None = None
 
 
 class MaintainerInfoItem(BaseModel):
-    github_username: Optional[str] = None
-    name: Optional[str] = None
-    title: Optional[str] = None
-    normalized_title: Optional[Literal["maintainer", "contributor"]] = None
+    github_username: str | None = None
+    name: str | None = None
+    title: str | None = None
+    normalized_title: Literal["maintainer", "contributor"] | None = None
 
 
 class MaintainerInfo(BaseModel):
-    info: Optional[list[MaintainerInfoItem]] = None
-    error: Optional[str] = None
+    info: list[MaintainerInfoItem] | None = None
+    error: str | None = None
 
 
 class AggregatedMaintainerInfoItems(BaseModel):
-    info: List[MaintainerInfoItem]
+    info: list[MaintainerInfoItem]
 
 
 class AggregatedMaintainerInfo(BaseModel):
@@ -29,6 +30,6 @@ class AggregatedMaintainerInfo(BaseModel):
 
 
 class MaintainerResult(BaseModel):
-    maintainer_file: Optional[str] = None
-    maintainer_info: Optional[List[MaintainerInfoItem]] = None
+    maintainer_file: str | None = None
+    maintainer_info: list[MaintainerInfoItem] | None = None
     total_cost: float = 0

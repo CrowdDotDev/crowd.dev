@@ -1,25 +1,26 @@
 import asyncio
 
+from crowdgit.database.crud import (
+    acquire_repo_for_processing,
+    mark_repo_as_processed,
+    release_repo,
+    update_last_processed_commit,
+)
+from crowdgit.enums import RepositoryState
+from crowdgit.errors import InternalError
+
 # Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
+from crowdgit.models.repository import Repository
 from crowdgit.services import (
     CloneService,
     CommitService,
-    SoftwareValueService,
     MaintainerService,
     QueueService,
+    SoftwareValueService,
 )
 from crowdgit.services.utils import get_repo_name
-from crowdgit.errors import InternalError
-from crowdgit.database.crud import (
-    acquire_repo_for_processing,
-    release_repo,
-    mark_repo_as_processed,
-    update_last_processed_commit,
-)
 from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
-from crowdgit.models.repository import Repository
-from crowdgit.enums import RepositoryState
 
 
 class RepositoryWorker:
@@ -49,7 +50,7 @@ class RepositoryWorker:
             logger.info("Worker _run() method completed")
         except Exception as e:
             logger.error("Worker failed: {}", e)
-            raise InternalError("Repository worker failed")
+            raise InternalError("Repository worker failed") from e
         finally:
             logger.info("Worker run() method exiting")
 

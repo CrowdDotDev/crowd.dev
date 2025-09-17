@@ -1,11 +1,7 @@
-from abc import ABC, abstractmethod
-from typing import Dict, Any
-
-# Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
 
 
-class BaseService(ABC):
+class BaseService:
     """Abstract base class for repository processing services"""
 
     def __init__(self):

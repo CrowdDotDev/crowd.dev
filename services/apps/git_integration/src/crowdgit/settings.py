@@ -4,7 +4,7 @@ import os
 def load_env_var(key: str, required=True, default=None):
     value = os.getenv(key, default)
     if required and value is None:
-        raise EnvironmentError(f"Missing required environment variable: {key}")
+        raise OSError(f"Missing required environment variable: {key}")
     return value
 
 

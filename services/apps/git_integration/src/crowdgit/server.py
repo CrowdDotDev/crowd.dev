@@ -1,19 +1,19 @@
 import asyncio
-import signal
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from loguru import logger
 
-from crowdgit.worker.repository_worker import RepositoryWorker
 from crowdgit.services import (
     CloneService,
     CommitService,
-    SoftwareValueService,
     MaintainerService,
     QueueService,
+    SoftwareValueService,
 )
 from crowdgit.settings import WORKER_SHUTDOWN_TIMEOUT_SEC
-from typing import AsyncIterator
+from crowdgit.worker.repository_worker import RepositoryWorker
 
 
 @asynccontextmanager

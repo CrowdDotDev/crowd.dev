@@ -1,38 +1,38 @@
-from typing import Dict, Any
-from loguru import logger
-from crowdgit.services.utils import parse_repo_url
-from crowdgit.services.base.base_service import BaseService
-from crowdgit.errors import MaintainerFileNotFoundError, MaintanerAnalysisError, CrowdGitError
-from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
-from crowdgit.models.service_execution import ServiceExecution
-from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
-from crowdgit.database.crud import save_service_execution
-import os
-import base64
 import asyncio
+import base64
+import os
+import time as time_module
+from datetime import datetime, time, timezone
+from decimal import Decimal
+
 import aiofiles
 import aiofiles.os
-from crowdgit.models.maintainer_info import (
-    MaintainerFile,
-    MaintainerInfo,
-    MaintainerResult,
-    MaintainerInfoItem,
-    AggregatedMaintainerInfo,
-    AggregatedMaintainerInfoItems,
-)
-from crowdgit.services.maintainer.bedrock import invoke_bedrock
 from slugify import slugify
+
 from crowdgit.database.crud import (
     find_github_identity,
-    upsert_maintainer,
-    update_maintainer_run,
     get_maintainers_for_repo,
+    save_service_execution,
     set_maintainer_end_date,
+    update_maintainer_run,
+    upsert_maintainer,
 )
-from datetime import datetime, timezone, time
-import time as time_module
-from decimal import Decimal
+from crowdgit.enums import ErrorCode, ExecutionStatus, OperationType
+from crowdgit.errors import CrowdGitError, MaintainerFileNotFoundError, MaintanerAnalysisError
 from crowdgit.models import CloneBatchInfo, Repository
+from crowdgit.models.maintainer_info import (
+    AggregatedMaintainerInfo,
+    AggregatedMaintainerInfoItems,
+    MaintainerFile,
+    MaintainerInfo,
+    MaintainerInfoItem,
+    MaintainerResult,
+)
+from crowdgit.models.service_execution import ServiceExecution
+from crowdgit.services.base.base_service import BaseService
+from crowdgit.services.maintainer.bedrock import invoke_bedrock
+from crowdgit.services.utils import parse_repo_url
+from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
 
 
 class MaintainerService(BaseService):
@@ -279,7 +279,7 @@ class MaintainerService(BaseService):
             file_path = os.path.join(repo_path, file)
             if await aiofiles.os.path.isfile(file_path):
                 self.logger.info(f"maintainer file: {file_path} found in repo")
-                async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+                async with aiofiles.open(file_path, encoding="utf-8") as f:
                     content = await f.read()
                 return file, base64.b64encode(content.encode()).decode(), 0
 
@@ -290,7 +290,7 @@ class MaintainerService(BaseService):
         if file_name:
             file_path = os.path.join(repo_path, file_name)
             if await aiofiles.os.path.isfile(file_path):
-                async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+                async with aiofiles.open(file_path, encoding="utf-8") as f:
                     content = await f.read()
                 self.logger.info(f"\nMaintainer file found: {file_name}")
                 return file_name, base64.b64encode(content.encode()).decode(), ai_cost

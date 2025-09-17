@@ -1,14 +1,17 @@
-from typing import Dict, Any, Optional, List
-from .registry import fetchval, fetchrow, executemany, execute, query
+from datetime import datetime
+from typing import Any
+
+from loguru import logger
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
+from crowdgit.enums import RepositoryPriority, RepositoryState
+from crowdgit.errors import RepoLockingError
 from crowdgit.models.repository import Repository
 from crowdgit.models.service_execution import ServiceExecution
-from .connection import get_db_connection
-from crowdgit.enums import RepositoryPriority, RepositoryState
-from loguru import logger
-from crowdgit.errors import RepoLockingError
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from crowdgit.settings import REPOSITORY_UPDATE_INTERVAL_HOURS
-from datetime import datetime
+
+from .connection import get_db_connection
+from .registry import execute, executemany, fetchrow, fetchval, query
 
 
 async def insert_repository(url: str, priority: int = 0) -> str:
@@ -22,7 +25,7 @@ async def insert_repository(url: str, priority: int = 0) -> str:
     return str(result)
 
 
-async def get_repository_by_url(url: str) -> Optional[Dict[str, Any]]:
+async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     """Get repository by URL"""
     sql_query = """
     SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile"
@@ -77,10 +80,10 @@ async def acquire_repository(query: str, params: tuple = None) -> Repository | N
                 return None
         except Exception as e:
             logger.error(f"failed to acquire repository with error: {e}. Retrying...")
-            raise RepoLockingError()
+            raise RepoLockingError() from e
 
 
-async def acquire_recurrent_repo() -> Optional[Repository]:
+async def acquire_recurrent_repo() -> Repository | None:
     """Acquire a regular (non-onboarding) repository, that were not processed in the last x hours (REPOSITORY_UPDATE_INTERVAL_HOURS)"""
     recurrent_repo_sql_query = """
     UPDATE git.repositories
@@ -107,7 +110,7 @@ async def acquire_recurrent_repo() -> Optional[Repository]:
     )
 
 
-async def acquire_repo_for_processing() -> Optional[Repository]:
+async def acquire_repo_for_processing() -> Repository | None:
     # prioritizing onboarding repositories
     # TODO: document priority logic and values(0, 1, 2)
     repo_to_process = await acquire_onboarding_repo()
@@ -158,7 +161,7 @@ async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
     return str(result)
 
 
-async def batch_insert_activities(records: List[tuple], batch_size=100):
+async def batch_insert_activities(records: list[tuple], batch_size=100):
     sql_query = """
     INSERT INTO integration.results(id, state, data, "tenantId", "integrationId")
     values($1, $2, $3, $4, $5)
@@ -195,7 +198,7 @@ async def upsert_maintainer(
     start_date: datetime | None = None,
 ):
     sql_query = """
-        INSERT INTO "maintainersInternal" 
+        INSERT INTO "maintainersInternal"
         ("role", "originalRole", "repoUrl", "repoId", "identityId", "startDate", "endDate")
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT ("repoId", "identityId", "startDate", "endDate") DO UPDATE
@@ -275,7 +278,7 @@ async def save_service_execution(service_execution: ServiceExecution) -> None:
     try:
         sql_query = """
         INSERT INTO git."serviceExecutions" (
-            "repoId", "operationType", "status", "errorCode", 
+            "repoId", "operationType", "status", "errorCode",
             "errorMessage", "executionTimeSec"
         )
         VALUES ($1, $2, $3, $4, $5, $6)
