@@ -1366,7 +1366,6 @@ export async function getActivitiesSortedByTimestamp(
       *
     FROM activities
     WHERE "deletedAt" IS NULL
-    AND "timestamp" > '1970-01-01T00:00:01Z'
     ${cursorQuery}
     ${segmentQuery}
     ORDER BY "timestamp" asc
