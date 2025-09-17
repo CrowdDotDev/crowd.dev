@@ -19,6 +19,5 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.updatedAt`
 
 ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY platform
 ENGINE_SORTING_KEY id
 ENGINE_VER updatedAt
