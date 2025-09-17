@@ -204,6 +204,11 @@ export async function addControlEvaluationAssessment(
                 "steps", 
                 "stepsExecuted",
                 "runDuration", 
+                "recommendation",
+                "start",
+                "end",
+                "value",
+                "changes",
                 "createdAt", 
                 "updatedAt"
             )
@@ -222,6 +227,11 @@ export async function addControlEvaluationAssessment(
                 $(steps),
                 $(stepsExecuted),
                 $(runDuration),
+                $(recommendation),
+                $(start),
+                $(end),
+                $(value),
+                $(changes),
                 now(), 
                 now()
             )
@@ -234,7 +244,12 @@ export async function addControlEvaluationAssessment(
                 "message"        = EXCLUDED."message",
                 "steps"          = EXCLUDED."steps",
                 "stepsExecuted"  = EXCLUDED."stepsExecuted",
-                "runDuration"    = EXCLUDED."runDuration"
+                "runDuration"    = EXCLUDED."runDuration",
+                "recommendation" = EXCLUDED."recommendation",
+                "start"          = EXCLUDED."start",
+                "end"            = EXCLUDED."end",
+                "value"          = EXCLUDED."value",
+                "changes"        = EXCLUDED."changes"
                 
     `,
     {
@@ -251,6 +266,11 @@ export async function addControlEvaluationAssessment(
       steps: assessment.steps,
       stepsExecuted: assessment.stepsExecuted,
       runDuration: assessment.runDuration,
+      recommendation: assessment.recommendation,
+      start: assessment.start,
+      end: assessment.end,
+      value: assessment.value ? JSON.stringify(assessment.value) : null,
+      changes: assessment.changes ? JSON.stringify(assessment.changes) : null,
     },
   )
 }
