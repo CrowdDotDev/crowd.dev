@@ -12,8 +12,7 @@
         <template #action>
           <div class="flex gap-3">
             <lf-button type="secondary" size="small" :disabled="itemsLoading[suggestion.memberId]" @click="markAsBot(suggestion, true)">
-              <!-- <lf-icon name="eye" /> -->
-              <img v-if="!itemsLoading[suggestion.memberId]" :src="botImage" alt="LFX logo" />
+              <lf-svg v-if="!itemsLoading[suggestion.memberId]" name="bot" class="w-4 h-4" />
               <lf-spinner v-else size="16px" />
               Mark as bot
             </lf-button>
@@ -58,6 +57,7 @@ import { ToastStore } from '@/shared/message/notification';
 import LfMemberBotSuggestionDropdown
   from '@/modules/member/components/suggestions/member-bot-suggestion-dropdown.vue';
 import LfScrollBodyControll from '@/ui-kit/scrollcontroll/ScrollBodyControll.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   projectGroup: string,
@@ -93,9 +93,6 @@ const loadBotSuggestions = () => {
 const markAsBot = (suggestion: any, bot = true) => {
   itemsLoading.value[suggestion.memberId] = true;
 
-  // setTimeout(() => {
-  //   itemsLoading.value[suggestion.memberId] = false;
-  // }, 1000);
   MemberService.updateAttributes(suggestion.memberId, {
     isBot: {
       custom: bot,
