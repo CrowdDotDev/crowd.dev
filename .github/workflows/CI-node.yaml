@@ -77,7 +77,7 @@ jobs:
       - name: Check for Python file changes
         id: changes
         run: |
-          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q "^services/apps/git_integration/"; then
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q "^services/apps/git_integration/.*\.py$"; then
             echo "python_changed=true" >> $GITHUB_OUTPUT
           else
             echo "python_changed=false" >> $GITHUB_OUTPUT
