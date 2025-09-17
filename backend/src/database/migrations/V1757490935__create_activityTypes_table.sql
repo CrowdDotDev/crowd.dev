@@ -8,8 +8,8 @@ CREATE TABLE "activityTypes" (
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX "idx_activityTypes_activityType"
-    ON "activityTypes" ("activityType");
+CREATE INDEX "idx_activityTypes_updatedAt"
+    ON "activityTypes" ("updatedAt");
 
 
 -- Insert Code Contributions activity types
