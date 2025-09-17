@@ -44,6 +44,68 @@ const pushCsv = (p: TBParams, key: string, v?: string[] | string): void => {
 }
 
 /* =========================
+ * Date normalization
+ * ========================= */
+
+/**
+ * Best-effort conversion of any input into a clean UTC ISO string.
+ * - Accepts Date instances, epoch numbers (ms or s), and strings (ISO-like, GMT with parentheses, etc.)
+ * - Cleans oddities like extra spaces in time components (e.g., "15: 01: 25")
+ * - Returns undefined when parsing fails
+ */
+const normalizeDate = (input: unknown): string | undefined => {
+  if (input == null) return undefined
+
+  // Date object
+  if (input instanceof Date && !isNaN(input.getTime())) return input.toISOString()
+
+  // Numeric epoch: if small (likely seconds), convert to ms
+  if (typeof input === 'number') {
+    const n = input > 1e12 ? input : input > 1e10 ? input : input * 1000
+    const d = new Date(n)
+    return isNaN(d.getTime()) ? undefined : d.toISOString()
+  }
+
+  // Strings: sanitize and try multiple parse strategies
+  if (typeof input === 'string') {
+    let s = input.trim()
+
+    // Keep only a reasonable prefix (defensive against log tails)
+    if (s.length > 200) s = s.slice(0, 200)
+
+    // Collapse spaces after colons in the time portion: "15: 01: 25" -> "15:01:25"
+    s = s.replace(/:\s+/g, ':')
+
+    // Drop trailing parenthetical TZ names: " (Coordinated Universal Time)"
+    s = s.replace(/\s*\([^)]+\)\s*$/, '')
+
+    // Try direct parse
+    let d = new Date(s)
+    if (!isNaN(d.getTime())) return d.toISOString()
+
+    // Fallback: extract ISO-like fragment
+    const isoLike = s.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?/i)
+    if (isoLike) {
+      d = new Date(isoLike[0].endsWith('Z') ? isoLike[0] : isoLike[0] + 'Z')
+      if (!isNaN(d.getTime())) return d.toISOString()
+    }
+
+    // Fallback: RFC-like with GMT offset (e.g., "Tue Sep 16 2025 15:40:08 GMT+0000")
+    const gmtLike = s.match(
+      /(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+\-]\d{4}/,
+    )
+    if (gmtLike) {
+      d = new Date(gmtLike[0])
+      if (!isNaN(d.getTime())) return d.toISOString()
+    }
+
+    return undefined
+  }
+
+  return undefined
+}
+
+/* =========================
  * Groups typing & utilities
  * ========================= */
 
@@ -129,7 +191,7 @@ type LeafField =
   | 'body'
   | 'timestamp'
 
-/** Map field → group keys (include/exclude) */
+/** Map a leaf field to include/exclude group keys */
 const KEY_MAP = {
   platform: { inc: 'platforms', exc: 'platforms_exclude' },
   channel: { inc: 'channels', exc: 'channels_exclude' },
@@ -150,20 +212,27 @@ type Delta = { kind: 'group'; group: GroupFilter } | { kind: 'meta'; meta: MetaD
 const asGroup = (g: GroupFilter): Delta => ({ kind: 'group', group: g })
 const asMeta = (m: MetaDelta): Delta => ({ kind: 'meta', meta: m })
 
-/** One leaf predicate → Delta (group/meta) */
+/**
+ * Convert a single leaf predicate into:
+ * - a group delta (include/exclude lists), or
+ * - a meta delta (startDate/endDate/searchTerm), or
+ * - ignored (e.g., timestamp inside OR/negation)
+ */
 const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolean): Delta => {
-  // timestamp → base AND window only (ignore inside OR / negated)
+  // timestamp → collect base AND window only (ignore inside OR/negation)
   if (field === 'timestamp') {
     if (inOr) return asMeta({ ignored: true })
     if (neg) return asMeta({ ignored: true })
-    const p = pred as { gte?: string; gt?: string; lte?: string; lt?: string }
+    const p = pred as { gte?: unknown; gt?: unknown; lte?: unknown; lt?: unknown }
     const meta: MetaDelta = {}
-    if (p?.gte || p?.gt) meta.startDate = String(p.gte ?? p.gt)
-    if (p?.lte || p?.lt) meta.endDate = String(p.lte ?? p.lt)
+    const sd = normalizeDate(p?.gte ?? p?.gt)
+    const ed = normalizeDate(p?.lte ?? p?.lt)
+    if (sd) meta.startDate = sd
+    if (ed) meta.endDate = ed
     return asMeta(meta)
   }
 
-  // textContains → global searchTerm (AND with everything)
+  // textContains → global searchTerm (AND with everything); negated is ignored
   if (
     typeof pred === 'object' &&
     pred !== null &&
@@ -190,7 +259,7 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
   return asMeta({})
 }
 
-/** If all branches are include-only on the same field → compress into one group */
+/** If all OR branches are include-only on the same key → compress into a single merged group */
 const getSingleIncludeKey = (g: GroupFilter): GroupKey | null => {
   for (const k of EXCLUDE_KEYS) if (getVals(g, k)) return null
   const present: GroupKey[] = []
@@ -219,7 +288,12 @@ const isArr = (x: unknown): x is unknown[] => Array.isArray(x)
 type NodeCtx = { neg: boolean; inOr: boolean; intoGroup?: GroupFilter }
 type Parsed = { groups: GroupFilter[]; startDate?: string; endDate?: string; searchTerm?: string }
 
-/** Parse logical filter (and/or/not + leaves) → { groups, startDate, endDate, searchTerm } */
+/**
+ * Parse the logical filter (and/or/not + leaves) into:
+ * - groups: array of OR-able include/exclude group filters,
+ * - startDate, endDate: base time window (AND),
+ * - searchTerm: global text search term (AND).
+ */
 function parseLogicalFilter(filter: unknown): Parsed {
   if (!isObj(filter)) return { groups: [] }
 
@@ -241,7 +315,7 @@ function parseLogicalFilter(filter: unknown): Parsed {
   const handleNode = (node: unknown, ctx: NodeCtx): void => {
     if (!isObj(node)) return
 
-    // NOT (if present)
+    // NOT
     if ('not' in node) {
       handleNode((node as Record<string, unknown>).not, {
         neg: !ctx.neg,
@@ -345,6 +419,12 @@ const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
  * Public builder
  * ========================= */
 
+/**
+ * Build the Tinybird parameter map from ExtendedArgs:
+ * - Handles segments, pagination, order, countOnly
+ * - Parses a logical filter into groups + meta (searchTerm / start/end dates)
+ * - Normalizes startDate/endDate into clean UTC ISO strings
+ */
 export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
   const params: TBParams = {}
 
@@ -377,9 +457,22 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
       : parsed.searchTerm
   if (st) params.searchTerm = st
 
-  // base time window (AND)
-  if (parsed.startDate) params.startDate = parsed.startDate
-  if (parsed.endDate) params.endDate = parsed.endDate
+  // base time window (AND) — normalize/clean just before emitting
+  const normalizedStart = normalizeDate(parsed.startDate)
+  const normalizedEnd = normalizeDate(parsed.endDate)
+  if (normalizedStart) params.startDate = normalizedStart
+  if (normalizedEnd) params.endDate = normalizedEnd
+
+  // If both present and out of order, swap to ensure start <= end
+  if (
+    typeof params.startDate === 'string' &&
+    typeof params.endDate === 'string' &&
+    params.startDate > params.endDate
+  ) {
+    const tmp = params.startDate
+    params.startDate = params.endDate
+    params.endDate = tmp
+  }
 
   // groups (max 5)
   const MAX = 5
