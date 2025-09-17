@@ -63,8 +63,6 @@ const props = defineProps<{
   projectGroup: string,
 }>();
 
-const botImage = new URL('@/assets/images/suggestions/bot.svg', import.meta.url).href;
-
 const loading = ref(true);
 const limit = ref(20);
 const offset = ref(0);
