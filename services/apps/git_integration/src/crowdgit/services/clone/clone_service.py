@@ -5,6 +5,7 @@ import time
 from collections.abc import AsyncIterator
 from decimal import Decimal
 
+import aiofiles
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from crowdgit.database.crud import save_service_execution
@@ -164,8 +165,8 @@ class CloneService(BaseService):
         """
         shallow_file = os.path.join(repo_path, ".git", "shallow")
         try:
-            with open(shallow_file) as f:
-                oldest_commit = f.readline().strip()
+            async with aiofiles.open(shallow_file, "r", encoding="utf-8") as f:
+                oldest_commit = (await f.readline()).strip()
             self.logger.info(f"Edge commit: {oldest_commit}")
             return oldest_commit
         except FileNotFoundError:

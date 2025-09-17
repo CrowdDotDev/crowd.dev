@@ -279,7 +279,7 @@ class MaintainerService(BaseService):
             file_path = os.path.join(repo_path, file)
             if await aiofiles.os.path.isfile(file_path):
                 self.logger.info(f"maintainer file: {file_path} found in repo")
-                async with aiofiles.open(file_path, encoding="utf-8") as f:
+                async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
                 return file, base64.b64encode(content.encode()).decode(), 0
 
@@ -290,7 +290,7 @@ class MaintainerService(BaseService):
         if file_name:
             file_path = os.path.join(repo_path, file_name)
             if await aiofiles.os.path.isfile(file_path):
-                async with aiofiles.open(file_path, encoding="utf-8") as f:
+                async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
                 self.logger.info(f"\nMaintainer file found: {file_name}")
                 return file_name, base64.b64encode(content.encode()).decode(), ai_cost

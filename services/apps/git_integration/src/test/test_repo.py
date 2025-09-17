@@ -68,12 +68,12 @@ def test_get_new_commits():
             timestamp = str(int(time.time()))  # Add this line to create a unique timestamp
 
             file_path = os.path.join(local_repo2, "afile")
-            with open(file_path) as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.readlines()
             content.pop()  # Remove one line
             content.append(f"New line 1 {timestamp}\n")  # Add unique lines
             content.append(f"New line 2 {timestamp}\n")  # Add unique lines
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.writelines(content)
 
             os.system(f"git -C {local_repo2} add afile")
