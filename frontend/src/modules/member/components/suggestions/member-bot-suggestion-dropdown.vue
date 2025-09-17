@@ -35,10 +35,7 @@ const props = defineProps<{
   suggestion: any,
 }>();
 
-const emit = defineEmits<{
-  (e: 'reload'): void;
-  (e: 'ignoreSuggestion', suggestion: any): void;
-}>();
+const emit = defineEmits<{(e: 'reload'): void; (e: 'ignoreSuggestion', suggestion: any): void;}>();
 
 const { trackEvent } = useProductTracking();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
@@ -50,7 +47,6 @@ const viewProfile = (suggestion: any) => {
     params: { id: suggestion.memberId },
     query: { projectGroup: selectedProjectGroup.value?.id },
   });
-
 };
 
 const ignore = (suggestion: any) => {

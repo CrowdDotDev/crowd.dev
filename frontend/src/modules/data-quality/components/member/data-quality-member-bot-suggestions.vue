@@ -11,13 +11,13 @@
       >
         <template #action>
           <div class="flex gap-3">
-            <lf-button type="secondary" size="small" @click="markAsBot(suggestion, true)" :disabled="itemsLoading[suggestion.memberId]">
+            <lf-button type="secondary" size="small" :disabled="itemsLoading[suggestion.memberId]" @click="markAsBot(suggestion, true)">
               <!-- <lf-icon name="eye" /> -->
-              <img alt="LFX logo" :src="botImage" v-if="!itemsLoading[suggestion.memberId]" />
+              <img v-if="!itemsLoading[suggestion.memberId]" :src="botImage" alt="LFX logo" />
               <lf-spinner v-else size="16px" />
               Mark as bot
             </lf-button>
-            <lf-member-bot-suggestion-dropdown :suggestion="suggestion" @reload="reload()" @ignoreSuggestion="markAsBot(suggestion, false)" />
+            <lf-member-bot-suggestion-dropdown :suggestion="suggestion" @reload="reload()" @ignore-suggestion="markAsBot(suggestion, false)" />
           </div>
         </template>
       </lf-data-quality-member-bot-suggestion-item>
@@ -97,10 +97,10 @@ const markAsBot = (suggestion: any, bot = true) => {
   //   itemsLoading.value[suggestion.memberId] = false;
   // }, 1000);
   MemberService.updateAttributes(suggestion.memberId, {
-    "isBot": {
-      "custom": bot,
-      "default": bot
-    }
+    isBot: {
+      custom: bot,
+      default: bot,
+    },
   }).then(() => {
     reload();
   }).catch((err) => {
