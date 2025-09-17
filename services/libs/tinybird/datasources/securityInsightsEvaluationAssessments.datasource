@@ -36,7 +36,7 @@ SCHEMA >
     `message` String `json:$.record.message` DEFAULT '',
     `stepsExecuted` UInt8 `json:$.record.stepsExecuted` DEFAULT 0,
     `runDuration` String `json:$.record.runDuration` DEFAULT '',
-    `recommendation` String `json:$.record.recommendation` DEFAULT '',
+    `recommendation` Nullable(String) `json:$.record.recommendation`,
     `start` String `json:$.record.start` DEFAULT '',
     `end` Nullable(String) `json:$.record.end`,
     `value` Nullable(String) `json:$.record.value`,
