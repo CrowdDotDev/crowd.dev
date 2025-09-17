@@ -4,7 +4,7 @@ import tempfile
 import time
 from collections.abc import AsyncIterator
 from decimal import Decimal
-import asyncio
+
 import aiofiles
 from tenacity import retry, stop_after_attempt, wait_fixed
 
