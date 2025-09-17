@@ -19,14 +19,6 @@
       <slot name="defaultFilters" />
     </div>
     <div class="flex items-center">
-      <button
-        v-if="['member', 'organization'].includes(module)"
-        type="button"
-        class="btn btn-link btn-link--md btn-link--primary mr-3"
-        @click="doExport"
-      >
-        <lf-icon name="file-arrow-down" :size="20" class="mr-1 flex items-center" />Export to CSV
-      </button>
       <app-inline-select-input
         v-if="sorter"
         v-model="model"

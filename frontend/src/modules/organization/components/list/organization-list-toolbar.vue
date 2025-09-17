@@ -6,11 +6,6 @@
         <lf-icon name="chevron-down" :size="24" />
       </lf-button>
       <template #dropdown>
-        <el-dropdown-item :command="{ action: 'export' }">
-          <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
-          Export to CSV
-        </el-dropdown-item>
-
         <el-tooltip
           v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
           content="Active member organizations of the Linux Foundation can't be merged into other organizations."
