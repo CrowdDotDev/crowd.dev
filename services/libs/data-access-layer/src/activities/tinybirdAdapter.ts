@@ -92,8 +92,9 @@ const normalizeDate = (input: unknown): string | undefined => {
 
     // Fallback: RFC-like with GMT offset (e.g., "Tue Sep 16 2025 15:40:08 GMT+0000")
     const gmtLike = s.match(
-      /(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+\-]\d{4}/,
+      /(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+-]\d{4}/,
     )
+
     if (gmtLike) {
       d = new Date(gmtLike[0])
       if (!isNaN(d.getTime())) return d.toISOString()
